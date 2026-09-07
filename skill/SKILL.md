@@ -37,9 +37,14 @@ GitHub Action 已经完成**确定性粗筛**，`snapshot.candidates` 不是最�
 
 - 行业盈利状态：`improving`，或 `stable + divergent/broad`；
 - 排除 ST；
+- 排除股价 `> 150` 元；
+- 排除 `PE-TTM > 30`；
+- 排除 `动态 PE > 30`；
 - 排除净利润非正；
 - 排除财务/价格结构数据不足；
 - 排除收入与利润同时严重坍塌的明显风险样本。
+
+PE 硬上限按“任一超过即剔除”执行：当 `pe_ttm` 或 `pe_dynamic` 有有效数值且大于 30 时，该股票不能进入 `snapshot.candidates`。缺失值不伪造为超标，但候选仍需满足现有估值字段可用性要求。
 
 Action 不做：
 
@@ -149,10 +154,13 @@ snapshot.market_state + snapshot.candidates
 主要使用：
 
 - `pe_ttm`；
+- `pe_dynamic`；
 - `pb`；
 - 当前盈利增速；
 - 行业盈利状态；
 - 盈利稳定性。
+
+`PE-TTM <= 30` 和 `动态 PE <= 30` 只是进入研究池的硬上限，不代表 `PE=29` 就一定便宜。正式估值仍必须结合盈利质量、行业周期和价格位置判断安全边际。
 
 禁止因为 PE/PB 绝对值低就自动判断低估；周期顶部、盈利快速下滑、低质量盈利必须降低估值可信度。
 
