@@ -7,6 +7,9 @@ import argparse
 import json
 from pathlib import Path
 
+MAX_PRICE = 150.0
+MAX_PE = 30.0
+
 
 def fail(message: str) -> None:
     raise SystemExit(f"snapshot validation failed: {message}")
@@ -89,9 +92,20 @@ def main() -> None:
         if missing:
             fail(f"candidate {code} missing fields: {missing}")
 
+        price = stock.get("price")
+        if not isinstance(price, (int, float)) or isinstance(price, bool) or price <= 0:
+            fail(f"candidate {code} has invalid price: {price!r}")
+        if price > MAX_PRICE:
+            fail(f"candidate {code} price={price!r} exceeds {MAX_PRICE}")
+
         fundamentals = stock.get("fundamentals") or {}
         if not fundamentals.get("report_date"):
             fail(f"candidate {code} missing report_date")
+
+        for pe_key in ("pe_ttm", "pe_dynamic"):
+            pe = fundamentals.get(pe_key)
+            if isinstance(pe, (int, float)) and not isinstance(pe, bool) and pe > MAX_PE:
+                fail(f"candidate {code} {pe_key}={pe!r} exceeds {MAX_PE}")
 
         structure = stock.get("price_structure") or {}
         if structure.get("position_pct") is None:
