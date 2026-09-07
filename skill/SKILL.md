@@ -2,9 +2,9 @@
 
 ## 1. 唯一目标
 
-从 `data/snapshot.json` 中寻找：
+从 `data/snapshot.json` 的确定性候选集中寻找：
 
-> 基本面没有明显恶化、行业盈利环境可接受、估值不过度透支，同时价格已经进入较有安全边际位置的 A 股公司。
+> 盈利没有明显恶化、行业盈利环境可接受、估值不过度透支，同时价格已经进入较有安全边际位置的 A 股公司。
 
 本 Skill 是 V2 唯一正式规则文件。不要再拆分 orchestrator / company-research / valuation / price-structure 等多个 Skill。
 
@@ -15,52 +15,72 @@
 正式执行只读取：
 
 - `data/snapshot.json`
-
-允许读取本文件解释规则。
+- 本文件 `skill/SKILL.md`
 
 默认禁止在正式榜单运行时：
 
-- 重新抓行情；
-- 重新生成K线；
+- 重新抓行情或生成K线；
 - 下载 GitHub Actions artifact；
 - 寻找 runtime snapshot / production bundle；
-- 因仓库最新 commit 与 snapshot 的 source commit 不一致而终止；
+- 因仓库最新 commit 与 `snapshot.source.commit` 不一致而终止；
 - 读取旧仓库中的旧研究 Skill 作为规则来源。
 
 `snapshot.source.commit` 只用于追溯，不是运行门禁。
 
 ---
 
-## 3. 快照可用性
+## 3. 数据层与判断层的边界
+
+GitHub Action 已经完成**确定性粗筛**，`snapshot.candidates` 不是最终榜单，只是减少正式运行读取量。
+
+粗筛只做：
+
+- 行业盈利状态：`improving`，或 `stable + divergent/broad`；
+- 排除 ST；
+- 排除净利润非正；
+- 排除财务/价格结构数据不足；
+- 排除收入与利润同时严重坍塌的明显风险样本。
+
+Action 不做：
+
+- 精确估值；
+- 目标价预测；
+- 多因子打分；
+- 买入判断；
+- 最终排序。
+
+因此正式任务不再重复扫描 3000+ 股票，只研究 `snapshot.candidates`。
+
+---
+
+## 4. 快照可用性
 
 满足以下条件即可运行：
 
 1. `schema_version = 1`；
 2. `trade_date` 存在；
-3. `stocks` 非空；
-4. 单只股票需要的字段缺失时，只淘汰该股票，不终止全榜。
+3. `counts.universe_stocks >= 3000`；
+4. `candidates` 非空。
 
-只有整个 snapshot 无法读取、股票数量明显异常或交易日字段缺失，才终止发布。
+单只候选字段不足时，只淘汰该股票，不终止全榜。
+
+只有整个 snapshot 无法读取、全市场覆盖明显异常或候选集为空，才终止发布。
 
 ---
 
-## 4. 主流程
-
-正式流程固定为：
+## 5. 正式主流程
 
 ```text
-snapshot
-  ↓
-行业过滤
-  ↓
-公司基本面过滤
-  ↓
-估值检查
-  ↓
-价格位置检查
-  ↓
-低风险候选排序
-  ↓
+snapshot.candidates
+        ↓
+盈利复核
+        ↓
+估值 / 安全边际判断
+        ↓
+价格位置判断
+        ↓
+排序
+        ↓
 发布
 ```
 
@@ -68,130 +88,121 @@ snapshot
 
 ---
 
-## 5. 行业过滤
+## 6. 盈利复核
 
-读取股票的 `sw_level3_code`，再读取 `snapshot.industry_state.level3[code]`。
+行业背景从：
 
-### 优先保留
+`snapshot.industry_state.level3[candidate.industry_code]`
 
-- `trend = improving`；
-- 或 `trend = stable` 且 `breadth = divergent/broad`。
+读取。
 
-### 默认排除
+公司重点看：
 
-- `trend = deteriorating`；
-- 行业映射缺失且无法判断行业状态。
+- `net_profit_yoy`；
+- `revenue_yoy`；
+- `deduct_basic_eps_yoy`；
+- `roe`；
+- `operating_cashflow_per_share`；
+- 行业 `trend / breadth / strength`。
 
-行业状态是背景过滤器，不直接决定最终排名。
+原则是“排除盈利恶化风险”，不是追求最高增长。
 
----
-
-## 6. 公司基本面过滤
-
-重点看盈利是否真实、是否恶化，而不是追求高增长。
-
-默认排除：
-
-- `net_profit <= 0` 且没有明确周期反转证据；
-- `net_profit_yoy` 大幅恶化；
-- `revenue_yoy` 与利润同时明显恶化；
-- 财务数据缺失到无法判断盈利状态。
-
-优先保留：
-
-- 净利润为正；
-- 收入与核心利润至少一项改善；
-- ROE、现金流、扣非利润没有明显质量警报。
-
-这里的原则是“先排雷”，不是用大量财务指标打分。
+若行业改善但公司利润明显背离，降低排名或淘汰；若公司改善但行业只是稳定分化，可保留，但盈利确定性低于行业和公司同时改善的样本。
 
 ---
 
-## 7. 估值检查
+## 7. 估值 / 安全边际
 
 估值只回答一个问题：
 
-> 当前价格是否已经给出足够安全边际，而不是预测精确目标价。
+> 当前价格是否已经给出足够安全边际？
 
 主要使用：
 
 - `pe_ttm`；
 - `pb`；
-- 盈利增速；
+- 当前盈利增速；
 - 行业盈利状态；
-- 公司盈利稳定性。
+- 盈利稳定性。
 
-禁止仅因为 PE/PB 数字低就判定低估；亏损、周期顶部和盈利快速下滑公司必须先通过盈利判断。
+禁止因为 PE/PB 绝对值低就自动判断低估；周期顶部、盈利快速下滑、低质量盈利必须降低估值可信度。
 
-V2 初期不强制生成复杂的 `reasonable_price_range / safe_price_ceiling / low_risk_buy_range` 多层价格对象。若能可靠估出合理价值，可给一个 `estimated_fair_value` 与安全边际说明；不能可靠估值时，标记 `valuation_confidence = low` 并降低排名，而不是终止全榜。
+V2 初期不恢复旧版 `reasonable_price_range / safe_price_ceiling / low_risk_buy_range` 多层价格体系。
+
+若可以形成可信估值，可给：
+
+- `estimated_fair_value`；
+- 当前价格相对合理价值的折价/溢价；
+- `valuation_confidence = high / medium / low`。
+
+不能可靠估值时降低排名，而不是终止整轮。
 
 ---
 
-## 8. 价格位置检查
+## 8. 价格位置
 
-价格结构用于判断“现在买的风险是否足够低”，不用于替代基本面。
+从 `candidate.price_structure` 读取：
 
-主要读取：
-
-- `trend.structure_60d.position_pct`；
+- `position_pct`；
 - `ma20 / ma60`；
-- `support_zones`；
-- `resistance_zones`；
-- `volume_profile_zones`；
+- `high_20d / low_20d`；
+- `close_change_5d_pct / close_change_20d_pct`；
 - `trend_state / break_state / invalidation`；
-- 20日高低点与近期涨跌幅。
+- `nearest_support`；
+- `nearest_volume_zone`；
+- `nearest_resistance`。
 
 优先：
 
-- 位于 60 日区间中低位；
-- 靠近有多次触碰或较高成交占比的支撑区域；
-- 下跌动能已经减弱，或结构没有继续破坏；
+- 60 日区间中低位；
+- 当前价靠近有效支撑或成交密集区；
+- 下跌动能减弱，结构没有继续破坏；
 - 上方不是紧邻强阻力。
 
 降低排名：
 
-- 已处于 60 日区间高位；
-- 短期快速拉升后远离支撑；
+- 60 日区间高位；
+- 短期快速拉升并远离支撑；
 - 明确跌破关键结构且尚未稳定。
 
-不要求右侧突破确认。低风险榜允许左侧买点，但必须明确失效价格或主要风险。
+不要求右侧突破确认。低风险榜允许左侧买点，但必须明确失效条件。
 
 ---
 
-## 9. 排名
+## 9. 排名规则
 
-不要建立几十项加权总分。
+禁止几十项加权总分。
 
-排序只看三个层级，按顺序比较：
+严格按三个层级比较：
 
-1. **安全边际**：当前估值和价格位置是否足够便宜；
-2. **盈利确定性**：行业与公司盈利是否至少稳定、最好改善；
-3. **结构风险**：是否接近支撑、是否存在明显继续下跌风险。
+1. **安全边际**：估值是否便宜、价格是否处于低风险位置；
+2. **盈利确定性**：行业和公司盈利是否稳定或改善；
+3. **结构风险**：支撑是否可靠、是否存在明显继续下跌风险。
 
 第一项是支配变量。
 
-若两个公司安全边际接近，再比较盈利确定性；仍接近，再比较价格结构。
+安全边际明显不足时，即使基本面优秀也不进入前列。
 
 ---
 
 ## 10. 发布格式
 
-正式榜单最多 10 只；没有足够合格股票时可以少于 10 只，甚至空榜。
+正式榜单最多 10 只；不够就少发，可以空榜。
 
 每只股票只输出：
 
 - 排名、代码、名称；
 - 当前价；
 - 行业盈利状态；
-- 一句话基本面判断；
+- 一句话盈利判断；
 - 一句话估值/安全边际判断；
 - 关键支撑或较优买入位置；
 - 主要失效条件。
 
-结尾给出：
+结尾仅给：
 
 - `snapshot.trade_date`；
-- 本轮有效候选数量；
-- 若空榜，直接说明“当前没有满足低风险条件的公司”。
+- `snapshot.counts.candidates`；
+- 本轮最终入榜数量。
 
 不要输出旧版流水线状态、SHA artifact、Gate 完成度或内部研究过程。
