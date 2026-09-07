@@ -26,8 +26,24 @@ def main() -> None:
 
     if data.get("schema_version") != 1:
         fail("schema_version must be 1")
-    if not data.get("trade_date"):
+    trade_date = data.get("trade_date")
+    if not trade_date:
         fail("trade_date is missing")
+
+    market_state = data.get("market_state")
+    if not isinstance(market_state, dict):
+        fail("market_state must be present")
+    if market_state.get("trade_date") != trade_date:
+        fail("market_state.trade_date must match snapshot.trade_date")
+    allowed_market_values = {
+        "trend": {"bullish", "bearish", "transition", "unknown"},
+        "breadth": {"strong", "weak", "neutral", "unknown"},
+        "liquidity": {"high", "low", "normal", "unknown"},
+        "risk_level": {"low", "medium", "high"},
+    }
+    for key, allowed in allowed_market_values.items():
+        if market_state.get(key) not in allowed:
+            fail(f"invalid market_state.{key}: {market_state.get(key)!r}")
 
     counts = data.get("counts") or {}
     universe = counts.get("universe_stocks") or 0
@@ -88,7 +104,7 @@ def main() -> None:
     print(
         "snapshot valid: "
         f"universe={universe} candidates={candidate_count} industries={industries} "
-        f"size={size_mb:.2f}MB"
+        f"market_risk={market_state.get('risk_level')} size={size_mb:.2f}MB"
     )
 
 
