@@ -131,6 +131,10 @@ jobs:
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/build_snapshot.py --source . --output data/snapshot.json
 
+      - name: Normalize snapshot source metadata
+        if: steps.gate.outputs.persist == 'true'
+        run: python scripts/normalize_snapshot_source.py data/snapshot.json
+
       - name: Validate compact snapshot
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/validate_snapshot.py data/snapshot.json
