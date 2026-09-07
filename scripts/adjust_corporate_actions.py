@@ -42,7 +42,7 @@ def main() -> int:
         raise SystemExit("data/latest.json missing")
     latest = json.loads(LATEST.read_text(encoding="utf-8"))
     quotes = latest.get("stocks") or {}
-    trade_date = latest.get("trade_date")
+    trade_date = str(latest.get("trade_date") or "")
     events = []
     changed_files = 0
 
@@ -53,11 +53,16 @@ def main() -> int:
             quote = quotes.get(code) or {}
             reference = fnum(quote.get("prev_close"))
             rows = item.get("history") or []
-            if reference is None or not rows:
+            if reference is None or not rows or not trade_date:
                 continue
-            previous_close = fnum(rows[-1].get("close"))
+
+            prior_rows = [row for row in rows if str(row.get("date") or "") < trade_date]
+            if not prior_rows:
+                continue
+            previous_close = fnum(prior_rows[-1].get("close"))
             if previous_close is None or previous_close <= 0:
                 continue
+
             factor = reference / previous_close
             if abs(factor - 1.0) < THRESHOLD:
                 continue
@@ -71,13 +76,16 @@ def main() -> int:
                 })
                 continue
 
+            # Only rebase observations before the current trade date. This makes a
+            # same-day workflow rerun idempotent if today's row already exists.
             for row in rows:
-                scale_row(row, factor)
+                if str(row.get("date") or "") < trade_date:
+                    scale_row(row, factor)
             scale_summary(item.get("long_term_summary") or {}, factor)
             item["last_corporate_action_adjustment"] = {
                 "trade_date": trade_date,
                 "factor": round(factor, 10),
-                "detected_by": "provider_prev_close_vs_stored_close",
+                "detected_by": "provider_prev_close_vs_stored_prior_close",
             }
             basis = str(item.get("history_basis") or "live_close_only")
             if "reference_adjusted" not in basis:
@@ -99,7 +107,7 @@ def main() -> int:
         "schema_version": 1,
         "generated_at": datetime.now(TZ).isoformat(),
         "trade_date": trade_date,
-        "method": "compare current provider prev_close with stored prior close; rebase old OHLC when mismatch >= 0.5%",
+        "method": "compare current provider prev_close with stored prior-session close; rebase older OHLC when mismatch >= 0.5%",
         "adjustments": sum(1 for x in events if x["status"] == "history_rebased"),
         "blocked": sum(1 for x in events if x["status"].startswith("blocked")),
         "changed_history_shards": changed_files,
