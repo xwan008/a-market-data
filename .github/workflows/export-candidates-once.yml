@@ -1,0 +1,35 @@
+name: Export Candidate Table Once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/export-candidates-once.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Print compact candidate table
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('data/snapshot.json',encoding='utf-8'))
+          print('META',json.dumps({
+            'trade_date':d.get('trade_date'),
+            'market_status':d.get('market_status'),
+            'counts':d.get('counts'),
+            'coverage':d.get('coverage'),
+            'market_state':d.get('market_state')
+          },ensure_ascii=False,separators=(',',':')))
+          print('HEADER|code|name|price|industry_code|industry_name|pe_ttm|pe_dynamic|pb|roe|revenue_yoy|net_profit_yoy|deduct_eps_yoy|ocf_ps|pos60|ma20|ma60|chg5|chg20|trend_state|break_state|support|volume_zone|resistance')
+          for code,s in sorted((d.get('candidates') or {}).items()):
+            f=s.get('fundamentals') or {}; p=s.get('price_structure') or {}
+            def center(x):
+              return (x or {}).get('center')
+            vals=[code,s.get('name'),s.get('price'),s.get('industry_code'),s.get('industry_name'),f.get('pe_ttm'),f.get('pe_dynamic'),f.get('pb'),f.get('roe'),f.get('revenue_yoy'),f.get('net_profit_yoy'),f.get('deduct_basic_eps_yoy'),f.get('operating_cashflow_per_share'),p.get('position_pct'),p.get('ma20'),p.get('ma60'),p.get('close_change_5d_pct'),p.get('close_change_20d_pct'),p.get('trend_state'),p.get('break_state'),center(p.get('nearest_support')),center(p.get('nearest_volume_zone')),center(p.get('nearest_resistance'))]
+            print('ROW|'+'|'.join('' if v is None else str(v) for v in vals))
+          PY
