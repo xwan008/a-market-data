@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Minimal integrity checks for data/snapshot.json."""
+"""Minimal integrity checks for compact data/snapshot.json."""
 
 from __future__ import annotations
 
@@ -29,56 +29,66 @@ def main() -> None:
     if not data.get("trade_date"):
         fail("trade_date is missing")
 
-    stocks = data.get("stocks")
-    if not isinstance(stocks, dict) or len(stocks) < 3000:
-        fail(f"unexpected stock count: {0 if not isinstance(stocks, dict) else len(stocks)}")
+    counts = data.get("counts") or {}
+    universe = counts.get("universe_stocks") or 0
+    candidate_count = counts.get("candidates") or 0
+    industries = counts.get("industries") or 0
 
-    usable_price = 0
-    usable_fundamentals = 0
-    usable_trend = 0
-    mapped_industry = 0
+    if universe < 3000:
+        fail(f"unexpected upstream universe size: {universe}")
+    if industries < 50:
+        fail(f"unexpected industry count: {industries}")
 
-    for stock in stocks.values():
-        if isinstance(stock.get("price"), (int, float)) and stock["price"] > 0:
-            usable_price += 1
+    candidates = data.get("candidates")
+    if not isinstance(candidates, dict):
+        fail("candidates must be an object")
+    if len(candidates) != candidate_count:
+        fail("counts.candidates does not match actual candidates length")
+    if candidate_count == 0:
+        fail("candidate universe is unexpectedly empty")
+    if candidate_count > universe:
+        fail("candidate count cannot exceed upstream universe")
+
+    coverage = data.get("coverage") or {}
+    thresholds = {
+        "price_pct": 0.95,
+        "fundamentals_pct": 0.80,
+        "trend_pct": 0.90,
+        "industry_mapping_pct": 0.80,
+    }
+    for key, threshold in thresholds.items():
+        value = coverage.get(key)
+        if not isinstance(value, (int, float)) or value < threshold:
+            fail(f"{key}={value!r} < required {threshold:.0%}")
+
+    required_candidate_fields = (
+        "name",
+        "price",
+        "industry_code",
+        "fundamentals",
+        "price_structure",
+    )
+    for code, stock in candidates.items():
+        missing = [key for key in required_candidate_fields if stock.get(key) is None]
+        if missing:
+            fail(f"candidate {code} missing fields: {missing}")
 
         fundamentals = stock.get("fundamentals") or {}
-        if fundamentals.get("report_date") and (
-            fundamentals.get("pe_ttm") is not None
-            or fundamentals.get("pb") is not None
-            or fundamentals.get("net_profit") is not None
-        ):
-            usable_fundamentals += 1
+        if not fundamentals.get("report_date"):
+            fail(f"candidate {code} missing report_date")
 
-        trend = stock.get("trend") or {}
-        if (trend.get("points") or 0) >= 20 and trend.get("last_date"):
-            usable_trend += 1
+        structure = stock.get("price_structure") or {}
+        if structure.get("position_pct") is None:
+            fail(f"candidate {code} missing position_pct")
 
-        if stock.get("industry_mapping_status") == "mapped" and stock.get("sw_level3_code"):
-            mapped_industry += 1
-
-    total = len(stocks)
-    thresholds = {
-        "price": (usable_price, 0.95),
-        "fundamentals": (usable_fundamentals, 0.80),
-        "trend": (usable_trend, 0.90),
-        "industry_mapping": (mapped_industry, 0.80),
-    }
-
-    for name, (count, ratio) in thresholds.items():
-        actual = count / total
-        if actual < ratio:
-            fail(f"{name} coverage {actual:.1%} < required {ratio:.0%}")
-
-    counts = data.get("counts") or {}
-    if counts.get("stocks") != total:
-        fail("counts.stocks does not match actual stocks length")
+    size_mb = path.stat().st_size / (1024 * 1024)
+    if size_mb > 3.0:
+        fail(f"snapshot is too large for V2 target: {size_mb:.2f} MB")
 
     print(
         "snapshot valid: "
-        f"stocks={total} price={usable_price/total:.1%} "
-        f"fundamentals={usable_fundamentals/total:.1%} "
-        f"trend={usable_trend/total:.1%} industry={mapped_industry/total:.1%}"
+        f"universe={universe} candidates={candidate_count} industries={industries} "
+        f"size={size_mb:.2f}MB"
     )
 
 
