@@ -13,23 +13,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Print compact candidate table
+      - name: Print industry summary
         run: |
           python - <<'PY'
-          import json
+          import json, math
+          from collections import defaultdict
           d=json.load(open('data/snapshot.json',encoding='utf-8'))
-          print('META',json.dumps({
-            'trade_date':d.get('trade_date'),
-            'market_status':d.get('market_status'),
-            'counts':d.get('counts'),
-            'coverage':d.get('coverage'),
-            'market_state':d.get('market_state')
-          },ensure_ascii=False,separators=(',',':')))
-          print('HEADER|code|name|price|industry_code|industry_name|pe_ttm|pe_dynamic|pb|roe|revenue_yoy|net_profit_yoy|deduct_eps_yoy|ocf_ps|pos60|ma20|ma60|chg5|chg20|trend_state|break_state|support|volume_zone|resistance')
-          for code,s in sorted((d.get('candidates') or {}).items()):
-            f=s.get('fundamentals') or {}; p=s.get('price_structure') or {}
-            def center(x):
-              return (x or {}).get('center')
-            vals=[code,s.get('name'),s.get('price'),s.get('industry_code'),s.get('industry_name'),f.get('pe_ttm'),f.get('pe_dynamic'),f.get('pb'),f.get('roe'),f.get('revenue_yoy'),f.get('net_profit_yoy'),f.get('deduct_basic_eps_yoy'),f.get('operating_cashflow_per_share'),p.get('position_pct'),p.get('ma20'),p.get('ma60'),p.get('close_change_5d_pct'),p.get('close_change_20d_pct'),p.get('trend_state'),p.get('break_state'),center(p.get('nearest_support')),center(p.get('nearest_volume_zone')),center(p.get('nearest_resistance'))]
-            print('ROW|'+'|'.join('' if v is None else str(v) for v in vals))
+          groups=defaultdict(list)
+          for code,s in (d.get('candidates') or {}).items():
+            groups[(s.get('industry_code'),s.get('industry_name'))].append((code,s))
+          print('INDUSTRY_COUNT',len(groups))
+          for (ic,name),rows in sorted(groups.items(),key=lambda kv:(-len(kv[1]),str(kv[0][1]))):
+            # Preparation ranking only: profitability + valuation, never a formal buy score.
+            def prep(item):
+              code,s=item; f=s.get('fundamentals') or {}
+              pe=f.get('pe_dynamic') if isinstance(f.get('pe_dynamic'),(int,float)) and f.get('pe_dynamic')>0 else f.get('pe_ttm')
+              np=f.get('net_profit_yoy') if isinstance(f.get('net_profit_yoy'),(int,float)) else -999
+              rev=f.get('revenue_yoy') if isinstance(f.get('revenue_yoy'),(int,float)) else -999
+              roe=f.get('roe') if isinstance(f.get('roe'),(int,float)) else -999
+              ded=f.get('deduct_basic_eps_yoy') if isinstance(f.get('deduct_basic_eps_yoy'),(int,float)) else -999
+              return (np>0, ded>0, rev>0, roe, -(pe if isinstance(pe,(int,float)) and pe>0 else 999))
+            top=sorted(rows,key=prep,reverse=True)[:5]
+            print(f'IND|{ic}|{name}|{len(rows)}')
+            for code,s in top:
+              f=s.get('fundamentals') or {}; p=s.get('price_structure') or {}
+              print('TOP|{}|{}|{}|pe_ttm={}|pe_dyn={}|pb={}|roe={}|rev={}|np={}|ded={}|ocf={}|pos={}|support={}|vol={}'.format(
+                code,s.get('name'),s.get('price'),f.get('pe_ttm'),f.get('pe_dynamic'),f.get('pb'),f.get('roe'),f.get('revenue_yoy'),f.get('net_profit_yoy'),f.get('deduct_basic_eps_yoy'),f.get('operating_cashflow_per_share'),p.get('position_pct'),(p.get('nearest_support') or {}).get('center'),(p.get('nearest_volume_zone') or {}).get('center')))
           PY
