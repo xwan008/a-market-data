@@ -22,10 +22,10 @@
 - 重新抓行情或生成K线；
 - 下载 GitHub Actions artifact；
 - 寻找 runtime snapshot / production bundle；
-- 因仓库最新 commit 与 `snapshot.source.commit` 不一致而终止；
+- 做 repo commit SHA / runtime artifact 绑定检查；
 - 读取旧仓库中的旧研究 Skill 作为规则来源。
 
-`snapshot.source.commit` 只用于追溯，不是运行门禁。
+Git 历史负责追溯，正式运行不再把 commit SHA 当门禁条件。
 
 ---
 
