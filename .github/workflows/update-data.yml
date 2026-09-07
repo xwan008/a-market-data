@@ -16,7 +16,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
 
     steps:
       - name: Checkout repository
@@ -33,21 +33,8 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Preserve previous verified snapshot
-        shell: bash
-        run: |
-          if [ -f data/latest.json ]; then
-            cp data/latest.json /tmp/latest.previous.json
-          fi
-
-      - name: Fetch current market and fundamentals
-        run: python scripts/fetch_market_resilient.py
-
-      - name: Restore prior valuation only when fresh valuation is unavailable
-        run: |
-          python scripts/restore_valuation_fallback.py \
-            --current data/latest.json \
-            --previous /tmp/latest.previous.json
+      - name: Fetch daily quotes and valuation
+        run: python scripts/fetch_daily_market.py
 
       - name: Validate completed market session
         id: gate
@@ -75,11 +62,8 @@ jobs:
           fundamental = latest.get("fundamental_stats") or {}
           valuation_coverage = int(fundamental.get("valuation_usable") or 0) / total if total else 0
           financial_coverage = int(fundamental.get("financial_usable") or 0) / total if total else 0
-          fundamental_errors = fundamental.get("errors") or []
-          fatal_fundamental_errors = [
-              error for error in fundamental_errors
-              if not str(error).startswith("eastmoney_valuation:")
-          ]
+          errors = fundamental.get("errors") or []
+          fatal_errors = [error for error in errors if not str(error).startswith("eastmoney_valuation:")]
 
           persist = bool(
               status == "closed"
@@ -89,7 +73,7 @@ jobs:
               and invalid_ratio <= 0.01
               and valuation_coverage >= 0.95
               and financial_coverage >= 0.95
-              and not fatal_fundamental_errors
+              and not fatal_errors
           )
 
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
@@ -99,19 +83,21 @@ jobs:
               "trade_date": latest.get("trade_date"),
               "market_status": status,
               "stocks": total,
-              "source_ok": source_ok,
               "quote_coverage": round(quote_coverage, 4),
-              "invalid_ratio": round(invalid_ratio, 4),
               "valuation_coverage": round(valuation_coverage, 4),
               "valuation_fresh_usable": fundamental.get("valuation_fresh_usable"),
               "valuation_stale_fallback": fundamental.get("valuation_stale_fallback"),
               "financial_coverage": round(financial_coverage, 4),
-              "fatal_fundamental_errors": fatal_fundamental_errors,
+              "financial_refresh_mode": fundamental.get("financial_refresh_mode"),
               "persist": persist,
           }, ensure_ascii=False))
           PY
 
-      - name: Append completed session to rolling K-line history
+      - name: Align prior K-line history for corporate actions
+        if: steps.gate.outputs.persist == 'true'
+        run: python scripts/adjust_corporate_actions.py
+
+      - name: Append completed session to 180-day rolling K-line history
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/history_store.py
 
@@ -119,17 +105,25 @@ jobs:
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/build_history.py
 
+      - name: Build daily market environment state
+        if: steps.gate.outputs.persist == 'true'
+        run: python scripts/build_market_state.py
+
       - name: Rebuild quote shards
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/build_bridge.py
 
-      - name: Add industry mapping to quote shards
+      - name: Apply industry mapping
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/enrich_shards_with_industry.py
 
       - name: Build compact candidate snapshot
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/build_snapshot.py --source . --output data/snapshot.json
+
+      - name: Attach market environment to snapshot
+        if: steps.gate.outputs.persist == 'true'
+        run: python scripts/attach_market_state.py data/snapshot.json
 
       - name: Normalize snapshot source metadata
         if: steps.gate.outputs.persist == 'true'
@@ -139,19 +133,19 @@ jobs:
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/validate_snapshot.py data/snapshot.json
 
-      - name: Commit updated market data
+      - name: Commit updated daily data
         if: steps.gate.outputs.persist == 'true'
         shell: bash
         run: |
           if ! git status --porcelain -- data | grep -q .; then
-            echo "market data unchanged"
+            echo "daily market data unchanged"
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A data
-          git commit -m "data: update V2 market dataset"
+          git commit -m "data: update daily V2 market dataset"
 
           for attempt in 1 2 3; do
             git pull --rebase origin main
