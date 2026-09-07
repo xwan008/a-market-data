@@ -2,6 +2,13 @@ name: Update V2 Snapshot
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "scripts/**"
+      - "skill/**"
+      - ".github/workflows/update-data.yml"
   schedule:
     # 16:20 Asia/Shanghai, Monday-Friday.
     # GitHub cron uses UTC and may start a few minutes late.
