@@ -13,6 +13,9 @@ import json
 from pathlib import Path
 from typing import Any
 
+MAX_PRICE = 150.0
+MAX_PE = 30.0
+
 
 def load_json(path: Path) -> dict[str, Any]:
     with path.open("r", encoding="utf-8") as f:
@@ -58,6 +61,8 @@ def company_allowed(raw: dict[str, Any]) -> bool:
     price = raw.get("price")
     if not is_number(price) or price <= 0:
         return False
+    if price > MAX_PRICE:
+        return False
 
     fundamentals = raw.get("fundamentals") or {}
     if not fundamentals.get("report_date"):
@@ -67,9 +72,16 @@ def company_allowed(raw: dict[str, Any]) -> bool:
     if not is_number(net_profit) or net_profit <= 0:
         return False
 
+    pe_ttm = fundamentals.get("pe_ttm")
+    pe_dynamic = fundamentals.get("pe_dynamic")
+    if is_number(pe_ttm) and pe_ttm > MAX_PE:
+        return False
+    if is_number(pe_dynamic) and pe_dynamic > MAX_PE:
+        return False
+
     if not any(
         is_number(fundamentals.get(key))
-        for key in ("pe_ttm", "pb", "market_cap")
+        for key in ("pe_ttm", "pe_dynamic", "pb", "market_cap")
     ):
         return False
 
@@ -142,6 +154,7 @@ def compact_candidate(raw: dict[str, Any]) -> dict[str, Any]:
         "fundamentals": {
             "report_date": fundamentals.get("report_date"),
             "pe_ttm": fundamentals.get("pe_ttm"),
+            "pe_dynamic": fundamentals.get("pe_dynamic"),
             "pb": fundamentals.get("pb"),
             "market_cap": fundamentals.get("market_cap"),
             "roe": fundamentals.get("roe"),
@@ -221,7 +234,7 @@ def build_snapshot(source: Path) -> dict[str, Any]:
             fundamentals = raw.get("fundamentals") or {}
             if fundamentals.get("report_date") and any(
                 is_number(fundamentals.get(key))
-                for key in ("pe_ttm", "pb", "net_profit")
+                for key in ("pe_ttm", "pe_dynamic", "pb", "net_profit")
             ):
                 fundamentals_count += 1
 
@@ -262,7 +275,7 @@ def build_snapshot(source: Path) -> dict[str, Any]:
         "prefilter": {
             "purpose": "deterministic coarse risk reduction only; no valuation or ranking",
             "industry": "improving OR stable with divergent/broad breadth",
-            "company": "non-ST, positive net profit, usable valuation fields, >=20 trend points, no simultaneous severe revenue/profit collapse",
+            "company": "non-ST, 0 < price <= 150, positive net profit, PE-TTM <= 30 when available, dynamic PE <= 30 when available, usable valuation fields, >=20 trend points, no simultaneous severe revenue/profit collapse",
         },
         "counts": {
             "universe_stocks": universe_count,
