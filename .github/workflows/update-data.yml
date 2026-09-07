@@ -1,4 +1,4 @@
-name: Update V2 Snapshot
+name: Update V2 Market Data
 
 on:
   workflow_dispatch:
@@ -11,58 +11,140 @@ on:
       - ".github/workflows/update-data.yml"
   schedule:
     # 16:20 Asia/Shanghai, Monday-Friday.
-    # GitHub cron uses UTC and may start a few minutes late.
     - cron: "20 8 * * 1-5"
 
 permissions:
   contents: write
 
 concurrency:
-  group: update-v2-snapshot
+  group: update-v2-market-data
   cancel-in-progress: false
 
 jobs:
-  build-snapshot:
+  update:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
 
     steps:
-      - name: Checkout V2 repository
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
-      - name: Checkout shared upstream data
-        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          repository: xwan008/a-share-market-data
-          ref: main
-          path: upstream
-          fetch-depth: 1
-          sparse-checkout: |
-            data/shards
-            data/research/industry_state.json
-          sparse-checkout-cone-mode: false
+          python-version: "3.12"
+          cache: pip
 
-      - name: Build snapshot
-        run: |
-          python scripts/build_snapshot.py \
-            --source upstream \
-            --output data/snapshot.json
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
-      - name: Validate snapshot
-        run: python scripts/validate_snapshot.py data/snapshot.json
+      - name: Fetch current market and fundamentals
+        run: python scripts/fetch_market_resilient.py
 
-      - name: Commit snapshot when changed
+      - name: Validate completed market session
+        id: gate
         shell: bash
         run: |
-          if git diff --quiet -- data/snapshot.json && git ls-files --error-unmatch data/snapshot.json >/dev/null 2>&1; then
-            echo "snapshot unchanged"
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          latest = json.loads(Path("data/latest.json").read_text(encoding="utf-8"))
+          stocks = latest.get("stocks") or {}
+          total = len(stocks)
+          status = str(latest.get("market_status") or "")
+
+          source_status = latest.get("source_status") or {}
+          source_ok = [name for name in ("sina", "tencent") if source_status.get(name) == "ok"]
+
+          validation = latest.get("validation_stats") or {}
+          usable = int(validation.get("high") or 0) + int(validation.get("medium") or 0)
+          invalid = int(validation.get("invalid") or 0)
+          quote_coverage = usable / total if total else 0
+          invalid_ratio = invalid / total if total else 1
+
+          fundamental = latest.get("fundamental_stats") or {}
+          valuation_coverage = int(fundamental.get("valuation_usable") or 0) / total if total else 0
+          financial_coverage = int(fundamental.get("financial_usable") or 0) / total if total else 0
+          fundamental_errors = fundamental.get("errors") or []
+
+          persist = bool(
+              status == "closed"
+              and total >= 3000
+              and source_ok
+              and quote_coverage >= 0.99
+              and invalid_ratio <= 0.01
+              and valuation_coverage >= 0.95
+              and financial_coverage >= 0.95
+              and not fundamental_errors
+          )
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
+              fh.write(f"persist={'true' if persist else 'false'}\n")
+
+          print(json.dumps({
+              "trade_date": latest.get("trade_date"),
+              "market_status": status,
+              "stocks": total,
+              "source_ok": source_ok,
+              "quote_coverage": round(quote_coverage, 4),
+              "invalid_ratio": round(invalid_ratio, 4),
+              "valuation_coverage": round(valuation_coverage, 4),
+              "financial_coverage": round(financial_coverage, 4),
+              "persist": persist,
+          }, ensure_ascii=False))
+          PY
+
+      - name: Append completed session to rolling K-line history
+        if: steps.gate.outputs.persist == 'true'
+        run: python scripts/history_store.py
+
+      - name: Rebuild trend and price structure summary
+        if: steps.gate.outputs.persist == 'true'
+        run: python scripts/build_history.py
+
+      - name: Rebuild quote shards
+        if: steps.gate.outputs.persist == 'true'
+        run: python scripts/build_bridge.py
+
+      - name: Add industry mapping to quote shards
+        if: steps.gate.outputs.persist == 'true'
+        run: python scripts/enrich_shards_with_industry.py
+
+      - name: Build compact candidate snapshot
+        if: steps.gate.outputs.persist == 'true'
+        run: python scripts/build_snapshot.py --source . --output data/snapshot.json
+
+      - name: Validate compact snapshot
+        if: steps.gate.outputs.persist == 'true'
+        run: python scripts/validate_snapshot.py data/snapshot.json
+
+      - name: Commit updated market data
+        if: steps.gate.outputs.persist == 'true'
+        shell: bash
+        run: |
+          if ! git status --porcelain -- data | grep -q .; then
+            echo "market data unchanged"
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/snapshot.json
-          git commit -m "data: update V2 snapshot"
-          git push
+          git add -A data
+          git commit -m "data: update V2 market dataset"
+
+          for attempt in 1 2 3; do
+            git pull --rebase origin main
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            sleep $((attempt * 2))
+          done
+          exit 1
+
+      - name: Report skipped persistence
+        if: steps.gate.outputs.persist != 'true'
+        run: echo "Current market snapshot did not pass the completed-session data gate; repository data was not changed."
