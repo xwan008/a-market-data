@@ -60,35 +60,64 @@ Action 不做：
 1. `schema_version = 1`；
 2. `trade_date` 存在；
 3. `counts.universe_stocks >= 3000`；
-4. `candidates` 非空。
+4. `candidates` 非空；
+5. `market_state.trade_date` 与 `snapshot.trade_date` 一致。
 
 单只候选字段不足时，只淘汰该股票，不终止全榜。
 
-只有整个 snapshot 无法读取、全市场覆盖明显异常或候选集为空，才终止发布。
+只有整个 snapshot 无法读取、全市场覆盖明显异常、市场状态与快照日期错位或候选集为空，才终止发布。
 
 ---
 
-## 5. 正式主流程
+## 5. 市场环境只做风险修正
+
+从 `snapshot.market_state` 读取：
+
+- `trend`；
+- `breadth`；
+- `liquidity`；
+- `risk_level`；
+- `metrics.advance_ratio`；
+- `metrics.above_ma20_ratio`；
+- `metrics.above_ma60_ratio`；
+- `metrics.turnover_ratio_vs_20d`。
+
+市场环境不是第四套打分系统，也不是硬性的买卖开关。
+
+使用原则：
+
+- `risk_level = high`：左侧买点要求更大的估值折价、更靠近有效支撑，结构仍在恶化的股票明显降级；
+- `risk_level = medium`：按正常低风险标准判断；
+- `risk_level = low`：只表示系统性环境较友好，不能因此放宽个股安全边际要求；
+- 市场强不能把贵股票变便宜，市场弱也不能自动淘汰真正有足够安全边际的股票。
+
+因此市场环境的作用是**调整风险容忍度**，不是替代个股判断。
+
+---
+
+## 6. 正式主流程
 
 ```text
-snapshot.candidates
-        ↓
-盈利复核
-        ↓
-估值 / 安全边际判断
-        ↓
-价格位置判断
-        ↓
-排序
-        ↓
-发布
+snapshot.market_state + snapshot.candidates
+                 ↓
+             盈利复核
+                 ↓
+        估值 / 安全边际判断
+                 ↓
+            价格位置判断
+                 ↓
+        市场环境风险修正
+                 ↓
+               排序
+                 ↓
+               发布
 ```
 
 没有候选池持久化、Near-miss 状态机、跨期公司研究缓存或多层 Completion Gate。
 
 ---
 
-## 6. 盈利复核
+## 7. 盈利复核
 
 行业背景从：
 
@@ -111,7 +140,7 @@ snapshot.candidates
 
 ---
 
-## 7. 估值 / 安全边际
+## 8. 估值 / 安全边际
 
 估值只回答一个问题：
 
@@ -139,7 +168,7 @@ V2 初期不恢复旧版 `reasonable_price_range / safe_price_ceiling / low_risk
 
 ---
 
-## 8. 价格位置
+## 9. 价格位置
 
 从 `candidate.price_structure` 读取：
 
@@ -169,7 +198,7 @@ V2 初期不恢复旧版 `reasonable_price_range / safe_price_ceiling / low_risk
 
 ---
 
-## 9. 排名规则
+## 10. 排名规则
 
 禁止几十项加权总分。
 
@@ -179,15 +208,19 @@ V2 初期不恢复旧版 `reasonable_price_range / safe_price_ceiling / low_risk
 2. **盈利确定性**：行业和公司盈利是否稳定或改善；
 3. **结构风险**：支撑是否可靠、是否存在明显继续下跌风险。
 
-第一项是支配变量。
+第一项是支配变量。市场环境只在这三个层级完成后做风险修正，不增加新的加权总分。
 
 安全边际明显不足时，即使基本面优秀也不进入前列。
 
 ---
 
-## 10. 发布格式
+## 11. 发布格式
 
 正式榜单最多 10 只；不够就少发，可以空榜。
+
+榜单开头先用一句话给出当前：
+
+- 市场 `trend / breadth / liquidity / risk_level`。
 
 每只股票只输出：
 
