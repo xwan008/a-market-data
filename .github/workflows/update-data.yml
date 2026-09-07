@@ -1,4 +1,4 @@
-name: Update V2 Market Data
+name: Update Market Data
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: update-v2-market-data
+  group: update-market-data
   cancel-in-progress: true
 
 jobs:
@@ -145,7 +145,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A data
-          git commit -m "data: update daily V2 market dataset"
+          git commit -m "data: update daily market dataset"
 
           for attempt in 1 2 3; do
             git pull --rebase origin main
