@@ -1,0 +1,148 @@
+name: Update V2 Weekly Research Data
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Sunday 18:00 Asia/Shanghai.
+    - cron: "0 10 * * 0"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-v2-weekly-research
+  cancel-in-progress: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Preserve previous verified market snapshot
+        shell: bash
+        run: |
+          if [ -f data/latest.json ]; then
+            cp data/latest.json /tmp/latest.previous.json
+          fi
+
+      - name: Refresh full financial and valuation data
+        run: python scripts/fetch_market_resilient.py
+
+      - name: Restore prior valuation if the valuation source is transiently unavailable
+        run: |
+          python scripts/restore_valuation_fallback.py \
+            --current data/latest.json \
+            --previous /tmp/latest.previous.json
+
+      - name: Validate weekly financial coverage
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          latest = json.loads(Path('data/latest.json').read_text(encoding='utf-8'))
+          stocks = latest.get('stocks') or {}
+          total = len(stocks)
+          stats = latest.get('fundamental_stats') or {}
+          financial = int(stats.get('financial_usable') or 0)
+          valuation = int(stats.get('valuation_usable') or 0)
+          status = str(latest.get('market_status') or '')
+
+          assert status in {'closed', 'closed_or_no_trade'}, status
+          assert total >= 3000, total
+          assert financial / total >= 0.95, (financial, total)
+          assert valuation / total >= 0.95, (valuation, total)
+          print({
+              'trade_date': latest.get('trade_date'),
+              'stocks': total,
+              'financial_coverage': round(financial / total, 4),
+              'valuation_coverage': round(valuation / total, 4),
+          })
+          PY
+
+      - name: Rebuild quote shards with refreshed fundamentals
+        run: python scripts/build_bridge.py
+
+      - name: Reapply and validate industry mapping
+        run: |
+          python scripts/enrich_shards_with_industry.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          total = mapped = 0
+          for path in Path('data/shards').glob('*.json'):
+              payload = json.loads(path.read_text(encoding='utf-8'))
+              for stock in (payload.get('stocks') or {}).values():
+                  total += 1
+                  mapped += int(stock.get('industry_mapping_status') == 'mapped')
+          coverage = mapped / total if total else 0
+          assert coverage >= 0.97, coverage
+          print({'industry_mapping_coverage': round(coverage, 4), 'mapped': mapped, 'stocks': total})
+          PY
+
+      - name: Rebuild weekly industry profitability state
+        run: python scripts/build_industry_state.py
+
+      - name: Rebuild compact candidate snapshot
+        run: python scripts/build_snapshot.py --source . --output data/snapshot.json
+
+      - name: Attach latest market environment to snapshot
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          snapshot = json.loads(Path('data/snapshot.json').read_text(encoding='utf-8'))
+          market_path = Path('data/market_state.json')
+          if market_path.exists():
+              market = json.loads(market_path.read_text(encoding='utf-8'))
+              if market.get('trade_date') == snapshot.get('trade_date'):
+                  snapshot['market_state'] = market
+          Path('data/snapshot.json').write_text(
+              json.dumps(snapshot, ensure_ascii=False, separators=(',', ':')) + '\n',
+              encoding='utf-8',
+          )
+          PY
+
+      - name: Normalize and validate compact snapshot
+        run: |
+          python scripts/normalize_snapshot_source.py data/snapshot.json
+          python scripts/validate_snapshot.py data/snapshot.json
+
+      - name: Commit updated weekly research data
+        shell: bash
+        run: |
+          if ! git status --porcelain -- data | grep -q .; then
+            echo "weekly research data unchanged"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A data
+          git commit -m "data: refresh weekly V2 research dataset"
+
+          for attempt in 1 2 3; do
+            git pull --rebase origin main
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            sleep $((attempt * 2))
+          done
+          exit 1
