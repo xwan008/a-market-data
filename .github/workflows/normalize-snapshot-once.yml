@@ -1,0 +1,27 @@
+name: Normalize Snapshot Metadata Once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/normalize-snapshot-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  normalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python scripts/normalize_snapshot_source.py data/snapshot.json
+      - shell: bash
+        run: |
+          if git diff --quiet -- data/snapshot.json; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/snapshot.json
+          git commit -m "data: normalize V2 snapshot source"
+          git pull --rebase origin main
+          git push origin HEAD:main
