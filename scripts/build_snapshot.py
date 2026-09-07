@@ -10,8 +10,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import subprocess
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -19,15 +17,6 @@ from typing import Any
 def load_json(path: Path) -> dict[str, Any]:
     with path.open("r", encoding="utf-8") as f:
         return json.load(f)
-
-
-def git_sha(repo: Path) -> str | None:
-    try:
-        return subprocess.check_output(
-            ["git", "-C", str(repo), "rev-parse", "HEAD"], text=True
-        ).strip()
-    except Exception:
-        return None
 
 
 def is_number(value: Any) -> bool:
@@ -132,7 +121,7 @@ def nearest_zone(
     return keep
 
 
-def compact_candidate(code: str, raw: dict[str, Any]) -> dict[str, Any]:
+def compact_candidate(raw: dict[str, Any]) -> dict[str, Any]:
     price = float(raw["price"])
     prev_close = raw.get("prev_close")
     day_change_pct = None
@@ -249,7 +238,7 @@ def build_snapshot(source: Path) -> dict[str, Any]:
             if not company_allowed(raw):
                 continue
 
-            candidates[code] = compact_candidate(code, raw)
+            candidates[code] = compact_candidate(raw)
 
     if len(trade_dates) != 1:
         raise RuntimeError(f"upstream shards do not share one trade_date: {sorted(trade_dates)}")
@@ -257,17 +246,18 @@ def build_snapshot(source: Path) -> dict[str, Any]:
         raise RuntimeError("empty upstream universe")
 
     trade_date = next(iter(trade_dates))
+    upstream_generated_at = max(generated_times) if generated_times else None
+
     return {
         "schema_version": 1,
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": upstream_generated_at,
         "trade_date": trade_date,
         "market_status": next(iter(statuses)) if len(statuses) == 1 else "mixed",
         "source": {
             "repository": "xwan008/a-share-market-data",
-            "commit": git_sha(source),
-            "latest_upstream_generated_at": max(generated_times) if generated_times else None,
+            "ref": "main",
+            "latest_upstream_generated_at": upstream_generated_at,
             "industry_state_generated_at": industry_raw.get("generated_at"),
-            "note": "source commit is audit metadata only; no SHA-bound runtime artifact is required",
         },
         "prefilter": {
             "purpose": "deterministic coarse risk reduction only; no valuation or ranking",
