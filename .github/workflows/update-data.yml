@@ -40,8 +40,21 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Preserve previous verified snapshot
+        shell: bash
+        run: |
+          if [ -f data/latest.json ]; then
+            cp data/latest.json /tmp/latest.previous.json
+          fi
+
       - name: Fetch current market and fundamentals
         run: python scripts/fetch_market_resilient.py
+
+      - name: Restore prior valuation only when fresh valuation is unavailable
+        run: |
+          python scripts/restore_valuation_fallback.py \
+            --current data/latest.json \
+            --previous /tmp/latest.previous.json
 
       - name: Validate completed market session
         id: gate
@@ -70,6 +83,10 @@ jobs:
           valuation_coverage = int(fundamental.get("valuation_usable") or 0) / total if total else 0
           financial_coverage = int(fundamental.get("financial_usable") or 0) / total if total else 0
           fundamental_errors = fundamental.get("errors") or []
+          fatal_fundamental_errors = [
+              error for error in fundamental_errors
+              if not str(error).startswith("eastmoney_valuation:")
+          ]
 
           persist = bool(
               status == "closed"
@@ -79,7 +96,7 @@ jobs:
               and invalid_ratio <= 0.01
               and valuation_coverage >= 0.95
               and financial_coverage >= 0.95
-              and not fundamental_errors
+              and not fatal_fundamental_errors
           )
 
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
@@ -93,7 +110,10 @@ jobs:
               "quote_coverage": round(quote_coverage, 4),
               "invalid_ratio": round(invalid_ratio, 4),
               "valuation_coverage": round(valuation_coverage, 4),
+              "valuation_fresh_usable": fundamental.get("valuation_fresh_usable"),
+              "valuation_stale_fallback": fundamental.get("valuation_stale_fallback"),
               "financial_coverage": round(financial_coverage, 4),
+              "fatal_fundamental_errors": fatal_fundamental_errors,
               "persist": persist,
           }, ensure_ascii=False))
           PY
