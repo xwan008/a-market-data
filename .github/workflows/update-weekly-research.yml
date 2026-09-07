@@ -1,4 +1,4 @@
-name: Update V2 Weekly Research Data
+name: Update Weekly Research Data
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: update-v2-weekly-research
+  group: update-weekly-research
   cancel-in-progress: true
 
 jobs:
@@ -136,7 +136,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A data
-          git commit -m "data: refresh weekly V2 research dataset"
+          git commit -m "data: refresh weekly research dataset"
 
           for attempt in 1 2 3; do
             git pull --rebase origin main
