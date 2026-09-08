@@ -2,6 +2,11 @@ name: Update Market Data
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/update-data.yml"
   schedule:
     # 16:30 Asia/Shanghai, Monday-Friday.
     - cron: "30 8 * * 1-5"
