@@ -3,18 +3,95 @@ name: Update Market Data
 on:
   workflow_dispatch:
   schedule:
-    # 16:30 Asia/Shanghai, Monday-Friday.
-    - cron: "30 8 * * 1-5"
+    # Primary run: 16:25 Asia/Shanghai, Monday-Friday.
+    - cron: "25 16 * * 1-5"
+      timezone: "Asia/Shanghai"
+    # Fallback run: 16:37 Asia/Shanghai, Monday-Friday.
+    - cron: "37 16 * * 1-5"
+      timezone: "Asia/Shanghai"
 
 permissions:
   contents: write
 
 concurrency:
   group: update-market-data
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
+  precheck:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.freshness.outputs.should_run }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Decide whether fallback needs to run
+        id: freshness
+        shell: bash
+        env:
+          TRIGGER_EVENT: ${{ github.event_name }}
+          TRIGGER_SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from datetime import datetime
+          from pathlib import Path
+          from zoneinfo import ZoneInfo
+
+          event = os.environ.get("TRIGGER_EVENT", "")
+          schedule = os.environ.get("TRIGGER_SCHEDULE", "")
+          is_fallback = event == "schedule" and schedule == "37 16 * * 1-5"
+
+          should_run = True
+          reason = "primary_or_manual_run"
+
+          if is_fallback:
+              today = datetime.now(ZoneInfo("Asia/Shanghai")).date().isoformat()
+
+              try:
+                  latest = json.loads(Path("data/latest.json").read_text(encoding="utf-8"))
+              except Exception:
+                  latest = {}
+
+              try:
+                  snapshot = json.loads(Path("data/snapshot.json").read_text(encoding="utf-8"))
+              except Exception:
+                  snapshot = {}
+
+              latest_trade_date = str(latest.get("trade_date") or "")
+              latest_market_status = str(latest.get("market_status") or "")
+              snapshot_trade_date = str(snapshot.get("trade_date") or "")
+
+              already_fresh = (
+                  latest_trade_date == today
+                  and latest_market_status == "closed"
+                  and snapshot_trade_date == today
+              )
+
+              should_run = not already_fresh
+              reason = "fallback_already_fresh" if already_fresh else "fallback_refresh_required"
+
+              print(json.dumps({
+                  "today": today,
+                  "latest_trade_date": latest_trade_date,
+                  "latest_market_status": latest_market_status,
+                  "snapshot_trade_date": snapshot_trade_date,
+                  "already_fresh": already_fresh,
+              }, ensure_ascii=False))
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
+              fh.write(f"should_run={'true' if should_run else 'false'}\n")
+
+          print(f"decision={reason}; should_run={should_run}")
+          PY
+
   update:
+    needs: precheck
+    if: needs.precheck.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
