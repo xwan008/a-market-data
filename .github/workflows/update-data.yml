@@ -2,13 +2,19 @@ name: Update Market Data
 
 on:
   workflow_dispatch:
+  # Temporary one-shot trigger: this workflow-file commit starts a fresh run from current main.
+  # Remove after today's refresh is persisted successfully.
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/update-data.yml"
   schedule:
-    # Primary run: 16:25 Asia/Shanghai, Monday-Friday.
-    - cron: "25 16 * * 1-5"
-      timezone: "Asia/Shanghai"
-    # Fallback run: 16:37 Asia/Shanghai, Monday-Friday.
-    - cron: "37 16 * * 1-5"
-      timezone: "Asia/Shanghai"
+    # 16:25 Asia/Shanghai (UTC+8), Monday-Friday.
+    # Use UTC cron to force GitHub to re-register the schedule while keeping the same local time.
+    - cron: "25 8 * * 1-5"
+    # 16:37 Asia/Shanghai fallback, Monday-Friday.
+    - cron: "37 8 * * 1-5"
 
 permissions:
   contents: write
@@ -45,7 +51,7 @@ jobs:
 
           event = os.environ.get("TRIGGER_EVENT", "")
           schedule = os.environ.get("TRIGGER_SCHEDULE", "")
-          is_fallback = event == "schedule" and schedule == "37 16 * * 1-5"
+          is_fallback = event == "schedule" and schedule == "37 8 * * 1-5"
 
           should_run = True
           reason = "primary_or_manual_run"
@@ -226,14 +232,9 @@ jobs:
           git add -A data
           git commit -m "data: update daily market dataset"
 
-          for attempt in 1 2 3; do
-            git pull --rebase origin main
-            if git push origin HEAD:main; then
-              exit 0
-            fi
-            sleep $((attempt * 2))
-          done
-          exit 1
+          # Do not rebase hundreds of generated data files if main moved while this job ran.
+          # A clean retry from latest main is safer than resolving generated-data conflicts.
+          git push origin HEAD:main
 
       - name: Report skipped persistence
         if: steps.gate.outputs.persist != 'true'
