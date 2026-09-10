@@ -2,16 +2,18 @@ name: Update Weekly Research Data
 
 on:
   workflow_dispatch:
-  schedule:
-    # Sunday 18:00 Asia/Shanghai.
-    - cron: "0 10 * * 0"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/external-trigger-weekly.txt"
 
 permissions:
   contents: write
 
 concurrency:
   group: update-weekly-research
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   update:
@@ -22,6 +24,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 1
 
       - name: Setup Python
