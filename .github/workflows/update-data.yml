@@ -8,11 +8,8 @@ on:
     paths:
       - ".github/external-trigger.txt"
   schedule:
-    # 16:25 Asia/Shanghai (UTC+8), Monday-Friday.
-    # Keep UTC cron for a simple, explicit fixed-offset schedule.
+    # Primary GitHub-native attempt: 16:25 Asia/Shanghai (UTC+8), Monday-Friday.
     - cron: "25 8 * * 1-5"
-    # 16:37 Asia/Shanghai fallback, Monday-Friday.
-    - cron: "37 8 * * 1-5"
 
 permissions:
   contents: write
