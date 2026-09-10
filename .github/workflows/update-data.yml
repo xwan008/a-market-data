@@ -2,6 +2,11 @@ name: Update Market Data
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/external-trigger.txt"
   schedule:
     # 16:25 Asia/Shanghai (UTC+8), Monday-Friday.
     # Keep UTC cron for a simple, explicit fixed-offset schedule.
