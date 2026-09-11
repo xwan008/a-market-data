@@ -8,14 +8,23 @@ from pathlib import Path
 from typing import Any
 
 
+RUNTIME_SCHEMA_VERSION = 2
+RUNTIME_FORMAT = "candidate_shards_v2"
+
+
 def load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
+    """Write human/tool-readable multiline JSON.
+
+    Runtime files are intentionally pretty-printed instead of compact single-line JSON
+    so connector clients can continue reading by line range if a response is truncated.
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
-        json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n",
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
 
@@ -51,31 +60,31 @@ def main() -> None:
         shutil.rmtree(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # Industry state is authoritative and stored once. Candidate shards never repeat it.
+    industry_state_filename = "industry_state.json"
+    industry_state_path = output_dir / industry_state_filename
+    industry_payload = {
+        "schema_version": RUNTIME_SCHEMA_VERSION,
+        "trade_date": trade_date,
+        "industry_count": len(level3),
+        "industries": level3,
+    }
+    write_json(industry_state_path, industry_payload)
+
     items = list(candidates.items())
     candidate_files: list[str] = []
 
     for index, start in enumerate(range(0, len(items), args.shard_size)):
         chunk_items = items[start : start + args.shard_size]
         chunk = dict(chunk_items)
-        industry_codes = {
-            item.get("industry_code")
-            for item in chunk.values()
-            if item.get("industry_code")
-        }
-        industries = {
-            code: level3[code]
-            for code in industry_codes
-            if code in level3
-        }
 
         filename = f"candidates_{index:03d}.json"
         path = output_dir / filename
         payload = {
-            "schema_version": 1,
+            "schema_version": RUNTIME_SCHEMA_VERSION,
             "trade_date": trade_date,
             "shard_index": index,
             "candidate_count": len(chunk),
-            "industry_state": industries,
             "candidates": chunk,
         }
         write_json(path, payload)
@@ -86,15 +95,19 @@ def main() -> None:
         for key, value in snapshot.items()
         if key not in {"candidates", "industry_state"}
     }
+    # Keep non-level3 industry metadata in meta while level3 records live in one file.
     meta_snapshot["industry_state"] = {
         key: value for key, value in industry_state.items() if key != "level3"
     }
 
+    industry_state_file = f"{output_dir.as_posix()}/{industry_state_filename}"
     meta = {
-        "schema_version": 1,
-        "runtime_format": "candidate_shards_v1",
+        "schema_version": RUNTIME_SCHEMA_VERSION,
+        "runtime_format": RUNTIME_FORMAT,
         "snapshot": meta_snapshot,
         "candidate_count": len(candidates),
+        "industry_count": len(level3),
+        "industry_state_file": industry_state_file,
         "shard_size": args.shard_size,
         "shard_count": len(candidate_files),
         "candidate_files": candidate_files,
@@ -102,8 +115,9 @@ def main() -> None:
     write_json(output_dir / "meta.json", meta)
 
     print(
-        f"runtime shards ready: trade_date={trade_date} "
-        f"candidates={len(candidates)} shards={len(candidate_files)}"
+        f"runtime shards ready: format={RUNTIME_FORMAT} trade_date={trade_date} "
+        f"candidates={len(candidates)} industries={len(level3)} "
+        f"shards={len(candidate_files)}"
     )
 
 
