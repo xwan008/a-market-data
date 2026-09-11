@@ -194,6 +194,10 @@ jobs:
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/enrich_shards_with_industry.py
 
+      - name: Rebuild industry state with market confirmation
+        if: steps.gate.outputs.persist == 'true'
+        run: python scripts/build_industry_state.py
+
       - name: Build compact candidate snapshot
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/build_snapshot.py --source . --output data/snapshot.json
