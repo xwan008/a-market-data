@@ -162,7 +162,6 @@ def main() -> int:
     existing = {}
     if OUTPUT.exists():
         existing = json.loads(OUTPUT.read_text(encoding="utf-8"))
-    preferred_codes = set((existing.get("level3_profitability") or {}).keys())
 
     groups: dict[str, list[dict]] = defaultdict(list)
     names: dict[str, str] = {}
@@ -174,8 +173,6 @@ def main() -> int:
             code = stock.get("sw_level3_code")
             name = stock.get("sw_level3_name")
             if not code or stock.get("industry_mapping_status") != "mapped":
-                continue
-            if preferred_codes and code not in preferred_codes:
                 continue
 
             fundamentals = stock.get("fundamentals") or {}
@@ -280,15 +277,15 @@ def main() -> int:
             "method": "median company YoY growth plus financial breadth, confirmed by market breadth and relative volume activity",
         }
 
-    if preferred_codes:
-        missing = preferred_codes - set(result)
-        for code in sorted(missing):
-            old = (existing.get("level3_profitability") or {}).get(code)
-            if old:
-                carry = dict(old)
-                carry["confidence"] = "low"
-                carry["warnings"] = sorted(set((carry.get("warnings") or []) + ["industry_refresh_insufficient_company_data"]))
-                result[code] = carry
+    previous_industries = existing.get("level3_profitability") or {}
+    missing = set(previous_industries) - set(result)
+    for code in sorted(missing):
+        old = previous_industries.get(code)
+        if old:
+            carry = dict(old)
+            carry["confidence"] = "low"
+            carry["warnings"] = sorted(set((carry.get("warnings") or []) + ["industry_refresh_insufficient_company_data"]))
+            result[code] = carry
 
     payload = {
         "schema_version": 2,
