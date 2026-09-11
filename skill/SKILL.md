@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-从 `data/snapshot.json` 的确定性候选集中寻找：
+从 `data/runtime/meta.json` 及其 `candidate_files` 指向的确定性候选分片中寻找：
 
 > 行业景气没有明显转弱、公司盈利真实且具有持续性、估值具备安全边际，同时当前价格位置适合低风险参与的 A 股公司。
 
@@ -14,12 +14,26 @@
 
 正式筛选的机械数据入口只有：
 
-- `data/snapshot.json`
-- `skill/SKILL.md`
+- `data/runtime/meta.json`；
+- `meta.candidate_files` 列出的全部候选分片；
+- `skill/SKILL.md`。
 
-`snapshot.candidates` 是唯一机械候选池。正式筛选不得在运行过程中扩展候选池或重新扫描全市场。
+`data/snapshot.json` 继续作为数据生成源与兼容文件保留，但正式运行不再直接读取这个大文件。
+
+运行时必须先锁定当前 `main` commit SHA，并在同一 SHA 下读取 `meta.json`、全部候选分片和本 Skill，禁止跨 SHA 混读。读取完成后，将全部分片中的 `candidates` 合并为逻辑上的 `snapshot.candidates`，并将分片携带的 `industry_state` 合并为逻辑上的 `snapshot.industry_state.level3`；其余 snapshot 元数据来自 `meta.snapshot`。后续正式规则仍按这个重建后的逻辑 `snapshot` 执行，数据语义不变。
+
+合并后的 `snapshot.candidates` 是唯一机械候选池。正式筛选不得在运行过程中扩展候选池或重新扫描全市场。
 
 行业景气复核、公司确认和估值允许查询最新公开资料，用于验证当前候选，但公开资料只承担研究证据作用，不改变候选池边界。
+
+### 运行时读取协议
+
+1. 锁定仓库 `xwan008/a-market-data` 当前 `main` commit SHA，本轮所有仓库文件都使用该 SHA 读取。
+2. 读取 `data/runtime/meta.json`，取得 `candidate_count`、`shard_count`、`candidate_files` 与 `meta.snapshot`。
+3. 按 `candidate_files` 列表逐文件完整读取，不做大文件行号分段，不允许跳过、猜测或用旧榜单补齐。
+4. 每个分片必须满足：`schema_version = 1`、`trade_date == meta.snapshot.trade_date`、`candidate_count == len(candidates)`；候选代码不得跨分片重复。同一行业代码若在多个分片出现，其 `industry_state` 内容必须一致。
+5. 全部分片合并后必须满足：读取文件数等于 `shard_count`，`len(candidates) == candidate_count == meta.snapshot.counts.candidates`，且每只候选对应的行业代码都能在合并后的行业状态中找到。
+6. 任一文件缺失、读取不完整、JSON 无法解析、日期不一致、重复候选、行业状态冲突或数量不一致，输出 `snapshot_read_incomplete` 并终止；不得使用 `data/snapshot.json`、search/find、历史榜单或旧候选作为回退补齐。
 
 ---
 
@@ -46,14 +60,14 @@ PE 上限按“任一超过即剔除”执行。PE 缺失不自动视为超标�
 
 正式筛选开始前确认：
 
-1. `schema_version = 1`；
-2. `trade_date` 存在且对应最近已完成交易日；
-3. `counts.universe_stocks >= 3000`；
-4. `candidates` 非空；
-5. `market_state.trade_date == snapshot.trade_date`；
+1. `meta.schema_version = 1` 且 `meta.snapshot.schema_version = 1`；
+2. `snapshot.trade_date` 存在且对应最近已完成交易日；
+3. `snapshot.counts.universe_stocks >= 3000`；
+4. 已按运行时读取协议完整合并全部候选，且候选非空；
+5. `snapshot.market_state.trade_date == snapshot.trade_date`；
 6. 全市场行情、财务、趋势和行业映射覆盖没有明显异常。
 
-若整个 snapshot 无法读取、日期明显过期、市场状态日期错位或全市场覆盖明显异常，则本轮不发布新榜单。
+若运行时分片无法完整读取、日期明显过期、市场状态日期错位或全市场覆盖明显异常，则本轮不发布新榜单。
 
 单只股票字段不足，只影响该股票。
 
