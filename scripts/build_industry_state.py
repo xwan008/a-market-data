@@ -53,12 +53,12 @@ def classify_market_activity(volume_ratio: float | None, expanding_share: float 
 
 
 def classify_market_confirmation(market_breadth: str, market_activity: str) -> str:
-    if market_breadth == "broad" and market_activity == "active":
-        return "strong"
-    if market_breadth == "narrow" and market_activity == "quiet":
-        return "weak"
     if market_breadth == "unknown" or market_activity == "unknown":
         return "unknown"
+    if market_breadth == "broad" and market_activity == "active":
+        return "strong"
+    if market_breadth == "narrow":
+        return "weak"
     return "neutral"
 
 
