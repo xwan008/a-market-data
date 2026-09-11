@@ -313,7 +313,9 @@ def main() -> None:
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     with output.open("w", encoding="utf-8") as f:
-        json.dump(snapshot, f, ensure_ascii=False, separators=(",", ":"))
+        # Keep snapshot human/tool-readable by emitting stable multi-line JSON.
+        # This enables bounded line-range reads without changing snapshot semantics.
+        json.dump(snapshot, f, ensure_ascii=False, indent=2)
         f.write("\n")
 
     print(
