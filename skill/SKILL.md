@@ -30,12 +30,11 @@
 ### 运行时读取协议（candidate_shards_v2）
 
 1. 锁定仓库 `xwan008/a-market-data` 当前 `main` commit SHA，本轮所有仓库文件都使用该 SHA 读取。
-2. 读取 `data/runtime/meta.json`，要求 `meta.schema_version = 2`、`runtime_format = candidate_shards_v2`，取得 `candidate_count`、`industry_count`、`industry_state_file`、`shard_count`、`candidate_files` 与 `meta.snapshot`。
-3. 完整读取 `industry_state_file`。要求 `schema_version = 2`、`trade_date == meta.snapshot.trade_date`、`industry_count == len(industries) == meta.industry_count`。
-4. 按 `candidate_files` 顺序读取全部候选分片。候选分片为多行 JSON；优先整文件读取。若连接器响应被截断，必须使用连续的 `start_line/end_line` 区间从上次结束位置继续读取，直到该文件完整、可解析为 JSON。不得因一次响应截断而跳过分片。
-5. 每个候选分片必须满足：`schema_version = 2`、`trade_date == meta.snapshot.trade_date`、`shard_index` 与文件顺序一致、`candidate_count == len(candidates)`；候选代码不得跨分片重复。
-6. 全部文件合并后必须满足：读取候选文件数等于 `shard_count`；`len(candidates) == candidate_count == meta.snapshot.counts.candidates`；每只候选的 `industry_code` 都能在独立行业状态文件的 `industries` 中找到。
-7. 任一文件缺失、续读不完整、JSON 无法解析、日期不一致、重复候选、行业映射缺失或数量不一致，输出 `snapshot_read_incomplete` 并终止。不得使用 `data/snapshot.json`、search/find、历史榜单、旧候选或计数推断来补齐。
+2. 读取 `data/runtime/meta.json`，取得 `candidate_count`、`industry_count`、`industry_state_file`、`shard_count`、`candidate_files` 与 `meta.snapshot`。
+3. 完整读取 `industry_state_file` 和全部 `candidate_files`。若 GitHub 返回 `truncated` 但存在 response resource，只表示当前显示被截断，不代表源文件不完整；必须继续读取该 resource，直到获得完整、可解析的 JSON，禁止因单次 `truncated` 提前终止。
+4. 校验行业状态：`schema_version = 2`、`trade_date == meta.snapshot.trade_date`、`industry_count == len(industries) == meta.industry_count`；校验每个候选分片：`schema_version = 2`、日期一致、`shard_index` 正确、`candidate_count == len(candidates)`，且候选代码不得重复。
+5. 全部文件合并后必须满足：读取候选文件数等于 `shard_count`；`len(candidates) == meta.candidate_count == meta.snapshot.counts.candidates`；每只候选的 `industry_code` 都能在行业状态中找到。
+6. 只有某个 response resource 已经读完仍无法获得完整合法 JSON，或最终出现文件缺失、日期不一致、重复候选、行业映射缺失、数量不一致时，才允许输出 `snapshot_read_incomplete` 并终止。在此之前不得因 `truncated` 结束任务，也不得使用 `data/snapshot.json`、search/find、历史榜单、旧候选或计数推断补齐。
 
 ---
 
