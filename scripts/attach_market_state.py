@@ -4,6 +4,8 @@ import argparse
 import json
 from pathlib import Path
 
+from snapshot_io import write_snapshot
+
 
 def main() -> int:
     parser = argparse.ArgumentParser()
@@ -22,10 +24,7 @@ def main() -> int:
         )
 
     snapshot["market_state"] = market
-    snapshot_path.write_text(
-        json.dumps(snapshot, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    write_snapshot(snapshot_path, snapshot)
     print(
         f"market state attached: {market.get('trade_date')} "
         f"risk={market.get('risk_level')} trend={market.get('trend')}"
