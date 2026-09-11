@@ -13,6 +13,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from snapshot_io import write_snapshot
+
 MAX_PRICE = 150.0
 MAX_PE = 30.0
 
@@ -311,12 +313,7 @@ def main() -> None:
 
     snapshot = build_snapshot(Path(args.source).resolve())
     output = Path(args.output)
-    output.parent.mkdir(parents=True, exist_ok=True)
-    with output.open("w", encoding="utf-8") as f:
-        # Keep snapshot human/tool-readable by emitting stable multi-line JSON.
-        # This enables bounded line-range reads without changing snapshot semantics.
-        json.dump(snapshot, f, ensure_ascii=False, indent=2)
-        f.write("\n")
+    write_snapshot(output, snapshot)
 
     print(
         f"snapshot ready: trade_date={snapshot['trade_date']} "
