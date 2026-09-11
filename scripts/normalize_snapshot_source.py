@@ -22,7 +22,7 @@ def main() -> int:
         or ((payload.get("industry_state") or {}).get("generated_at")),
     }
     path.write_text(
-        json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n",
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
     print(f"normalized snapshot source: {path}")
