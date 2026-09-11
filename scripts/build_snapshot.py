@@ -15,7 +15,7 @@ from typing import Any
 
 from snapshot_io import write_snapshot
 
-MAX_PRICE = 150.0
+MAX_PRICE = 120.0
 MAX_PE = 30.0
 
 
@@ -281,7 +281,7 @@ def build_snapshot(source: Path) -> dict[str, Any]:
         "prefilter": {
             "purpose": "deterministic coarse risk reduction only; no valuation or ranking",
             "industry": "improving OR stable with divergent/broad breadth",
-            "company": "non-ST, 0 < price <= 150, positive net profit, PE-TTM <= 30 when available, dynamic PE <= 30 when available, usable valuation fields, >=20 trend points, no simultaneous severe revenue/profit collapse",
+            "company": "non-ST, 0 < price <= 120, positive net profit, PE-TTM <= 30 when available, dynamic PE <= 30 when available, usable valuation fields, >=20 trend points, no simultaneous severe revenue/profit collapse",
         },
         "counts": {
             "universe_stocks": universe_count,
