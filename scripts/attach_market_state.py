@@ -23,7 +23,7 @@ def main() -> int:
 
     snapshot["market_state"] = market
     snapshot_path.write_text(
-        json.dumps(snapshot, ensure_ascii=False, separators=(",", ":")) + "\n",
+        json.dumps(snapshot, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
     print(
