@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-从 `data/runtime/meta.json` 及其 `candidate_files` 指向的确定性候选分片中寻找：
+从 `data/runtime/meta.json` 及其确定性运行时数据中寻找：
 
 > 行业景气没有明显转弱、公司盈利真实且具有持续性、估值具备安全边际，同时当前价格位置适合低风险参与的 A 股公司。
 
@@ -15,31 +15,33 @@
 正式筛选的机械数据入口只有：
 
 - `data/runtime/meta.json`；
+- `meta.industry_state_file` 指向的独立行业状态文件；
 - `meta.candidate_files` 列出的全部候选分片；
 - `skill/SKILL.md`。
 
-`data/snapshot.json` 继续作为数据生成源与兼容文件保留，但正式运行不再直接读取这个大文件。
+`data/snapshot.json` 继续作为数据生成源与兼容文件保留，但正式运行不直接读取这个大文件。
 
-运行时必须先锁定当前 `main` commit SHA，并在同一 SHA 下读取 `meta.json`、全部候选分片和本 Skill，禁止跨 SHA 混读。读取完成后，将全部分片中的 `candidates` 合并为逻辑上的 `snapshot.candidates`，并将分片携带的 `industry_state` 合并为逻辑上的 `snapshot.industry_state.level3`；其余 snapshot 元数据来自 `meta.snapshot`。后续正式规则仍按这个重建后的逻辑 `snapshot` 执行，数据语义不变。
+运行时必须先锁定当前 `main` commit SHA，并在同一 SHA 下读取本 Skill、`meta.json`、独立行业状态文件和全部候选分片，禁止跨 SHA 混读。读取完成后，将全部分片中的 `candidates` 合并为逻辑上的 `snapshot.candidates`；将独立行业状态文件中的 `industries` 作为逻辑上的 `snapshot.industry_state.level3`；其余 snapshot 元数据来自 `meta.snapshot`。后续规则按这个重建后的逻辑 `snapshot` 执行，数据语义不变。
 
 合并后的 `snapshot.candidates` 是唯一机械候选池。正式筛选不得在运行过程中扩展候选池或重新扫描全市场。
 
 行业景气复核、公司确认和估值允许查询最新公开资料，用于验证当前候选，但公开资料只承担研究证据作用，不改变候选池边界。
 
-### 运行时读取协议
+### 运行时读取协议（candidate_shards_v2）
 
 1. 锁定仓库 `xwan008/a-market-data` 当前 `main` commit SHA，本轮所有仓库文件都使用该 SHA 读取。
-2. 读取 `data/runtime/meta.json`，取得 `candidate_count`、`shard_count`、`candidate_files` 与 `meta.snapshot`。
-3. 按 `candidate_files` 列表逐文件完整读取，不做大文件行号分段，不允许跳过、猜测或用旧榜单补齐。
-4. 每个分片必须满足：`schema_version = 1`、`trade_date == meta.snapshot.trade_date`、`candidate_count == len(candidates)`；候选代码不得跨分片重复。同一行业代码若在多个分片出现，其 `industry_state` 内容必须一致。
-5. 全部分片合并后必须满足：读取文件数等于 `shard_count`，`len(candidates) == candidate_count == meta.snapshot.counts.candidates`，且每只候选对应的行业代码都能在合并后的行业状态中找到。
-6. 任一文件缺失、读取不完整、JSON 无法解析、日期不一致、重复候选、行业状态冲突或数量不一致，输出 `snapshot_read_incomplete` 并终止；不得使用 `data/snapshot.json`、search/find、历史榜单或旧候选作为回退补齐。
+2. 读取 `data/runtime/meta.json`，要求 `meta.schema_version = 2`、`runtime_format = candidate_shards_v2`，取得 `candidate_count`、`industry_count`、`industry_state_file`、`shard_count`、`candidate_files` 与 `meta.snapshot`。
+3. 完整读取 `industry_state_file`。要求 `schema_version = 2`、`trade_date == meta.snapshot.trade_date`、`industry_count == len(industries) == meta.industry_count`。
+4. 按 `candidate_files` 顺序读取全部候选分片。候选分片为多行 JSON；优先整文件读取。若连接器响应被截断，必须使用连续的 `start_line/end_line` 区间从上次结束位置继续读取，直到该文件完整、可解析为 JSON。不得因一次响应截断而跳过分片。
+5. 每个候选分片必须满足：`schema_version = 2`、`trade_date == meta.snapshot.trade_date`、`shard_index` 与文件顺序一致、`candidate_count == len(candidates)`；候选代码不得跨分片重复。
+6. 全部文件合并后必须满足：读取候选文件数等于 `shard_count`；`len(candidates) == candidate_count == meta.snapshot.counts.candidates`；每只候选的 `industry_code` 都能在独立行业状态文件的 `industries` 中找到。
+7. 任一文件缺失、续读不完整、JSON 无法解析、日期不一致、重复候选、行业映射缺失或数量不一致，输出 `snapshot_read_incomplete` 并终止。不得使用 `data/snapshot.json`、search/find、历史榜单、旧候选或计数推断来补齐。
 
 ---
 
 ## 3. 机械候选池
 
-数据更新链已经完成确定性粗筛：
+数据更新链完成确定性粗筛：
 
 - 行业盈利状态为 `improving`，或 `stable + divergent/broad`；
 - 非 ST；
@@ -60,14 +62,14 @@ PE 上限按“任一超过即剔除”执行。PE 缺失不自动视为超标�
 
 正式筛选开始前确认：
 
-1. `meta.schema_version = 1` 且 `meta.snapshot.schema_version = 1`；
+1. `meta.schema_version = 2`、`meta.runtime_format = candidate_shards_v2` 且 `meta.snapshot.schema_version = 1`；
 2. `snapshot.trade_date` 存在且对应最近已完成交易日；
 3. `snapshot.counts.universe_stocks >= 3000`；
-4. 已按运行时读取协议完整合并全部候选，且候选非空；
+4. 已按运行时读取协议完整读取独立行业状态和全部候选，候选非空；
 5. `snapshot.market_state.trade_date == snapshot.trade_date`；
 6. 全市场行情、财务、趋势和行业映射覆盖没有明显异常。
 
-若运行时分片无法完整读取、日期明显过期、市场状态日期错位或全市场覆盖明显异常，则本轮不发布新榜单。
+若运行时文件无法完整读取、日期明显过期、市场状态日期错位或全市场覆盖明显异常，则本轮不发布新榜单。
 
 单只股票字段不足，只影响该股票。
 
@@ -112,31 +114,31 @@ snapshot.candidates
 - 医药：处方/销售趋势、产品放量、招采、研发兑现；
 - 其他行业使用与核心盈利最相关的可验证领先变量。
 
-在原有产业与盈利领先变量之外，增加一层**市场确认**。市场确认只用于提高或降低对景气延续性的置信度，不单独决定行业景气状态，也不得因为短期市场上涨而把基本面转弱行业升级为改善。
+在产业与盈利领先变量之外增加一层**市场确认**。市场确认只用于提高或降低景气延续性的置信度，不单独决定行业景气，也不得因为短期上涨把基本面转弱行业升级为改善。
 
 市场确认只检查两类信号：
 
 1. **行业广度**：优先观察行业成分股上涨占比，并结合涨幅 `>= 1%` 的有效上涨占比；能够取得连续数据时，再观察近 3–5 个交易日广度是否持续。少数龙头拉动、但多数成分股没有响应，不视为充分确认。
-2. **行业活跃度**：优先观察行业当前成交额相对自身近 20 日平均成交额的变化，以及行业内换手率处于约 `1%–5%` 的活跃成分股占比。跨行业比较不得直接使用绝对成交额，避免天然偏向大市值、大成分数量行业；相对放量但不过热优于单纯巨量。
+2. **行业活跃度**：优先观察行业当前成交额相对自身近 20 日平均成交额的变化，以及行业内换手率处于约 `1%–5%` 的活跃成分股占比。跨行业比较不得直接使用绝对成交额；相对放量但不过热优于单纯巨量。
 
 使用原则：
 
 - 产业领先变量继续改善，且行业广度与活跃度同步改善：提高“景气延续”的置信度；
-- 产业领先变量改善，但市场广度偏窄或活跃度不足：不得仅因此判定“转弱”，但若产业证据本身也偏弱，则优先维持“稳定”或标记“不确定”，而不是机械升级为“改善”；
-- `market_breadth = narrow` 时，市场确认视为 `weak`；其中 `narrow + active` 代表多数成分股在较高交易活跃度下仍缺乏价格响应，应视为比 `narrow + quiet` 更强的风险警告，但仍不能单独推翻产业基本面；
+- 产业领先变量改善，但市场广度偏窄或活跃度不足：不得仅因此判定“转弱”；若产业证据本身也偏弱，则优先维持“稳定”或标记“不确定”；
+- `market_breadth = narrow` 时，市场确认视为 `weak`；其中 `narrow + active` 是比 `narrow + quiet` 更强的风险警告，但不能单独推翻产业基本面；
 - 市场广度和活跃度很强，但产业领先变量没有改善或已经转弱：不得反向升级行业景气；
 - 单日大涨、单日放量或单个龙头异动不能单独作为景气确认，优先看扩散和持续性。
 
-景气状态仍只归纳为：
+景气状态归纳为：
 
-- **改善**：领先变量与已兑现盈利方向一致，并继续改善；若同时得到行业广度与活跃度确认，则置信度更高；
-- **稳定**：没有明显继续上行，但也没有出现足以推翻盈利判断的恶化；
+- **改善**：领先变量与已兑现盈利方向一致，并继续改善；
+- **稳定**：没有明显继续上行，但也没有足以推翻盈利判断的恶化；
 - **转弱**：领先变量明显恶化，未来盈利存在下修风险；
 - **不确定**：关键证据不足或相互冲突。
 
 低风险榜优先保留“改善”，允许证据充分的“稳定”；“转弱”原则上不继续，“不确定”不得进入最终榜单。
 
-行业广度与活跃度只参与内部复核，不新增用户可见字段，不改变现有榜单展示结构。
+行业广度与活跃度只参与内部复核，不新增用户可见字段，不改变榜单展示结构。
 
 ---
 
@@ -160,15 +162,13 @@ snapshot.candidates
 
 ### 分组原则
 
-按“核心盈利驱动 + 真正可比业务”形成可比组，而不是只按宽泛行业分类。
-
-同一申万三级行业可以拆成多个不同盈利驱动的可比组；跨行业但盈利驱动高度一致的公司也可以放在同一可比组。
+按“核心盈利驱动 + 真正可比业务”形成可比组，而不是只按宽泛行业分类。同一申万三级行业可以拆成多个不同盈利驱动组；跨行业但盈利驱动高度一致的公司也可以放在同一可比组。
 
 ### 比较维度
 
 统一比较五个方面：
 
-1. **盈利兑现**：收入、利润、扣非利润是否已经真实兑现；
+1. **盈利兑现**：收入、利润、扣非利润是否真实兑现；
 2. **盈利质量**：现金流、利润率、ROE、一次性收益依赖程度；
 3. **估值吸引力**：PE-TTM、动态 PE、PB 相对盈利质量是否合理；
 4. **业务纯度**：公司利润是否主要来自当前景气改善的核心业务；
@@ -176,25 +176,21 @@ snapshot.candidates
 
 ### 市场确认风险修正
 
-`snapshot.industry_state.level3` 中的 `market_confirmation`、`market_breadth`、`market_activity` 和 `market_metrics` 作为同行择优的**风险修正项**。它们不改变公司的基本价值，也不采用固定加权总分，但会改变本轮同行之间的保留优先级：
+`snapshot.industry_state.level3` 中的 `market_confirmation`、`market_breadth`、`market_activity` 和 `market_metrics` 作为同行择优的风险修正项，不采用固定加权总分：
 
-- `market_confirmation = strong`：按正常五维比较，在基本面质量接近时可以更多考虑盈利弹性、业务纯度和景气暴露；
-- `market_confirmation = neutral`：按正常五维比较，不额外提高或降低风险偏好；
-- `market_confirmation = weak`：提高盈利质量、经营现金流、盈利稳定性、规模/成本优势和龙头属性的优先级，降低高弹性、高波动、现金流较弱或当前价格结构较脆弱公司的保留优先级；
-- `market_breadth = narrow` 且 `market_activity = active`：视为更强的风险警告。若公司质量接近，应优先保留现金流更强、盈利更稳定、竞争优势更清晰的公司，而不是仅因当前股价位置更低就优先保留高弹性公司；
-- 市场确认只用于同组相对选择，不得因为短期市场弱势直接把基本面优质公司判定为失去价值，也不得因为市场强势把基本面次优公司升级为优选。
+- `strong`：按正常五维比较，质量接近时可更多考虑盈利弹性、业务纯度和景气暴露；
+- `neutral`：正常比较；
+- `weak`：提高盈利质量、经营现金流、稳定性、规模/成本优势和龙头属性的优先级，降低高弹性、高波动、现金流较弱或结构脆弱公司的优先级；
+- `narrow + active`：视为更强的风险警告；质量接近时优先现金流更强、盈利更稳定、竞争优势更清晰的公司；
+- 市场确认只用于同组相对选择，不因短期市场弱势否定基本价值，也不因市场强势升级基本面次优公司。
 
-原则上每个真正可比组保留 **1–3 家**，不强制只留唯一冠军。
-
-明显次优者淘汰；无法可靠比较的公司标记为 `research_uncertain`，不进入最终榜单。
+原则上每个真正可比组保留 **1–3 家**，不强制只留唯一冠军。明显次优者淘汰；无法可靠比较的公司标记为 `research_uncertain`，不进入最终榜单。
 
 ---
 
 ## 8. 公司确认
 
-仅对同行择优后的公司做更深确认。
-
-重点回答三个问题：
+仅对同行择优后的公司做更深确认，重点回答：
 
 > 为什么利润变好了？
 >
@@ -217,33 +213,20 @@ snapshot.candidates
 
 ## 9. 价值判断
 
-只对公司确认通过的股票估值。
-
-估值只回答：
+只对公司确认通过的股票估值。估值只回答：
 
 > 当前价格是否已经给出足够安全边际？
 
-主要使用：
+主要使用：`pe_ttm`、`pe_dynamic`、`pb`、ROE、当前和未来盈利能力、行业景气状态、盈利稳定性与周期属性、同类公司相对估值。
 
-- `pe_ttm`；
-- `pe_dynamic`；
-- `pb`；
-- ROE；
-- 当前和未来盈利能力；
-- 行业景气状态；
-- 盈利稳定性与周期属性；
-- 同类公司相对估值。
-
-`PE-TTM <= 30` 和 `动态 PE <= 30` 只是候选池上限，不代表接近 30 就一定便宜。
-
-禁止仅因为低 PE/PB 自动判断低估。周期顶部、盈利快速下滑、低质量盈利必须降低估值可信度。
+`PE-TTM <= 30` 和 `动态 PE <= 30` 只是候选池上限，不代表接近 30 就一定便宜。禁止仅因为低 PE/PB 自动判断低估；周期顶部、盈利快速下滑、低质量盈利必须降低估值可信度。
 
 每家公司只输出两个估值结果：
 
 - **合理区间**：基于保守至基准盈利假设与合理估值水平得到的价值区间；
 - **低风险区间**：在合理区间基础上，根据盈利确定性、周期属性和市场风险加入适当安全边际后得到的低风险参与价格区间。
 
-安全边际不固定使用一个统一百分比，应随盈利确定性、周期性和市场环境调整。低风险区间用于回答“什么价格值得以低风险思路参与”，不由技术结构反向修改。
+安全边际不固定使用统一百分比，应随盈利确定性、周期性和市场环境调整。低风险区间用于回答“什么价格值得以低风险思路参与”，不由技术结构反向修改。
 
 若无法形成可信的合理区间与低风险区间，则该股票不进入正式榜单。
 
@@ -251,9 +234,7 @@ snapshot.candidates
 
 ## 10. 买点确认
 
-只有已经通过价值判断、当前价格进入或接近低风险区间的公司才进入价格结构判断。
-
-结构只决定“现在是否适合执行”，不修改合理区间或低风险区间。
+只有已经通过价值判断、当前价格进入或接近低风险区间的公司才进入价格结构判断。结构只决定“现在是否适合执行”，不修改合理区间或低风险区间。
 
 从 `candidate.price_structure` 重点读取：
 
@@ -266,20 +247,9 @@ snapshot.candidates
 - `nearest_volume_zone`；
 - `nearest_resistance`。
 
-优先：
+优先：60 日区间中低位、当前价接近有效支撑或成交密集区、下跌动能减弱、结构没有继续恶化、上方没有紧邻强阻力。
 
-- 60 日区间中低位；
-- 当前价接近有效支撑或成交密集区；
-- 下跌动能减弱；
-- 结构没有继续恶化；
-- 上方没有紧邻强阻力。
-
-降低排名或暂不入榜：
-
-- 60 日区间高位；
-- 短期快速拉升并远离支撑；
-- 明确跌破关键结构且尚未稳定；
-- 当前价格明显高于低风险区间。
+降低排名或暂不入榜：60 日区间高位、短期快速拉升并远离支撑、明确跌破关键结构且尚未稳定、当前价格明显高于低风险区间。
 
 允许左侧买点，不要求突破确认，但必须明确失效条件。
 
@@ -287,18 +257,9 @@ snapshot.candidates
 
 ## 11. 市场风险修正
 
-从 `snapshot.market_state` 读取：
+从 `snapshot.market_state` 读取：`trend`、`breadth`、`liquidity`、`risk_level`、`metrics.advance_ratio`、`metrics.above_ma20_ratio`、`metrics.above_ma60_ratio`、`metrics.turnover_ratio_vs_20d`。
 
-- `trend`；
-- `breadth`；
-- `liquidity`；
-- `risk_level`；
-- `metrics.advance_ratio`；
-- `metrics.above_ma20_ratio`；
-- `metrics.above_ma60_ratio`；
-- `metrics.turnover_ratio_vs_20d`。
-
-市场环境只调整风险容忍度，不改变公司基本价值判断。
+市场环境只调整风险容忍度，不改变公司基本价值判断：
 
 - `risk_level = high`：低风险区间要求更大的安全边际，执行位置应更靠近有效支撑；
 - `risk_level = medium`：按正常低风险标准执行；
@@ -310,9 +271,7 @@ snapshot.candidates
 
 ## 12. 排名规则
 
-禁止几十项加权总分。
-
-严格按以下顺序比较：
+禁止几十项加权总分。严格按以下顺序比较：
 
 1. **安全边际**：当前价相对合理区间、低风险区间是否足够有利；
 2. **盈利确定性**：行业景气与公司盈利驱动是否真实、持续、可验证；
@@ -328,9 +287,7 @@ snapshot.candidates
 
 正式榜单最多 10 只；不够就少发，可以空榜。
 
-开头用一句话给出当前市场：
-
-- `trend / breadth / liquidity / risk_level`。
+开头用一句话给出当前市场：`trend / breadth / liquidity / risk_level`。
 
 每只股票仅输出：
 
