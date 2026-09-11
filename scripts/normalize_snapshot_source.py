@@ -4,6 +4,8 @@ import argparse
 import json
 from pathlib import Path
 
+from snapshot_io import write_snapshot
+
 
 def main() -> int:
     parser = argparse.ArgumentParser()
@@ -21,10 +23,7 @@ def main() -> int:
         "industry_state_generated_at": previous.get("industry_state_generated_at")
         or ((payload.get("industry_state") or {}).get("generated_at")),
     }
-    path.write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    write_snapshot(path, payload)
     print(f"normalized snapshot source: {path}")
     return 0
 
