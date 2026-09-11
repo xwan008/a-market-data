@@ -39,6 +39,10 @@ def compact_industries(raw: dict[str, Any]) -> dict[str, Any]:
             "core_improving_breadth": item.get("core_improving_breadth"),
             "aggregate_revenue_yoy": item.get("aggregate_revenue_yoy"),
             "aggregate_parent_profit_yoy": item.get("aggregate_parent_profit_yoy"),
+            "market_breadth": item.get("market_breadth"),
+            "market_activity": item.get("market_activity"),
+            "market_confirmation": item.get("market_confirmation"),
+            "market_metrics": item.get("market_metrics"),
         }
     return result
 
