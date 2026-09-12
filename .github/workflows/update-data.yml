@@ -219,6 +219,7 @@ jobs:
         run: |
           python scripts/split_snapshot.py data/snapshot.json --output-dir data/runtime
           python scripts/build_peer_groups.py --runtime-dir data/runtime
+          python scripts/build_company_research_view.py --runtime-dir data/runtime
 
       - name: Commit updated daily data
         if: steps.gate.outputs.persist == 'true'
