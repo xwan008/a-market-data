@@ -129,7 +129,9 @@ jobs:
           python scripts/validate_snapshot.py data/snapshot.json
 
       - name: Build ChatGPT model-ready runtime
-        run: python scripts/split_snapshot.py data/snapshot.json --output-dir data/runtime
+        run: |
+          python scripts/split_snapshot.py data/snapshot.json --output-dir data/runtime
+          python scripts/build_peer_groups.py --runtime-dir data/runtime
 
       - name: Commit updated weekly research data
         shell: bash
