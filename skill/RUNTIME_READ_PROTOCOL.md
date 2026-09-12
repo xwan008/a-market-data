@@ -113,7 +113,7 @@ rows:
 
 - `meta.json`：最多 250 行；
 - 单股 detail：最多 250 行；
-- `industry_state_file`：默认最多 100 行；
+- `industry_state_file`：**默认最多 50 行**；
 - `screening_file`：**默认最多 50 行**。
 
 `screening_file` 必须按固定 50 行源窗口连续读取，例如：
