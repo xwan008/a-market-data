@@ -8,8 +8,7 @@ from pathlib import Path
 from typing import Any
 
 
-RUNTIME_SCHEMA_VERSION = 3
-RUNTIME_FORMAT = "screening_details_v3"
+RUNTIME_KIND = "low_risk_research"
 
 INDUSTRY_COLUMNS = [
     "code",
@@ -30,17 +29,36 @@ SCREENING_COLUMNS = [
     "code",
     "name",
     "price",
+    "day_change_pct",
     "industry_code",
+    "industry_name",
+    "business_tags",
+    "core_profit_driver",
+    "major_business_segments",
+    "market_cap",
     "pe_ttm",
     "pe_dynamic",
+    "pb",
     "roe",
     "revenue_yoy",
     "net_profit_yoy",
+    "deduct_basic_eps_yoy",
+    "operating_cashflow_per_share",
+    "gross_margin",
+    "net_profit",
+    "close_change_5d_pct",
     "close_change_20d_pct",
+    "high_20d",
+    "low_20d",
+    "high_60d",
+    "low_60d",
+    "ma20",
+    "ma60",
     "position_pct",
     "trend_state",
     "break_state",
     "support_center",
+    "volume_zone_center",
     "resistance_center",
     "invalidation_price",
     "invalidation_direction",
@@ -68,9 +86,8 @@ def write_row_json(
 ) -> None:
     """Write valid JSON with one compact array record per source line.
 
-    Repeated object keys dominate connector payload size. A shared columns array plus
-    one row per line keeps deterministic line-window reads stable while preserving
-    explicit schema semantics.
+    Shared columns plus one row per line keeps source-window reads deterministic
+    while giving the research model a complete lightweight comparison universe.
     """
     path.parent.mkdir(parents=True, exist_ok=True)
     lines = ["{"]
@@ -139,21 +156,41 @@ def compact_screening_candidate(code: str, raw: dict[str, Any]) -> list[Any]:
     invalidation_price, invalidation_direction = invalidation_parts(
         structure.get("invalidation")
     )
+
     return [
         code,
         raw.get("name"),
         raw.get("price"),
+        raw.get("day_change_pct"),
         raw.get("industry_code"),
+        raw.get("industry_name"),
+        raw.get("business_tags"),
+        raw.get("core_profit_driver"),
+        raw.get("major_business_segments"),
+        fundamentals.get("market_cap"),
         fundamentals.get("pe_ttm"),
         fundamentals.get("pe_dynamic"),
+        fundamentals.get("pb"),
         fundamentals.get("roe"),
         fundamentals.get("revenue_yoy"),
         fundamentals.get("net_profit_yoy"),
+        fundamentals.get("deduct_basic_eps_yoy"),
+        fundamentals.get("operating_cashflow_per_share"),
+        fundamentals.get("gross_margin"),
+        fundamentals.get("net_profit"),
+        structure.get("close_change_5d_pct"),
         structure.get("close_change_20d_pct"),
+        structure.get("high_20d"),
+        structure.get("low_20d"),
+        structure.get("high_60d"),
+        structure.get("low_60d"),
+        structure.get("ma20"),
+        structure.get("ma60"),
         structure.get("position_pct"),
         structure.get("trend_state"),
         structure.get("break_state"),
         zone_center(structure.get("nearest_support")),
+        zone_center(structure.get("nearest_volume_zone")),
         zone_center(structure.get("nearest_resistance")),
         invalidation_price,
         invalidation_direction,
@@ -164,8 +201,6 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("input", nargs="?", default="data/snapshot.json")
     parser.add_argument("--output-dir", default="data/runtime")
-    # Retained for CLI compatibility with the previous workflow.
-    parser.add_argument("--shard-size", type=int, default=20)
     args = parser.parse_args()
 
     snapshot_path = Path(args.input)
@@ -220,7 +255,6 @@ def main() -> None:
     write_row_json(
         output_dir / industry_state_filename,
         {
-            "schema_version": RUNTIME_SCHEMA_VERSION,
             "trade_date": trade_date,
             "industry_count": len(industry_rows),
         },
@@ -237,7 +271,6 @@ def main() -> None:
         write_json(
             detail_path,
             {
-                "schema_version": RUNTIME_SCHEMA_VERSION,
                 "trade_date": trade_date,
                 "code": code,
                 "candidate": raw,
@@ -250,7 +283,6 @@ def main() -> None:
     write_row_json(
         output_dir / screening_filename,
         {
-            "schema_version": RUNTIME_SCHEMA_VERSION,
             "trade_date": trade_date,
             "source_candidate_count": len(candidates),
             "screening_count": len(screening_rows),
@@ -271,7 +303,6 @@ def main() -> None:
 
     validation = {
         "status": "passed",
-        "schema_version": RUNTIME_SCHEMA_VERSION,
         "trade_date": trade_date,
         "candidate_codes_unique": True,
         "source_candidate_count_matches_snapshot": len(candidates) == expected,
@@ -282,8 +313,7 @@ def main() -> None:
     }
 
     meta = {
-        "schema_version": RUNTIME_SCHEMA_VERSION,
-        "runtime_format": RUNTIME_FORMAT,
+        "runtime_kind": RUNTIME_KIND,
         "snapshot": meta_snapshot,
         "source_candidate_count": len(candidates),
         "screening_count": len(screening_rows),
@@ -299,7 +329,7 @@ def main() -> None:
     write_json(output_dir / "meta.json", meta)
 
     print(
-        f"runtime ready: format={RUNTIME_FORMAT} trade_date={trade_date} "
+        f"runtime ready: kind={RUNTIME_KIND} trade_date={trade_date} "
         f"screening={len(screening_rows)} details={len(screening_rows)} "
         f"industries={len(industry_rows)} validation={validation['status']}"
     )
