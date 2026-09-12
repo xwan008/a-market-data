@@ -6,10 +6,13 @@ A 股低风险买点榜的数据、程序筛选与研究规则仓库。
 
 > **程序负责事实和资格，模型负责关系和解释。**
 
-系统不把可公式化的工作交给模型，也不要求模型从全市场自由挑股票。程序先完成数据准备、Eligibility Filter、Structure Filter 和统一 screening view；模型只在两个阶段介入：
+系统不把可公式化的工作交给模型，也不要求模型从全市场自由挑股票。程序先完成数据准备、Eligibility Filter、Structure Filter 和统一 screening view；模型只在两个研究阶段介入，并在最终发布前做风险因子归并：
 
 1. **Pre-Research Screening**：不联网，判断同行支配和公司绝对质量；
-2. **Deep Research**：只研究冻结后的 `deep_read_codes`，形成真实业务判断、正常化估值与最终安全区。
+2. **Deep Research**：只研究冻结后的 `deep_read_codes`，形成真实业务判断、正常化估值与最终安全区；
+3. **Risk Cluster Consolidation**：Deep Research 完成后，把高度依赖同一主导风险因子的公司归为一个独立风险收益机会，避免正式榜重复表达同一交易逻辑。
+
+研究层保持完整覆盖，最终发布层再做风险因子去重。
 
 ---
 
@@ -43,7 +46,15 @@ model-ready candidates
         ↓
 6. 正常化估值 + 最终安全区
         ↓
-正式榜 / waiting / research_uncertain / excluded
+7. Risk Cluster Consolidation｜模型，发布前
+   按主导盈利驱动与风险因子去重
+        ↓
+独立机会榜
+├─ representative_code
+└─ alternative_codes
+
+公司级状态仍保留：
+confirmed / waiting / research_uncertain / excluded
 ```
 
 不使用综合加权总分、全市场 Top N 或“市场风险高所以只研究少数公司”的方式替代完整研究。
@@ -173,7 +184,7 @@ data/runtime/screening_groups.json
 
 ---
 
-## Pre-Research 与 Deep Research
+## Pre-Research、Deep Research 与最终机会榜
 
 模型判断语义只维护在：
 
@@ -181,13 +192,13 @@ data/runtime/screening_groups.json
 skill/SKILL.md
 ```
 
-执行顺序、版本锁定、Ledger 冻结和 coverage 审计只维护在：
+执行顺序、版本锁定、Ledger 冻结、coverage 与最终机会审计只维护在：
 
 ```text
 skill/RUNTIME_READ_PROTOCOL.md
 ```
 
-核心执行边界：
+核心研究边界：
 
 ```text
 完整 Pre-Research
@@ -205,6 +216,29 @@ actual_deep_researched_codes
 ```
 
 做集合审计，而不是按搜索请求次数推断。
+
+Deep Research 和估值完成后，才进入：
+
+```text
+Risk Cluster Consolidation
+```
+
+这里不是“同行业只留一只”，而是判断多个公司是否实际上依赖同一个核心盈利变量、上涨催化和下行风险。
+
+因此：
+
+```text
+研究对象 = 公司
+正式榜对象 = 独立风险收益机会
+```
+
+同一风险簇默认只有一个 `representative_code` 占正式榜席位，其余有价值公司作为 `alternative_codes` 保留。
+
+例如三家券商如果都主要依赖市场成交活跃度、两融、自营和投行业务改善，它们可以全部完成 Deep Research，但正式榜只表达一个“券商 / 市场活跃度”机会，并列出代表公司和同簇备选。
+
+同一行业如果 Deep Research 证明主营、利润来源和主导风险实质不同，可以分别形成独立机会；不同行业如果高度依赖同一个主导变量，也可以归入同一风险簇。
+
+Risk Cluster Consolidation 只改变最终榜表达，不得反向减少 `deep_read_codes` 或修改 Deep Research coverage。
 
 ---
 
@@ -259,8 +293,8 @@ python scripts/build_runtime.py data/snapshot.json --output-dir data/runtime
 | `scripts/split_snapshot.py` | Structure Filter 唯一计算源 |
 | `scripts/build_screening_groups.py` | 组织不联网预筛事实 |
 | `scripts/build_runtime.py` | 统一 runtime 构建与验证 |
-| `skill/SKILL.md` | 模型判断语义 |
-| `skill/RUNTIME_READ_PROTOCOL.md` | 版本锁定、阶段顺序、Ledger 与 coverage |
+| `skill/SKILL.md` | 模型判断语义，包括最终 Risk Cluster Consolidation |
+| `skill/RUNTIME_READ_PROTOCOL.md` | 版本锁定、阶段顺序、Ledger、coverage 与最终机会审计 |
 | `README.md` | 给人看的稳定架构说明 |
 
 ---
@@ -272,5 +306,9 @@ python scripts/build_runtime.py data/snapshot.json --output-dir data/runtime
 > **程序结构硬筛只是研究准入，不是最终价值底。**
 
 > **单公司研究失败只影响该公司，不阻断其他候选。**
+
+> **研究层宁可完整保留相关公司，行动层再按主导风险因子去重。**
+
+> **正式榜排名的是独立风险收益机会，不是简单的股票数量。**
 
 > **不为了压缩数量而引入综合评分、Top N 或不可审计的模型自由挑选。**
