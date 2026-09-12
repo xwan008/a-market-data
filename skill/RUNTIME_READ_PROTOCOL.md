@@ -8,12 +8,13 @@
 
 > **生成侧保证数据完整，模型完整消费轻量 runtime，研究范围不得缩小。**
 
-必须区分两件事：
+必须区分三件事：
 
 - **数据完整性证明**：由 GitHub 数据生成流程完成；
-- **研究覆盖**：由模型基于已经通过校验的 compact runtime 完成。
+- **全量轻量研究覆盖**：由模型基于已经通过校验的 compact runtime 完成；
+- **公司真实业务研究**：只对自然进入 `deep_read_codes` 的公司执行。
 
-**全量研究不等于模型重新逐行证明文件完整性。**
+**全量研究不等于模型重新逐行证明文件完整性，也不等于对全部机械候选逐家公司做公开资料检索。**
 
 禁止为了再次证明行数、列数、唯一性或 EOF，而对已经通过生成期校验的 compact runtime 进行逐窗口手工扫描。
 
@@ -46,6 +47,8 @@
 - `skill/SKILL.md`
 
 不得读取旧 candidate shard、历史榜单或旧候选池补齐当前研究。
+
+`screening_file` 是全量轻量研究输入，不要求预先包含公司的真实主营、核心盈利驱动或主要业务结构。此类公司级研究信息属于 deep research 阶段，不得因为 screening 中不存在 `business_tags`、`core_profit_driver`、`major_business_segments` 等字段而判定 runtime 失败。
 
 ---
 
@@ -82,7 +85,7 @@
 模型必须消费其中的全部有效记录，用于实现：
 
 - 全部行业覆盖；
-- 全部机械候选进入行业/组内研究流程；
+- 全部机械候选进入行业/组内轻量研究流程；
 - 不因已经发现足够多候选而提前停止。
 
 但“消费全部有效记录”允许使用任何可靠方式：
@@ -100,34 +103,40 @@
 
 ## 6. 全行业与全候选覆盖
 
-研究范围仍然必须完整：
+研究范围必须完整：
 
 - 覆盖 `industry_count` 对应的全部行业；
 - 覆盖 `screening_count` 对应的全部机械候选；
 - 不得只研究热点行业、资源品或当日强势方向；
 - 不得边读取边因价格、趋势或个人偏好提前删除候选。
 
+这里的“全候选覆盖”是指每个机械候选都必须进入基于 compact 数据的轻量研究与初始分组流程，**不要求对全部候选逐家公司搜索公开资料、确认真实主营或建立完整公司画像。**
+
 行业与公司研究规则服从 `SKILL.md`。
 
-模型不需要再次输出或机械重算 333 个行业、717 个候选的 count 来证明自己读完；只需要保证研究逻辑确实基于完整 compact 数据执行。
+模型不需要再次输出或机械重算全部行业、候选的 count 来证明自己读完；只需要保证研究逻辑确实基于完整 compact 数据执行。
 
 ---
 
-## 7. 分组与 deep_read_codes
+## 7. 初始分组与 deep_read_codes
 
 完成全行业覆盖和全候选轻量研究后：
 
-1. 对继续研究的公司按真实主营业务、核心盈利驱动和主要利润来源分组；
-2. 每组形成 `winner / differential_candidate / research_uncertain / excluded`；
-3. `deep_read_codes` 为所有 `winner + differential_candidate + research_uncertain` 的自然并集。
+1. 允许直接使用 runtime 已提供的申万三级行业作为**初始可比组**；
+2. 在初始组内结合行业状态、基本面、估值、盈利变化、现金流、价格位置、支撑/成交密集区、趋势与失效结构进行轻量比较；
+3. 前置轻量比较的目标不是完成最终同行结论，而是识别哪些公司值得进入公司级深度研究；
+4. 对于业务异质性明显、数据冲突、估值可能存在周期失真、行业映射可能不足以解释公司盈利的候选，应保守进入 `research_uncertain`，而不是在前置阶段直接淘汰；
+5. `deep_read_codes` 为所有轻量比较后仍具有潜在安全边际、潜在明显上行空间、代表性、差异化价值或研究不确定性的公司自然并集。
 
 `deep_read_codes` 不设全局数量上限或下限。
 
 不得因为市场风险、上下文长度、工具调用数量或历史习惯而缩小 deep-read 范围。
 
+**形成 `deep_read_codes` 之前，不得强制要求所有候选拥有 `business_tags`、`core_profit_driver`、`major_business_segments`，也不得要求先对全部候选完成真实主营业务分组。**
+
 ---
 
-## 8. Detail 深读
+## 8. Detail 深读与真实业务分组
 
 只读取 `deep_read_codes` 对应的 detail 文件。
 
@@ -143,6 +152,29 @@
 如果 connector 已经返回完整对象或可程序化解析的完整文件，即视为完成读取。
 
 未进入 `deep_read_codes` 的 detail 不要求读取。
+
+对所有 `deep_read_codes`，在 deep research 阶段再通过 detail 与必要的公开资料确认：
+
+- 真实主营业务 / `business_tags`；
+- 核心盈利驱动 / `core_profit_driver`；
+- 主要业务与利润来源 / `major_business_segments`；
+- 当前行业机会是否真实传导到公司；
+- 一次性收益、周期高点或其他可能扭曲表面估值的因素。
+
+完成公司确认后，再按：
+
+> **真实主营业务 + 核心盈利驱动 + 主要利润来源**
+
+进行最终真实业务分组。申万三级行业只负责前置初始分组，不强制作为最终可比组。
+
+如果 deep research 发现原初始行业组内公司实际不可比，应重新分组；如果发现跨三级行业公司具有相同核心盈利驱动，也允许在最终研究中形成真实可比组。
+
+每个最终真实可比组必须形成明确终态：
+
+- `winner`
+- `differential_candidate`
+- `research_uncertain`
+- `excluded`
 
 ---
 
@@ -161,17 +193,20 @@
 
 - 人工逐窗口 EOF 验证；
 - `pending_source_window`；
-- 为重新证明唯一性、行数和 columns 而重复扫描原始文件。
+- 为重新证明唯一性、行数和 columns 而重复扫描原始文件；
+- 对 screening 候选预先检查真实主营、盈利驱动或主要业务字段是否存在。
 
 ### Research Coverage Gate
 
 必须同时满足：
 
 - 全行业已进入覆盖流程；
-- 全部机械候选已进入研究/分组流程；
-- 所有继续研究的公司完成真实业务分组；
-- 每个组存在明确终态；
-- `deep_read_codes` 是自然产生，没有全局截断。
+- 全部机械候选已进入三级行业初始分组与轻量比较流程；
+- 前置轻量研究没有因为缺少公司级业务字段而中断；
+- 所有值得继续研究或存在合理不确定性的公司均自然进入 `deep_read_codes`；
+- `deep_read_codes` 没有全局截断。
+
+**Research Coverage Gate 不要求在 deep-read 之前完成真实主营业务分组。**
 
 ### Deep Research Gate
 
@@ -180,7 +215,10 @@
 - Runtime Gate 通过；
 - Research Coverage Gate 通过；
 - 所有 `deep_read_codes` 对应 detail 已完成研究；
-- 所有 detail 来自同一 `locked_sha`。
+- 所有 detail 来自同一 `locked_sha`；
+- 所有 `deep_read_codes` 已完成真实主营、核心盈利驱动和主要利润来源确认；
+- 必要的真实业务重新分组已经完成；
+- 每个最终真实可比组存在明确终态。
 
 只有以上 Gate 通过后才能发布正式榜单。
 
@@ -194,7 +232,9 @@
 - 单次 connector 输出没有把全部内容展示在聊天窗口；
 - compact 文件包含数百个行业或候选；
 - 没有执行额外 EOF 空窗口请求；
-- 未读取非 deep-read 公司的 detail。
+- 未读取非 deep-read 公司的 detail；
+- screening 中不存在公司级 `business_tags`、`core_profit_driver`、`major_business_segments`；
+- 前置阶段只使用申万三级行业进行初始分组。
 
 真正失败只包括：
 
@@ -212,7 +252,7 @@
 
 ### 收盘正式版
 
-基于当前锁定 SHA 的 validated compact runtime 完成全行业、全候选研究，再深读自然产生的 `deep_read_codes`。
+基于当前锁定 SHA 的 validated compact runtime 完成全行业、全候选轻量研究，以三级行业作为初始分组形成自然的 `deep_read_codes`，再对 `deep_read_codes` 完成公司级真实业务研究、最终分组、估值与买点判断。
 
 ### 早间隔夜增量版
 
@@ -242,6 +282,8 @@
 
 > **GitHub 负责证明 runtime 完整；模型负责研究完整。**
 
-> **全量覆盖 ≠ 逐窗口证明 EOF。**
+> **全量覆盖 ≠ 全量公司公开资料检索。**
+
+> **三级行业负责前置初分组；真实主营与盈利驱动负责 deep research 阶段的最终分组。**
 
 > **validated compact runtime 一旦通过生成期校验，就直接用于研究，不重复做机械验数。**
