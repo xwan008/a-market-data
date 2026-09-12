@@ -8,13 +8,12 @@ from pathlib import Path
 from typing import Any
 
 RUNTIME_KIND = "low_risk_research"
-RUNTIME_FORMAT = "model_ready_candidates_v1"
+RUNTIME_FORMAT = "model_ready_candidates_v2"
+YOY_UNIT = "percentage_points"
 
-# Mid-low (20%, 35%] candidates still require two nearby acceptance structures.
+# Formal structure rule: this file is the single calculation source.
 SUPPORT_DISTANCE_LIMIT_PCT = 5.0
 VOLUME_DISTANCE_LIMIT_PCT = 5.0
-
-# Deep-low candidates (<=20%) require at least one high-quality acceptance structure.
 DEEP_POSITION_60D_LIMIT_PCT = 20.0
 POSITION_60D_LIMIT_PCT = 35.0
 DEEP_SUPPORT_DISTANCE_LIMIT_PCT = 3.0
@@ -68,16 +67,15 @@ CANDIDATE_COLUMNS = [
     "support_touches",
     "support_last_touch_date",
     "support_distance_pct",
-    "support_near",
     "volume_zone_low",
     "volume_zone_high",
     "volume_zone_center",
     "volume_zone_share_pct",
     "volume_zone_last_date",
     "volume_zone_distance_pct",
-    "volume_zone_near",
-    "position_60d_low",
-    "structural_signal_count",
+    "structure_tier",
+    "strong_support",
+    "strong_volume_zone",
     "resistance_low",
     "resistance_high",
     "resistance_center",
@@ -155,6 +153,15 @@ def invalidation_parts(value: Any) -> tuple[Any, Any]:
     return (price if is_number(price) else None, direction)
 
 
+def normalize_industry_yoy(value: Any, source_unit: str | None) -> Any:
+    if not is_number(value):
+        return value
+    if source_unit == YOY_UNIT:
+        return value
+    # Legacy snapshots stored industry aggregate YoY as ratios.
+    return float(value) * 100.0
+
+
 def strong_support(
     support_distance: Any,
     support_touches: Any,
@@ -183,6 +190,7 @@ def build_candidate_row(
     code: str,
     raw: dict[str, Any],
     industry: dict[str, Any],
+    industry_yoy_unit: str | None,
 ) -> tuple[list[Any], dict[str, Any]]:
     fundamentals = raw.get("fundamentals") or {}
     structure = raw.get("price_structure") or {}
@@ -216,15 +224,20 @@ def build_candidate_row(
     support_strong = strong_support(support_distance, support_touches)
     volume_strong = strong_volume(volume_distance, volume_share)
 
-    signal_count = int(support_near) + int(volume_near) + int(position_low)
-    passes = (
-        position_deep_low and (support_strong or volume_strong)
-    ) or (
+    if position_deep_low and (support_strong or volume_strong):
+        structure_tier = "deep_low_strong_acceptance"
+        passes = True
+    elif (
         position_low
         and not position_deep_low
         and support_near
         and volume_near
-    )
+    ):
+        structure_tier = "mid_low_dual_acceptance"
+        passes = True
+    else:
+        structure_tier = None
+        passes = False
 
     invalidation_price, invalidation_direction = invalidation_parts(
         structure.get("invalidation")
@@ -242,8 +255,12 @@ def build_candidate_row(
         industry.get("breadth"),
         industry.get("confidence"),
         industry.get("core_improving_breadth"),
-        industry.get("aggregate_revenue_yoy"),
-        industry.get("aggregate_parent_profit_yoy"),
+        normalize_industry_yoy(
+            industry.get("aggregate_revenue_yoy"), industry_yoy_unit
+        ),
+        normalize_industry_yoy(
+            industry.get("aggregate_parent_profit_yoy"), industry_yoy_unit
+        ),
         industry.get("market_breadth"),
         industry.get("market_activity"),
         industry.get("market_confirmation"),
@@ -276,16 +293,15 @@ def build_candidate_row(
         support_touches,
         zone_part(support, "last_touch_date"),
         support_distance,
-        support_near,
         zone_part(volume_zone, "low"),
         zone_part(volume_zone, "high"),
         zone_part(volume_zone, "center"),
         volume_share,
         zone_part(volume_zone, "last_date"),
         volume_distance,
-        volume_near,
-        position_low,
-        signal_count,
+        structure_tier,
+        support_strong,
+        volume_strong,
         zone_part(resistance, "low"),
         zone_part(resistance, "high"),
         zone_part(resistance, "center"),
@@ -302,7 +318,7 @@ def build_candidate_row(
         "volume_zone_strong": volume_strong,
         "position_60d_low": position_low,
         "position_60d_deep_low": position_deep_low,
-        "structural_signal_count": signal_count,
+        "structure_tier": structure_tier,
         "passes": passes,
     }
     return row, audit
@@ -330,7 +346,12 @@ def main() -> None:
     industry_state = snapshot.get("industry_state") or {}
     level3 = industry_state.get("level3") or {}
     if not isinstance(level3, dict) or not level3:
-        raise SystemExit("snapshot.industry_state.level3 must be a non-empty object")
+        raise SystemExit(
+            "snapshot.industry_state.level3 must be a non-empty object"
+        )
+    industry_yoy_unit = industry_state.get("yoy_unit") or (
+        snapshot.get("units") or {}
+    ).get("industry_yoy")
 
     trade_date = snapshot.get("trade_date")
     if not trade_date:
@@ -344,14 +365,15 @@ def main() -> None:
         {
             str(raw.get("industry_code"))
             for raw in candidates.values()
-            if not raw.get("industry_code") or raw.get("industry_code") not in level3
+            if not raw.get("industry_code")
+            or raw.get("industry_code") not in level3
         }
     )
     if missing_industry_codes:
         sample = ",".join(missing_industry_codes[:10])
         raise SystemExit(
-            f"candidate industry mapping incomplete: count={len(missing_industry_codes)} "
-            f"sample={sample}"
+            f"candidate industry mapping incomplete: "
+            f"count={len(missing_industry_codes)} sample={sample}"
         )
 
     if output_dir.exists():
@@ -368,7 +390,9 @@ def main() -> None:
 
     for code, raw in candidates.items():
         industry = level3.get(raw.get("industry_code")) or {}
-        row, audit = build_candidate_row(code, raw, industry)
+        row, audit = build_candidate_row(
+            code, raw, industry, industry_yoy_unit
+        )
         support_near_count += int(audit["support_near"])
         volume_near_count += int(audit["volume_zone_near"])
         support_strong_count += int(audit["support_strong"])
@@ -381,10 +405,12 @@ def main() -> None:
     industry_idx = CANDIDATE_COLUMNS.index("industry_code")
     code_idx = CANDIDATE_COLUMNS.index("code")
     model_rows.sort(
-        key=lambda row: (str(row[industry_idx] or ""), str(row[code_idx] or ""))
+        key=lambda row: (
+            str(row[industry_idx] or ""),
+            str(row[code_idx] or ""),
+        )
     )
 
-    candidates_filename = "candidates.json"
     structural_rule = {
         "deep_position_60d_pct_lte": DEEP_POSITION_60D_LIMIT_PCT,
         "position_60d_pct_lte": POSITION_60D_LIMIT_PCT,
@@ -397,11 +423,14 @@ def main() -> None:
         "mid_low_volume_distance_pct_lte": VOLUME_DISTANCE_LIMIT_PCT,
         "mid_low_requires_acceptance": "support_near_and_volume_zone_near",
     }
+
+    candidates_filename = "candidates.json"
     write_row_json(
         output_dir / candidates_filename,
         {
             "runtime_format": RUNTIME_FORMAT,
             "trade_date": trade_date,
+            "yoy_unit": YOY_UNIT,
             "source_candidate_count": len(candidates),
             "candidate_count": len(model_rows),
             "structural_rule": structural_rule,
@@ -418,9 +447,11 @@ def main() -> None:
     meta_snapshot["industry_state"] = {
         key: value for key, value in industry_state.items() if key != "level3"
     }
+    meta_snapshot["industry_state"]["yoy_unit"] = YOY_UNIT
 
-    support_near_idx = CANDIDATE_COLUMNS.index("support_near")
-    volume_near_idx = CANDIDATE_COLUMNS.index("volume_zone_near")
+    structure_tier_idx = CANDIDATE_COLUMNS.index("structure_tier")
+    strong_support_idx = CANDIDATE_COLUMNS.index("strong_support")
+    strong_volume_idx = CANDIDATE_COLUMNS.index("strong_volume_zone")
     position_pct_idx = CANDIDATE_COLUMNS.index("position_pct")
     support_distance_idx = CANDIDATE_COLUMNS.index("support_distance_pct")
     support_touches_idx = CANDIDATE_COLUMNS.index("support_touches")
@@ -432,15 +463,36 @@ def main() -> None:
         if not is_number(position_value):
             return False
         position = float(position_value)
+        expected_tier = None
         if position <= DEEP_POSITION_60D_LIMIT_PCT:
-            return strong_support(
+            if strong_support(
                 row[support_distance_idx], row[support_touches_idx]
             ) or strong_volume(
                 row[volume_distance_idx], row[volume_share_idx]
+            ):
+                expected_tier = "deep_low_strong_acceptance"
+        elif position <= POSITION_60D_LIMIT_PCT:
+            support_distance = row[support_distance_idx]
+            volume_distance = row[volume_distance_idx]
+            if (
+                is_number(support_distance)
+                and float(support_distance) <= SUPPORT_DISTANCE_LIMIT_PCT
+                and is_number(volume_distance)
+                and float(volume_distance) <= VOLUME_DISTANCE_LIMIT_PCT
+            ):
+                expected_tier = "mid_low_dual_acceptance"
+        return (
+            expected_tier is not None
+            and row[structure_tier_idx] == expected_tier
+            and bool(row[strong_support_idx])
+            == strong_support(
+                row[support_distance_idx], row[support_touches_idx]
             )
-        if position <= POSITION_60D_LIMIT_PCT:
-            return bool(row[support_near_idx]) and bool(row[volume_near_idx])
-        return False
+            and bool(row[strong_volume_idx])
+            == strong_volume(
+                row[volume_distance_idx], row[volume_share_idx]
+            )
+        )
 
     validation = {
         "status": "passed",
@@ -451,37 +503,42 @@ def main() -> None:
         "model_candidate_rows_match_rule": all(
             row_matches_rule(row) for row in model_rows
         ),
+        "yoy_unit": YOY_UNIT,
     }
 
     meta = {
         "runtime_kind": RUNTIME_KIND,
         "runtime_format": RUNTIME_FORMAT,
+        "yoy_unit": YOY_UNIT,
         "snapshot": meta_snapshot,
         "source_candidate_count": len(candidates),
         "candidate_count": len(model_rows),
         "structural_relevance_count": len(model_rows),
         "industry_count": len(level3),
+        "eligibility_audit": snapshot.get("eligibility_audit"),
         "candidate_file": f"{output_dir.as_posix()}/{candidates_filename}",
         "candidate_columns": CANDIDATE_COLUMNS,
         "structural_rule": structural_rule,
-        "structural_signal_audit": {
+        "structural_filter_audit": {
             "support_near_count": support_near_count,
             "volume_zone_near_count": volume_near_count,
             "strong_support_count": support_strong_count,
             "strong_volume_zone_count": volume_strong_count,
             "low_position_count": low_position_count,
             "deep_low_position_count": deep_low_position_count,
-            "mid_low_position_count": low_position_count - deep_low_position_count,
+            "mid_low_position_count": (
+                low_position_count - deep_low_position_count
+            ),
         },
         "runtime_validation": validation,
     }
     write_json(output_dir / "meta.json", meta)
 
     print(
-        f"runtime ready: kind={RUNTIME_KIND} format={RUNTIME_FORMAT} "
-        f"trade_date={trade_date} source={len(candidates)} "
-        f"model_candidates={len(model_rows)} industries={len(level3)} "
-        f"validation={validation['status']}"
+        f"runtime base ready: kind={RUNTIME_KIND} "
+        f"format={RUNTIME_FORMAT} trade_date={trade_date} "
+        f"source={len(candidates)} model_candidates={len(model_rows)} "
+        f"industries={len(level3)} validation={validation['status']}"
     )
 
 
