@@ -29,14 +29,14 @@
 - 行业字段与公司字段合并；
 - 生成唯一 model-ready 候选表。
 
-潜在结构相关性当前使用：
+潜在结构相关性当前采用分层硬规则：
 
-1. 当前价距 `support_center` 不超过约 5%；
-2. 当前价距 `volume_zone_center` 不超过约 5%；
-3. `position_pct <= 35%`；
-4. 三项原则上至少满足两项。
+1. `position_pct <= 20%`：只要当前价接近 `support_center` 或 `volume_zone_center` 中任意一种承接结构即可通过；
+2. `20% < position_pct <= 35%`：必须同时接近 `support_center` 与 `volume_zone_center` 才通过；
+3. support 与 volume-zone 的接近阈值均约为 5%；
+4. `position_pct > 35%` 不进入本轮 model-ready 候选表。
 
-这些只是程序化研究准入条件，不是最终安全区。
+含义是：**位置越高，需要越强的承接证据。** 这些只是程序化研究准入条件，不是最终安全区。
 
 ### 模型只负责需要判断的工作
 
