@@ -7,6 +7,8 @@ from pathlib import Path
 from statistics import mean, median
 from zoneinfo import ZoneInfo
 
+from contracts import YOY_UNIT
+
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 SHARDS = DATA / "shards"
@@ -15,7 +17,6 @@ LATEST = DATA / "latest.json"
 OUTPUT = DATA / "research" / "industry_state.json"
 TZ = ZoneInfo("Asia/Shanghai")
 TENCENT_VOLUME_LOT_SIZE = 100
-YOY_UNIT = "percentage_points"
 
 
 def fnum(value):
