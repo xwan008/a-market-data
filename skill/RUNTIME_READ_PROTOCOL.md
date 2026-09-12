@@ -1,6 +1,6 @@
 # A股低风险买点榜：运行时读取与版本边界协议
 
-> 本文件只约束“读哪一版数据、怎样完整读取运行时 JSON、何时允许进入下一阶段”。
+> 本文件只约束“读哪一版数据、怎样完整读取运行时数据、何时允许进入下一阶段”。
 > 对这些问题，本文件为任务级最高优先级协议；选股、研究、估值与排名规则仍以同一锁定 SHA 下的 `skill/SKILL.md` 为准。
 >
 > 当前协议版本：`screening_details_v3`。
@@ -83,33 +83,60 @@ V3 正式机械数据入口只有：
 
 ---
 
-## 5. 源文件窗口读取规则
+## 5. Screening / Industry 的列式轻量格式
 
-对以下文件采用确定性源文件行窗口读取：
+为降低 Connector 返回体积，V3 的 `screening_file` 与 `industry_state_file` 不再为每条记录重复 JSON key，而采用：
 
-- `meta.json`
-- `industry_state_file`
-- `screening_file`
-- 每个被选中的 detail 文件
+```text
+columns: ["field_a", "field_b", ...]
+rows:
+  ["value_a", "value_b", ...]
+  ["value_a", "value_b", ...]
+```
 
-默认窗口最多 250 个源文件行：
+解释规则：
 
-- 第 1 段：`1–250`
-- 第 2 段：`251–500`
-- 后续严格连续
+- `columns[i]` 是 `rows[*][i]` 的字段名；
+- 每个 `row` 的长度必须等于 `len(columns)`；
+- `screening_columns` 与 `industry_columns` 同时写入 `meta.json`，用于快速校验；
+- 模型必须按 `columns` 映射字段，不得依赖固定数组下标猜字段；
+- `detail_file` 不再重复存储在每条 screening row 中，应使用：
+  `meta.detail_file_template.replace("{code}", code)` 构造。
 
-如果某一窗口触发响应截断、resource continuation 或返回过大：
+这种格式只用于轻量 Screening / Industry 层。单股 detail 文件继续使用普通具名 JSON 对象。
+
+---
+
+## 6. 源文件窗口读取规则
+
+不同文件使用不同默认窗口：
+
+- `meta.json`：最多 250 行；
+- 单股 detail：最多 250 行；
+- `industry_state_file`：默认最多 100 行；
+- `screening_file`：**默认最多 50 行**。
+
+`screening_file` 必须按固定 50 行源窗口连续读取，例如：
+
+- `1–50`
+- `51–100`
+- `101–150`
+- ...
+
+如果某个窗口仍触发响应截断、resource continuation 或返回过大：
 
 1. 不把 response-resource continuation 当作正常读取路径；
-2. 将**同一源文件、同一起始位置**缩小窗口，例如 `250 → 100 → 50`；
+2. 将**同一源文件、同一起始位置**缩小窗口，例如：
+   - Screening：`50 → 25 → 10`
+   - 其他文件：`250 → 100 → 50`
 3. 重新读取该段；
-4. 再继续后续源文件窗口。
+4. 再继续后续连续源文件窗口。
 
 不得跳行、重叠、倒退或根据内容猜测下一起始行。
 
 ---
 
-## 6. EOF 判定
+## 7. EOF 判定
 
 对于需要完整读取的每个 runtime 文件：
 
@@ -127,9 +154,9 @@ V3 正式机械数据入口只有：
 
 ---
 
-## 7. Build-time Runtime Validation
+## 8. Build-time Runtime Validation
 
-V3 将原本需要模型跨 36 个 shard 执行的全局一致性校验前移到数据生成脚本。
+V3 将原本需要模型跨全部 shard 执行的全局一致性校验前移到数据生成脚本。
 
 `meta.runtime_validation.status == "passed"` 必须代表生成阶段已经确定性验证：
 
@@ -147,7 +174,7 @@ V3 将原本需要模型跨 36 个 shard 执行的全局一致性校验前移到
 
 ---
 
-## 8. Screening Completion Gate
+## 9. Screening Completion Gate
 
 进入模型初筛前，必须同时满足：
 
@@ -156,16 +183,28 @@ V3 将原本需要模型跨 36 个 shard 执行的全局一致性校验前移到
 - `meta.runtime_validation.status == passed`
 - `industry_state_file` 已确认真实 EOF 且可解析
 - `screening_file` 已确认真实 EOF 且可解析
-- 行业文件：
-  - `schema_version == 3`
-  - `trade_date == meta.snapshot.trade_date`
-  - `industry_count == len(industries) == meta.industry_count`
-- screening 文件：
-  - `schema_version == 3`
-  - `trade_date == meta.snapshot.trade_date`
-  - `source_candidate_count == meta.source_candidate_count`
-  - `screening_count == len(candidates) == meta.screening_count`
-  - 每条 screening record 至少有 `code / name / price / industry_code / detail_file`
+
+行业文件必须满足：
+
+- `schema_version == 3`
+- `trade_date == meta.snapshot.trade_date`
+- `industry_count == len(rows) == meta.industry_count`
+- `columns == meta.industry_columns`
+- 每个 row 长度等于 `len(columns)`
+
+Screening 文件必须满足：
+
+- `schema_version == 3`
+- `trade_date == meta.snapshot.trade_date`
+- `source_candidate_count == meta.source_candidate_count`
+- `screening_count == len(rows) == meta.screening_count`
+- `columns == meta.screening_columns`
+- 每个 row 长度等于 `len(columns)`
+- `columns` 至少包含：
+  `code / name / price / industry_code / pe_ttm / pe_dynamic / roe / revenue_yoy / net_profit_yoy / close_change_20d_pct / position_pct / trend_state / break_state / support_center / resistance_center / invalidation_price / invalidation_direction`
+
+同时：
+
 - 所有已读取文件来自同一 `locked_sha`
 - 不存在待继续的 source window
 
@@ -177,7 +216,7 @@ V3 将原本需要模型跨 36 个 shard 执行的全局一致性校验前移到
 
 ---
 
-## 9. 模型初筛
+## 10. 模型初筛
 
 Screening 层只用于缩小研究空间，不发布最终榜单。
 
@@ -186,11 +225,11 @@ Screening 层只用于缩小研究空间，不发布最终榜单。
 - 行业状态
 - 盈利增速
 - 基础估值
-- ROE / 现金流等质量字段
+- ROE
 - 趋势状态
 - 价格位置
-- 支撑 / 成交密集区 / 失效位
-- 近期涨幅与追高风险
+- 支撑 / 压力 / 失效位
+- 近 20 日涨幅与追高风险
 
 将全部轻量候选压缩成一个 `deep_read_codes` 集合。
 
@@ -205,11 +244,11 @@ Screening 层只用于缩小研究空间，不发布最终榜单。
 
 ---
 
-## 10. Detail 深读
+## 11. Detail 深读
 
 对 `deep_read_codes` 中每只股票：
 
-1. 使用 screening record 的 `detail_file`；
+1. 从 `meta.detail_file_template` 用股票代码构造 detail 路径；
 2. 从同一 `locked_sha` 读取；
 3. 按本协议源文件窗口规则读到真实 EOF；
 4. 校验：
@@ -226,7 +265,7 @@ Screening 层只用于缩小研究空间，不发布最终榜单。
 
 ---
 
-## 11. Deep Research Completion Gate
+## 12. Deep Research Completion Gate
 
 开始正式行业复核、同行择优、公司确认、估值和排名之前，必须满足：
 
@@ -245,14 +284,14 @@ Screening 层只用于缩小研究空间，不发布最终榜单。
 
 ---
 
-## 12. `snapshot_read_incomplete` 的允许条件
+## 13. `snapshot_read_incomplete` 的允许条件
 
 只有以下情况才允许输出 `snapshot_read_incomplete`：
 
 - V3 必需文件在锁定 SHA 下不存在；
 - 固定源文件窗口经过缩窗重试仍无法取得所需源文件内容；
 - 已确认 EOF 后 JSON 不合法；
-- schema / trade_date / count 等校验失败；
+- schema / trade_date / count / columns / row length 等校验失败；
 - `meta.runtime_validation.status != passed`；
 - Screening Completion Gate 失败；
 - 被选中的 detail 文件缺失或校验失败；
@@ -270,7 +309,7 @@ Screening 层只用于缩小研究空间，不发布最终榜单。
 
 ---
 
-## 13. 终止前强制检查
+## 14. 终止前强制检查
 
 输出正式榜单前必须确认：
 
@@ -292,7 +331,7 @@ Screening 层只用于缩小研究空间，不发布最终榜单。
 
 ---
 
-## 14. 核心原则
+## 15. 核心原则
 
 V2：
 
