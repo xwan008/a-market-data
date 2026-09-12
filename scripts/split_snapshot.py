@@ -12,6 +12,7 @@ RUNTIME_FORMAT = "model_ready_candidates_v1"
 
 SUPPORT_DISTANCE_LIMIT_PCT = 5.0
 VOLUME_DISTANCE_LIMIT_PCT = 5.0
+DEEP_POSITION_60D_LIMIT_PCT = 20.0
 POSITION_60D_LIMIT_PCT = 35.0
 
 CANDIDATE_COLUMNS = [
@@ -177,8 +178,16 @@ def build_candidate_row(
         is_number(position_pct)
         and float(position_pct) <= POSITION_60D_LIMIT_PCT
     )
+    position_deep_low = (
+        is_number(position_pct)
+        and float(position_pct) <= DEEP_POSITION_60D_LIMIT_PCT
+    )
     signal_count = int(support_near) + int(volume_near) + int(position_low)
-    passes = position_low and (support_near or volume_near)
+    passes = (
+        position_deep_low and (support_near or volume_near)
+    ) or (
+        position_low and not position_deep_low and support_near and volume_near
+    )
 
     invalidation_price, invalidation_direction = invalidation_parts(
         structure.get("invalidation")
@@ -253,6 +262,7 @@ def build_candidate_row(
         "support_near": support_near,
         "volume_zone_near": volume_near,
         "position_60d_low": position_low,
+        "position_60d_deep_low": position_deep_low,
         "structural_signal_count": signal_count,
         "passes": passes,
     }
@@ -313,6 +323,7 @@ def main() -> None:
     support_near_count = 0
     volume_near_count = 0
     low_position_count = 0
+    deep_low_position_count = 0
 
     for code, raw in candidates.items():
         industry = level3.get(raw.get("industry_code")) or {}
@@ -320,6 +331,7 @@ def main() -> None:
         support_near_count += int(audit["support_near"])
         volume_near_count += int(audit["volume_zone_near"])
         low_position_count += int(audit["position_60d_low"])
+        deep_low_position_count += int(audit["position_60d_deep_low"])
         if audit["passes"]:
             model_rows.append(row)
 
@@ -334,9 +346,10 @@ def main() -> None:
     structural_rule = {
         "support_distance_pct_lte": SUPPORT_DISTANCE_LIMIT_PCT,
         "volume_zone_distance_pct_lte": VOLUME_DISTANCE_LIMIT_PCT,
+        "deep_position_60d_pct_lte": DEEP_POSITION_60D_LIMIT_PCT,
         "position_60d_pct_lte": POSITION_60D_LIMIT_PCT,
-        "requires_low_position": True,
-        "requires_acceptance": "support_near_or_volume_zone_near",
+        "deep_low_requires_acceptance": "support_near_or_volume_zone_near",
+        "mid_low_requires_acceptance": "support_near_and_volume_zone_near",
     }
     write_row_json(
         output_dir / candidates_filename,
@@ -362,7 +375,21 @@ def main() -> None:
 
     support_near_idx = CANDIDATE_COLUMNS.index("support_near")
     volume_near_idx = CANDIDATE_COLUMNS.index("volume_zone_near")
-    position_low_idx = CANDIDATE_COLUMNS.index("position_60d_low")
+    position_pct_idx = CANDIDATE_COLUMNS.index("position_pct")
+
+    def row_matches_rule(row: list[Any]) -> bool:
+        position_value = row[position_pct_idx]
+        if not is_number(position_value):
+            return False
+        position = float(position_value)
+        support_ok = bool(row[support_near_idx])
+        volume_ok = bool(row[volume_near_idx])
+        if position <= DEEP_POSITION_60D_LIMIT_PCT:
+            return support_ok or volume_ok
+        if position <= POSITION_60D_LIMIT_PCT:
+            return support_ok and volume_ok
+        return False
+
     validation = {
         "status": "passed",
         "trade_date": trade_date,
@@ -370,9 +397,7 @@ def main() -> None:
         "source_candidate_count_matches_snapshot": len(candidates) == expected,
         "industry_mapping_complete": not missing_industry_codes,
         "model_candidate_rows_match_rule": all(
-            bool(row[position_low_idx])
-            and (bool(row[support_near_idx]) or bool(row[volume_near_idx]))
-            for row in model_rows
+            row_matches_rule(row) for row in model_rows
         ),
     }
 
@@ -391,6 +416,8 @@ def main() -> None:
             "support_near_count": support_near_count,
             "volume_zone_near_count": volume_near_count,
             "low_position_count": low_position_count,
+            "deep_low_position_count": deep_low_position_count,
+            "mid_low_position_count": low_position_count - deep_low_position_count,
         },
         "runtime_validation": validation,
     }
