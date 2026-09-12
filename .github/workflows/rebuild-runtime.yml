@@ -36,6 +36,7 @@ jobs:
         run: |
           python scripts/split_snapshot.py data/snapshot.json --output-dir data/runtime
           python scripts/build_peer_groups.py --runtime-dir data/runtime
+          python scripts/build_company_research_view.py --runtime-dir data/runtime
 
       - name: Validate research runtime
         shell: bash
@@ -50,6 +51,7 @@ jobs:
           validation = meta.get("runtime_validation") or {}
           assert validation.get("status") == "passed", validation
           assert validation.get("peer_group_view_valid") is True, validation
+          assert validation.get("company_research_view_valid") is True, validation
           assert meta.get("candidate_count") == meta.get("structural_relevance_count")
           assert meta.get("source_candidate_count", 0) >= meta.get("candidate_count", 0)
 
@@ -79,6 +81,9 @@ jobs:
           missing = sorted(required_columns - actual_columns)
           assert not missing, missing
 
+          code_idx = payload["columns"].index("code")
+          candidate_codes = [str(row[code_idx]) for row in (payload.get("rows") or [])]
+
           peer_path = Path(meta["peer_group_file"])
           assert peer_path.exists(), peer_path
           peer = json.loads(peer_path.read_text(encoding="utf-8"))
@@ -91,11 +96,22 @@ jobs:
               for group in (peer.get("groups") or [])
               for member in (group.get("members") or [])
           ]
-          code_idx = payload["columns"].index("code")
-          candidate_codes = [str(row[code_idx]) for row in (payload.get("rows") or [])]
           assert len(peer_codes) == len(set(peer_codes)) == len(candidate_codes)
           assert set(peer_codes) == set(candidate_codes)
           assert (meta.get("peer_group_validation") or {}).get("status") == "passed"
+
+          research_path = Path(meta["company_research_file"])
+          assert research_path.exists(), research_path
+          research = json.loads(research_path.read_text(encoding="utf-8"))
+          assert research.get("runtime_format") == "company_research_view_v1"
+          assert research.get("trade_date") == (meta.get("snapshot") or {}).get("trade_date")
+          assert research.get("candidate_count") == meta.get("candidate_count")
+          assert research.get("columns") == meta.get("company_research_columns")
+          research_code_idx = research["columns"].index("code")
+          research_codes = [str(row[research_code_idx]) for row in (research.get("rows") or [])]
+          assert len(research_codes) == len(set(research_codes)) == len(candidate_codes)
+          assert set(research_codes) == set(candidate_codes)
+          assert (meta.get("company_research_validation") or {}).get("status") == "passed"
 
           assert not Path("data/runtime/details").exists()
 
@@ -108,6 +124,7 @@ jobs:
               "peer_group_count": meta.get("peer_group_count"),
               "peer_group_singleton_count": meta.get("peer_group_singleton_count"),
               "peer_group_max_size": meta.get("peer_group_max_size"),
+              "company_research_coverage": meta.get("company_research_coverage"),
               "validation": validation.get("status"),
           }, ensure_ascii=False))
           PY
