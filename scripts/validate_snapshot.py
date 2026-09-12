@@ -7,10 +7,9 @@ import argparse
 import json
 from pathlib import Path
 
+from contracts import ELIGIBILITY_MAX_PE, ELIGIBILITY_MAX_PRICE, YOY_UNIT
+
 SNAPSHOT_SCHEMA_VERSION = 2
-MAX_PRICE = 120.0
-MAX_PE = 30.0
-YOY_UNIT = "percentage_points"
 
 
 def fail(message: str) -> None:
@@ -112,8 +111,7 @@ def main() -> None:
     )
     for code, stock in candidates.items():
         missing = [
-            key for key in required_candidate_fields
-            if stock.get(key) is None
+            key for key in required_candidate_fields if stock.get(key) is None
         ]
         if missing:
             fail(f"candidate {code} missing fields: {missing}")
@@ -125,8 +123,11 @@ def main() -> None:
             or price <= 0
         ):
             fail(f"candidate {code} has invalid price: {price!r}")
-        if price > MAX_PRICE:
-            fail(f"candidate {code} price={price!r} exceeds {MAX_PRICE}")
+        if price > ELIGIBILITY_MAX_PRICE:
+            fail(
+                f"candidate {code} price={price!r} exceeds "
+                f"{ELIGIBILITY_MAX_PRICE}"
+            )
 
         fundamentals = stock.get("fundamentals") or {}
         if not fundamentals.get("report_date"):
@@ -137,9 +138,12 @@ def main() -> None:
             if (
                 isinstance(pe, (int, float))
                 and not isinstance(pe, bool)
-                and pe > MAX_PE
+                and pe > ELIGIBILITY_MAX_PE
             ):
-                fail(f"candidate {code} {pe_key}={pe!r} exceeds {MAX_PE}")
+                fail(
+                    f"candidate {code} {pe_key}={pe!r} exceeds "
+                    f"{ELIGIBILITY_MAX_PE}"
+                )
 
         structure = stock.get("price_structure") or {}
         if structure.get("position_pct") is None:
