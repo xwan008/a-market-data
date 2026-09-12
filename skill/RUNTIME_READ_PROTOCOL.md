@@ -1,75 +1,123 @@
 # A股低风险买点榜：运行时读取与版本边界协议
 
-> 本文件只约束“读哪一版数据、怎样完整读取运行时 JSON、何时允许结束读取”。
+> 本文件只约束“读哪一版数据、怎样完整读取运行时 JSON、何时允许进入下一阶段”。
 > 对这些问题，本文件为任务级最高优先级协议；选股、研究、估值与排名规则仍以同一锁定 SHA 下的 `skill/SKILL.md` 为准。
+>
+> 当前协议版本：`screening_details_v3`。
+> `SKILL.md` 中仍出现的 `candidate_shards_v2`、`candidate_files`、`completed_candidate_files`、必须全量读取全部候选 shard 等旧运行时条款，均视为 V2 兼容说明；在 V3 runtime 下由本文件替代。
 
-## 1. 新执行与断点续读必须严格区分
+## 1. 设计目标
 
-### 新执行
-每一次新的定时触发、手动触发或用户明确要求“重新执行一次任务”，都必须视为一个全新的 run：
+V3 的核心原则：
 
-1. 从头解析仓库 `xwan008/a-market-data` 当下 `main` commit SHA；
-2. 禁止复用上一轮 run 的 `locked_sha`；
-3. 禁止因为上一轮已经读过某些 shard 而从中间继续；
-4. 必须重新从本轮 `locked_sha` 读取规则、`meta.json`、行业状态与全部候选分片。
+> **全量轻读，少量深读。**
 
-### 同一 run 的断点续读
-只有当前这一次 run 尚未结束、只是同一轮读取过程需要继续时，才保持原 `locked_sha` 不变并从当前源文件的下一个未读取行继续。
+数据生成脚本负责确定性粗筛、结构压缩和全局一致性校验；模型负责不可机械化的判断。
 
-任何新的 scheduled/manual invocation 都不是上一轮的续读。
+正式运行不再要求模型读取全部候选公司的完整明细。运行时分成两层：
+
+1. **Screening 层**：读取全部候选的轻量记录，用于快速初筛；
+2. **Detail 层**：只读取模型选中的少量公司的完整 runtime 明细。
+
+这不是降低数据完整性要求，而是把“全量一致性校验”前移到数据生成阶段，把“深度读取”限制在真正进入研究阶段的公司。
 
 ---
 
-## 2. 版本与数据新鲜度
+## 2. 新执行与同一 run 续读
+
+### 新执行
+
+每一次新的定时触发、手动触发或用户明确要求“重新执行一次任务”，都必须视为全新的 run：
+
+1. 重新解析仓库 `xwan008/a-market-data` 当前 `main` commit SHA；
+2. 记为 `locked_sha`；
+3. 禁止复用上一轮 run 的 `locked_sha`、筛选结果或 detail 读取状态；
+4. 从本轮 `locked_sha` 重新读取本文件、`skill/SKILL.md` 和 `data/runtime/meta.json`。
+
+### 同一 run 续读
+
+如果当前 run 尚未结束，只是继续同一轮执行：
+
+- 保持原 `locked_sha`；
+- 从当前阶段继续；
+- 不重新解析 `main`；
+- 不重复已完成且已校验的源文件窗口。
+
+---
+
+## 3. 版本与数据新鲜度
 
 每轮开始顺序固定为：
 
 1. 解析当前 `main` SHA，记为 `locked_sha`；
-2. 从 `locked_sha` 读取 `skill/SKILL.md`、本文件和 `data/runtime/meta.json`；
-3. 根据 `meta.trade_date`、`meta.latest_valid_close_date`、`meta.market_status` 与当前时点判断数据是否对应当前应使用的最近有效收盘；
-4. 只有数据新鲜度通过后，才继续读取行业状态与候选分片；
-5. 本轮后续所有仓库读取都必须显式使用同一个 `locked_sha`。
+2. 从 `locked_sha` 读取：
+   - `skill/RUNTIME_READ_PROTOCOL.md`
+   - `skill/SKILL.md`
+   - `data/runtime/meta.json`
+3. `meta` 必须满足：
+   - `schema_version == 3`
+   - `runtime_format == "screening_details_v3"`
+   - `runtime_validation.status == "passed"`
+4. 根据 `meta.snapshot.trade_date`、`meta.snapshot.market_status` 与当前时点判断是否为当前应使用的最近有效收盘；
+5. 数据新鲜度通过后，才进入 Screening 层。
 
-注意：
+非交易日允许沿用最近有效收盘数据。若当前正式收盘版理应已有更新交易日，但 runtime 仍停留在更早交易日，则不得发布新的正式榜单。
 
-- `main` 出现新的规则/文档提交，不等于市场数据已重新生成；
-- 是否需要新 runtime，依据“当前时点最新有效交易日”判断，而不是依据文件是否刚刚产生新 commit；
-- 非交易日允许沿用最近有效收盘数据；
-- 若正式收盘版应当已有更新交易日数据，但 `meta` 仍旧停留在更早交易日，则输出数据过期/不完整状态，不得发布新的正式榜单。
-
----
-
-## 3. Runtime JSON 禁止整文件首读
-
-以下运行时 JSON 禁止使用整文件读取作为正常路径：
-
-- `data/runtime/meta.json`；
-- `meta.industry_state_file`；
-- `meta.candidate_files` 中全部 `candidates_*.json`。
-
-必须直接使用 GitHub 源文件行区间读取，并显式指定 `ref=locked_sha`。
-
-默认窗口：每次最多 250 个源文件行。
-
-固定读取方式：
-
-- 第 1 段：`start_line=1, end_line=250`
-- 第 2 段：`start_line=251, end_line=500`
-- 第 N 段：严格从上一段最后请求行的下一行开始
-
-禁止重叠、跳行、倒退或根据内容猜测下一起始行。
+本轮后续所有仓库读取必须显式使用同一个 `locked_sha`。
 
 ---
 
-## 4. EOF 的唯一判定方式
+## 4. V3 runtime 文件
 
-对于每个运行时源文件：
+V3 正式机械数据入口只有：
 
-1. 按固定行窗口持续读取；
-2. 即使某一段已经出现完整 JSON 结束括号，也不得仅凭视觉判断结束；
-3. 必须继续请求下一个连续窗口；
-4. 只有下一个窗口返回“源文件无内容/空内容”时，才确认上一窗口已经到达真实源文件 EOF；
-5. 确认 EOF 后，才允许拼接全部已读取源文件内容并做 JSON 解析与字段校验。
+- `data/runtime/meta.json`
+- `meta.industry_state_file`
+- `meta.screening_file`
+- `meta.detail_file_template` 指向的、**本轮被选中进入深读的股票 detail 文件**
+- `skill/SKILL.md`
+
+不得为了“完整”再去读取旧版 `candidates_*.json`。V3 runtime 中它们不是正式入口。
+
+`data/snapshot.json` 继续作为数据生成源和兼容文件保留，正式运行不直接读取。
+
+---
+
+## 5. 源文件窗口读取规则
+
+对以下文件采用确定性源文件行窗口读取：
+
+- `meta.json`
+- `industry_state_file`
+- `screening_file`
+- 每个被选中的 detail 文件
+
+默认窗口最多 250 个源文件行：
+
+- 第 1 段：`1–250`
+- 第 2 段：`251–500`
+- 后续严格连续
+
+如果某一窗口触发响应截断、resource continuation 或返回过大：
+
+1. 不把 response-resource continuation 当作正常读取路径；
+2. 将**同一源文件、同一起始位置**缩小窗口，例如 `250 → 100 → 50`；
+3. 重新读取该段；
+4. 再继续后续源文件窗口。
+
+不得跳行、重叠、倒退或根据内容猜测下一起始行。
+
+---
+
+## 6. EOF 判定
+
+对于需要完整读取的每个 runtime 文件：
+
+1. 按连续源文件窗口读取；
+2. 即使当前窗口已经看到 JSON 结束括号，也不得仅凭视觉判断 EOF；
+3. 必须请求下一个连续窗口；
+4. 只有下一个窗口返回空内容，才确认真实 EOF；
+5. 确认 EOF 后才做 JSON 和字段校验。
 
 因此：
 
@@ -79,87 +127,181 @@
 
 ---
 
-## 5. 避免 response-resource 分页
+## 7. Build-time Runtime Validation
 
-目标是从源头避免 Connector 对超大响应生成 response resource。
+V3 将原本需要模型跨 36 个 shard 执行的全局一致性校验前移到数据生成脚本。
 
-如果某个固定行窗口仍然因为返回过大而触发 `truncated`、response resource 或 continuation：
+`meta.runtime_validation.status == "passed"` 必须代表生成阶段已经确定性验证：
 
-1. 不得把该 response resource 作为正常分页路径继续依赖；
-2. 将同一源文件、同一起始位置的窗口缩小，例如 250 → 100 → 50 行；
-3. 使用更小的 `fetch_file(start_line/end_line, ref=locked_sha)` 重读该段；
-4. 直到该段能作为完整源文件行区间返回；
-5. 然后继续后续连续窗口。
+- 候选代码唯一；
+- `source_candidate_count` 与 snapshot 候选数一致；
+- `screening_count == source_candidate_count`；
+- `detail_count == screening_count`；
+- 行业数与 snapshot 行业数一致；
+- 每个候选 `industry_code` 均能映射到行业状态；
+- 每个 screening candidate 均生成确定性的 detail 文件。
 
-核心原则：
+如果 `runtime_validation.status != "passed"`，不得进入正式研究。
 
-> 优先缩小“源文件读取窗口”，而不是追逐 response-resource continuation。
-
-若 Connector 在 resource EOF 处重复相同 continuation，则不得因此陷入无限循环，也不得因此结束任务；应回到同一源文件、同一 SHA、明确源文件行区间继续推进。
-
----
-
-## 6. 分片完成条件
-
-单个候选 shard 只有同时满足以下条件才记为 completed：
-
-1. 已确认真实源文件 EOF；
-2. 全部连续行窗口无缺口、无重叠；
-3. JSON 可完整解析；
-4. `schema_version == 2`；
-5. `trade_date` 与本轮 `meta` 一致；
-6. `shard_index` 与文件序号一致；
-7. `candidate_count == len(candidates)`。
-
-不得因为“已经读到最后一个候选”“看到 `}`”“已得到足够候选”而提前标记完成。
+模型不需要为了重新证明这些生成期不变量而读取全部 detail 文件。
 
 ---
 
-## 7. 全局 Completion Gate
+## 8. Screening Completion Gate
 
-进入正式研究前必须同时满足：
+进入模型初筛前，必须同时满足：
 
-- `completed_candidate_files == meta.shard_count`；
-- 实际完成文件集合与 `meta.candidate_files` 完全一致；
-- 所有 shard 代码无重复；
-- `len(all_candidates) == meta.candidate_count == meta.snapshot.counts.candidates`；
-- `industry_count == len(industries) == meta.industry_count`；
-- 每只候选的 `industry_code` 均能映射到行业状态；
-- 所有文件来自同一 `locked_sha`；
-- 不存在未完成的源文件窗口读取。
+- `meta.schema_version == 3`
+- `meta.runtime_format == screening_details_v3`
+- `meta.runtime_validation.status == passed`
+- `industry_state_file` 已确认真实 EOF 且可解析
+- `screening_file` 已确认真实 EOF 且可解析
+- 行业文件：
+  - `schema_version == 3`
+  - `trade_date == meta.snapshot.trade_date`
+  - `industry_count == len(industries) == meta.industry_count`
+- screening 文件：
+  - `schema_version == 3`
+  - `trade_date == meta.snapshot.trade_date`
+  - `source_candidate_count == meta.source_candidate_count`
+  - `screening_count == len(candidates) == meta.screening_count`
+  - 每条 screening record 至少有 `code / name / price / industry_code / detail_file`
+- 所有已读取文件来自同一 `locked_sha`
+- 不存在待继续的 source window
 
-只有完成上述 Gate 后，才允许开始行业复核、同行择优、公司确认、估值、低风险准入、赔率比较与正式排名。
+通过后：
+
+`screening_completion_gate == passed`
+
+此时允许模型基于轻量字段进行第一轮筛选。
 
 ---
 
-## 8. `snapshot_read_incomplete` 的允许条件
+## 9. 模型初筛
+
+Screening 层只用于缩小研究空间，不发布最终榜单。
+
+模型根据：
+
+- 行业状态
+- 盈利增速
+- 基础估值
+- ROE / 现金流等质量字段
+- 趋势状态
+- 价格位置
+- 支撑 / 成交密集区 / 失效位
+- 近期涨幅与追高风险
+
+将全部轻量候选压缩成一个 `deep_read_codes` 集合。
+
+默认目标：
+
+- 通常 `15–30` 只；
+- 高风险市场可以更少；
+- 只有在候选高度分散且确有必要时才超过 30；
+- 不得为了“凑数量”扩大集合。
+
+这一步只是研究资源分配，不等于最终推荐。
+
+---
+
+## 10. Detail 深读
+
+对 `deep_read_codes` 中每只股票：
+
+1. 使用 screening record 的 `detail_file`；
+2. 从同一 `locked_sha` 读取；
+3. 按本协议源文件窗口规则读到真实 EOF；
+4. 校验：
+   - `schema_version == 3`
+   - `trade_date == meta.snapshot.trade_date`
+   - `code` 与目标股票代码一致
+   - `candidate` 为合法对象
+
+未进入 `deep_read_codes` 的 detail 文件：
+
+- 不要求读取；
+- 不影响 Completion Gate；
+- 不得因为“尚未读取全部 details”而阻止运行结束。
+
+---
+
+## 11. Deep Research Completion Gate
+
+开始正式行业复核、同行择优、公司确认、估值和排名之前，必须满足：
+
+- `screening_completion_gate == passed`
+- `deep_read_codes` 已确定
+- `completed_detail_files == len(deep_read_codes)`
+- 实际完成 detail 代码集合与 `deep_read_codes` 完全一致
+- 所有 detail 来自同一 `locked_sha`
+- 不存在待继续的 source window
+
+通过后：
+
+`deep_research_completion_gate == passed`
+
+只有此时才进入 `SKILL.md` 定义的正式研究流程。
+
+---
+
+## 12. `snapshot_read_incomplete` 的允许条件
 
 只有以下情况才允许输出 `snapshot_read_incomplete`：
 
-- 文件在锁定 SHA 下确实不存在；
-- 固定源文件窗口读取经过缩窗重试仍无法取得所需源文件内容；
-- 已确认源文件 EOF 后 JSON 仍不合法；
-- 日期、schema、shard_index、candidate_count 等最终校验失败；
-- 全局 Completion Gate 失败。
+- V3 必需文件在锁定 SHA 下不存在；
+- 固定源文件窗口经过缩窗重试仍无法取得所需源文件内容；
+- 已确认 EOF 后 JSON 不合法；
+- schema / trade_date / count 等校验失败；
+- `meta.runtime_validation.status != passed`；
+- Screening Completion Gate 失败；
+- 被选中的 detail 文件缺失或校验失败；
+- Deep Research Completion Gate 失败。
 
-以下情况本身都不是失败理由：
+以下情况本身不是失败理由：
 
-- 单次工具响应显示 `truncated`；
+- 单次工具响应 `truncated`；
 - response resource 出现 continuation；
-- response resource 在 EOF 处重复相同 continuation；
-- 已经进行很多次工具调用；
-- 上下文较长。
+- 已经进行了较多工具调用；
+- 上下文较长；
+- 还有大量**未被选中**的 detail 文件没有读取。
+
+最后一条是 V3 与 V2 的关键区别。
 
 ---
 
-## 9. 终止前强制检查
+## 13. 终止前强制检查
 
-输出任何最终结果前必须确认：
+输出正式榜单前必须确认：
 
 `pending_source_window == false`
 
-`completed_candidate_files == meta.shard_count`
+`screening_completion_gate == passed`
 
-`global_runtime_validation == passed`
+`deep_research_completion_gate == passed`
 
-任一条件不满足时，禁止输出正式榜单，也禁止把“仍可继续读取”误报为读取失败。
+`completed_detail_files == len(deep_read_codes)`
+
+任一条件不满足时，不得发布正式榜单。
+
+但**不得**再检查或要求：
+
+`completed_detail_files == meta.detail_count`
+
+因为 V3 明确禁止为了完整性而全量深读全部候选。
+
+---
+
+## 14. 核心原则
+
+V2：
+
+`全量候选 → 全量深读 → 再筛选`
+
+V3：
+
+`全量候选 → 轻量读取 → 模型初筛 → 少量深读 → 正式研究`
+
+最终原则：
+
+> **程序负责证明数据完整，模型负责分配研究注意力。**
