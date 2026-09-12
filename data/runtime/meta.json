@@ -65,8 +65,8 @@
     }
   },
   "source_candidate_count": 717,
-  "candidate_count": 173,
-  "structural_relevance_count": 173,
+  "candidate_count": 109,
+  "structural_relevance_count": 109,
   "industry_count": 333,
   "candidate_file": "data/runtime/candidates.json",
   "candidate_columns": [
@@ -134,65 +134,25 @@
     "invalidation_direction"
   ],
   "structural_rule": {
-    "support_distance_pct_lte": 5.0,
-    "volume_zone_distance_pct_lte": 5.0,
     "deep_position_60d_pct_lte": 20.0,
     "position_60d_pct_lte": 35.0,
-    "deep_low_requires_acceptance": "support_near_or_volume_zone_near",
+    "deep_support_distance_pct_lte": 3.0,
+    "deep_support_touches_gte": 3,
+    "deep_volume_distance_pct_lte": 3.0,
+    "deep_volume_share_pct_gte": 12.0,
+    "deep_low_requires_acceptance": "strong_support_or_strong_volume",
+    "mid_low_support_distance_pct_lte": 5.0,
+    "mid_low_volume_distance_pct_lte": 5.0,
     "mid_low_requires_acceptance": "support_near_and_volume_zone_near"
   },
   "structural_signal_audit": {
     "support_near_count": 554,
     "volume_zone_near_count": 538,
+    "strong_support_count": 206,
+    "strong_volume_zone_count": 338,
     "low_position_count": 249,
     "deep_low_position_count": 142,
     "mid_low_position_count": 107
-  },
-  "acceptance_quality_test": {
-    "current_candidate_count": 173,
-    "note": "diagnostic only; does not alter formal candidate filtering",
-    "variants": {
-      "loose_4pct_t2_v8": {
-        "support_distance_pct_lte": 4.0,
-        "support_touches_gte": 2,
-        "volume_distance_pct_lte": 4.0,
-        "volume_share_pct_gte": 8.0,
-        "scope": "deep_low_only_mid_low_unchanged",
-        "deep_low_pass_count": 56,
-        "mid_low_unchanged_count": 69,
-        "total_candidate_count": 125
-      },
-      "balanced_3pct_t2_v10": {
-        "support_distance_pct_lte": 3.0,
-        "support_touches_gte": 2,
-        "volume_distance_pct_lte": 3.0,
-        "volume_share_pct_gte": 10.0,
-        "scope": "deep_low_only_mid_low_unchanged",
-        "deep_low_pass_count": 53,
-        "mid_low_unchanged_count": 69,
-        "total_candidate_count": 122
-      },
-      "strict_2pct_t2_v10": {
-        "support_distance_pct_lte": 2.0,
-        "support_touches_gte": 2,
-        "volume_distance_pct_lte": 2.0,
-        "volume_share_pct_gte": 10.0,
-        "scope": "deep_low_only_mid_low_unchanged",
-        "deep_low_pass_count": 51,
-        "mid_low_unchanged_count": 69,
-        "total_candidate_count": 120
-      },
-      "strong_3pct_t3_v12": {
-        "support_distance_pct_lte": 3.0,
-        "support_touches_gte": 3,
-        "volume_distance_pct_lte": 3.0,
-        "volume_share_pct_gte": 12.0,
-        "scope": "deep_low_only_mid_low_unchanged",
-        "deep_low_pass_count": 40,
-        "mid_low_unchanged_count": 69,
-        "total_candidate_count": 109
-      }
-    }
   },
   "runtime_validation": {
     "status": "passed",
