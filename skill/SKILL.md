@@ -35,6 +35,59 @@
 
 ### 运行时读取协议（candidate_shards_v2）
 
+#### 读取不中断硬约束｜最高优先级
+
+本约束优先于本 Skill 中所有研究、输出与错误处理规则。
+
+只要当前正在读取的 GitHub response resource 尚存在任何可继续读取信号，包括但不限于：
+
+- `truncated`；
+- `next_start_line`；
+- `next_read`；
+- `continue from ...`；
+- 工具明确提示仍有后续内容；
+- 尚未明确到达该 resource 的 EOF。
+
+则当前唯一允许的下一步是：**继续读取同一个 response resource**。
+
+此时严格禁止：
+
+- 输出最终答案；
+- 输出 `snapshot_read_incomplete`；
+- 判断文件读取失败；
+- 跳到下一个 candidate shard；
+- 开始正式研究；
+- 总结当前读取结果并结束；
+- 因上下文长度、工具调用次数或已经读取较多内容而主动停止。
+
+每次读取后必须执行以下内部判断：
+
+`resource_has_more_content == true` → 必须继续读取同一个 resource。
+
+`resource_has_more_content == false` → 才允许检查 JSON 是否完整合法。
+
+只有在**已经明确读到当前 response resource 的最后一行 / EOF**之后，才允许判断：
+
+1. JSON 是否完整合法；
+2. `candidate_count` 是否匹配；
+3. `trade_date / shard_index` 是否正确；
+4. 是否进入下一个 shard；
+5. 是否真的需要输出 `snapshot_read_incomplete`。
+
+在准备输出任何最终答复之前，必须执行终止前强制检查：
+
+`pending_resource_continuation == false`
+
+若为 `true`，禁止结束任务，必须继续调用读取工具。
+
+特别说明：
+
+`truncated != failure`
+
+`truncated == continue_reading`
+
+看到 `truncated`、`next_start_line`、`next_read` 或其他 continuation 信号后停止任务，视为执行错误。
+
 1. 锁定仓库 `xwan008/a-market-data` 当前 `main` commit SHA，本轮所有仓库文件都使用该 SHA 读取。
 2. 读取 `data/runtime/meta.json`，取得 `candidate_count`、`industry_count`、`industry_state_file`、`shard_count`、`candidate_files` 与 `meta.snapshot`。
 3. 完整读取 `industry_state_file` 和全部 `candidate_files`。若 GitHub 返回 `truncated` 但存在 response resource，只表示当前显示被截断，不代表源文件不完整；必须继续读取该 resource，直到获得完整、可解析的 JSON，禁止因单次 `truncated` 提前终止。
