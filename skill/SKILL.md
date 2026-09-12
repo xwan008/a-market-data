@@ -1,6 +1,6 @@
-# A股低风险买点榜
+# A股低风险买点榜｜模型判断规则
 
-## 1. 核心目标
+## 1. 目标
 
 寻找：
 
@@ -10,364 +10,145 @@
 
 > **先看还能跌多少，再看能涨多少。**
 
-本榜单不是找走势最强、公司最优秀或最早转强的股票，而是找当前价格下风险收益最不对称的股票。
+本文件只定义**模型需要做的判断**。确定性筛选、结构硬规则、数据校验、文件读取和覆盖审计不在这里重复定义；以同一 SHA 下的程序输出、`meta.json` 和 `RUNTIME_READ_PROTOCOL.md` 为准。
 
 ---
 
-## 2. 总体职责边界
+## 2. 职责边界
 
-### 程序负责确定性复杂度
+程序已经确定：
 
-程序已经完成：
+- 哪些股票通过 Eligibility Filter；
+- 哪些股票通过 Structure Filter；
+- 价格位置、支撑、成交密集区和正式 `structure_tier`；
+- 申万三级行业分组；
+- PE / PB / ROE、收入、利润、扣非、现金流、毛利率等事实；
+- 行业状态与行业聚合事实；
+- 可直接计算的财务质量标签。
 
-- 全市场数据完整性校验；
-- 机械风险粗筛；
-- 支撑距离、支撑触碰次数计算；
-- 成交密集区距离、成交占比计算；
-- 60 日价格位置计算；
-- 正式结构硬筛；
-- 申万三级行业映射；
-- 生成 `candidates.json`；
-- 生成按三级行业整理的 `peer_groups.json`；
-- 生成公司级结构化事实视图 `company_research_view.json`；
-- 计算不需要模型解释的机械标签，例如利润 / 扣非方向背离、利润增长但经营现金流为负等。
+模型不得重新计算或推翻程序硬筛。
 
-程序不做：
+所有公司与行业 YoY 字段统一使用：
 
-- 综合评分；
-- 全市场 Top N；
-- 每组 Top1 / Top2；
-- 同行支配结论；
-- 公司最终优劣结论；
-- 最终估值、安全区和买卖建议。
+> `percentage_points`：`12.4` 表示 `12.4%`。
 
-> **能100%用公式确定的，不交给模型；需要解释、权衡和公开研究的，才交给模型。**
+模型只负责两层判断：
+
+1. **Pre-Research Screening**：不联网，用结构化事实判断谁值得占用 Deep Research 预算；
+2. **Deep Research**：只研究冻结后的 `deep_read_codes`，确认真实业务、盈利驱动、周期、盈利质量、估值和最终安全边际。
 
 ---
 
-## 3. 当前结构硬筛
+## 3. Pre-Research Screening
 
-### 深低位：`position_pct <= 20%`
+这一阶段只读取程序准备好的 `screening_groups`，**禁止联网**。
 
-至少满足一种高质量承接：
+在每个申万三级行业组内固定按以下顺序判断：
 
-- strong support：距 `support_center <= 3%`，且 `support_touches >= 3`；
-- strong volume zone：距 `volume_zone_center <= 3%`，且 `volume_zone_share_pct >= 12%`。
+### 3.1 先判断同行明确支配
 
-### 中低位：`20% < position_pct <= 35%`
+单只组不存在同行支配，直接进入公司绝对质量判断。
 
-必须同时：
+多只组只比较三类事实：
 
-- 距 `support_center <= 5%`；
-- 距 `volume_zone_center <= 5%`。
+- **价格结构**：位置、支撑距离与触碰、成交密集区距离与占比、阻力和风险参考；
+- **估值质量**：PE-TTM、动态 PE、PB 与 ROE、增长、盈利质量是否匹配；
+- **经营质量**：收入、净利润、扣非、经营现金流、毛利率等是否支持盈利。
 
-`position_pct > 35%` 不进入 model-ready candidates。
+候选 A 只有在存在同组候选 B 且同时满足时，才允许标记：
 
-结构硬筛只回答：
-
-> **当前价格结构是否值得占用后续研究预算。**
-
-它不是最终 `low_risk_buy_range`，也不能替代公司研究。
-
----
-
-## 4. 正式输入
-
-正式运行分层使用：
-
-- `data/runtime/meta.json`
-- `meta.peer_group_file`：第一阶段同行轻比较；
-- `meta.company_research_file`：第二阶段结构化公司预筛；
-- `meta.candidate_file`：第三阶段幸存者需要完整确定性背景时按需使用；
-- `skill/RUNTIME_READ_PROTOCOL.md`
-- `skill/SKILL.md`
-
-不再读取：
-
-- `data/runtime/details/{code}.json`
-- `data/runtime/screening_snapshot.json`
-- `data/runtime/industry_state_compact.json`
-
-peer view 与 company research view 都必须和 `candidates.json` 股票全集完全一致；它们只是把同一批确定性事实换成更适合模型处理的组织方式。
-
----
-
-## 5. 正式研究漏斗
-
-```text
-机械候选
-  ↓
-程序结构硬筛
-  ↓
-model-ready candidates
-  ↓
-程序 peer_groups
-  ↓
-第一阶段：同行组轻量支配判断
-  ├─ CLEARLY_DOMINATED → excluded
-  └─ 单只组 / NOT_CLEARLY_DOMINATED
-                 ↓
-       第二阶段：company_research_view
-       结构化公司预筛，不联网
-       ↓
-       先完整生成 Prescreen Ledger
-       ├─ CLEARLY_WEAK
-       ├─ PASS_TO_DEEP_RESEARCH
-       └─ UNCERTAIN
-       ↓
-       冻结 deep_read_codes = PASS ∪ UNCERTAIN
-       ↓
-       第三阶段：只对 deep_read_codes 做公开 Deep Research
-       ↓
-       正常化估值 + 最终安全区
-       ↓
-       正式榜 / waiting / research_uncertain / excluded
-```
-
-关键原则：
-
-> **Deep Research 不再覆盖全部 research candidates。它是最后的昂贵验证层，而不是批量初筛层。**
-
-> **第二阶段必须先完整结束并冻结清单，第三阶段才能开始。禁止边预筛边联网。**
-
----
-
-## 6. 第一阶段：同行组轻量比较
-
-### 6.1 单只组
-
-如果某三级行业只有 1 只候选：
-
-- 不存在同组同行可以形成明确支配；
-- 不需要额外同行推理；
-- 直接进入第二阶段结构化公司预筛。
-
-### 6.2 多只组
-
-只比较程序已经整理好的三类事实。
-
-#### A. 价格结构
-
-主要看：
-
-- `position_pct`
-- `support_distance_pct`
-- `support_touches`
-- `volume_zone_distance_pct`
-- `volume_zone_share_pct`
-- `resistance_center`
-- invalidation
-
-这些公司都已通过结构硬筛，所以第一阶段比较的是**相对结构质量**，不是重新计算准入规则。
-
-#### B. 估值质量
-
-联合看：
-
-- PE-TTM
-- 动态 PE
-- PB
-- ROE
-- 盈利增长
-
-不得孤立比较 PE / PB。低 PE 可能来自周期盈利高点；较高 PB 如果对应更高且可持续 ROE，也不能机械认定更差。
-
-#### C. 经营质量
-
-主要看：
-
-- 营收同比
-- 净利润同比
-- 扣非 EPS 同比
-- 经营现金流 / 股
-- 毛利率
-
-第一阶段只回答：
-
-> **同组内是否存在明确支配关系？**
-
-不是选最好公司，不是排序，也不做公司长篇研究。
-
----
-
-## 7. 第一阶段明确支配规则
-
-候选 A 只有在存在同组候选 B 且同时满足时，才允许前置排除：
+`PEER_DOMINATED`
 
 1. B 在价格结构、估值质量、经营质量三个维度中没有一个维度明显弱于 A；
 2. B 至少在一个维度明显更优；
-3. A 不存在 B 无法覆盖的明显差异化优势；
-4. 不存在业务异质性、周期失真或数据冲突，需要进一步研究才能解决。
+3. A 没有 B 无法覆盖的明显差异化优势；
+4. 不存在业务异质性、周期失真或数据冲突，需要公开研究才能判断。
 
-第一阶段只允许：
+只要互有胜负、不可比或不确定，就**不得**做同行支配淘汰，继续进入下一步。
 
-- `CLEARLY_DOMINATED`
-- `NOT_CLEARLY_DOMINATED`
-
-只要互有胜负、不可比或无法可靠判断，就 `NOT_CLEARLY_DOMINATED`。
-
-如果判定 `CLEARLY_DOMINATED`，至少说明：
+同行支配结果至少保留：
 
 - `dominated_by`
-- 价格结构依据
-- 估值质量依据
-- 经营质量依据
+- 三维简短依据。
 
-禁止：
+### 3.2 再判断公司绝对质量
 
-- 跨维度综合加权总分；
-- 全市场 Top N；
-- 每组机械 Top1 / Top2；
-- 为了减少数量而强行判定支配；
-- 单指标一票淘汰；
-- 从全部候选里随意抽几只直接开始 Deep Research。
-
----
-
-## 8. 第二阶段：结构化公司预筛
-
-第一阶段未被明确支配者进入 `company_research_view`。
-
-这一阶段**禁止访问互联网**，目标不是形成投资结论，而是回答：
-
-> **仅根据已经准备好的公司级确定性事实，这家公司是否已经明显不值得占用昂贵 Deep Research 预算？**
-
-### 8.1 输入事实
-
-主要包括：
-
-- 最近财报期；
-- 当前价格结构摘要；
-- PE-TTM / 动态 PE / PB / ROE；
-- 营收同比；
-- 净利润同比；
-- 扣非 EPS 同比；
-- 经营现金流 / 股；
-- 毛利率；
-- 净利润；
-- 行业趋势 / 强度 / breadth；
-- 程序机械关系标签：收入与利润方向背离、净利润与扣非方向背离、利润增长但经营现金流 / 股为负、收入和利润同时负增长、利润和扣非同时负增长、经营现金流 / 股为负、核心财务字段缺失数量。
-
-若仓库没有可靠主营描述或盈利驱动结构化字段：
-
-- `business_description` / `profit_driver` 保持空；
-- 不得从行业名称猜主营或利润来源；
-- 缺少这两个静态字段本身不意味着公司必须进入 Deep Research。
-
-### 8.2 第二阶段只有三种结果
+未被 `PEER_DOMINATED` 的公司只允许三种结果：
 
 #### `CLEARLY_WEAK`
 
-只有当结构化事实已经显示**多个独立方面明显偏弱**，且没有清晰的确定性反向优势时才使用。单个负面指标不允许形成 `CLEARLY_WEAK`。
+只有结构化事实显示**多个独立方面明显偏弱**，且没有清晰的确定性反向优势时才使用。
+
+单一 PE、ROE、利润增长、负现金流、行业状态或单个质量标签都不得单独形成 `CLEARLY_WEAK`。
 
 #### `PASS_TO_DEEP_RESEARCH`
 
-结构化事实具备继续研究价值，值得花公开资料研究预算。
+结构化事实已经显示继续研究具有明确价值。
 
 #### `UNCERTAIN`
 
-周期、数据冲突、业务异质性、关键缺失等使结构化事实不足以下结论。
+结构化数据不足以可靠解释公司，例如：
 
-`PASS_TO_DEEP_RESEARCH` 与 `UNCERTAIN` 都进入第三阶段。
+- 周期导致利润或估值可能失真；
+- 数据互相冲突；
+- 真实业务差异会改变数字含义；
+- 关键缺失信息会改变结论。
 
-### 8.3 第二阶段禁止事项
+拿不准时使用 `UNCERTAIN`，不要为了减少数量强行淘汰。
 
-禁止：
+### 3.3 禁止事项
 
-- 在第二阶段调用 Web / 搜索公司资料；
-- 边分类边开始研究某几家公司；
-- 综合总分；
-- 固定 Top N；
-- 为了压到20或30只而调阈值；
-- 单一 PE / ROE / 利润增长指标直接淘汰；
-- 找到几只好公司后停止预筛直接发布榜单。
+Pre-Research Screening 禁止：
 
-第二阶段应该是一遍低成本、结构化的公司级判断。
+- 综合加权总分；
+- 全市场 Top N；
+- 每组机械 Top1 / Top2；
+- 单指标一票淘汰；
+- 为了压缩 Deep Research 数量而调判断标准；
+- 边筛选边联网；
+- 找到几只好公司后停止处理剩余候选。
 
-### 8.4 Prescreen Ledger：第二阶段必须先完整冻结的阶段产物
+该阶段的目标不是选出“最好公司”，而是：
 
-第二阶段结束时，必须先生成一份完整的 `Prescreen Ledger`，**再开始任何第三阶段联网研究**。
-
-Ledger 对每一只进入第二阶段的股票只保留一行紧凑结果：
-
-```text
-code | result | reason_code
-000338 | PASS_TO_DEEP_RESEARCH | fundamentals_ok
-605020 | UNCERTAIN | cyclical_or_missing_business_context
-XXXXXX | CLEARLY_WEAK | multi_dimension_deterioration
-```
-
-`reason_code` 应短而可审计，不要求写长篇分析。可使用诸如：
-
-- `fundamentals_ok`
-- `valuation_quality`
-- `profit_cashflow_weak`
-- `multi_dimension_deterioration`
-- `cyclical_distortion`
-- `data_conflict`
-- `missing_key_context`
-
-Ledger 必须满足：
-
-1. 每一个进入第二阶段的股票都恰好出现一次；
-2. 每一行只能属于 `CLEARLY_WEAK / PASS_TO_DEEP_RESEARCH / UNCERTAIN` 三类之一；
-3. 先得到三个完整代码集合，再统计数量；
-4. 冻结：
-   - `clearly_weak_codes`
-   - `pass_to_deep_research_codes`
-   - `uncertain_codes`
-   - `deep_read_codes = pass_to_deep_research_codes ∪ uncertain_codes`
-5. **在 `deep_read_codes` 冻结之前，禁止开始任何公司级 Web 查询。**
-
-第二阶段的完整性用一个简单等式表达即可：
-
-```text
-prescreen_input_codes
-=
-clearly_weak_codes
-∪ pass_to_deep_research_codes
-∪ uncertain_codes
-```
-
-且三个集合互斥。
-
-这只是阶段边界，不引入复杂状态机、窗口管理或逐股票 Completion Gate。
+> **低成本排除已经可以明确排除的公司，把真正需要认知判断的复杂度留给 Deep Research。**
 
 ---
 
-## 9. 第三阶段：Deep Research
+## 4. Deep Research
 
-第三阶段的唯一研究集合是第二阶段已经冻结的：
+只有冻结后的：
 
-- `deep_read_codes`
-- 即 `PASS_TO_DEEP_RESEARCH ∪ UNCERTAIN`
+- `PASS_TO_DEEP_RESEARCH`
+- `UNCERTAIN`
 
-第三阶段不得自行新增、删减或重新挑选公司。
+进入 Deep Research。
 
-第三阶段确认：
+每家公司重点确认：
 
-1. 真实主营与主要产品 / 业务；
-2. 未来 1–2 个季度核心盈利驱动；
-3. 主要收入和利润来源；
+1. 真实主营、主要产品和业务；
+2. 核心盈利驱动与主要利润来源；
+3. 未来 1–2 个季度盈利逻辑是否可验证；
 4. 行业改善是否真实传导到公司；
-5. 核心 / 扣非利润与净利润方向是否一致；
-6. 收入、毛利率、现金流、订单、销量、价格等是否支持利润变化；
-7. 是否存在一次性收益、周期高点或其他估值扭曲；
+5. 净利润、扣非、收入、毛利率、现金流、销量、价格、订单等是否互相支持；
+6. 是否存在一次性收益；
+7. 是否处于周期盈利高点，导致 PE 看似便宜；
 8. 至少一条最可能推翻当前判断的反向证据。
 
-如果申万三级行业内公司实际不可比，应在这一阶段按真实主营 + 盈利驱动重新理解可比关系。
+如果申万三级行业内实际业务不可比，应在 Deep Research 后按真实主营、盈利驱动和利润来源重新理解可比关系。
 
-单公司资料不足只影响该公司，标记为 `research_uncertain` 或 `waiting`，不得阻断其他幸存候选。
-
-第三阶段同时维护 `actual_researched_codes`：只要该公司已经完成足以形成公司级研究状态的公开资料核验，就计入该集合。搜索请求次数不是公司研究完成数。
+单公司资料不足只影响该公司，标记 `research_uncertain` 或 `waiting`，不得改变其他公司的研究范围。
 
 ---
 
-## 10. 最终估值与安全边际
+## 5. 最终估值与低风险安全区
 
-最终安全区只能在 Deep Research 后形成。
+程序 Structure Filter 只表示：
 
-每家公司尽量形成：
+> **当前价格结构值得研究。**
+
+它不是最终价值底，也不能直接复制成 `low_risk_buy_range`。
+
+Deep Research 后尽量形成：
 
 - `reasonable_price_range`
 - `base_fair_value`
@@ -376,124 +157,69 @@ clearly_weak_codes
 - `downside_to_safety_zone`
 - `hard_risk_boundary`（能可靠定义时）
 
-最终安全边际综合：正常化盈利对应的合理估值低位、PE / PB 与 ROE / 增长 / 现金流匹配、重要支撑、前期重要低点、成交密集区及多种价值与价格因素重合区域。
+最终安全区综合：
 
-> **程序结构硬筛只说明“值得研究”，不能直接复制成最终安全区。**
+- 正常化盈利对应的合理估值低位；
+- PE / PB 与 ROE、增长、现金流的匹配；
+- 重要支撑与前期低点；
+- 成交密集区；
+- 真实主营、盈利驱动和盈利质量。
 
-原则上优先当前价距离最终安全区域约 5% 以内的公司；距离明显过远进入等待池。
+强周期公司必须使用正常化盈利，禁止直接用高景气利润外推。
 
-强周期公司必须使用正常化盈利，禁止用高景气期利润直接外推。
+原则上优先：
 
----
+- 当前价距离最终安全区约 5% 以内；
+- 保守上行空间 `>= 15%`。
 
-## 11. 向上空间
-
-只有最终安全边际基本成立后，才比较向上空间。
-
-保守目标区域综合：正常化合理估值、盈利修复可支持的价值区间、历史正常价格区间、中期重要价格平台、行业盈利逻辑未来 1–2 个季度的可验证性。
-
-原则上：
-
-- 保守上行空间 `>= 15%` 才具有较强吸引力；
-- 不得用乐观目标价强行制造上行空间；
-- 最近阻力只是短期压力，不直接等于全部上涨空间。
+最近阻力只是短期压力，不直接等于全部上涨空间。
 
 ---
 
-## 12. 趋势与市场风险
+## 6. 趋势与市场风险
 
-趋势只回答“什么时候参与”，不回答“是否值得研究”。
+趋势主要回答：
 
-- `transition` 不得直接淘汰；
-- `bearish` 不得单独淘汰；
-- 接近压力位可以降低当前参与优先级；
-- invalidation 是风险参考，不是全局 Gate。
+> **什么时候参与。**
 
-市场 `high risk` 可以让最终推荐更保守，但不得改变程序候选全集、跳过同行比较、跳过结构化公司预筛，或成为“只研究几只最稳公司”的理由。
+不是回答：
+
+> **公司是否值得研究。**
+
+因此：
+
+- `transition` / `bearish` 不得单独淘汰公司；
+- 市场 `high risk` 不得缩小 Pre-Research 或 Deep Research 的既定覆盖范围；
+- 市场风险只能让最终估值与行动更保守、更倾向等待；
+- 正式榜允许减少甚至为空。
 
 ---
 
-## 13. 最终状态与排序
+## 7. 最终状态与排序
 
-公司最终进入：
+Deep Research 后公司进入：
 
 - `confirmed`
 - `waiting`
 - `research_uncertain`
 - `excluded`
 
-通过公司确认后，正式优先级：
+通过公司确认后，最终优先级：
 
 > **最终安全边际 → 保守上行空间 → 基本面稳定性 → 参与时机**
 
-正式榜最多展示 10 只，不得凑数，允许空榜。最终排名不能反向影响前面的研究范围。
+正式榜最多 10 只，可以为空，不得凑数。
+
+最终排名不得反向改变此前研究范围。
 
 ---
 
-## 14. 审计漏斗
+## 8. 不变原则
 
-最终至少记录：
+> **程序负责事实和资格，模型负责关系和解释。**
 
-- `snapshot.trade_date`
-- `source_candidate_count`
-- `structural_relevance_count`
-- `peer_group_count`
-- `peer_dominated_count`
-- `company_prescreen_count`
-- `company_clearly_weak_count`
-- `pass_to_deep_research_count`
-- `uncertain_prescreen_count`
-- `deep_research_candidate_count`
-- `actual_deep_researched_count`
-- `company_confirmed_count`
-- `research_uncertain_count`
-- `waiting_count`
-- `final_recommendation_count`
+> **Pre-Research Screening 不联网；Deep Research 只研究冻结集合。**
 
-还必须保留以下集合：
+> **不使用综合评分、Top N 或市场风险截断来替代完整研究。**
 
-- `clearly_weak_codes`
-- `pass_to_deep_research_codes`
-- `uncertain_codes`
-- `deep_read_codes`
-- `actual_researched_codes`
-
-其中：
-
-```text
-deep_research_candidate_count = len(deep_read_codes)
-actual_deep_researched_count = len(actual_researched_codes)
-```
-
-最终必须比较：
-
-```text
-actual_researched_codes == deep_read_codes ?
-```
-
-- 相等：`Deep Research coverage = COMPLETE`；
-- 不相等：`Deep Research coverage = INCOMPLETE`，必须列出 `missing_deep_research_codes`，不得把“实际搜索覆盖数”冒充“按规则应进入 Deep Research 的数量”。
-
-如果本轮没有先生成完整 Prescreen Ledger，或无法恢复 `deep_read_codes`，则必须标记：
-
-> `Deep Research coverage = UNVERIFIED`
-
-这些是轻量审计，不引入复杂状态机。
-
----
-
-## 15. 最终原则
-
-> **不要让模型对上百家公司逐只联网研究。**
-
-> **第一阶段只解决同行支配。**
-
-> **第二阶段只做结构化公司预筛，而且必须先完整冻结 Prescreen Ledger。**
-
-> **第三阶段只能研究已经冻结的 deep_read_codes。**
-
-> **实际研究了多少只，不能替代按规则应该研究多少只。**
-
-> **Deep Research 是最后的昂贵验证层。**
-
-> **程序消化确定性复杂度，模型消化真正需要解释和判断的复杂度。**
+> **结构硬筛是研究准入，不是最终价值底。**
