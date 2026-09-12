@@ -7,8 +7,9 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
+from contracts import YOY_UNIT
+
 SCREENING_GROUP_FORMAT = "screening_group_view_v1"
-YOY_UNIT = "percentage_points"
 
 MEMBER_BASE_FIELDS = [
     "code",
@@ -50,6 +51,16 @@ INDUSTRY_CONTEXT_FIELDS = [
     "industry_market_breadth",
     "industry_market_activity",
     "industry_market_confirmation",
+]
+
+QUALITY_FLAG_FIELDS = [
+    "revenue_profit_direction_divergence",
+    "profit_deduct_direction_divergence",
+    "profit_growth_cashflow_negative",
+    "revenue_and_profit_both_negative",
+    "profit_and_deduct_both_negative",
+    "negative_operating_cashflow_per_share",
+    "core_financial_missing_count",
 ]
 
 
@@ -198,18 +209,13 @@ def main() -> None:
         members: list[dict[str, Any]] = []
 
         for row in group_rows:
-            member = {
-                field: row[index[field]]
-                for field in MEMBER_BASE_FIELDS
-            }
+            member = {field: row[index[field]] for field in MEMBER_BASE_FIELDS}
             member["quality_flags"] = quality_flags(row, index)
             members.append(member)
 
             code = str(member["code"])
             screening_codes.append(code)
-            report_date_available += int(
-                member["report_date"] not in (None, "")
-            )
+            report_date_available += int(member["report_date"] not in (None, ""))
             valuation_core_complete += int(
                 all(
                     member[field] not in (None, "")
@@ -262,9 +268,7 @@ def main() -> None:
             f"unique={codes_unique} exact_match={exact_match}"
         )
 
-    singleton_count = sum(
-        1 for group in groups if group["single_candidate"]
-    )
+    singleton_count = sum(1 for group in groups if group["single_candidate"])
     max_group_size = max(
         (group["candidate_count"] for group in groups),
         default=0,
@@ -292,6 +296,8 @@ def main() -> None:
             "screening: first peer dominance, then company absolute-quality "
             "pre-screen; no score, ranking, or model conclusion is precomputed"
         ),
+        "member_fields": MEMBER_BASE_FIELDS,
+        "quality_flag_fields": QUALITY_FLAG_FIELDS,
         "coverage": coverage,
         "groups": groups,
     }
@@ -312,18 +318,15 @@ def main() -> None:
         for key, value in validation.items()
         if key != "status"
     ):
-        raise SystemExit(
-            f"screening group validation failed: {validation}"
-        )
+        raise SystemExit(f"screening group validation failed: {validation}")
 
-    meta["screening_group_file"] = (
-        f"{runtime_dir.as_posix()}/{filename}"
-    )
+    meta["screening_group_file"] = f"{runtime_dir.as_posix()}/{filename}"
     meta["screening_group_format"] = SCREENING_GROUP_FORMAT
     meta["screening_group_count"] = len(groups)
     meta["screening_group_singleton_count"] = singleton_count
     meta["screening_group_max_size"] = max_group_size
     meta["screening_group_member_fields"] = MEMBER_BASE_FIELDS
+    meta["screening_group_quality_flag_fields"] = QUALITY_FLAG_FIELDS
     meta["screening_group_coverage"] = coverage
     meta["screening_group_validation"] = validation
 
