@@ -19,7 +19,7 @@
 3. 正常修复或合理估值对应的向上空间有多大；
 4. 趋势和市场环境只用于修正参与时机。
 
-运行时读取、EOF、完整覆盖和 Completion Gate 规则，统一服从同一锁定提交下的 `skill/RUNTIME_READ_PROTOCOL.md`。
+运行时完整性信任边界、研究覆盖和 Completion Gate 规则，统一服从同一锁定提交下的 `skill/RUNTIME_READ_PROTOCOL.md`。
 
 ---
 
@@ -42,7 +42,7 @@
 ```text
 机械候选全集
   ↓
-完整读取行业与公司摘要
+完整消费 compact 行业与公司摘要
   ↓
 逐行业景气复核
   ↓
