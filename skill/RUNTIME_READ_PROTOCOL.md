@@ -6,9 +6,10 @@
 - 读取哪些正式 runtime 输入；
 - 什么情况允许整轮停止；
 - Pre-Research 与 Deep Research 的执行顺序；
-- Ledger 冻结和 coverage 审计。
+- Ledger 冻结和 coverage 审计；
+- Deep Research 完成后的风险簇归并与最终机会榜审计。
 
-具体公司判断、Deep Research、估值与买点语义，以同一 SHA 下的 `skill/SKILL.md` 为准。
+具体公司判断、Deep Research、估值、Risk Cluster Consolidation 与买点语义，以同一 SHA 下的 `skill/SKILL.md` 为准。
 
 ---
 
@@ -171,6 +172,8 @@ peer_dominated_codes
 
 之一的公司级研究状态。
 
+Deep Research 同时应留下最终风险簇归并所需要的公司级事实，包括 `primary_profit_driver` 与 `dominant_risk_factor`；具体判断语义由 `SKILL.md` 定义。
+
 ---
 
 ## 8. Deep Research coverage
@@ -209,7 +212,27 @@ actual_deep_researched_codes
 
 ---
 
-## 9. 最终审计漏斗
+## 9. Final Opportunity Consolidation｜最终机会归并
+
+只有在公司级 Deep Research、估值和 `deep_research_coverage` 状态已经确定之后，才进行最终风险簇归并。
+
+具体如何判断同一 `risk_cluster`、如何选择代表公司、何时允许同一行业多个独立机会，由 `SKILL.md` 定义。
+
+执行层只要求：
+
+1. 风险簇归并不得改变 `deep_read_codes`；
+2. 风险簇归并不得修改 `actual_deep_researched_codes`；
+3. 公司级 `confirmed / waiting / research_uncertain / excluded` 状态保持不变；
+4. 正式榜排名对象改为**独立风险收益机会**，同一风险簇默认一个 `representative_code`；
+5. 同簇其他仍有价值的公司保留为 `alternative_codes`；
+6. 若同一行业有多个正式席位，必须记录 `independence_rationale`；
+7. 若 `deep_research_coverage != COMPLETE`，最终机会榜必须明确标记研究覆盖未闭合，不得声称是完整机会全集。
+
+风险簇归并是发布层去相关，不是研究层淘汰。
+
+---
+
+## 10. 最终审计漏斗
 
 正式结果至少记录：
 
@@ -230,9 +253,11 @@ actual_deep_researched_codes
 - `company_confirmed_count`
 - `research_uncertain_count`
 - `waiting_count`
-- `final_recommendation_count`
+- `risk_cluster_count`
+- `formal_opportunity_count`
+- `final_recommendation_count`（与 `formal_opportunity_count` 同口径，表示独立机会数，不再表示股票数）
 
-并保留至少以下代码集合：
+并保留至少以下代码集合或映射：
 
 - `peer_dominated_codes`
 - `clearly_weak_codes`
@@ -240,10 +265,27 @@ actual_deep_researched_codes
 - `uncertain_codes`
 - `deep_read_codes`
 - `actual_researched_codes`
+- `formal_representative_codes`
+- `risk_cluster_map`：每个 cluster 至少包含 `representative_code` 与 `alternative_codes`
+- `independence_rationale`：同一行业存在多个正式独立机会时记录。
+
+必须区分：
+
+```text
+company_confirmed_count
+```
+
+与：
+
+```text
+formal_opportunity_count
+```
+
+前者是公司级研究结果数量，后者是去除共同主导风险因子后的正式独立机会数量。
 
 ---
 
-## 10. 市场风险与执行覆盖
+## 11. 市场风险与执行覆盖
 
 市场 `bearish / weak breadth / high risk` 只能影响最终估值、等待倾向和正式榜数量。
 
@@ -252,16 +294,21 @@ actual_deep_researched_codes
 - 改变程序候选全集；
 - 跳过 Pre-Research Screening；
 - 改变冻结后的 `deep_read_codes`；
-- 成为研究覆盖不完整的理由。
+- 成为研究覆盖不完整的理由；
+- 被用来绕过 Risk Cluster Consolidation，重复发布同一风险暴露。
 
 ---
 
-## 11. 执行原则
+## 12. 执行原则
 
 > **先完整筛选，再冻结名单，再联网研究。**
+
+> **先完成公司级研究，再做最终风险因子去重。**
 
 > **程序资格不由模型重算。**
 
 > **本轮应研究集合与实际研究集合必须分开记录。**
+
+> **研究覆盖完整性和最终榜风险去重是两件不同的事。**
 
 > **不要用复杂流程控制替代清楚的阶段边界。**
