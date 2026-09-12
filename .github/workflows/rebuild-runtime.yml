@@ -33,7 +33,9 @@ jobs:
           python-version: "3.12"
 
       - name: Build runtime from existing snapshot
-        run: python scripts/split_snapshot.py data/snapshot.json --output-dir data/runtime
+        run: |
+          python scripts/split_snapshot.py data/snapshot.json --output-dir data/runtime
+          python scripts/build_peer_groups.py --runtime-dir data/runtime
 
       - name: Validate research runtime
         shell: bash
@@ -47,6 +49,7 @@ jobs:
           assert meta.get("runtime_format") == "model_ready_candidates_v1", meta.get("runtime_format")
           validation = meta.get("runtime_validation") or {}
           assert validation.get("status") == "passed", validation
+          assert validation.get("peer_group_view_valid") is True, validation
           assert meta.get("candidate_count") == meta.get("structural_relevance_count")
           assert meta.get("source_candidate_count", 0) >= meta.get("candidate_count", 0)
 
@@ -76,7 +79,24 @@ jobs:
           missing = sorted(required_columns - actual_columns)
           assert not missing, missing
 
-          # The new runtime intentionally contains no per-company detail directory.
+          peer_path = Path(meta["peer_group_file"])
+          assert peer_path.exists(), peer_path
+          peer = json.loads(peer_path.read_text(encoding="utf-8"))
+          assert peer.get("runtime_format") == "peer_group_view_v1"
+          assert peer.get("trade_date") == (meta.get("snapshot") or {}).get("trade_date")
+          assert peer.get("candidate_count") == meta.get("candidate_count")
+          assert peer.get("group_count") == meta.get("peer_group_count")
+          peer_codes = [
+              str(member.get("code"))
+              for group in (peer.get("groups") or [])
+              for member in (group.get("members") or [])
+          ]
+          code_idx = payload["columns"].index("code")
+          candidate_codes = [str(row[code_idx]) for row in (payload.get("rows") or [])]
+          assert len(peer_codes) == len(set(peer_codes)) == len(candidate_codes)
+          assert set(peer_codes) == set(candidate_codes)
+          assert (meta.get("peer_group_validation") or {}).get("status") == "passed"
+
           assert not Path("data/runtime/details").exists()
 
           print(json.dumps({
@@ -85,6 +105,9 @@ jobs:
               "trade_date": (meta.get("snapshot") or {}).get("trade_date"),
               "source_candidate_count": meta.get("source_candidate_count"),
               "candidate_count": meta.get("candidate_count"),
+              "peer_group_count": meta.get("peer_group_count"),
+              "peer_group_singleton_count": meta.get("peer_group_singleton_count"),
+              "peer_group_max_size": meta.get("peer_group_max_size"),
               "validation": validation.get("status"),
           }, ensure_ascii=False))
           PY
