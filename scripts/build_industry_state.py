@@ -15,6 +15,7 @@ LATEST = DATA / "latest.json"
 OUTPUT = DATA / "research" / "industry_state.json"
 TZ = ZoneInfo("Asia/Shanghai")
 TENCENT_VOLUME_LOT_SIZE = 100
+YOY_UNIT = "percentage_points"
 
 
 def fnum(value):
@@ -42,7 +43,9 @@ def classify_market_breadth(value: float | None) -> str:
     return "divergent"
 
 
-def classify_market_activity(volume_ratio: float | None, expanding_share: float | None) -> str:
+def classify_market_activity(
+    volume_ratio: float | None, expanding_share: float | None
+) -> str:
     if volume_ratio is None or expanding_share is None:
         return "unknown"
     if volume_ratio >= 1.05 and expanding_share >= 0.50:
@@ -62,18 +65,35 @@ def classify_market_confirmation(market_breadth: str, market_activity: str) -> s
     return "neutral"
 
 
-def classify_trend(revenue_yoy: float | None, profit_yoy: float | None, improving_breadth: float) -> str:
-    if profit_yoy is not None and profit_yoy >= 10 and improving_breadth >= 0.55 and (revenue_yoy is None or revenue_yoy >= 0):
+def classify_trend(
+    revenue_yoy: float | None,
+    profit_yoy: float | None,
+    improving_breadth: float,
+) -> str:
+    if (
+        profit_yoy is not None
+        and profit_yoy >= 10
+        and improving_breadth >= 0.55
+        and (revenue_yoy is None or revenue_yoy >= 0)
+    ):
         return "improving"
     if (profit_yoy is not None and profit_yoy <= -10) or improving_breadth < 0.35:
         return "deteriorating"
     return "stable"
 
 
-def classify_strength(revenue_yoy: float | None, profit_yoy: float | None) -> str:
-    if profit_yoy is not None and profit_yoy >= 20 and (revenue_yoy is None or revenue_yoy >= 5):
+def classify_strength(
+    revenue_yoy: float | None, profit_yoy: float | None
+) -> str:
+    if (
+        profit_yoy is not None
+        and profit_yoy >= 20
+        and (revenue_yoy is None or revenue_yoy >= 5)
+    ):
         return "strong"
-    if (profit_yoy is not None and profit_yoy < 0) or (revenue_yoy is not None and revenue_yoy < 0):
+    if (profit_yoy is not None and profit_yoy < 0) or (
+        revenue_yoy is not None and revenue_yoy < 0
+    ):
         return "weak"
     return "normal"
 
@@ -97,7 +117,9 @@ def normalized_volume(row: dict) -> float | None:
     return volume
 
 
-def load_volume_ratios(codes: set[str], latest: dict, trade_date: str | None) -> dict[str, float]:
+def load_volume_ratios(
+    codes: set[str], latest: dict, trade_date: str | None
+) -> dict[str, float]:
     if not codes or not trade_date:
         return {}
 
@@ -157,6 +179,17 @@ def weighted_market_breadth(
     return sum(value * weight for value, weight in components) / total_weight
 
 
+def normalize_carried_yoy(value, existing_unit: str | None):
+    """Normalize carried legacy values into percentage points."""
+    number = fnum(value)
+    if number is None:
+        return value
+    if existing_unit == YOY_UNIT:
+        return number
+    # Legacy schema stored aggregate YoY as ratios (0.124 == 12.4%).
+    return number * 100.0
+
+
 def main() -> int:
     latest = json.loads(LATEST.read_text(encoding="utf-8"))
     existing = {}
@@ -189,51 +222,67 @@ def main() -> int:
                 continue
 
             stock_code = str(stock_code).zfill(6)
-            groups[code].append({
-                "stock_code": stock_code,
-                "revenue_yoy": revenue_yoy,
-                "profit_yoy": profit_yoy,
-                "day_change": day_change,
-                "change_5d": change_5d,
-            })
+            groups[code].append(
+                {
+                    "stock_code": stock_code,
+                    "revenue_yoy": revenue_yoy,
+                    "profit_yoy": profit_yoy,
+                    "day_change": day_change,
+                    "change_5d": change_5d,
+                }
+            )
             market_codes.add(stock_code)
             if name:
                 names[code] = str(name)
 
     trade_date = latest.get("trade_date")
-    volume_ratios = load_volume_ratios(market_codes, latest, str(trade_date) if trade_date else None)
+    volume_ratios = load_volume_ratios(
+        market_codes, latest, str(trade_date) if trade_date else None
+    )
 
     now = datetime.now(TZ).isoformat()
     result: dict[str, dict] = {}
     for code, rows in sorted(groups.items()):
-        revenue_values = [x["revenue_yoy"] for x in rows if x["revenue_yoy"] is not None]
-        profit_values = [x["profit_yoy"] for x in rows if x["profit_yoy"] is not None]
+        revenue_values = [
+            x["revenue_yoy"] for x in rows if x["revenue_yoy"] is not None
+        ]
+        profit_values = [
+            x["profit_yoy"] for x in rows if x["profit_yoy"] is not None
+        ]
         if not profit_values:
             continue
 
         median_revenue = median(revenue_values) if revenue_values else None
         median_profit = median(profit_values)
-        improving_breadth = sum(1 for x in profit_values if x > 0) / len(profit_values)
+        improving_breadth = sum(1 for x in profit_values if x > 0) / len(
+            profit_values
+        )
         sample_count = max(len(revenue_values), len(profit_values))
 
-        day_changes = [x["day_change"] for x in rows if x["day_change"] is not None]
-        five_day_changes = [x["change_5d"] for x in rows if x["change_5d"] is not None]
+        day_changes = [
+            x["day_change"] for x in rows if x["day_change"] is not None
+        ]
+        five_day_changes = [
+            x["change_5d"] for x in rows if x["change_5d"] is not None
+        ]
         day_up_ratio = (
             sum(1 for value in day_changes if value > 0) / len(day_changes)
-            if day_changes else None
+            if day_changes
+            else None
         )
         strong_up_ratio = (
             sum(1 for value in day_changes if value >= 1.0) / len(day_changes)
-            if day_changes else None
+            if day_changes
+            else None
         )
         five_day_up_ratio = (
-            sum(1 for value in five_day_changes if value > 0) / len(five_day_changes)
-            if five_day_changes else None
+            sum(1 for value in five_day_changes if value > 0)
+            / len(five_day_changes)
+            if five_day_changes
+            else None
         )
         market_breadth_ratio = weighted_market_breadth(
-            day_up_ratio,
-            strong_up_ratio,
-            five_day_up_ratio,
+            day_up_ratio, strong_up_ratio, five_day_up_ratio
         )
         market_breadth = classify_market_breadth(market_breadth_ratio)
 
@@ -242,25 +291,38 @@ def main() -> int:
             for x in rows
             if x["stock_code"] in volume_ratios
         ]
-        median_volume_ratio = median(industry_volume_ratios) if industry_volume_ratios else None
-        expanding_volume_share = (
-            sum(1 for value in industry_volume_ratios if value >= 1.0) / len(industry_volume_ratios)
-            if industry_volume_ratios else None
+        median_volume_ratio = (
+            median(industry_volume_ratios) if industry_volume_ratios else None
         )
-        market_activity = classify_market_activity(median_volume_ratio, expanding_volume_share)
-        market_confirmation = classify_market_confirmation(market_breadth, market_activity)
+        expanding_volume_share = (
+            sum(1 for value in industry_volume_ratios if value >= 1.0)
+            / len(industry_volume_ratios)
+            if industry_volume_ratios
+            else None
+        )
+        market_activity = classify_market_activity(
+            median_volume_ratio, expanding_volume_share
+        )
+        market_confirmation = classify_market_confirmation(
+            market_breadth, market_activity
+        )
 
         result[code] = {
-            "name": names.get(code) or ((existing.get("level3_profitability") or {}).get(code) or {}).get("name"),
-            "trend": classify_trend(median_revenue, median_profit, improving_breadth),
+            "name": names.get(code)
+            or ((existing.get("level3_profitability") or {}).get(code) or {}).get(
+                "name"
+            ),
+            "trend": classify_trend(
+                median_revenue, median_profit, improving_breadth
+            ),
             "strength": classify_strength(median_revenue, median_profit),
             "breadth": classify_breadth(improving_breadth),
             "confidence": classify_confidence(sample_count),
             "last_verified_at": now,
             "sample_count": sample_count,
             "core_improving_breadth": improving_breadth,
-            "aggregate_revenue_yoy": median_revenue / 100 if median_revenue is not None else None,
-            "aggregate_parent_profit_yoy": median_profit / 100 if median_profit is not None else None,
+            "aggregate_revenue_yoy": median_revenue,
+            "aggregate_parent_profit_yoy": median_profit,
             "market_breadth": market_breadth,
             "market_activity": market_activity,
             "market_confirmation": market_confirmation,
@@ -274,39 +336,82 @@ def main() -> int:
                 "breadth_sample_count": len(day_changes),
                 "activity_sample_count": len(industry_volume_ratios),
             },
-            "method": "median company YoY growth plus financial breadth, confirmed by market breadth and relative volume activity",
+            "method": (
+                "median company YoY growth plus financial breadth, confirmed by "
+                "market breadth and relative volume activity"
+            ),
         }
 
     previous_industries = existing.get("level3_profitability") or {}
+    existing_unit = existing.get("yoy_unit")
     missing = set(previous_industries) - set(result)
     for code in sorted(missing):
         old = previous_industries.get(code)
         if old:
             carry = dict(old)
             carry["confidence"] = "low"
-            carry["warnings"] = sorted(set((carry.get("warnings") or []) + ["industry_refresh_insufficient_company_data"]))
+            carry["aggregate_revenue_yoy"] = normalize_carried_yoy(
+                carry.get("aggregate_revenue_yoy"), existing_unit
+            )
+            carry["aggregate_parent_profit_yoy"] = normalize_carried_yoy(
+                carry.get("aggregate_parent_profit_yoy"), existing_unit
+            )
+            carry["warnings"] = sorted(
+                set(
+                    (carry.get("warnings") or [])
+                    + ["industry_refresh_insufficient_company_data"]
+                )
+            )
             result[code] = carry
 
     payload = {
-        "schema_version": 2,
+        "schema_version": 3,
         "status": "valid" if result else "invalid",
         "generated_at": now,
         "baseline_trade_date": latest.get("trade_date"),
-        "method": "deterministic aggregation from repository company financials plus daily market breadth and relative volume activity",
+        "yoy_unit": YOY_UNIT,
+        "method": (
+            "deterministic aggregation from repository company financials plus "
+            "daily market breadth and relative volume activity"
+        ),
         "industry_count": len(result),
         "level3_profitability": result,
     }
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(json.dumps({
-        "trade_date": payload["baseline_trade_date"],
-        "industries": len(result),
-        "improving": sum(1 for x in result.values() if x.get("trend") == "improving"),
-        "stable": sum(1 for x in result.values() if x.get("trend") == "stable"),
-        "deteriorating": sum(1 for x in result.values() if x.get("trend") == "deteriorating"),
-        "market_confirmation_strong": sum(1 for x in result.values() if x.get("market_confirmation") == "strong"),
-        "market_confirmation_weak": sum(1 for x in result.values() if x.get("market_confirmation") == "weak"),
-    }, ensure_ascii=False))
+    OUTPUT.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    print(
+        json.dumps(
+            {
+                "trade_date": payload["baseline_trade_date"],
+                "yoy_unit": YOY_UNIT,
+                "industries": len(result),
+                "improving": sum(
+                    1 for x in result.values() if x.get("trend") == "improving"
+                ),
+                "stable": sum(
+                    1 for x in result.values() if x.get("trend") == "stable"
+                ),
+                "deteriorating": sum(
+                    1
+                    for x in result.values()
+                    if x.get("trend") == "deteriorating"
+                ),
+                "market_confirmation_strong": sum(
+                    1
+                    for x in result.values()
+                    if x.get("market_confirmation") == "strong"
+                ),
+                "market_confirmation_weak": sum(
+                    1
+                    for x in result.values()
+                    if x.get("market_confirmation") == "weak"
+                ),
+            },
+            ensure_ascii=False,
+        )
+    )
     return 0 if result else 2
 
 
