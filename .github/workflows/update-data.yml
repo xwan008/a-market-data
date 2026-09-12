@@ -214,9 +214,9 @@ jobs:
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/validate_snapshot.py data/snapshot.json
 
-      - name: Build ChatGPT runtime candidate shards
+      - name: Build ChatGPT research runtime
         if: steps.gate.outputs.persist == 'true'
-        run: python scripts/split_snapshot.py data/snapshot.json --output-dir data/runtime --shard-size 20
+        run: python scripts/split_snapshot.py data/snapshot.json --output-dir data/runtime
 
       - name: Commit updated daily data
         if: steps.gate.outputs.persist == 'true'
