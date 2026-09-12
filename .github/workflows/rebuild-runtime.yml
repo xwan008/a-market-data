@@ -44,36 +44,47 @@ jobs:
 
           meta = json.loads(Path("data/runtime/meta.json").read_text(encoding="utf-8"))
           assert meta.get("runtime_kind") == "low_risk_research", meta.get("runtime_kind")
+          assert meta.get("runtime_format") == "model_ready_candidates_v1", meta.get("runtime_format")
           validation = meta.get("runtime_validation") or {}
           assert validation.get("status") == "passed", validation
-          assert meta.get("screening_count") == meta.get("source_candidate_count")
-          assert meta.get("detail_count") == meta.get("screening_count")
-          assert Path(meta["screening_file"]).exists()
-          assert Path(meta["industry_state_file"]).exists()
+          assert meta.get("candidate_count") == meta.get("structural_relevance_count")
+          assert meta.get("source_candidate_count", 0) >= meta.get("candidate_count", 0)
 
-          required_screening_columns = {
+          candidate_path = Path(meta["candidate_file"])
+          assert candidate_path.exists(), candidate_path
+          payload = json.loads(candidate_path.read_text(encoding="utf-8"))
+          assert payload.get("runtime_format") == meta.get("runtime_format")
+          assert payload.get("trade_date") == (meta.get("snapshot") or {}).get("trade_date")
+          assert payload.get("source_candidate_count") == meta.get("source_candidate_count")
+          assert payload.get("candidate_count") == len(payload.get("rows") or []) == meta.get("candidate_count")
+          assert payload.get("columns") == meta.get("candidate_columns")
+
+          required_columns = {
               "code", "name", "price", "industry_code", "industry_name",
-              "market_cap", "pe_ttm", "pe_dynamic", "pb", "roe",
+              "industry_trend", "industry_strength", "industry_breadth",
+              "pe_ttm", "pe_dynamic", "pb", "roe",
               "revenue_yoy", "net_profit_yoy", "deduct_basic_eps_yoy",
               "operating_cashflow_per_share", "gross_margin", "net_profit",
-              "close_change_20d_pct", "position_pct", "trend_state",
-              "break_state", "support_center", "resistance_center",
+              "close_change_20d_pct", "position_pct", "trend_state", "break_state",
+              "support_low", "support_high", "support_center", "support_distance_pct",
+              "volume_zone_low", "volume_zone_high", "volume_zone_center",
+              "volume_zone_distance_pct", "structural_signal_count",
+              "resistance_low", "resistance_high", "resistance_center",
               "invalidation_price", "invalidation_direction",
           }
-          actual_columns = set(meta.get("screening_columns") or [])
-          missing = sorted(required_screening_columns - actual_columns)
+          actual_columns = set(meta.get("candidate_columns") or [])
+          missing = sorted(required_columns - actual_columns)
           assert not missing, missing
 
-          detail_dir = Path("data/runtime/details")
-          details = list(detail_dir.glob("*.json"))
-          assert len(details) == meta.get("detail_count"), (len(details), meta.get("detail_count"))
+          # The new runtime intentionally contains no per-company detail directory.
+          assert not Path("data/runtime/details").exists()
 
           print(json.dumps({
               "runtime_kind": meta.get("runtime_kind"),
+              "runtime_format": meta.get("runtime_format"),
               "trade_date": (meta.get("snapshot") or {}).get("trade_date"),
-              "screening_count": meta.get("screening_count"),
-              "detail_count": meta.get("detail_count"),
-              "industry_count": meta.get("industry_count"),
+              "source_candidate_count": meta.get("source_candidate_count"),
+              "candidate_count": meta.get("candidate_count"),
               "validation": validation.get("status"),
           }, ensure_ascii=False))
           PY
@@ -89,5 +100,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A data/runtime
-          git commit -m "data: rebuild ChatGPT research runtime"
+          git commit -m "data: rebuild ChatGPT model-ready runtime"
           git push origin HEAD:main
