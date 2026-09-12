@@ -18,7 +18,7 @@ concurrency:
 jobs:
   rebuild:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
 
     steps:
       - name: Checkout repository
@@ -32,113 +32,26 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Build runtime from existing snapshot
+      - name: Rebuild compact snapshot from repository data
         run: |
-          python scripts/split_snapshot.py data/snapshot.json --output-dir data/runtime
-          python scripts/build_peer_groups.py --runtime-dir data/runtime
-          python scripts/build_company_research_view.py --runtime-dir data/runtime
+          python scripts/build_snapshot.py --source . --output data/snapshot.json
+          python scripts/attach_market_state.py data/snapshot.json
+          python scripts/normalize_snapshot_source.py data/snapshot.json
+          python scripts/validate_snapshot.py data/snapshot.json
 
-      - name: Validate research runtime
+      - name: Build and validate research runtime
+        run: python scripts/build_runtime.py data/snapshot.json --output-dir data/runtime
+
+      - name: Commit rebuilt snapshot and runtime
         shell: bash
         run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-
-          meta = json.loads(Path("data/runtime/meta.json").read_text(encoding="utf-8"))
-          assert meta.get("runtime_kind") == "low_risk_research", meta.get("runtime_kind")
-          assert meta.get("runtime_format") == "model_ready_candidates_v1", meta.get("runtime_format")
-          validation = meta.get("runtime_validation") or {}
-          assert validation.get("status") == "passed", validation
-          assert validation.get("peer_group_view_valid") is True, validation
-          assert validation.get("company_research_view_valid") is True, validation
-          assert meta.get("candidate_count") == meta.get("structural_relevance_count")
-          assert meta.get("source_candidate_count", 0) >= meta.get("candidate_count", 0)
-
-          candidate_path = Path(meta["candidate_file"])
-          assert candidate_path.exists(), candidate_path
-          payload = json.loads(candidate_path.read_text(encoding="utf-8"))
-          assert payload.get("runtime_format") == meta.get("runtime_format")
-          assert payload.get("trade_date") == (meta.get("snapshot") or {}).get("trade_date")
-          assert payload.get("source_candidate_count") == meta.get("source_candidate_count")
-          assert payload.get("candidate_count") == len(payload.get("rows") or []) == meta.get("candidate_count")
-          assert payload.get("columns") == meta.get("candidate_columns")
-
-          required_columns = {
-              "code", "name", "price", "industry_code", "industry_name",
-              "industry_trend", "industry_strength", "industry_breadth",
-              "pe_ttm", "pe_dynamic", "pb", "roe",
-              "revenue_yoy", "net_profit_yoy", "deduct_basic_eps_yoy",
-              "operating_cashflow_per_share", "gross_margin", "net_profit",
-              "close_change_20d_pct", "position_pct", "trend_state", "break_state",
-              "support_low", "support_high", "support_center", "support_distance_pct",
-              "volume_zone_low", "volume_zone_high", "volume_zone_center",
-              "volume_zone_distance_pct", "structural_signal_count",
-              "resistance_low", "resistance_high", "resistance_center",
-              "invalidation_price", "invalidation_direction",
-          }
-          actual_columns = set(meta.get("candidate_columns") or [])
-          missing = sorted(required_columns - actual_columns)
-          assert not missing, missing
-
-          code_idx = payload["columns"].index("code")
-          candidate_codes = [str(row[code_idx]) for row in (payload.get("rows") or [])]
-
-          peer_path = Path(meta["peer_group_file"])
-          assert peer_path.exists(), peer_path
-          peer = json.loads(peer_path.read_text(encoding="utf-8"))
-          assert peer.get("runtime_format") == "peer_group_view_v1"
-          assert peer.get("trade_date") == (meta.get("snapshot") or {}).get("trade_date")
-          assert peer.get("candidate_count") == meta.get("candidate_count")
-          assert peer.get("group_count") == meta.get("peer_group_count")
-          peer_codes = [
-              str(member.get("code"))
-              for group in (peer.get("groups") or [])
-              for member in (group.get("members") or [])
-          ]
-          assert len(peer_codes) == len(set(peer_codes)) == len(candidate_codes)
-          assert set(peer_codes) == set(candidate_codes)
-          assert (meta.get("peer_group_validation") or {}).get("status") == "passed"
-
-          research_path = Path(meta["company_research_file"])
-          assert research_path.exists(), research_path
-          research = json.loads(research_path.read_text(encoding="utf-8"))
-          assert research.get("runtime_format") == "company_research_view_v1"
-          assert research.get("trade_date") == (meta.get("snapshot") or {}).get("trade_date")
-          assert research.get("candidate_count") == meta.get("candidate_count")
-          assert research.get("columns") == meta.get("company_research_columns")
-          research_code_idx = research["columns"].index("code")
-          research_codes = [str(row[research_code_idx]) for row in (research.get("rows") or [])]
-          assert len(research_codes) == len(set(research_codes)) == len(candidate_codes)
-          assert set(research_codes) == set(candidate_codes)
-          assert (meta.get("company_research_validation") or {}).get("status") == "passed"
-
-          assert not Path("data/runtime/details").exists()
-
-          print(json.dumps({
-              "runtime_kind": meta.get("runtime_kind"),
-              "runtime_format": meta.get("runtime_format"),
-              "trade_date": (meta.get("snapshot") or {}).get("trade_date"),
-              "source_candidate_count": meta.get("source_candidate_count"),
-              "candidate_count": meta.get("candidate_count"),
-              "peer_group_count": meta.get("peer_group_count"),
-              "peer_group_singleton_count": meta.get("peer_group_singleton_count"),
-              "peer_group_max_size": meta.get("peer_group_max_size"),
-              "company_research_coverage": meta.get("company_research_coverage"),
-              "validation": validation.get("status"),
-          }, ensure_ascii=False))
-          PY
-
-      - name: Commit rebuilt runtime
-        shell: bash
-        run: |
-          if ! git status --porcelain -- data/runtime | grep -q .; then
-            echo "runtime unchanged"
+          if ! git status --porcelain -- data/snapshot.json data/runtime | grep -q .; then
+            echo "snapshot/runtime unchanged"
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A data/runtime
-          git commit -m "data: rebuild ChatGPT model-ready runtime"
+          git add -A data/snapshot.json data/runtime
+          git commit -m "data: rebuild ChatGPT research runtime"
           git push origin HEAD:main
