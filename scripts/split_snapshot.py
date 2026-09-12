@@ -7,9 +7,10 @@ import shutil
 from pathlib import Path
 from typing import Any
 
+from contracts import YOY_UNIT
+
 RUNTIME_KIND = "low_risk_research"
 RUNTIME_FORMAT = "model_ready_candidates_v2"
-YOY_UNIT = "percentage_points"
 
 # Formal structure rule: this file is the single calculation source.
 SUPPORT_DISTANCE_LIMIT_PCT = 5.0
@@ -390,9 +391,7 @@ def main() -> None:
 
     for code, raw in candidates.items():
         industry = level3.get(raw.get("industry_code")) or {}
-        row, audit = build_candidate_row(
-            code, raw, industry, industry_yoy_unit
-        )
+        row, audit = build_candidate_row(code, raw, industry, industry_yoy_unit)
         support_near_count += int(audit["support_near"])
         volume_near_count += int(audit["volume_zone_near"])
         support_strong_count += int(audit["support_strong"])
