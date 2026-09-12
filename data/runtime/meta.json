@@ -65,8 +65,8 @@
     }
   },
   "source_candidate_count": 717,
-  "candidate_count": 204,
-  "structural_relevance_count": 204,
+  "candidate_count": 173,
+  "structural_relevance_count": 173,
   "industry_count": 333,
   "candidate_file": "data/runtime/candidates.json",
   "candidate_columns": [
@@ -136,14 +136,17 @@
   "structural_rule": {
     "support_distance_pct_lte": 5.0,
     "volume_zone_distance_pct_lte": 5.0,
+    "deep_position_60d_pct_lte": 20.0,
     "position_60d_pct_lte": 35.0,
-    "requires_low_position": true,
-    "requires_acceptance": "support_near_or_volume_zone_near"
+    "deep_low_requires_acceptance": "support_near_or_volume_zone_near",
+    "mid_low_requires_acceptance": "support_near_and_volume_zone_near"
   },
   "structural_signal_audit": {
     "support_near_count": 554,
     "volume_zone_near_count": 538,
-    "low_position_count": 249
+    "low_position_count": 249,
+    "deep_low_position_count": 142,
+    "mid_low_position_count": 107
   },
   "runtime_validation": {
     "status": "passed",
