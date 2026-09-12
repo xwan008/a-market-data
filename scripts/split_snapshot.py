@@ -15,6 +15,33 @@ VOLUME_DISTANCE_LIMIT_PCT = 5.0
 DEEP_POSITION_60D_LIMIT_PCT = 20.0
 POSITION_60D_LIMIT_PCT = 35.0
 
+QUALITY_TEST_VARIANTS = {
+    "loose_4pct_t2_v8": {
+        "support_distance_pct_lte": 4.0,
+        "support_touches_gte": 2,
+        "volume_distance_pct_lte": 4.0,
+        "volume_share_pct_gte": 8.0,
+    },
+    "balanced_3pct_t2_v10": {
+        "support_distance_pct_lte": 3.0,
+        "support_touches_gte": 2,
+        "volume_distance_pct_lte": 3.0,
+        "volume_share_pct_gte": 10.0,
+    },
+    "strict_2pct_t2_v10": {
+        "support_distance_pct_lte": 2.0,
+        "support_touches_gte": 2,
+        "volume_distance_pct_lte": 2.0,
+        "volume_share_pct_gte": 10.0,
+    },
+    "strong_3pct_t3_v12": {
+        "support_distance_pct_lte": 3.0,
+        "support_touches_gte": 3,
+        "volume_distance_pct_lte": 3.0,
+        "volume_share_pct_gte": 12.0,
+    },
+}
+
 CANDIDATE_COLUMNS = [
     "code",
     "name",
@@ -376,6 +403,10 @@ def main() -> None:
     support_near_idx = CANDIDATE_COLUMNS.index("support_near")
     volume_near_idx = CANDIDATE_COLUMNS.index("volume_zone_near")
     position_pct_idx = CANDIDATE_COLUMNS.index("position_pct")
+    support_distance_idx = CANDIDATE_COLUMNS.index("support_distance_pct")
+    support_touches_idx = CANDIDATE_COLUMNS.index("support_touches")
+    volume_distance_idx = CANDIDATE_COLUMNS.index("volume_zone_distance_pct")
+    volume_share_idx = CANDIDATE_COLUMNS.index("volume_zone_share_pct")
 
     def row_matches_rule(row: list[Any]) -> bool:
         position_value = row[position_pct_idx]
@@ -389,6 +420,46 @@ def main() -> None:
         if position <= POSITION_60D_LIMIT_PCT:
             return support_ok and volume_ok
         return False
+
+    def strong_support(row: list[Any], config: dict[str, float]) -> bool:
+        distance = row[support_distance_idx]
+        touches = row[support_touches_idx]
+        return (
+            is_number(distance)
+            and float(distance) <= config["support_distance_pct_lte"]
+            and is_number(touches)
+            and float(touches) >= config["support_touches_gte"]
+        )
+
+    def strong_volume(row: list[Any], config: dict[str, float]) -> bool:
+        distance = row[volume_distance_idx]
+        share = row[volume_share_idx]
+        return (
+            is_number(distance)
+            and float(distance) <= config["volume_distance_pct_lte"]
+            and is_number(share)
+            and float(share) >= config["volume_share_pct_gte"]
+        )
+
+    quality_test_matrix: dict[str, Any] = {}
+    for name, config in QUALITY_TEST_VARIANTS.items():
+        deep_low_pass = 0
+        mid_low_pass = 0
+        for row in model_rows:
+            position = float(row[position_pct_idx])
+            if position <= DEEP_POSITION_60D_LIMIT_PCT:
+                if strong_support(row, config) or strong_volume(row, config):
+                    deep_low_pass += 1
+            else:
+                # Test only deep-low acceptance quality; keep current mid-low rule unchanged.
+                mid_low_pass += 1
+        quality_test_matrix[name] = {
+            **config,
+            "scope": "deep_low_only_mid_low_unchanged",
+            "deep_low_pass_count": deep_low_pass,
+            "mid_low_unchanged_count": mid_low_pass,
+            "total_candidate_count": deep_low_pass + mid_low_pass,
+        }
 
     validation = {
         "status": "passed",
@@ -418,6 +489,11 @@ def main() -> None:
             "low_position_count": low_position_count,
             "deep_low_position_count": deep_low_position_count,
             "mid_low_position_count": low_position_count - deep_low_position_count,
+        },
+        "acceptance_quality_test": {
+            "current_candidate_count": len(model_rows),
+            "note": "diagnostic only; does not alter formal candidate filtering",
+            "variants": quality_test_matrix,
         },
         "runtime_validation": validation,
     }
