@@ -1,0 +1,81 @@
+name: Rebuild ChatGPT Runtime
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/runtime-trigger.txt"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rebuild-chatgpt-runtime
+  cancel-in-progress: false
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build runtime from existing snapshot
+        run: python scripts/split_snapshot.py data/snapshot.json --output-dir data/runtime
+
+      - name: Validate runtime v3 manifest
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          meta = json.loads(Path("data/runtime/meta.json").read_text(encoding="utf-8"))
+          assert meta.get("schema_version") == 3, meta.get("schema_version")
+          assert meta.get("runtime_format") == "screening_details_v3", meta.get("runtime_format")
+          validation = meta.get("runtime_validation") or {}
+          assert validation.get("status") == "passed", validation
+          assert meta.get("screening_count") == meta.get("source_candidate_count")
+          assert meta.get("detail_count") == meta.get("screening_count")
+          assert Path(meta["screening_file"]).exists()
+          assert Path(meta["industry_state_file"]).exists()
+
+          detail_dir = Path("data/runtime/details")
+          details = list(detail_dir.glob("*.json"))
+          assert len(details) == meta.get("detail_count"), (len(details), meta.get("detail_count"))
+
+          print(json.dumps({
+              "runtime_format": meta.get("runtime_format"),
+              "trade_date": (meta.get("snapshot") or {}).get("trade_date"),
+              "screening_count": meta.get("screening_count"),
+              "detail_count": meta.get("detail_count"),
+              "industry_count": meta.get("industry_count"),
+              "validation": validation.get("status"),
+          }, ensure_ascii=False))
+          PY
+
+      - name: Commit rebuilt runtime
+        shell: bash
+        run: |
+          if ! git status --porcelain -- data/runtime | grep -q .; then
+            echo "runtime unchanged"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A data/runtime
+          git commit -m "data: rebuild ChatGPT runtime v3"
+          git push origin HEAD:main
