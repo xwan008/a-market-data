@@ -13,7 +13,6 @@ RUNTIME_FORMAT = "model_ready_candidates_v1"
 SUPPORT_DISTANCE_LIMIT_PCT = 5.0
 VOLUME_DISTANCE_LIMIT_PCT = 5.0
 POSITION_60D_LIMIT_PCT = 35.0
-MIN_STRUCTURAL_SIGNALS = 2
 
 CANDIDATE_COLUMNS = [
     "code",
@@ -179,6 +178,7 @@ def build_candidate_row(
         and float(position_pct) <= POSITION_60D_LIMIT_PCT
     )
     signal_count = int(support_near) + int(volume_near) + int(position_low)
+    passes = position_low and (support_near or volume_near)
 
     invalidation_price, invalidation_direction = invalidation_parts(
         structure.get("invalidation")
@@ -254,7 +254,7 @@ def build_candidate_row(
         "volume_zone_near": volume_near,
         "position_60d_low": position_low,
         "structural_signal_count": signal_count,
-        "passes": signal_count >= MIN_STRUCTURAL_SIGNALS,
+        "passes": passes,
     }
     return row, audit
 
@@ -335,7 +335,8 @@ def main() -> None:
         "support_distance_pct_lte": SUPPORT_DISTANCE_LIMIT_PCT,
         "volume_zone_distance_pct_lte": VOLUME_DISTANCE_LIMIT_PCT,
         "position_60d_pct_lte": POSITION_60D_LIMIT_PCT,
-        "minimum_signals": MIN_STRUCTURAL_SIGNALS,
+        "requires_low_position": True,
+        "requires_acceptance": "support_near_or_volume_zone_near",
     }
     write_row_json(
         output_dir / candidates_filename,
@@ -359,6 +360,9 @@ def main() -> None:
         key: value for key, value in industry_state.items() if key != "level3"
     }
 
+    support_near_idx = CANDIDATE_COLUMNS.index("support_near")
+    volume_near_idx = CANDIDATE_COLUMNS.index("volume_zone_near")
+    position_low_idx = CANDIDATE_COLUMNS.index("position_60d_low")
     validation = {
         "status": "passed",
         "trade_date": trade_date,
@@ -366,8 +370,8 @@ def main() -> None:
         "source_candidate_count_matches_snapshot": len(candidates) == expected,
         "industry_mapping_complete": not missing_industry_codes,
         "model_candidate_rows_match_rule": all(
-            row[CANDIDATE_COLUMNS.index("structural_signal_count")]
-            >= MIN_STRUCTURAL_SIGNALS
+            bool(row[position_low_idx])
+            and (bool(row[support_near_idx]) or bool(row[volume_near_idx]))
             for row in model_rows
         ),
     }
