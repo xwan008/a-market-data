@@ -113,6 +113,8 @@
 
 `deep_read_codes` 为所有 `winner + differential_candidate + research_uncertain` 的自然并集，不设全局数量上限或下限。
 
+**组内不得仅因公司质量、盈利规模、ROE 或短期趋势相对较弱而提前淘汰；只要其估值、安全边际或潜在上行空间可能明显更优，就必须保留进入 deep-read。**
+
 明显龙头、高盈利增长、低估值、高 ROE 或高现金流质量公司如果未进入 deep-read，必须给出明确理由；理由不足则升级深读。
 
 ---
