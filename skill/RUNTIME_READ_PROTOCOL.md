@@ -180,6 +180,8 @@
 3. `research_uncertain`：摘要证据不足或冲突，无法可靠判断时进入深读；
 4. `excluded`：能够明确解释为何相对组内候选次优。
 
+每家公司必须保存核心盈利质量、现金流、相对估值三项比较。只有三项均有证据支撑的判断，才允许组内 `excluded`；任一项尚不确定时保留深读，并注明缺口。淘汰同时指明同组保留对手、主因和重新胜出条件。
+
 禁止为了满足某个全局数量目标而删除 `winner`、必要的 `differential_candidate` 或 `research_uncertain`。
 
 ---
@@ -275,6 +277,8 @@
 - 每个 `excluded` 至少存在一个可核验的主要理由；
 - `deep_read_codes` 是上述结果的自然并集，没有全局数量截断。
 
+以上不能只用模型自报的布尔值证明。按 `skill/RESEARCH_AUDIT.md` 保存逐行业和逐组记录，通过 `research_audit.py` 的 allocation 检查，确认候选集合精确覆盖、分组关系和三项比较完整。
+
 ### Deep Research Completion Gate
 
 必须同时满足：
@@ -286,7 +290,7 @@
 - 所有 detail 来自同一 `locked_sha`；
 - `pending_source_window == false`。
 
-只有全部通过后，才允许发布正式榜单。
+只有全部通过后，且本轮保存的 final 审计通过结构与去向一致性校验，才允许发布正式榜单，包括空榜。保存结果的提交与 `locked_sha` 是不同概念：审计校验必须提取原锁定 SHA 的 runtime，不得改用保存审计后的最新行情。
 
 ---
 
@@ -306,6 +310,8 @@
 ---
 
 ## 13. 审计要求
+
+具体格式和操作见 [研究审计保存契约](RESEARCH_AUDIT.md)。审计在 `data/research_runs/<run_id>/` 按行业与同行组分段持久化；程序生成按代码查询的去向索引和以下计数。`collecting` 仅为暂存，allocation 检查通过只允许深读，均不等于正式发布通过。只有 final 检查的 `publishable=true` 才满足本审计门禁。
 
 每轮正式结果至少保留以下阶段计数：
 

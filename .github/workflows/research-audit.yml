@@ -1,0 +1,53 @@
+name: Validate Research Audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'data/research_runs/**'
+      - 'scripts/research_audit.py'
+      - 'scripts/check_research_audits.py'
+      - 'tests/test_research_audit.py'
+      - '.github/workflows/research-audit.yml'
+  pull_request:
+    paths:
+      - 'data/research_runs/**'
+      - 'scripts/research_audit.py'
+      - 'scripts/check_research_audits.py'
+      - 'tests/test_research_audit.py'
+      - '.github/workflows/research-audit.yml'
+  workflow_dispatch:
+    inputs:
+      run_dir:
+        description: 'Saved run directory, e.g. data/research_runs/20260912-close-001; leave blank to validate all saved runs'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test audit invariants
+        run: python -m unittest discover -s tests -p 'test_research_audit.py' -v
+      - name: Check saved research records at their pinned runtime commit
+        env:
+          AUDIT_RUN_DIR: ${{ inputs.run_dir }}
+        run: python scripts/check_research_audits.py
+      - name: Preserve validation and per-company destination index
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-audit-${{ github.run_id }}-${{ github.run_attempt }}
+          path: audit-reports/
+          if-no-files-found: ignore
+          retention-days: 90
