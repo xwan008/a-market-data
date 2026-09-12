@@ -128,6 +128,9 @@ jobs:
           python scripts/normalize_snapshot_source.py data/snapshot.json
           python scripts/validate_snapshot.py data/snapshot.json
 
+      - name: Build ChatGPT model-ready runtime
+        run: python scripts/split_snapshot.py data/snapshot.json --output-dir data/runtime
+
       - name: Commit updated weekly research data
         shell: bash
         run: |
