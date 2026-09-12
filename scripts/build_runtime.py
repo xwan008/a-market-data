@@ -24,8 +24,30 @@ def load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def write_json(path: Path, payload: dict[str, Any]) -> None:
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n",
+        encoding="utf-8",
+    )
+
+
 def run_script(*args: str) -> None:
     subprocess.run([sys.executable, *args], check=True)
+
+
+def normalize_runtime_meta(runtime_dir: Path) -> None:
+    """Keep final meta compact and single-source.
+
+    Eligibility audit is promoted to top-level meta. Do not retain a second
+    embedded copy inside snapshot metadata.
+    """
+    meta_path = runtime_dir / "meta.json"
+    meta = load_json(meta_path)
+    snapshot_meta = meta.get("snapshot") or {}
+    snapshot_meta.pop("eligibility_audit", None)
+    snapshot_meta.pop("prefilter", None)  # legacy compatibility cleanup
+    meta["snapshot"] = snapshot_meta
+    write_json(meta_path, meta)
 
 
 def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
@@ -43,14 +65,16 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
         meta.get("candidate_count") or 0
     )
 
+    snapshot_meta = meta.get("snapshot") or {}
+    assert "eligibility_audit" not in snapshot_meta
+    assert "prefilter" not in snapshot_meta
+
     candidate_path = Path(meta["candidate_file"])
     assert candidate_path.exists(), candidate_path
     candidate = load_json(candidate_path)
     assert candidate.get("runtime_format") == RUNTIME_FORMAT
     assert candidate.get("yoy_unit") == YOY_UNIT
-    assert candidate.get("trade_date") == (meta.get("snapshot") or {}).get(
-        "trade_date"
-    )
+    assert candidate.get("trade_date") == snapshot_meta.get("trade_date")
     assert candidate.get("source_candidate_count") == meta.get(
         "source_candidate_count"
     )
@@ -109,9 +133,7 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
     screening = load_json(screening_path)
     assert screening.get("runtime_format") == SCREENING_GROUP_FORMAT
     assert screening.get("yoy_unit") == YOY_UNIT
-    assert screening.get("trade_date") == (meta.get("snapshot") or {}).get(
-        "trade_date"
-    )
+    assert screening.get("trade_date") == snapshot_meta.get("trade_date")
     assert screening.get("candidate_count") == meta.get("candidate_count")
     assert screening.get("group_count") == meta.get("screening_group_count")
 
@@ -146,13 +168,15 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
         universe = int(eligibility_audit.get("universe_count") or 0)
         eligible = int(eligibility_audit.get("eligible_count") or 0)
         exclusions = eligibility_audit.get("exclusive_first_failure_counts") or {}
-        assert universe == eligible + sum(int(value or 0) for value in exclusions.values())
+        assert universe == eligible + sum(
+            int(value or 0) for value in exclusions.values()
+        )
         assert eligible == int(meta.get("source_candidate_count") or 0)
 
     return {
         "runtime_kind": meta.get("runtime_kind"),
         "runtime_format": meta.get("runtime_format"),
-        "trade_date": (meta.get("snapshot") or {}).get("trade_date"),
+        "trade_date": snapshot_meta.get("trade_date"),
         "source_candidate_count": meta.get("source_candidate_count"),
         "candidate_count": meta.get("candidate_count"),
         "screening_group_count": meta.get("screening_group_count"),
@@ -179,6 +203,7 @@ def main() -> None:
         "--output-dir",
         str(runtime_dir),
     )
+    normalize_runtime_meta(runtime_dir)
     run_script(
         "scripts/build_screening_groups.py",
         "--runtime-dir",
