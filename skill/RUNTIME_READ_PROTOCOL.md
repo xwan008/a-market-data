@@ -44,27 +44,53 @@
 - `data/runtime/screening_snapshot.json`
 - `data/runtime/industry_state_compact.json`
 
-底层 `snapshot`、K 线、shards、行业状态等仍由数据生成程序使用，但不属于模型正式运行输入。
+底层 snapshot、K 线、shards、行业状态等仍由生成程序使用，但不属于模型正式运行输入。
 
 ---
 
-## 4. runtime 生成侧必须保证什么
+## 4. runtime 生成侧信任边界
 
-`meta.runtime_validation.status == "passed"` 应代表生成侧已经确定性验证：
+`meta.runtime_validation.status == "passed"` 代表生成侧已经确定性验证：
 
 - snapshot 机械候选代码唯一；
 - `source_candidate_count` 与 snapshot 候选数一致；
 - 所有机械候选行业映射完整；
-- model-ready 表中的每一行都满足当前结构硬筛规则；
+- model-ready 表每一行满足当前正式结构硬筛规则；
 - `candidate_count == structural_relevance_count`；
-- `candidate_file` 存在且其 columns 与 meta 声明一致；
-- candidate 表交易日与 snapshot 交易日一致。
+- candidate 表交易日与 snapshot 一致；
+- candidate 表 columns 与 meta 声明一致。
 
-模型不再重新逐只计算结构硬筛，也不重新证明这些生成期不变量。
+当前正式结构规则由 `meta.structural_rule` 与同一 SHA 下的 `SKILL.md` 共同说明。
+
+模型不得重新逐只计算或推翻这些程序硬规则。
 
 ---
 
-## 5. Runtime Hard Gate
+## 5. 当前结构硬筛语义
+
+### 深低位：`position_pct <= 20%`
+
+至少存在一种高质量承接：
+
+- strong support：距 support center `<= 3%` 且 `support_touches >= 3`；
+- strong volume zone：距 volume-zone center `<= 3%` 且 `volume_zone_share_pct >= 12%`。
+
+### 中低位：`20% < position_pct <= 35%`
+
+必须同时：
+
+- 距 support center `<= 5%`；
+- 距 volume-zone center `<= 5%`。
+
+### 高位
+
+`position_pct > 35%` 不进入 model-ready candidates。
+
+这些只是程序化研究准入规则，不是最终安全区。
+
+---
+
+## 6. Runtime Hard Gate
 
 只有以下情况允许终止整轮任务：
 
@@ -76,50 +102,48 @@
 - candidate 表交易日、候选数、columns 与 meta 明显冲突；
 - 同一 run 无法维持单一 `locked_sha`。
 
-除此之外，不得停止整份榜单。
-
-候选表允许为空；若程序硬筛后没有公司通过，代表本轮没有结构上成熟的研究候选，不代表 runtime 失败。
+候选表允许为空；程序硬筛后没有公司通过，不代表 runtime 失败。
 
 ---
 
-## 6. 候选表读取规则
+## 7. 候选表读取规则
 
-模型必须完整消费 `candidate_file` 中的全部 model-ready candidates。
+模型必须完整消费 `candidate_file` 中全部 model-ready candidates。
 
 候选表已经：
 
 - 通过机械风险粗筛；
-- 通过潜在结构相关性硬筛；
+- 通过正式结构硬筛；
 - 合并申万三级行业字段；
 - 合并价格结构、估值和经营质量字段；
 - 按行业代码与股票代码排序，便于同行比较。
 
 因此模型不得：
 
-- 再从 `source_candidate_count` 对应的原始机械候选重新筛一次；
-- 再逐只计算当前两段式结构硬筛（`position_pct <= 20%` 时单承接即可；`20% < position_pct <= 35%` 时必须 support + volume-zone 双承接）；
+- 回到原始机械候选重新筛选；
+- 重算或修改深低位 / 中低位结构硬规则；
 - 因市场风险高而只读候选表的一部分；
 - 因已经找到足够多好公司而提前停止同行比较。
 
-不再规定固定 50/100/250 行窗口、EOF 二次确认或逐 detail completion gate。若一次工具响应显示截断，应改用能够取得完整候选表的可靠读取方式；只要最终候选表完整可解析即可。
+不再规定固定窗口、EOF 二次确认或逐 detail completion gate。若某次工具响应被截断，应换用能够取得完整 candidate 表的可靠读取方式。
 
 ---
 
-## 7. 模型研究边界
+## 8. 模型研究边界
 
 候选表完整读取后，严格按 `SKILL.md` 执行：
 
 1. 按申万三级行业做初始分组；
 2. 比较价格结构 / 估值质量 / 经营质量；
-3. 只有被同行明确支配的公司才允许在公开 deep research 前排除；
+3. 只有被同行明确支配的公司才允许在公开 Deep Research 前排除；
 4. 其余候选使用最新可靠公开资料做公司级研究；
-5. 最终安全区只能在公开 deep research 和正常化估值后形成。
+5. 最终安全区只能在公开 Deep Research 和正常化估值后形成。
 
 公开资料用于验证公司，不得扩展程序生成的候选全集。
 
 ---
 
-## 8. 不属于全局失败的情况
+## 9. 不属于全局失败的情况
 
 以下情况只影响对应公司：
 
@@ -142,7 +166,7 @@
 
 ---
 
-## 9. 市场风险的作用边界
+## 10. 市场风险的作用边界
 
 市场 `bearish / weak breadth / high risk` 等状态只能影响最终行动层：
 
@@ -160,7 +184,7 @@
 
 ---
 
-## 10. 收盘版与早间增量版
+## 11. 收盘版与早间增量版
 
 ### 收盘正式版
 
@@ -190,7 +214,7 @@
 
 ---
 
-## 11. 审计
+## 12. 审计
 
 最终至少记录：
 
@@ -212,12 +236,10 @@
 
 ---
 
-## 12. 最终原则
+## 13. 最终原则
 
 > **程序消化确定性复杂度，模型消化认知复杂度。**
 
 > **一个候选表就是模型的正式数据入口。**
-
-> **不再为了文件拆分而制造读取协议。**
 
 > **全局问题才全局停止，局部问题只局部降级。**
