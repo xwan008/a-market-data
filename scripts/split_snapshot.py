@@ -10,37 +10,17 @@ from typing import Any
 RUNTIME_KIND = "low_risk_research"
 RUNTIME_FORMAT = "model_ready_candidates_v1"
 
+# Mid-low (20%, 35%] candidates still require two nearby acceptance structures.
 SUPPORT_DISTANCE_LIMIT_PCT = 5.0
 VOLUME_DISTANCE_LIMIT_PCT = 5.0
+
+# Deep-low candidates (<=20%) require at least one high-quality acceptance structure.
 DEEP_POSITION_60D_LIMIT_PCT = 20.0
 POSITION_60D_LIMIT_PCT = 35.0
-
-QUALITY_TEST_VARIANTS = {
-    "loose_4pct_t2_v8": {
-        "support_distance_pct_lte": 4.0,
-        "support_touches_gte": 2,
-        "volume_distance_pct_lte": 4.0,
-        "volume_share_pct_gte": 8.0,
-    },
-    "balanced_3pct_t2_v10": {
-        "support_distance_pct_lte": 3.0,
-        "support_touches_gte": 2,
-        "volume_distance_pct_lte": 3.0,
-        "volume_share_pct_gte": 10.0,
-    },
-    "strict_2pct_t2_v10": {
-        "support_distance_pct_lte": 2.0,
-        "support_touches_gte": 2,
-        "volume_distance_pct_lte": 2.0,
-        "volume_share_pct_gte": 10.0,
-    },
-    "strong_3pct_t3_v12": {
-        "support_distance_pct_lte": 3.0,
-        "support_touches_gte": 3,
-        "volume_distance_pct_lte": 3.0,
-        "volume_share_pct_gte": 12.0,
-    },
-}
+DEEP_SUPPORT_DISTANCE_LIMIT_PCT = 3.0
+DEEP_SUPPORT_TOUCHES_MIN = 3
+DEEP_VOLUME_DISTANCE_LIMIT_PCT = 3.0
+DEEP_VOLUME_SHARE_MIN_PCT = 12.0
 
 CANDIDATE_COLUMNS = [
     "code",
@@ -126,7 +106,6 @@ def write_row_json(
     columns: list[str],
     rows: list[list[Any]],
 ) -> None:
-    """Write one compact candidate row per source line for model comparison."""
     path.parent.mkdir(parents=True, exist_ok=True)
     lines = ["{"]
     for key, value in header.items():
@@ -159,8 +138,7 @@ def is_number(value: Any) -> bool:
 def zone_part(zone: Any, key: str) -> Any:
     if not isinstance(zone, dict):
         return None
-    value = zone.get(key)
-    return value
+    return zone.get(key)
 
 
 def distance_pct(price: Any, anchor: Any) -> float | None:
@@ -177,6 +155,30 @@ def invalidation_parts(value: Any) -> tuple[Any, Any]:
     return (price if is_number(price) else None, direction)
 
 
+def strong_support(
+    support_distance: Any,
+    support_touches: Any,
+) -> bool:
+    return (
+        is_number(support_distance)
+        and float(support_distance) <= DEEP_SUPPORT_DISTANCE_LIMIT_PCT
+        and is_number(support_touches)
+        and float(support_touches) >= DEEP_SUPPORT_TOUCHES_MIN
+    )
+
+
+def strong_volume(
+    volume_distance: Any,
+    volume_share: Any,
+) -> bool:
+    return (
+        is_number(volume_distance)
+        and float(volume_distance) <= DEEP_VOLUME_DISTANCE_LIMIT_PCT
+        and is_number(volume_share)
+        and float(volume_share) >= DEEP_VOLUME_SHARE_MIN_PCT
+    )
+
+
 def build_candidate_row(
     code: str,
     raw: dict[str, Any],
@@ -191,6 +193,8 @@ def build_candidate_row(
 
     support_distance = distance_pct(price, zone_part(support, "center"))
     volume_distance = distance_pct(price, zone_part(volume_zone, "center"))
+    support_touches = zone_part(support, "touches")
+    volume_share = zone_part(volume_zone, "volume_share_pct")
     position_pct = structure.get("position_pct")
 
     support_near = (
@@ -209,11 +213,17 @@ def build_candidate_row(
         is_number(position_pct)
         and float(position_pct) <= DEEP_POSITION_60D_LIMIT_PCT
     )
+    support_strong = strong_support(support_distance, support_touches)
+    volume_strong = strong_volume(volume_distance, volume_share)
+
     signal_count = int(support_near) + int(volume_near) + int(position_low)
     passes = (
-        position_deep_low and (support_near or volume_near)
+        position_deep_low and (support_strong or volume_strong)
     ) or (
-        position_low and not position_deep_low and support_near and volume_near
+        position_low
+        and not position_deep_low
+        and support_near
+        and volume_near
     )
 
     invalidation_price, invalidation_direction = invalidation_parts(
@@ -263,14 +273,14 @@ def build_candidate_row(
         zone_part(support, "low"),
         zone_part(support, "high"),
         zone_part(support, "center"),
-        zone_part(support, "touches"),
+        support_touches,
         zone_part(support, "last_touch_date"),
         support_distance,
         support_near,
         zone_part(volume_zone, "low"),
         zone_part(volume_zone, "high"),
         zone_part(volume_zone, "center"),
-        zone_part(volume_zone, "volume_share_pct"),
+        volume_share,
         zone_part(volume_zone, "last_date"),
         volume_distance,
         volume_near,
@@ -288,6 +298,8 @@ def build_candidate_row(
     audit = {
         "support_near": support_near,
         "volume_zone_near": volume_near,
+        "support_strong": support_strong,
+        "volume_zone_strong": volume_strong,
         "position_60d_low": position_low,
         "position_60d_deep_low": position_deep_low,
         "structural_signal_count": signal_count,
@@ -349,6 +361,8 @@ def main() -> None:
     model_rows: list[list[Any]] = []
     support_near_count = 0
     volume_near_count = 0
+    support_strong_count = 0
+    volume_strong_count = 0
     low_position_count = 0
     deep_low_position_count = 0
 
@@ -357,12 +371,13 @@ def main() -> None:
         row, audit = build_candidate_row(code, raw, industry)
         support_near_count += int(audit["support_near"])
         volume_near_count += int(audit["volume_zone_near"])
+        support_strong_count += int(audit["support_strong"])
+        volume_strong_count += int(audit["volume_zone_strong"])
         low_position_count += int(audit["position_60d_low"])
         deep_low_position_count += int(audit["position_60d_deep_low"])
         if audit["passes"]:
             model_rows.append(row)
 
-    # Present peers together so the model can compare within SW level-3 groups directly.
     industry_idx = CANDIDATE_COLUMNS.index("industry_code")
     code_idx = CANDIDATE_COLUMNS.index("code")
     model_rows.sort(
@@ -371,11 +386,15 @@ def main() -> None:
 
     candidates_filename = "candidates.json"
     structural_rule = {
-        "support_distance_pct_lte": SUPPORT_DISTANCE_LIMIT_PCT,
-        "volume_zone_distance_pct_lte": VOLUME_DISTANCE_LIMIT_PCT,
         "deep_position_60d_pct_lte": DEEP_POSITION_60D_LIMIT_PCT,
         "position_60d_pct_lte": POSITION_60D_LIMIT_PCT,
-        "deep_low_requires_acceptance": "support_near_or_volume_zone_near",
+        "deep_support_distance_pct_lte": DEEP_SUPPORT_DISTANCE_LIMIT_PCT,
+        "deep_support_touches_gte": DEEP_SUPPORT_TOUCHES_MIN,
+        "deep_volume_distance_pct_lte": DEEP_VOLUME_DISTANCE_LIMIT_PCT,
+        "deep_volume_share_pct_gte": DEEP_VOLUME_SHARE_MIN_PCT,
+        "deep_low_requires_acceptance": "strong_support_or_strong_volume",
+        "mid_low_support_distance_pct_lte": SUPPORT_DISTANCE_LIMIT_PCT,
+        "mid_low_volume_distance_pct_lte": VOLUME_DISTANCE_LIMIT_PCT,
         "mid_low_requires_acceptance": "support_near_and_volume_zone_near",
     }
     write_row_json(
@@ -413,53 +432,15 @@ def main() -> None:
         if not is_number(position_value):
             return False
         position = float(position_value)
-        support_ok = bool(row[support_near_idx])
-        volume_ok = bool(row[volume_near_idx])
         if position <= DEEP_POSITION_60D_LIMIT_PCT:
-            return support_ok or volume_ok
+            return strong_support(
+                row[support_distance_idx], row[support_touches_idx]
+            ) or strong_volume(
+                row[volume_distance_idx], row[volume_share_idx]
+            )
         if position <= POSITION_60D_LIMIT_PCT:
-            return support_ok and volume_ok
+            return bool(row[support_near_idx]) and bool(row[volume_near_idx])
         return False
-
-    def strong_support(row: list[Any], config: dict[str, float]) -> bool:
-        distance = row[support_distance_idx]
-        touches = row[support_touches_idx]
-        return (
-            is_number(distance)
-            and float(distance) <= config["support_distance_pct_lte"]
-            and is_number(touches)
-            and float(touches) >= config["support_touches_gte"]
-        )
-
-    def strong_volume(row: list[Any], config: dict[str, float]) -> bool:
-        distance = row[volume_distance_idx]
-        share = row[volume_share_idx]
-        return (
-            is_number(distance)
-            and float(distance) <= config["volume_distance_pct_lte"]
-            and is_number(share)
-            and float(share) >= config["volume_share_pct_gte"]
-        )
-
-    quality_test_matrix: dict[str, Any] = {}
-    for name, config in QUALITY_TEST_VARIANTS.items():
-        deep_low_pass = 0
-        mid_low_pass = 0
-        for row in model_rows:
-            position = float(row[position_pct_idx])
-            if position <= DEEP_POSITION_60D_LIMIT_PCT:
-                if strong_support(row, config) or strong_volume(row, config):
-                    deep_low_pass += 1
-            else:
-                # Test only deep-low acceptance quality; keep current mid-low rule unchanged.
-                mid_low_pass += 1
-        quality_test_matrix[name] = {
-            **config,
-            "scope": "deep_low_only_mid_low_unchanged",
-            "deep_low_pass_count": deep_low_pass,
-            "mid_low_unchanged_count": mid_low_pass,
-            "total_candidate_count": deep_low_pass + mid_low_pass,
-        }
 
     validation = {
         "status": "passed",
@@ -486,14 +467,11 @@ def main() -> None:
         "structural_signal_audit": {
             "support_near_count": support_near_count,
             "volume_zone_near_count": volume_near_count,
+            "strong_support_count": support_strong_count,
+            "strong_volume_zone_count": volume_strong_count,
             "low_position_count": low_position_count,
             "deep_low_position_count": deep_low_position_count,
             "mid_low_position_count": low_position_count - deep_low_position_count,
-        },
-        "acceptance_quality_test": {
-            "current_candidate_count": len(model_rows),
-            "note": "diagnostic only; does not alter formal candidate filtering",
-            "variants": quality_test_matrix,
         },
         "runtime_validation": validation,
     }
