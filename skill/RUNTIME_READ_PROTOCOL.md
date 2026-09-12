@@ -1,12 +1,16 @@
 # A股低风险买点榜：运行时读取协议
 
-> 本文件只约束版本锁定、runtime 信任边界、正式输入和任务级阻断条件。同行比较、公司预筛、Deep Research、估值、买点与排名规则，以同一锁定提交下的 `skill/SKILL.md` 为准。
+> 本文件只约束版本锁定、runtime 信任边界、正式输入和阶段执行边界。同行比较、公司预筛、Deep Research、估值、买点与排名规则，以同一锁定提交下的 `skill/SKILL.md` 为准。
 
 ## 1. 核心原则
 
 > **不要要求模型对上百家公司逐只联网研究。程序先整理确定性事实，模型先做低成本判断，真正 Deep Research 只留给少量仍值得验证的公司。**
 
 不建立复杂状态机或逐股票 completion gate。
+
+但必须存在一个简单、明确的阶段边界：
+
+> **第二阶段完整 Prescreen Ledger 未冻结之前，第三阶段 Web Research 不得开始。**
 
 ---
 
@@ -21,7 +25,7 @@
    - `data/runtime/meta.json`
    - `meta.peer_group_file`
    - `meta.company_research_file`
-   - `meta.candidate_file`（仅在最终 Deep Research / 估值需要更完整确定性字段时按需使用）
+   - `meta.candidate_file`（仅在第三阶段少量幸存者需要更完整确定性字段时按需使用）
 3. 同一 run 中禁止混用不同 SHA；
 4. 禁止把上一轮同行判断、公司预筛或研究结论直接当成本轮事实。
 
@@ -108,12 +112,7 @@ peer view 和 company research view 只改变确定性事实的组织方式，�
 
 第一阶段只读取 `peer_group_file`。
 
-程序已经把全部 model-ready candidates 按申万三级行业分组，并整理：
-
-- 价格结构事实；
-- PE / PB / ROE 等估值事实；
-- 收入 / 利润 / 扣非 / 现金流 / 毛利率等经营事实；
-- 行业背景。
+程序已经把全部 model-ready candidates 按申万三级行业分组，并整理价格结构、估值、经营和行业背景事实。
 
 工作单位是**行业组**：
 
@@ -130,31 +129,57 @@ peer view 和 company research view 只改变确定性事实的组织方式，�
 
 第一阶段未被明确支配者进入第二阶段。
 
-第二阶段主要读取 `company_research_file`，**不联网**。该视图已经把每家公司的确定性事实压缩在一行，包括：
+第二阶段主要读取 `company_research_file`，**禁止联网**。该视图已经把每家公司的确定性事实压缩在一行，包括：
 
 - 当前价格结构摘要；
 - PE-TTM / 动态 PE / PB / ROE；
 - 营收、净利润、扣非 EPS、经营现金流、毛利率、净利润；
 - 行业状态；
 - 最近财报期；
-- 程序可100%计算的质量背离标签，例如利润与扣非方向背离、利润增长但经营现金流为负、收入与利润方向背离；
+- 程序可100%计算的质量背离标签；
 - 若仓库存在可靠主营 / 盈利驱动结构化字段则提供；没有可靠来源时显式留空，不得从行业名称猜测。
 
-模型在这一阶段只输出三种方向：
+模型在这一阶段只输出：
 
-- `CLEARLY_WEAK`：结构化事实已经显示多个独立维度明显偏弱，且没有足以抵消的确定性优势，没有必要占用公开 Deep Research 预算；
-- `PASS_TO_DEEP_RESEARCH`：结构化事实具备继续验证价值；
-- `UNCERTAIN`：数据冲突、周期性、业务异质性或缺失信息使结构化事实不足以下结论。
+- `CLEARLY_WEAK`
+- `PASS_TO_DEEP_RESEARCH`
+- `UNCERTAIN`
 
-`PASS_TO_DEEP_RESEARCH` 与 `UNCERTAIN` 都进入第三阶段。
+拿不准就 `UNCERTAIN`，而不是为了减少数量强行淘汰。
 
-这里不是 Top N，也不要求压到固定数量。拿不准就保留；但不能把“没有逐只联网研究”误认为研究未完成，因为第二阶段的目标本来就是低成本预筛。
+### 第二阶段必须先生成完整 Prescreen Ledger
+
+在任何 Web 查询前，必须先对**全部第二阶段输入股票**生成紧凑 Ledger：
+
+```text
+code | result | reason_code
+```
+
+然后一次性形成并冻结：
+
+- `prescreen_input_codes`
+- `clearly_weak_codes`
+- `pass_to_deep_research_codes`
+- `uncertain_codes`
+- `deep_read_codes = pass_to_deep_research_codes ∪ uncertain_codes`
+
+要求：
+
+1. 每个 `prescreen_input_code` 恰好出现一次；
+2. 三分类集合互斥；
+3. 三分类集合并集等于 `prescreen_input_codes`；
+4. 先统计三类数量，再进入第三阶段；
+5. **在 `deep_read_codes` 冻结前，不得发出任何公司级 Web 查询。**
+
+这是一个简单的阶段产物，不是复杂 Completion Gate。
 
 ---
 
 ## 9. 第三阶段：真正 Deep Research
 
-只有第二阶段的 `PASS_TO_DEEP_RESEARCH` / `UNCERTAIN` 才进入公开资料研究。
+第三阶段的唯一研究集合是已经冻结的 `deep_read_codes`。
+
+不得在第三阶段重新从公司池里自由挑选，也不得把实际搜索过的公司反向当成“本应研究集合”。
 
 这一阶段才允许：
 
@@ -164,13 +189,49 @@ peer view 和 company research view 只改变确定性事实的组织方式，�
 - 判断一次性收益、周期高点、盈利质量与未来 1–2 个季度逻辑；
 - 形成正常化估值、最终安全区、上下行空间与推翻条件。
 
-**不得再要求对第二阶段已经判定 `CLEARLY_WEAK` 的公司逐只联网。**
+同时维护：
+
+- `actual_researched_codes`
+
+只有完成足以形成公司级研究状态的公开资料核验，才计入该集合。搜索请求次数不等于研究完成数。
 
 单公司公开资料不足只影响该公司，进入 `research_uncertain` 或 `waiting`，不得阻断其他幸存者。
 
 ---
 
-## 10. 市场风险
+## 10. Deep Research 覆盖审计
+
+第三阶段结束时必须比较：
+
+```text
+expected_deep_research_codes = deep_read_codes
+actual_deep_researched_codes = actual_researched_codes
+```
+
+若集合完全相等：
+
+> `Deep Research coverage = COMPLETE`
+
+若不相等：
+
+> `Deep Research coverage = INCOMPLETE`
+
+并列出：
+
+- `missing_deep_research_codes`
+- `unexpected_researched_codes`（如有）
+
+如果本轮没有先生成完整 Prescreen Ledger，或者无法恢复 `deep_read_codes`，则必须标记：
+
+> `Deep Research coverage = UNVERIFIED`
+
+不得把“实际搜索覆盖25只”等事实冒充“按规则本应进入 Deep Research 的就是25只”。
+
+这只是集合审计，不引入复杂状态机。
+
+---
+
+## 11. 市场风险
 
 市场 `bearish / weak breadth / high risk` 只能影响最终行动：
 
@@ -183,15 +244,17 @@ peer view 和 company research view 只改变确定性事实的组织方式，�
 
 ---
 
-## 11. 收盘版流程
+## 12. 收盘版流程
 
 ```text
 锁定 SHA
 → Runtime Hard Gate
 → peer_groups：同行轻比较
-→ company_research_view：结构化公司预筛（不联网）
-→ PASS / UNCERTAIN 幸存者
-→ 少量公开 Deep Research
+→ company_research_view：结构化公司预筛（禁止联网）
+→ 完整 Prescreen Ledger
+→ 冻结 deep_read_codes
+→ 只对 deep_read_codes 做公开 Deep Research
+→ 比较 expected vs actual researched codes
 → 正常化估值 + 最终安全区
 → 正式榜 / waiting / uncertain / excluded
 ```
@@ -200,7 +263,7 @@ peer view 和 company research view 只改变确定性事实的组织方式，�
 
 ---
 
-## 12. 审计
+## 13. 审计
 
 最终至少记录：
 
@@ -211,21 +274,36 @@ peer view 和 company research view 只改变确定性事实的组织方式，�
 - `peer_dominated_count`
 - `company_prescreen_count`
 - `company_clearly_weak_count`
+- `pass_to_deep_research_count`
+- `uncertain_prescreen_count`
 - `deep_research_candidate_count`
+- `actual_deep_researched_count`
 - `company_confirmed_count`
 - `research_uncertain_count`
 - `waiting_count`
 - `final_recommendation_count`
 
+并保留：
+
+- `clearly_weak_codes`
+- `pass_to_deep_research_codes`
+- `uncertain_codes`
+- `deep_read_codes`
+- `actual_researched_codes`
+
 这些统计用于解释漏斗，不创建复杂 Completion Gate。
 
 ---
 
-## 13. 最终原则
+## 14. 最终原则
 
 > **同行比较不是公司研究。**
 
 > **结构化公司预筛不是 Deep Research。**
+
+> **第二阶段必须先完整冻结 Prescreen Ledger，不能边预筛边联网。**
+
+> **Deep Research 的应研究集合来自 Ledger，不来自实际搜索记录。**
 
 > **Deep Research 是最后的昂贵验证层，不是对上百家公司逐只进行的批量筛选层。**
 
