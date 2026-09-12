@@ -353,15 +353,6 @@ def build_snapshot(source: Path) -> dict[str, Any]:
             "company_yoy": YOY_UNIT,
             "industry_yoy": YOY_UNIT,
         },
-        "prefilter": {
-            "purpose": "deterministic eligibility reduction only; no valuation or ranking",
-            "industry": "improving OR stable with divergent/broad breadth",
-            "company": (
-                "non-ST, 0 < price <= 120, positive net profit, PE-TTM <= 30 "
-                "when available, dynamic PE <= 30 when available, usable valuation "
-                "fields, >=20 trend points, no simultaneous severe revenue/profit collapse"
-            ),
-        },
         "eligibility_audit": eligibility_audit,
         "counts": {
             "universe_stocks": universe_count,
