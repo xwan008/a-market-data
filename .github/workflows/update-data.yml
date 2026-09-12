@@ -216,7 +216,9 @@ jobs:
 
       - name: Build ChatGPT research runtime
         if: steps.gate.outputs.persist == 'true'
-        run: python scripts/split_snapshot.py data/snapshot.json --output-dir data/runtime
+        run: |
+          python scripts/split_snapshot.py data/snapshot.json --output-dir data/runtime
+          python scripts/build_peer_groups.py --runtime-dir data/runtime
 
       - name: Commit updated daily data
         if: steps.gate.outputs.persist == 'true'
