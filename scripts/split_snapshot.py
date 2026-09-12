@@ -7,31 +7,32 @@ import shutil
 from pathlib import Path
 from typing import Any
 
-
 RUNTIME_KIND = "low_risk_research"
+RUNTIME_FORMAT = "model_ready_candidates_v1"
 
-INDUSTRY_COLUMNS = [
-    "code",
-    "name",
-    "trend",
-    "strength",
-    "breadth",
-    "confidence",
-    "core_improving_breadth",
-    "aggregate_revenue_yoy",
-    "aggregate_parent_profit_yoy",
-    "market_breadth",
-    "market_activity",
-    "market_confirmation",
-]
+SUPPORT_DISTANCE_LIMIT_PCT = 5.0
+VOLUME_DISTANCE_LIMIT_PCT = 5.0
+POSITION_60D_LIMIT_PCT = 35.0
+MIN_STRUCTURAL_SIGNALS = 2
 
-SCREENING_COLUMNS = [
+CANDIDATE_COLUMNS = [
     "code",
     "name",
     "price",
     "day_change_pct",
     "industry_code",
     "industry_name",
+    "industry_trend",
+    "industry_strength",
+    "industry_breadth",
+    "industry_confidence",
+    "industry_core_improving_breadth",
+    "industry_aggregate_revenue_yoy",
+    "industry_aggregate_parent_profit_yoy",
+    "industry_market_breadth",
+    "industry_market_activity",
+    "industry_market_confirmation",
+    "report_date",
     "market_cap",
     "pe_ttm",
     "pe_dynamic",
@@ -54,9 +55,27 @@ SCREENING_COLUMNS = [
     "position_pct",
     "trend_state",
     "break_state",
+    "support_low",
+    "support_high",
     "support_center",
+    "support_touches",
+    "support_last_touch_date",
+    "support_distance_pct",
+    "support_near",
+    "volume_zone_low",
+    "volume_zone_high",
     "volume_zone_center",
+    "volume_zone_share_pct",
+    "volume_zone_last_date",
+    "volume_zone_distance_pct",
+    "volume_zone_near",
+    "position_60d_low",
+    "structural_signal_count",
+    "resistance_low",
+    "resistance_high",
     "resistance_center",
+    "resistance_touches",
+    "resistance_last_touch_date",
     "invalidation_price",
     "invalidation_direction",
 ]
@@ -67,7 +86,6 @@ def load_json(path: Path) -> dict[str, Any]:
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
-    """Write human/tool-readable multiline JSON."""
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
@@ -81,11 +99,7 @@ def write_row_json(
     columns: list[str],
     rows: list[list[Any]],
 ) -> None:
-    """Write valid JSON with one compact array record per source line.
-
-    Shared columns plus one row per line keeps source-window reads deterministic
-    while giving the research model a complete lightweight comparison universe.
-    """
+    """Write one compact candidate row per source line for model comparison."""
     path.parent.mkdir(parents=True, exist_ok=True)
     lines = ["{"]
     for key, value in header.items():
@@ -115,11 +129,17 @@ def is_number(value: Any) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
-def zone_center(zone: Any) -> Any:
+def zone_part(zone: Any, key: str) -> Any:
     if not isinstance(zone, dict):
         return None
-    center = zone.get("center")
-    return center if is_number(center) else None
+    value = zone.get(key)
+    return value
+
+
+def distance_pct(price: Any, anchor: Any) -> float | None:
+    if not is_number(price) or not is_number(anchor) or anchor <= 0:
+        return None
+    return abs(float(price) - float(anchor)) / float(anchor) * 100.0
 
 
 def invalidation_parts(value: Any) -> tuple[Any, Any]:
@@ -130,37 +150,58 @@ def invalidation_parts(value: Any) -> tuple[Any, Any]:
     return (price if is_number(price) else None, direction)
 
 
-def compact_industry(code: str, raw: dict[str, Any]) -> list[Any]:
-    return [
-        code,
-        raw.get("name"),
-        raw.get("trend"),
-        raw.get("strength"),
-        raw.get("breadth"),
-        raw.get("confidence"),
-        raw.get("core_improving_breadth"),
-        raw.get("aggregate_revenue_yoy"),
-        raw.get("aggregate_parent_profit_yoy"),
-        raw.get("market_breadth"),
-        raw.get("market_activity"),
-        raw.get("market_confirmation"),
-    ]
-
-
-def compact_screening_candidate(code: str, raw: dict[str, Any]) -> list[Any]:
+def build_candidate_row(
+    code: str,
+    raw: dict[str, Any],
+    industry: dict[str, Any],
+) -> tuple[list[Any], dict[str, Any]]:
     fundamentals = raw.get("fundamentals") or {}
     structure = raw.get("price_structure") or {}
+    support = structure.get("nearest_support") or {}
+    volume_zone = structure.get("nearest_volume_zone") or {}
+    resistance = structure.get("nearest_resistance") or {}
+    price = raw.get("price")
+
+    support_distance = distance_pct(price, zone_part(support, "center"))
+    volume_distance = distance_pct(price, zone_part(volume_zone, "center"))
+    position_pct = structure.get("position_pct")
+
+    support_near = (
+        support_distance is not None
+        and support_distance <= SUPPORT_DISTANCE_LIMIT_PCT
+    )
+    volume_near = (
+        volume_distance is not None
+        and volume_distance <= VOLUME_DISTANCE_LIMIT_PCT
+    )
+    position_low = (
+        is_number(position_pct)
+        and float(position_pct) <= POSITION_60D_LIMIT_PCT
+    )
+    signal_count = int(support_near) + int(volume_near) + int(position_low)
+
     invalidation_price, invalidation_direction = invalidation_parts(
         structure.get("invalidation")
     )
 
-    return [
+    row = [
         code,
         raw.get("name"),
-        raw.get("price"),
+        price,
         raw.get("day_change_pct"),
         raw.get("industry_code"),
         raw.get("industry_name"),
+        industry.get("trend"),
+        industry.get("strength"),
+        industry.get("breadth"),
+        industry.get("confidence"),
+        industry.get("core_improving_breadth"),
+        industry.get("aggregate_revenue_yoy"),
+        industry.get("aggregate_parent_profit_yoy"),
+        industry.get("market_breadth"),
+        industry.get("market_activity"),
+        industry.get("market_confirmation"),
+        fundamentals.get("report_date"),
         fundamentals.get("market_cap"),
         fundamentals.get("pe_ttm"),
         fundamentals.get("pe_dynamic"),
@@ -180,15 +221,42 @@ def compact_screening_candidate(code: str, raw: dict[str, Any]) -> list[Any]:
         structure.get("low_60d"),
         structure.get("ma20"),
         structure.get("ma60"),
-        structure.get("position_pct"),
+        position_pct,
         structure.get("trend_state"),
         structure.get("break_state"),
-        zone_center(structure.get("nearest_support")),
-        zone_center(structure.get("nearest_volume_zone")),
-        zone_center(structure.get("nearest_resistance")),
+        zone_part(support, "low"),
+        zone_part(support, "high"),
+        zone_part(support, "center"),
+        zone_part(support, "touches"),
+        zone_part(support, "last_touch_date"),
+        support_distance,
+        support_near,
+        zone_part(volume_zone, "low"),
+        zone_part(volume_zone, "high"),
+        zone_part(volume_zone, "center"),
+        zone_part(volume_zone, "volume_share_pct"),
+        zone_part(volume_zone, "last_date"),
+        volume_distance,
+        volume_near,
+        position_low,
+        signal_count,
+        zone_part(resistance, "low"),
+        zone_part(resistance, "high"),
+        zone_part(resistance, "center"),
+        zone_part(resistance, "touches"),
+        zone_part(resistance, "last_touch_date"),
         invalidation_price,
         invalidation_direction,
     ]
+
+    audit = {
+        "support_near": support_near,
+        "volume_zone_near": volume_near,
+        "position_60d_low": position_low,
+        "structural_signal_count": signal_count,
+        "passes": signal_count >= MIN_STRUCTURAL_SIGNALS,
+    }
+    return row, audit
 
 
 def main() -> None:
@@ -241,49 +309,45 @@ def main() -> None:
         shutil.rmtree(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    industry_state_filename = "industry_state_compact.json"
-    industry_rows = [
-        compact_industry(code, raw)
-        for code, raw in sorted(level3.items(), key=lambda item: item[0])
-    ]
-    write_row_json(
-        output_dir / industry_state_filename,
-        {
-            "trade_date": trade_date,
-            "industry_count": len(industry_rows),
-        },
-        INDUSTRY_COLUMNS,
-        industry_rows,
-    )
-
-    details_dir = output_dir / "details"
-    details_dir.mkdir(parents=True, exist_ok=True)
-    screening_rows: list[list[Any]] = []
+    model_rows: list[list[Any]] = []
+    support_near_count = 0
+    volume_near_count = 0
+    low_position_count = 0
 
     for code, raw in candidates.items():
-        detail_path = details_dir / f"{code}.json"
-        write_json(
-            detail_path,
-            {
-                "trade_date": trade_date,
-                "code": code,
-                "candidate": raw,
-            },
-        )
-        screening_rows.append(compact_screening_candidate(code, raw))
+        industry = level3.get(raw.get("industry_code")) or {}
+        row, audit = build_candidate_row(code, raw, industry)
+        support_near_count += int(audit["support_near"])
+        volume_near_count += int(audit["volume_zone_near"])
+        low_position_count += int(audit["position_60d_low"])
+        if audit["passes"]:
+            model_rows.append(row)
 
-    screening_rows.sort(key=lambda row: str(row[0] or ""))
-    screening_filename = "screening_snapshot.json"
+    # Present peers together so the model can compare within SW level-3 groups directly.
+    industry_idx = CANDIDATE_COLUMNS.index("industry_code")
+    code_idx = CANDIDATE_COLUMNS.index("code")
+    model_rows.sort(
+        key=lambda row: (str(row[industry_idx] or ""), str(row[code_idx] or ""))
+    )
+
+    candidates_filename = "candidates.json"
+    structural_rule = {
+        "support_distance_pct_lte": SUPPORT_DISTANCE_LIMIT_PCT,
+        "volume_zone_distance_pct_lte": VOLUME_DISTANCE_LIMIT_PCT,
+        "position_60d_pct_lte": POSITION_60D_LIMIT_PCT,
+        "minimum_signals": MIN_STRUCTURAL_SIGNALS,
+    }
     write_row_json(
-        output_dir / screening_filename,
+        output_dir / candidates_filename,
         {
+            "runtime_format": RUNTIME_FORMAT,
             "trade_date": trade_date,
             "source_candidate_count": len(candidates),
-            "screening_count": len(screening_rows),
-            "detail_count": len(screening_rows),
+            "candidate_count": len(model_rows),
+            "structural_rule": structural_rule,
         },
-        SCREENING_COLUMNS,
-        screening_rows,
+        CANDIDATE_COLUMNS,
+        model_rows,
     )
 
     meta_snapshot = {
@@ -300,32 +364,39 @@ def main() -> None:
         "trade_date": trade_date,
         "candidate_codes_unique": True,
         "source_candidate_count_matches_snapshot": len(candidates) == expected,
-        "screening_count_matches_source": len(screening_rows) == len(candidates),
-        "detail_count_matches_screening": len(screening_rows) == len(candidates),
-        "industry_count_matches_snapshot": len(industry_rows) == len(level3),
         "industry_mapping_complete": not missing_industry_codes,
+        "model_candidate_rows_match_rule": all(
+            row[CANDIDATE_COLUMNS.index("structural_signal_count")]
+            >= MIN_STRUCTURAL_SIGNALS
+            for row in model_rows
+        ),
     }
 
     meta = {
         "runtime_kind": RUNTIME_KIND,
+        "runtime_format": RUNTIME_FORMAT,
         "snapshot": meta_snapshot,
         "source_candidate_count": len(candidates),
-        "screening_count": len(screening_rows),
-        "detail_count": len(screening_rows),
-        "industry_count": len(industry_rows),
-        "industry_state_file": f"{output_dir.as_posix()}/{industry_state_filename}",
-        "screening_file": f"{output_dir.as_posix()}/{screening_filename}",
-        "detail_file_template": f"{output_dir.as_posix()}/details/{{code}}.json",
-        "screening_columns": SCREENING_COLUMNS,
-        "industry_columns": INDUSTRY_COLUMNS,
+        "candidate_count": len(model_rows),
+        "structural_relevance_count": len(model_rows),
+        "industry_count": len(level3),
+        "candidate_file": f"{output_dir.as_posix()}/{candidates_filename}",
+        "candidate_columns": CANDIDATE_COLUMNS,
+        "structural_rule": structural_rule,
+        "structural_signal_audit": {
+            "support_near_count": support_near_count,
+            "volume_zone_near_count": volume_near_count,
+            "low_position_count": low_position_count,
+        },
         "runtime_validation": validation,
     }
     write_json(output_dir / "meta.json", meta)
 
     print(
-        f"runtime ready: kind={RUNTIME_KIND} trade_date={trade_date} "
-        f"screening={len(screening_rows)} details={len(screening_rows)} "
-        f"industries={len(industry_rows)} validation={validation['status']}"
+        f"runtime ready: kind={RUNTIME_KIND} format={RUNTIME_FORMAT} "
+        f"trade_date={trade_date} source={len(candidates)} "
+        f"model_candidates={len(model_rows)} industries={len(level3)} "
+        f"validation={validation['status']}"
     )
 
 
