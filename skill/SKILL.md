@@ -109,20 +109,26 @@ model-ready candidates
                  ↓
        第二阶段：company_research_view
        结构化公司预筛，不联网
-       ├─ CLEARLY_WEAK → excluded
+       ↓
+       先完整生成 Prescreen Ledger
+       ├─ CLEARLY_WEAK
        ├─ PASS_TO_DEEP_RESEARCH
        └─ UNCERTAIN
-                 ↓
-       第三阶段：少量公开 Deep Research
-                 ↓
+       ↓
+       冻结 deep_read_codes = PASS ∪ UNCERTAIN
+       ↓
+       第三阶段：只对 deep_read_codes 做公开 Deep Research
+       ↓
        正常化估值 + 最终安全区
-                 ↓
+       ↓
        正式榜 / waiting / research_uncertain / excluded
 ```
 
-关键变化：
+关键原则：
 
 > **Deep Research 不再覆盖全部 research candidates。它是最后的昂贵验证层，而不是批量初筛层。**
+
+> **第二阶段必须先完整结束并冻结清单，第三阶段才能开始。禁止边预筛边联网。**
 
 ---
 
@@ -222,7 +228,7 @@ model-ready candidates
 
 第一阶段未被明确支配者进入 `company_research_view`。
 
-这一阶段**不访问互联网**，目标不是形成投资结论，而是回答：
+这一阶段**禁止访问互联网**，目标不是形成投资结论，而是回答：
 
 > **仅根据已经准备好的公司级确定性事实，这家公司是否已经明显不值得占用昂贵 Deep Research 预算？**
 
@@ -240,16 +246,9 @@ model-ready candidates
 - 毛利率；
 - 净利润；
 - 行业趋势 / 强度 / breadth；
-- 程序机械关系标签：
-  - 收入与利润方向是否背离；
-  - 净利润与扣非方向是否背离；
-  - 利润增长但经营现金流 / 股为负；
-  - 收入和利润是否同时负增长；
-  - 利润和扣非是否同时负增长；
-  - 经营现金流 / 股是否为负；
-  - 核心财务字段缺失数量。
+- 程序机械关系标签：收入与利润方向背离、净利润与扣非方向背离、利润增长但经营现金流 / 股为负、收入和利润同时负增长、利润和扣非同时负增长、经营现金流 / 股为负、核心财务字段缺失数量。
 
-若仓库当前没有可靠主营描述或盈利驱动结构化字段：
+若仓库没有可靠主营描述或盈利驱动结构化字段：
 
 - `business_description` / `profit_driver` 保持空；
 - 不得从行业名称猜主营或利润来源；
@@ -259,16 +258,7 @@ model-ready candidates
 
 #### `CLEARLY_WEAK`
 
-只有当结构化事实已经显示**多个独立方面明显偏弱**，且没有清晰的确定性反向优势时才使用。
-
-典型情形包括但不限于：
-
-- 收入和利润同时明显恶化，并且扣非也弱；
-- 表面利润增长但扣非 / 现金流明显背离，且估值并未提供清晰安全垫；
-- 盈利能力、增长和估值组合明显缺乏吸引力，且没有价格结构或经营数据上的明显补偿；
-- 多个财务质量信号同时指向恶化。
-
-这不是机械“一项触发即淘汰”。单个负面指标不允许形成 `CLEARLY_WEAK`。
+只有当结构化事实已经显示**多个独立方面明显偏弱**，且没有清晰的确定性反向优势时才使用。单个负面指标不允许形成 `CLEARLY_WEAK`。
 
 #### `PASS_TO_DEEP_RESEARCH`
 
@@ -276,13 +266,7 @@ model-ready candidates
 
 #### `UNCERTAIN`
 
-存在以下情况之一：
-
-- 周期行业导致当前利润或估值可能失真；
-- 数据互相冲突；
-- 业务异质性使数字不能直接解释；
-- 缺失的信息确实会改变结论；
-- 无法仅凭结构化事实可靠判断。
+周期、数据冲突、业务异质性、关键缺失等使结构化事实不足以下结论。
 
 `PASS_TO_DEEP_RESEARCH` 与 `UNCERTAIN` 都进入第三阶段。
 
@@ -290,7 +274,8 @@ model-ready candidates
 
 禁止：
 
-- 联网查101家公司；
+- 在第二阶段调用 Web / 搜索公司资料；
+- 边分类边开始研究某几家公司；
 - 综合总分；
 - 固定 Top N；
 - 为了压到20或30只而调阈值；
@@ -299,16 +284,65 @@ model-ready candidates
 
 第二阶段应该是一遍低成本、结构化的公司级判断。
 
+### 8.4 Prescreen Ledger：第二阶段必须先完整冻结的阶段产物
+
+第二阶段结束时，必须先生成一份完整的 `Prescreen Ledger`，**再开始任何第三阶段联网研究**。
+
+Ledger 对每一只进入第二阶段的股票只保留一行紧凑结果：
+
+```text
+code | result | reason_code
+000338 | PASS_TO_DEEP_RESEARCH | fundamentals_ok
+605020 | UNCERTAIN | cyclical_or_missing_business_context
+XXXXXX | CLEARLY_WEAK | multi_dimension_deterioration
+```
+
+`reason_code` 应短而可审计，不要求写长篇分析。可使用诸如：
+
+- `fundamentals_ok`
+- `valuation_quality`
+- `profit_cashflow_weak`
+- `multi_dimension_deterioration`
+- `cyclical_distortion`
+- `data_conflict`
+- `missing_key_context`
+
+Ledger 必须满足：
+
+1. 每一个进入第二阶段的股票都恰好出现一次；
+2. 每一行只能属于 `CLEARLY_WEAK / PASS_TO_DEEP_RESEARCH / UNCERTAIN` 三类之一；
+3. 先得到三个完整代码集合，再统计数量；
+4. 冻结：
+   - `clearly_weak_codes`
+   - `pass_to_deep_research_codes`
+   - `uncertain_codes`
+   - `deep_read_codes = pass_to_deep_research_codes ∪ uncertain_codes`
+5. **在 `deep_read_codes` 冻结之前，禁止开始任何公司级 Web 查询。**
+
+第二阶段的完整性用一个简单等式表达即可：
+
+```text
+prescreen_input_codes
+=
+clearly_weak_codes
+∪ pass_to_deep_research_codes
+∪ uncertain_codes
+```
+
+且三个集合互斥。
+
+这只是阶段边界，不引入复杂状态机、窗口管理或逐股票 Completion Gate。
+
 ---
 
 ## 9. 第三阶段：Deep Research
 
-只有第二阶段的：
+第三阶段的唯一研究集合是第二阶段已经冻结的：
 
-- `PASS_TO_DEEP_RESEARCH`
-- `UNCERTAIN`
+- `deep_read_codes`
+- 即 `PASS_TO_DEEP_RESEARCH ∪ UNCERTAIN`
 
-进入真正公开资料研究。
+第三阶段不得自行新增、删减或重新挑选公司。
 
 第三阶段确认：
 
@@ -325,6 +359,8 @@ model-ready candidates
 
 单公司资料不足只影响该公司，标记为 `research_uncertain` 或 `waiting`，不得阻断其他幸存候选。
 
+第三阶段同时维护 `actual_researched_codes`：只要该公司已经完成足以形成公司级研究状态的公开资料核验，就计入该集合。搜索请求次数不是公司研究完成数。
+
 ---
 
 ## 10. 最终估值与安全边际
@@ -340,14 +376,7 @@ model-ready candidates
 - `downside_to_safety_zone`
 - `hard_risk_boundary`（能可靠定义时）
 
-最终安全边际综合：
-
-- 正常化盈利对应的合理估值低位；
-- PE / PB 与 ROE、增长、现金流匹配；
-- 重要支撑；
-- 前期重要低点；
-- 成交密集区；
-- 多种价值与价格因素重合区域。
+最终安全边际综合：正常化盈利对应的合理估值低位、PE / PB 与 ROE / 增长 / 现金流匹配、重要支撑、前期重要低点、成交密集区及多种价值与价格因素重合区域。
 
 > **程序结构硬筛只说明“值得研究”，不能直接复制成最终安全区。**
 
@@ -361,13 +390,7 @@ model-ready candidates
 
 只有最终安全边际基本成立后，才比较向上空间。
 
-保守目标区域综合：
-
-- 正常化合理估值；
-- 盈利修复能够支持的价值区间；
-- 历史正常价格区间；
-- 中期重要价格平台；
-- 行业盈利逻辑未来 1–2 个季度的可验证性。
+保守目标区域综合：正常化合理估值、盈利修复可支持的价值区间、历史正常价格区间、中期重要价格平台、行业盈利逻辑未来 1–2 个季度的可验证性。
 
 原则上：
 
@@ -381,19 +404,12 @@ model-ready candidates
 
 趋势只回答“什么时候参与”，不回答“是否值得研究”。
 
-因此：
-
 - `transition` 不得直接淘汰；
 - `bearish` 不得单独淘汰；
 - 接近压力位可以降低当前参与优先级；
 - invalidation 是风险参考，不是全局 Gate。
 
-市场 `high risk` 可以让最终推荐更保守，但不得：
-
-- 改变程序候选全集；
-- 跳过同行比较；
-- 跳过结构化公司预筛；
-- 成为“只研究几只最稳公司”的理由。
+市场 `high risk` 可以让最终推荐更保守，但不得改变程序候选全集、跳过同行比较、跳过结构化公司预筛，或成为“只研究几只最稳公司”的理由。
 
 ---
 
@@ -410,9 +426,7 @@ model-ready candidates
 
 > **最终安全边际 → 保守上行空间 → 基本面稳定性 → 参与时机**
 
-正式榜最多展示 10 只，不得凑数，允许空榜。
-
-最终排名不能反向影响前面的研究范围。
+正式榜最多展示 10 只，不得凑数，允许空榜。最终排名不能反向影响前面的研究范围。
 
 ---
 
@@ -427,13 +441,44 @@ model-ready candidates
 - `peer_dominated_count`
 - `company_prescreen_count`
 - `company_clearly_weak_count`
+- `pass_to_deep_research_count`
+- `uncertain_prescreen_count`
 - `deep_research_candidate_count`
+- `actual_deep_researched_count`
 - `company_confirmed_count`
 - `research_uncertain_count`
 - `waiting_count`
 - `final_recommendation_count`
 
-这些数字用于解释本轮漏斗，不创建复杂 Completion Gate。
+还必须保留以下集合：
+
+- `clearly_weak_codes`
+- `pass_to_deep_research_codes`
+- `uncertain_codes`
+- `deep_read_codes`
+- `actual_researched_codes`
+
+其中：
+
+```text
+deep_research_candidate_count = len(deep_read_codes)
+actual_deep_researched_count = len(actual_researched_codes)
+```
+
+最终必须比较：
+
+```text
+actual_researched_codes == deep_read_codes ?
+```
+
+- 相等：`Deep Research coverage = COMPLETE`；
+- 不相等：`Deep Research coverage = INCOMPLETE`，必须列出 `missing_deep_research_codes`，不得把“实际搜索覆盖数”冒充“按规则应进入 Deep Research 的数量”。
+
+如果本轮没有先生成完整 Prescreen Ledger，或无法恢复 `deep_read_codes`，则必须标记：
+
+> `Deep Research coverage = UNVERIFIED`
+
+这些是轻量审计，不引入复杂状态机。
 
 ---
 
@@ -443,7 +488,11 @@ model-ready candidates
 
 > **第一阶段只解决同行支配。**
 
-> **第二阶段只做结构化公司预筛，不联网。**
+> **第二阶段只做结构化公司预筛，而且必须先完整冻结 Prescreen Ledger。**
+
+> **第三阶段只能研究已经冻结的 deep_read_codes。**
+
+> **实际研究了多少只，不能替代按规则应该研究多少只。**
 
 > **Deep Research 是最后的昂贵验证层。**
 
