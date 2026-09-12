@@ -13,11 +13,12 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
+from contracts import (
+    ELIGIBILITY_MAX_PE as MAX_PE,
+    ELIGIBILITY_MAX_PRICE as MAX_PRICE,
+    YOY_UNIT,
+)
 from snapshot_io import write_snapshot
-
-MAX_PRICE = 120.0
-MAX_PE = 30.0
-YOY_UNIT = "percentage_points"
 
 
 def load_json(path: Path) -> dict[str, Any]:
