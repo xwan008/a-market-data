@@ -2,344 +2,246 @@
 
 > 本文件只约束运行时数据读取、完整性校验和研究阶段边界。选股、行业判断、同行比较、公司研究、估值、买点与排名规则，以同一锁定提交下的 `skill/SKILL.md` 为准。
 
-## 1. 唯一正式流程
+## 1. 核心原则
 
-本任务只保留一套正式流程，不再区分旧版、新版或兼容流程，也不允许回退到历史读取方式。
+本任务采用：
 
-核心流程：
+> **生成侧保证数据完整，模型完整消费轻量 runtime，研究范围不得缩小。**
 
-```text
-机械候选全集
-    ↓
-完整读取所有公司的财务与行业比较摘要
-    ↓
-逐行业判断景气，形成行业覆盖记录
-    ↓
-按真实业务和核心盈利驱动分组，组内比较
-    ↓
-自然产生需要深读的公司
-    ↓
-完整公司研究与估值
-    ↓
-当前买点榜 / 等待池 / 淘汰及理由
-```
+必须区分两件事：
 
-核心原则：
+- **数据完整性证明**：由 GitHub 数据生成流程完成；
+- **研究覆盖**：由模型基于已经通过校验的 compact runtime 完成。
 
-> **全量轻读，行业全覆盖，真实业务分组，组内择优，自然产生深读名单。**
+**全量研究不等于模型重新逐行证明文件完整性。**
 
-`deep_read_codes` 的数量是研究结果，不是输入约束。禁止设置任何全局最小值、最大值或目标数量，也不得为了控制工具调用、上下文长度或市场风险而提前删除本应研究的公司。
+禁止为了再次证明行数、列数、唯一性或 EOF，而对已经通过生成期校验的 compact runtime 进行逐窗口手工扫描。
 
 ---
 
 ## 2. 新 run 与提交锁定
 
-每一次新的定时触发、手动触发或用户明确要求重新执行，都视为全新 run：
+每次定时触发、手动触发或用户明确要求重新执行，都视为新 run：
 
-1. 重新解析仓库 `xwan008/a-market-data` 当前 `main` commit SHA，记为 `locked_sha`；
-2. 本轮所有仓库文件必须来自同一个 `locked_sha`；
-3. 固定顺序读取：
+1. 获取 `xwan008/a-market-data` 当前 `main` commit SHA，记为 `locked_sha`；
+2. 本轮所有 GitHub 规则和 runtime 数据均来自同一 `locked_sha`；
+3. 固定读取：
    - `skill/RUNTIME_READ_PROTOCOL.md`
    - `skill/SKILL.md`
    - `data/runtime/meta.json`
-4. 禁止复用上一轮的 SHA、读取进度、行业覆盖记录、公司分组、候选集合或 detail 读取结果。
+4. 禁止复用上一轮 SHA、候选集合、行业覆盖、公司分组或 detail 研究结论。
 
-如果只是继续同一 run 尚未完成的读取，则保持原 `locked_sha`，从当前阶段继续，不重复已经完整校验的源文件窗口。
+如果只是继续同一 run，则保持原 `locked_sha`，不得重新切换版本。
 
 ---
 
-## 3. 正式运行时入口
+## 3. 正式 runtime 入口
 
-正式机械数据入口只有：
+只使用：
 
 - `data/runtime/meta.json`
 - `meta.industry_state_file`
 - `meta.screening_file`
-- `meta.detail_file_template` 指向的、本轮自然产生的深读公司 detail 文件
+- `meta.detail_file_template` 指向的 deep-read 公司 detail
 - `skill/SKILL.md`
 
-不得读取旧 candidate shard、历史榜单、旧候选池或其他历史运行时文件来补齐正式候选。
-
-`data/snapshot.json` 是数据生成源，不是正式研究运行时入口。
+不得读取旧 candidate shard、历史榜单或旧候选池补齐当前研究。
 
 ---
 
-## 4. 数据新鲜度与生成期校验
+## 4. 生成期完整性作为唯一机械校验来源
 
-读取 `meta.json` 后必须确认：
+读取 `meta.json` 后，首先确认：
 
 - `runtime_validation.status == "passed"`；
-- `meta.snapshot.trade_date` 存在；
-- `meta.snapshot.market_status` 与当前应使用的最近有效 A 股收盘一致；
-- 非交易日允许沿用最近有效收盘；
-- 如果当前正式收盘数据理应已经更新而 runtime 仍停留在更早交易日，则不得发布新的正式榜单。
-
-生成期校验至少应证明：
-
-- 候选代码唯一；
-- `source_candidate_count` 与 snapshot 候选数一致；
+- `snapshot.trade_date` 与当前应使用的最近有效 A 股正式收盘一致；
 - `screening_count == source_candidate_count`；
 - `detail_count == screening_count`；
-- 行业数量一致；
-- 每个候选都能映射到行业；
-- 每个候选都存在确定性的 detail 文件。
+- `industry_count` 有效；
+- meta 中声明的 integrity / validation 检查没有失败。
 
-模型不需要为了重新证明这些不变量而读取全部 detail 文件。
+当上述生成期校验通过时，应直接信任生成侧已经验证的机械不变量，包括但不限于：
 
----
+- 候选代码唯一；
+- 行数与声明 count 一致；
+- columns/schema 一致；
+- 每个候选可映射到行业；
+- 每个候选存在确定性的 detail；
+- compact 文件内容完整。
 
-## 5. 全量公司研究摘要
+**模型不得再次通过逐屏、逐窗口、额外空窗口或 EOF 探测来重新证明这些不变量。**
 
-`screening_file` 必须完整覆盖机械候选全集。模型必须完整读取全部 rows 后，才允许进入行业覆盖与公司分组阶段；禁止边读边淘汰，也禁止因为已经发现“足够多候选”而提前停止。
-
-轻量摘要至少应覆盖以下信息：
-
-### 身份与行业
-- `code`
-- `name`
-- `price`
-- `industry_code`
-- `industry_name`
-
-### 财务与盈利质量
-- `pe_ttm`
-- `pe_dynamic`
-- `pb`
-- `market_cap`
-- `roe`
-- `revenue_yoy`
-- `net_profit_yoy`
-- `deduct_basic_eps_yoy`（可用时）
-- `operating_cashflow_per_share`
-- `gross_margin`
-- `net_profit`
-
-### 业务比较信息
-如果运行时已有，则读取：
-- `business_tags`
-- `core_profit_driver`
-- `major_business_segments`
-
-如果这些字段缺失，不得凭公司简称或行业名称猜测真实盈利驱动。进入真实业务分组时，应仅对需要辨别的公司使用公司公告、定期报告、交易所资料等做最小必要补查。
-
-### 价格结构
-- `day_change_pct`
-- `close_change_5d_pct`
-- `close_change_20d_pct`
-- `position_pct`
-- `trend_state`
-- `break_state`
-- `ma20`
-- `ma60`
-- `support_center`
-- `resistance_center`
-- `invalidation_price`
-- `invalidation_direction`
-
-价格结构用于判断执行时机和风险边界，不得在轻量摘要阶段单独淘汰基本面质量较高的公司。
+只有当 `runtime_validation` 失败、缺失，或 meta 自身出现 count/integrity 冲突时，才将其视为数据完整性问题并停止正式发布。
 
 ---
 
-## 6. 行业文件与行业覆盖记录
+## 5. Compact runtime 的读取方式
 
-`industry_state_file` 必须完整读取，并覆盖 runtime 中全部行业。
+`industry_state_file` 与 `screening_file` 是为模型研究准备的轻量 compact 数据。
 
-完成全量公司摘要读取后，必须逐行业形成覆盖记录，至少包含：
+模型必须消费其中的全部有效记录，用于实现：
 
-- 行业代码与名称；
-- 当前景气基线；
-- 盈利兑现强度与广度；
-- 市场确认状态；
-- 是否进入进一步研究；
-- 若不进入，唯一主要原因。
+- 全部行业覆盖；
+- 全部机械候选进入行业/组内研究流程；
+- 不因已经发现足够多候选而提前停止。
 
-不得只研究热点行业、资源品行业或当日强势行业。行业覆盖是正式研究的强制步骤。
+但“消费全部有效记录”允许使用任何可靠方式：
 
----
+- 一次性读取完整 payload；
+- connector 返回的完整内容资源；
+- 对锁定 SHA 下原始 compact 文件进行程序化加载/解析；
+- 其他能够得到全部有效 records 的等价方式。
 
-## 7. 真实业务与核心盈利驱动分组
+若某个工具界面发生展示截断，应优先切换到可完整消费 payload 的读取方式，**不得默认退回到 50 行、25 行、10 行逐窗口翻页，更不得为了确认所谓“真实 EOF”持续请求空窗口。**
 
-对景气复核通过或值得继续验证的行业，不能只按申万三级行业做同行比较，必须进一步按：
-
-> **真实主营业务 + 核心盈利驱动 + 主要利润来源**
-
-形成真实可比组。
-
-规则：
-
-- 同一三级行业内，如果利润驱动明显不同，必须拆组；
-- 不同三级行业内，如果核心业务和盈利驱动高度一致，可以形成跨行业可比组；
-- 对资源/强周期公司，还应考虑资源禀赋、成本曲线、自产比例、冶炼/加工占比、伴生品、产量弹性等；
-- 对制造/科技公司，应考虑产品结构、客户结构、订单/出货、资本开支暴露、利润率驱动等；
-- 不得仅凭行业标签把业务模式明显不同的公司机械地互相淘汰。
-
-每个真实可比组原则上形成以下终态：
-
-1. `winner`：组内最值得进入完整研究的公司；
-2. `differential_candidate`：必要时额外保留具有明显不同风险收益、业务结构、资源禀赋、成本曲线或估值特征的公司；
-3. `research_uncertain`：摘要证据不足或冲突，无法可靠判断时进入深读；
-4. `excluded`：能够明确解释为何相对组内候选次优。
-
-禁止为了满足某个全局数量目标而删除 `winner`、必要的 `differential_candidate` 或 `research_uncertain`。
+工具展示是否截断，不等于 runtime 数据不完整。
 
 ---
 
-## 8. deep_read_codes 的生成
+## 6. 全行业与全候选覆盖
 
-只有以下步骤全部完成后，才允许确定 `deep_read_codes`：
+研究范围仍然必须完整：
 
-1. 全量公司摘要读取完成；
-2. 全部行业覆盖记录完成；
-3. 所有继续研究的行业完成真实业务/盈利驱动分组；
-4. 每个真实可比组完成组内比较并得到明确终态。
+- 覆盖 `industry_count` 对应的全部行业；
+- 覆盖 `screening_count` 对应的全部机械候选；
+- 不得只研究热点行业、资源品或当日强势方向；
+- 不得边读取边因价格、趋势或个人偏好提前删除候选。
 
-`deep_read_codes` = 所有组内 `winner` + 必要 `differential_candidate` + `research_uncertain` 的自然并集。
+行业与公司研究规则服从 `SKILL.md`。
 
-**不设全局数量上限，也不设全局数量下限。**
-
-某轮可以自然产生 8、18、27、35 或更多深读公司，取决于当轮真实行业与公司结构。
-
-市场风险高时不得缩减研究范围。市场风险只能提高后续：
-
-- 估值安全边际；
-- 买点质量；
-- 风险收益比要求；
-- 正式入榜门槛。
+模型不需要再次输出或机械重算 333 个行业、717 个候选的 count 来证明自己读完；只需要保证研究逻辑确实基于完整 compact 数据执行。
 
 ---
 
-## 9. Detail 深读
+## 7. 分组与 deep_read_codes
 
-只对 `deep_read_codes` 中的公司读取 `meta.detail_file_template` 对应 detail 文件。
+完成全行业覆盖和全候选轻量研究后：
 
-每只 detail 必须：
+1. 对继续研究的公司按真实主营业务、核心盈利驱动和主要利润来源分组；
+2. 每组形成 `winner / differential_candidate / research_uncertain / excluded`；
+3. `deep_read_codes` 为所有 `winner + differential_candidate + research_uncertain` 的自然并集。
+
+`deep_read_codes` 不设全局数量上限或下限。
+
+不得因为市场风险、上下文长度、工具调用数量或历史习惯而缩小 deep-read 范围。
+
+---
+
+## 8. Detail 深读
+
+只读取 `deep_read_codes` 对应的 detail 文件。
+
+每只 detail 只需确认：
 
 - 来自同一 `locked_sha`；
 - `trade_date` 与 meta 一致；
 - `code` 与目标代码一致；
-- `candidate` 为合法对象；
-- 完整读取到真实 EOF。
+- 内容可完整取得并足够支持正式研究。
 
-未进入 `deep_read_codes` 的 detail 不要求读取，也不得因为没有读取全部 detail 而阻止任务继续。
+**detail 同样不要求通过额外空窗口证明“真实 EOF”。**
 
----
+如果 connector 已经返回完整对象或可程序化解析的完整文件，即视为完成读取。
 
-## 10. 源文件窗口与真实 EOF
-
-默认读取窗口：
-
-- `meta.json`：最多 250 行；
-- 单股 detail：最多 250 行；
-- `industry_state_file`：默认 50 行连续窗口；
-- `screening_file`：默认 50 行连续窗口。
-
-如果窗口触发截断或返回过大：
-
-1. 保持同一源文件和同一起始行；
-2. 缩小窗口，例如 `50 → 25 → 10`；
-3. 成功读取该段后再继续后续连续窗口。
-
-禁止跳行、倒退、根据内容猜下一行或把 `truncated` 视为失败。
-
-对需要完整读取的文件：
-
-- 看到 JSON 结束括号不等于 EOF；
-- 必须继续请求下一个连续源窗口；
-- 只有下一个连续窗口为空，才确认真实 EOF。
-
-只要仍存在可继续读取的必需源窗口，就必须继续，不得因上下文较长、工具调用较多或已经读取大量内容而主动停止。
+未进入 `deep_read_codes` 的 detail 不要求读取。
 
 ---
 
-## 11. Completion Gates
+## 9. Completion Gates
 
-### Screening Completion Gate
+### Runtime Gate
 
 必须同时满足：
 
-- runtime 生成期校验通过；
-- `industry_state_file` 已确认真实 EOF、可解析且数量一致；
-- `screening_file` 已确认真实 EOF、可解析且覆盖全部机械候选；
-- columns 与 `meta.industry_columns / meta.screening_columns` 一致；
-- 每行长度与 columns 一致；
-- 所有文件来自同一 `locked_sha`；
-- `pending_source_window == false`。
+- `runtime_validation.status == passed`；
+- trade date 正确；
+- meta count / integrity 没有冲突；
+- 规则与数据均来自同一 `locked_sha`。
 
-### Research Allocation Gate
+不再包含：
 
-必须同时满足：
+- 人工逐窗口 EOF 验证；
+- `pending_source_window`；
+- 为重新证明唯一性、行数和 columns 而重复扫描原始文件。
 
-- 已完成全部行业覆盖记录；
-- 所有继续研究的行业已完成真实业务/核心盈利驱动分组；
-- 每个真实可比组都有明确的 `winner / differential_candidate / research_uncertain / excluded` 终态；
-- 每个 `excluded` 至少存在一个可核验的主要理由；
-- `deep_read_codes` 是上述结果的自然并集，没有全局数量截断。
-
-### Deep Research Completion Gate
+### Research Coverage Gate
 
 必须同时满足：
 
-- Screening Completion Gate 通过；
-- Research Allocation Gate 通过；
-- `completed_detail_files == len(deep_read_codes)`；
-- 实际完成 detail 的代码集合与 `deep_read_codes` 完全一致；
-- 所有 detail 来自同一 `locked_sha`；
-- `pending_source_window == false`。
+- 全行业已进入覆盖流程；
+- 全部机械候选已进入研究/分组流程；
+- 所有继续研究的公司完成真实业务分组；
+- 每个组存在明确终态；
+- `deep_read_codes` 是自然产生，没有全局截断。
 
-只有全部通过后，才允许发布正式榜单。
+### Deep Research Gate
 
----
+必须同时满足：
 
-## 12. 失败与继续读取边界
+- Runtime Gate 通过；
+- Research Coverage Gate 通过；
+- 所有 `deep_read_codes` 对应 detail 已完成研究；
+- 所有 detail 来自同一 `locked_sha`。
 
-以下情况本身不是失败理由：
-
-- 单次响应 `truncated`；
-- response resource 出现 continuation；
-- 工具调用次数较多；
-- 上下文较长；
-- 大量未被选中的 detail 没有读取；
-- 深读公司数量超过过去习惯数量。
-
-只有必需文件缺失、固定窗口缩小后仍无法取得内容、真实 EOF 后数据不可解析/校验失败、生成期校验失败，或上述 Completion Gate 无法满足时，才允许终止正式发布并明确报告失败点。
+只有以上 Gate 通过后才能发布正式榜单。
 
 ---
 
-## 13. 审计要求
+## 10. 失败边界
 
-每轮正式结果至少保留以下阶段计数：
+以下情况**不是失败，也不得导致任务卡住**：
 
-- `snapshot.trade_date`
-- `mechanical_candidate_count`
-- `industry_coverage_count`
-- `eligible_industry_count`
-- `comparison_group_count`
-- `deep_read_codes_count`
-- `company_confirmed_count`
-- `low_risk_entry_admission_count`
-- `asymmetry_passed_count`
-- `final_recommendation_count`
+- 工具 UI 对大文件展示 `truncated`；
+- 单次 connector 输出没有把全部内容展示在聊天窗口；
+- compact 文件包含数百个行业或候选；
+- 没有执行额外 EOF 空窗口请求；
+- 未读取非 deep-read 公司的 detail。
 
-同时必须生成 `notable_excluded_candidates` 审计：
+真正失败只包括：
 
-对于明显的大市值龙头、行业代表、高盈利增长、较低估值、高 ROE 或高现金流质量公司，如果没有进入 deep-read，必须能够给出明确的行业层或组内比较理由。
+- `runtime_validation` 未通过；
+- 当前应有的正式 runtime 缺失或过期；
+- 锁定 SHA 下必需文件无法取得；
+- compact 数据无法以任何可靠方式完整消费；
+- Research Coverage Gate 或 Deep Research Gate 无法完成。
 
-如果无法给出充分理由，应加入 deep-read，而不是静默淘汰。
+若一种读取方式受限，应切换读取方式继续研究，而不是把“工具展示截断”误判成“数据读取失败”。
 
 ---
 
-## 14. 最终边界
+## 11. 收盘版与早间增量版
 
-研究范围与买入门槛必须严格分离：
+### 收盘正式版
 
-> **市场风险影响“买不买”，不能影响“值不值得研究”。**
+基于当前锁定 SHA 的 validated compact runtime 完成全行业、全候选研究，再深读自然产生的 `deep_read_codes`。
 
-因此：
+### 早间隔夜增量版
 
-- `bearish`、`transition`、60 日位置、靠近压力位、单日大跌等价格结构信息，可以降低执行优先级、影响等待条件和买点；
-- 但这些因素不得单独成为全量摘要阶段淘汰高质量公司的理由；
-- 最终淘汰应发生在行业、真实同行、公司质量、估值、安全边际、风险收益比或买点条件中，并留下可核验理由。
+仍重新读取当前规则与 meta，但允许以上一有效收盘版的**决策结论**作为比较基准，只复核隔夜新增信息是否改变：
 
-最终原则：
+- 行业景气；
+- 公司盈利；
+- 安全边际；
+- 向上空间；
+- 重大风险与失效条件。
 
-> **程序负责证明候选和数据完整；模型负责完成行业全覆盖、真实业务分组与组内择优；深读数量由研究自然产生；最终买点由估值、安全边际和风险收益决定。**
+不得把早间增量版重新退化成完整逐行数据校验。
+
+---
+
+## 12. 终止前版本复核
+
+正式结果发布前重新检查 `main` 当前 SHA：
+
+- 若仍等于 `locked_sha`，正常发布；
+- 若 main 已变化，本轮仍以原 `locked_sha` 的数据与规则完成并明确标记版本变化；
+- 不得在同一 run 中途混用新旧 SHA。
+
+---
+
+## 13. 最终原则
+
+> **GitHub 负责证明 runtime 完整；模型负责研究完整。**
+
+> **全量覆盖 ≠ 逐窗口证明 EOF。**
+
+> **validated compact runtime 一旦通过生成期校验，就直接用于研究，不重复做机械验数。**
