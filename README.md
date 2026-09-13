@@ -6,13 +6,15 @@ A 股低风险买点榜的数据、程序筛选与研究规则仓库。
 
 > **程序负责事实和资格，模型负责关系和解释。**
 
-系统不把可公式化的工作交给模型，也不要求模型从全市场自由挑股票。程序先完成数据准备、Eligibility Filter、Structure Filter 和统一 screening view；模型只在两个研究阶段介入，并在最终发布前做风险因子归并：
+系统不把可公式化的工作交给模型，也不要求模型从全市场自由挑股票。程序先完成数据准备、Eligibility Filter、Structure Filter 和统一 screening view；模型只在两个研究阶段介入，并在完整研究闭环后做风险因子归并：
 
 1. **Pre-Research Screening**：不联网，判断同行支配和公司绝对质量；
 2. **Deep Research**：只研究冻结后的 `deep_read_codes`，形成真实业务判断、正常化估值与最终安全区；
-3. **Risk Cluster Consolidation**：Deep Research 完成后，把高度依赖同一主导风险因子的公司归为一个独立风险收益机会，避免正式榜重复表达同一交易逻辑。
+3. **Risk Cluster Consolidation**：只有 Deep Research coverage 完整闭合后，才把高度依赖同一主导风险因子的公司归为一个独立风险收益机会，避免正式榜重复表达同一交易逻辑。
 
 研究层保持完整覆盖，最终发布层再做风险因子去重。
+
+**任务完成条件不是“找到足够多可以出榜的公司”，而是 frozen `deep_read_codes` 全部得到公司级研究结论。**
 
 ---
 
@@ -42,14 +44,23 @@ model-ready candidates
 冻结 deep_read_codes
         ↓
 5. Deep Research｜模型，联网
+   必须穷尽 frozen deep_read_codes
    主营 / 盈利驱动 / 周期 / 盈利质量 / 反向证据
         ↓
-6. 正常化估值 + 最终安全区
+6. Deep Research coverage audit
         ↓
-7. Risk Cluster Consolidation｜模型，发布前
+   ├─ INCOMPLETE / UNVERIFIED
+   │    → 只输出覆盖审计与剩余集合
+   │    → 不生成正式独立机会榜
+   │
+   └─ COMPLETE
+        ↓
+7. 正常化估值 + 最终安全区
+        ↓
+8. Risk Cluster Consolidation｜模型，发布前
    按主导盈利驱动与风险因子去重
         ↓
-独立机会榜
+正式独立机会集合
 ├─ representative_code
 └─ alternative_codes
 
@@ -57,7 +68,9 @@ model-ready candidates
 confirmed / waiting / research_uncertain / excluded
 ```
 
-不使用综合加权总分、全市场 Top N 或“市场风险高所以只研究少数公司”的方式替代完整研究。
+不使用综合加权总分、全市场 Top N、“找到足够多就停止”或“市场风险高所以只研究少数公司”的方式替代完整研究。
+
+正式机会集合不设目标数量和固定上限；数量由完整研究结果自然产生。
 
 ---
 
@@ -217,7 +230,23 @@ actual_deep_researched_codes
 
 做集合审计，而不是按搜索请求次数推断。
 
-Deep Research 和估值完成后，才进入：
+正式发布硬门是：
+
+```text
+deep_research_coverage == COMPLETE
+```
+
+如果 coverage 为 `INCOMPLETE` 或 `UNVERIFIED`：
+
+```text
+只输出覆盖审计
++ 已完成公司状态
++ missing_deep_research_codes
+```
+
+**不生成正式独立机会榜，也不允许把已研究子集包装成临时 Top N。**
+
+只有 coverage COMPLETE 后，才进入：
 
 ```text
 Risk Cluster Consolidation
@@ -239,6 +268,18 @@ Risk Cluster Consolidation
 同一行业如果 Deep Research 证明主营、利润来源和主导风险实质不同，可以分别形成独立机会；不同行业如果高度依赖同一个主导变量，也可以归入同一风险簇。
 
 Risk Cluster Consolidation 只改变最终榜表达，不得反向减少 `deep_read_codes` 或修改 Deep Research coverage。
+
+正式机会集合：
+
+```text
+不设目标数量
+不设固定上限
+不做 Top N 截断
+```
+
+如果完整研究后只有 3 个独立机会，就输出 3 个；如果有 14 个都满足条件，就输出 14 个；如果没有，则正式机会集合为空。
+
+排名只用于表达机会优先级，不作为任务完成条件或截断条件。
 
 ---
 
@@ -294,7 +335,7 @@ python scripts/build_runtime.py data/snapshot.json --output-dir data/runtime
 | `scripts/build_screening_groups.py` | 组织不联网预筛事实 |
 | `scripts/build_runtime.py` | 统一 runtime 构建与验证 |
 | `skill/SKILL.md` | 模型判断语义，包括最终 Risk Cluster Consolidation |
-| `skill/RUNTIME_READ_PROTOCOL.md` | 版本锁定、阶段顺序、Ledger、coverage 与最终机会审计 |
+| `skill/RUNTIME_READ_PROTOCOL.md` | 版本锁定、阶段顺序、Ledger、coverage、正式榜硬门与最终机会审计 |
 | `README.md` | 给人看的稳定架构说明 |
 
 ---
@@ -309,6 +350,12 @@ python scripts/build_runtime.py data/snapshot.json --output-dir data/runtime
 
 > **研究层宁可完整保留相关公司，行动层再按主导风险因子去重。**
 
+> **任务完成看 frozen deep_read_codes 是否全部研究完，不看已经找到了多少只好公司。**
+
+> **Deep Research coverage 未 COMPLETE 时，不生成正式独立机会榜。**
+
 > **正式榜排名的是独立风险收益机会，不是简单的股票数量。**
+
+> **正式机会集合不设目标数量、固定上限或 Top N 截断。**
 
 > **不为了压缩数量而引入综合评分、Top N 或不可审计的模型自由挑选。**
