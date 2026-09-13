@@ -3,8 +3,8 @@
 本文件只定义：
 
 - 如何锁定版本；
-- Structured Screening 与 Deep Research 如何分成两个独立模型 run；
-- 如何生成并验证持久化的 Frozen Ledger；
+- 单次任务执行中 Structured Screening 与 Deep Research 的严格串行顺序；
+- 如何生成、回读并验证持久化的 Frozen Ledger；
 - 什么情况允许停止；
 - Deep Research coverage 如何审计；
 - coverage COMPLETE 后如何进入最终机会归并。
@@ -13,40 +13,44 @@
 
 ---
 
-## 1. 执行架构｜两个独立模型 Run
+## 1. 执行架构｜一次触发，两个严格串行阶段
 
-从本协议开始，模型执行不再在同一个 run 中同时承担 Structured Screening 和公司级公开资料研究。
+每次“A股低风险买点榜”触发只运行一次完整任务，不再把 Structured Screening 和 Deep Research 分配到不同时间点。
 
-正式执行分为两个独立模型任务：
+正式顺序固定为：
 
 ```text
-Run A｜Structured Screening Freeze
+单次任务触发
+↓
+Stage A｜Structured Screening Freeze
 只使用 GitHub 锁定 runtime 中的结构化事实
 → 完成全部候选 Model Prescreen
 → 形成完整 Ledger
 → 持久化 research/pre_research_ledger.json
 → status = FROZEN
-
-Run B｜Deep Research + Publication
-只消费已经 FROZEN 的 Ledger
-→ 不重新做 Pre-Research
-→ 对 frozen deep_read_codes 做公司级公开资料研究
+↓
+重新读取并验证 Frozen Ledger Hard Gate
+↓
+Stage B｜Deep Research + Publication
+只消费已经 FROZEN 的 deep_read_codes
+→ 公司级公开资料研究
 → coverage audit
 → COMPLETE 后才允许 Risk Cluster + 正式机会榜
 ```
 
-两个 run 的职责不能混合：
+Stage A 与 Stage B 属于**同一次任务执行中的两个串行阶段**，但职责和信息边界不能混合：
 
-- Run A 不承担公司级公开资料 Deep Research，不生成正式榜；
-- Run B 不重新做同行支配或公司绝对质量预筛，不修改 frozen `deep_read_codes`。
+- Stage A 不承担公司级公开资料 Deep Research，不生成正式榜；
+- Stage B 不重新做同行支配或公司绝对质量预筛，不修改 frozen `deep_read_codes`；
+- Stage B 的唯一启动条件不是“模型认为 Stage A 做完了”，而是已经将完整 Ledger 持久化为 `FROZEN`，随后重新读取并通过 Hard Gate 验证。
 
-这样阶段边界由持久化交接物保证，而不是依赖同一次长执行中的自我约束。
+Frozen Ledger 是同一次执行内部的**硬检查点**，不是为了制造时间间隔。
 
 ---
 
 ## 2. 正式文件
 
-仓库正式输入仍为：
+仓库正式输入为：
 
 - `skill/RUNTIME_READ_PROTOCOL.md`
 - `skill/SKILL.md`
@@ -54,7 +58,7 @@ Run B｜Deep Research + Publication
 - `meta.screening_group_file`
 - `meta.candidate_file`
 
-新增模型阶段交接文件：
+阶段检查点文件：
 
 - `research/pre_research_ledger.json`
 
@@ -72,7 +76,7 @@ Run B｜Deep Research + Publication
 
 ## 3. Runtime Hard Gate
 
-以下情况允许停止当前阶段：
+以下情况允许停止整轮任务：
 
 - 正式 runtime 缺失或明显过期；
 - `runtime_validation.status != "passed"`；
@@ -106,27 +110,47 @@ Run B｜Deep Research + Publication
 
 ---
 
-## 5. Run A｜Structured Screening Freeze
+## 5. Stage A｜Structured Screening Freeze
 
 ### 5.1 锁定源版本
 
-Run A 开始时：
+每次任务开始先执行 Stage A：
 
 1. 获取 `xwan008/a-market-data` 当前 `main` commit SHA，记为 `source_runtime_commit_sha`；
-2. 从该 SHA 读取 Protocol、Skill、`meta.json`、`screening_group_file`；
-3. 记录这些正式文件的 Git blob SHA：
+2. 从该 SHA 读取 Protocol、Skill、`meta.json`、`screening_group_file`、`candidate_file`；
+3. 记录五个正式文件的 Git blob SHA：
    - `protocol_blob_sha`
    - `skill_blob_sha`
    - `meta_blob_sha`
    - `screening_group_blob_sha`
    - `candidate_blob_sha`
-4. Run A 的结构化判断只使用这一套冻结输入，不混入其他 runtime 版本。
+4. Stage A 的结构化判断只使用这一套冻结输入，不混入其他 runtime 版本。
 
-### 5.2 Repository-only 信息边界
+### 5.2 先使旧 Ledger 失效
 
-Run A 可以访问 GitHub，因为必须读取仓库正式 runtime。
+在开始本轮 Model Prescreen 前，必须先将：
 
-但 Run A 的信息集只能来自锁定仓库中的结构化数据；在 Ledger FROZEN 前，禁止引入：
+```text
+research/pre_research_ledger.json
+```
+
+更新为本轮：
+
+```text
+status = BUILDING
+```
+
+并写入本轮 source/runtime/policy 标识，清空上一轮代码集合。
+
+目的：只要新一轮 Stage A 已启动，上一轮 `FROZEN` Ledger 立即失效。
+
+如果 Stage A 中断或无法闭合全部候选，Ledger 必须保持 `BUILDING` 或写成 `FAILED`，不得恢复上一轮 `FROZEN`。
+
+### 5.3 Repository-only 信息边界
+
+Stage A 可以访问 GitHub，因为必须读取仓库正式 runtime。
+
+但 Stage A 的信息集只能来自锁定仓库中的结构化数据；在本轮 Ledger 成功 FROZEN 并回读验证之前，禁止引入：
 
 - 公司官网；
 - 公司公告正文或交易所外部页面；
@@ -139,7 +163,17 @@ Run A 可以访问 GitHub，因为必须读取仓库正式 runtime。
 
 > **Repository-only Structured Screening，而不是“完全不能联网”。**
 
-### 5.3 完成全部 Model Prescreen
+如果在本轮 Ledger FROZEN 之前已经发生任何公司级外部公开资料查询，则本轮信息边界已被污染：
+
+```text
+stage_a_information_boundary = VIOLATED
+```
+
+此时不得继续把后来完成的 Ledger 写成可信 `FROZEN` 并进入 Stage B；必须将 Ledger 保持 `FAILED` / 非 FROZEN，本轮 `Deep Research coverage = UNVERIFIED`，并停止整轮任务。
+
+不能通过“先查了外部资料、之后再补齐 Structured Screening”恢复可验证性。
+
+### 5.4 完成全部 Model Prescreen
 
 按 `SKILL.md` 对全部 model-ready candidates 完成：
 
@@ -151,9 +185,9 @@ Run A 可以访问 GitHub，因为必须读取仓库正式 runtime。
 
 单只组跳过同行支配判断，但不能跳过公司绝对质量判断。
 
-每只结构候选最终恰好出现一次。
+每只结构候选最终恰好出现一次，不得因为已经得到足够多 Deep Research 候选而停止。
 
-### 5.4 Frozen Ledger 集合约束
+### 5.5 Frozen Ledger 集合约束
 
 完整 Ledger 必须形成四个互斥集合：
 
@@ -182,19 +216,23 @@ peer_dominated_codes
 ∪ uncertain_codes
 ```
 
-且四个集合互斥。
+且四个集合互斥，同时：
 
-只有满足完整集合闭合后，Ledger 才允许写成 `FROZEN`。
+```text
+ledger_count == candidate_count
+```
 
-### 5.5 持久化交接物
+只有完整集合闭合且 Stage A 信息边界未被污染，Ledger 才允许写成 `FROZEN`。
 
-Run A 唯一正式成功产物是：
+### 5.6 持久化硬检查点
+
+Stage A 成功后必须更新：
 
 ```text
 research/pre_research_ledger.json
 ```
 
-该文件至少包含：
+至少包含：
 
 ```json
 {
@@ -211,6 +249,7 @@ research/pre_research_ledger.json
   "candidate_count": 109,
   "ledger_count": 109,
   "repository_only": true,
+  "external_company_research_before_freeze": false,
   "peer_dominated_codes": [],
   "clearly_weak_codes": [],
   "pass_to_deep_research_codes": [],
@@ -219,19 +258,17 @@ research/pre_research_ledger.json
 }
 ```
 
-如果 109/109（或当轮实际 candidate_count）没有完整闭合，不得写 `status = FROZEN`。
+如果当轮全部候选没有完整闭合，或者 Stage A 已引入公司级外部资料，不得写 `status = FROZEN`。
 
-Run A 不生成公司级公开资料结论、估值、Risk Cluster 或正式机会榜。
+Stage A 不生成公司级公开资料结论、估值、Risk Cluster 或正式机会榜。
 
 ---
 
-## 6. Run B｜Frozen Ledger 验证
+## 6. Stage A → Stage B｜Frozen Ledger Hard Gate
 
-Run B 开始时**先验证交接物，验证通过前不得做公司级公开资料查询**。
+Stage A 写入 `FROZEN` 后，不得凭内存直接进入 Deep Research。
 
-### 6.1 必须读取
-
-从当前 `main` 读取：
+必须**重新读取**：
 
 - `research/pre_research_ledger.json`
 - 当前 `skill/RUNTIME_READ_PROTOCOL.md`
@@ -240,25 +277,26 @@ Run B 开始时**先验证交接物，验证通过前不得做公司级公开资
 - 当前 `meta.screening_group_file`
 - 当前 `meta.candidate_file`
 
-### 6.2 Ledger Hard Gate
+然后执行 Hard Gate。
 
-只有以下条件全部成立，Run B 才允许开始 Deep Research：
+只有以下条件全部成立，才允许 Stage B 开始公司级公开资料查询：
 
 1. `ledger.status == "FROZEN"`；
 2. `ledger.repository_only == true`；
-3. `ledger.ledger_count == ledger.candidate_count`；
-4. 四类代码集合互斥且并集等于当前 candidate 全集；
-5. `deep_read_codes == pass_to_deep_research_codes ∪ uncertain_codes`；
-6. 当前 `trade_date` 与 ledger `trade_date` 一致；
-7. 当前候选数量与 ledger `candidate_count` 一致；
-8. 当前以下 Git blob SHA 与 ledger 记录完全一致：
+3. `ledger.external_company_research_before_freeze == false`；
+4. `ledger.ledger_count == ledger.candidate_count`；
+5. 四类代码集合互斥且并集等于当前 candidate 全集；
+6. `deep_read_codes == pass_to_deep_research_codes ∪ uncertain_codes`；
+7. 当前 `trade_date` 与 ledger `trade_date` 一致；
+8. 当前候选数量与 ledger `candidate_count` 一致；
+9. 当前以下 Git blob SHA 与 ledger 记录完全一致：
    - Protocol
    - Skill
    - meta
    - screening_groups
    - candidates
 
-Git 主分支因为写入 Ledger 本身产生新的 commit SHA 是正常的；**是否仍是同一研究输入，以以上正式文件 blob SHA 是否一致判断，而不是要求 current main SHA 等于 `source_runtime_commit_sha`。**
+写入 BUILDING/FROZEN Ledger 本身会产生新的 Git commit，因此**是否仍是同一研究输入，以正式文件 blob SHA 是否一致判断，而不是要求 current main SHA 等于 `source_runtime_commit_sha`。**
 
 任一条件失败：
 
@@ -266,9 +304,9 @@ Git 主分支因为写入 Ledger 本身产生新的 commit SHA 是正常的；**
 ledger_validation = FAILED
 ```
 
-本轮停止，不得自行重新做 Pre-Research，也不得开始公司级公开资料研究；应等待 / 手动执行新的 Run A 生成与当前 runtime 匹配的 FROZEN Ledger。
+本轮停止，不得开始公司级公开资料研究，也不得生成正式榜。
 
-### 6.3 Run B 不得修改预筛结果
+Stage B 不得重新做 Pre-Research 来“修补”失败的 Ledger；下一次任务触发会重新从 Stage A 开始。
 
 验证通过后：
 
@@ -276,18 +314,18 @@ ledger_validation = FAILED
 expected_deep_research_codes = ledger.deep_read_codes
 ```
 
-Run B 不得：
+从此 Stage B 不得：
 
 - 重新做 Peer Dominance；
 - 把 `CLEARLY_WEAK` 或 `PEER_DOMINATED` 自行加回研究集合；
 - 从 frozen `deep_read_codes` 中自行删除公司；
 - 用实际搜索过的公司反推本应研究集合。
 
-Frozen Ledger 是 Run A → Run B 的正式边界。
+Frozen Ledger 是 Stage A → Stage B 的正式硬边界。
 
 ---
 
-## 7. Run B｜Deep Research
+## 7. Stage B｜Deep Research
 
 Deep Research 唯一允许主动研究的公司集合是：
 
@@ -322,7 +360,7 @@ Deep Research 同时应留下最终风险簇归并所需事实，包括 `primary
 
 ## 8. Deep Research coverage｜正式榜硬门
 
-Run B 维护：
+Stage B 维护：
 
 - `expected_deep_research_codes = ledger.deep_read_codes`
 - `actual_deep_researched_codes`
@@ -352,13 +390,14 @@ actual_deep_researched_codes
 
 出现以下任一情况：
 
+- Stage A 在 Ledger FROZEN 前已经使用公司级外部公开资料；
 - Frozen Ledger 缺失；
 - Ledger 不是 `FROZEN`；
 - Ledger 集合无法闭合；
 - Ledger 与当前正式 runtime / Skill / Protocol blob 不一致；
 - 无法恢复 frozen `deep_read_codes`。
 
-在新的两阶段架构下，**Run B 不再因为“自己在 Ledger 冻结前提前查询外部资料”进入 UNVERIFIED，因为 Run B 根本不负责冻结 Ledger；Ledger 验证通过之前，Run B 不开始 Deep Research。**
+此时不得生成正式独立机会榜。
 
 正式闭环唯一完成条件仍是：
 
@@ -399,7 +438,9 @@ deep_research_coverage == COMPLETE
 
 ## 10. 最终审计漏斗
 
-Run A 至少记录：
+单次任务最终至少记录：
+
+### Stage A 审计
 
 - `trade_date`
 - `candidate_count`
@@ -412,9 +453,11 @@ Run A 至少记录：
 - 四类代码集合
 - `deep_read_codes`
 - 五个正式文件 blob SHA
+- `stage_a_information_boundary`
 - `ledger_status`
+- `ledger_validation`
 
-Run B 正式结果至少记录：
+### Stage B / 最终研究审计
 
 - `snapshot.trade_date`
 - `universe_count`
@@ -422,7 +465,6 @@ Run B 正式结果至少记录：
 - Eligibility Filter 各互斥排除原因数量
 - `structural_relevance_count`
 - `screening_group_count`
-- `ledger_validation`
 - `deep_research_candidate_count`
 - `actual_deep_researched_count`
 - `deep_research_coverage`
@@ -466,7 +508,7 @@ formal_opportunity_count
 
 - 改变程序候选全集；
 - 跳过 Structured Screening；
-- 修改 FROZEN Ledger；
+- 修改已经 FROZEN 的研究集合；
 - 改变 frozen `deep_read_codes`；
 - 成为研究覆盖不完整的理由；
 - 被用来绕过 Risk Cluster Consolidation；
@@ -476,11 +518,13 @@ formal_opportunity_count
 
 ## 12. 执行原则
 
-> **程序先完成确定性筛选；Run A 只做 repository-only Structured Screening 并冻结 Ledger；Run B 才做公司级公开资料研究。**
+> **一次任务触发，严格串行执行 Stage A → FROZEN Ledger Hard Gate → Stage B。**
 
-> **Frozen Ledger 是两个模型 run 之间的正式交接物，不再依赖同一次长执行里的阶段自律。**
+> **Stage A 只做 repository-only Structured Screening；FROZEN 并回读验证之前不得使用公司级外部公开资料。**
 
-> **Run B 不重新做 Pre-Research，也不得修改 frozen deep_read_codes。**
+> **Frozen Ledger 是同一次执行内部的硬检查点，不是为了制造两个时间点。**
+
+> **Stage B 不重新做 Pre-Research，也不得修改 frozen deep_read_codes。**
 
 > **任务完成的定义是穷尽 frozen deep_read_codes，不是找到足够多可以出榜的公司。**
 
