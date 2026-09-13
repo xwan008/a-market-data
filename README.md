@@ -8,7 +8,7 @@ A 股低风险买点榜的数据、程序筛选与研究规则仓库。
 
 > **研究层防漏，发布层去相关。**
 
-> **每次任务触发必须一步到位；不跨 invocation 续跑公司研究。**
+> **每次任务触发必须一步到位；不跨 invocation 续跑 Stage A 或公司研究。**
 
 系统不要求模型从全市场自由挑股票，也不把可公式化的工作交给模型。每次 07:00、19:00 或手动触发都视为一个全新的完整事务：本轮从 Stage A 开始，完成本轮 Frozen Ledger，然后在同一次 invocation 内把全部 frozen `deep_read_codes` 研究到 coverage COMPLETE，最后才允许 Risk Cluster Consolidation 与正式榜。
 
@@ -27,18 +27,27 @@ Structure Filter｜程序
         ↓
 model-ready candidates
         ↓
-screening_groups｜程序组织
+生成正式 runtime：
+meta.json / candidates.json / screening_groups.json
+        ↓
+Runtime / Identity Gate
+        ↓
+screening_groups 按固定 80 行区间完整读取
         ↓
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Stage A｜Structured Screening
 repository-only
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-本轮新 run_id
+完整申万三级行业组不可拆分
+按原顺序做同一 invocation 内 execution batch
+目标约 20 家/批
+        ↓
+全部 candidate 100% 覆盖
         ↓
 research/pre_research_ledger.json
-BUILDING → FROZEN
+BUILDING → 一次性 FROZEN
         ↓
-重新读取 Ledger + 正式文件
+重新读取 Ledger + 五个正式文件
         ↓
 Frozen Ledger Hard Gate
         ↓
@@ -48,9 +57,10 @@ PASSED
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Stage B｜Deep Research
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-本次 invocation 内穷尽 frozen deep_read_codes
+按 frozen deep_read_codes 既定顺序
+固定 12 家/批
         ↓
-confirmed / waiting /
+confirmed / waiting_for_entry /
 research_uncertain / excluded
         ↓
 expected == actual ?
@@ -61,6 +71,10 @@ YES → coverage COMPLETE
 正常化估值 + 最终安全区
         ↓
 Risk Cluster Consolidation
+只处理 confirmed / entry_ready
+        ↓
+一个 risk cluster = 一个 formal opportunity
+representative + alternatives
         ↓
 正式独立风险收益机会集合
 ```
@@ -70,6 +84,7 @@ Risk Cluster Consolidation
 当前正式架构明确不存在：
 
 ```text
+Stage A partial checkpoint
 Deep Research Ledger
 resume_stage_b
 parent_run_id
@@ -77,9 +92,7 @@ parent_run_id
 上一轮 company_results 自动复用
 ```
 
-上一轮研究到 40/91，不代表下一轮从 41 开始。它只代表上一轮失败；下一次任务仍然从新的 Stage A 开始，并重新完成当轮全部 Deep Research。
-
-`research/pre_research_ledger.json` 只承担**同一次 invocation 内** Stage A → Stage B 的硬边界，不是跨轮缓存。
+上一轮 Stage A 或 Deep Research 只完成一部分，只代表上一轮失败；下一次任务仍然生成新的 run_id，并从新的 Stage A 开始。
 
 ---
 
@@ -124,7 +137,7 @@ data/runtime/screening_groups.json
 
 ### `screening_groups.json`
 
-Stage A 的唯一模型工作视图。当前采用自描述列式、行可寻址 JSON，以减少重复字段名和模型输入成本，同时支持按行区间完整读取。
+Stage A 的唯一模型工作视图。采用自描述列式、行可寻址 JSON。正式消费路径按 `line_count` 直接使用固定 80 行区间读取，不依赖一次整文件响应是否完整。
 
 它只组织结构化事实，不预先产生模型结论，不评分、不排名、不做 Top N。
 
@@ -132,7 +145,7 @@ Stage A 的唯一模型工作视图。当前采用自描述列式、行可寻址
 
 ## Stage A｜Structured Screening
 
-每次触发都必须创建新的 `run_id`，并先把：
+每次触发创建新的 `run_id`，先把：
 
 ```text
 research/pre_research_ledger.json
@@ -142,16 +155,37 @@ research/pre_research_ledger.json
 
 Stage A 只能使用锁定 GitHub runtime 的结构化事实。在本轮 Ledger FROZEN 并重新读取通过 Hard Gate 前，禁止引入公司官网、公告正文、新闻、研报、搜索引擎结果或行业网站等公司级外部资料。
 
-Stage A 对全部结构候选形成四类结果：
+### Execution batch
+
+Stage A 为降低一次性模型负担采用 execution batch，但最小不可拆分单位是一个完整申万三级行业组：
+
+```text
+target_batch_candidate_count = 20
+```
+
+按 `screening_groups` 原始顺序确定性打包。同一三级行业组绝不拆分；批次不具有排名、配额、Top N 或淘汰名额意义。
+
+部分 batch 的判断只存在于当次 invocation 内存中，不能写成 FROZEN checkpoint，也不能供下一轮恢复。只有全部 candidate 都得到唯一 `ledger_entry` 后，才允许一次性 FROZEN。
+
+### 四类结果
 
 - `PEER_DOMINATED`
 - `CLEARLY_WEAK`
 - `PASS_TO_DEEP_RESEARCH`
 - `UNCERTAIN`
 
-并形成覆盖全部候选的逐公司 `ledger_entries`。
+`PEER_DOMINATED` 只表示同一三级行业组内结构化事实已经足以支持严格公司级支配，不承担行业去重、风险簇去重或减少 Deep Research 数量的职责。
 
-`PEER_DOMINATED` 只表示结构化事实已经足以支持严格公司级支配，不允许承担行业去重、风险簇去重或减少 Deep Research 数量的职责。
+`CLEARLY_WEAK` 必须至少有两个独立结构化弱点，并记录：
+
+```text
+weakness_1
+weakness_2
+counter_advantage_check
+uncertainty_check
+```
+
+如果无法证明两个独立弱点，或仍需要公司级外部研究才能解释，应使用 `UNCERTAIN`。
 
 最终：
 
@@ -161,7 +195,7 @@ deep_read_codes
 PASS_TO_DEEP_RESEARCH ∪ UNCERTAIN
 ```
 
-完整字段与 Hard Gate 以 `skill/RUNTIME_READ_PROTOCOL.md` 为唯一契约。
+完整字段与 Hard Gate 以 `skill/RUNTIME_READ_PROTOCOL.md` 为唯一执行契约。
 
 ---
 
@@ -169,29 +203,60 @@ PASS_TO_DEEP_RESEARCH ∪ UNCERTAIN
 
 Stage B 只研究本轮 Frozen Ledger 的 `deep_read_codes`。
 
-禁止读取上一轮公司研究结果来跳过本轮研究；禁止把历史 actual / remaining 计入当轮 coverage。
+正式 execution batch 固定为：
 
-每家公司在本轮必须形成以下之一：
+```text
+batch_size = 12 companies
+order = frozen deep_read_codes 的既定顺序
+```
+
+行业、真实主营和共享主导变量只用于选择分析框架与复用公共证据，不得重新排序或重组 execution batch。
+
+禁止读取上一轮公司研究结果跳过本轮研究；禁止把历史 actual / remaining 计入当轮 coverage。
+
+每家公司本轮正式状态只允许：
 
 - `confirmed`
-- `waiting`
+- `waiting_for_entry`
 - `research_uncertain`
 - `excluded`
 
-并确认真实主营、`primary_profit_driver`、`dominant_risk_factor`、未来 1–2 季度盈利逻辑、盈利质量/一次性收益/周期正常化、最强反向证据与估值摘要。
+其中：
+
+```text
+confirmed
+= research_supported + entry_ready
+
+waiting_for_entry
+= research_supported + not_entry_ready
+```
+
+因此：
+
+```text
+research_supported_count
+= confirmed_count + waiting_for_entry_count
+
+entry_ready_count
+= confirmed_count
+```
+
+`waiting` 不再是正式状态名。
+
+每家公司需要确认真实主营、`primary_profit_driver`、`dominant_risk_factor`、未来 1–2 季度盈利逻辑、盈利质量/一次性收益/周期正常化、最强反向证据与估值摘要。
 
 ### 一步到位执行方式
 
-为了让单次定时任务完成全部 frozen 集合，Deep Research 采用**批量优先、覆盖优先**：
+Deep Research 采用**批量优先、覆盖优先**：
 
 - 同一工具调用尽量批量组织多个公司查询；
 - 公司自身最新财报、业绩公告或正式披露逐公司确认；
 - 共享行业驱动证据可一次获取后映射到相关公司；
 - runtime 已有的价格、估值、财务事实不重复去网页搜索；
-- 资料清楚的公司快速形成终态；业务异质、一次性收益、周期失真或来源冲突时再追加深检索；
-- 不得因为已经完成 10、20、40 家或已经找到若干 confirmed 而结束。
+- 资料清楚的公司快速形成终态；业务异质、一次性收益、周期失真或来源冲突时再追加必要检索；
+- 不得因为已经完成任意中间数量或已经找到若干 confirmed 而结束。
 
-最低证据要求不是“机械搜很多网站”，而是：公司级主要公开依据 + 对盈利驱动/主导风险的支持 + 最强反向证据。多个网站转载同一份公告仍只算同一个原始证据。
+Batch 只决定一起处理谁，不决定留下谁；同一 Batch 可以有多个、全部或零个 confirmed。
 
 ---
 
@@ -231,7 +296,7 @@ deep_research_coverage = INCOMPLETE
 
 ## Risk Cluster 与最终机会榜
 
-Risk Cluster Consolidation 只在 coverage COMPLETE 后执行。
+Risk Cluster Consolidation 只在 coverage COMPLETE 后执行，并且只处理 `confirmed / entry_ready_codes`。
 
 它根据完整 Deep Research 已确认的：
 
@@ -240,7 +305,7 @@ Risk Cluster Consolidation 只在 coverage COMPLETE 后执行。
 - `dominant_risk_factor`
 - 主要反向风险
 
-判断多个公司是否实质表达同一风险收益机会。
+判断多个公司是否实质表达同一风险收益机会，而不是按申万行业机械归并。
 
 因此：
 
@@ -249,11 +314,24 @@ Risk Cluster Consolidation 只在 coverage COMPLETE 后执行。
 正式榜对象 = 独立风险收益机会
 ```
 
-同一风险簇默认一个 `representative_code`，其他仍有价值公司作为 `alternative_codes` 保留。
+同一风险簇的所有 entry-ready 公司仍保持 `confirmed`；正式榜只选择一个 `representative_code`，其他 confirmed 作为 `alternative_codes` 保留。
 
-组内代表优先级：
+发布层硬不变量：
 
-> **最终安全边际 → 保守上行空间 → 基本面稳定性 → 参与时机**
+```text
+formal_opportunity_count
+== risk_cluster_count
+== len(formal_representative_codes)
+```
+
+```text
+confirmed_codes
+= formal_representative_codes ∪ all_alternative_codes
+```
+
+并要求 representatives 与 alternatives 互斥、每个 confirmed 恰好属于一个 risk cluster、每个 cluster 恰好一个 representative。
+
+不再使用 `final_recommendation_count`，正式榜数量只使用 `formal_opportunity_count` 表达。
 
 正式机会集合不设目标数量、不设固定上限、不做 Top N 截断。
 
@@ -261,15 +339,50 @@ Risk Cluster Consolidation 只在 coverage COMPLETE 后执行。
 
 ## `research/` 目录职责
 
-当前正式运行只允许：
+当前 `research/` 正式存在两个文件：
 
 ```text
 research/pre_research_ledger.json
+research/last_execution_probe.json
 ```
 
-作为同一次 invocation 内的 Stage A 检查点。
+### `pre_research_ledger.json`
 
-当前正式运行不保存、读取或恢复 Stage B 的跨轮公司研究 checkpoint。历史 Deep Research 结果如未来需要保留，只能作为明确的 archive / 人工复盘资料，不能进入当前模型执行入口。
+唯一正式阶段检查点，只承担**同一次 invocation 内** Stage A → Stage B 的硬边界。下一轮会以新 run_id 覆盖为新的 BUILDING，不是跨轮缓存。
+
+### `last_execution_probe.json`
+
+仅为运行诊断遥测：
+
+```text
+diagnostic_only = true
+formal_input = false
+reuse_for_research = false
+```
+
+它可以记录 Stage A / Stage B 的 batch、processed、错误与终止位置，但不得保存为下一轮研究恢复入口，也不得参与投资判断。
+
+当前正式运行不保存、读取或恢复 Stage B 的跨轮公司研究 checkpoint。
+
+---
+
+## 规则文件职责
+
+```text
+README.md
+= 给人看的架构说明
+
+skill/RUNTIME_READ_PROTOCOL.md
+= 唯一执行契约：读取、批次、阶段、覆盖、Hard Gate、发布验证
+
+skill/SKILL.md
+= 唯一模型判断规则：Stage A 判断、Deep Research 状态、估值、Risk Cluster 语义
+
+Automation
+= 当前仍保留与仓库规则一致的执行细节；待连续多轮稳定后再做第 7 项精简
+```
+
+若 README 与正式规则冲突，以 Protocol / Skill 为准。
 
 ---
 
@@ -293,7 +406,7 @@ research/pre_research_ledger.json
 
 从仓库现有数据重建 runtime。
 
-Pre-Research Ledger 写入不属于这些 workflow 的 push trigger 路径，因此不会意外触发市场数据重建。
+Pre-Research Ledger 与 execution probe 的写入不属于这些 workflow 的市场数据重建入口。
 
 ---
 
