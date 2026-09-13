@@ -10,7 +10,7 @@
 
 > **先看还能跌多少，再看能涨多少。**
 
-本文件只定义**模型需要做的判断**。确定性筛选、结构硬规则、数据校验、文件读取、阶段交接和覆盖审计不在这里重复定义；以程序输出、`meta.json` 和 `RUNTIME_READ_PROTOCOL.md` 为准。
+本文件只定义模型需要做的判断。确定性筛选、结构硬规则、数据校验、文件读取、阶段交接和覆盖审计，以程序输出、`meta.json` 和 `RUNTIME_READ_PROTOCOL.md` 为准。
 
 ---
 
@@ -18,27 +18,23 @@
 
 程序已经确定：
 
-- 哪些股票通过 Eligibility Filter；
-- 哪些股票通过 Structure Filter；
-- 价格位置、支撑、成交密集区和正式 `structure_tier`；
+- Eligibility Filter 与 Structure Filter；
+- 价格位置、支撑、成交密集区和 `structure_tier`；
 - 申万三级行业分组；
-- PE / PB / ROE、收入、利润、扣非、现金流、毛利率等事实；
-- 行业状态与行业聚合事实；
-- 可直接计算的财务质量标签。
+- PE / PB / ROE、收入、利润、扣非、现金流、毛利率等结构化事实；
+- 行业状态、行业聚合事实和可直接计算的质量标签。
 
 模型不得重新计算或推翻程序硬筛。
 
-所有公司与行业 YoY 字段统一使用：
+所有公司与行业 YoY 字段统一使用 `percentage_points`，例如 `12.4` 表示 `12.4%`。
 
-> `percentage_points`：`12.4` 表示 `12.4%`。
+模型负责三件事：
 
-模型主要负责两层判断，并在完整研究闭环后做一次机会归并：
-
-1. **Structured Screening / Model Prescreen**：只使用锁定 GitHub runtime 中的结构化事实，判断同行支配和公司绝对质量；不得引入公司级外部公开资料；
+1. **Structured Screening / Model Prescreen**：只使用锁定 GitHub runtime 中的结构化事实，判断同行明确支配和公司绝对质量；
 2. **Deep Research**：只研究冻结后的 `deep_read_codes`，引入公开资料确认真实业务、盈利驱动、周期、盈利质量、估值和最终安全边际；
-3. **Risk Cluster Consolidation**：只有 Deep Research coverage 已完整闭合后，才把高度依赖同一主导风险因子的公司归并为一个独立风险收益机会。
+3. **Risk Cluster Consolidation**：只有 Deep Research coverage 完整闭合后，才把高度依赖同一主导风险因子的入场机会归并为独立风险收益机会。
 
-第三步只影响最终榜单表达，不得反向减少前两步的研究覆盖。
+第三步只影响最终榜单表达，不得反向减少前两步覆盖或修改公司级研究状态。
 
 ---
 
@@ -46,52 +42,38 @@
 
 这一层只使用程序准备好的 `screening_groups` 及同一锁定 runtime 下允许的仓库结构化事实。
 
-**Repository-only 的含义不是“不能访问 GitHub”，而是信息集只能来自锁定的仓库 runtime；在完整 Ledger 冻结并通过 Hard Gate 前，不得搜索或读取公司官网、公告、新闻、研报、搜索引擎结果、行业网站等公司级外部公开资料。**
+**Repository-only** 表示信息集只能来自锁定仓库 runtime；在完整 Ledger FROZEN 并通过 Hard Gate 前，不得搜索或读取公司官网、公告正文、新闻、研报、搜索引擎结果、行业网站等公司级外部公开资料。
 
-在每个申万三级行业组内固定按以下顺序判断：
+### 3.1 同行明确支配
 
-### 3.1 先判断同行明确支配
+在每个申万三级行业组内，单只组不存在同行支配，直接进入公司绝对质量判断。
 
-单只组不存在同行支配，直接进入公司绝对质量判断。
-
-多只组只比较三类结构化事实：
+多只组只比较：
 
 - **价格结构**：位置、支撑距离与触碰、成交密集区距离与占比、阻力和风险参考；
 - **估值质量**：PE-TTM、动态 PE、PB 与 ROE、增长、盈利质量是否匹配；
 - **经营质量**：收入、净利润、扣非、经营现金流、毛利率等是否支持盈利。
 
-候选 A 只有在存在同组候选 B 且同时满足时，才允许标记：
+候选 A 只有在存在同组候选 B 且同时满足时，才允许标记 `PEER_DOMINATED`：
 
-`PEER_DOMINATED`
-
-1. B 在价格结构、估值质量、经营质量三个维度中没有一个维度明显弱于 A；
-2. B 至少在一个维度明显更优；
+1. B 在价格结构、估值质量、经营质量三个维度没有一个明显弱于 A；
+2. B 至少一个维度明显更优；
 3. A 没有 B 无法覆盖的明显差异化优势；
 4. 不存在业务异质性、周期失真或数据冲突，需要公开研究才能判断。
 
-只要互有胜负、不可比或不确定，就**不得**做同行支配淘汰，继续进入下一步。
+只要互有胜负、不可比或不确定，就不得做同行支配淘汰。
 
-#### 3.1.1 PEER_DOMINATED 不是发布层去重
-
-`PEER_DOMINATED` 只能表达：
-
-> **仅凭本轮已有结构化事实，A 已经被同组 B 明确做了公司级 Pareto 支配，因此没有必要再占用 Deep Research 预算。**
-
-它**不能**表达：
+`PEER_DOMINATED` 不能表达：
 
 - 同行业公司太多，所以只留 1–2 只；
-- 多家公司最终可能属于同一个风险簇，所以提前压缩；
-- 券商、资源品等共同受一个行业因子驱动，所以只研究少数代表；
-- 为了降低 `deep_read_codes` 数量而选择“更优”的少数公司；
-- 预计最终正式榜只需要一个行业席位，所以预筛阶段先去重。
+- 同风险簇所以提前压缩；
+- 券商、资源品等共同受一个变量驱动，所以只研究少数代表；
+- 为了降低 `deep_read_codes` 数量而选少数更优公司；
+- 预计最终榜只需要一个行业席位，所以提前去重。
 
-这些都属于 Deep Research 完成后的 **Risk Cluster Consolidation**，不得前移到 Structured Screening。
+这些属于 coverage COMPLETE 后的 Risk Cluster Consolidation。
 
-特别是业务、利润来源、周期暴露或主导风险因子是否实质相同，需要公开资料才能确认时，**不能因为结构化指标看起来相近就做 PEER_DOMINATED**；应保留为 `PASS_TO_DEEP_RESEARCH` 或 `UNCERTAIN`。
-
-#### 3.1.2 PEER_DOMINATED 必须可审计
-
-每个 `PEER_DOMINATED` 结果至少保留：
+每个 `PEER_DOMINATED` entry 至少保留：
 
 - `dominated_by`
 - `price_structure_basis`
@@ -100,21 +82,17 @@
 - `differentiated_advantage_check`
 - `uncertainty_check`
 
-其中 `uncertainty_check` 必须明确说明为什么现有结构化事实已经足够，不需要公开资料才能判断支配关系。
+如果这些依据无法成立，不得标记 `PEER_DOMINATED`。
 
-如果无法给出上述依据，不得标记 `PEER_DOMINATED`。
+### 3.2 公司绝对质量
 
-### 3.2 再判断公司绝对质量
-
-未被 `PEER_DOMINATED` 的公司只允许三种结果：
+未被 `PEER_DOMINATED` 的公司只允许：
 
 #### `CLEARLY_WEAK`
 
-只有结构化事实显示**多个独立方面明显偏弱**，且没有清晰的确定性反向优势时才使用。
+只有结构化事实显示多个独立方面明显偏弱，且没有清晰的确定性反向优势时才使用。单一 PE、ROE、利润增长、负现金流、行业状态或单个质量标签不得单独形成 `CLEARLY_WEAK`。
 
-单一 PE、ROE、利润增长、负现金流、行业状态或单个质量标签都不得单独形成 `CLEARLY_WEAK`。
-
-`CLEARLY_WEAK` 也必须保留简短、可审计的 `reason_code` 与多维依据；若弱点可能由周期、会计口径、业务变化或缺失信息解释，应使用 `UNCERTAIN`，不得为了减少研究量强行淘汰。
+如果弱点可能由周期、会计口径、业务变化或缺失信息解释，应使用 `UNCERTAIN`。
 
 #### `PASS_TO_DEEP_RESEARCH`
 
@@ -122,53 +100,38 @@
 
 #### `UNCERTAIN`
 
-结构化数据不足以可靠解释公司，例如：
-
-- 周期导致利润或估值可能失真；
-- 数据互相冲突；
-- 真实业务差异会改变数字含义；
-- 关键缺失信息会改变结论。
+结构化数据不足以可靠解释公司，例如周期导致利润或估值可能失真、数据互相冲突、真实业务差异会改变数字含义、关键缺失信息可能改变结论。
 
 拿不准时使用 `UNCERTAIN`，不要为了减少数量强行淘汰。
 
-### 3.3 完整 Ledger 语义
+### 3.3 完整 Ledger
 
-Structured Screening 的结果不是只有四个代码集合，还必须形成覆盖全部结构候选的逐公司 Ledger entry。
-
-每只候选恰好有一个：
+每只候选恰好有一个 `ledger_entry`：
 
 - `code`
 - `result`
 - `reason_code`
 - `reason`
 
-其中 `result` 只能是：
+`result` 只能是：
 
 - `PEER_DOMINATED`
 - `CLEARLY_WEAK`
 - `PASS_TO_DEEP_RESEARCH`
 - `UNCERTAIN`
 
-`PEER_DOMINATED` entry 还必须包含 3.1.2 的支配依据字段。
+代码集合只是逐公司 Ledger 的派生索引；集合与 entry 冲突即审计失败。
 
-代码集合只是逐公司 Ledger 的派生索引；如果集合和 entry 冲突，以**审计失败**处理，不允许模型自行选择一个版本继续。
-
-### 3.4 禁止事项
-
-Structured Screening / Model Prescreen 禁止：
+Structured Screening 禁止：
 
 - 综合加权总分；
 - 全市场 Top N；
 - 每组机械 Top1 / Top2；
 - 单指标一票淘汰；
-- 为了压缩 Deep Research 数量而调判断标准；
-- 把 Risk Cluster / 行业相关性去重前移到 Pre-Research；
-- 在完整 Ledger 冻结前引入公司级外部公开资料；
+- 为了压缩 Deep Research 数量调判断标准；
+- 把 Risk Cluster / 行业相关性去重前移；
+- 在完整 Ledger 冻结前引入公司级外部资料；
 - 找到几只好公司后停止处理剩余候选。
-
-该阶段的目标不是选出“最好公司”，而是：
-
-> **低成本排除已经可以由现有结构化事实明确排除的公司，把真正需要新增外部证据的复杂度留给 Deep Research。**
 
 研究层原则：
 
@@ -178,18 +141,13 @@ Structured Screening / Model Prescreen 禁止：
 
 ## 4. Deep Research
 
-只有冻结后的：
-
-- `PASS_TO_DEEP_RESEARCH`
-- `UNCERTAIN`
-
-进入 Deep Research。
+只有冻结后的 `PASS_TO_DEEP_RESEARCH` 和 `UNCERTAIN` 进入 Deep Research。
 
 每家公司重点确认：
 
 1. 真实主营、主要产品和业务；
-2. `primary_profit_driver`：公司利润最主要由什么变量驱动；
-3. `dominant_risk_factor`：最能同时解释公司上行与下行的主导外部或经营风险因子；
+2. `primary_profit_driver`：利润最主要由什么变量驱动；
+3. `dominant_risk_factor`：最能同时解释上行与下行的主导外部或经营风险因子；
 4. 未来 1–2 个季度盈利逻辑是否可验证；
 5. 行业改善是否真实传导到公司；
 6. 净利润、扣非、收入、毛利率、现金流、销量、价格、订单等是否互相支持；
@@ -197,48 +155,103 @@ Structured Screening / Model Prescreen 禁止：
 8. 是否处于周期盈利高点，导致 PE 看似便宜；
 9. 至少一条最可能推翻当前判断的反向证据。
 
-### 4.1 Batch 只是执行容器，不是比较组
+### 4.1 Batch 只是执行容器
 
-Stage B 为了降低工具调用和上下文负担，可以把 `deep_read_codes` 切成多个 execution batch；**batch 只具有执行意义，不具有任何投资比较、配额或淘汰意义。**
-
-每家公司的 `confirmed / waiting / research_uncertain / excluded` 必须是基于**该公司自身证据和适用于该业务的分析逻辑形成的绝对判断**，不得因为同一 batch 中存在更优秀的公司而被降级。
+Stage B 可以为了降低工具调用和上下文负担，把 `deep_read_codes` 切成 execution batch；**Batch 只具有执行意义，不具有投资比较、配额、排名或淘汰意义。**
 
 明确禁止：
 
-- 每个 batch 只保留 1 家、2 家或固定数量的 `confirmed`；
-- 在 batch 内做 Top1 / Top2 / Top N；
-- 因为“本批已经有足够好的公司”而把其他满足条件的公司改成 `waiting` 或 `research_uncertain`；
-- 把 batch 内相对排名作为公司状态依据；
-- 把 execution batch 当成同行组、Risk Cluster 或正式榜席位分组。
+- 每个 Batch 只保留固定数量公司；
+- Batch 内 Top1 / Top2 / Top N；
+- 因为本批已有若干优质公司，把其他满足条件公司降为 `waiting` 或 `research_uncertain`；
+- 把 Batch 相对排名作为公司状态依据；
+- 把 Batch 当成同行组、Risk Cluster 或正式榜席位组。
 
-允许出现任何自然分布，例如：
-
-- 同一 batch 多家公司全部 `confirmed`；
-- 同一 batch 没有任何 `confirmed`；
-- 同一申万三级行业有多家公司同时满足最终低风险条件；
-- 不同行业但恰好处于同一 batch 的公司分别使用适合自身业务的判断逻辑。
-
-申万三级行业、真实主营和共享主导变量可以帮助复用行业证据、理解公司背景，但**不得形成 batch 配额**。跨公司去相关只允许在 Deep Research coverage COMPLETE 后由 Risk Cluster Consolidation 执行。
+同一 Batch 可以全部满足条件，也可以一个都不满足。申万三级行业、真实主营和共享主导变量只用于理解背景和复用行业证据，不产生 Batch 配额。
 
 判断纪律：
 
-> **公司状态由公司自己的证据决定；Batch 只决定“这一轮一起处理谁”，不决定“这一轮留下谁”。**
+> **公司状态由公司自己的证据决定；Batch 只决定一起处理谁，不决定留下谁。**
 
-如果申万三级行业内实际业务不可比，应在 Deep Research 后按真实主营、盈利驱动和利润来源重新理解可比关系。
+如果申万三级行业内实际业务不可比，应按真实主营、盈利驱动和利润来源理解公司，而不是强行用同一分析框架。
 
-单公司资料不足只影响该公司，标记 `research_uncertain` 或 `waiting`，不得改变其他公司的研究范围。
+Deep Research 的目标是穷尽冻结后的 `deep_read_codes`，不是找到足够多可以出榜的公司。
 
-Deep Research 的任务目标是**穷尽冻结后的 `deep_read_codes`**，不是“找到足够多可以出榜的公司”。已经发现若干 `confirmed` 公司、已经存在足够多看起来可发布的机会、或预计最终榜数量已经足够，都不得作为提前停止研究的理由。
+### 4.2 公司研究结论与入场时机必须分开
+
+这是 Deep Research 的核心语义边界。
+
+模型必须先回答：
+
+> **这家公司的研究逻辑是否成立？**
+
+再回答：
+
+> **当前价格是否已经进入低风险参与条件？**
+
+不得把“研究是否成立”和“现在能不能买”混成一个相对排名。
+
+现有四个终态严格定义为：
+
+#### `confirmed`
+
+同时满足：
+
+1. 公司研究逻辑已有足够证据支持；
+2. 正常化盈利、盈利质量和主要风险可以可靠解释；
+3. 当前价格、最终安全边际、保守上行空间和参与时机已经满足本轮低风险参与条件。
+
+语义：
+
+> `research_supported + entry_ready`
+
+#### `waiting` / `waiting_for_entry`
+
+公司研究逻辑已有足够证据支持，但当前价格、安全边际、保守上行空间或参与时机尚未满足低风险入场条件。
+
+语义：
+
+> `research_supported + not_entry_ready`
+
+`waiting` 不是研究失败，也不是“同批已有更好的公司”。只要研究逻辑成立但当前不适合买入，就应使用 `waiting`。
+
+#### `research_uncertain`
+
+研究证据本身不足、关键来源冲突、周期正常化无法可靠判断、真实业务或关键事实无法验证。
+
+不能仅因为当前价格暂时不好而使用 `research_uncertain`；价格或时机不合适但研究逻辑成立，应使用 `waiting`。
+
+#### `excluded`
+
+公司级研究已经出现足以否定投资逻辑的实质问题，例如基本面明显恶化、盈利逻辑被反证、正常化估值失去合理性或关键风险使其不再符合研究目标。
+
+不能仅因为当前价格不合适而 `excluded`。
+
+### 4.3 派生研究集合
+
+必须派生：
+
+```text
+research_supported_codes = confirmed_codes ∪ waiting_for_entry_codes
+research_supported_count = confirmed_count + waiting_for_entry_count
+entry_ready_codes = confirmed_codes
+entry_ready_count = confirmed_count
+```
+
+必须明确区分：
+
+- `research_supported_count`：有多少家公司研究逻辑成立；
+- `entry_ready_count`：其中多少家公司当前就是低风险买点。
+
+不得把 `waiting_for_entry` 表述为研究未确认、研究失败或被淘汰。
+
+如果多家公司同时 `entry_ready`，它们必须全部先保留为 `confirmed`，不论是否属于同一行业、同一 Batch 或未来同一 Risk Cluster。
 
 ---
 
 ## 5. 最终估值与低风险安全区
 
-程序 Structure Filter 只表示：
-
-> **当前价格结构值得研究。**
-
-它不是最终价值底，也不能直接复制成 `low_risk_buy_range`。
+程序 Structure Filter 只表示当前价格结构值得研究，不是最终价值底，也不能直接复制成 `low_risk_buy_range`。
 
 Deep Research 后尽量形成：
 
@@ -268,67 +281,50 @@ Deep Research 后尽量形成：
 
 ---
 
-## 6. Risk Cluster Consolidation｜最终独立机会归并
+## 6. Risk Cluster Consolidation｜发布层去相关
 
-这一阶段只在 **Deep Research coverage = COMPLETE 且公司级估值完成后**执行。
+这一阶段只在 Deep Research coverage = COMPLETE 且公司级估值完成后执行。
 
-如果 coverage 为 `INCOMPLETE` 或 `UNVERIFIED`，不得生成正式独立机会榜，也不得拿已经研究完成的子集做临时 Top N；只能报告研究未闭合、已完成集合与剩余集合。
+目标不是减少研究，而是避免正式榜把同一个共同风险因子重复展示成多个独立机会。
 
-目标不是减少研究，而是避免正式榜把一个共同风险因子重复展示成多个独立机会。
+### 6.1 归簇依据
 
-### 6.1 什么情况下归为同一 risk cluster
-
-不能按申万行业代码机械归并。
-
-判断两家公司是否属于同一风险簇，主要看 Deep Research 已确认的：
+不能按申万行业代码机械归并。主要看 Deep Research 已确认的：
 
 - `primary_profit_driver` 是否高度重合；
 - 主要上涨催化是否由同一个关键变量驱动；
 - 最重要的反向风险是否会由同一个关键变量同时触发。
 
-如果这些核心因果关系高度重合，应归入同一个 `risk_cluster`。
+如果核心因果关系高度重合，应归入同一 `risk_cluster`。
 
-例如多家券商如果主要都依赖：
-
-> 市场成交活跃度 → 经纪 / 两融 / 自营 / 投行业务改善 → 券商业绩与估值修复
-
-则它们应被视为一个“券商 / 市场活跃度”风险簇，而不是多个完全独立机会。
-
-### 6.2 什么情况下不能强行归并
-
-以下情况不得仅因为“同行业”而合并：
+以下情况不得仅因同行业而强行合并：
 
 - 主营和利润来源明显不同；
 - 一个主要赚周期价格，一个主要赚加工费或服务费；
 - 核心催化不同；
-- 最主要的下行风险不同；
-- 公司特有事件足以成为独立投资逻辑。
+- 最主要下行风险不同；
+- 公司特有事件足以形成独立投资逻辑。
 
-同样，不同行业的公司如果实际高度依赖同一个主导变量，也可以归入同一风险簇。
+不同行业公司如果高度依赖同一个主导变量，也可以归入同一风险簇。
 
-### 6.3 正式榜席位
+### 6.2 Risk Cluster 只处理 entry-ready 机会
 
-同一 `risk_cluster` **默认只占一个正式榜单席位**。
+Risk Cluster Consolidation 只对 `entry_ready_codes`，即公司级 `confirmed` 机会做发布层去相关。
 
-其余已完成研究、仍具投资价值的公司不删除、不降格为“研究失败”，而作为：
+如果同一风险簇有多家公司都 `confirmed`：
 
-`alternative_candidates`
+1. 所有公司仍保持 `confirmed`；
+2. 不得为了让一个风险簇只剩一个 confirmed 而提前把其他公司降为 `waiting`；
+3. 正式榜默认选择一个 `representative_code`；
+4. 其余已确认公司保留为 `alternative_codes` / `alternative_candidates`。
 
-保留。
-
-组内代表公司 `representative_code` 仍沿用既有最终优先级，不新增综合评分：
+组内代表优先级不新增综合评分，沿用：
 
 > **最终安全边际 → 保守上行空间 → 基本面稳定性 → 参与时机**
 
-如果同一风险簇内部没有明显优胜者，应明确说明“代表仅用于榜单去重”，并保留其他替代候选的差异化优势。
+如果没有明显优胜者，应说明代表仅用于榜单去重，并保留替代候选差异化优势。
 
-### 6.4 允许同一行业多个正式席位的条件
-
-同一行业多家公司只有在 Deep Research 已经证明它们的主导盈利驱动和主要风险暴露**实质不同**时，才允许分别占正式榜单席位。
-
-此时必须给出简短 `independence_rationale`，说明为什么不是同一交易逻辑。
-
-### 6.5 风险簇输出
+同一行业多家公司若主导盈利驱动和主要风险暴露实质不同，可以分别占正式榜席位，并给出 `independence_rationale`。
 
 每个正式机会至少保留：
 
@@ -338,7 +334,7 @@ Deep Research 后尽量形成：
 - `alternative_codes`
 - `cluster_rationale`
 
-正式榜排名的对象从“股票数量”改为：
+正式榜排名对象是：
 
 > **独立风险收益机会。**
 
@@ -346,45 +342,45 @@ Deep Research 后尽量形成：
 
 ## 7. 趋势与市场风险
 
-趋势主要回答：
-
-> **什么时候参与。**
-
-不是回答：
-
-> **公司是否值得研究。**
+趋势回答什么时候参与，不回答公司是否值得研究。
 
 因此：
 
 - `transition` / `bearish` 不得单独淘汰公司；
-- 市场 `high risk` 不得缩小 Structured Screening 或 Deep Research 的既定覆盖范围；
-- 市场风险只能让最终估值与行动更保守、更倾向等待；
-- 在 coverage 已经 COMPLETE 的前提下，正式机会集合可以自然减少甚至为空。
+- 市场 `high risk` 不得缩小 Structured Screening 或 Deep Research 覆盖；
+- 市场风险只能让最终估值与行动更保守、更倾向 `waiting_for_entry`；
+- coverage COMPLETE 前不得生成正式榜；
+- coverage COMPLETE 后正式机会集合可以自然减少甚至为空。
 
 ---
 
 ## 8. 最终状态与排序
 
-Deep Research 后公司仍按公司级进入：
+Deep Research 后公司状态为：
 
-- `confirmed`
-- `waiting`
-- `research_uncertain`
-- `excluded`
+- `confirmed`：研究成立且当前 entry-ready；
+- `waiting`：研究成立但等待低风险入场；
+- `research_uncertain`：研究证据不足或冲突；
+- `excluded`：研究逻辑被实质否定。
 
-Risk Cluster Consolidation 不修改这些公司研究状态，只改变正式榜如何表达相互高度相关的 `confirmed` 机会。
+Risk Cluster 不修改这些公司级状态，只改变正式榜如何表达相互高度相关的 `confirmed` 机会。
+
+正式输出必须同时报告：
+
+- `confirmed_count`
+- `waiting_for_entry_count`
+- `research_uncertain_count`
+- `excluded_count`
+- `research_supported_count = confirmed + waiting_for_entry`
+- `entry_ready_count = confirmed`
 
 正式机会榜优先级：
 
 > **最终安全边际 → 保守上行空间 → 基本面稳定性 → 参与时机**
 
-正式机会榜**不设目标数量，也不设固定数量上限**。在 Deep Research coverage = COMPLETE 后，所有满足最终低风险条件、经 Risk Cluster Consolidation 后仍属于独立风险收益机会的结果都进入正式机会集合；数量由当轮事实自然产生，可以为 0，也可以超过 10。
+正式机会榜不设目标数量，也不设固定数量上限。所有满足最终低风险条件、经 Risk Cluster Consolidation 后仍属于独立风险收益机会的结果都进入正式机会集合；数量由事实自然产生，可以为 0，也可以超过 10。
 
-排名只表示机会优先级，不作为研究停止条件，也不以第 N 名为截断条件。
-
-每个正式机会默认一个代表公司，并可列同风险簇替代候选。
-
-最终排名和风险簇归并不得反向改变此前研究范围或 Deep Research coverage。
+排名只表示机会优先级，不作为研究停止条件，也不以第 N 名截断。
 
 ---
 
@@ -398,16 +394,18 @@ Risk Cluster Consolidation 不修改这些公司研究状态，只改变正式�
 
 > **研究层防漏，发布层去相关。**
 
+> **Batch 只用于执行分包，不用于投资比较、配额或组内淘汰。**
+
+> **研究逻辑成立与当前是否可买必须分开；waiting_for_entry 属于 research_supported。**
+
+> **同一 Risk Cluster 可以有多家公司同时 confirmed；Risk Cluster 只能在之后选择代表，不得反向降级公司状态。**
+
 > **任务完成的定义是冻结研究集合全部得到公司级研究结论，不是找到足够多可以出榜的公司。**
 
 > **Deep Research coverage 未 COMPLETE 时，不生成正式独立机会榜。**
 
-> **研究层允许相关公司完整保留；正式行动榜再做风险因子去重。**
-
-> **Batch 只用于执行分包，不用于投资比较、配额或组内淘汰；满足条件的公司可以在同一 Batch 中全部保留。**
-
 > **正式机会集合不设 Top N、目标数量或固定上限。**
 
-> **不使用综合评分、Top N 或市场风险截断来替代完整研究。**
+> **不使用综合评分、Top N 或市场风险截断替代完整研究。**
 
 > **结构硬筛是研究准入，不是最终价值底。**
