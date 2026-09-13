@@ -10,7 +10,7 @@
 
 > **先看还能跌多少，再看能涨多少。**
 
-本文件只定义**模型需要做的判断**。确定性筛选、结构硬规则、数据校验、文件读取和覆盖审计不在这里重复定义；以同一 SHA 下的程序输出、`meta.json` 和 `RUNTIME_READ_PROTOCOL.md` 为准。
+本文件只定义**模型需要做的判断**。确定性筛选、结构硬规则、数据校验、文件读取、阶段交接和覆盖审计不在这里重复定义；以程序输出、`meta.json` 和 `RUNTIME_READ_PROTOCOL.md` 为准。
 
 ---
 
@@ -32,19 +32,21 @@
 
 > `percentage_points`：`12.4` 表示 `12.4%`。
 
-模型主要负责两层研究判断，并在完整研究闭环后做一次机会归并：
+模型主要负责两层判断，并在完整研究闭环后做一次机会归并：
 
-1. **Pre-Research Screening**：不联网，用结构化事实判断谁值得占用 Deep Research 预算；
-2. **Deep Research**：只研究冻结后的 `deep_read_codes`，确认真实业务、盈利驱动、周期、盈利质量、估值和最终安全边际；
-3. **Risk Cluster Consolidation**：只有 Deep Research coverage 已完整闭合后，才把高度依赖同一主导风险因子的公司归并为一个独立风险收益机会，避免正式榜重复表达同一交易逻辑。
+1. **Structured Screening / Model Prescreen**：只使用锁定 GitHub runtime 中的结构化事实，判断同行支配和公司绝对质量；不得引入公司级外部公开资料；
+2. **Deep Research**：只研究冻结后的 `deep_read_codes`，引入公开资料确认真实业务、盈利驱动、周期、盈利质量、估值和最终安全边际；
+3. **Risk Cluster Consolidation**：只有 Deep Research coverage 已完整闭合后，才把高度依赖同一主导风险因子的公司归并为一个独立风险收益机会。
 
 第三步只影响最终榜单表达，不得反向减少前两步的研究覆盖。
 
 ---
 
-## 3. Pre-Research Screening
+## 3. Structured Screening / Model Prescreen
 
-这一阶段只读取程序准备好的 `screening_groups`，**禁止联网**。
+这一层只使用程序准备好的 `screening_groups` 及同一锁定 runtime 下允许的仓库结构化事实。
+
+**Repository-only 的含义不是“不能访问 GitHub”，而是信息集只能来自锁定的仓库 runtime；在完整 Ledger 冻结前，不得搜索或读取公司官网、公告、新闻、研报、搜索引擎结果、行业网站等公司级外部公开资料。**
 
 在每个申万三级行业组内固定按以下顺序判断：
 
@@ -101,19 +103,19 @@
 
 ### 3.3 禁止事项
 
-Pre-Research Screening 禁止：
+Structured Screening / Model Prescreen 禁止：
 
 - 综合加权总分；
 - 全市场 Top N；
 - 每组机械 Top1 / Top2；
 - 单指标一票淘汰；
 - 为了压缩 Deep Research 数量而调判断标准；
-- 边筛选边联网；
+- 在完整 Ledger 冻结前引入公司级外部公开资料；
 - 找到几只好公司后停止处理剩余候选。
 
 该阶段的目标不是选出“最好公司”，而是：
 
-> **低成本排除已经可以明确排除的公司，把真正需要认知判断的复杂度留给 Deep Research。**
+> **低成本排除已经可以由现有结构化事实明确排除的公司，把真正需要新增外部证据的复杂度留给 Deep Research。**
 
 ---
 
@@ -271,7 +273,7 @@ Deep Research 后尽量形成：
 因此：
 
 - `transition` / `bearish` 不得单独淘汰公司；
-- 市场 `high risk` 不得缩小 Pre-Research 或 Deep Research 的既定覆盖范围；
+- 市场 `high risk` 不得缩小 Structured Screening 或 Deep Research 的既定覆盖范围；
 - 市场风险只能让最终估值与行动更保守、更倾向等待；
 - 在 coverage 已经 COMPLETE 的前提下，正式机会集合可以自然减少甚至为空。
 
@@ -306,7 +308,7 @@ Risk Cluster Consolidation 不修改这些公司研究状态，只改变正式�
 
 > **程序负责事实和资格，模型负责关系和解释。**
 
-> **Pre-Research Screening 不联网；Deep Research 只研究冻结集合。**
+> **Structured Screening 只使用锁定 GitHub runtime；Deep Research 才引入公司级外部公开资料。**
 
 > **任务完成的定义是冻结研究集合全部得到公司级研究结论，不是找到足够多可以出榜的公司。**
 
