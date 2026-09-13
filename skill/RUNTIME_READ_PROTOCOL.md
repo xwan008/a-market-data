@@ -517,9 +517,11 @@ Stage B 的公司级结论保存在**本次执行上下文**中，不写入供�
 只有一家公司在**本次 invocation**完成足够公开资料核验、可以形成以下终态之一，才计入本轮 actual：
 
 - `confirmed`
-- `waiting`
+- `waiting_for_entry`
 - `research_uncertain`
 - `excluded`
+
+`waiting` 只作为历史结果的 legacy alias；新运行统一输出 `waiting_for_entry`。
 
 每家公司本轮至少形成：
 
@@ -540,9 +542,18 @@ Stage B 的公司级结论保存在**本次执行上下文**中，不写入供�
 
 为了在一次触发内完成全部 expected，Stage B 必须采用**批量优先、覆盖优先**的研究方式，而不是一家公司一次搜索、一家公司一次工具调用的完全串行方式。
 
+Stage B execution batch 固定为：
+
+```text
+batch_size = 12 companies
+order = frozen deep_read_codes 的既定顺序
+```
+
+最后一批可以少于 12 家。不得根据行业、真实业务、共享主导变量、候选质量或预期结论重新排序或重组 execution batch。行业、真实主营和共享主导变量只用于选择分析框架与复用公共证据，不改变 batch 边界。
+
 执行要求：
 
-1. 先按行业、真实业务或可能共享的主导变量组织 expected research queue；
+1. 严格保持上述 frozen 顺序与固定 batch 边界；
 2. 同一工具调用中尽可能批量发起多个独立公司查询；
 3. 公司自己的最新财报 / 业绩公告 / 交易所披露必须逐公司确认；
 4. 同行业或同主导变量的公共行业证据可以一次获取后映射到多家公司，避免重复搜索；
@@ -639,7 +650,7 @@ deep_research_coverage == COMPLETE
 
 - 不改变 `deep_read_codes`；
 - 不改变 `actual_deep_researched_codes`；
-- 不改变公司级 confirmed / waiting / research_uncertain / excluded；
+- 不改变公司级 confirmed / waiting_for_entry / research_uncertain / excluded；
 - 正式榜排名对象是独立风险收益机会；
 - 同一风险簇默认一个 representative_code；
 - 同簇其他有价值公司保留为 alternative_codes；
@@ -682,7 +693,7 @@ Risk Cluster 是发布层去相关，不是研究层淘汰。
 - `actual_deep_researched_count`
 - `deep_research_coverage`
 - `company_confirmed_count`
-- `waiting_count`
+- `waiting_for_entry_count`
 - `research_uncertain_count`
 - `excluded_count`
 - `actual_deep_researched_codes`
@@ -701,7 +712,6 @@ Risk Cluster 是发布层去相关，不是研究层淘汰。
 
 - `risk_cluster_count`
 - `formal_opportunity_count`
-- `final_recommendation_count`
 - `formal_representative_codes`
 - `risk_cluster_map`
 - `independence_rationale`
