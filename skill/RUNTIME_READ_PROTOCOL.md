@@ -15,8 +15,13 @@
 ↓
 锁定当前正式 runtime / Protocol / Skill
 ↓
+完整消费 screening_group_file
+↓
 Stage A｜Structured Screening
 repository-only
+按完整申万三级行业组做同一 invocation 内批处理
+↓
+109/109（或当轮 candidate_count/candidate_count）
 ↓
 research/pre_research_ledger.json
 status = FROZEN
@@ -43,11 +48,14 @@ Risk Cluster Consolidation
 
 - **每次触发都从 Stage A 开始。**不得读取上一轮 FROZEN Ledger 作为本轮 Stage A 结果；
 - Stage A 不做公司级外部 Deep Research；
+- Stage A execution batch 只用于降低单次模型负担，不得改变同行比较语义、判断标准或候选全集；
+- Stage A 的申万三级行业组不可拆分到不同 execution batch；
+- Stage A 部分批次结果不得写成 FROZEN Ledger，也不得供下一次 invocation 续跑；
 - Stage B 不重新做 PEER_DOMINATED / CLEARLY_WEAK / PASS / UNCERTAIN；
 - Stage B 不得修改本轮 frozen `deep_read_codes`；
 - **Stage B 研究结果只属于当前 invocation，不建立跨 invocation 的 Deep Research checkpoint，不读取上一轮公司研究结果续跑；**
 - 本次触发只有两种结束：`COMPLETE + 正式榜`，或 `FAILED/INCOMPLETE + 无正式榜`；
-- “本轮研究到 40/91、下次继续 51 家”不是合法正常执行模式。
+- “Stage A 本轮处理一部分、下次继续”以及“Deep Research 本轮研究一部分、下次继续”都不是合法正常执行模式。
 
 ---
 
@@ -73,10 +81,12 @@ Risk Cluster Consolidation
 
 它不是跨轮缓存。下一次任务触发必须先生成新的 `run_id`，把该文件写成新的 `BUILDING`，使上一轮 FROZEN 结果立即失效。
 
-### 2.3 明确不存在 Stage B 续存入口
+### 2.3 明确不存在 Stage A / Stage B 跨轮续存入口
 
 当前正式运行**不存在**以下机制：
 
+- Stage A partial ledger 跨 invocation 恢复
+- 上一轮 Stage A 已处理公司跳过本轮判断
 - `research/deep_research_ledger.json`
 - `resume_stage_b`
 - `parent_run_id`
@@ -84,7 +94,7 @@ Risk Cluster Consolidation
 - 上一轮 `company_results` 自动复用
 - 上一轮已研究公司跳过本轮研究
 
-任何历史 Deep Research 结果、旧榜单、旧公司研究结论只能人工复盘，不得作为本轮事实输入。
+任何历史 Stage A / Deep Research 结果、旧榜单、旧公司研究结论只能人工复盘，不得作为本轮事实输入。
 
 ---
 
@@ -120,7 +130,7 @@ Runtime Hard Gate 任一失败则停止：
 - screening group 与 candidate 股票全集不一致
 - YoY 单位不是 `percentage_points`
 
-### 3.1 screening_group Consumer Contract
+### 3.1 screening_group Consumer Contract｜固定区间读取
 
 `screening_group_file` 是 Stage A 唯一正式模型工作视图。
 
@@ -130,7 +140,38 @@ Runtime Hard Gate 任一失败则停止：
 - `meta.screening_group_serialization.line_count` 定义完整行数；
 - `screening_group_validation.line_addressable == true` 表示允许按行区间读取。
 
-如果一次整文件响应被接口截断，不得直接判定输入不可读；必须按有界行区间连续读取，直到覆盖 `1..line_count` 全部行并完整解析 JSON。
+当 `line_addressable == true` 时，正式消费路径**不得依赖一次整文件响应是否完整**。必须直接按固定区间读取：
+
+```text
+chunk_size = 80 lines
+range_1 = 1..80
+range_2 = 81..160
+...
+range_n = ...line_count
+```
+
+例如 `line_count = 646` 时，正式读取计划固定为：
+
+```text
+1..80
+81..160
+161..240
+241..320
+321..400
+401..480
+481..560
+561..640
+641..646
+```
+
+要求：
+
+1. 每个区间必须显式使用 `start_line / end_line`；
+2. 必须覆盖 `1..line_count`，不得有 gap；
+3. 不得重复区间来替代缺失区间；
+4. 全部区间读取完成后才能开始 Stage A 判断；
+5. 如果某个有界区间本身读取失败，应对**该区间**重试；只有有界区间持续不可读或连接器明确报错，才允许判定输入读取失败；
+6. 一次整文件响应截断本身不是失败理由，也不得触发 STOPPED_EARLY。
 
 不得用 `candidate_file` 或部分 screening groups 替代未读取部分。只有完整覆盖全部 candidate member rows 后才能开始 Stage A 判断。
 
@@ -218,16 +259,115 @@ external_company_research_before_freeze = true
 
 本轮 Ledger 必须 FAILED / 非 FROZEN，Deep Research coverage = UNVERIFIED，停止整轮。
 
-### 5.4 完成全部 Model Prescreen
+### 5.4 Stage A｜完整行业组原子化批处理
 
 严格按 `SKILL.md` 对全部候选完成：
 
 1. PEER_DOMINATED；
 2. 未被支配者再进入 CLEARLY_WEAK / PASS_TO_DEEP_RESEARCH / UNCERTAIN。
 
-每只候选必须恰好一个 `ledger_entry`。不得因为已有足够候选、想减少后续研究量、或预计正式榜已足够而停止。
+为了避免一次性对全部候选做单块模型判断，Stage A 必须在**同一次 invocation 内**采用 execution batch，但批次只能解决执行负担，不能改变投资语义。
+
+#### 5.4.1 批次原子单位
+
+Stage A 的最小不可拆分单位是：
+
+```text
+一个完整申万三级行业 screening group
+```
+
+同一 screening group 的所有候选必须在同一个 Stage A batch 中一起判断，禁止把同组候选拆到不同 batch，否则无法形成合法的 PEER_DOMINATED 同行判断。
+
+#### 5.4.2 确定性打包规则
+
+按 `screening_group_file` 中 groups 的原始顺序遍历，使用：
+
+```text
+target_batch_candidate_count = 20
+```
+
+确定性构建批次：
+
+1. 当前 batch 为空时，直接加入下一个完整 screening group；
+2. 当前 batch 非空，若加入下一个完整 group 后候选数将 `> 20`，先关闭当前 batch，再从该 group 开启下一 batch；
+3. screening group 永远不拆分；
+4. 如果未来出现单一 group 自身 `> 20`，仍以 group 完整性优先，该 group 单独构成一个 batch；
+5. 不得根据候选质量、行业偏好、预期结果或模型主观判断调整 batch 边界。
+
+因此 batch 是由正式输入顺序和 group size 唯一确定的执行容器。
+
+#### 5.4.3 每批处理要求
+
+每个 Stage A batch 必须：
+
+1. 对 batch 内每个完整 screening group 按 `SKILL.md` 完成同行支配判断；
+2. 对未被支配公司完成绝对质量判断；
+3. 为 batch 内每只候选形成且仅形成一个临时 `ledger_entry`；
+4. batch 内不得 Top N、不得配额、不得因为本批已有足够 PASS/UNCERTAIN 就降低其他公司状态；
+5. batch 完成后立即进入下一 batch，不得主动结束本轮。
+
+批次完成结果仅存在于**当前 invocation 内存**。不得把部分 `ledger_entries` 写入正式 FROZEN Ledger，也不得创建可供下一次 invocation 恢复的 Stage A checkpoint。
+
+#### 5.4.4 Stage A 完成硬门
+
+只有所有 Stage A batches 完成，并满足：
+
+```text
+stage_a_processed_count == candidate_count
+```
+
+且：
+
+```text
+unique(stage_a_processed_codes) == candidate_codes
+```
+
+且每只候选恰好一个 `ledger_entry`，才允许进入 FROZEN 写入。
+
+随后一次性从全部临时 entries 派生：
+
+- `peer_dominated_codes`
+- `clearly_weak_codes`
+- `pass_to_deep_research_codes`
+- `uncertain_codes`
+- `deep_read_codes`
+
+不得因为已有足够候选、想减少后续研究量、或预计正式榜已足够而停止。
 
 PEER_DOMINATED 只能表达严格公司级支配，不得承担行业去重或 Risk Cluster 职责。
+
+如果同一 invocation 在 Stage A 全覆盖前结束，则本轮 Stage A = FAILED；不得冻结部分 Ledger，不得在下一轮复用已完成 batch。
+
+### 5.5 Stage A Diagnostic Probe
+
+`research/last_execution_probe.json` 是 diagnostic-only telemetry，不是正式输入，不得用于续跑或恢复任何 Stage A 结果。
+
+进入 Stage A 后至少记录：
+
+- `phase = "STAGE_A_MODEL_PRESCREEN"`
+- `stage_a_expected_count = candidate_count`
+- `stage_a_processed_count`
+- `stage_a_batch_index`
+- `stage_a_batch_count`
+- `stage_a_current_group_codes`
+- `stage_a_last_completed_group`
+- `stage_a_last_completed_code`
+- `tool_error`
+
+规则：
+
+1. 每个 Stage A batch 开始前更新 `stage_a_batch_index` 与当前 group 范围；
+2. 每个 batch 完成后更新累计 `stage_a_processed_count`、last completed group/code，然后立即进入下一 batch；
+3. 这些字段只记录进度，不保存部分公司判断结果；
+4. 如果模型在无真实工具/系统错误时、`stage_a_processed_count < stage_a_expected_count` 主动结束，probe 必须写：
+
+```text
+status = STOPPED_EARLY
+termination_reason = MODEL_TERMINATED_BEFORE_STAGE_A_COVERAGE
+```
+
+5. 如果发生可观察的工具错误，写 `TOOL_ERROR` 与具体 `tool_error`；
+6. 如果系统硬中止且来不及写最终失败状态，probe 可能停留 `RUNNING` 且 `stage_a_processed_count < stage_a_expected_count`，仅用于人工诊断，下一次仍必须从新 Stage A 开始。
 
 ---
 
@@ -518,6 +658,11 @@ Risk Cluster 是发布层去相关，不是研究层淘汰。
 - `uncertain_prescreen_count`
 - `deep_research_candidate_count`
 - `ledger_entries_count`
+- `stage_a_expected_count`
+- `stage_a_processed_count`
+- `stage_a_batch_index`
+- `stage_a_batch_count`
+- `stage_a_last_completed_group`
 - `stage_a_information_boundary`
 - `ledger_status`
 - `ledger_validation`
@@ -565,6 +710,7 @@ Risk Cluster 是发布层去相关，不是研究层淘汰。
 
 - 改变程序候选全集；
 - 跳过 Structured Screening；
+- 修改 Stage A batch 边界；
 - 修改 frozen `deep_read_codes`；
 - 修改 Stage B expected；
 - 成为 coverage 不完整的理由；
@@ -574,9 +720,15 @@ Risk Cluster 是发布层去相关，不是研究层淘汰。
 
 ## 13. 执行原则
 
-> **每次任务触发都是一个全新、一步到位的完整事务；不得跨 invocation 续跑公司研究。**
+> **每次任务触发都是一个全新、一步到位的完整事务；不得跨 invocation 续跑 Stage A 或公司研究。**
 
 > **每次触发都从新的 Stage A 开始，上一轮 FROZEN Ledger 不得直接复用。**
+
+> **screening_group_file 使用确定性的有界行区间完整消费，不把整文件截断交给模型自由解释。**
+
+> **Stage A 按完整申万三级行业组原子化分批；batch 只降低执行负担，不改变同行比较、公司状态或候选全集。**
+
+> **Stage A 只有当 processed == candidate_count 时才允许一次性 FROZEN；部分 batch 不形成正式 Ledger，也不供下一轮恢复。**
 
 > **Stage A 只做 repository-only Structured Screening；FROZEN 并回读验证之前不得使用公司级外部公开资料。**
 
