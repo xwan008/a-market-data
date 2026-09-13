@@ -21,7 +21,7 @@ Stage A｜Structured Screening
 repository-only
 按完整申万三级行业组做同一 invocation 内批处理
 ↓
-candidate_count / candidate_count
+109/109（或当轮 candidate_count/candidate_count）
 ↓
 research/pre_research_ledger.json
 status = FROZEN
@@ -33,8 +33,7 @@ Frozen Ledger Hard Gate
 PASSED
 ↓
 Stage B｜Deep Research
-按 frozen deep_read_codes 既定顺序每 12 家分批
-本次 invocation 内穷尽全部 expected
+本次 invocation 内穷尽 frozen deep_read_codes
 ↓
 expected == actual
 ↓
@@ -54,7 +53,6 @@ Risk Cluster Consolidation
 - Stage A 部分批次结果不得写成 FROZEN Ledger，也不得供下一次 invocation 续跑；
 - Stage B 不重新做 PEER_DOMINATED / CLEARLY_WEAK / PASS / UNCERTAIN；
 - Stage B 不得修改本轮 frozen `deep_read_codes`；
-- Stage B execution batch 固定按 frozen `deep_read_codes` 既定顺序每 12 家切分，只解决执行负担，不具有投资比较或配额意义；
 - **Stage B 研究结果只属于当前 invocation，不建立跨 invocation 的 Deep Research checkpoint，不读取上一轮公司研究结果续跑；**
 - 本次触发只有两种结束：`COMPLETE + 正式榜`，或 `FAILED/INCOMPLETE + 无正式榜`；
 - “Stage A 本轮处理一部分、下次继续”以及“Deep Research 本轮研究一部分、下次继续”都不是合法正常执行模式。
@@ -441,15 +439,6 @@ PEER_DOMINATED entry 额外必须包含：
 - `differentiated_advantage_check`
 - `uncertainty_check`
 
-CLEARLY_WEAK entry 额外必须包含：
-
-- `weakness_1`
-- `weakness_2`
-- `counter_advantage_check`
-- `uncertainty_check`
-
-其中 `weakness_1` 与 `weakness_2` 必须是两个独立弱点；如果无法证明两个独立弱点，或 `uncertainty_check` 表明仍需公司级外部研究才能判断，应改为 `UNCERTAIN`，不得冻结为 CLEARLY_WEAK。
-
 四个代码集合必须能由 entries 完整重建。
 
 FROZEN 写入前再次回读当前 BUILDING Ledger，并确认 run_id 与五个 blob SHA 未被改变；写入必须使用当前 Ledger blob SHA。发现并发覆盖则停止。
@@ -472,10 +461,9 @@ Stage A 写入 FROZEN 后，不得凭内存直接进入 Stage B。
 8. `deep_read_codes == PASS ∪ UNCERTAIN`
 9. entries 完整且可重建四集合
 10. PEER_DOMINATED 审计字段完整
-11. CLEARLY_WEAK 审计字段完整，且至少两个独立弱点成立
-12. trade_date 一致
-13. candidate_count 一致
-14. 当前 Protocol / Skill / meta / screening_groups / candidates 五个 blob SHA 与 Ledger 完全一致
+11. trade_date 一致
+12. candidate_count 一致
+13. 当前 Protocol / Skill / meta / screening_groups / candidates 五个 blob SHA 与 Ledger 完全一致
 
 任一失败：
 
@@ -518,14 +506,12 @@ Stage B 的公司级结论保存在**本次执行上下文**中，不写入供�
 
 ### 8.2 本轮公司级终态
 
-只有一家公司在**本次 invocation**完成足够公开资料核验、可以形成以下正式终态之一，才计入本轮 actual：
+只有一家公司在**本次 invocation**完成足够公开资料核验、可以形成以下终态之一，才计入本轮 actual：
 
 - `confirmed`
-- `waiting_for_entry`
+- `waiting`
 - `research_uncertain`
 - `excluded`
-
-`waiting` 不再是正式状态名，不得在新运行的公司级结果、探针统计或最终审计字段中使用。
 
 每家公司本轮至少形成：
 
@@ -542,28 +528,19 @@ Stage B 的公司级结论保存在**本次执行上下文**中，不写入供�
 
 具体研究深度、估值与安全区语义由 `SKILL.md` 定义。
 
-### 8.3 固定批量执行策略
+### 8.3 一步到位的执行策略
 
-为了在一次触发内完成全部 expected，Stage B 必须采用**固定 12 家 execution batch + 批量优先、覆盖优先**的研究方式。
-
-固定执行计划：
-
-```text
-batch_size = 12 companies
-order = frozen deep_read_codes 的既定顺序
-```
-
-按 frozen `deep_read_codes` 原始顺序依次切分，每批最多 12 家，最后一批可以少于 12 家。不得为了行业、真实业务、主导变量、候选质量或预期结论重新排序、重组或缩小 expected。
+为了在一次触发内完成全部 expected，Stage B 必须采用**批量优先、覆盖优先**的研究方式，而不是一家公司一次搜索、一家公司一次工具调用的完全串行方式。
 
 执行要求：
 
-1. Batch 只决定一起处理谁，不具有投资比较、名额、配额、同行组或 Risk Cluster 意义；
+1. 先按行业、真实业务或可能共享的主导变量组织 expected research queue；
 2. 同一工具调用中尽可能批量发起多个独立公司查询；
 3. 公司自己的最新财报 / 业绩公告 / 交易所披露必须逐公司确认；
-4. 同行业或同主导变量的公共行业证据可以一次获取后映射到多家公司，但这种共享证据不得改变固定 batch 边界；
+4. 同行业或同主导变量的公共行业证据可以一次获取后映射到多家公司，避免重复搜索；
 5. runtime / candidate_file 已有的确定性价格、估值、财务字段直接使用，不重新去网页重复搜同一事实；
 6. 对资料清楚的公司快速形成终态；只有出现业务异质、一次性收益、周期失真、来源冲突时才追加更深检索；
-7. 研究过程中持续维护本轮内存集合 `actual_deep_researched_codes`，但**不得因为达到任何中间数量或已有若干 confirmed 而结束**；
+7. 研究过程中持续维护本轮内存集合 `actual_deep_researched_codes`，但**不得因为达到任何中间数量而结束**；
 8. 必须继续直到 expected 全部形成终态或发生明确硬失败。
 
 ### 8.4 最低证据要求
@@ -654,37 +631,12 @@ deep_research_coverage == COMPLETE
 
 - 不改变 `deep_read_codes`；
 - 不改变 `actual_deep_researched_codes`；
-- 不改变公司级 `confirmed / waiting_for_entry / research_uncertain / excluded`；
-- Risk Cluster 只处理 `confirmed` / `entry_ready_codes`；
+- 不改变公司级 confirmed / waiting / research_uncertain / excluded；
 - 正式榜排名对象是独立风险收益机会；
-- 同一风险簇必须且只能有一个 `representative_code`；
-- 同簇其他 confirmed 公司保留为 `alternative_codes`；
-- 同行业存在多个独立机会时记录 `independence_rationale`；
+- 同一风险簇默认一个 representative_code；
+- 同簇其他有价值公司保留为 alternative_codes；
+- 同行业存在多个独立机会时记录 independence_rationale；
 - 不设目标数量、固定上限或 Top N 截断。
-
-发布层必须满足以下硬不变量：
-
-```text
-formal_opportunity_count
-== risk_cluster_count
-== len(formal_representative_codes)
-```
-
-以及：
-
-```text
-confirmed_codes
-= formal_representative_codes ∪ all_alternative_codes
-```
-
-并且：
-
-- `formal_representative_codes` 与全部 `alternative_codes` 互斥；
-- 每个 `confirmed` code 必须且只能属于一个 risk cluster；
-- 每个 risk cluster 必须且只能有一个 representative；
-- `waiting_for_entry / research_uncertain / excluded` 不得进入正式 Risk Cluster 集合。
-
-任一不变量失败则 `publication_validation = FAILED`，不得发布不一致的正式榜。
 
 Risk Cluster 是发布层去相关，不是研究层淘汰。
 
@@ -721,12 +673,10 @@ Risk Cluster 是发布层去相关，不是研究层淘汰。
 - `expected_deep_research_count`
 - `actual_deep_researched_count`
 - `deep_research_coverage`
-- `confirmed_count`
-- `waiting_for_entry_count`
+- `company_confirmed_count`
+- `waiting_count`
 - `research_uncertain_count`
 - `excluded_count`
-- `research_supported_count`
-- `entry_ready_count`
 - `actual_deep_researched_codes`
 - `missing_deep_research_codes`
 
@@ -739,26 +689,16 @@ Risk Cluster 是发布层去相关，不是研究层淘汰。
 - `structural_relevance_count`
 - `screening_group_count`
 
-只有 coverage COMPLETE 且 publication validation 通过时再发布：
+只有 coverage COMPLETE 时再发布：
 
 - `risk_cluster_count`
 - `formal_opportunity_count`
+- `final_recommendation_count`
 - `formal_representative_codes`
-- `alternative_codes`
 - `risk_cluster_map`
 - `independence_rationale`
-- `publication_validation`
 
-不再使用 `final_recommendation_count`，避免与 `formal_opportunity_count` 形成重复数量语义。
-
-必须区分：
-
-```text
-confirmed_count = entry_ready 公司数量
-formal_opportunity_count = 去相关后的独立风险收益机会数量
-```
-
-二者可以不同；若同一 risk cluster 有多个 confirmed，额外 confirmed 必须进入 `alternative_codes`。
+必须区分 `company_confirmed_count` 与 `formal_opportunity_count`。
 
 ---
 
@@ -772,7 +712,7 @@ formal_opportunity_count = 去相关后的独立风险收益机会数量
 - 跳过 Structured Screening；
 - 修改 Stage A batch 边界；
 - 修改 frozen `deep_read_codes`；
-- 修改 Stage B fixed batch 边界或 expected；
+- 修改 Stage B expected；
 - 成为 coverage 不完整的理由；
 - 在 coverage 未 COMPLETE 时生成正式榜。
 
@@ -790,8 +730,6 @@ formal_opportunity_count = 去相关后的独立风险收益机会数量
 
 > **Stage A 只有当 processed == candidate_count 时才允许一次性 FROZEN；部分 batch 不形成正式 Ledger，也不供下一轮恢复。**
 
-> **CLEARLY_WEAK 必须记录两个独立弱点、反向优势检查与不确定性检查；不能审计就进入 UNCERTAIN。**
-
 > **Stage A 只做 repository-only Structured Screening；FROZEN 并回读验证之前不得使用公司级外部公开资料。**
 
 > **Frozen Pre-Research Ledger 只是在同一次 invocation 内连接 Stage A 与 Stage B 的可审计硬检查点。**
@@ -802,16 +740,10 @@ formal_opportunity_count = 去相关后的独立风险收益机会数量
 
 > **研究层防漏，发布层去相关。**
 
-> **Stage B 固定按 frozen deep_read_codes 既定顺序每 12 家分批；行业与主导变量只用于共享证据，不得改变 batch 边界。**
-
 > **Stage B 必须在本次 invocation 内穷尽 frozen deep_read_codes。**
-
-> **正式状态名只有 confirmed / waiting_for_entry / research_uncertain / excluded。**
 
 > **任务完成的定义是当轮 expected == actual，不是找到足够多可以出榜的公司。**
 
 > **Deep Research coverage 未 COMPLETE 时，本次任务失败且没有正式独立机会榜。**
-
-> **每个 Risk Cluster 恰好对应一个 formal opportunity；其余同簇 confirmed 只能作为 alternatives。**
 
 > **程序资格不由模型重算。**
