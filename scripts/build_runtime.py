@@ -8,7 +8,11 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from build_screening_groups import SCREENING_GROUP_FORMAT
+from build_screening_groups import (
+    MEMBER_COLUMNS,
+    SCREENING_GROUP_FORMAT,
+    SCREENING_SERIALIZATION_FORMAT,
+)
 from contracts import YOY_UNIT
 from split_snapshot import RUNTIME_FORMAT, RUNTIME_KIND
 
@@ -60,6 +64,7 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
     validation = meta.get("runtime_validation") or {}
     assert validation.get("status") == "passed", validation
     assert validation.get("screening_group_view_valid") is True, validation
+    assert validation.get("screening_group_line_addressable") is True, validation
     assert meta.get("candidate_count") == meta.get("structural_relevance_count")
     assert int(meta.get("source_candidate_count") or 0) >= int(
         meta.get("candidate_count") or 0
@@ -137,10 +142,22 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
     assert screening.get("candidate_count") == meta.get("candidate_count")
     assert screening.get("group_count") == meta.get("screening_group_count")
 
-    screening_codes = [
-        str(member.get("code"))
+    screening_columns = screening.get("member_columns") or []
+    assert screening_columns == MEMBER_COLUMNS
+    assert screening_columns == meta.get("screening_group_member_columns")
+    screening_code_idx = screening_columns.index("code")
+
+    screening_members = [
+        member
         for group in (screening.get("groups") or [])
         for member in (group.get("members") or [])
+    ]
+    assert all(
+        isinstance(member, list) and len(member) == len(screening_columns)
+        for member in screening_members
+    )
+    screening_codes = [
+        str(member[screening_code_idx]) for member in screening_members
     ]
     assert (
         len(screening_codes)
@@ -148,7 +165,21 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
         == len(candidate_codes)
     )
     assert set(screening_codes) == set(candidate_codes)
-    assert (meta.get("screening_group_validation") or {}).get("status") == "passed"
+
+    screening_serialization = meta.get("screening_group_serialization") or {}
+    assert screening_serialization.get("format") == SCREENING_SERIALIZATION_FORMAT
+    assert int(screening_serialization.get("line_count") or 0) > 1
+    assert int(screening_serialization.get("max_line_length") or 0) <= int(
+        screening_serialization.get("max_allowed_line_length") or 0
+    )
+
+    screening_validation = meta.get("screening_group_validation") or {}
+    assert screening_validation.get("status") == "passed"
+    assert screening_validation.get("candidate_codes_exact_match") is True
+    assert screening_validation.get("member_rows_count_matches") is True
+    assert screening_validation.get("member_rows_well_formed") is True
+    assert screening_validation.get("json_roundtrip_matches") is True
+    assert screening_validation.get("line_addressable") is True
 
     assert not (runtime_dir / "peer_groups.json").exists()
     assert not (runtime_dir / "company_research_view.json").exists()
@@ -183,6 +214,7 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
         "screening_group_singleton_count": meta.get("screening_group_singleton_count"),
         "screening_group_max_size": meta.get("screening_group_max_size"),
         "screening_group_coverage": meta.get("screening_group_coverage"),
+        "screening_group_serialization": screening_serialization,
         "eligibility_audit": eligibility_audit,
         "validation": validation.get("status"),
     }
