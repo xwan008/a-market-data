@@ -6,11 +6,14 @@ A 股低风险买点榜的数据、程序筛选与研究规则仓库。
 
 > **程序负责事实和资格，模型负责关系和解释。**
 
-系统不把可公式化的工作交给模型，也不要求模型从全市场自由挑股票。程序先完成数据准备、Eligibility Filter、Structure Filter 和统一 screening view；模型只在两个研究阶段介入，并在完整研究闭环后做风险因子归并：
+系统不把可公式化的工作交给模型，也不要求模型从全市场自由挑股票。Deep Research 之前属于同一个大阶段——结构化筛选，但内部按职责分为程序硬筛和模型结构化预筛；公司级外部公开资料研究则放在独立的后续模型 run 中。
 
-1. **Pre-Research Screening**：不联网，判断同行支配和公司绝对质量；
-2. **Deep Research**：只研究冻结后的 `deep_read_codes`，形成真实业务判断、正常化估值与最终安全区；
-3. **Risk Cluster Consolidation**：只有 Deep Research coverage 完整闭合后，才把高度依赖同一主导风险因子的公司归为一个独立风险收益机会，避免正式榜重复表达同一交易逻辑。
+当前逻辑分为：
+
+1. **Program Filter**：Eligibility + Structure，全部为确定性程序规则；
+2. **Structured Screening Freeze**：模型只使用锁定 GitHub runtime 的结构化事实，判断同行支配和公司绝对质量，生成完整 Frozen Ledger；
+3. **Deep Research**：另一个独立模型 run 只消费 Frozen Ledger，对 `deep_read_codes` 引入公司级公开资料，形成真实业务判断、正常化估值与最终安全区；
+4. **Risk Cluster Consolidation**：只有 Deep Research coverage 完整闭合后，才把高度依赖同一主导风险因子的公司归为一个独立风险收益机会。
 
 研究层保持完整覆盖，最终发布层再做风险因子去重。
 
@@ -36,18 +39,30 @@ model-ready candidates
 3. screening_groups｜程序组织
    同行业一次性准备价格结构 / 估值 / 经营 / 行业事实
         ↓
-4. Pre-Research Screening｜模型，不联网
-   先同行支配，再公司绝对质量
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Run A｜Structured Screening Freeze
+只使用锁定 GitHub runtime
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Peer Dominance
+   + Company Prescreen
         ↓
 完整 Ledger
         ↓
+research/pre_research_ledger.json
+status = FROZEN
+        ↓
 冻结 deep_read_codes
         ↓
-5. Deep Research｜模型，联网
-   必须穷尽 frozen deep_read_codes
-   主营 / 盈利驱动 / 周期 / 盈利质量 / 反向证据
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Run B｜Deep Research + Publication
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   先验证 Frozen Ledger 与当前 runtime / Skill / Protocol blob 一致
         ↓
-6. Deep Research coverage audit
+   对 frozen deep_read_codes 做公司级公开资料研究
+        ↓
+   必须穷尽 frozen deep_read_codes
+        ↓
+4. Deep Research coverage audit
         ↓
    ├─ INCOMPLETE / UNVERIFIED
    │    → 只输出覆盖审计与剩余集合
@@ -55,9 +70,9 @@ model-ready candidates
    │
    └─ COMPLETE
         ↓
-7. 正常化估值 + 最终安全区
+5. 正常化估值 + 最终安全区
         ↓
-8. Risk Cluster Consolidation｜模型，发布前
+6. Risk Cluster Consolidation
    按主导盈利驱动与风险因子去重
         ↓
 正式独立机会集合
@@ -67,6 +82,10 @@ model-ready candidates
 公司级状态仍保留：
 confirmed / waiting / research_uncertain / excluded
 ```
+
+Run A 和 Run B 是两个独立模型执行。Run A 不承担公司级公开资料查询和榜单生成；Run B 不重新做 Peer Dominance / Company Prescreen，也不能修改 frozen `deep_read_codes`。
+
+这避免依赖同一次长模型执行里的“先不要查外部资料”自我约束。
 
 不使用综合加权总分、全市场 Top N、“找到足够多就停止”或“市场风险高所以只研究少数公司”的方式替代完整研究。
 
@@ -171,11 +190,11 @@ data/runtime/screening_groups.json
 
 保存通过 Structure Filter 的完整确定性字段。
 
-模型不需要在 Pre-Research 阶段扫描整张表；它主要在 Deep Research 对冻结幸存者需要更完整背景时按代码读取。
+Structured Screening 不需要扫描整张表；Deep Research 对冻结幸存者需要更完整背景时按代码读取。
 
 ### `screening_groups.json`
 
-唯一的 Pre-Research Screening 工作视图。
+唯一的 Structured Screening 模型工作视图。
 
 按申万三级行业分组，每家公司一次性提供：
 
@@ -197,27 +216,79 @@ data/runtime/screening_groups.json
 
 ---
 
-## Pre-Research、Deep Research 与最终机会榜
+## Frozen Ledger｜两个模型 Run 的正式交接物
 
-模型判断语义只维护在：
-
-```text
-skill/SKILL.md
-```
-
-执行顺序、版本锁定、Ledger 冻结、coverage 与最终机会审计只维护在：
+正式交接文件：
 
 ```text
-skill/RUNTIME_READ_PROTOCOL.md
+research/pre_research_ledger.json
 ```
+
+它不是市场数据源，而是模型 Structured Screening 的持久化结果。
+
+只有全部结构候选完成 Model Prescreen、四类集合完整闭合后，才允许：
+
+```text
+status = FROZEN
+```
+
+至少记录：
+
+- `source_runtime_commit_sha`
+- Protocol / Skill / meta / screening_groups / candidates 的 Git blob SHA；
+- `trade_date`
+- `candidate_count`
+- `ledger_count`
+- `peer_dominated_codes`
+- `clearly_weak_codes`
+- `pass_to_deep_research_codes`
+- `uncertain_codes`
+- `deep_read_codes`
+
+其中：
+
+```text
+deep_read_codes
+=
+pass_to_deep_research_codes
+∪ uncertain_codes
+```
+
+Deep Research run 开始前必须验证 Ledger 与当前正式 runtime、Skill、Protocol 的 blob SHA 完全一致。写入 Ledger 自己会产生新的 Git commit，因此不要求 current main commit SHA 与 `source_runtime_commit_sha` 相同；判断同一输入版本看正式文件 blob 是否一致。
+
+如果 Ledger 缺失、未 FROZEN、集合不闭合或 blob 不一致，Deep Research run 停止，不允许自行补做预筛。
+
+---
+
+## Structured Screening 与 Deep Research 的信息边界
+
+Structured Screening 可以访问 GitHub，但只能使用锁定 runtime 的结构化事实。
+
+它不得引入：
+
+```text
+公司官网 / 公告正文 / 新闻 / 券商研报 / 搜索引擎结果 / 行业网站等公司级外部公开资料
+```
+
+所以准确表述是：
+
+```text
+Structured Screening = repository-only
+Deep Research = repository context + public external evidence
+```
+
+而不是简单的“联网 / 不联网”。
 
 核心研究边界：
 
 ```text
-完整 Pre-Research
-→ 冻结 Ledger
-→ deep_read_codes
-→ 才允许公司级 Web Research
+Run A 完整 Structured Screening
+→ 持久化 FROZEN Ledger
+→ 冻结 deep_read_codes
+→ Run A 结束
+
+Run B 验证 Ledger
+→ 才允许公司级公开资料 Deep Research
 ```
 
 Deep Research coverage 以：
@@ -244,15 +315,15 @@ deep_research_coverage == COMPLETE
 + missing_deep_research_codes
 ```
 
-**不生成正式独立机会榜，也不允许把已研究子集包装成临时 Top N。**
+不生成正式独立机会榜，也不允许把已研究子集包装成临时 Top N。
 
-只有 coverage COMPLETE 后，才进入：
+只有 coverage COMPLETE 后，才进入 Risk Cluster Consolidation。
 
-```text
-Risk Cluster Consolidation
-```
+---
 
-这里不是“同行业只留一只”，而是判断多个公司是否实际上依赖同一个核心盈利变量、上涨催化和下行风险。
+## Risk Cluster 与最终机会榜
+
+Risk Cluster 不是“同行业只留一只”，而是判断多个公司是否实际上依赖同一个核心盈利变量、上涨催化和下行风险。
 
 因此：
 
@@ -262,8 +333,6 @@ Risk Cluster Consolidation
 ```
 
 同一风险簇默认只有一个 `representative_code` 占正式榜席位，其余有价值公司作为 `alternative_codes` 保留。
-
-例如三家券商如果都主要依赖市场成交活跃度、两融、自营和投行业务改善，它们可以全部完成 Deep Research，但正式榜只表达一个“券商 / 市场活跃度”机会，并列出代表公司和同簇备选。
 
 同一行业如果 Deep Research 证明主营、利润来源和主导风险实质不同，可以分别形成独立机会；不同行业如果高度依赖同一个主导变量，也可以归入同一风险簇。
 
@@ -285,7 +354,7 @@ Risk Cluster Consolidation 只改变最终榜表达，不得反向减少 `deep_r
 
 ## 单一 runtime 构建入口
 
-所有 workflow 统一调用：
+所有数据 workflow 统一调用：
 
 ```bash
 python scripts/build_runtime.py data/snapshot.json --output-dir data/runtime
@@ -332,10 +401,11 @@ python scripts/build_runtime.py data/snapshot.json --output-dir data/runtime
 | --- | --- |
 | `scripts/build_snapshot.py` | Eligibility Filter + 全市场审计 |
 | `scripts/split_snapshot.py` | Structure Filter 唯一计算源 |
-| `scripts/build_screening_groups.py` | 组织不联网预筛事实 |
+| `scripts/build_screening_groups.py` | 组织 repository-only 结构化筛选事实 |
 | `scripts/build_runtime.py` | 统一 runtime 构建与验证 |
-| `skill/SKILL.md` | 模型判断语义，包括最终 Risk Cluster Consolidation |
-| `skill/RUNTIME_READ_PROTOCOL.md` | 版本锁定、阶段顺序、Ledger、coverage、正式榜硬门与最终机会审计 |
+| `research/pre_research_ledger.json` | Run A → Run B 的 Frozen Ledger 交接物 |
+| `skill/SKILL.md` | 模型判断语义，包括 Structured Screening、Deep Research 和 Risk Cluster Consolidation |
+| `skill/RUNTIME_READ_PROTOCOL.md` | 两阶段执行、版本/Blob 锁定、Frozen Ledger、coverage、正式榜硬门与最终机会审计 |
 | `README.md` | 给人看的稳定架构说明 |
 
 ---
@@ -345,6 +415,10 @@ python scripts/build_runtime.py data/snapshot.json --output-dir data/runtime
 > **市场风险影响最终行动，不影响既定研究覆盖。**
 
 > **程序结构硬筛只是研究准入，不是最终价值底。**
+
+> **Structured Screening 只使用锁定 GitHub runtime；Deep Research 才引入公司级外部公开资料。**
+
+> **Frozen Ledger 是两个模型 run 的正式交接边界。**
 
 > **单公司研究失败只影响该公司，不阻断其他候选。**
 
