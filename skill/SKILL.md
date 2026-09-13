@@ -205,6 +205,33 @@ Deep Research 的目标是穷尽冻结后的 `deep_read_codes`，不是找到足
 
 > `research_supported + entry_ready`
 
+判定 `confirmed` 前，必须建立一条**公司级、可复算、可证伪的 entry-ready 数值闭环**。该闭环必须直接证明当前价格为什么已经满足低风险参与条件，而不能只罗列“PE 低、PB 低、ROE 高、位置低、靠近支撑”等孤立事实。
+
+有效闭环至少应同时回答：
+
+- 正常化盈利或其他可辩护的估值基础是什么；
+- 采用什么保守估值区间或最终安全区依据；
+- 如何得到 `conservative_fair_value` / 最终安全区；
+- 当前价相对该价值或安全区的距离是多少；
+- `conservative_upside` 是否满足本轮原则上的 `>= 15%`；
+- 当前价是否原则上位于最终安全区约 5% 以内，或有其他同等强度、可量化的下行保护依据。
+
+例如可以形成：
+
+```text
+正常化利润 × 可辩护保守估值倍数 → conservative_fair_value
+(conservative_fair_value / current_price - 1) → conservative_upside
+current_price 对比 low_risk_buy_range / 最终安全区 → downside_to_safety_zone
+```
+
+只有这条关系整体支持 `entry_ready`，才允许 `confirmed`。
+
+单独出现当前 PE / PB / ROE、动态 PE、60 日低位、支撑距离、成交密集区等数字，不足以证明 `confirmed`。结构低位只能证明值得研究或参与时机较好，不能替代价值与安全边际证明。
+
+用于 `confirmed` 的正常化盈利、估值倍数、保守价值和安全区必须来自本轮锁定 runtime 或本轮 Deep Research 已取得并实际用于判断的事实；不得为了满足 `confirmed` 结论倒推或虚构精确数字。强周期公司必须使用正常化盈利，禁止直接用高景气利润机械年化来证明 entry-ready。
+
+如果研究逻辑成立，但无法建立上述可辩护、可复算的 entry-ready 数值闭环，则不得判为 `confirmed`：价格或安全边际确实不足时进入 `waiting_for_entry`；若连正常化盈利或保守价值本身都无法可靠建立，则进入 `research_uncertain`。
+
 #### `waiting_for_entry`
 
 公司研究逻辑已有足够证据支持，但当前价格、安全边际、保守上行空间或参与时机尚未满足低风险入场条件。
@@ -301,7 +328,7 @@ Resolution Pass 只允许**一次定向补充研究 + 一次重新判断**，不
 
 重新判断时：
 
-- 研究逻辑成立且当前 entry-ready → `confirmed`；
+- 研究逻辑成立且当前 entry-ready，并已建立 `confirmed` 所要求的公司级可复算 entry-ready 数值闭环 → `confirmed`；
 - 研究逻辑成立但只是当前价格、安全边际、上行空间或时机不合适，并且能够给出逐股、合法、非相对比较、且在涉及估值/安全边际/上行空间时包含能够直接推导 entry blocker 的公司级可复算数字关系的 `waiting_for_entry_reason` → `waiting_for_entry`；
 - 研究逻辑被实质反证 → `excluded`；
 - 只有具体缺口在一次定向补充研究后仍然无法解决，且该缺口确实可能改变研究结论 → 最终 `research_uncertain`。
@@ -376,6 +403,8 @@ Deep Research 后尽量形成：
 
 - 当前价距离最终安全区约 5% 以内；
 - 保守上行空间 `>= 15%`。
+
+`confirmed` 必须由价值与价格结构共同证明。仅有低 PE / PB、较高 ROE、60 日低位、强支撑、强成交密集区，或“当前价格看起来便宜”，都不能单独构成 entry-ready。模型必须把正常化盈利、保守估值、保守价值、当前价格与最终安全区连接成可复算关系；若该关系不能支持原则上的安全区距离与保守上行要求，不得判为 `confirmed`。
 
 最近阻力只是短期压力，不直接等于全部上涨空间。
 
@@ -458,7 +487,7 @@ Risk Cluster Consolidation 只对 `entry_ready_codes`，即公司级 `confirmed`
 
 Deep Research 后公司状态为：
 
-- `confirmed`：研究成立且当前 entry-ready；
+- `confirmed`：研究成立且当前 entry-ready，并已建立公司级可复算 entry-ready 数值闭环；
 - `waiting_for_entry`：研究成立、具有逐股合法 `waiting_for_entry_reason`，但等待低风险入场；
 - `research_uncertain`：一次 Uncertainty Resolution Pass 后仍存在会实质改变研究结论的明确证据缺口或冲突；
 - `excluded`：研究逻辑被实质否定。
@@ -500,6 +529,8 @@ Risk Cluster 不修改这些公司级状态，只改变正式榜如何表达相�
 > **Batch 只用于执行分包，不用于投资比较、配额或组内淘汰。**
 
 > **研究逻辑成立与当前是否可买必须分开；waiting_for_entry 属于 research_supported，且每只 waiting 必须有独立、具体、非相对比较的 waiting_for_entry_reason。**
+
+> **confirmed 必须由公司自身的可复算 entry-ready 数值闭环证明：正常化盈利/估值基础 → 保守价值或最终安全区 → 当前价 → 保守上行与下行保护；孤立的 PE、PB、ROE、低位或支撑不能单独证明 confirmed。**
 
 > **waiting_for_entry_reason 的键集合必须与 waiting_for_entry_codes 完全一致；禁止 default 或任何兜底理由，禁止把 Risk Cluster / 同行相对优劣作为 waiting 原因。**
 
