@@ -215,6 +215,18 @@ Deep Research 的目标是穷尽冻结后的 `deep_read_codes`，不是找到足
 
 `waiting_for_entry` 不是研究失败，也不是“同批已有更好的公司”。只要研究逻辑成立但当前不适合买入，就应使用 `waiting_for_entry`。
 
+每个 `waiting_for_entry` 必须同时给出以下三个可审计字段：
+
+- `research_support_basis`：为什么公司研究逻辑已经成立，必须基于本轮已核验的公司级证据与正常化判断；
+- `entry_blocker`：为什么**当前不能买**，必须明确落在当前价格、最终安全边际、保守上行空间或参与时机中的一个或多个具体阻碍；
+- `reentry_condition`：什么可观察条件满足后，可以重新评估为 `confirmed`，优先使用价格区间、安全边际、正常化盈利或结构条件表达。
+
+只有先证明 `research_supported = true`，才允许进入 `waiting_for_entry`。如果仍存在会实质改变研究结论的关键事实缺口、正常化盈利无法建立、或正反证据仍无法判定，则不得使用 `waiting_for_entry`，应进入 `research_uncertain`。
+
+`entry_blocker` 不得写成“仍需观察”“存在不确定性”“盈利持续性待确认”“周期位置看不清”“等待更多数据”等研究层模糊理由；这些说明研究结论尚未闭合，不属于买点问题。
+
+`reentry_condition` 也不得只写“等待更好机会”“等回调”“后续观察”。必须说明**什么变化会让当前入场阻碍解除**。
+
 `waiting` 只作为历史结果的 legacy alias；新运行统一输出 `waiting_for_entry`。
 
 #### `research_uncertain`
@@ -256,9 +268,11 @@ Resolution Pass 只允许**一次定向补充研究 + 一次重新判断**，不
 重新判断时：
 
 - 研究逻辑成立且当前 entry-ready → `confirmed`；
-- 研究逻辑成立但只是当前价格、安全边际、上行空间或时机不合适 → `waiting_for_entry`；
+- 研究逻辑成立但只是当前价格、安全边际、上行空间或时机不合适，并且能够完整给出 `research_support_basis + entry_blocker + reentry_condition` → `waiting_for_entry`；
 - 研究逻辑被实质反证 → `excluded`；
 - 只有具体缺口在一次定向补充研究后仍然无法解决，且该缺口确实可能改变研究结论 → 最终 `research_uncertain`。
+
+从 first-pass `research_uncertain` 转为 `waiting_for_entry` 时，必须明确说明原始 uncertainty 已经被什么新增证据解决；如果只能证明“目前没有明显坏消息”，但无法证明研究逻辑已成立，不得迁移到 `waiting_for_entry`。
 
 特别约束：
 
@@ -411,7 +425,7 @@ Risk Cluster Consolidation 只对 `entry_ready_codes`，即公司级 `confirmed`
 Deep Research 后公司状态为：
 
 - `confirmed`：研究成立且当前 entry-ready；
-- `waiting_for_entry`：研究成立但等待低风险入场；
+- `waiting_for_entry`：研究成立、可说明明确 `entry_blocker`，但等待低风险入场；
 - `research_uncertain`：一次 Uncertainty Resolution Pass 后仍存在会实质改变研究结论的明确证据缺口或冲突；
 - `excluded`：研究逻辑被实质否定。
 
@@ -450,7 +464,7 @@ Risk Cluster 不修改这些公司级状态，只改变正式榜如何表达相�
 
 > **Batch 只用于执行分包，不用于投资比较、配额或组内淘汰。**
 
-> **研究逻辑成立与当前是否可买必须分开；waiting_for_entry 属于 research_supported。**
+> **研究逻辑成立与当前是否可买必须分开；waiting_for_entry 属于 research_supported，且必须明确回答为什么当前不能买。**
 
 > **research_uncertain 必须有明确、可改变结论的 uncertainty_reason，并经过一次定向 Uncertainty Resolution Pass 后仍无法解决；不得把它当作拿不准时的默认安全出口。**
 
