@@ -32,11 +32,11 @@
 
 > `percentage_points`：`12.4` 表示 `12.4%`。
 
-模型主要负责两层研究判断，并在最终发布前做一次机会归并：
+模型主要负责两层研究判断，并在完整研究闭环后做一次机会归并：
 
 1. **Pre-Research Screening**：不联网，用结构化事实判断谁值得占用 Deep Research 预算；
 2. **Deep Research**：只研究冻结后的 `deep_read_codes`，确认真实业务、盈利驱动、周期、盈利质量、估值和最终安全边际；
-3. **Risk Cluster Consolidation**：研究和估值完成后，把高度依赖同一主导风险因子的公司归并为一个独立风险收益机会，避免正式榜重复表达同一交易逻辑。
+3. **Risk Cluster Consolidation**：只有 Deep Research coverage 已完整闭合后，才把高度依赖同一主导风险因子的公司归并为一个独立风险收益机会，避免正式榜重复表达同一交易逻辑。
 
 第三步只影响最终榜单表达，不得反向减少前两步的研究覆盖。
 
@@ -142,6 +142,8 @@ Pre-Research Screening 禁止：
 
 单公司资料不足只影响该公司，标记 `research_uncertain` 或 `waiting`，不得改变其他公司的研究范围。
 
+Deep Research 的任务目标是**穷尽冻结后的 `deep_read_codes`**，不是“找到足够多可以出榜的公司”。已经发现若干 `confirmed` 公司、已经存在足够多看起来可发布的机会、或预计最终榜数量已经足够，都不得作为提前停止研究的理由。
+
 ---
 
 ## 5. 最终估值与低风险安全区
@@ -182,7 +184,9 @@ Deep Research 后尽量形成：
 
 ## 6. Risk Cluster Consolidation｜最终独立机会归并
 
-这一阶段只在 **Deep Research 和公司级估值完成后**执行。
+这一阶段只在 **Deep Research coverage = COMPLETE 且公司级估值完成后**执行。
+
+如果 coverage 为 `INCOMPLETE` 或 `UNVERIFIED`，不得生成正式独立机会榜，也不得拿已经研究完成的子集做临时 Top N；只能报告研究未闭合、已完成集合与剩余集合。
 
 目标不是减少研究，而是避免正式榜把一个共同风险因子重复展示成多个独立机会。
 
@@ -269,7 +273,7 @@ Deep Research 后尽量形成：
 - `transition` / `bearish` 不得单独淘汰公司；
 - 市场 `high risk` 不得缩小 Pre-Research 或 Deep Research 的既定覆盖范围；
 - 市场风险只能让最终估值与行动更保守、更倾向等待；
-- 正式榜允许减少甚至为空。
+- 在 coverage 已经 COMPLETE 的前提下，正式机会集合可以自然减少甚至为空。
 
 ---
 
@@ -288,7 +292,9 @@ Risk Cluster Consolidation 不修改这些公司研究状态，只改变正式�
 
 > **最终安全边际 → 保守上行空间 → 基本面稳定性 → 参与时机**
 
-正式榜最多 10 个**独立风险收益机会**，可以为空，不得凑数。
+正式机会榜**不设目标数量，也不设固定数量上限**。在 Deep Research coverage = COMPLETE 后，所有满足最终低风险条件、经 Risk Cluster Consolidation 后仍属于独立风险收益机会的结果都进入正式机会集合；数量由当轮事实自然产生，可以为 0，也可以超过 10。
+
+排名只表示机会优先级，不作为研究停止条件，也不以第 N 名为截断条件。
 
 每个正式机会默认一个代表公司，并可列同风险簇替代候选。
 
@@ -302,7 +308,13 @@ Risk Cluster Consolidation 不修改这些公司研究状态，只改变正式�
 
 > **Pre-Research Screening 不联网；Deep Research 只研究冻结集合。**
 
+> **任务完成的定义是冻结研究集合全部得到公司级研究结论，不是找到足够多可以出榜的公司。**
+
+> **Deep Research coverage 未 COMPLETE 时，不生成正式独立机会榜。**
+
 > **研究层允许相关公司完整保留；正式行动榜再做风险因子去重。**
+
+> **正式机会集合不设 Top N、目标数量或固定上限。**
 
 > **不使用综合评分、Top N 或市场风险截断来替代完整研究。**
 
