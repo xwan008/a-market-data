@@ -223,9 +223,16 @@ Deep Research 的目标是穷尽冻结后的 `deep_read_codes`，不是找到足
 
 `waiting_for_entry_reason` 不得写成“仍需观察”“存在不确定性”“盈利持续性待确认”“周期位置看不清”“等待更多数据”等研究层模糊理由；这些说明研究结论尚未闭合，不属于买点问题。
 
-凡 `waiting_for_entry_reason` 以“估值偏高 / 安全边际不足 / 保守上行空间不足 / 价格尚未进入低风险区”为依据，reason 内必须至少给出一个**公司级可复核数值锚点**，使该判断可以被复算或证伪。数值锚点不新增独立字段，可以直接写在 reason 中，例如：当前价与低风险区间的距离、保守合理价值与当前价对应的上行百分比、正常化利润与对应估值倍数、或当前价相对最终安全区的折价/溢价。纯粹写“安全边际不足”“估值不够便宜”“需要更低价格”“上行空间不足”而没有任何公司级数字，不视为审计完成。
+凡 `waiting_for_entry_reason` 以“估值偏高 / 安全边际不足 / 保守上行空间不足 / 价格尚未进入低风险区”为依据，reason 内必须给出能够**直接推导出 entry blocker 的公司级可复算数字关系**，而不是只罗列孤立数字。有效关系至少应形成以下一种闭环：
 
-数值锚点必须来自本轮已锁定 runtime 或本轮 Deep Research 已获取并用于公司判断的事实；不得为了满足格式要求虚构精确数字。若无法形成可辩护的数值锚点，说明当前估值/正常化判断尚不足以支撑 `waiting_for_entry`，应重新检查是否属于 `research_uncertain`。
+- `current_price` 对比 `low_risk_buy_range` / 最终安全区，明确计算距离或溢价，并说明为什么超出本轮可接受范围；
+- `conservative_fair_value` / `base_fair_value` 对比 `current_price`，明确计算保守上行百分比，并说明为何未达到本轮低风险要求；
+- 正常化利润 × 可辩护的保守估值倍数 → 保守价值，再与当前价比较，明确得到不足的安全边际或保守上行；
+- 当前估值对比可辩护的正常化估值区间，明确计算溢价/折价，并说明为什么不足以覆盖公司自身风险。
+
+仅列出“现价 17.49 元、动态 PE 7.16 倍”“PB 1.2 倍、ROE 8%”等孤立事实，不能证明安全边际不足，**不属于有效数值锚点**。纯粹写“安全边际不足”“估值不够便宜”“需要更低价格”“上行空间不足”，即使旁边附带现价、PE、PB、ROE等数字，只要这些数字之间不能直接推导出 entry blocker，也不视为审计完成。
+
+用于推导的数值必须来自本轮已锁定 runtime 或本轮 Deep Research 已获取并实际用于公司判断的事实；不得为了满足格式要求虚构精确数字。若无法建立一条可辩护、可复算、可证伪的数值关系来支持 `waiting_for_entry`，说明当前估值/正常化判断尚不足以支撑该状态，应重新检查是否应为 `confirmed` 或 `research_uncertain`，不得用模板理由维持 waiting。
 
 `waiting_for_entry_reason` 还不得以任何相对比较作为状态依据，包括但不限于：
 
@@ -250,7 +257,7 @@ len(waiting_for_entry_reason) == waiting_for_entry_count
 - 每个 waiting code 必须恰好有一条独立 reason；
 - 禁止 `default`、`*`、`others`、通用模板键或任何兜底理由；
 - `waiting_for_entry_reason` 不得包含 confirmed / research_uncertain / excluded 的 code；
-- reason 为空、泛化、引用相对排名/风险簇去重，或以估值/安全边际/上行空间为由却没有公司级数值锚点，均视为 waiting 审计失败。
+- reason 为空、泛化、引用相对排名/风险簇去重，或以估值/安全边际/上行空间为由却没有能够直接推导 entry blocker 的公司级可复算数字关系，均视为 waiting 审计失败。
 
 没有通过上述集合一致性与理由合法性校验时，本轮不得把 execution probe 标记为 `PASSED` / `PUBLICATION_COMPLETE`。
 
@@ -295,7 +302,7 @@ Resolution Pass 只允许**一次定向补充研究 + 一次重新判断**，不
 重新判断时：
 
 - 研究逻辑成立且当前 entry-ready → `confirmed`；
-- 研究逻辑成立但只是当前价格、安全边际、上行空间或时机不合适，并且能够给出逐股、合法、非相对比较、且在涉及估值/安全边际/上行空间时带有公司级数值锚点的 `waiting_for_entry_reason` → `waiting_for_entry`；
+- 研究逻辑成立但只是当前价格、安全边际、上行空间或时机不合适，并且能够给出逐股、合法、非相对比较、且在涉及估值/安全边际/上行空间时包含能够直接推导 entry blocker 的公司级可复算数字关系的 `waiting_for_entry_reason` → `waiting_for_entry`；
 - 研究逻辑被实质反证 → `excluded`；
 - 只有具体缺口在一次定向补充研究后仍然无法解决，且该缺口确实可能改变研究结论 → 最终 `research_uncertain`。
 
@@ -496,7 +503,7 @@ Risk Cluster 不修改这些公司级状态，只改变正式榜如何表达相�
 
 > **waiting_for_entry_reason 的键集合必须与 waiting_for_entry_codes 完全一致；禁止 default 或任何兜底理由，禁止把 Risk Cluster / 同行相对优劣作为 waiting 原因。**
 
-> **凡 waiting_for_entry_reason 以估值、安全边际、上行空间或低风险价格区为依据，必须在同一个 reason 中给出至少一个公司级可复核数值锚点；没有数字闭环的泛化估值理由不通过审计。**
+> **凡 waiting_for_entry_reason 以估值、安全边际、上行空间或低风险价格区为依据，必须给出能够直接推导 entry blocker 的公司级可复算数字关系；孤立的现价、PE、PB、ROE 不算有效锚点。**
 
 > **research_uncertain 必须有明确、可改变结论的 uncertainty_reason，并经过一次定向 Uncertainty Resolution Pass 后仍无法解决；不得把它当作拿不准时的默认安全出口。**
 
