@@ -1,19 +1,19 @@
 # A股低风险买点榜｜运行时执行协议
 
-本文件是“A股低风险买点榜”的唯一执行契约。它定义正式输入、阶段边界、两个持久化检查点、写安全、断点恢复、Deep Research coverage 与正式发布硬门。
+本文件是“A股低风险买点榜”的唯一执行契约。它定义正式输入、单次触发阶段边界、Frozen Pre-Research Ledger、Deep Research coverage 与正式发布硬门。
 
 具体公司判断、Deep Research、估值、Risk Cluster Consolidation 与买点语义，以同一轮锁定的 `skill/SKILL.md` 为准。
 
 ---
 
-## 1. 总体架构｜一个正式任务，Stage B 可断点续跑
+## 1. 总体架构｜每次触发必须一步到位
 
-系统始终只使用一个正式任务，不拆成多个 Automation。
-
-首次进入某一套正式输入时：
+每一次 07:00、19:00 或手动触发，都是一个**全新的、不可跨 invocation 续跑的完整研究事务**。
 
 ```text
 任务触发
+↓
+锁定当前正式 runtime / Protocol / Skill
 ↓
 Stage A｜Structured Screening
 repository-only
@@ -21,55 +21,37 @@ repository-only
 research/pre_research_ledger.json
 status = FROZEN
 ↓
-回读 Frozen Ledger + 正式输入
+回读 Frozen Ledger + 五个正式输入
 ↓
 Frozen Ledger Hard Gate
 ↓
 PASSED
 ↓
-初始化 research/deep_research_ledger.json
-status = BUILDING
-↓
 Stage B｜Deep Research
-只研究 frozen deep_read_codes
+本次 invocation 内穷尽 frozen deep_read_codes
 ↓
-按 remaining_deep_research_codes 分批研究并持久化
+expected == actual
 ↓
 Deep Research coverage = COMPLETE
 ↓
 Risk Cluster Consolidation
 ↓
-正式独立机会榜
+正式“A股低风险买点榜”
 ```
 
-如果后续触发时存在可恢复的 Stage B checkpoint，则不重新执行 Stage A：
+核心不变量：
 
-```text
-任务触发
-↓
-验证 Frozen Pre-Research Ledger
-+ Deep Research Ledger parent 绑定
-+ trade_date
-+ 五个正式输入 blob SHA
-+ expected / actual / remaining 闭合
-↓
-全部一致
-↓
-直接从 remaining_deep_research_codes 继续 Stage B
-```
-
-因此真正的不变量是阶段顺序与证据边界，而不是“每次 invocation 都从 Stage A 重做”。
-
+- **每次触发都从 Stage A 开始。**不得读取上一轮 FROZEN Ledger 作为本轮 Stage A 结果；
 - Stage A 不做公司级外部 Deep Research；
 - Stage B 不重新做 PEER_DOMINATED / CLEARLY_WEAK / PASS / UNCERTAIN；
-- Stage B 不得修改 frozen `deep_read_codes`；
-- Stage B 可以跨多个 invocation 继续，但只能在同一 parent、同一正式输入下恢复；
-- 新 Stage A 一旦开始，旧 Stage B checkpoint 立即失效；
-- coverage 未 COMPLETE 时不得发布正式榜。
+- Stage B 不得修改本轮 frozen `deep_read_codes`；
+- **Stage B 研究结果只属于当前 invocation，不建立跨 invocation 的 Deep Research checkpoint，不读取上一轮公司研究结果续跑；**
+- 本次触发只有两种结束：`COMPLETE + 正式榜`，或 `FAILED/INCOMPLETE + 无正式榜`；
+- “本轮研究到 40/91、下次继续 51 家”不是合法正常执行模式。
 
 ---
 
-## 2. 正式输入与正式检查点
+## 2. 正式输入与唯一阶段检查点
 
 ### 2.1 正式输入
 
@@ -81,30 +63,28 @@ Risk Cluster Consolidation
 - `meta.screening_group_file`
 - `meta.candidate_file`
 
-### 2.2 正式检查点
+### 2.2 唯一正式阶段检查点
 
-正式运行检查点只有：
+正式阶段检查点只有：
 
-- `research/pre_research_ledger.json`：Stage A 的完整 Structured Screening 结果与 frozen `deep_read_codes`；
-- `research/deep_research_ledger.json`：Stage B 的可恢复研究进度、公司级终态结果与 coverage。
+- `research/pre_research_ledger.json`
 
-两者都不是市场数据源。Deep Research Ledger 必须严格绑定一个 FROZEN Pre-Research Ledger。
+它只用于**同一次 invocation 内**证明 Stage A 已完整结束并允许 Stage B 开始。
 
-### 2.3 非正式输入
+它不是跨轮缓存。下一次任务触发必须先生成新的 `run_id`，把该文件写成新的 `BUILDING`，使上一轮 FROZEN 结果立即失效。
 
-以下内容不得作为当前运行事实源：
+### 2.3 明确不存在 Stage B 续存入口
 
-- `peer_groups.json`
-- `company_research_view.json`
-- `data/runtime/details/`
-- `data/runtime/screening_snapshot.json`
-- `data/runtime/industry_state_compact.json`
-- 历史 `deep_research_results_*`
-- 旧榜单
-- 未绑定当前 parent_run_id 的旧公司研究结果
-- 其他临时 research 文件
+当前正式运行**不存在**以下机制：
 
-历史结果只能人工复盘，不能自动带入新一轮。
+- `research/deep_research_ledger.json`
+- `resume_stage_b`
+- `parent_run_id`
+- `remaining_deep_research_codes` 跨 invocation 恢复
+- 上一轮 `company_results` 自动复用
+- 上一轮已研究公司跳过本轮研究
+
+任何历史 Deep Research 结果、旧榜单、旧公司研究结论只能人工复盘，不得作为本轮事实输入。
 
 ---
 
@@ -112,7 +92,7 @@ Risk Cluster Consolidation
 
 在任何公司级外部 Web 研究、股票排名或正式榜输出之前，必须先完成执行身份确认。
 
-每次触发先读取：
+每次触发必须读取：
 
 - 当前 `main`
 - Protocol
@@ -120,7 +100,8 @@ Risk Cluster Consolidation
 - `meta.json`
 - `screening_group_file`
 - `candidate_file`
-- 两个 Ledger（若存在）
+
+不得读取历史公司研究结果来替代本轮 Stage B。
 
 如果无法访问 GitHub、无法读取正式输入、或无法验证当前运行身份：
 
@@ -141,7 +122,7 @@ Runtime Hard Gate 任一失败则停止：
 
 ### 3.1 screening_group Consumer Contract
 
-`screening_group_file` 是 Stage A 唯一正式工作视图。
+`screening_group_file` 是 Stage A 唯一正式模型工作视图。
 
 当前视图是自描述、列式、行可寻址 JSON：
 
@@ -174,9 +155,9 @@ Runtime Hard Gate 任一失败则停止：
 
 ## 5. Stage A｜Structured Screening Freeze
 
-### 5.1 锁定本轮输入
+### 5.1 每次触发无条件建立新 run
 
-开始新的 Stage A 时：
+每次任务触发：
 
 1. 获取当前 `main` commit SHA，记录为 `source_runtime_commit_sha`；
 2. 从该版本读取 Protocol、Skill、meta、screening_groups、candidates；
@@ -186,18 +167,12 @@ Runtime Hard Gate 任一失败则停止：
    - `meta_blob_sha`
    - `screening_group_blob_sha`
    - `candidate_blob_sha`
-4. 生成唯一 `run_id`；
-5. Stage A 后续只使用这套锁定结构化输入。
+4. 生成新的唯一 `run_id`；
+5. 无论上一轮 Ledger 是 FROZEN / FAILED / STALE，都不得直接复用，必须写成本轮 `BUILDING`。
 
-Ledger 写入会改变 main commit SHA，因此同一研究输入用五个 blob SHA 判断，不要求 current main SHA 等于 `source_runtime_commit_sha`。
+Ledger 写入会改变 main commit SHA，因此本轮一致性使用五个正式文件的 blob SHA 判断，不要求 current main SHA 等于 `source_runtime_commit_sha`。
 
-### 5.2 新 Stage A 先使旧 Stage B checkpoint 失效
-
-只要决定开始新的 Stage A，就必须先把现有 `research/deep_research_ledger.json` 标记为 `STALE`（若存在且非 EMPTY），并记录失效原因。
-
-旧 Deep Research 结果从此不得计入新一轮 coverage。
-
-### 5.3 Pre-Research Ledger 先写 BUILDING
+### 5.2 Pre-Research Ledger 先写 BUILDING
 
 开始 Model Prescreen 前，把：
 
@@ -222,7 +197,7 @@ run_id = <本轮唯一值>
 
 不一致则停止，防止并发覆盖。
 
-### 5.4 Repository-only 信息边界
+### 5.3 Repository-only 信息边界
 
 Stage A 可以访问 GitHub，但在 Pre-Research Ledger FROZEN 并通过 Hard Gate 之前，禁止搜索或读取：
 
@@ -241,9 +216,9 @@ stage_a_information_boundary = VIOLATED
 external_company_research_before_freeze = true
 ```
 
-本轮 Pre-Research Ledger 必须 FAILED / 非 FROZEN，Deep Research coverage = UNVERIFIED，停止整轮。
+本轮 Ledger 必须 FAILED / 非 FROZEN，Deep Research coverage = UNVERIFIED，停止整轮。
 
-### 5.5 完成全部 Model Prescreen
+### 5.4 完成全部 Model Prescreen
 
 严格按 `SKILL.md` 对全部候选完成：
 
@@ -308,16 +283,12 @@ candidate_codes
 ledger_count == candidate_count == ledger_entries_count
 ```
 
-每个 entry 至少：
+每个 entry 至少包含：
 
-```json
-{
-  "code": "000000",
-  "result": "PASS_TO_DEEP_RESEARCH",
-  "reason_code": "...",
-  "reason": "..."
-}
-```
+- `code`
+- `result`
+- `reason_code`
+- `reason`
 
 PEER_DOMINATED entry 额外必须包含：
 
@@ -334,24 +305,25 @@ FROZEN 写入前再次回读当前 BUILDING Ledger，并确认 run_id 与五个 
 
 ---
 
-## 7. Frozen Ledger Hard Gate 与 Stage B 恢复判定
+## 7. Frozen Ledger Hard Gate
 
-### 7.1 Frozen Ledger Hard Gate
+Stage A 写入 FROZEN 后，不得凭内存直接进入 Stage B。
 
 必须重新读取当前 Pre-Research Ledger 与五个正式输入，验证：
 
 1. `status == FROZEN`
-2. `repository_only == true`
-3. `external_company_research_before_freeze == false`
-4. `stage_a_information_boundary == CLEAN`
-5. `ledger_count == candidate_count`
-6. 四集合互斥且并集等于当前 candidate 全集
-7. `deep_read_codes == PASS ∪ UNCERTAIN`
-8. entries 完整且可重建四集合
-9. PEER_DOMINATED 审计字段完整
-10. trade_date 一致
-11. candidate_count 一致
-12. 当前 Protocol / Skill / meta / screening_groups / candidates 五个 blob SHA 与 Ledger 完全一致
+2. `run_id` 与本次 invocation 的 Stage A run_id 一致
+3. `repository_only == true`
+4. `external_company_research_before_freeze == false`
+5. `stage_a_information_boundary == CLEAN`
+6. `ledger_count == candidate_count`
+7. 四集合互斥且并集等于当前 candidate 全集
+8. `deep_read_codes == PASS ∪ UNCERTAIN`
+9. entries 完整且可重建四集合
+10. PEER_DOMINATED 审计字段完整
+11. trade_date 一致
+12. candidate_count 一致
+13. 当前 Protocol / Skill / meta / screening_groups / candidates 五个 blob SHA 与 Ledger 完全一致
 
 任一失败：
 
@@ -359,7 +331,7 @@ FROZEN 写入前再次回读当前 BUILDING Ledger，并确认 run_id 与五个 
 ledger_validation = FAILED
 ```
 
-不得开始或恢复 Stage B，也不得生成正式榜。
+整轮停止，不得开始公司级外部研究，不得生成正式榜。
 
 通过后：
 
@@ -367,86 +339,44 @@ ledger_validation = FAILED
 expected_deep_research_codes = pre_research_ledger.deep_read_codes
 ```
 
-从此不得增删 expected。
-
-### 7.2 每次触发先判断是否可恢复 Stage B
-
-只有同时满足以下条件，才允许跳过 Stage A、直接恢复 Stage B：
-
-- 7.1 Hard Gate PASSED；
-- Deep Research Ledger `status` 为 `BUILDING` 或 `COMPLETE`；
-- `parent_run_id == pre_research_ledger.run_id`；
-- `parent_pre_research_blob_sha` 等于当前 FROZEN Pre-Research Ledger 的 Git blob SHA；
-- trade_date 一致；
-- 五个正式输入 blob SHA 一致；
-- expected 与当前 frozen `deep_read_codes` 集合完全一致；
-- actual / remaining / company_results 可严格互相重建；
-- 不存在 expected 之外的公司结果。
-
-通过：
-
-```text
-resume_stage_b = true
-```
-
-只研究 remaining，已完成 company_results 不重新从零研究。
-
-不通过：旧 Deep Research checkpoint 不得复用。如果 Pre-Research Ledger 也无法通过 Hard Gate，则重新执行 Stage A。
+从此本轮不得增删 expected。
 
 ---
 
-## 8. Stage B｜可恢复 Deep Research Ledger
+## 8. Stage B｜单次 invocation 穷尽 Deep Research
 
-### 8.1 顶层字段
+### 8.1 禁止跨轮复用
 
-`research/deep_research_ledger.json` 至少包含：
-
-```json
-{
-  "status": "BUILDING",
-  "parent_run_id": "...",
-  "parent_pre_research_blob_sha": "...",
-  "created_at": "...",
-  "updated_at": "...",
-  "trade_date": "YYYY-MM-DD",
-  "protocol_blob_sha": "...",
-  "skill_blob_sha": "...",
-  "meta_blob_sha": "...",
-  "screening_group_blob_sha": "...",
-  "candidate_blob_sha": "...",
-  "expected_deep_research_codes": [],
-  "actual_deep_researched_codes": [],
-  "remaining_deep_research_codes": [],
-  "company_results": [],
-  "checkpoint_count": 0
-}
-```
-
-不维护历史 schema 版本号。
-
-初始化：
+Stage B 唯一研究集合是本轮 Frozen Ledger 的：
 
 ```text
-expected = frozen deep_read_codes
-actual = ∅
-remaining = expected
-status = BUILDING
+expected_deep_research_codes
 ```
 
-### 8.2 公司级完成结果
+Stage B 的公司级结论保存在**本次执行上下文**中，不写入供下一轮恢复的正式 checkpoint。
 
-只有一家公司已完成足够公开资料核验、可以形成以下终态之一，才计入 actual：
+禁止：
+
+- 读取上一轮公司研究结论作为本轮完成结果；
+- 因为某公司上一轮已研究就跳过；
+- 从上一轮 actual / remaining 继续；
+- 把旧公司状态计入本轮 `actual_deep_researched_codes`；
+- 因为已经找到若干 confirmed 就停止；
+- 因市场风险高而缩小 expected。
+
+### 8.2 本轮公司级终态
+
+只有一家公司在**本次 invocation**完成足够公开资料核验、可以形成以下终态之一，才计入本轮 actual：
 
 - `confirmed`
 - `waiting`
 - `research_uncertain`
 - `excluded`
 
-每个 `company_result` 至少保留：
+每家公司本轮至少形成：
 
 - `code`
 - `status`
-- `researched_at`
 - `primary_business`
 - `primary_profit_driver`
 - `dominant_risk_factor`
@@ -456,80 +386,82 @@ status = BUILDING
 - `valuation_summary`
 - `sources`
 
-`sources` 保存稳定、可复核的信息，例如：
+具体研究深度、估值与安全区语义由 `SKILL.md` 定义。
 
-- `title`
-- `url`
-- `published_at`
-- `retrieved_at`
+### 8.3 一步到位的执行策略
 
-不得只保存一次 execution 内的临时搜索编号。
+为了在一次触发内完成全部 expected，Stage B 必须采用**批量优先、覆盖优先**的研究方式，而不是一家公司一次搜索、一家公司一次工具调用的完全串行方式。
 
-具体研究深度与估值语义由 `SKILL.md` 定义。
+执行要求：
 
-### 8.3 Checkpoint 批次
+1. 先按行业、真实业务或可能共享的主导变量组织 expected research queue；
+2. 同一工具调用中尽可能批量发起多个独立公司查询；
+3. 公司自己的最新财报 / 业绩公告 / 交易所披露必须逐公司确认；
+4. 同行业或同主导变量的公共行业证据可以一次获取后映射到多家公司，避免重复搜索；
+5. runtime / candidate_file 已有的确定性价格、估值、财务字段直接使用，不重新去网页重复搜同一事实；
+6. 对资料清楚的公司快速形成终态；只有出现业务异质、一次性收益、周期失真、来源冲突时才追加更深检索；
+7. 研究过程中持续维护本轮内存集合 `actual_deep_researched_codes`，但**不得因为达到任何中间数量而结束**；
+8. 必须继续直到 expected 全部形成终态或发生明确硬失败。
 
-Stage B 使用小批量持久化，但批次只解决执行容量，不改变研究集合：
+### 8.4 最低证据要求
 
-1. 从 `remaining_deep_research_codes` 继续；
-2. 每完成最多 10 家新的公司级终态结果，回读当前 Deep Research Ledger；
-3. 验证 parent / expected / 当前 Ledger blob 未发生冲突；
-4. 使用当前 Ledger blob SHA 写入 checkpoint；
-5. 更新 actual、remaining、company_results、checkpoint_count、updated_at；
-6. 当前 invocation 仍有执行能力则继续下一批，不因为 checkpoint 主动停止；
-7. 若无法在本次完成全部 remaining，结束前尽可能保存已形成终态的结果，并报告 INCOMPLETE。
+“Deep Research”不等于机械要求每家公司搜索很多网站，但也不能只凭一个低质量二手页面完成全部判断。
 
-“每批最多 10 家”不是 Top N、研究上限或推荐数量。
+每家公司至少需要：
 
-### 8.4 写安全
+- 一项可核验的公司级主要公开依据，优先最新财报、业绩公告、交易所/公司正式披露；
+- 对 `primary_profit_driver` / `dominant_risk_factor` 的证据支持；该证据可以是公司披露，也可以是对同一驱动变量的共享行业证据；
+- 至少一条能够推翻当前判断的 `strongest_counterevidence`。
 
-每次 checkpoint 写入前必须确认：
-
-- `status == BUILDING`
-- parent_run_id 未变化
-- parent_pre_research_blob_sha 未变化
-- expected 未变化
-- 不存在 expected 之外的结果
-- company code 唯一
-
-如果并发执行已经新增了不冲突的完成结果，合并后继续 remaining；parent 或 expected 冲突则立即停止，禁止覆盖。
+多个网站转载同一份公告只算同一个原始证据，不因为 URL 数量增加而提高证据等级。
 
 ---
 
-## 9. Deep Research coverage｜正式榜硬门
+## 9. Deep Research coverage｜单次触发正式榜硬门
 
-Deep Research Ledger 必须始终满足：
+本轮维护：
 
-```text
-expected = actual ∪ remaining
-actual ∩ remaining = ∅
-company_results[].code = actual
-```
+- `expected_deep_research_codes`
+- `actual_deep_researched_codes`
+- 本轮公司级研究结果
+
+只有本次 invocation 中完成足以形成公司级终态的公司，才计入 actual。
 
 ### COMPLETE
 
 只有：
 
 ```text
-expected == actual
-remaining = ∅
-company_results_count == expected_count
-status = COMPLETE
+expected_deep_research_codes == actual_deep_researched_codes
 ```
 
-才允许 Risk Cluster Consolidation 和正式榜。
+并且每个 expected code 都有唯一公司级终态结果，才允许：
 
-### INCOMPLETE
+```text
+deep_research_coverage = COMPLETE
+```
 
-只要 remaining 非空：
+随后进入 Risk Cluster Consolidation 和正式榜。
+
+### INCOMPLETE / FAILED
+
+只要本次 invocation 结束时还有任何 expected code 没有形成终态：
 
 ```text
 deep_research_coverage = INCOMPLETE
 ```
 
-允许输出 checkpoint 进度、公司状态计数、actual / remaining，但禁止把已完成子集包装成正式榜、临时榜、当前 Top N 或其他推荐名单。
+本次任务视为失败，不发布正式榜。
 
-下一次 invocation 若满足 7.2，必须直接从 remaining 继续，不重新执行 Stage A，也不重复研究 actual。
+必须列出：
+
+- `missing_deep_research_codes`
+- `unexpected_researched_codes`（如有）
+- `hard_failure_reason`（如果存在工具、连接、身份冲突或系统硬失败）
+
+**INCOMPLETE 不产生可供下一次任务续跑的正式研究状态。下一次触发重新从 Stage A 开始。**
+
+不得把已完成子集包装成正式榜、临时榜、当前 Top N 或其他推荐名单。
 
 ### UNVERIFIED
 
@@ -537,18 +469,11 @@ deep_research_coverage = INCOMPLETE
 
 - Stage A 信息边界污染
 - Frozen Pre-Research Ledger 无效
-- Deep Research Ledger parent 无法验证
-- expected / actual / remaining / company_results 不闭合
-- 当前正式输入与 checkpoint blob 不一致
-- 无法恢复 frozen `deep_read_codes`
+- expected 无法从本轮 frozen `deep_read_codes` 恢复
+- 当前正式输入与本轮 Ledger blob 不一致
+- coverage 集合无法验证
 
-此时不得发布正式榜，也不得复用旧 checkpoint。
-
-任务完成的唯一定义仍是：
-
-```text
-deep_research_coverage = COMPLETE
-```
+UNVERIFIED 同样不发布正式榜。
 
 ---
 
@@ -564,8 +489,8 @@ deep_research_coverage == COMPLETE
 
 要求：
 
-- 不改变 deep_read_codes；
-- 不改变 actual_deep_researched_codes；
+- 不改变 `deep_read_codes`；
+- 不改变 `actual_deep_researched_codes`；
 - 不改变公司级 confirmed / waiting / research_uncertain / excluded；
 - 正式榜排名对象是独立风险收益机会；
 - 同一风险簇默认一个 representative_code；
@@ -583,55 +508,50 @@ Risk Cluster 是发布层去相关，不是研究层淘汰。
 
 ### Stage A
 
-- trade_date
-- run_id
-- candidate_count
-- ledger_count
-- peer_dominated_count
-- company_clearly_weak_count
-- pass_to_deep_research_count
-- uncertain_prescreen_count
-- deep_research_candidate_count
-- ledger_entries_count
-- stage_a_information_boundary
-- ledger_status
-- ledger_validation
+- `trade_date`
+- `run_id`
+- `candidate_count`
+- `ledger_count`
+- `peer_dominated_count`
+- `company_clearly_weak_count`
+- `pass_to_deep_research_count`
+- `uncertain_prescreen_count`
+- `deep_research_candidate_count`
+- `ledger_entries_count`
+- `stage_a_information_boundary`
+- `ledger_status`
+- `ledger_validation`
 - 五个正式输入 blob SHA
 
 ### Stage B
 
-- parent_run_id
-- deep_research_ledger_status
-- checkpoint_count
-- resume_stage_b
-- expected_deep_research_count
-- actual_deep_researched_count
-- remaining_deep_research_count
-- deep_research_coverage
-- company_confirmed_count
-- waiting_count
-- research_uncertain_count
-- excluded_count
-- actual_deep_researched_codes
-- remaining_deep_research_codes
+- `expected_deep_research_count`
+- `actual_deep_researched_count`
+- `deep_research_coverage`
+- `company_confirmed_count`
+- `waiting_count`
+- `research_uncertain_count`
+- `excluded_count`
+- `actual_deep_researched_codes`
+- `missing_deep_research_codes`
 
 ### 程序漏斗
 
-- snapshot.trade_date
-- universe_count
-- source_candidate_count
+- `snapshot.trade_date`
+- `universe_count`
+- `source_candidate_count`
 - Eligibility 各互斥排除原因数量
-- structural_relevance_count
-- screening_group_count
+- `structural_relevance_count`
+- `screening_group_count`
 
 只有 coverage COMPLETE 时再发布：
 
-- risk_cluster_count
-- formal_opportunity_count
-- final_recommendation_count
-- formal_representative_codes
-- risk_cluster_map
-- independence_rationale
+- `risk_cluster_count`
+- `formal_opportunity_count`
+- `final_recommendation_count`
+- `formal_representative_codes`
+- `risk_cluster_map`
+- `independence_rationale`
 
 必须区分 `company_confirmed_count` 与 `formal_opportunity_count`。
 
@@ -645,7 +565,7 @@ Risk Cluster 是发布层去相关，不是研究层淘汰。
 
 - 改变程序候选全集；
 - 跳过 Structured Screening；
-- 修改 frozen deep_read_codes；
+- 修改 frozen `deep_read_codes`；
 - 修改 Stage B expected；
 - 成为 coverage 不完整的理由；
 - 在 coverage 未 COMPLETE 时生成正式榜。
@@ -654,24 +574,24 @@ Risk Cluster 是发布层去相关，不是研究层淘汰。
 
 ## 13. 执行原则
 
-> **一个正式任务管理全流程；Stage A 只在没有可恢复 checkpoint 或正式输入变化时重新执行。**
+> **每次任务触发都是一个全新、一步到位的完整事务；不得跨 invocation 续跑公司研究。**
+
+> **每次触发都从新的 Stage A 开始，上一轮 FROZEN Ledger 不得直接复用。**
 
 > **Stage A 只做 repository-only Structured Screening；FROZEN 并回读验证之前不得使用公司级外部公开资料。**
 
-> **Frozen Pre-Research Ledger 是 Stage A 的可审计硬检查点：逐公司 entry 是真相，代码集合是派生索引。**
+> **Frozen Pre-Research Ledger 只是在同一次 invocation 内连接 Stage A 与 Stage B 的可审计硬检查点。**
 
-> **Deep Research Ledger 是 Stage B 的可恢复硬检查点：company_results 是真相，actual / remaining 是派生集合。**
+> **不存在正式 Deep Research Ledger，不存在 resume_stage_b，不读取上一轮 company_results。**
 
 > **PEER_DOMINATED 只表达严格公司级支配，不承担行业/风险簇去重。**
 
 > **研究层防漏，发布层去相关。**
 
-> **Stage B 不重新做 Pre-Research，也不得修改 frozen deep_read_codes。**
+> **Stage B 必须在本次 invocation 内穷尽 frozen deep_read_codes。**
 
-> **任务完成的定义是穷尽 frozen deep_read_codes，不是找到足够多可以出榜的公司。**
+> **任务完成的定义是当轮 expected == actual，不是找到足够多可以出榜的公司。**
 
-> **Deep Research coverage 未 COMPLETE 时，没有正式独立机会榜。**
-
-> **Checkpoint 批次只是持久化机制，不是研究上限、Top N 或推荐数量。**
+> **Deep Research coverage 未 COMPLETE 时，本次任务失败且没有正式独立机会榜。**
 
 > **程序资格不由模型重算。**
