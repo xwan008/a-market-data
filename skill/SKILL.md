@@ -232,6 +232,8 @@ current_price 对比 low_risk_buy_range / 最终安全区 → downside_to_safety
 
 如果研究逻辑成立，但无法建立上述可辩护、可复算的 entry-ready 数值闭环，则不得判为 `confirmed`：价格或安全边际确实不足时进入 `waiting_for_entry`；若连正常化盈利或保守价值本身都无法可靠建立，则进入 `research_uncertain`。
 
+这里的“无法可靠建立正常化盈利或保守价值”是指：在一次定向补查后，连**有事实依据的合理区间**都无法建立；不要求得到单点精确预测。只要能够建立可辩护的正常化盈利区间与估值区间，就必须继续用区间的保守端完成 `confirmed` / `waiting_for_entry` 判断，不得因为无法得到精确单点而转入 `research_uncertain`。
+
 #### `waiting_for_entry`
 
 公司研究逻辑已有足够证据支持，但当前价格、安全边际、保守上行空间或参与时机尚未满足低风险入场条件。
@@ -296,6 +298,8 @@ len(waiting_for_entry_reason) == waiting_for_entry_count
 
 不能仅因为当前价格暂时不好而使用 `research_uncertain`；价格或时机不合适但研究逻辑成立，应使用 `waiting_for_entry`。
 
+“无法得到精确盈利预测、精确合理价值或单点目标价”本身也不属于 `research_uncertain`。只要现有事实足以建立可辩护的正常化盈利区间和估值区间，就已经具备继续做保守决策的条件，必须使用区间完成状态判断。
+
 #### `excluded`
 
 公司级研究已经出现足以否定投资逻辑的实质问题，例如基本面明显恶化、盈利逻辑被反证、正常化估值失去合理性或关键风险使其不再符合研究目标。
@@ -309,22 +313,34 @@ Stage B 第一遍研究中，如公司暂时落入 `research_uncertain`，该状
 每个待消歧公司必须先记录一个 `uncertainty_reason`，且只能属于以下三类之一：
 
 - `DATA_GAP`：关键事实缺失、关键来源无法取得，或不同可靠来源之间存在会改变结论的冲突；
-- `NORMALIZATION_GAP`：正常化盈利、周期位置、一次性收益或高景气利润能否持续无法可靠判断；
+- `NORMALIZATION_GAP`：一次定向补查后仍无法建立有事实依据的正常化盈利合理区间，或无法建立与该盈利区间相匹配的可辩护估值区间；仅仅无法得到精确单点、存在正常的估值区间宽度或无法确定唯一目标价，不属于 `NORMALIZATION_GAP`；
 - `THESIS_CONFLICT`：支持投资逻辑与反向证据都足够强，当前证据不足以可靠判断研究逻辑成立还是被否定。
 
 判定 `research_uncertain` 前必须明确回答：
 
-1. **具体缺失或冲突的事实是什么？**不得只写“信息不足”“存在不确定性”等泛化理由；
+1. **具体缺失或冲突的事实是什么？**不得只写“信息不足”“存在不确定性”“无法建立估值闭环”等泛化理由；如果使用 `NORMALIZATION_GAP`，必须具体说明为什么连合理区间都无法建立；
 2. **这个事实如果得到解决，是否可能实质改变公司终态？**如果不会改变终态，不得以此作为 uncertain 理由；
 3. **是否已经针对这个具体缺口做过一次定向补充研究？**
 
 第一遍结束后，必须仅针对这些待消歧公司执行一次 `Uncertainty Resolution Pass`：
 
 - `DATA_GAP`：只补查缺失的公告、财报、公司披露或冲突事实；
-- `NORMALIZATION_GAP`：只补查周期位置、价差/价格、历史盈利区间、一次性收益和正常化利润依据；
+- `NORMALIZATION_GAP`：只补查周期位置、价差/价格、历史盈利区间、一次性收益和正常化利润依据，目标是建立可辩护的**区间**，不是追求单点精确值；
 - `THESIS_CONFLICT`：明确 strongest bull case 与 strongest bear case，并补查最可能改变判断的关键证据。
 
 Resolution Pass 只允许**一次定向补充研究 + 一次重新判断**，不得无限追加搜索，也不得为了降低 uncertain 数量强行选边。
+
+Resolution Pass 后，只要能够建立可辩护的正常化盈利区间和估值区间，就不得继续以“估值不够精确”为由保留 `research_uncertain`。必须使用区间的保守端完成低风险判断：
+
+```text
+正常化盈利区间下沿 × 可辩护保守估值区间下沿
+→ conservative_fair_value / 最终安全区的保守端
+→ 与 current_price 比较
+```
+
+- 保守端仍满足 `confirmed` 的 entry-ready 条件 → `confirmed`；
+- 研究逻辑成立，但保守端不能满足低风险安全边际、保守上行或参与时机 → `waiting_for_entry`；
+- 只有一次定向补查后，连正常化盈利合理区间或与之匹配的估值合理区间都无法建立，且该缺口会实质改变研究结论，才允许最终 `NORMALIZATION_GAP / research_uncertain`。
 
 重新判断时：
 
@@ -337,9 +353,9 @@ Resolution Pass 只允许**一次定向补充研究 + 一次重新判断**，不
 
 特别约束：
 
-> **价格不合适、买点不舒服、保守上行空间暂时不足，本身都不是 research_uncertain；只要研究逻辑已经成立，应归入 waiting_for_entry。**
+> **价格不合适、买点不舒服、保守上行空间暂时不足、本轮保守估值下沿不能支持买入，都不是 research_uncertain；只要研究逻辑已经成立且正常化区间可建立，应归入 waiting_for_entry。**
 
-对于强周期公司，不得仅以“周期性强”为由直接保留 uncertain。必须先尝试建立保守正常化盈利区间；只有连可辩护的正常化区间都无法建立时，才允许 `NORMALIZATION_GAP`。
+对于强周期公司，不得仅以“周期性强”为由直接保留 uncertain。必须先尝试建立保守正常化盈利区间；只有一次定向补查后连可辩护的正常化盈利区间都无法建立时，才允许 `NORMALIZATION_GAP`。
 
 正式状态仍只有四种，不增加第五种状态。`uncertainty_reason` 只是 `research_uncertain` 的诊断字段。
 
@@ -398,6 +414,8 @@ Deep Research 后尽量形成：
 - 真实主营、盈利驱动和盈利质量。
 
 强周期公司必须使用正常化盈利，禁止直接用高景气利润外推。
+
+估值允许、也通常应当使用**区间而不是单点**。当正常化盈利和合理估值能够形成有事实依据的区间时，低风险判断优先采用其保守端；“无法确定唯一目标价”不能成为停止判断或转入 `research_uncertain` 的理由。
 
 原则上优先：
 
@@ -489,7 +507,7 @@ Deep Research 后公司状态为：
 
 - `confirmed`：研究成立且当前 entry-ready，并已建立公司级可复算 entry-ready 数值闭环；
 - `waiting_for_entry`：研究成立、具有逐股合法 `waiting_for_entry_reason`，但等待低风险入场；
-- `research_uncertain`：一次 Uncertainty Resolution Pass 后仍存在会实质改变研究结论的明确证据缺口或冲突；
+- `research_uncertain`：一次 Uncertainty Resolution Pass 后仍存在会实质改变研究结论的明确证据缺口或冲突；无法得到精确单点估值本身不属于该状态；
 - `excluded`：研究逻辑被实质否定。
 
 `waiting` 只作为历史结果的 legacy alias；新运行统一输出 `waiting_for_entry`。
@@ -532,11 +550,13 @@ Risk Cluster 不修改这些公司级状态，只改变正式榜如何表达相�
 
 > **confirmed 必须由公司自身的可复算 entry-ready 数值闭环证明：正常化盈利/估值基础 → 保守价值或最终安全区 → 当前价 → 保守上行与下行保护；孤立的 PE、PB、ROE、低位或支撑不能单独证明 confirmed。**
 
+> **只要能够建立有事实依据的正常化盈利区间与估值区间，就必须用区间保守端继续完成 confirmed / waiting_for_entry 判断；无法得到精确单点估值不得作为 research_uncertain 的理由。**
+
 > **waiting_for_entry_reason 的键集合必须与 waiting_for_entry_codes 完全一致；禁止 default 或任何兜底理由，禁止把 Risk Cluster / 同行相对优劣作为 waiting 原因。**
 
 > **凡 waiting_for_entry_reason 以估值、安全边际、上行空间或低风险价格区为依据，必须给出能够直接推导 entry blocker 的公司级可复算数字关系；孤立的现价、PE、PB、ROE 不算有效锚点。**
 
-> **research_uncertain 必须有明确、可改变结论的 uncertainty_reason，并经过一次定向 Uncertainty Resolution Pass 后仍无法解决；不得把它当作拿不准时的默认安全出口。**
+> **research_uncertain 必须有明确、可改变结论的 uncertainty_reason，并经过一次定向 Uncertainty Resolution Pass 后仍无法解决；不得把它当作拿不准时、无法精确估值时或无法证明 confirmed 时的默认安全出口。**
 
 > **同一 Risk Cluster 可以有多家公司同时 confirmed；Risk Cluster 只能在之后选择代表，不得反向降级公司状态。**
 
