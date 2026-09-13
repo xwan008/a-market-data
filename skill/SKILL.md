@@ -163,7 +163,7 @@ Stage B 可以为了降低工具调用和上下文负担，把 `deep_read_codes`
 
 - 每个 Batch 只保留固定数量公司；
 - Batch 内 Top1 / Top2 / Top N；
-- 因为本批已有若干优质公司，把其他满足条件公司降为 `waiting` 或 `research_uncertain`；
+- 因为本批已有若干优质公司，把其他满足条件公司降为 `waiting_for_entry` 或 `research_uncertain`；
 - 把 Batch 相对排名作为公司状态依据；
 - 把 Batch 当成同行组、Risk Cluster 或正式榜席位组。
 
@@ -205,7 +205,7 @@ Deep Research 的目标是穷尽冻结后的 `deep_read_codes`，不是找到足
 
 > `research_supported + entry_ready`
 
-#### `waiting` / `waiting_for_entry`
+#### `waiting_for_entry`
 
 公司研究逻辑已有足够证据支持，但当前价格、安全边际、保守上行空间或参与时机尚未满足低风险入场条件。
 
@@ -213,13 +213,15 @@ Deep Research 的目标是穷尽冻结后的 `deep_read_codes`，不是找到足
 
 > `research_supported + not_entry_ready`
 
-`waiting` 不是研究失败，也不是“同批已有更好的公司”。只要研究逻辑成立但当前不适合买入，就应使用 `waiting`。
+`waiting_for_entry` 不是研究失败，也不是“同批已有更好的公司”。只要研究逻辑成立但当前不适合买入，就应使用 `waiting_for_entry`。
+
+`waiting` 只作为历史结果的 legacy alias；新运行统一输出 `waiting_for_entry`。
 
 #### `research_uncertain`
 
 研究证据本身不足、关键来源冲突、周期正常化无法可靠判断、真实业务或关键事实无法验证。
 
-不能仅因为当前价格暂时不好而使用 `research_uncertain`；价格或时机不合适但研究逻辑成立，应使用 `waiting`。
+不能仅因为当前价格暂时不好而使用 `research_uncertain`；价格或时机不合适但研究逻辑成立，应使用 `waiting_for_entry`。
 
 #### `excluded`
 
@@ -314,7 +316,7 @@ Risk Cluster Consolidation 只对 `entry_ready_codes`，即公司级 `confirmed`
 如果同一风险簇有多家公司都 `confirmed`：
 
 1. 所有公司仍保持 `confirmed`；
-2. 不得为了让一个风险簇只剩一个 confirmed 而提前把其他公司降为 `waiting`；
+2. 不得为了让一个风险簇只剩一个 confirmed 而提前把其他公司降为 `waiting_for_entry`；
 3. 正式榜默认选择一个 `representative_code`；
 4. 其余已确认公司保留为 `alternative_codes` / `alternative_candidates`。
 
@@ -359,9 +361,11 @@ Risk Cluster Consolidation 只对 `entry_ready_codes`，即公司级 `confirmed`
 Deep Research 后公司状态为：
 
 - `confirmed`：研究成立且当前 entry-ready；
-- `waiting`：研究成立但等待低风险入场；
+- `waiting_for_entry`：研究成立但等待低风险入场；
 - `research_uncertain`：研究证据不足或冲突；
 - `excluded`：研究逻辑被实质否定。
+
+`waiting` 只作为历史结果的 legacy alias；新运行统一输出 `waiting_for_entry`。
 
 Risk Cluster 不修改这些公司级状态，只改变正式榜如何表达相互高度相关的 `confirmed` 机会。
 
