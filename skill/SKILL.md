@@ -197,6 +197,33 @@ Structured Screening / Model Prescreen 禁止：
 8. 是否处于周期盈利高点，导致 PE 看似便宜；
 9. 至少一条最可能推翻当前判断的反向证据。
 
+### 4.1 Batch 只是执行容器，不是比较组
+
+Stage B 为了降低工具调用和上下文负担，可以把 `deep_read_codes` 切成多个 execution batch；**batch 只具有执行意义，不具有任何投资比较、配额或淘汰意义。**
+
+每家公司的 `confirmed / waiting / research_uncertain / excluded` 必须是基于**该公司自身证据和适用于该业务的分析逻辑形成的绝对判断**，不得因为同一 batch 中存在更优秀的公司而被降级。
+
+明确禁止：
+
+- 每个 batch 只保留 1 家、2 家或固定数量的 `confirmed`；
+- 在 batch 内做 Top1 / Top2 / Top N；
+- 因为“本批已经有足够好的公司”而把其他满足条件的公司改成 `waiting` 或 `research_uncertain`；
+- 把 batch 内相对排名作为公司状态依据；
+- 把 execution batch 当成同行组、Risk Cluster 或正式榜席位分组。
+
+允许出现任何自然分布，例如：
+
+- 同一 batch 多家公司全部 `confirmed`；
+- 同一 batch 没有任何 `confirmed`；
+- 同一申万三级行业有多家公司同时满足最终低风险条件；
+- 不同行业但恰好处于同一 batch 的公司分别使用适合自身业务的判断逻辑。
+
+申万三级行业、真实主营和共享主导变量可以帮助复用行业证据、理解公司背景，但**不得形成 batch 配额**。跨公司去相关只允许在 Deep Research coverage COMPLETE 后由 Risk Cluster Consolidation 执行。
+
+判断纪律：
+
+> **公司状态由公司自己的证据决定；Batch 只决定“这一轮一起处理谁”，不决定“这一轮留下谁”。**
+
 如果申万三级行业内实际业务不可比，应在 Deep Research 后按真实主营、盈利驱动和利润来源重新理解可比关系。
 
 单公司资料不足只影响该公司，标记 `research_uncertain` 或 `waiting`，不得改变其他公司的研究范围。
@@ -376,6 +403,8 @@ Risk Cluster Consolidation 不修改这些公司研究状态，只改变正式�
 > **Deep Research coverage 未 COMPLETE 时，不生成正式独立机会榜。**
 
 > **研究层允许相关公司完整保留；正式行动榜再做风险因子去重。**
+
+> **Batch 只用于执行分包，不用于投资比较、配额或组内淘汰；满足条件的公司可以在同一 Batch 中全部保留。**
 
 > **正式机会集合不设 Top N、目标数量或固定上限。**
 
