@@ -1,0 +1,225 @@
+name: One-time current-contract cleanup retry
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/deversion-retry-trigger.txt"
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Convert formal chain to one current contract
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          import re
+
+          def load(path):
+              return Path(path).read_text(encoding="utf-8")
+
+          def save(path, text):
+              Path(path).write_text(text, encoding="utf-8")
+
+          def must_replace(path, old, new):
+              text = load(path)
+              if old not in text:
+                  raise SystemExit(f"missing expected block in {path}: {old[:120]!r}")
+              save(path, text.replace(old, new))
+
+          # Unversioned semantic runtime identities.
+          must_replace("scripts/split_snapshot.py", 'RUNTIME_FORMAT = "model_ready_candidates_v2"', 'RUNTIME_FORMAT = "model_ready_candidates"')
+          must_replace(
+              "scripts/split_snapshot.py",
+              '''def normalize_industry_yoy(value: Any, source_unit: str | None) -> Any:\n    if not is_number(value):\n        return value\n    if source_unit == YOY_UNIT:\n        return value\n    # Legacy snapshots stored industry aggregate YoY as ratios.\n    return float(value) * 100.0\n''',
+              '''def industry_yoy_value(value: Any, source_unit: str | None) -> Any:\n    if source_unit != YOY_UNIT:\n        raise ValueError(f"unexpected industry YoY unit: {source_unit!r}")\n    return value\n'''
+          )
+          must_replace("scripts/split_snapshot.py", "normalize_industry_yoy(", "industry_yoy_value(")
+          must_replace("scripts/build_screening_groups.py", 'SCREENING_GROUP_FORMAT = "screening_group_view_v1"', 'SCREENING_GROUP_FORMAT = "screening_group_view"')
+
+          # Snapshot accepts only current industry units and carries no numeric schema generation.
+          must_replace(
+              "scripts/build_snapshot.py",
+              '''def industry_yoy_pct(value: Any, source_unit: str | None) -> Any:\n    \"\"\"Normalize industry YoY values to percentage points (12.4 == 12.4%).\"\"\"\n    if not is_number(value):\n        return value\n    if source_unit == YOY_UNIT:\n        return value\n    return float(value) * 100.0\n\n\n''',
+              ""
+          )
+          must_replace(
+              "scripts/build_snapshot.py",
+              '''def compact_industries(raw: dict[str, Any]) -> dict[str, Any]:\n    source_unit = raw.get("yoy_unit")\n    result: dict[str, Any] = {}\n''',
+              '''def compact_industries(raw: dict[str, Any]) -> dict[str, Any]:\n    if raw.get("yoy_unit") != YOY_UNIT:\n        raise RuntimeError(\n            f"industry_state.yoy_unit must be {YOY_UNIT}, got {raw.get('yoy_unit')!r}"\n        )\n    result: dict[str, Any] = {}\n'''
+          )
+          must_replace(
+              "scripts/build_snapshot.py",
+              '''            "aggregate_revenue_yoy": industry_yoy_pct(\n                item.get("aggregate_revenue_yoy"), source_unit\n            ),\n            "aggregate_parent_profit_yoy": industry_yoy_pct(\n                item.get("aggregate_parent_profit_yoy"), source_unit\n            ),\n''',
+              '''            "aggregate_revenue_yoy": item.get("aggregate_revenue_yoy"),\n            "aggregate_parent_profit_yoy": item.get("aggregate_parent_profit_yoy"),\n'''
+          )
+          must_replace("scripts/build_snapshot.py", '        "schema_version": 2,\n', "")
+
+          must_replace("scripts/validate_snapshot.py", "SNAPSHOT_SCHEMA_VERSION = 2\n\n", "")
+          must_replace(
+              "scripts/validate_snapshot.py",
+              '''    if data.get("schema_version") != SNAPSHOT_SCHEMA_VERSION:\n        fail(\n            f"schema_version must be {SNAPSHOT_SCHEMA_VERSION}, "\n            f"got {data.get('schema_version')!r}"\n        )\n''',
+              ""
+          )
+          must_replace("scripts/build_market_state.py", '        "schema_version": 1,\n', "")
+
+          # Industry state: current unit contract only, no old-schema conversion.
+          p = "scripts/build_industry_state.py"
+          text = load(p)
+          old_function = '''def normalize_carried_yoy(value, existing_unit: str | None):\n    \"\"\"Normalize carried legacy values into percentage points.\"\"\"\n    number = fnum(value)\n    if number is None:\n        return value\n    if existing_unit == YOY_UNIT:\n        return number\n    # Legacy schema stored aggregate YoY as ratios (0.124 == 12.4%).\n    return number * 100.0\n\n\n'''
+          if old_function not in text:
+              raise SystemExit("normalize_carried_yoy block not found")
+          text = text.replace(old_function, "")
+          old_existing = '''    if OUTPUT.exists():\n        existing = json.loads(OUTPUT.read_text(encoding="utf-8"))\n\n'''
+          if old_existing not in text:
+              raise SystemExit("industry existing-load block not found")
+          text = text.replace(
+              old_existing,
+              '''    if OUTPUT.exists():\n        existing = json.loads(OUTPUT.read_text(encoding="utf-8"))\n        if existing.get("yoy_unit") != YOY_UNIT:\n            raise SystemExit(\n                f"existing industry_state.yoy_unit must be {YOY_UNIT}, "\n                f"got {existing.get('yoy_unit')!r}"\n            )\n\n'''
+          )
+          old_carry = '''    previous_industries = existing.get("level3_profitability") or {}\n    existing_unit = existing.get("yoy_unit")\n    missing = set(previous_industries) - set(result)\n    for code in sorted(missing):\n        old = previous_industries.get(code)\n        if old:\n            carry = dict(old)\n            carry["confidence"] = "low"\n            carry["aggregate_revenue_yoy"] = normalize_carried_yoy(\n                carry.get("aggregate_revenue_yoy"), existing_unit\n            )\n            carry["aggregate_parent_profit_yoy"] = normalize_carried_yoy(\n                carry.get("aggregate_parent_profit_yoy"), existing_unit\n            )\n'''
+          new_carry = '''    previous_industries = existing.get("level3_profitability") or {}\n    missing = set(previous_industries) - set(result)\n    for code in sorted(missing):\n        old = previous_industries.get(code)\n        if old:\n            carry = dict(old)\n            carry["confidence"] = "low"\n'''
+          if old_carry not in text:
+              raise SystemExit("industry carry block not found")
+          text = text.replace(old_carry, new_carry)
+          if '        "schema_version": 3,\n' not in text:
+              raise SystemExit("industry schema_version output not found")
+          text = text.replace('        "schema_version": 3,\n', "")
+          save(p, text)
+
+          # Validator replaces the former migration compatibility layer.
+          save(
+              "scripts/ensure_industry_state_contract.py",
+              '''#!/usr/bin/env python3\n\"\"\"Validate the single current industry-state contract.\"\"\"\n\nfrom __future__ import annotations\n\nimport argparse\nimport json\nfrom pathlib import Path\nfrom typing import Any\n\nfrom contracts import YOY_UNIT\n\nYOY_FIELDS = (\n    "aggregate_revenue_yoy",\n    "aggregate_parent_profit_yoy",\n)\n\n\ndef is_number(value: Any) -> bool:\n    return isinstance(value, (int, float)) and not isinstance(value, bool)\n\n\ndef main() -> int:\n    parser = argparse.ArgumentParser()\n    parser.add_argument("path", nargs="?", default="data/research/industry_state.json")\n    args = parser.parse_args()\n    path = Path(args.path)\n    if not path.exists():\n        raise SystemExit(f"missing industry state: {path}")\n\n    payload = json.loads(path.read_text(encoding="utf-8"))\n    if payload.get("yoy_unit") != YOY_UNIT:\n        raise SystemExit(\n            f"industry_state.yoy_unit must be {YOY_UNIT}, "\n            f"got {payload.get('yoy_unit')!r}"\n        )\n    industries = payload.get("level3_profitability")\n    if not isinstance(industries, dict) or not industries:\n        raise SystemExit("industry state has no level3_profitability data")\n    for code, item in industries.items():\n        if not isinstance(item, dict):\n            raise SystemExit(f"industry {code} must be an object")\n        for field in YOY_FIELDS:\n            value = item.get(field)\n            if value is not None and not is_number(value):\n                raise SystemExit(f"industry {code} {field} must be numeric or null")\n    print(f"industry state contract valid: yoy_unit={YOY_UNIT} industries={len(industries)}")\n    return 0\n\n\nif __name__ == "__main__":\n    raise SystemExit(main())\n'''
+          )
+
+          # Protocol is itself the only current Ledger contract.
+          p = "skill/RUNTIME_READ_PROTOCOL.md"
+          text = load(p)
+          text = text.replace("Frozen Ledger 的固定 schema、逐公司审计和并发写安全", "Frozen Ledger 的固定字段契约、逐公司审计和并发写安全")
+          text = text.replace("ledger_version = 3\nstatus = BUILDING", "status = BUILDING")
+          text = text.replace("- `ledger_version == 3`\n", "")
+          text = text.replace("## 6. Frozen Ledger v3｜固定 schema 与逐公司审计", "## 6. Frozen Ledger｜固定字段契约与逐公司审计")
+          old = '''### 6.1 固定版本\n\n当前唯一有效 schema：\n\n```text\nledger_version = 3\n```\n\n不得由模型自行递增、降级或猜测版本。Protocol 变更 schema 时必须明确修改本节。\n'''
+          new = '''### 6.1 当前唯一字段契约\n\n本 Protocol 直接定义当前唯一有效 Ledger 字段契约。运行时不得识别、迁移或兼容历史 Ledger 格式；任何不符合当前必需字段、逐公司审计和集合闭合要求的 Ledger 都视为无效。\n'''
+          if old not in text:
+              raise SystemExit("protocol fixed-version block not found")
+          text = text.replace(old, new)
+          text = text.replace('  "ledger_version": 3,\n', "")
+          text = text.replace("- 当前 `ledger_version == 3`\n", "")
+          old_gate = '''1. `ledger_version == 3`；\n2. `status == FROZEN`；\n3. `run_id` 与本轮 Stage A 一致；\n4. `repository_only == true`；\n5. `external_company_research_before_freeze == false`；\n6. `stage_a_information_boundary == CLEAN`；\n7. `ledger_count == candidate_count`；\n8. 四类代码集合互斥且并集等于当前 candidate 全集；\n9. `deep_read_codes == pass_to_deep_research_codes ∪ uncertain_codes`；\n10. `ledger_entries` 完整、一致、可重建四集合；\n11. 所有 PEER_DOMINATED entry 具备完整支配审计字段；\n12. 当前 `trade_date` 与 Ledger 一致；\n13. 当前 `candidate_count` 与 Ledger 一致；\n14. 当前 Protocol / Skill / meta / screening_groups / candidates 五个 blob SHA 与 Ledger 记录完全一致。\n'''
+          new_gate = '''1. `status == FROZEN`；\n2. `run_id` 与本轮 Stage A 一致；\n3. `repository_only == true`；\n4. `external_company_research_before_freeze == false`；\n5. `stage_a_information_boundary == CLEAN`；\n6. `ledger_count == candidate_count`；\n7. 四类代码集合互斥且并集等于当前 candidate 全集；\n8. `deep_read_codes == pass_to_deep_research_codes ∪ uncertain_codes`；\n9. `ledger_entries` 完整、一致、可重建四集合；\n10. 所有 PEER_DOMINATED entry 具备完整支配审计字段；\n11. 当前 `trade_date` 与 Ledger 一致；\n12. 当前 `candidate_count` 与 Ledger 一致；\n13. 当前 Protocol / Skill / meta / screening_groups / candidates 五个 blob SHA 与 Ledger 记录完全一致。\n'''
+          if old_gate not in text:
+              raise SystemExit("protocol hard-gate block not found")
+          text = text.replace(old_gate, new_gate)
+          save(p, text)
+
+          p = "README.md"
+          text = load(p)
+          text = text.replace("ledger_version = 3\nstatus = FROZEN", "status = FROZEN")
+          text = text.replace("- run_id / schema / status", "- run_id / field contract / status")
+          text = text.replace("## Frozen Ledger v3｜同一次执行内部的硬检查点", "## Frozen Ledger｜同一次执行内部的硬检查点")
+          old = '''\n当前固定 schema：\n\n```text\nledger_version = 3\n```\n'''
+          if old not in text:
+              raise SystemExit("README ledger schema block not found")
+          text = text.replace(old, "\n当前 Ledger 字段契约由 `skill/RUNTIME_READ_PROTOCOL.md` 直接定义，不维护历史 schema 分支或兼容层。\n")
+          save(p, text)
+
+          ledger_path = Path("research/pre_research_ledger.json")
+          ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
+          ledger.pop("ledger_version", None)
+          ledger_path.write_text(json.dumps(ledger, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+          for path in ("data/research/industry_state.json", "data/market_state.json"):
+              fp = Path(path)
+              payload = json.loads(fp.read_text(encoding="utf-8"))
+              payload.pop("schema_version", None)
+              payload.pop("unit_migration", None)
+              fp.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+          # Active formal-chain source files must have no numeric generation branches.
+          targets = [
+              "skill/RUNTIME_READ_PROTOCOL.md", "README.md",
+              "research/pre_research_ledger.json", "scripts/split_snapshot.py",
+              "scripts/build_screening_groups.py", "scripts/build_snapshot.py",
+              "scripts/validate_snapshot.py", "scripts/build_market_state.py",
+              "scripts/build_industry_state.py", "scripts/ensure_industry_state_contract.py",
+          ]
+          forbidden = [
+              "ledger_version", "model_ready_candidates_v2", "screening_group_view_v1",
+              "LEGACY_SCHEMA_VERSION", "CURRENT_SCHEMA_VERSION", "legacy schema",
+              '"schema_version": 1', '"schema_version": 2', '"schema_version": 3',
+          ]
+          for path in targets:
+              hits = [x for x in forbidden if x in load(path)]
+              if hits:
+                  raise SystemExit(f"version residue in {path}: {hits}")
+          PY
+
+      - name: Rebuild and validate final current data
+        shell: bash
+        run: |
+          python scripts/ensure_industry_state_contract.py data/research/industry_state.json
+          python scripts/build_snapshot.py --source . --output data/snapshot.json
+          python scripts/attach_market_state.py data/snapshot.json
+          python scripts/normalize_snapshot_source.py data/snapshot.json
+          python scripts/validate_snapshot.py data/snapshot.json
+          python scripts/build_runtime.py data/snapshot.json --output-dir data/runtime
+
+      - name: Verify final current outputs
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+
+          ledger = json.loads(Path("research/pre_research_ledger.json").read_text(encoding="utf-8"))
+          assert "ledger_version" not in ledger
+          snapshot = json.loads(Path("data/snapshot.json").read_text(encoding="utf-8"))
+          industry = json.loads(Path("data/research/industry_state.json").read_text(encoding="utf-8"))
+          market = json.loads(Path("data/market_state.json").read_text(encoding="utf-8"))
+          meta = json.loads(Path("data/runtime/meta.json").read_text(encoding="utf-8"))
+          candidates = json.loads(Path("data/runtime/candidates.json").read_text(encoding="utf-8"))
+          groups = json.loads(Path("data/runtime/screening_groups.json").read_text(encoding="utf-8"))
+          assert "schema_version" not in snapshot
+          assert "schema_version" not in (snapshot.get("market_state") or {})
+          assert "schema_version" not in industry
+          assert "schema_version" not in market
+          assert "schema_version" not in (meta.get("snapshot") or {})
+          assert "schema_version" not in ((meta.get("snapshot") or {}).get("market_state") or {})
+          assert meta["runtime_format"] == "model_ready_candidates"
+          assert candidates["runtime_format"] == "model_ready_candidates"
+          assert meta["screening_group_format"] == "screening_group_view"
+          assert groups["runtime_format"] == "screening_group_view"
+          assert meta["runtime_validation"]["status"] == "passed"
+          assert meta["screening_group_validation"]["status"] == "passed"
+          print("single current contract verified")
+          PY
+
+      - name: Commit cleanup
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md skill research scripts data
+          git commit -m "refactor: keep only current data and research contracts"
+          git push origin HEAD:main
