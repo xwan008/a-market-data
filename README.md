@@ -32,7 +32,7 @@ meta.json / candidates.json / screening_groups.json
         ↓
 Runtime / Identity Gate
         ↓
-screening_groups 按固定 80 行区间完整读取
+screening_groups 按固定 40 行区间完整读取
         ↓
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Stage A｜Structured Screening
@@ -137,7 +137,7 @@ data/runtime/screening_groups.json
 
 ### `screening_groups.json`
 
-Stage A 的唯一模型工作视图。采用自描述列式、行可寻址 JSON。正式消费路径按 `line_count` 直接使用固定 80 行区间读取，不依赖一次整文件响应是否完整。
+Stage A 的唯一模型工作视图。采用自描述列式、行可寻址 JSON。正式消费路径按 `line_count` 直接使用固定 40 行区间读取，不依赖一次整文件响应是否完整。
 
 它只组织结构化事实，不预先产生模型结论，不评分、不排名、不做 Top N。
 
@@ -176,16 +176,7 @@ target_batch_candidate_count = 20
 
 `PEER_DOMINATED` 只表示同一三级行业组内结构化事实已经足以支持严格公司级支配，不承担行业去重、风险簇去重或减少 Deep Research 数量的职责。
 
-`CLEARLY_WEAK` 必须至少有两个独立结构化弱点，并记录：
-
-```text
-weakness_1
-weakness_2
-counter_advantage_check
-uncertainty_check
-```
-
-如果无法证明两个独立弱点，或仍需要公司级外部研究才能解释，应使用 `UNCERTAIN`。
+`CLEARLY_WEAK` 只有在结构化事实显示多个独立方面明显偏弱，且没有清晰的确定性反向优势时才使用。单一指标不得单独形成 `CLEARLY_WEAK`；如果弱点仍可能由周期、会计口径、业务变化或缺失信息解释，应使用 `UNCERTAIN`。
 
 最终：
 
@@ -241,7 +232,7 @@ entry_ready_count
 = confirmed_count
 ```
 
-`waiting` 不再是正式状态名。
+`waiting` 只作为历史结果的 legacy alias；新运行统一输出 `waiting_for_entry`。
 
 每家公司需要确认真实主营、`primary_profit_driver`、`dominant_risk_factor`、未来 1–2 季度盈利逻辑、盈利质量/一次性收益/周期正常化、最强反向证据与估值摘要。
 
