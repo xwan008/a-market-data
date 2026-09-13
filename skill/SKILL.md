@@ -46,7 +46,7 @@
 
 这一层只使用程序准备好的 `screening_groups` 及同一锁定 runtime 下允许的仓库结构化事实。
 
-**Repository-only 的含义不是“不能访问 GitHub”，而是信息集只能来自锁定的仓库 runtime；在完整 Ledger 冻结前，不得搜索或读取公司官网、公告、新闻、研报、搜索引擎结果、行业网站等公司级外部公开资料。**
+**Repository-only 的含义不是“不能访问 GitHub”，而是信息集只能来自锁定的仓库 runtime；在完整 Ledger 冻结并通过 Hard Gate 前，不得搜索或读取公司官网、公告、新闻、研报、搜索引擎结果、行业网站等公司级外部公开资料。**
 
 在每个申万三级行业组内固定按以下顺序判断：
 
@@ -54,7 +54,7 @@
 
 单只组不存在同行支配，直接进入公司绝对质量判断。
 
-多只组只比较三类事实：
+多只组只比较三类结构化事实：
 
 - **价格结构**：位置、支撑距离与触碰、成交密集区距离与占比、阻力和风险参考；
 - **估值质量**：PE-TTM、动态 PE、PB 与 ROE、增长、盈利质量是否匹配；
@@ -71,10 +71,38 @@
 
 只要互有胜负、不可比或不确定，就**不得**做同行支配淘汰，继续进入下一步。
 
-同行支配结果至少保留：
+#### 3.1.1 PEER_DOMINATED 不是发布层去重
+
+`PEER_DOMINATED` 只能表达：
+
+> **仅凭本轮已有结构化事实，A 已经被同组 B 明确做了公司级 Pareto 支配，因此没有必要再占用 Deep Research 预算。**
+
+它**不能**表达：
+
+- 同行业公司太多，所以只留 1–2 只；
+- 多家公司最终可能属于同一个风险簇，所以提前压缩；
+- 券商、资源品等共同受一个行业因子驱动，所以只研究少数代表；
+- 为了降低 `deep_read_codes` 数量而选择“更优”的少数公司；
+- 预计最终正式榜只需要一个行业席位，所以预筛阶段先去重。
+
+这些都属于 Deep Research 完成后的 **Risk Cluster Consolidation**，不得前移到 Structured Screening。
+
+特别是业务、利润来源、周期暴露或主导风险因子是否实质相同，需要公开资料才能确认时，**不能因为结构化指标看起来相近就做 PEER_DOMINATED**；应保留为 `PASS_TO_DEEP_RESEARCH` 或 `UNCERTAIN`。
+
+#### 3.1.2 PEER_DOMINATED 必须可审计
+
+每个 `PEER_DOMINATED` 结果至少保留：
 
 - `dominated_by`
-- 三维简短依据。
+- `price_structure_basis`
+- `valuation_basis`
+- `operating_basis`
+- `differentiated_advantage_check`
+- `uncertainty_check`
+
+其中 `uncertainty_check` 必须明确说明为什么现有结构化事实已经足够，不需要公开资料才能判断支配关系。
+
+如果无法给出上述依据，不得标记 `PEER_DOMINATED`。
 
 ### 3.2 再判断公司绝对质量
 
@@ -85,6 +113,8 @@
 只有结构化事实显示**多个独立方面明显偏弱**，且没有清晰的确定性反向优势时才使用。
 
 单一 PE、ROE、利润增长、负现金流、行业状态或单个质量标签都不得单独形成 `CLEARLY_WEAK`。
+
+`CLEARLY_WEAK` 也必须保留简短、可审计的 `reason_code` 与多维依据；若弱点可能由周期、会计口径、业务变化或缺失信息解释，应使用 `UNCERTAIN`，不得为了减少研究量强行淘汰。
 
 #### `PASS_TO_DEEP_RESEARCH`
 
@@ -101,7 +131,29 @@
 
 拿不准时使用 `UNCERTAIN`，不要为了减少数量强行淘汰。
 
-### 3.3 禁止事项
+### 3.3 完整 Ledger 语义
+
+Structured Screening 的结果不是只有四个代码集合，还必须形成覆盖全部结构候选的逐公司 Ledger entry。
+
+每只候选恰好有一个：
+
+- `code`
+- `result`
+- `reason_code`
+- `reason`
+
+其中 `result` 只能是：
+
+- `PEER_DOMINATED`
+- `CLEARLY_WEAK`
+- `PASS_TO_DEEP_RESEARCH`
+- `UNCERTAIN`
+
+`PEER_DOMINATED` entry 还必须包含 3.1.2 的支配依据字段。
+
+代码集合只是逐公司 Ledger 的派生索引；如果集合和 entry 冲突，以**审计失败**处理，不允许模型自行选择一个版本继续。
+
+### 3.4 禁止事项
 
 Structured Screening / Model Prescreen 禁止：
 
@@ -110,12 +162,17 @@ Structured Screening / Model Prescreen 禁止：
 - 每组机械 Top1 / Top2；
 - 单指标一票淘汰；
 - 为了压缩 Deep Research 数量而调判断标准；
+- 把 Risk Cluster / 行业相关性去重前移到 Pre-Research；
 - 在完整 Ledger 冻结前引入公司级外部公开资料；
 - 找到几只好公司后停止处理剩余候选。
 
 该阶段的目标不是选出“最好公司”，而是：
 
 > **低成本排除已经可以由现有结构化事实明确排除的公司，把真正需要新增外部证据的复杂度留给 Deep Research。**
+
+研究层原则：
+
+> **防漏优先；相关性去重留到完整 Deep Research 后的发布层。**
 
 ---
 
@@ -309,6 +366,10 @@ Risk Cluster Consolidation 不修改这些公司研究状态，只改变正式�
 > **程序负责事实和资格，模型负责关系和解释。**
 
 > **Structured Screening 只使用锁定 GitHub runtime；Deep Research 才引入公司级外部公开资料。**
+
+> **PEER_DOMINATED 只用于真正的公司级明确支配，不用于行业去重或风险簇压缩。**
+
+> **研究层防漏，发布层去相关。**
 
 > **任务完成的定义是冻结研究集合全部得到公司级研究结论，不是找到足够多可以出榜的公司。**
 
