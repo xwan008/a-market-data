@@ -229,7 +229,57 @@ Deep Research 的目标是穷尽冻结后的 `deep_read_codes`，不是找到足
 
 不能仅因为当前价格不合适而 `excluded`。
 
-### 4.3 派生研究集合
+### 4.3 Uncertainty Resolution Pass｜不确定性必须被解释并只消歧一次
+
+Stage B 第一遍研究中，如公司暂时落入 `research_uncertain`，该状态只能视为**待消歧候选**，不能立刻作为最终终态进入 coverage COMPLETE。
+
+每个待消歧公司必须先记录一个 `uncertainty_reason`，且只能属于以下三类之一：
+
+- `DATA_GAP`：关键事实缺失、关键来源无法取得，或不同可靠来源之间存在会改变结论的冲突；
+- `NORMALIZATION_GAP`：正常化盈利、周期位置、一次性收益或高景气利润能否持续无法可靠判断；
+- `THESIS_CONFLICT`：支持投资逻辑与反向证据都足够强，当前证据不足以可靠判断研究逻辑成立还是被否定。
+
+判定 `research_uncertain` 前必须明确回答：
+
+1. **具体缺失或冲突的事实是什么？**不得只写“信息不足”“存在不确定性”等泛化理由；
+2. **这个事实如果得到解决，是否可能实质改变公司终态？**如果不会改变终态，不得以此作为 uncertain 理由；
+3. **是否已经针对这个具体缺口做过一次定向补充研究？**
+
+第一遍结束后，必须仅针对这些待消歧公司执行一次 `Uncertainty Resolution Pass`：
+
+- `DATA_GAP`：只补查缺失的公告、财报、公司披露或冲突事实；
+- `NORMALIZATION_GAP`：只补查周期位置、价差/价格、历史盈利区间、一次性收益和正常化利润依据；
+- `THESIS_CONFLICT`：明确 strongest bull case 与 strongest bear case，并补查最可能改变判断的关键证据。
+
+Resolution Pass 只允许**一次定向补充研究 + 一次重新判断**，不得无限追加搜索，也不得为了降低 uncertain 数量强行选边。
+
+重新判断时：
+
+- 研究逻辑成立且当前 entry-ready → `confirmed`；
+- 研究逻辑成立但只是当前价格、安全边际、上行空间或时机不合适 → `waiting_for_entry`；
+- 研究逻辑被实质反证 → `excluded`；
+- 只有具体缺口在一次定向补充研究后仍然无法解决，且该缺口确实可能改变研究结论 → 最终 `research_uncertain`。
+
+特别约束：
+
+> **价格不合适、买点不舒服、保守上行空间暂时不足，本身都不是 research_uncertain；只要研究逻辑已经成立，应归入 waiting_for_entry。**
+
+对于强周期公司，不得仅以“周期性强”为由直接保留 uncertain。必须先尝试建立保守正常化盈利区间；只有连可辩护的正常化区间都无法建立时，才允许 `NORMALIZATION_GAP`。
+
+正式状态仍只有四种，不增加第五种状态。`uncertainty_reason` 只是 `research_uncertain` 的诊断字段。
+
+本轮可记录诊断指标：
+
+```text
+first_pass_uncertain_count
+final_research_uncertain_count
+uncertainty_resolved_count
+uncertainty_resolution_rate = uncertainty_resolved_count / first_pass_uncertain_count
+```
+
+这些指标只用于观察 Deep Research 是否真正降低不确定性，**不得设置目标比例、最低解决率或配额，也不得据此强迫模型改变公司状态。**
+
+### 4.4 派生研究集合
 
 必须派生：
 
@@ -362,7 +412,7 @@ Deep Research 后公司状态为：
 
 - `confirmed`：研究成立且当前 entry-ready；
 - `waiting_for_entry`：研究成立但等待低风险入场；
-- `research_uncertain`：研究证据不足或冲突；
+- `research_uncertain`：一次 Uncertainty Resolution Pass 后仍存在会实质改变研究结论的明确证据缺口或冲突；
 - `excluded`：研究逻辑被实质否定。
 
 `waiting` 只作为历史结果的 legacy alias；新运行统一输出 `waiting_for_entry`。
@@ -401,6 +451,8 @@ Risk Cluster 不修改这些公司级状态，只改变正式榜如何表达相�
 > **Batch 只用于执行分包，不用于投资比较、配额或组内淘汰。**
 
 > **研究逻辑成立与当前是否可买必须分开；waiting_for_entry 属于 research_supported。**
+
+> **research_uncertain 必须有明确、可改变结论的 uncertainty_reason，并经过一次定向 Uncertainty Resolution Pass 后仍无法解决；不得把它当作拿不准时的默认安全出口。**
 
 > **同一 Risk Cluster 可以有多家公司同时 confirmed；Risk Cluster 只能在之后选择代表，不得反向降级公司状态。**
 
