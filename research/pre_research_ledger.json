@@ -1,7 +1,8 @@
 {
-  "status": "BUILDING",
+  "status": "FAILED",
   "run_id": "20260913T1743-CN-manual-fresh-2",
   "created_at": "2026-09-13T17:43:00+08:00",
+  "failed_at": "2026-09-13T17:45:00+08:00",
   "source_runtime_commit_sha": "b0445ef348f573082562af3c04faabe93c0e1d75",
   "protocol_blob_sha": "ae9463386f9bac9777a01a214cfe339eaeab67ec",
   "skill_blob_sha": "32c57070563e1f87d3a82c953f0f0278f3227182",
@@ -15,9 +16,13 @@
   "stage_a_information_boundary": "CLEAN",
   "stage_a_expected_count": 109,
   "stage_a_processed_count": 0,
+  "failure_phase": "STAGE_A_INPUT_READ",
+  "failure_code": "BOUNDED_SCREENING_RANGE_PERSISTENTLY_TRUNCATED",
+  "failure_reason": "The required fixed bounded screening_groups range 161..240 was returned truncated by the GitHub connector on the initial read and on retry. Under RUNTIME_READ_PROTOCOL, Stage A cannot begin until every required 80-line range covering 1..646 is completely readable. No partial screening_groups or candidate_file substitution is allowed.",
   "ledger_validation": {
-    "status": "BUILDING",
+    "status": "FAILED",
     "input_ranges_complete": false,
+    "failed_range": "161..240",
     "information_boundary_clean": true
   },
   "deep_research_coverage": "UNVERIFIED",
