@@ -6,14 +6,17 @@ A 股低风险买点榜的数据、程序筛选与研究规则仓库。
 
 > **程序负责事实和资格，模型负责关系和解释。**
 
-系统不把可公式化的工作交给模型，也不要求模型从全市场自由挑股票。Deep Research 之前属于同一个大阶段——结构化筛选，但内部按职责分为程序硬筛和模型结构化预筛；公司级外部公开资料研究则放在独立的后续模型 run 中。
+系统不把可公式化的工作交给模型，也不要求模型从全市场自由挑股票。Deep Research 之前属于同一个大阶段——结构化筛选，但内部按职责分为程序硬筛和模型结构化预筛；公司级外部公开资料研究在 Frozen Ledger 硬检查点通过之后才开始。
 
 当前逻辑分为：
 
 1. **Program Filter**：Eligibility + Structure，全部为确定性程序规则；
 2. **Structured Screening Freeze**：模型只使用锁定 GitHub runtime 的结构化事实，判断同行支配和公司绝对质量，生成完整 Frozen Ledger；
-3. **Deep Research**：另一个独立模型 run 只消费 Frozen Ledger，对 `deep_read_codes` 引入公司级公开资料，形成真实业务判断、正常化估值与最终安全区；
-4. **Risk Cluster Consolidation**：只有 Deep Research coverage 完整闭合后，才把高度依赖同一主导风险因子的公司归为一个独立风险收益机会。
+3. **Frozen Ledger Hard Gate**：持久化后重新读取 Ledger，验证集合闭合、信息边界和正式文件 blob SHA；
+4. **Deep Research**：只消费通过 Hard Gate 的 `deep_read_codes`，引入公司级公开资料，形成真实业务判断、正常化估值与最终安全区；
+5. **Risk Cluster Consolidation**：只有 Deep Research coverage 完整闭合后，才把高度依赖同一主导风险因子的公司归为一个独立风险收益机会。
+
+这些步骤由**一次任务触发严格串行执行**，不再为了阶段隔离拆成不同时间点。
 
 研究层保持完整覆盖，最终发布层再做风险因子去重。
 
@@ -40,13 +43,15 @@ model-ready candidates
    同行业一次性准备价格结构 / 估值 / 经营 / 行业事实
         ↓
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Run A｜Structured Screening Freeze
+Stage A｜Structured Screening Freeze
 只使用锁定 GitHub runtime
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Ledger 先置 BUILDING
+        ↓
    Peer Dominance
    + Company Prescreen
         ↓
-完整 Ledger
+   全部候选闭合
         ↓
 research/pre_research_ledger.json
 status = FROZEN
@@ -54,10 +59,20 @@ status = FROZEN
 冻结 deep_read_codes
         ↓
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Run B｜Deep Research + Publication
+Frozen Ledger Hard Gate
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   先验证 Frozen Ledger 与当前 runtime / Skill / Protocol blob 一致
+   重新读取 Ledger
+   + 验证四集合闭合
+   + 验证 repository_only
+   + 验证 FROZEN 前未发生公司级外部研究
+   + 验证 runtime / Skill / Protocol blob 一致
         ↓
+   FAILED → 整轮停止
+   PASSED → 才进入 Stage B
+        ↓
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Stage B｜Deep Research + Publication
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    对 frozen deep_read_codes 做公司级公开资料研究
         ↓
    必须穷尽 frozen deep_read_codes
@@ -83,9 +98,18 @@ Run B｜Deep Research + Publication
 confirmed / waiting / research_uncertain / excluded
 ```
 
-Run A 和 Run B 是两个独立模型执行。Run A 不承担公司级公开资料查询和榜单生成；Run B 不重新做 Peer Dominance / Company Prescreen，也不能修改 frozen `deep_read_codes`。
+Stage A 和 Stage B 属于同一次任务执行中的两个严格串行阶段。Stage A 不承担公司级公开资料查询和榜单生成；Stage B 不重新做 Peer Dominance / Company Prescreen，也不能修改 frozen `deep_read_codes`。
 
-这避免依赖同一次长模型执行里的“先不要查外部资料”自我约束。
+真正的边界不是“等一小时”或“另一个任务”，而是：
+
+```text
+完整 Structured Screening
+→ FROZEN Ledger 持久化
+→ 重新读取并通过 Hard Gate
+→ 才允许公司级外部 Deep Research
+```
+
+如果在 Ledger FROZEN 前已经引入公司级外部公开资料，本轮信息边界被污染，不能靠后来补齐 Ledger 恢复可验证性。
 
 不使用综合加权总分、全市场 Top N、“找到足够多就停止”或“市场风险高所以只研究少数公司”的方式替代完整研究。
 
@@ -216,9 +240,9 @@ Structured Screening 不需要扫描整张表；Deep Research 对冻结幸存者
 
 ---
 
-## Frozen Ledger｜两个模型 Run 的正式交接物
+## Frozen Ledger｜同一次执行内部的硬检查点
 
-正式交接文件：
+正式检查点文件：
 
 ```text
 research/pre_research_ledger.json
@@ -226,7 +250,15 @@ research/pre_research_ledger.json
 
 它不是市场数据源，而是模型 Structured Screening 的持久化结果。
 
-只有全部结构候选完成 Model Prescreen、四类集合完整闭合后，才允许：
+每轮 Structured Screening 开始前先将其写为：
+
+```text
+status = BUILDING
+```
+
+使上一轮 Frozen Ledger 立即失效。
+
+只有全部结构候选完成 Model Prescreen、四类集合完整闭合且 Stage A 没有引入公司级外部公开资料后，才允许：
 
 ```text
 status = FROZEN
@@ -239,6 +271,8 @@ status = FROZEN
 - `trade_date`
 - `candidate_count`
 - `ledger_count`
+- `repository_only = true`
+- `external_company_research_before_freeze = false`
 - `peer_dominated_codes`
 - `clearly_weak_codes`
 - `pass_to_deep_research_codes`
@@ -254,9 +288,11 @@ pass_to_deep_research_codes
 ∪ uncertain_codes
 ```
 
-Deep Research run 开始前必须验证 Ledger 与当前正式 runtime、Skill、Protocol 的 blob SHA 完全一致。写入 Ledger 自己会产生新的 Git commit，因此不要求 current main commit SHA 与 `source_runtime_commit_sha` 相同；判断同一输入版本看正式文件 blob 是否一致。
+Ledger 写成 FROZEN 后必须重新读取，不能直接依赖模型内存进入 Deep Research。
 
-如果 Ledger 缺失、未 FROZEN、集合不闭合或 blob 不一致，Deep Research run 停止，不允许自行补做预筛。
+Hard Gate 会验证 Ledger 与当前正式 runtime、Skill、Protocol 的 blob SHA 完全一致。写入 Ledger 自己会产生新的 Git commit，因此不要求 current main commit SHA 与 `source_runtime_commit_sha` 相同；判断同一输入版本看正式文件 blob 是否一致。
+
+如果 Ledger 缺失、未 FROZEN、集合不闭合、Stage A 信息边界被污染或 blob 不一致，整轮停止，不允许开始公司级 Deep Research。
 
 ---
 
@@ -282,13 +318,20 @@ Deep Research = repository context + public external evidence
 核心研究边界：
 
 ```text
-Run A 完整 Structured Screening
+Stage A 完整 Structured Screening
 → 持久化 FROZEN Ledger
-→ 冻结 deep_read_codes
-→ Run A 结束
+→ 重新读取 Ledger
+→ Hard Gate 验证通过
+→ Stage B 才允许公司级公开资料 Deep Research
+```
 
-Run B 验证 Ledger
-→ 才允许公司级公开资料 Deep Research
+如果 Stage A 在 FROZEN 前提前使用公司级外部资料：
+
+```text
+stage_a_information_boundary = VIOLATED
+→ Ledger 不得可信 FROZEN
+→ Deep Research coverage = UNVERIFIED
+→ 整轮停止
 ```
 
 Deep Research coverage 以：
@@ -403,9 +446,9 @@ python scripts/build_runtime.py data/snapshot.json --output-dir data/runtime
 | `scripts/split_snapshot.py` | Structure Filter 唯一计算源 |
 | `scripts/build_screening_groups.py` | 组织 repository-only 结构化筛选事实 |
 | `scripts/build_runtime.py` | 统一 runtime 构建与验证 |
-| `research/pre_research_ledger.json` | Run A → Run B 的 Frozen Ledger 交接物 |
+| `research/pre_research_ledger.json` | 同一次执行内 Stage A → Stage B 的 Frozen Ledger 硬检查点 |
 | `skill/SKILL.md` | 模型判断语义，包括 Structured Screening、Deep Research 和 Risk Cluster Consolidation |
-| `skill/RUNTIME_READ_PROTOCOL.md` | 两阶段执行、版本/Blob 锁定、Frozen Ledger、coverage、正式榜硬门与最终机会审计 |
+| `skill/RUNTIME_READ_PROTOCOL.md` | 单次串行两阶段、版本/Blob 锁定、Frozen Ledger、coverage、正式榜硬门与最终机会审计 |
 | `README.md` | 给人看的稳定架构说明 |
 
 ---
@@ -418,7 +461,9 @@ python scripts/build_runtime.py data/snapshot.json --output-dir data/runtime
 
 > **Structured Screening 只使用锁定 GitHub runtime；Deep Research 才引入公司级外部公开资料。**
 
-> **Frozen Ledger 是两个模型 run 的正式交接边界。**
+> **一次任务触发严格执行 Stage A → FROZEN Ledger Hard Gate → Stage B。**
+
+> **Frozen Ledger 是同一次执行内部的硬检查点，不是两个任务之间的时间交接。**
 
 > **单公司研究失败只影响该公司，不阻断其他候选。**
 
