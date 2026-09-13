@@ -223,7 +223,32 @@ Deep Research 的目标是穷尽冻结后的 `deep_read_codes`，不是找到足
 
 `waiting_for_entry_reason` 不得写成“仍需观察”“存在不确定性”“盈利持续性待确认”“周期位置看不清”“等待更多数据”等研究层模糊理由；这些说明研究结论尚未闭合，不属于买点问题。
 
-该字段必须随本轮公司状态写入执行记录。没有具体 `waiting_for_entry_reason` 的 `waiting_for_entry` 不视为审计完成。
+`waiting_for_entry_reason` 还不得以任何相对比较作为状态依据，包括但不限于：
+
+- “同 Batch 有更好的公司”；
+- “同行有更优候选”；
+- “同 Risk Cluster 已有代表候选”；
+- “与已确认公司共享风险，因此不重复占位”；
+- “结构略逊于代表候选”；
+- “正式榜席位已被其他公司占用”。
+
+如果公司凭自身证据已满足 `confirmed` 的公司级条件，必须先保持 `confirmed`；同行、Batch、Risk Cluster 或正式榜去重只能在之后决定是否作为 `representative_code` 或 `alternative_codes`，不得反向把公司降为 `waiting_for_entry`。
+
+该字段必须随本轮公司状态写入执行记录，并满足机械审计：
+
+```text
+keys(waiting_for_entry_reason) == set(waiting_for_entry_codes)
+len(waiting_for_entry_reason) == waiting_for_entry_count
+```
+
+同时：
+
+- 每个 waiting code 必须恰好有一条独立 reason；
+- 禁止 `default`、`*`、`others`、通用模板键或任何兜底理由；
+- `waiting_for_entry_reason` 不得包含 confirmed / research_uncertain / excluded 的 code；
+- reason 为空、泛化、引用相对排名/风险簇去重，均视为 waiting 审计失败。
+
+没有通过上述集合一致性与理由合法性校验时，本轮不得把 execution probe 标记为 `PASSED` / `PUBLICATION_COMPLETE`。
 
 `waiting` 只作为历史结果的 legacy alias；新运行统一输出 `waiting_for_entry`。
 
@@ -266,11 +291,11 @@ Resolution Pass 只允许**一次定向补充研究 + 一次重新判断**，不
 重新判断时：
 
 - 研究逻辑成立且当前 entry-ready → `confirmed`；
-- 研究逻辑成立但只是当前价格、安全边际、上行空间或时机不合适，并且能够给出具体 `waiting_for_entry_reason` → `waiting_for_entry`；
+- 研究逻辑成立但只是当前价格、安全边际、上行空间或时机不合适，并且能够给出逐股、合法、非相对比较的 `waiting_for_entry_reason` → `waiting_for_entry`；
 - 研究逻辑被实质反证 → `excluded`；
 - 只有具体缺口在一次定向补充研究后仍然无法解决，且该缺口确实可能改变研究结论 → 最终 `research_uncertain`。
 
-从 first-pass `research_uncertain` 转为 `waiting_for_entry` 时，必须确认原始 uncertainty 已经通过新增证据解决；如果只能证明“目前没有明显坏消息”，但无法证明研究逻辑已成立，不得迁移到 `waiting_for_entry`。最终只需在 `waiting_for_entry_reason` 中说明当前仍未达到 confirmed 的具体买点阻碍，不增加其他持久化字段。
+从 first-pass `research_uncertain` 转为 `waiting_for_entry` 时，必须确认原始 uncertainty 已被新增证据解决；如果只能证明“目前没有明显坏消息”，但无法证明研究逻辑已成立，不得迁移到 `waiting_for_entry`。
 
 特别约束：
 
@@ -423,7 +448,7 @@ Risk Cluster Consolidation 只对 `entry_ready_codes`，即公司级 `confirmed`
 Deep Research 后公司状态为：
 
 - `confirmed`：研究成立且当前 entry-ready；
-- `waiting_for_entry`：研究成立、有明确 `waiting_for_entry_reason`，但等待低风险入场；
+- `waiting_for_entry`：研究成立、具有逐股合法 `waiting_for_entry_reason`，但等待低风险入场；
 - `research_uncertain`：一次 Uncertainty Resolution Pass 后仍存在会实质改变研究结论的明确证据缺口或冲突；
 - `excluded`：研究逻辑被实质否定。
 
@@ -435,6 +460,7 @@ Risk Cluster 不修改这些公司级状态，只改变正式榜如何表达相�
 
 - `confirmed_count`
 - `waiting_for_entry_count`
+- `waiting_for_entry_reason`
 - `research_uncertain_count`
 - `excluded_count`
 - `research_supported_count = confirmed + waiting_for_entry`
@@ -462,7 +488,9 @@ Risk Cluster 不修改这些公司级状态，只改变正式榜如何表达相�
 
 > **Batch 只用于执行分包，不用于投资比较、配额或组内淘汰。**
 
-> **研究逻辑成立与当前是否可买必须分开；waiting_for_entry 属于 research_supported，且必须通过 `waiting_for_entry_reason` 明确回答为什么当前不能买。**
+> **研究逻辑成立与当前是否可买必须分开；waiting_for_entry 属于 research_supported，且每只 waiting 必须有独立、具体、非相对比较的 waiting_for_entry_reason。**
+
+> **waiting_for_entry_reason 的键集合必须与 waiting_for_entry_codes 完全一致；禁止 default 或任何兜底理由，禁止把 Risk Cluster / 同行相对优劣作为 waiting 原因。**
 
 > **research_uncertain 必须有明确、可改变结论的 uncertainty_reason，并经过一次定向 Uncertainty Resolution Pass 后仍无法解决；不得把它当作拿不准时的默认安全出口。**
 
