@@ -90,18 +90,9 @@
 
 #### `CLEARLY_WEAK`
 
-只有结构化事实显示**至少两个相互独立的方面明显偏弱**，且没有清晰的确定性反向优势时才使用。单一 PE、ROE、利润增长、负现金流、行业状态或单个质量标签不得单独形成 `CLEARLY_WEAK`。
+只有结构化事实显示多个独立方面明显偏弱，且没有清晰的确定性反向优势时才使用。单一 PE、ROE、利润增长、负现金流、行业状态或单个质量标签不得单独形成 `CLEARLY_WEAK`。
 
 如果弱点可能由周期、会计口径、业务变化或缺失信息解释，应使用 `UNCERTAIN`。
-
-每个 `CLEARLY_WEAK` entry 必须额外保留：
-
-- `weakness_1`：第一个独立且可由锁定结构化事实直接支持的明显弱点；
-- `weakness_2`：第二个独立且可由锁定结构化事实直接支持的明显弱点；
-- `counter_advantage_check`：是否存在足以抵消上述弱点的确定性反向优势，以及为什么不足以推翻 CLEARLY_WEAK；
-- `uncertainty_check`：为什么这些弱点不依赖公司级外部研究、周期正常化或缺失信息才能解释。
-
-如果无法同时写出两个独立弱点，或 `uncertainty_check` 仍存在实质疑问，不得使用 `CLEARLY_WEAK`，应进入 `UNCERTAIN`。
 
 #### `PASS_TO_DEEP_RESEARCH`
 
@@ -128,8 +119,6 @@
 - `CLEARLY_WEAK`
 - `PASS_TO_DEEP_RESEARCH`
 - `UNCERTAIN`
-
-其中 `PEER_DOMINATED` 与 `CLEARLY_WEAK` 必须同时满足各自的额外审计字段要求；字段不完整时不得冻结 Ledger。
 
 代码集合只是逐公司 Ledger 的派生索引；集合与 entry 冲突即审计失败。
 
@@ -168,26 +157,17 @@ Structured Screening 禁止：
 
 ### 4.1 Batch 只是执行容器
 
-Stage B 的 execution batch 是确定性的：
-
-```text
-batch_size = 12 companies
-order = frozen deep_read_codes 的既定顺序
-```
-
-按 frozen `deep_read_codes` 原始顺序依次切分，每批最多 12 家，最后一批可以少于 12 家。不得为了行业、真实业务、主导变量、候选质量或预期结论重新排序或重组 execution batch。
-
-**Batch 只具有执行意义，不具有投资比较、配额、排名或淘汰意义。**
+Stage B 可以为了降低工具调用和上下文负担，把 `deep_read_codes` 切成 execution batch；**Batch 只具有执行意义，不具有投资比较、配额、排名或淘汰意义。**
 
 明确禁止：
 
 - 每个 Batch 只保留固定数量公司；
 - Batch 内 Top1 / Top2 / Top N；
-- 因为本批已有若干优质公司，把其他满足条件公司降为 `waiting_for_entry` 或 `research_uncertain`；
+- 因为本批已有若干优质公司，把其他满足条件公司降为 `waiting` 或 `research_uncertain`；
 - 把 Batch 相对排名作为公司状态依据；
 - 把 Batch 当成同行组、Risk Cluster 或正式榜席位组。
 
-同一 Batch 可以全部满足条件，也可以一个都不满足。申万三级行业、真实主营和共享主导变量只用于理解背景、选择分析框架和复用行业证据，不得改变 execution batch 边界，也不产生任何 Batch 配额。
+同一 Batch 可以全部满足条件，也可以一个都不满足。申万三级行业、真实主营和共享主导变量只用于理解背景和复用行业证据，不产生 Batch 配额。
 
 判断纪律：
 
@@ -211,7 +191,7 @@ Deep Research 的目标是穷尽冻结后的 `deep_read_codes`，不是找到足
 
 不得把“研究是否成立”和“现在能不能买”混成一个相对排名。
 
-正式公司终态只允许以下四个名称：
+现有四个终态严格定义为：
 
 #### `confirmed`
 
@@ -225,7 +205,7 @@ Deep Research 的目标是穷尽冻结后的 `deep_read_codes`，不是找到足
 
 > `research_supported + entry_ready`
 
-#### `waiting_for_entry`
+#### `waiting` / `waiting_for_entry`
 
 公司研究逻辑已有足够证据支持，但当前价格、安全边际、保守上行空间或参与时机尚未满足低风险入场条件。
 
@@ -233,15 +213,13 @@ Deep Research 的目标是穷尽冻结后的 `deep_read_codes`，不是找到足
 
 > `research_supported + not_entry_ready`
 
-`waiting_for_entry` 不是研究失败，也不是“同批已有更好的公司”。只要研究逻辑成立但当前不适合买入，就应使用 `waiting_for_entry`。
-
-`waiting` 不再是正式状态名，不得在新运行的公司级结果或审计字段中使用。
+`waiting` 不是研究失败，也不是“同批已有更好的公司”。只要研究逻辑成立但当前不适合买入，就应使用 `waiting`。
 
 #### `research_uncertain`
 
 研究证据本身不足、关键来源冲突、周期正常化无法可靠判断、真实业务或关键事实无法验证。
 
-不能仅因为当前价格暂时不好而使用 `research_uncertain`；价格或时机不合适但研究逻辑成立，应使用 `waiting_for_entry`。
+不能仅因为当前价格暂时不好而使用 `research_uncertain`；价格或时机不合适但研究逻辑成立，应使用 `waiting`。
 
 #### `excluded`
 
@@ -336,9 +314,9 @@ Risk Cluster Consolidation 只对 `entry_ready_codes`，即公司级 `confirmed`
 如果同一风险簇有多家公司都 `confirmed`：
 
 1. 所有公司仍保持 `confirmed`；
-2. 不得为了让一个风险簇只剩一个 confirmed 而提前把其他公司降为 `waiting_for_entry`；
-3. 正式榜选择且仅选择一个 `representative_code`；
-4. 其余已确认公司保留为 `alternative_codes`。
+2. 不得为了让一个风险簇只剩一个 confirmed 而提前把其他公司降为 `waiting`；
+3. 正式榜默认选择一个 `representative_code`；
+4. 其余已确认公司保留为 `alternative_codes` / `alternative_candidates`。
 
 组内代表优先级不新增综合评分，沿用：
 
@@ -360,32 +338,6 @@ Risk Cluster Consolidation 只对 `entry_ready_codes`，即公司级 `confirmed`
 
 > **独立风险收益机会。**
 
-### 6.3 发布层硬不变量
-
-Risk Cluster Consolidation 完成后必须同时满足：
-
-```text
-formal_opportunity_count
-== risk_cluster_count
-== len(formal_representative_codes)
-```
-
-并且：
-
-```text
-confirmed_codes
-= formal_representative_codes ∪ all_alternative_codes
-```
-
-同时要求：
-
-- `formal_representative_codes` 与全部 `alternative_codes` 互斥；
-- 每个 `confirmed` code 必须且只能属于一个 `risk_cluster`；
-- 每个 risk cluster 必须且只能有一个 `representative_code`；
-- 任何 `waiting_for_entry / research_uncertain / excluded` 都不得进入 Risk Cluster 正式机会集合。
-
-任一不变量不成立，发布层验证失败，不得把不一致结果作为正式榜输出。
-
 ---
 
 ## 7. 趋势与市场风险
@@ -404,10 +356,10 @@ confirmed_codes
 
 ## 8. 最终状态与排序
 
-Deep Research 后公司正式状态为：
+Deep Research 后公司状态为：
 
 - `confirmed`：研究成立且当前 entry-ready；
-- `waiting_for_entry`：研究成立但等待低风险入场；
+- `waiting`：研究成立但等待低风险入场；
 - `research_uncertain`：研究证据不足或冲突；
 - `excluded`：研究逻辑被实质否定。
 
@@ -419,8 +371,8 @@ Risk Cluster 不修改这些公司级状态，只改变正式榜如何表达相�
 - `waiting_for_entry_count`
 - `research_uncertain_count`
 - `excluded_count`
-- `research_supported_count = confirmed_count + waiting_for_entry_count`
-- `entry_ready_count = confirmed_count`
+- `research_supported_count = confirmed + waiting_for_entry`
+- `entry_ready_count = confirmed`
 
 正式机会榜优先级：
 
@@ -440,17 +392,13 @@ Risk Cluster 不修改这些公司级状态，只改变正式榜如何表达相�
 
 > **PEER_DOMINATED 只用于真正的公司级明确支配，不用于行业去重或风险簇压缩。**
 
-> **CLEARLY_WEAK 必须有两个独立弱点，并明确说明为何无需外部研究即可确认；拿不准就进入 UNCERTAIN。**
-
 > **研究层防漏，发布层去相关。**
 
-> **Stage B 固定按 frozen deep_read_codes 顺序每 12 家分批；Batch 只用于执行分包，不用于投资比较、配额或组内淘汰。**
+> **Batch 只用于执行分包，不用于投资比较、配额或组内淘汰。**
 
 > **研究逻辑成立与当前是否可买必须分开；waiting_for_entry 属于 research_supported。**
 
 > **同一 Risk Cluster 可以有多家公司同时 confirmed；Risk Cluster 只能在之后选择代表，不得反向降级公司状态。**
-
-> **一个 Risk Cluster 只能对应一个 formal opportunity；其他 confirmed 必须作为 alternatives 保留。**
 
 > **任务完成的定义是冻结研究集合全部得到公司级研究结论，不是找到足够多可以出榜的公司。**
 
