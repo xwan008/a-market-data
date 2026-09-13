@@ -10,7 +10,8 @@ from typing import Any
 from contracts import YOY_UNIT
 
 SCREENING_GROUP_FORMAT = "screening_group_view"
-MAX_SCREENING_LINE_LENGTH = 4096
+SCREENING_SERIALIZATION_FORMAT = "columnar_pretty_json"
+MAX_LINE_LENGTH = 4096
 
 MEMBER_BASE_FIELDS = [
     "code",
@@ -64,6 +65,11 @@ QUALITY_FLAG_FIELDS = [
     "core_financial_missing_count",
 ]
 
+MEMBER_COLUMNS = [
+    *MEMBER_BASE_FIELDS,
+    *(f"quality_flag.{field}" for field in QUALITY_FLAG_FIELDS),
+]
+
 
 def load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
@@ -76,14 +82,65 @@ def write_json(path: Path, payload: dict[str, Any]) -> None:
     )
 
 
-def write_line_addressable_json(
-    path: Path, payload: dict[str, Any]
-) -> tuple[int, int]:
-    """Write formal model input so connector clients can read it by line ranges."""
-    text = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
+def compact_json(value: Any) -> str:
+    return json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+
+
+def serialize_screening_payload(payload: dict[str, Any]) -> str:
+    """Serialize the model work view as compact, line-addressable JSON.
+
+    Repeated member field names are stored once in `member_columns`; each member
+    is one compact JSON array on one physical line. This keeps the file easy to
+    read in bounded line ranges without inflating token volume with repeated
+    object keys.
+    """
+    groups = payload["groups"]
+    header_items = [(key, value) for key, value in payload.items() if key != "groups"]
+
+    lines = ["{"]
+    for key, value in header_items:
+        lines.append(f'  {compact_json(key)}: {compact_json(value)},')
+
+    lines.append('  "groups": [')
+    for group_index, group in enumerate(groups):
+        lines.append("    {")
+        lines.append(f'      "industry_code": {compact_json(group["industry_code"])},')
+        lines.append(f'      "industry_name": {compact_json(group["industry_name"])},')
+        lines.append(f'      "candidate_count": {compact_json(group["candidate_count"])},')
+        lines.append(f'      "single_candidate": {compact_json(group["single_candidate"])},')
+        lines.append(
+            f'      "industry_context": {compact_json(group["industry_context"])},'
+        )
+        lines.append('      "members": [')
+        members = group["members"]
+        for member_index, member in enumerate(members):
+            suffix = "," if member_index < len(members) - 1 else ""
+            lines.append(f"        {compact_json(member)}{suffix}")
+        lines.append("      ]")
+        suffix = "," if group_index < len(groups) - 1 else ""
+        lines.append(f"    }}{suffix}")
+    lines.append("  ]")
+    lines.append("}")
+    return "\n".join(lines) + "\n"
+
+
+def write_screening_json(path: Path, payload: dict[str, Any]) -> dict[str, Any]:
+    text = serialize_screening_payload(payload)
     path.write_text(text, encoding="utf-8")
+
+    parsed = json.loads(text)
     lines = text.splitlines()
-    return len(lines), max((len(line) for line in lines), default=0)
+    max_line_length = max((len(line) for line in lines), default=0)
+    line_addressable = len(lines) > 1 and max_line_length <= MAX_LINE_LENGTH
+
+    return {
+        "format": SCREENING_SERIALIZATION_FORMAT,
+        "line_count": len(lines),
+        "max_line_length": max_line_length,
+        "max_allowed_line_length": MAX_LINE_LENGTH,
+        "json_roundtrip_matches": parsed == payload,
+        "line_addressable": line_addressable,
+    }
 
 
 def numeric(value: Any) -> float | None:
@@ -217,25 +274,28 @@ def main() -> None:
             key=lambda row: str(row[index["code"]] or ""),
         )
         first = group_rows[0]
-        members: list[dict[str, Any]] = []
+        members: list[list[Any]] = []
 
         for row in group_rows:
-            member = {field: row[index[field]] for field in MEMBER_BASE_FIELDS}
-            member["quality_flags"] = quality_flags(row, index)
+            flags = quality_flags(row, index)
+            member = [
+                *(row[index[field]] for field in MEMBER_BASE_FIELDS),
+                *(flags[field] for field in QUALITY_FLAG_FIELDS),
+            ]
             members.append(member)
 
-            code = str(member["code"])
+            code = str(row[index["code"]])
             screening_codes.append(code)
-            report_date_available += int(member["report_date"] not in (None, ""))
+            report_date_available += int(row[index["report_date"]] not in (None, ""))
             valuation_core_complete += int(
                 all(
-                    member[field] not in (None, "")
+                    row[index[field]] not in (None, "")
                     for field in ("pe_ttm", "pb", "roe")
                 )
             )
             operating_core_complete += int(
                 all(
-                    member[field] not in (None, "")
+                    row[index[field]] not in (None, "")
                     for field in (
                         "revenue_yoy",
                         "net_profit_yoy",
@@ -307,17 +367,22 @@ def main() -> None:
             "screening: first peer dominance, then company absolute-quality "
             "pre-screen; no score, ranking, or model conclusion is precomputed"
         ),
-        "member_fields": MEMBER_BASE_FIELDS,
-        "quality_flag_fields": QUALITY_FLAG_FIELDS,
+        "member_columns": MEMBER_COLUMNS,
+        "industry_context_fields": [
+            "yoy_unit",
+            *(field.removeprefix("industry_") for field in INDUSTRY_CONTEXT_FIELDS),
+        ],
         "coverage": coverage,
         "groups": groups,
     }
-    screening_path = runtime_dir / filename
-    line_count, max_line_length = write_line_addressable_json(
-        screening_path, payload
+
+    serialization = write_screening_json(runtime_dir / filename, payload)
+    member_rows_count = sum(len(group["members"]) for group in groups)
+    member_rows_well_formed = all(
+        isinstance(member, list) and len(member) == len(MEMBER_COLUMNS)
+        for group in groups
+        for member in group["members"]
     )
-    roundtrip_matches = load_json(screening_path) == payload
-    line_addressable = line_count > 1 and max_line_length <= MAX_SCREENING_LINE_LENGTH
 
     validation = {
         "status": "passed",
@@ -328,8 +393,10 @@ def main() -> None:
         "trade_date_matches": payload.get("trade_date")
         == (meta.get("snapshot") or {}).get("trade_date"),
         "yoy_unit_matches": payload.get("yoy_unit") == meta.get("yoy_unit"),
-        "json_roundtrip_matches": roundtrip_matches,
-        "line_addressable": line_addressable,
+        "member_rows_count_matches": member_rows_count == candidate_count,
+        "member_rows_well_formed": member_rows_well_formed,
+        "json_roundtrip_matches": serialization["json_roundtrip_matches"],
+        "line_addressable": serialization["line_addressable"],
     }
     if not all(
         value is True
@@ -343,14 +410,14 @@ def main() -> None:
     meta["screening_group_count"] = len(groups)
     meta["screening_group_singleton_count"] = singleton_count
     meta["screening_group_max_size"] = max_group_size
-    meta["screening_group_member_fields"] = MEMBER_BASE_FIELDS
-    meta["screening_group_quality_flag_fields"] = QUALITY_FLAG_FIELDS
+    meta["screening_group_member_columns"] = MEMBER_COLUMNS
+    meta.pop("screening_group_member_fields", None)
+    meta.pop("screening_group_quality_flag_fields", None)
     meta["screening_group_coverage"] = coverage
     meta["screening_group_serialization"] = {
-        "format": "pretty_json",
-        "line_count": line_count,
-        "max_line_length": max_line_length,
-        "max_allowed_line_length": MAX_SCREENING_LINE_LENGTH,
+        key: value
+        for key, value in serialization.items()
+        if key not in {"json_roundtrip_matches", "line_addressable"}
     }
     meta["screening_group_validation"] = validation
 
@@ -364,7 +431,8 @@ def main() -> None:
         "screening group view ready: "
         f"candidates={candidate_count} groups={len(groups)} "
         f"singletons={singleton_count} max_group_size={max_group_size} "
-        f"lines={line_count} max_line_length={max_line_length}"
+        f"lines={serialization['line_count']} "
+        f"max_line_length={serialization['max_line_length']}"
     )
 
 
