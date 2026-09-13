@@ -153,7 +153,6 @@ def main() -> int:
     risk_level = classify_risk(trend_state, breadth_state, liquidity_state, median_20d, above_ma60_ratio)
 
     payload = {
-        "schema_version": 1,
         "generated_at": datetime.now(TZ).isoformat(),
         "trade_date": latest.get("trade_date"),
         "universe": "A-share main-board stocks tracked by this repository",

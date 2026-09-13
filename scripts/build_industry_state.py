@@ -180,22 +180,17 @@ def weighted_market_breadth(
     return sum(value * weight for value, weight in components) / total_weight
 
 
-def normalize_carried_yoy(value, existing_unit: str | None):
-    """Normalize carried legacy values into percentage points."""
-    number = fnum(value)
-    if number is None:
-        return value
-    if existing_unit == YOY_UNIT:
-        return number
-    # Legacy schema stored aggregate YoY as ratios (0.124 == 12.4%).
-    return number * 100.0
-
 
 def main() -> int:
     latest = json.loads(LATEST.read_text(encoding="utf-8"))
     existing = {}
     if OUTPUT.exists():
         existing = json.loads(OUTPUT.read_text(encoding="utf-8"))
+        if existing.get("yoy_unit") != YOY_UNIT:
+            raise SystemExit(
+                f"existing industry_state.yoy_unit must be {YOY_UNIT}, "
+                f"got {existing.get('yoy_unit')!r}"
+            )
 
     groups: dict[str, list[dict]] = defaultdict(list)
     names: dict[str, str] = {}
@@ -344,19 +339,12 @@ def main() -> int:
         }
 
     previous_industries = existing.get("level3_profitability") or {}
-    existing_unit = existing.get("yoy_unit")
     missing = set(previous_industries) - set(result)
     for code in sorted(missing):
         old = previous_industries.get(code)
         if old:
             carry = dict(old)
             carry["confidence"] = "low"
-            carry["aggregate_revenue_yoy"] = normalize_carried_yoy(
-                carry.get("aggregate_revenue_yoy"), existing_unit
-            )
-            carry["aggregate_parent_profit_yoy"] = normalize_carried_yoy(
-                carry.get("aggregate_parent_profit_yoy"), existing_unit
-            )
             carry["warnings"] = sorted(
                 set(
                     (carry.get("warnings") or [])
@@ -366,7 +354,6 @@ def main() -> int:
             result[code] = carry
 
     payload = {
-        "schema_version": 3,
         "status": "valid" if result else "invalid",
         "generated_at": now,
         "baseline_trade_date": latest.get("trade_date"),

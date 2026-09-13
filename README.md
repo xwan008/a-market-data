@@ -51,7 +51,6 @@ Peer Dominance
 全部候选逐公司 entry 闭合
         ↓
 research/pre_research_ledger.json
-ledger_version = 3
 status = FROZEN
         ↓
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -239,7 +238,7 @@ Deep Research = repository context + public external evidence
 
 ---
 
-## Frozen Ledger v3｜同一次执行内部的硬检查点
+## Frozen Ledger｜同一次执行内部的硬检查点
 
 正式检查点：
 
@@ -247,11 +246,7 @@ Deep Research = repository context + public external evidence
 research/pre_research_ledger.json
 ```
 
-当前固定 schema：
-
-```text
-ledger_version = 3
-```
+当前 Ledger 字段契约由 `skill/RUNTIME_READ_PROTOCOL.md` 直接定义，不维护历史 schema 分支或兼容层。
 
 每轮开始先写：
 

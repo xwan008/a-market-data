@@ -4,7 +4,7 @@
 
 - 如何锁定正式 runtime 与规则版本；
 - 单次任务中 Stage A → Frozen Ledger Hard Gate → Stage B 的严格串行顺序；
-- Frozen Ledger 的固定 schema、逐公司审计和并发写安全；
+- Frozen Ledger 的固定字段契约、逐公司审计和并发写安全；
 - 什么情况必须停止；
 - Deep Research coverage 如何闭合；
 - coverage COMPLETE 后如何进入 Risk Cluster 与正式机会榜。
@@ -157,7 +157,6 @@ research/pre_research_ledger.json
 写为本轮：
 
 ```text
-ledger_version = 3
 status = BUILDING
 run_id = <本轮唯一值>
 ```
@@ -166,7 +165,6 @@ run_id = <本轮唯一值>
 
 写入后必须重新读取该文件，确认：
 
-- `ledger_version == 3`
 - `status == BUILDING`
 - `run_id` 与本轮一致
 - 五个正式 blob SHA 与本轮锁定值一致。
@@ -221,17 +219,11 @@ Ledger 必须保持 `FAILED` / 非 FROZEN，`Deep Research coverage = UNVERIFIED
 
 ---
 
-## 6. Frozen Ledger v3｜固定 schema 与逐公司审计
+## 6. Frozen Ledger｜固定字段契约与逐公司审计
 
-### 6.1 固定版本
+### 6.1 当前唯一字段契约
 
-当前唯一有效 schema：
-
-```text
-ledger_version = 3
-```
-
-不得由模型自行递增、降级或猜测版本。Protocol 变更 schema 时必须明确修改本节。
+本 Protocol 直接定义当前唯一有效 Ledger 字段契约。运行时不得识别、迁移或兼容历史 Ledger 格式；任何不符合当前必需字段、逐公司审计和集合闭合要求的 Ledger 都视为无效。
 
 ### 6.2 必要顶层字段
 
@@ -239,7 +231,6 @@ FROZEN Ledger 至少包含：
 
 ```json
 {
-  "ledger_version": 3,
   "status": "FROZEN",
   "run_id": "...",
   "created_at": "ISO-8601 timestamp",
@@ -344,7 +335,6 @@ ledger_count == candidate_count
 
 全部判断完成后，在把 BUILDING 更新为 FROZEN 之前必须再次读取当前 Ledger，并确认：
 
-- 当前 `ledger_version == 3`
 - 当前 `status == BUILDING`
 - 当前 `run_id` 与本轮一致
 - 当前五个正式 blob SHA 与本轮一致。
@@ -383,20 +373,19 @@ Stage A 写入 FROZEN 后，**不得凭内存直接进入 Deep Research**。
 
 Hard Gate 必须同时验证：
 
-1. `ledger_version == 3`；
-2. `status == FROZEN`；
-3. `run_id` 与本轮 Stage A 一致；
-4. `repository_only == true`；
-5. `external_company_research_before_freeze == false`；
-6. `stage_a_information_boundary == CLEAN`；
-7. `ledger_count == candidate_count`；
-8. 四类代码集合互斥且并集等于当前 candidate 全集；
-9. `deep_read_codes == pass_to_deep_research_codes ∪ uncertain_codes`；
-10. `ledger_entries` 完整、一致、可重建四集合；
-11. 所有 PEER_DOMINATED entry 具备完整支配审计字段；
-12. 当前 `trade_date` 与 Ledger 一致；
-13. 当前 `candidate_count` 与 Ledger 一致；
-14. 当前 Protocol / Skill / meta / screening_groups / candidates 五个 blob SHA 与 Ledger 记录完全一致。
+1. `status == FROZEN`；
+2. `run_id` 与本轮 Stage A 一致；
+3. `repository_only == true`；
+4. `external_company_research_before_freeze == false`；
+5. `stage_a_information_boundary == CLEAN`；
+6. `ledger_count == candidate_count`；
+7. 四类代码集合互斥且并集等于当前 candidate 全集；
+8. `deep_read_codes == pass_to_deep_research_codes ∪ uncertain_codes`；
+9. `ledger_entries` 完整、一致、可重建四集合；
+10. 所有 PEER_DOMINATED entry 具备完整支配审计字段；
+11. 当前 `trade_date` 与 Ledger 一致；
+12. 当前 `candidate_count` 与 Ledger 一致；
+13. 当前 Protocol / Skill / meta / screening_groups / candidates 五个 blob SHA 与 Ledger 记录完全一致。
 
 任一条件失败：
 
@@ -540,7 +529,6 @@ Risk Cluster 是发布层去相关，不是研究层淘汰。
 
 - `trade_date`
 - `run_id`
-- `ledger_version`
 - `candidate_count`
 - `ledger_count`
 - `peer_dominated_count`

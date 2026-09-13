@@ -30,17 +30,11 @@ def is_number(value: Any) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
-def industry_yoy_pct(value: Any, source_unit: str | None) -> Any:
-    """Normalize industry YoY values to percentage points (12.4 == 12.4%)."""
-    if not is_number(value):
-        return value
-    if source_unit == YOY_UNIT:
-        return value
-    return float(value) * 100.0
-
-
 def compact_industries(raw: dict[str, Any]) -> dict[str, Any]:
-    source_unit = raw.get("yoy_unit")
+    if raw.get("yoy_unit") != YOY_UNIT:
+        raise RuntimeError(
+            f"industry_state.yoy_unit must be {YOY_UNIT}, got {raw.get('yoy_unit')!r}"
+        )
     result: dict[str, Any] = {}
     for code, item in (raw.get("level3_profitability") or {}).items():
         result[code] = {
@@ -51,12 +45,8 @@ def compact_industries(raw: dict[str, Any]) -> dict[str, Any]:
             "confidence": item.get("confidence"),
             "last_verified_at": item.get("last_verified_at"),
             "core_improving_breadth": item.get("core_improving_breadth"),
-            "aggregate_revenue_yoy": industry_yoy_pct(
-                item.get("aggregate_revenue_yoy"), source_unit
-            ),
-            "aggregate_parent_profit_yoy": industry_yoy_pct(
-                item.get("aggregate_parent_profit_yoy"), source_unit
-            ),
+            "aggregate_revenue_yoy": item.get("aggregate_revenue_yoy"),
+            "aggregate_parent_profit_yoy": item.get("aggregate_parent_profit_yoy"),
             "market_breadth": item.get("market_breadth"),
             "market_activity": item.get("market_activity"),
             "market_confirmation": item.get("market_confirmation"),
@@ -339,7 +329,6 @@ def build_snapshot(source: Path) -> dict[str, Any]:
     }
 
     return {
-        "schema_version": 2,
         "generated_at": upstream_generated_at,
         "trade_date": trade_date,
         "market_status": next(iter(statuses)) if len(statuses) == 1 else "mixed",

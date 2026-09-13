@@ -9,7 +9,7 @@ from typing import Any
 
 from contracts import YOY_UNIT
 
-SCREENING_GROUP_FORMAT = "screening_group_view_v1"
+SCREENING_GROUP_FORMAT = "screening_group_view"
 
 MEMBER_BASE_FIELDS = [
     "code",

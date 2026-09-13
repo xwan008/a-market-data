@@ -10,7 +10,7 @@ from typing import Any
 from contracts import YOY_UNIT
 
 RUNTIME_KIND = "low_risk_research"
-RUNTIME_FORMAT = "model_ready_candidates_v2"
+RUNTIME_FORMAT = "model_ready_candidates"
 
 # Formal structure rule: this file is the single calculation source.
 SUPPORT_DISTANCE_LIMIT_PCT = 5.0
@@ -154,13 +154,10 @@ def invalidation_parts(value: Any) -> tuple[Any, Any]:
     return (price if is_number(price) else None, direction)
 
 
-def normalize_industry_yoy(value: Any, source_unit: str | None) -> Any:
-    if not is_number(value):
-        return value
-    if source_unit == YOY_UNIT:
-        return value
-    # Legacy snapshots stored industry aggregate YoY as ratios.
-    return float(value) * 100.0
+def industry_yoy_value(value: Any, source_unit: str | None) -> Any:
+    if source_unit != YOY_UNIT:
+        raise ValueError(f"unexpected industry YoY unit: {source_unit!r}")
+    return value
 
 
 def strong_support(
@@ -256,10 +253,10 @@ def build_candidate_row(
         industry.get("breadth"),
         industry.get("confidence"),
         industry.get("core_improving_breadth"),
-        normalize_industry_yoy(
+        industry_yoy_value(
             industry.get("aggregate_revenue_yoy"), industry_yoy_unit
         ),
-        normalize_industry_yoy(
+        industry_yoy_value(
             industry.get("aggregate_parent_profit_yoy"), industry_yoy_unit
         ),
         industry.get("market_breadth"),
