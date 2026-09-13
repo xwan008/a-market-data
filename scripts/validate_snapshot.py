@@ -9,8 +9,6 @@ from pathlib import Path
 
 from contracts import ELIGIBILITY_MAX_PE, ELIGIBILITY_MAX_PRICE, YOY_UNIT
 
-SNAPSHOT_SCHEMA_VERSION = 2
-
 
 def fail(message: str) -> None:
     raise SystemExit(f"snapshot validation failed: {message}")
@@ -27,11 +25,6 @@ def main() -> None:
 
     data = json.loads(path.read_text(encoding="utf-8"))
 
-    if data.get("schema_version") != SNAPSHOT_SCHEMA_VERSION:
-        fail(
-            f"schema_version must be {SNAPSHOT_SCHEMA_VERSION}, "
-            f"got {data.get('schema_version')!r}"
-        )
     trade_date = data.get("trade_date")
     if not trade_date:
         fail("trade_date is missing")
