@@ -10,6 +10,7 @@ from typing import Any
 from contracts import YOY_UNIT
 
 SCREENING_GROUP_FORMAT = "screening_group_view"
+MAX_SCREENING_LINE_LENGTH = 4096
 
 MEMBER_BASE_FIELDS = [
     "code",
@@ -73,6 +74,16 @@ def write_json(path: Path, payload: dict[str, Any]) -> None:
         json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n",
         encoding="utf-8",
     )
+
+
+def write_line_addressable_json(
+    path: Path, payload: dict[str, Any]
+) -> tuple[int, int]:
+    """Write formal model input so connector clients can read it by line ranges."""
+    text = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
+    path.write_text(text, encoding="utf-8")
+    lines = text.splitlines()
+    return len(lines), max((len(line) for line in lines), default=0)
 
 
 def numeric(value: Any) -> float | None:
@@ -301,7 +312,12 @@ def main() -> None:
         "coverage": coverage,
         "groups": groups,
     }
-    write_json(runtime_dir / filename, payload)
+    screening_path = runtime_dir / filename
+    line_count, max_line_length = write_line_addressable_json(
+        screening_path, payload
+    )
+    roundtrip_matches = load_json(screening_path) == payload
+    line_addressable = line_count > 1 and max_line_length <= MAX_SCREENING_LINE_LENGTH
 
     validation = {
         "status": "passed",
@@ -312,6 +328,8 @@ def main() -> None:
         "trade_date_matches": payload.get("trade_date")
         == (meta.get("snapshot") or {}).get("trade_date"),
         "yoy_unit_matches": payload.get("yoy_unit") == meta.get("yoy_unit"),
+        "json_roundtrip_matches": roundtrip_matches,
+        "line_addressable": line_addressable,
     }
     if not all(
         value is True
@@ -328,17 +346,25 @@ def main() -> None:
     meta["screening_group_member_fields"] = MEMBER_BASE_FIELDS
     meta["screening_group_quality_flag_fields"] = QUALITY_FLAG_FIELDS
     meta["screening_group_coverage"] = coverage
+    meta["screening_group_serialization"] = {
+        "format": "pretty_json",
+        "line_count": line_count,
+        "max_line_length": max_line_length,
+        "max_allowed_line_length": MAX_SCREENING_LINE_LENGTH,
+    }
     meta["screening_group_validation"] = validation
 
     runtime_validation = meta.get("runtime_validation") or {}
     runtime_validation["screening_group_view_valid"] = True
+    runtime_validation["screening_group_line_addressable"] = True
     meta["runtime_validation"] = runtime_validation
     write_json(meta_path, meta)
 
     print(
         "screening group view ready: "
         f"candidates={candidate_count} groups={len(groups)} "
-        f"singletons={singleton_count} max_group_size={max_group_size}"
+        f"singletons={singleton_count} max_group_size={max_group_size} "
+        f"lines={line_count} max_line_length={max_line_length}"
     )
 
 
