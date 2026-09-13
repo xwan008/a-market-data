@@ -158,6 +158,8 @@ peer_dominated_codes
 
 - 重新自由挑选；
 - 因为已经找到几只好公司就提前停止；
+- 因为已经存在“足够出榜”的 confirmed 数量就提前停止；
+- 因为预计正式榜已经足够丰富就跳过剩余公司；
 - 用实际搜索过的公司反推本应研究的公司；
 - 因市场风险高而缩小冻结集合。
 
@@ -174,9 +176,11 @@ peer_dominated_codes
 
 Deep Research 同时应留下最终风险簇归并所需要的公司级事实，包括 `primary_profit_driver` 与 `dominant_risk_factor`；具体判断语义由 `SKILL.md` 定义。
 
+本阶段的完成条件不是“找到若干可推荐公司”，而是冻结集合已经被全部处理。
+
 ---
 
-## 8. Deep Research coverage
+## 8. Deep Research coverage｜正式榜硬门
 
 第三阶段同时维护：
 
@@ -195,6 +199,8 @@ expected_deep_research_codes
 actual_deep_researched_codes
 ```
 
+只有 `COMPLETE` 才允许进入最终 Risk Cluster Consolidation 和正式独立机会榜生成。
+
 ### INCOMPLETE
 
 集合不相等，必须列出：
@@ -202,19 +208,31 @@ actual_deep_researched_codes
 - `missing_deep_research_codes`
 - `unexpected_researched_codes`（如有）
 
+此时**不得生成正式独立机会榜**，也不得把已完成研究的子集包装为“临时正式榜”“当前 Top N”或其他等价正式推荐结果。只允许输出研究覆盖审计、已完成公司状态和剩余未完成集合。
+
 ### UNVERIFIED
 
 没有先冻结完整 Ledger，或者无法恢复 `deep_read_codes`。
 
+此时同样**不得生成正式独立机会榜**。
+
 不得把“实际搜索覆盖 N 只”冒充“按规则本应 Deep Research 的就是 N 只”。
 
-正式闭环应以 `coverage = COMPLETE` 为目标；若不是 COMPLETE，必须明确说明本轮研究覆盖未闭合。
+正式闭环的唯一完成条件是：
+
+```text
+deep_research_coverage = COMPLETE
+```
+
+“已经找到足够多好公司”“已经够出榜”“已经达到某个推荐数量”都不是完成条件。
 
 ---
 
 ## 9. Final Opportunity Consolidation｜最终机会归并
 
-只有在公司级 Deep Research、估值和 `deep_research_coverage` 状态已经确定之后，才进行最终风险簇归并。
+**前置条件：`deep_research_coverage == COMPLETE`。**
+
+只有公司级 Deep Research 全部闭合、估值完成后，才进行最终风险簇归并。
 
 具体如何判断同一 `risk_cluster`、如何选择代表公司、何时允许同一行业多个独立机会，由 `SKILL.md` 定义。
 
@@ -223,10 +241,11 @@ actual_deep_researched_codes
 1. 风险簇归并不得改变 `deep_read_codes`；
 2. 风险簇归并不得修改 `actual_deep_researched_codes`；
 3. 公司级 `confirmed / waiting / research_uncertain / excluded` 状态保持不变；
-4. 正式榜排名对象改为**独立风险收益机会**，同一风险簇默认一个 `representative_code`；
+4. 正式榜排名对象是**独立风险收益机会**，同一风险簇默认一个 `representative_code`；
 5. 同簇其他仍有价值的公司保留为 `alternative_codes`；
 6. 若同一行业有多个正式席位，必须记录 `independence_rationale`；
-7. 若 `deep_research_coverage != COMPLETE`，最终机会榜必须明确标记研究覆盖未闭合，不得声称是完整机会全集。
+7. 正式机会集合不设目标数量、不设固定上限、不做 Top N 截断；所有满足最终低风险条件且经风险簇归并后仍属于独立机会的结果都应进入正式机会集合；
+8. 排名只表达优先级，不得作为停止研究或截断正式机会集合的理由。
 
 风险簇归并是发布层去相关，不是研究层淘汰。
 
@@ -253,9 +272,12 @@ actual_deep_researched_codes
 - `company_confirmed_count`
 - `research_uncertain_count`
 - `waiting_count`
+
+只有 `deep_research_coverage == COMPLETE` 时，才记录并发布：
+
 - `risk_cluster_count`
 - `formal_opportunity_count`
-- `final_recommendation_count`（与 `formal_opportunity_count` 同口径，表示独立机会数，不再表示股票数）
+- `final_recommendation_count`（与 `formal_opportunity_count` 同口径，表示全部符合条件的独立机会数，不表示股票数，也不存在固定上限）
 
 并保留至少以下代码集合或映射：
 
@@ -265,6 +287,9 @@ actual_deep_researched_codes
 - `uncertain_codes`
 - `deep_read_codes`
 - `actual_researched_codes`
+
+coverage 为 COMPLETE 后进一步保留：
+
 - `formal_representative_codes`
 - `risk_cluster_map`：每个 cluster 至少包含 `representative_code` 与 `alternative_codes`
 - `independence_rationale`：同一行业存在多个正式独立机会时记录。
@@ -281,13 +306,13 @@ company_confirmed_count
 formal_opportunity_count
 ```
 
-前者是公司级研究结果数量，后者是去除共同主导风险因子后的正式独立机会数量。
+前者是公司级研究结果数量，后者是去除共同主导风险因子后的正式独立机会数量。正式机会数量是完整研究后的自然结果，不是预先设定的任务目标。
 
 ---
 
 ## 11. 市场风险与执行覆盖
 
-市场 `bearish / weak breadth / high risk` 只能影响最终估值、等待倾向和正式榜数量。
+市场 `bearish / weak breadth / high risk` 只能影响最终估值、等待倾向，以及在 coverage COMPLETE 后自然形成的正式机会集合。
 
 它不得：
 
@@ -295,7 +320,8 @@ formal_opportunity_count
 - 跳过 Pre-Research Screening；
 - 改变冻结后的 `deep_read_codes`；
 - 成为研究覆盖不完整的理由；
-- 被用来绕过 Risk Cluster Consolidation，重复发布同一风险暴露。
+- 被用来绕过 Risk Cluster Consolidation，重复发布同一风险暴露；
+- 被用来在 coverage 未 COMPLETE 时生成正式榜。
 
 ---
 
@@ -303,7 +329,13 @@ formal_opportunity_count
 
 > **先完整筛选，再冻结名单，再联网研究。**
 
-> **先完成公司级研究，再做最终风险因子去重。**
+> **任务完成的定义是穷尽 frozen `deep_read_codes`，不是找到足够多可以出榜的公司。**
+
+> **Deep Research coverage 未 COMPLETE 时，没有正式独立机会榜。**
+
+> **coverage COMPLETE 后，先完成公司级研究，再做最终风险因子去重。**
+
+> **正式机会集合没有目标数量和固定上限；排名只表示优先级。**
 
 > **程序资格不由模型重算。**
 
