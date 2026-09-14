@@ -141,10 +141,17 @@ def main() -> None:
     meta["screening_group_serialization"] = serialization
     meta["screening_group_validation"] = validation
 
+    # Keep a single formal Stage A fact source. Earlier experimental derived
+    # transport shards are removed so bootstrap context stays minimal.
+    for stale in runtime_dir.glob("stage_a_transport_*.json"):
+        stale.unlink()
+    meta.pop("stage_a_transport", None)
+
     runtime_validation = meta.get("runtime_validation") or {}
     runtime_validation["screening_group_view_valid"] = True
     runtime_validation["screening_group_line_addressable"] = True
     runtime_validation["screening_group_compaction_valid"] = True
+    runtime_validation.pop("stage_a_transport_valid", None)
     meta["runtime_validation"] = runtime_validation
     write_json(meta_path, meta)
 
