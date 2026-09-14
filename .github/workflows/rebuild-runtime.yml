@@ -43,7 +43,9 @@ jobs:
           python scripts/validate_snapshot.py data/snapshot.json
 
       - name: Build and validate research runtime
-        run: python scripts/build_runtime.py data/snapshot.json --output-dir data/runtime
+        run: |
+          python scripts/build_runtime.py data/snapshot.json --output-dir data/runtime
+          python scripts/build_stage_a_transport.py --runtime-dir data/runtime
 
       - name: Commit rebuilt research data
         shell: bash
