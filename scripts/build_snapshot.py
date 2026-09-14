@@ -181,6 +181,8 @@ def compact_candidate(raw: dict[str, Any]) -> dict[str, Any]:
             ),
             "gross_margin": fundamentals.get("gross_margin"),
             "net_profit": fundamentals.get("net_profit"),
+            "basic_eps": fundamentals.get("basic_eps"),
+            "deduct_basic_eps": fundamentals.get("deduct_basic_eps"),
         },
         "price_structure": {
             "high_20d": trend.get("high_20d"),
