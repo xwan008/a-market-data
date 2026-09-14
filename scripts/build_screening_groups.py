@@ -12,6 +12,8 @@ from contracts import YOY_UNIT
 SCREENING_GROUP_FORMAT = "screening_group_view"
 SCREENING_SERIALIZATION_FORMAT = "columnar_pretty_json"
 MAX_LINE_LENGTH = 4096
+MATERIAL_NON_CORE_EPS_SHARE_PCT = 20.0
+WEAK_CASHFLOW_TO_EPS_RATIO = 0.5
 
 MEMBER_BASE_FIELDS = [
     "code",
@@ -40,6 +42,8 @@ MEMBER_BASE_FIELDS = [
     "operating_cashflow_per_share",
     "gross_margin",
     "net_profit",
+    "basic_eps",
+    "deduct_basic_eps",
 ]
 
 INDUSTRY_CONTEXT_FIELDS = [
@@ -65,9 +69,20 @@ QUALITY_FLAG_FIELDS = [
     "core_financial_missing_count",
 ]
 
+QUALITY_FACT_FIELDS = [
+    "non_core_eps_share_pct",
+    "one_off_profit_signal",
+    "cashflow_to_eps_ratio",
+    "cashflow_profit_alignment",
+    "industry_revenue_company_gap_pp",
+    "industry_profit_company_core_gap_pp",
+    "industry_company_transmission",
+]
+
 MEMBER_COLUMNS = [
     *MEMBER_BASE_FIELDS,
     *(f"quality_flag.{field}" for field in QUALITY_FLAG_FIELDS),
+    *(f"quality_fact.{field}" for field in QUALITY_FACT_FIELDS),
 ]
 
 
@@ -223,6 +238,93 @@ def quality_flags(row: list[Any], index: dict[str, int]) -> dict[str, Any]:
     }
 
 
+def quality_facts(row: list[Any], index: dict[str, int]) -> dict[str, Any]:
+    basic_eps = numeric(row[index["basic_eps"]])
+    deduct_eps = numeric(row[index["deduct_basic_eps"]])
+    ocfps = numeric(row[index["operating_cashflow_per_share"]])
+
+    non_core_share = None
+    one_off_signal = "unavailable"
+    if basic_eps is not None and basic_eps > 0 and deduct_eps is not None:
+        non_core_share = (basic_eps - deduct_eps) / abs(basic_eps) * 100.0
+        if non_core_share >= MATERIAL_NON_CORE_EPS_SHARE_PCT:
+            one_off_signal = "material_positive_non_core"
+        elif non_core_share <= -MATERIAL_NON_CORE_EPS_SHARE_PCT:
+            one_off_signal = "core_eps_above_reported"
+        else:
+            one_off_signal = "limited_gap"
+
+    cashflow_ratio = None
+    cashflow_alignment = "unavailable"
+    if basic_eps is not None and basic_eps > 0 and ocfps is not None:
+        cashflow_ratio = ocfps / basic_eps
+        if cashflow_ratio < 0:
+            cashflow_alignment = "negative"
+        elif cashflow_ratio < WEAK_CASHFLOW_TO_EPS_RATIO:
+            cashflow_alignment = "weak"
+        else:
+            cashflow_alignment = "supportive"
+
+    industry_revenue_yoy = numeric(row[index["industry_aggregate_revenue_yoy"]])
+    industry_profit_yoy = numeric(
+        row[index["industry_aggregate_parent_profit_yoy"]]
+    )
+    company_revenue_yoy = numeric(row[index["revenue_yoy"]])
+    company_core_profit_yoy = numeric(row[index["deduct_basic_eps_yoy"]])
+    if company_core_profit_yoy is None:
+        company_core_profit_yoy = numeric(row[index["net_profit_yoy"]])
+
+    revenue_gap = None
+    profit_gap = None
+    transmission = "unavailable"
+    if industry_revenue_yoy is not None and company_revenue_yoy is not None:
+        revenue_gap = company_revenue_yoy - industry_revenue_yoy
+    if industry_profit_yoy is not None and company_core_profit_yoy is not None:
+        profit_gap = company_core_profit_yoy - industry_profit_yoy
+
+    if all(
+        value is not None
+        for value in (
+            industry_revenue_yoy,
+            industry_profit_yoy,
+            company_revenue_yoy,
+            company_core_profit_yoy,
+        )
+    ):
+        if (
+            industry_revenue_yoy > 0
+            and industry_profit_yoy > 0
+            and company_revenue_yoy < 0
+            and company_core_profit_yoy < 0
+        ):
+            transmission = "failed"
+        elif (
+            sign(industry_revenue_yoy) == sign(company_revenue_yoy)
+            and sign(industry_profit_yoy) == sign(company_core_profit_yoy)
+        ):
+            transmission = "aligned"
+        else:
+            transmission = "mixed"
+
+    return {
+        "non_core_eps_share_pct": (
+            round(non_core_share, 4) if non_core_share is not None else None
+        ),
+        "one_off_profit_signal": one_off_signal,
+        "cashflow_to_eps_ratio": (
+            round(cashflow_ratio, 4) if cashflow_ratio is not None else None
+        ),
+        "cashflow_profit_alignment": cashflow_alignment,
+        "industry_revenue_company_gap_pp": (
+            round(revenue_gap, 4) if revenue_gap is not None else None
+        ),
+        "industry_profit_company_core_gap_pp": (
+            round(profit_gap, 4) if profit_gap is not None else None
+        ),
+        "industry_company_transmission": transmission,
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--runtime-dir", default="data/runtime")
@@ -267,6 +369,9 @@ def main() -> None:
     report_date_available = 0
     valuation_core_complete = 0
     operating_core_complete = 0
+    one_off_fact_available = 0
+    cashflow_fact_available = 0
+    transmission_fact_available = 0
 
     for industry_code in sorted(grouped):
         group_rows = sorted(
@@ -278,9 +383,11 @@ def main() -> None:
 
         for row in group_rows:
             flags = quality_flags(row, index)
+            facts = quality_facts(row, index)
             member = [
                 *(row[index[field]] for field in MEMBER_BASE_FIELDS),
                 *(flags[field] for field in QUALITY_FLAG_FIELDS),
+                *(facts[field] for field in QUALITY_FACT_FIELDS),
             ]
             members.append(member)
 
@@ -304,6 +411,15 @@ def main() -> None:
                         "gross_margin",
                     )
                 )
+            )
+            one_off_fact_available += int(
+                facts["one_off_profit_signal"] != "unavailable"
+            )
+            cashflow_fact_available += int(
+                facts["cashflow_profit_alignment"] != "unavailable"
+            )
+            transmission_fact_available += int(
+                facts["industry_company_transmission"] != "unavailable"
             )
 
         groups.append(
@@ -351,6 +467,20 @@ def main() -> None:
         "report_date_available_count": report_date_available,
         "valuation_core_complete_count": valuation_core_complete,
         "operating_core_complete_count": operating_core_complete,
+        "one_off_profit_fact_available_count": one_off_fact_available,
+        "cashflow_quality_fact_available_count": cashflow_fact_available,
+        "industry_transmission_fact_available_count": transmission_fact_available,
+    }
+
+    quality_fact_rules = {
+        "one_off_material_non_core_share_pct_gte": MATERIAL_NON_CORE_EPS_SHARE_PCT,
+        "cashflow_weak_ratio_lt": WEAK_CASHFLOW_TO_EPS_RATIO,
+        "cashflow_negative_ratio_lt": 0.0,
+        "industry_core_profit_metric": "deduct_basic_eps_yoy_fallback_net_profit_yoy",
+        "industry_transmission_failed_rule": (
+            "industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0"
+        ),
+        "single_fact_is_not_hard_veto": True,
     }
 
     filename = "screening_groups.json"
@@ -372,6 +502,7 @@ def main() -> None:
             "yoy_unit",
             *(field.removeprefix("industry_") for field in INDUSTRY_CONTEXT_FIELDS),
         ],
+        "quality_fact_rules": quality_fact_rules,
         "coverage": coverage,
         "groups": groups,
     }
@@ -413,6 +544,8 @@ def main() -> None:
     meta["screening_group_member_columns"] = MEMBER_COLUMNS
     meta.pop("screening_group_member_fields", None)
     meta.pop("screening_group_quality_flag_fields", None)
+    meta["screening_group_quality_fact_fields"] = QUALITY_FACT_FIELDS
+    meta["screening_group_quality_fact_rules"] = quality_fact_rules
     meta["screening_group_coverage"] = coverage
     meta["screening_group_serialization"] = {
         key: value
