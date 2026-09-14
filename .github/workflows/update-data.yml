@@ -216,7 +216,9 @@ jobs:
 
       - name: Build and validate ChatGPT research runtime
         if: steps.gate.outputs.persist == 'true'
-        run: python scripts/build_runtime.py data/snapshot.json --output-dir data/runtime
+        run: |
+          python scripts/build_runtime.py data/snapshot.json --output-dir data/runtime
+          python scripts/build_stage_a_transport.py --runtime-dir data/runtime
 
       - name: Commit updated daily data
         if: steps.gate.outputs.persist == 'true'
