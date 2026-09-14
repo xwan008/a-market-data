@@ -6,8 +6,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-TARGET_LINE_LENGTH = 700
-MAX_LINE_LENGTH = 1000
+TARGET_LINE_LENGTH = 350
+MAX_LINE_LENGTH = 500
 
 
 def load_json(path: Path) -> dict[str, Any]:
