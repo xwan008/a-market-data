@@ -1,0 +1,82 @@
+{
+  "diagnostic_only": true,
+  "formal_input": false,
+  "trade_date": "2026-09-11",
+  "parent_gate_version": "two_question_gate_v0.2",
+  "parent_gate_commit": "49ebe65c9a0a816297d1afb75171e0b82d6d192f",
+  "purpose": "Test whether one targeted normalization query for valuation-borderline or headline-anomaly companies can reduce Stage B Deep Research load without doing full company research.",
+  "q2_lite": {
+    "query_intent": "Only retrieve latest H1 recurring-profit amount and the disclosed reason for headline profit growth; no industry thesis, catalyst map, or target-price construction.",
+    "query_template": "<company> 2026 半年报 扣非净利润 利润增长原因",
+    "trigger_if_any": [
+      "valuation_borderline: max_positive(pe_ttm, pe_dynamic) >= 18 AND roe < 8 AND deduct_basic_eps_yoy < 20",
+      "headline_anomaly: net_profit_yoy >= 50 AND headline growth is much larger than revenue/core-growth signals"
+    ],
+    "normalization": "normalized_dynamic_pe = pe_dynamic * H1_parent_net_profit / H1_recurring_parent_net_profit when all terms are positive; normalized_pe_lite = max_positive(pe_ttm, normalized_dynamic_pe)",
+    "high_confidence_stop_conditions": [
+      "material one-off/non-recurring profit is >= 30% of parent net profit and normalized valuation no longer shows a low-risk margin",
+      "for a non-financial operating company, disclosure states profit growth is mainly driven by associate/investment income and that income is a dominant share of period profit"
+    ],
+    "valuation_stop_candidate": "normalized_pe_lite > 20 AND roe < 8 AND recurring_profit_growth < 20; this condition is NOT safe enough for formal promotion because it filters some historical confirmed names"
+  },
+  "evidence_examples": {
+    "000973": {
+      "baseline_status": "waiting",
+      "finding": "H1 parent net profit RMB905.13m included about RMB455.97m bargain-purchase gain from the acquisition; H1 recurring parent profit was RMB460.08m. Using the recurring base materially raises the effective valuation.",
+      "q2_lite_action": "STOP_BEFORE_DEEP_RESEARCH"
+    },
+    "002125": {
+      "baseline_status": "waiting",
+      "finding": "H1 parent net profit RMB224.87m and recurring parent profit RMB222.29m look clean by non-recurring accounting, but the company disclosed that profit growth was mainly driven by increased associate investment income; associate/JV investment income was about RMB164.90m, a dominant share of period profit.",
+      "q2_lite_action": "STOP_BEFORE_DEEP_RESEARCH"
+    },
+    "600816": {
+      "baseline_status": "excluded",
+      "finding": "H1 parent net profit RMB1.071bn included RMB897m total non-recurring gains; a RMB1.315bn bargain-purchase gain was the main item. Recurring parent profit was about RMB174m, so headline valuation was materially understated.",
+      "q2_lite_action": "STOP_BEFORE_DEEP_RESEARCH"
+    }
+  },
+  "safe_mode": {
+    "objective": "Preserve every historical confirmed company; only use high-confidence accounting/profit-source normalization as a hard stop.",
+    "baseline_deep_read_count": 99,
+    "after_v0_2_count": 66,
+    "additional_q2_lite_filtered_codes": ["000973", "002125", "600816"],
+    "after_q2_lite_count": 63,
+    "total_filtered_count": 36,
+    "research_reduction_pct": 36.36,
+    "confirmed_retained": 34,
+    "confirmed_total": 34,
+    "confirmed_recall_pct": 100.0,
+    "formal_opportunities_retained": 14,
+    "formal_opportunities_total": 14,
+    "formal_opportunity_recall_pct": 100.0,
+    "waiting_filtered": 10,
+    "waiting_total": 24,
+    "excluded_filtered": 19,
+    "excluded_total": 20,
+    "research_uncertain_filtered": 7,
+    "research_uncertain_total": 21
+  },
+  "aggressive_mode_experiment": {
+    "formal_promotion": false,
+    "objective": "Preserve final formal opportunities rather than every intermediate confirmed company.",
+    "additional_rule": "Apply the valuation_stop_candidate as a hard stop after Q2-lite normalization.",
+    "additional_likely_filtered_vs_safe": {
+      "waiting": ["000920", "600361", "003000", "603697"],
+      "excluded": ["002950"],
+      "confirmed_but_not_formal_opportunity": ["603867", "600406", "002920"]
+    },
+    "estimated_after_gate_count": 55,
+    "estimated_research_reduction_pct": 44.44,
+    "confirmed_retained": 31,
+    "confirmed_total": 34,
+    "confirmed_recall_pct": 91.18,
+    "formal_opportunities_retained": 14,
+    "formal_opportunities_total": 14,
+    "formal_opportunity_recall_pct": 100.0,
+    "decision": "DO_NOT_PROMOTE_AS_HARD_FILTER_YET",
+    "reason": "The gain is meaningful, but the rule removes three historically confirmed names. It may be useful as research-priority ordering, not yet as a hard exclusion gate."
+  },
+  "conclusion": "The safe hard-gate architecture now reduces historical Deep Research load from 99 to 63 (36.36%) while preserving 34/34 confirmed and 14/14 formal opportunities. Further compression toward roughly 55 is possible only by changing the optimization target from all confirmed names to final formal opportunities, or by adding a small business-quality check; raw valuation tightening alone is not safe.",
+  "next_step": "Keep v0.2 plus high-confidence Q2-lite normalization as the leading safe candidate. Test the same logic on another independent historical label set before changing formal SKILL.md. If no additional label set can be reconstructed, use the aggressive valuation condition only for priority ordering inside the same Stage B invocation, not for permanent exclusion."
+}
