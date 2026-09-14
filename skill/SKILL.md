@@ -10,7 +10,7 @@
 
 > **先看还能跌多少，再看能涨多少。**
 
-本文件只定义模型需要做的判断。确定性筛选、结构硬规则、数据校验、文件读取、阶段交接和覆盖审计，以程序输出、`meta.json` 和 `RUNTIME_READ_PROTOCOL.md` 为准。
+本文件只定义模型判断。确定性筛选、结构硬规则、数据校验、文件读取、阶段交接和覆盖审计，以程序输出、`meta.json` 和 `RUNTIME_READ_PROTOCOL.md` 为准。
 
 ---
 
@@ -23,19 +23,20 @@
 - 申万三级行业分组；
 - PE / PB / ROE、收入、利润、扣非、现金流、毛利率等结构化事实；
 - 行业状态、行业聚合事实和可直接计算的质量标签；
-- Stage A 可直接使用的三类程序化质量事实：`basic_eps` 与 `deduct_basic_eps` 的非核心 EPS 差异代理、`operating_cashflow_per_share / basic_eps` 的现金流匹配、行业收入/利润与公司收入/核心利润的传导关系。
+- Stage A 可直接使用的程序化质量事实，包括非核心 EPS 差异代理、经营现金流匹配、行业→公司传导关系。
 
-这些程序化质量事实只表达确定性数据关系，不直接代表业务原因，也不是单指标硬淘汰规则。模型不得重新计算或推翻程序硬筛。
+这些程序化事实只表达确定性数据关系，不直接代表业务原因，也不是单指标硬淘汰规则。模型不得重新计算或推翻程序硬筛。
 
 所有公司与行业 YoY 字段统一使用 `percentage_points`，例如 `12.4` 表示 `12.4%`。
 
-模型负责三件事：
+模型负责四件事：
 
-1. **Structured Screening / Model Prescreen**：只使用锁定 GitHub runtime 中的结构化事实，判断同行明确支配和公司绝对质量；
-2. **Deep Research**：只研究冻结后的 `deep_read_codes`，引入公开资料确认真实业务、盈利驱动、周期、需要解释的盈利质量异常、估值和最终安全边际；
-3. **Risk Cluster Consolidation**：只有 Deep Research coverage 完整闭合后，才把高度依赖同一主导风险因子的入场机会归并为独立风险收益机会。
+1. **Structured Screening / Model Prescreen**：只使用锁定 GitHub runtime 的结构化事实，判断同行明确支配和公司绝对质量；
+2. **Stage B Research Worthiness Gate**：对 Frozen Ledger 的 `deep_read_codes` 全量做轻量判断，先回答“核心盈利是否可信”和“当前是否可能存在低风险安全边际”，只把真正值得投入完整研究预算的公司送入 Deep Research；
+3. **Deep Research**：只研究 Gate 后派生的 `deep_research_required_codes`，引入公开资料确认真实业务、盈利驱动、周期、盈利质量、估值和最终安全边际；
+4. **Risk Cluster Consolidation**：只有 Stage B coverage 完整闭合后，才把高度依赖同一主导风险因子的入场机会归并为独立风险收益机会。
 
-第三步只影响最终榜单表达，不得反向减少前两步覆盖或修改公司级研究状态。
+Gate 是研究预算分配，不是 Top N、同行配额或风险簇去重。
 
 ---
 
@@ -43,7 +44,7 @@
 
 这一层只使用程序准备好的 `screening_groups` 及同一锁定 runtime 下允许的仓库结构化事实。
 
-**Repository-only** 表示信息集只能来自锁定仓库 runtime；在完整 Ledger FROZEN 并通过 Hard Gate 前，不得搜索或读取公司官网、公告正文、新闻、研报、搜索引擎结果、行业网站等公司级外部公开资料。
+**Repository-only** 表示：在完整 Ledger FROZEN 并通过 Hard Gate 前，不得搜索或读取公司官网、公告正文、新闻、研报、搜索引擎结果、行业网站等公司级外部公开资料。
 
 ### 3.1 同行明确支配
 
@@ -53,7 +54,7 @@
 
 - **价格结构**：位置、支撑距离与触碰、成交密集区距离与占比、阻力和风险参考；
 - **估值质量**：PE-TTM、动态 PE、PB 与 ROE、增长、盈利质量是否匹配；
-- **经营质量**：收入、净利润、扣非、经营现金流、毛利率，以及程序已计算的非核心 EPS 差异、现金流匹配和行业→公司传导事实是否支持盈利。
+- **经营质量**：收入、净利润、扣非、经营现金流、毛利率，以及程序化质量事实。
 
 候选 A 只有在存在同组候选 B 且同时满足时，才允许标记 `PEER_DOMINATED`：
 
@@ -64,15 +65,7 @@
 
 只要互有胜负、不可比或不确定，就不得做同行支配淘汰。
 
-`PEER_DOMINATED` 不能表达：
-
-- 同行业公司太多，所以只留 1–2 只；
-- 同风险簇所以提前压缩；
-- 券商、资源品等共同受一个变量驱动，所以只研究少数代表；
-- 为了降低 `deep_read_codes` 数量而选少数更优公司；
-- 预计最终榜只需要一个行业席位，所以提前去重。
-
-这些属于 coverage COMPLETE 后的 Risk Cluster Consolidation。
+`PEER_DOMINATED` 不能表达：同行公司太多、同风险簇提前压缩、只研究代表公司、为了降低后续研究数量而选 Top N、或预留正式榜席位。
 
 每个 `PEER_DOMINATED` entry 至少保留：
 
@@ -83,44 +76,34 @@
 - `differentiated_advantage_check`
 - `uncertainty_check`
 
-如果这些依据无法成立，不得标记 `PEER_DOMINATED`。
-
 ### 3.2 公司绝对质量
 
-程序已为 Stage A 提供三类确定性质量事实：
-
-- `quality_fact.one_off_profit_signal` 与 `quality_fact.non_core_eps_share_pct`：只表示基本 EPS 与扣非 EPS 的差异代理；`material_positive_non_core` 表示非核心贡献需要重视，但不等于程序已经证明具体一次性项目；
-- `quality_fact.cashflow_profit_alignment` 与 `quality_fact.cashflow_to_eps_ratio`：表示同报告期经营现金流/股与基本 EPS 的匹配；
-- `quality_fact.industry_company_transmission` 及对应行业/公司 YoY gap：表示行业收入/利润与公司收入/核心利润的方向关系；`failed` 只在行业收入、利润均为正而公司收入、核心利润均为负时成立。
-
-这些事实用于减少必须留到 Deep Research 才能发现的基础矛盾。使用纪律：
+程序质量事实用于减少必须留到公开研究才能发现的基础矛盾，但使用纪律是：
 
 - 单一质量事实不得一票淘汰；
 - 多个彼此独立的负向事实，可以与价格结构、估值和经营趋势共同支持 `CLEARLY_WEAK`；
-- 程序事实已经闭合时，不得仅因为“还想联网再确认一次”而使用 `UNCERTAIN`；
-- 如果程序事实存在缺失、相互冲突，或负向事实可能由周期、会计口径、业务结构变化解释且解释会实质改变结论，才使用 `UNCERTAIN` 进入 Deep Research。
+- 程序事实已经闭合时，不得仅因为“还想联网确认”而使用 `UNCERTAIN`；
+- 若负向事实可能由周期、会计口径、业务结构变化解释，且解释会实质改变结论，使用 `UNCERTAIN`。
 
 未被 `PEER_DOMINATED` 的公司只允许：
 
 #### `CLEARLY_WEAK`
 
-只有结构化事实显示多个独立方面明显偏弱，且没有清晰的确定性反向优势时才使用。单一 PE、ROE、利润增长、负现金流、行业状态或单个质量标签不得单独形成 `CLEARLY_WEAK`。
-
-如果弱点可能由周期、会计口径、业务变化或缺失信息解释，应使用 `UNCERTAIN`。
+结构化事实显示多个独立方面明显偏弱，且没有清晰确定性反向优势。单一 PE、ROE、利润增长、负现金流、行业状态或单个质量标签不得单独形成 `CLEARLY_WEAK`。
 
 #### `PASS_TO_DEEP_RESEARCH`
 
-结构化事实已经显示继续研究具有明确价值。
+结构化事实显示继续进入 Stage B 具有明确价值。
 
 #### `UNCERTAIN`
 
-结构化数据不足以可靠解释公司，例如周期导致利润或估值可能失真、程序化质量事实互相冲突、真实业务差异会改变数字含义、关键缺失信息可能改变结论。
+结构化数据不足以可靠解释公司，例如周期导致利润或估值可能失真、程序事实互相冲突、真实业务差异会改变数字含义、关键缺失信息可能改变结论。
 
-拿不准时不能为了压缩数量强行淘汰；但如果程序化事实已经足以形成 Stage A 判断，也不得把 `UNCERTAIN` 当作默认出口。
+拿不准时不能为了压缩数量强行淘汰；但程序事实已经足够时，也不得把 `UNCERTAIN` 当默认出口。
 
 ### 3.3 完整 Ledger
 
-每只候选恰好有一个 `ledger_entry`：
+每只候选恰好一个 `ledger_entry`：
 
 - `code`
 - `result`
@@ -136,66 +119,196 @@
 
 代码集合只是逐公司 Ledger 的派生索引；集合与 entry 冲突即审计失败。
 
-Structured Screening 禁止：
+Structured Screening 禁止：综合评分、全市场 Top N、每组机械 Top1/Top2、单指标一票淘汰、为了压缩后续研究数量调整标准、把 Risk Cluster 前移、FROZEN 前引入公司级外部资料、找到几只好公司后提前停止。
 
-- 综合加权总分；
-- 全市场 Top N；
-- 每组机械 Top1 / Top2；
-- 单指标一票淘汰；
-- 为了压缩 Deep Research 数量调判断标准；
-- 把 Risk Cluster / 行业相关性去重前移；
-- 在完整 Ledger 冻结前引入公司级外部资料；
-- 找到几只好公司后停止处理剩余候选。
-
-研究层原则：
-
-> **防漏优先；相关性去重留到完整 Deep Research 后的发布层。**
+> **Stage A 防漏优先；Stage B Gate 再做研究预算分配；Risk Cluster 留到完整研究后的发布层。**
 
 ---
 
-## 4. Deep Research
+## 4. Stage B｜先轻量 Gate，再重点 Deep Research
 
-只有冻结后的 `PASS_TO_DEEP_RESEARCH` 和 `UNCERTAIN` 进入 Deep Research。
+Frozen Ledger 中的 `PASS_TO_DEEP_RESEARCH + UNCERTAIN` 形成 `deep_read_codes`。从本版开始：
 
-Stage B 不得机械重做 Stage A 已由程序事实闭合的基础检查。对“一次性收益代理、现金流匹配、行业→公司传导”只有在程序标签显示重大弱项、冲突、缺失，且解释该事实可能实质改变研究结论时，才做针对性外部补查。
+> **`deep_read_codes` 是 Stage B 候选全集，不再自动等于必须做完整 Deep Research 的集合。**
 
-每家公司重点确认：
+Stage B 先对 `deep_read_codes` 全量执行 4.0 Research Worthiness Gate；只有 Gate 后派生的 `deep_research_required_codes` 才进入完整 Deep Research。
 
-1. 真实主营、主要产品和业务；
-2. `primary_profit_driver`：利润最主要由什么变量驱动；
-3. `dominant_risk_factor`：最能同时解释上行与下行的主导外部或经营风险因子；
-4. 未来 1–2 个季度盈利逻辑是否可验证；
-5. 当 `industry_company_transmission` 为 `failed` / `mixed` 或存在关键冲突时，解释行业改善为何未传导、部分传导或数据为何失真；已经 `aligned` 且无其他冲突时不为这一项单独联网证明；
-6. 当现金流、扣非、收入、毛利率等程序事实出现明显不匹配时，确认销量、价格、订单、会计口径等是否能解释；程序事实已一致时不机械重查；
-7. 当 `one_off_profit_signal=material_positive_non_core`、相关数据缺失或其他证据与其冲突时，确认是否确有重大一次性收益及其性质；`limited_gap` 本身不触发专项研究；
-8. 是否处于周期盈利高点，导致 PE 看似便宜；
-9. 至少一条最可能推翻当前判断的反向证据。
+### 4.0 Research Worthiness Gate｜只回答两个问题
+
+Gate 不判断“是不是最好的公司”，只回答：
+
+> **Q1：正常化后的核心盈利是否可信、可持续？**
+
+> **Q2：如果核心盈利可信，以当前价格粗看，是否仍有可能形成低风险安全边际？**
+
+默认原则：
+
+> **只有明确 No 才停止；信息不足、边界或可解释，一律继续。**
+
+Gate 不允许综合评分、Top N、行业配额或相对排名。
+
+#### A. Q1｜结构化盈利可信度硬门
+
+只使用锁定 runtime。满足任一条件才允许 `gate_filtered_q1`：
+
+```text
+1. net_profit_yoy < 0 AND deduct_basic_eps_yoy < 0
+2. net_profit_yoy >= 20 AND deduct_basic_eps_yoy <= -10
+3. quality_flag.profit_growth_cashflow_negative == true
+   AND (deduct_basic_eps_yoy is null OR deduct_basic_eps_yoy <= 0)
+4. net_profit_yoy >= 50
+   AND deduct_basic_eps_yoy is not null
+   AND deduct_basic_eps_yoy <= 5
+```
+
+这四条只用于 Stage B Gate，不反向修改 Stage A Ledger。
+
+#### B. Q2｜结构化安全边际粗筛
+
+只有 Q1 未明确 No 才进入 Q2。
+
+定义：
+
+```text
+min_positive_pe = min(pe_ttm, pe_dynamic) among positive values
+normalized_pe_proxy = max(pe_ttm, pe_dynamic) among positive values
+```
+
+若没有可用正 PE，不因 Q2 机械淘汰。
+
+满足任一条件才允许 `gate_filtered_q2`：
+
+```text
+1. pe_ttm > 25 AND pe_dynamic > 25
+   AND deduct_basic_eps_yoy < 20
+   AND roe < 8
+
+2. min_positive_pe > 22
+   AND deduct_basic_eps_yoy <= 5
+   AND roe < 8
+
+3. normalized_pe_proxy > 20
+   AND roe < 5
+   AND deduct_basic_eps_yoy is not null
+   AND deduct_basic_eps_yoy < 20
+```
+
+Q2 只是判断“明显不值得立即花完整研究预算”，不是正式目标价计算。
+
+#### C. Q2-lite｜只做一次极小的盈利归一化
+
+对未被 Q1/Q2 停止、但满足以下任一触发条件的公司，允许做 **1–2 次公司级定向查询**：
+
+```text
+valuation_borderline:
+max_positive(pe_ttm, pe_dynamic) >= 18
+AND roe < 8
+AND deduct_basic_eps_yoy < 20
+
+headline_anomaly:
+net_profit_yoy >= 50
+AND (
+  deduct_basic_eps_yoy is null
+  OR net_profit_yoy - deduct_basic_eps_yoy >= 30
+  OR net_profit_yoy - revenue_yoy >= 40
+)
+```
+
+Q2-lite 只允许确认：
+
+- 最新报告期归母净利润；
+- 扣非/经常性归母净利润；
+- 利润高速增长的公司披露原因；
+- 是否存在重大一次性收益；
+- 是否存在主导利润的联营/投资收益。
+
+Q2-lite **禁止**：完整产业链研究、完整行业景气研究、催化剂地图、竞争格局长篇研究、正式目标价构造。
+
+可计算：
+
+```text
+normalized_dynamic_pe
+= pe_dynamic × 当期归母净利润 / 当期经常性归母净利润
+
+normalized_pe_lite
+= max_positive(pe_ttm, normalized_dynamic_pe)
+```
+
+只有高置信度情况才允许 `gate_filtered_q2_lite`：
+
+1. 重大一次性/非经常性收益占当期归母净利润约 30% 或以上，去除后表面低估值明显失真，且不再能合理支持低风险安全边际；或
+2. 对非金融经营型公司，公司披露利润增长主要来自联营/投资收益，且该收益已成为当期利润的主导来源，导致主营盈利驱动与表面利润增长明显不一致。
+
+只要证据不足以形成上述明确结论，就不得 Gate 掉，继续完整 Deep Research。
+
+#### D. Gate 输出与研究优先级
+
+Gate 全量处理完 `deep_read_codes` 后，派生互斥集合：
+
+```text
+gate_filtered_q1_codes
+gate_filtered_q2_codes
+gate_filtered_q2_lite_codes
+deep_research_required_codes
+```
+
+满足：
+
+```text
+deep_read_codes
+= gate_filtered_q1_codes
+∪ gate_filtered_q2_codes
+∪ gate_filtered_q2_lite_codes
+∪ deep_research_required_codes
+```
+
+Gate-filtered 公司不伪装成完成了完整 Deep Research 的 `excluded` / `waiting_for_entry`；它们保留：
+
+- `gate_disposition`
+- `gate_filter_reason`
+- `gate_evidence`
+
+只对 `deep_research_required_codes` 使用完整 Deep Research 四终态。
+
+为了在同一次 invocation 内优先把最可能产生正式机会的公司研究完，可以对 `deep_research_required_codes` 做研究优先级排序：
+
+```text
+LOW_PRIORITY candidate only when:
+normalized_pe_lite is available
+AND normalized_pe_lite > 20
+AND roe < 8
+AND recurring_profit_growth < 20
+```
+
+其余为 `HIGH_PRIORITY`。缺失 Q2-lite 归一化证据时默认 `HIGH_PRIORITY`，防止误杀。
+
+**LOW_PRIORITY 只是执行顺序，不是淘汰。** 本次 invocation 必须在 HIGH 完成后继续研究 LOW，直到全部 `deep_research_required_codes` 闭合或发生真实硬失败。
 
 ### 4.1 Batch 只是执行容器
 
-Stage B 可以为了降低工具调用和上下文负担，把 `deep_read_codes` 切成 execution batch；**Batch 只具有执行意义，不具有投资比较、配额、排名或淘汰意义。**
+Deep Research 可以为了降低工具调用和上下文负担分 batch；Batch 只具有执行意义，不具有投资比较、配额、排名或淘汰意义。
 
-明确禁止：
+明确禁止：每批固定保留数量、Batch 内 Top N、因为本批已有若干优质公司就降低其他公司状态、把 Batch 当同行组/Risk Cluster/榜单席位组。
 
-- 每个 Batch 只保留固定数量公司；
-- Batch 内 Top1 / Top2 / Top N；
-- 因为本批已有若干优质公司，把其他满足条件公司降为 `waiting_for_entry` 或 `research_uncertain`；
-- 把 Batch 相对排名作为公司状态依据；
-- 把 Batch 当成同行组、Risk Cluster 或正式榜席位组。
+同一 Batch 可以全部满足条件，也可以一个都不满足。
 
-同一 Batch 可以全部满足条件，也可以一个都不满足。申万三级行业、真实主营和共享主导变量只用于理解背景和复用行业证据，不产生 Batch 配额。
+> **公司状态由公司自己的证据决定；Batch 只决定一起处理谁。**
 
-判断纪律：
+Deep Research 的目标是穷尽 `deep_research_required_codes`，不是找到足够多可以出榜的公司。
 
-> **公司状态由公司自己的证据决定；Batch 只决定一起处理谁，不决定留下谁。**
+### 4.2 完整 Deep Research｜Research Support Test + Unified Entry Evaluation
 
-如果申万三级行业内实际业务不可比，应按真实主营、盈利驱动和利润来源理解公司，而不是强行用同一分析框架。
+对每个 `deep_research_required_code` 重点确认：
 
-Deep Research 的目标是穷尽冻结后的 `deep_read_codes`，不是找到足够多可以出榜的公司。
-
-### 4.2 统一状态机：先研究，再判断入场
-
-Deep Research 对每家公司只做两层判断，不为四个终态分别建立四套规则。
+1. 真实主营、主要产品和业务；
+2. `primary_profit_driver`；
+3. `dominant_risk_factor`；
+4. 未来 1–2 个季度盈利逻辑是否可验证；
+5. 当行业→公司传导 `failed/mixed` 或存在关键冲突时解释原因；
+6. 当现金流、扣非、收入、毛利率明显不匹配时确认销量、价格、订单、会计口径等能否解释；
+7. 当一次性收益代理重大、缺失或冲突时确认真实一次性收益；
+8. 是否处于周期盈利高点导致 PE 看似便宜；
+9. 至少一条最可能推翻当前判断的反向证据。
 
 #### A. Research Support Test
 
@@ -203,23 +316,17 @@ Deep Research 对每家公司只做两层判断，不为四个终态分别建立
 
 > **这家公司的研究逻辑是否成立？**
 
-结果只有三类：
-
-- **成立**：主营、盈利驱动、盈利质量、主要风险与正常化盈利可以被足够证据解释，记为 `research_supported = true`；
+- **成立**：主营、盈利驱动、盈利质量、主要风险与正常化盈利可被足够证据解释 → `research_supported = true`；
 - **被实质反证**：基本面明显恶化、盈利逻辑被否定、关键风险使研究目标失效 → `excluded`；
-- **仍无法可靠判断**：存在会实质改变结论的具体事实缺口或冲突 → 进入 4.4 的 Uncertainty Resolution Pass；一次定向补查后仍无法解决才允许最终 `research_uncertain`。
+- **仍无法可靠判断**：存在会实质改变结论的具体事实缺口或冲突 → 进入 4.4 Uncertainty Resolution Pass。
 
-价格暂时不好、买点不舒服、保守上行不足，都不属于 Research Support Test 的失败。
+价格暂时不好、买点不舒服、保守上行不足，不属于 Research Support Test 失败。
 
-第一遍 Deep Research **不得把所有公司默认先放入 `research_uncertain` 再等待 Resolution Pass 证明**。Research Support Test 不要求“没有任何不确定性”，只要求现有证据已经足以形成可辩护、可证伪的研究判断：
-
-- 如果现有证据足以解释主营、核心盈利驱动、盈利质量和主要风险，且不存在一个会实质改变研究结论的明确事实缺口或冲突，应直接记为 `research_supported = true`，随后进入 Unified Entry Evaluation；
-- 只有能够明确指出一个**具体、尚未解决、且解决后可能实质改变研究结论**的事实缺口或冲突时，才允许进入 first-pass `research_uncertain`；
-- “还可以继续查”“无法做到绝对确定”“资料不是完全穷尽”“估值存在正常区间”均不能单独构成 first-pass uncertain。
+不得把所有公司默认放入 `research_uncertain`。只有一个具体、尚未解决且可能实质改变研究结论的事实缺口，才允许 first-pass uncertain。
 
 #### B. Unified Entry Evaluation
 
-只有 `research_supported = true` 的公司进入统一 Entry Evaluation。`confirmed` 与 `waiting_for_entry` 必须使用**同一套公司级、可复算、可证伪的数值闭环**：
+只有 `research_supported = true` 的公司进入统一 Entry Evaluation：
 
 ```text
 正常化盈利区间
@@ -231,36 +338,25 @@ Deep Research 对每家公司只做两层判断，不为四个终态分别建立
 → entry_ready
 ```
 
-业务模式不适合 PE 时，可使用与业务匹配的 PB/ROE、现金流、资产价值或其他可辩护方法；不得强行统一为 PE。
+业务模式不适合 PE 时，可以使用与业务匹配的 PB/ROE、现金流、资产价值或其他可辩护方法。
 
 统一规则：
 
-1. 正常化盈利、估值依据与价格数据必须来自本轮锁定 runtime 或本轮 Deep Research 已取得并实际用于判断的事实，不得为结论倒推数字；
-2. 强周期公司必须使用正常化盈利，禁止直接把高景气半年利润机械年化；
+1. 正常化盈利、估值依据与价格数据必须来自本轮锁定 runtime 或本轮实际取得并用于判断的研究事实；
+2. 强周期公司必须使用正常化盈利，禁止把高景气半年利润机械年化；
 3. 估值允许合理区间，不要求单点精确值；
-4. **单重保守**：默认使用“正常化盈利区间中枢 × 可辩护的保守估值”。不得机械使用“盈利区间下沿 × 估值区间下沿”作为正式 `conservative_fair_value` 或 entry blocker；这种双下沿结果只可作为 `stress_floor` 辅助观察；
-5. 单独的 PE / PB / ROE、60 日低位、支撑距离或成交密集区不能证明 `entry_ready`，必须连接到价值、安全区和当前价；
+4. 默认采用“正常化盈利区间中枢 × 可辩护的保守估值”；盈利下沿 × 估值下沿只作为 `stress_floor`；
+5. 单独 PE/PB/ROE、60 日低位、支撑距离或成交密集区不能证明 `entry_ready`；
 6. 原则上 `conservative_upside >= 15%`；
-7. 原则上当前价距离最终安全区约 5% 以内，或存在同等强度、可量化的下行保护依据。
+7. 原则上当前价距离最终安全区约 5% 以内，或有同等强度、可量化的下行保护依据。
 
-Entry Evaluation 的核心关系可写为：
-
-```text
-conservative_upside = conservative_fair_value / current_price - 1
-current_price 对比 low_risk_buy_range / 最终安全区 → downside_to_safety_zone
-```
-
-如果业务采用非 PE 方法，也必须得到同等级可复算的保守价值/安全区关系。
-
-### 4.3 四个终态只做状态映射
-
-统一按以下状态机：
+### 4.3 四个 Deep Research 终态
 
 ```text
 研究逻辑被实质反证
 → excluded
 
-一次定向补查后，仍存在会实质改变研究结论的明确缺口/冲突
+一次定向补查后仍存在实质缺口/冲突
 → research_uncertain
 
 research_supported = true
@@ -272,64 +368,30 @@ Unified Entry Evaluation
 
 #### `confirmed`
 
-语义：
-
-> `research_supported + entry_ready`
-
-只有 Unified Entry Evaluation 整体支持当前低风险参与条件，才允许 `confirmed`。不得因为估值低、位置低、靠近支撑或同行更差而直接 confirmed。
+`research_supported + entry_ready`。
 
 #### `waiting_for_entry`
 
-语义：
+`research_supported + not_entry_ready`。
 
-> `research_supported + not_entry_ready`
-
-研究逻辑已经成立，但 Unified Entry Evaluation 中的当前价格、安全边际、保守上行空间或参与时机至少一项未满足。
-
-每个 `waiting_for_entry` 只保留一个审计字段：
+每个 `waiting_for_entry` 必须有唯一：
 
 - `waiting_for_entry_reason`
 
-该 reason 只需明确指出**统一 Entry Evaluation 中哪个条件未满足，并引用对应可复算关系**。例如：
+reason 必须明确指出 Unified Entry Evaluation 中哪个条件未满足，并引用可复算关系，例如 `conservative_upside < 15%`、当前价高于低风险安全区多少、或正常化估值不足以覆盖公司自身风险。
 
-- `conservative_fair_value` 对比 `current_price` 后，`conservative_upside < 15%`；
-- 当前价高于 `low_risk_buy_range` / 最终安全区，并给出距离或溢价；
-- 与业务匹配的正常化估值关系显示当前价格不足以覆盖公司自身风险。
+禁止孤立 PE/PB/ROE、模板化“安全边际不足”、Batch/同行/Risk Cluster 相对比较、或用 stress floor 直接替代 entry blocker。
 
-禁止：
-
-- 只列孤立现价、PE、PB、ROE；
-- “安全边际不足”“还需观察”等没有计算关系的模板理由；
-- 同 Batch、同行、Risk Cluster、榜单席位等相对比较；
-- 用 `stress_floor` 直接替代正式 entry blocker。
-
-如果研究逻辑已成立且统一 Entry Evaluation 可以完成，那么未达到 entry-ready 就应为 `waiting_for_entry`，不能因为“不够便宜”转成 `research_uncertain`。
-
-`waiting_for_entry_reason` 必须满足机械审计：
+机械审计：
 
 ```text
 keys(waiting_for_entry_reason) == set(waiting_for_entry_codes)
 len(waiting_for_entry_reason) == waiting_for_entry_count
 ```
 
-同时：
-
-- 每个 waiting code 恰好一条独立 reason；
-- 禁止 `default`、`*`、`others` 或其他兜底键；
-- 不得包含 confirmed / research_uncertain / excluded 的 code；
-- reason 为空、泛化、相对比较或缺少可复算 blocker，均视为 waiting 审计失败。
-
-waiting 审计未通过时，本轮不得标记 `PASSED` / `PUBLICATION_COMPLETE`。
-
-`waiting` 只作为历史结果的 legacy alias；新运行统一输出 `waiting_for_entry`。
-
 #### `research_uncertain`
 
-只有研究证据本身仍不足时使用，不是无法证明 confirmed 时的默认出口。
-
-允许的最终 uncertain 必须满足：经过一次定向 Resolution Pass 后，仍有一个**具体且会实质改变研究结论**的缺口或冲突。无法得到精确盈利预测、唯一目标价或单点合理价值，本身不构成 uncertain。
-
-只要可以建立有事实依据的正常化盈利区间与匹配的估值区间，就必须完成 Unified Entry Evaluation。
+只有一次定向 Resolution Pass 后仍存在会实质改变研究结论的具体缺口/冲突才使用。无法得到精确盈利预测、唯一目标价或单点合理价值，本身不构成 uncertain。
 
 #### `excluded`
 
@@ -337,56 +399,27 @@ waiting 审计未通过时，本轮不得标记 `PASSED` / `PUBLICATION_COMPLETE
 
 ### 4.4 Uncertainty Resolution Pass｜只消歧一次
 
-只有第一遍 Research Support Test 已明确识别出一个会实质改变研究结论的具体缺口或冲突时，才记录 `uncertainty_reason` 并进入 first-pass `research_uncertain`。不得先默认 uncertain 再搜索理由。`uncertainty_reason` 只能属于：
+`uncertainty_reason` 只能属于：
 
-- `DATA_GAP`：关键事实缺失、关键来源无法取得，或可靠来源冲突；
-- `NORMALIZATION_GAP`：无法建立有事实依据的正常化盈利合理区间，或无法建立与其匹配的可辩护估值区间；
-- `THESIS_CONFLICT`：支持与反向证据都足够强，无法判断研究逻辑成立还是被否定。
+- `DATA_GAP`
+- `NORMALIZATION_GAP`
+- `THESIS_CONFLICT`
 
-`NORMALIZATION_GAP` 不包括：无法得到精确单点、正常区间较宽、无法确定唯一目标价。
+每个 uncertainty 必须回答：具体缺什么/冲突什么；解决后是否可能实质改变研究结论；是否已经针对它做过一次定向补查。
 
-每个 uncertainty 必须回答：
-
-1. 具体缺失或冲突的事实是什么；
-2. 该事实解决后是否可能实质改变研究结论；
-3. 是否已针对该缺口做过一次定向补查。
-
-第一遍结束后，只针对这些公司执行一次 `Uncertainty Resolution Pass`：
-
-- `DATA_GAP`：补查缺失公告、财报、公司披露或冲突事实；
-- `NORMALIZATION_GAP`：补查周期位置、价差/价格、历史盈利区间、一次性收益和正常化依据，目标是建立合理区间；
-- `THESIS_CONFLICT`：明确 strongest bull case 与 strongest bear case，并补查最可能改变判断的关键证据。
-
-Resolution Pass 只允许**一次定向补充研究 + 一次重新判断**，不得无限追加搜索，也不得为了降低 uncertain 数量强行选边。
+Resolution Pass 只允许**一次定向补充研究 + 一次重新判断**，不得无限追加搜索。
 
 重新判断：
 
 - 研究逻辑被实质反证 → `excluded`；
 - 关键缺口仍未解决且确实可能改变研究结论 → `research_uncertain`；
-- Research Support Test 已通过 → 必须进入 Unified Entry Evaluation，再映射为 `confirmed` 或 `waiting_for_entry`。
+- Research Support Test 已通过 → 必须进入 Unified Entry Evaluation，再映射为 `confirmed` / `waiting_for_entry`。
 
-特别约束：
-
-> **只要正常化盈利与估值的合理区间能够建立，就不能因为“不够精确”“保守价值不支持买入”而保留 research_uncertain；前者不构成缺口，后者属于 waiting_for_entry。**
-
-强周期公司不得仅因“周期性强”保留 uncertain；必须先尝试建立正常化盈利区间。
-
-正式状态仍只有四种，不增加第五种状态。`uncertainty_reason` 只是诊断字段。
-
-可记录：
-
-```text
-first_pass_uncertain_count
-final_research_uncertain_count
-uncertainty_resolved_count
-uncertainty_resolution_rate = uncertainty_resolved_count / first_pass_uncertain_count
-```
-
-这些指标只用于观察，不得设置目标比例、最低解决率或配额。
+只要正常化盈利与估值合理区间能够建立，就不能因为“不够精确”或“保守价值不支持买入”保留 uncertain；后者属于 waiting。
 
 ### 4.5 派生研究集合
 
-必须派生：
+完整 Deep Research 公司中必须派生：
 
 ```text
 research_supported_codes = confirmed_codes ∪ waiting_for_entry_codes
@@ -395,15 +428,13 @@ entry_ready_codes = confirmed_codes
 entry_ready_count = confirmed_count
 ```
 
-不得把 `waiting_for_entry` 表述为研究未确认、研究失败或被淘汰。
+Gate-filtered 公司不计入这些完整 Deep Research 状态集合。
 
-如果多家公司同时 `entry_ready`，它们必须全部先保持 `confirmed`，不论是否属于同一行业、同一 Batch 或未来同一 Risk Cluster。
+如果多家公司同时 `entry_ready`，必须全部先保持 `confirmed`，不论是否同一行业、Batch 或未来同一 Risk Cluster。
 
 ---
 
 ## 5. 最终估值与低风险安全区
-
-本节只补充 Unified Entry Evaluation 的估值纪律，不另建一套状态规则。
 
 程序 Structure Filter 只表示当前价格结构值得研究，不是最终价值底，也不能直接复制成 `low_risk_buy_range`。
 
@@ -416,17 +447,13 @@ Deep Research 后尽量形成：
 - `downside_to_safety_zone`
 - `hard_risk_boundary`（能可靠定义时）
 
-最终安全区综合：
+最终安全区综合正常化盈利与业务匹配的保守估值、PE/PB 与 ROE/增长/现金流的匹配、重要支撑与前期低点、成交密集区、真实主营/盈利驱动/盈利质量。
 
-- 正常化盈利与业务匹配的保守估值；
-- PE / PB 与 ROE、增长、现金流的匹配；
-- 重要支撑与前期低点；
-- 成交密集区；
-- 真实主营、盈利驱动和盈利质量。
+正式保守价值默认：
 
-估值计算统一遵循 4.2 的 Unified Entry Evaluation，尤其是：
+> **正常化盈利区间中枢 × 可辩护保守估值。**
 
-> **正式保守价值默认采用“正常化盈利区间中枢 × 可辩护的保守估值”；盈利下沿 × 估值下沿仅作为 stress floor，不直接作为 entry blocker。**
+盈利下沿 × 估值下沿只作为 stress floor，不直接作为 entry blocker。
 
 原则仍为：
 
@@ -439,60 +466,34 @@ Deep Research 后尽量形成：
 
 ## 6. Risk Cluster Consolidation｜发布层去相关
 
-这一阶段只在 Deep Research coverage = COMPLETE 且公司级估值完成后执行。
+只有：
 
-目标不是减少研究，而是避免正式榜把同一个共同风险因子重复展示成多个独立机会。
+```text
+stage_b_coverage = COMPLETE
+AND deep_research_coverage = COMPLETE
+```
 
-### 6.1 归簇依据
+且公司级估值完成后，才执行 Risk Cluster。
 
-不能按申万行业代码机械归并。主要看 Deep Research 已确认的：
+归簇主要看：
 
 - `primary_profit_driver` 是否高度重合；
-- 主要上涨催化是否由同一个关键变量驱动；
-- 最重要的反向风险是否会由同一个关键变量同时触发。
+- 上涨催化是否由同一个关键变量驱动；
+- 最重要反向风险是否会由同一变量同时触发。
 
-如果核心因果关系高度重合，应归入同一 `risk_cluster`。
+不得按申万行业代码机械归并。同行业主营/利润来源/催化/下行风险不同，可以形成独立机会；不同行业若高度依赖同一变量也可以归为同一风险簇。
 
-以下情况不得仅因同行业而强行合并：
+Risk Cluster 只处理 `entry_ready_codes`。同一风险簇多家公司都 `confirmed` 时：
 
-- 主营和利润来源明显不同；
-- 一个主要赚周期价格，一个主要赚加工费或服务费；
-- 核心催化不同；
-- 最主要下行风险不同；
-- 公司特有事件足以形成独立投资逻辑。
+1. 公司级状态全部保持 `confirmed`；
+2. 正式榜默认选一个 `representative_code`；
+3. 其余保留为 `alternative_codes` / `alternative_candidates`。
 
-不同行业公司如果高度依赖同一个主导变量，也可以归入同一风险簇。
-
-### 6.2 Risk Cluster 只处理 entry-ready 机会
-
-Risk Cluster Consolidation 只对 `entry_ready_codes`，即公司级 `confirmed` 机会做发布层去相关。
-
-如果同一风险簇有多家公司都 `confirmed`：
-
-1. 所有公司仍保持 `confirmed`；
-2. 不得为了让一个风险簇只剩一个 confirmed 而提前把其他公司降为 `waiting_for_entry`；
-3. 正式榜默认选择一个 `representative_code`；
-4. 其余已确认公司保留为 `alternative_codes` / `alternative_candidates`。
-
-组内代表优先级不新增综合评分，沿用：
+代表优先级：
 
 > **最终安全边际 → 保守上行空间 → 基本面稳定性 → 参与时机**
 
-如果没有明显优胜者，应说明代表仅用于榜单去重，并保留替代候选差异化优势。
-
-同一行业多家公司若主导盈利驱动和主要风险暴露实质不同，可以分别占正式榜席位，并给出 `independence_rationale`。
-
-每个正式机会至少保留：
-
-- `risk_cluster`
-- `dominant_risk_factor`
-- `representative_code`
-- `alternative_codes`
-- `cluster_rationale`
-
-正式榜排名对象是：
-
-> **独立风险收益机会。**
+正式榜排名对象是独立风险收益机会。
 
 ---
 
@@ -503,25 +504,27 @@ Risk Cluster Consolidation 只对 `entry_ready_codes`，即公司级 `confirmed`
 因此：
 
 - `transition` / `bearish` 不得单独淘汰公司；
-- 市场 `high risk` 不得缩小 Structured Screening 或 Deep Research 覆盖；
-- 市场风险只能让最终估值与行动更保守、更倾向 `waiting_for_entry`；
-- coverage COMPLETE 前不得生成正式榜；
-- coverage COMPLETE 后正式机会集合可以自然减少甚至为空。
+- 市场 `high risk` 不得修改 Stage A 候选全集，也不得绕过 Stage B Gate 的固定规则；
+- 市场风险可以让最终估值与行动更保守、更倾向 `waiting_for_entry`；
+- Stage B coverage COMPLETE 前不得生成正式榜。
 
 ---
 
-## 8. 最终状态与排序
+## 8. 最终状态与输出
 
-Deep Research 后公司状态统一按 4.3 状态机：
+正式输出必须同时区分：
 
-- `confirmed` = `research_supported + entry_ready`；
-- `waiting_for_entry` = `research_supported + not_entry_ready`，且 waiting reason 审计通过；
-- `research_uncertain` = 一次 Resolution Pass 后仍存在会实质改变研究结论的明确缺口或冲突；
-- `excluded` = 研究逻辑被实质反证。
+### Gate 层
 
-Risk Cluster 不修改公司级状态，只改变正式榜如何表达高度相关的 `confirmed` 机会。
+- `stage_b_candidate_count`
+- `gate_filtered_q1_count`
+- `gate_filtered_q2_count`
+- `gate_filtered_q2_lite_count`
+- `deep_research_required_count`
+- `deep_research_high_priority_count`
+- `deep_research_low_priority_count`
 
-正式输出必须同时报告：
+### 完整 Deep Research 层
 
 - `confirmed_count`
 - `waiting_for_entry_count`
@@ -531,13 +534,13 @@ Risk Cluster 不修改公司级状态，只改变正式榜如何表达高度相�
 - `research_supported_count = confirmed + waiting_for_entry`
 - `entry_ready_count = confirmed`
 
+Gate-filtered 不是完整 Deep Research 四终态，不得混入上述四状态统计。
+
 正式机会榜优先级：
 
 > **最终安全边际 → 保守上行空间 → 基本面稳定性 → 参与时机**
 
-正式机会榜不设目标数量，也不设固定数量上限。所有满足最终低风险条件、经 Risk Cluster Consolidation 后仍属于独立风险收益机会的结果都进入正式机会集合；数量由事实自然产生，可以为 0，也可以超过 10。
-
-排名只表示机会优先级，不作为研究停止条件，也不以第 N 名截断。
+正式机会榜不设目标数量或固定上限。所有满足最终低风险条件、经 Risk Cluster Consolidation 后仍属于独立风险收益机会的结果都进入正式机会集合；数量可以为 0，也可以超过 10。
 
 ---
 
@@ -545,36 +548,32 @@ Risk Cluster 不修改公司级状态，只改变正式榜如何表达高度相�
 
 > **程序负责事实和资格，模型负责关系和解释。**
 
-> **Structured Screening 只使用锁定 GitHub runtime；Deep Research 才引入公司级外部公开资料。**
+> **Stage A 只使用锁定 GitHub runtime；Frozen Ledger 通过后，Stage B Gate 才允许极少量定向公开查询；完整公司研究只属于 Deep Research。**
 
-> **可由当前结构化数据确定的一次性收益代理、现金流匹配和行业→公司传导先在 Stage A 程序化；Stage B 只解释重大弱项、冲突或缺失，不机械重复计算。**
+> **Stage B Gate 只回答两个问题：核心盈利是否可信、当前是否可能存在低风险安全边际。只有明确 No 才停止。**
+
+> **Q2-lite 只做盈利归一化，不扩张成完整公司研究。**
+
+> **Gate-filtered 公司不伪装成完整 Deep Research 的 excluded / waiting；完整四终态只属于 `deep_research_required_codes`。**
+
+> **研究优先级只改变执行顺序，不改变研究全集；LOW_PRIORITY 仍必须在同一次 invocation 内完成。**
 
 > **PEER_DOMINATED 只用于真正的公司级明确支配，不用于行业去重或风险簇压缩。**
 
-> **研究层防漏，发布层去相关。**
-
 > **Batch 只用于执行分包，不用于投资比较、配额或组内淘汰。**
 
-> **公司状态只走一条链：Research Support Test → Unified Entry Evaluation → 四状态映射；confirmed 与 waiting 不得各自建立不同的估值规则。**
+> **完整 Deep Research 公司状态只走一条链：Research Support Test → Unified Entry Evaluation → 四状态映射。**
 
-> **统一 Entry Evaluation 必须形成公司级可复算关系；孤立 PE、PB、ROE、低位或支撑不能单独证明 confirmed 或 waiting blocker。**
+> **采用单重保守：正式 conservative_fair_value 默认用正常化盈利区间中枢 × 可辩护保守估值；双下沿仅作 stress floor。**
 
-> **采用单重保守：正式 conservative_fair_value 默认用正常化盈利区间中枢 × 可辩护保守估值；盈利下沿 × 估值下沿仅作 stress floor，不直接作为 entry blocker。**
+> **research_uncertain 必须有明确、可改变结论的 uncertainty_reason，并经过一次定向 Resolution Pass 后仍无法解决。**
 
-> **无法得到精确单点估值不得成为 research_uncertain 理由；只要合理区间可建立，就必须完成 Entry Evaluation。**
+> **同一 Risk Cluster 可以有多家公司同时 confirmed；Risk Cluster 只能在之后选择代表。**
 
-> **waiting_for_entry_reason 的键集合必须与 waiting_for_entry_codes 完全一致；禁止兜底理由、相对比较和不可复算 blocker。**
+> **任务完成的定义是：Stage B 候选全集全部经过 Gate，且所有 `deep_research_required_codes` 在本次 invocation 内完成完整研究，不是找到足够多可以出榜的公司。**
 
-> **research_uncertain 必须有明确、可改变结论的 uncertainty_reason，并经过一次定向 Uncertainty Resolution Pass 后仍无法解决；第一遍不得默认把所有公司放入 uncertain，也不得把它当作无法证明 confirmed 时的默认出口。**
-
-> **同一 Risk Cluster 可以有多家公司同时 confirmed；Risk Cluster 只能在之后选择代表，不得反向降级公司状态。**
-
-> **任务完成的定义是冻结研究集合全部得到公司级研究结论，不是找到足够多可以出榜的公司。**
-
-> **Deep Research coverage 未 COMPLETE 时，不生成正式独立机会榜。**
+> **Stage B coverage 或 Deep Research coverage 未 COMPLETE 时，不生成正式独立机会榜。**
 
 > **正式机会集合不设 Top N、目标数量或固定上限。**
-
-> **不使用综合评分、Top N 或市场风险截断替代完整研究。**
 
 > **结构硬筛是研究准入，不是最终价值底。**
