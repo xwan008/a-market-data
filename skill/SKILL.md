@@ -195,6 +195,12 @@ Deep Research 对每家公司只做两层判断，不为四个终态分别建立
 
 价格暂时不好、买点不舒服、保守上行不足，都不属于 Research Support Test 的失败。
 
+第一遍 Deep Research **不得把所有公司默认先放入 `research_uncertain` 再等待 Resolution Pass 证明**。Research Support Test 不要求“没有任何不确定性”，只要求现有证据已经足以形成可辩护、可证伪的研究判断：
+
+- 如果现有证据足以解释主营、核心盈利驱动、盈利质量和主要风险，且不存在一个会实质改变研究结论的明确事实缺口或冲突，应直接记为 `research_supported = true`，随后进入 Unified Entry Evaluation；
+- 只有能够明确指出一个**具体、尚未解决、且解决后可能实质改变研究结论**的事实缺口或冲突时，才允许进入 first-pass `research_uncertain`；
+- “还可以继续查”“无法做到绝对确定”“资料不是完全穷尽”“估值存在正常区间”均不能单独构成 first-pass uncertain。
+
 #### B. Unified Entry Evaluation
 
 只有 `research_supported = true` 的公司进入统一 Entry Evaluation。`confirmed` 与 `waiting_for_entry` 必须使用**同一套公司级、可复算、可证伪的数值闭环**：
@@ -315,7 +321,7 @@ waiting 审计未通过时，本轮不得标记 `PASSED` / `PUBLICATION_COMPLETE
 
 ### 4.4 Uncertainty Resolution Pass｜只消歧一次
 
-第一遍研究暂时无法通过 Research Support Test 时，记录一个 `uncertainty_reason`，只能属于：
+只有第一遍 Research Support Test 已明确识别出一个会实质改变研究结论的具体缺口或冲突时，才记录 `uncertainty_reason` 并进入 first-pass `research_uncertain`。不得先默认 uncertain 再搜索理由。`uncertainty_reason` 只能属于：
 
 - `DATA_GAP`：关键事实缺失、关键来源无法取得，或可靠来源冲突；
 - `NORMALIZATION_GAP`：无法建立有事实依据的正常化盈利合理区间，或无法建立与其匹配的可辩护估值区间；
@@ -541,7 +547,7 @@ Risk Cluster 不修改公司级状态，只改变正式榜如何表达高度相�
 
 > **waiting_for_entry_reason 的键集合必须与 waiting_for_entry_codes 完全一致；禁止兜底理由、相对比较和不可复算 blocker。**
 
-> **research_uncertain 必须有明确、可改变结论的 uncertainty_reason，并经过一次定向 Uncertainty Resolution Pass 后仍无法解决；不得把它当作无法证明 confirmed 时的默认出口。**
+> **research_uncertain 必须有明确、可改变结论的 uncertainty_reason，并经过一次定向 Uncertainty Resolution Pass 后仍无法解决；第一遍不得默认把所有公司放入 uncertain，也不得把它当作无法证明 confirmed 时的默认出口。**
 
 > **同一 Risk Cluster 可以有多家公司同时 confirmed；Risk Cluster 只能在之后选择代表，不得反向降级公司状态。**
 
