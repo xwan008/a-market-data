@@ -6,8 +6,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-TARGET_LINE_LENGTH = 350
-MAX_LINE_LENGTH = 500
+TARGET_LINE_LENGTH = 200
+MAX_LINE_LENGTH = 280
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -26,7 +26,8 @@ def wrap_minified_json(payload: dict[str, Any]) -> str:
 
     Breaks are emitted only after structural delimiters outside JSON strings, so
     parsing the result produces exactly the original payload. The target line
-    length is chosen so a 40-line connector read stays comfortably bounded.
+    length keeps each formal 40-line connector read below the observed response
+    budget while still reducing the number of reads versus the original view.
     """
     raw = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
     lines: list[str] = []
@@ -53,8 +54,7 @@ def wrap_minified_json(payload: dict[str, Any]) -> str:
         if current_length >= TARGET_LINE_LENGTH and last_safe_break is not None:
             if last_safe_break <= start:
                 continue
-            line = raw[start:last_safe_break]
-            lines.append(line)
+            lines.append(raw[start:last_safe_break])
             start = last_safe_break
             last_safe_break = None
 
