@@ -1,45 +1,51 @@
 {
   "diagnostic_only": true,
   "formal_input": false,
-  "rule_version": "two_question_gate_v0.1",
-  "created_at": "2026-09-14T21:15:00+08:00",
+  "current_candidate_version": "two_question_gate_v0.2",
+  "updated_at": "2026-09-14",
   "purpose": "Validate whether a lightweight two-question gate can reduce Stage B Deep Research load without dropping companies that full historical Stage B later confirmed.",
   "questions": {
     "q1": "正常化后的核心盈利是否可信、可持续？只在结构化事实已经形成明确反证时停止；信息不足或仍可解释时继续研究。",
     "q2": "如果核心盈利可信，以当前估值粗看是否仍有可能形成低风险安全边际？只在保守粗估明显不可能时停止；边界或不确定时继续研究。"
   },
-  "frozen_validation_proxy": {
-    "principle": "definite-no-only; uncertainty passes to Deep Research",
-    "q1_no_if_any": [
-      "net_profit_yoy < 0 AND deduct_basic_eps_yoy < 0",
-      "net_profit_yoy >= 20 AND deduct_basic_eps_yoy <= -10",
-      "quality_flag.profit_growth_cashflow_negative == true AND (deduct_basic_eps_yoy is null OR deduct_basic_eps_yoy <= 0)"
-    ],
-    "q2_no_if_any_after_q1_pass": [
-      "pe_ttm > 25 AND pe_dynamic > 25 AND deduct_basic_eps_yoy < 20 AND roe < 8",
-      "min_positive(pe_ttm, pe_dynamic) > 22 AND deduct_basic_eps_yoy <= 5 AND roe < 8"
-    ],
-    "missing_data_policy": "PASS_TO_DEEP_RESEARCH"
-  },
+  "principles": [
+    "definite-no-only; uncertainty passes to Deep Research",
+    "protect confirmed recall before maximizing research reduction",
+    "do not add thresholds solely to fit one historical company",
+    "research_uncertain is reported separately and is never treated as a proven negative class"
+  ],
   "discovery_sample": {
     "trade_date": "2026-09-14",
     "role": "rule discovery only; not counted as out-of-sample validation",
     "note": "The two-question idea was derived after inspecting this day's diagnostic Stage B outcomes."
   },
-  "validation_samples": [
-    {
-      "trade_date": "2026-09-11",
-      "role": "out_of_sample",
-      "source_runtime_commit_sha": "0ede40b4696715898c4c3291fcbdf6126bbe5fe8",
-      "baseline_result_commit_sha": "42391d605264f4d8397bb64746bd57f8bb20cb6e",
-      "baseline_deep_read_count": 99,
-      "baseline_status_counts": {
-        "confirmed": 34,
-        "waiting": 24,
-        "research_uncertain": 21,
-        "excluded": 20
-      },
-      "gate_result": {
+  "validation_sample": {
+    "trade_date": "2026-09-11",
+    "role": "out_of_sample",
+    "source_runtime_commit_sha": "0ede40b4696715898c4c3291fcbdf6126bbe5fe8",
+    "baseline_result_commit_sha": "42391d605264f4d8397bb64746bd57f8bb20cb6e",
+    "baseline_deep_read_count": 99,
+    "baseline_status_counts": {
+      "confirmed": 34,
+      "waiting": 24,
+      "research_uncertain": 21,
+      "excluded": 20
+    },
+    "formal_opportunities_total": 14
+  },
+  "versions": {
+    "two_question_gate_v0.1": {
+      "q1_no_if_any": [
+        "net_profit_yoy < 0 AND deduct_basic_eps_yoy < 0",
+        "net_profit_yoy >= 20 AND deduct_basic_eps_yoy <= -10",
+        "quality_flag.profit_growth_cashflow_negative == true AND (deduct_basic_eps_yoy is null OR deduct_basic_eps_yoy <= 0)"
+      ],
+      "q2_no_if_any_after_q1_pass": [
+        "pe_ttm > 25 AND pe_dynamic > 25 AND deduct_basic_eps_yoy < 20 AND roe < 8",
+        "min_positive(pe_ttm, pe_dynamic) > 22 AND deduct_basic_eps_yoy <= 5 AND roe < 8"
+      ],
+      "missing_data_policy": "PASS_TO_DEEP_RESEARCH",
+      "result": {
         "pass_to_deep_research_count": 72,
         "filtered_count": 27,
         "research_reduction_pct": 27.27,
@@ -55,27 +61,76 @@
         "excluded_total": 20,
         "research_uncertain_filtered": 6,
         "research_uncertain_total": 21
+      }
+    },
+    "two_question_gate_v0.2": {
+      "change_summary": "Keep v0.1 and add one high-confidence earnings-quality contradiction plus one normalized-valuation mismatch. No company-specific exception is added.",
+      "normalized_pe_proxy": "max of positive pe_ttm and pe_dynamic; if neither is positive/available, do not reject on Q2",
+      "q1_no_if_any": [
+        "net_profit_yoy < 0 AND deduct_basic_eps_yoy < 0",
+        "net_profit_yoy >= 20 AND deduct_basic_eps_yoy <= -10",
+        "quality_flag.profit_growth_cashflow_negative == true AND (deduct_basic_eps_yoy is null OR deduct_basic_eps_yoy <= 0)",
+        "net_profit_yoy >= 50 AND deduct_basic_eps_yoy is not null AND deduct_basic_eps_yoy <= 5"
+      ],
+      "q2_no_if_any_after_q1_pass": [
+        "pe_ttm > 25 AND pe_dynamic > 25 AND deduct_basic_eps_yoy < 20 AND roe < 8",
+        "min_positive(pe_ttm, pe_dynamic) > 22 AND deduct_basic_eps_yoy <= 5 AND roe < 8",
+        "normalized_pe_proxy > 20 AND roe < 5 AND deduct_basic_eps_yoy is not null AND deduct_basic_eps_yoy < 20"
+      ],
+      "missing_data_policy": "PASS_TO_DEEP_RESEARCH",
+      "incremental_filtered_codes_vs_v0.1": {
+        "q1_waiting": ["002048", "603066"],
+        "q2_waiting": ["002327", "603059"],
+        "q2_excluded": ["600633"],
+        "q2_research_uncertain": ["603409"]
       },
-      "filtered_codes_by_reason": {
-        "q1_excluded": ["002978","002085","002984","600469","601163","002507","000513","003020","600380","002275","600750","605266","600350","600015","603556","002152","601001"],
-        "q1_research_uncertain": ["000758","002136","002555","600008","600089","603026"],
-        "q2_waiting": ["002472","603949","002803","603275"]
+      "result": {
+        "pass_to_deep_research_count": 66,
+        "filtered_count": 33,
+        "research_reduction_pct": 33.33,
+        "confirmed_retained": 34,
+        "confirmed_total": 34,
+        "confirmed_recall_pct": 100.0,
+        "formal_opportunities_retained": 14,
+        "formal_opportunities_total": 14,
+        "formal_opportunity_recall_pct": 100.0,
+        "waiting_filtered": 8,
+        "waiting_total": 24,
+        "excluded_filtered": 18,
+        "excluded_total": 20,
+        "research_uncertain_filtered": 7,
+        "research_uncertain_total": 21
       },
-      "interpretation": "The conservative Q1 proxy is highly effective at removing later-excluded companies without losing any confirmed company. The structured-only Q2 proxy is much weaker: it removes only 4/24 waiting companies, indicating that most entry-timing decisions require a lightweight normalized-earnings/valuation step rather than raw PE alone. research_uncertain is reported separately and is not treated as a proven negative class."
+      "interpretation": "v0.2 improves research reduction from 27.27% to 33.33% while retaining all historical confirmed companies and all 14 formal opportunities. The gain comes from two economically interpretable signals: large headline-vs-core earnings dislocation and high normalized valuation combined with weak ROE and weak core growth. Q2 remains intentionally conservative because structured financial fields alone cannot identify durable franchise quality."
+    }
+  },
+  "rejected_optimizations": [
+    {
+      "idea": "Add PB, market-cap or company-specific thresholds to filter additional waiting names such as 000920.",
+      "decision": "REJECTED_FOR_NOW",
+      "reason": "With only one independent out-of-sample trade date, these conditions materially increase overfitting risk and use size as an unreliable proxy for business quality."
+    },
+    {
+      "idea": "Use a single mechanical fair-PE formula for every industry.",
+      "decision": "REJECTED_FOR_NOW",
+      "reason": "Historical confirmed names include low-ROE companies whose defensible valuation depends on business stability or franchise quality not represented in the structured runtime. A universal fair-PE equation would create false negatives."
     }
   ],
-  "aggregate_out_of_sample": {
-    "independent_trade_dates": 1,
-    "deep_read_count": 99,
-    "after_gate_count": 72,
-    "research_reduction_pct": 27.27,
-    "confirmed_recall_pct": 100.0,
-    "formal_opportunity_recall_pct": 100.0
+  "next_optimization": {
+    "name": "Q2-lite targeted normalization",
+    "goal": "For companies that pass v0.2 but remain valuation-borderline, use a very small evidence budget to estimate normalized earnings and detect material one-offs before full Deep Research.",
+    "allowed_scope": [
+      "one or two targeted company queries rather than full company research",
+      "latest recurring-profit / one-off-gain evidence",
+      "only enough business context to decide whether the normalized earnings base is usable",
+      "no full industry thesis, no full catalyst map, no final target-price construction"
+    ],
+    "promotion_gate": "Do not move v0.2 or Q2-lite into formal SKILL.md until another independent complete historical label set is available or reconstructed and confirmed recall remains acceptably high."
   },
   "limitations": [
     "Repository history currently contains only one distinct earlier trade date with a complete, auditable full Stage B label set suitable for true out-of-sample validation: 2026-09-11. Multiple later runs reuse the same 2026-09-11 close and are not independent samples.",
-    "This validation proxy intentionally uses only information present in the historical structured runtime. It does not use later Deep Research findings to make the gate decision.",
-    "Q2 is currently underpowered. Improving research reduction should focus on a cheap normalized-earnings/valuation estimate, not on making Q1 more aggressive or adding many rules.",
-    "Do not promote this diagnostic gate into formal SKILL.md until additional independent labeled trade dates are available or reconstructed."
+    "The validation rules use only information present in the historical structured runtime. Later Deep Research findings are used only as labels, not as gate inputs.",
+    "Q2 remains underpowered for companies where business quality, accounting normalization or cycle normalization matters more than raw valuation fields.",
+    "This file is diagnostic only and must not be consumed as a formal runtime input."
   ]
 }
