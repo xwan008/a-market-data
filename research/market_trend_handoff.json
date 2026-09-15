@@ -1,10 +1,35 @@
 {
-  "schema_version": "1.0",
-  "status": "INITIALIZED",
-  "trade_date": null,
-  "generated_at": null,
-  "mode": null,
-  "handoff_rule": "industry_state in {T1,T2} AND market_state in {candidate_trend,trend_confirmed}",
-  "sw3_codes": [],
-  "directions": []
+  "schema_version":"1.0",
+  "status":"VALID",
+  "trade_date":"2026-09-15",
+  "generated_at":"2026-09-16T06:46:49+08:00",
+  "mode":"morning_incremental",
+  "handoff_rule":"industry_state in {T1,T2} AND market_state in {candidate_trend,trend_confirmed}",
+  "sw3_codes":["S270108","S270202","S630602"],
+  "directions":[
+    {
+      "direction_name":"半导体设备/材料",
+      "industry_state":"T1",
+      "market_state":"candidate_trend",
+      "sw3_codes":["S270108"],
+      "mapping_confidence":"high",
+      "mapping_note":"当前主导逻辑为晶圆制造扩产与国产设备批量导入，核心映射申万三级半导体设备。"
+    },
+    {
+      "direction_name":"PCB/CCL",
+      "industry_state":"T1",
+      "market_state":"trend_confirmed",
+      "sw3_codes":["S270202"],
+      "mapping_confidence":"high",
+      "mapping_note":"当前市场与产业主线集中于PCB制造及上游涨价向板厂报价传导，核心映射申万三级印制电路板。"
+    },
+    {
+      "direction_name":"风电设备",
+      "industry_state":"T1",
+      "market_state":"candidate_trend",
+      "sw3_codes":["S630602"],
+      "mapping_confidence":"high",
+      "mapping_note":"当前A股扩散主体为塔筒、铸锻件等风机零部件，核心映射申万三级风电零部件。"
+    }
+  ]
 }
