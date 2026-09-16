@@ -63,6 +63,7 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
     assert meta.get("yoy_unit") == YOY_UNIT
     validation = meta.get("runtime_validation") or {}
     assert validation.get("status") == "passed", validation
+    assert validation.get("industry_dual_confirm_gate_applied") is True, validation
     assert validation.get("screening_group_view_valid") is True, validation
     assert validation.get("screening_group_line_addressable") is True, validation
     assert meta.get("candidate_count") == meta.get("structural_relevance_count")
@@ -102,8 +103,27 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
         "industry_trend",
         "industry_strength",
         "industry_breadth",
+        "industry_confidence",
+        "industry_core_improving_breadth",
         "industry_aggregate_revenue_yoy",
         "industry_aggregate_parent_profit_yoy",
+        "industry_market_breadth",
+        "industry_market_activity",
+        "industry_market_confirmation",
+        "industry_market_breadth_score",
+        "industry_median_volume_ratio_vs_20d",
+        "industry_expanding_volume_share",
+        "activation_tier",
+        "chase_risk",
+        "volume_ratio_1d_vs_20d",
+        "volume_ratio_5d_vs_20d",
+        "relative_strength_20d_vs_market_pct",
+        "return_20d_pct",
+        "close_change_5d_pct",
+        "high_20d",
+        "ma20",
+        "position_pct",
+        "breakout_confirmed",
         "pe_ttm",
         "pe_dynamic",
         "pb",
@@ -114,7 +134,6 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
         "operating_cashflow_per_share",
         "gross_margin",
         "net_profit",
-        "position_pct",
         "support_distance_pct",
         "support_touches",
         "volume_zone_distance_pct",
@@ -187,12 +206,14 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
     assert "peer_group_file" not in meta
     assert "company_research_file" not in meta
 
-    # Structural thresholds are intentionally NOT copied here. split_snapshot.py
-    # is the calculation source; downstream validation only checks that both
-    # formal runtime files carry the exact same declared rule.
     structural_rule = meta.get("structural_rule") or {}
     assert structural_rule
     assert structural_rule == candidate.get("structural_rule")
+    assert structural_rule.get("selection_mode") == "industry_dual_confirm_then_early_stock"
+
+    funnel = meta.get("selection_funnel") or {}
+    assert int(funnel.get("post_gate_rows") or 0) == len(candidate_codes)
+    assert int(funnel.get("pre_gate_rows") or 0) >= len(candidate_codes)
 
     eligibility_audit = meta.get("eligibility_audit")
     if eligibility_audit:
@@ -210,6 +231,10 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
         "trade_date": snapshot_meta.get("trade_date"),
         "source_candidate_count": meta.get("source_candidate_count"),
         "candidate_count": meta.get("candidate_count"),
+        "eligible_industry_count": (meta.get("selection_funnel") or {}).get(
+            "eligible_industry_count"
+        ),
+        "selection_funnel": meta.get("selection_funnel"),
         "screening_group_count": meta.get("screening_group_count"),
         "screening_group_singleton_count": meta.get("screening_group_singleton_count"),
         "screening_group_max_size": meta.get("screening_group_max_size"),
@@ -233,6 +258,11 @@ def main() -> None:
         "scripts/split_snapshot.py",
         str(snapshot),
         "--output-dir",
+        str(runtime_dir),
+    )
+    run_script(
+        "scripts/apply_industry_activation_gate.py",
+        "--runtime-dir",
         str(runtime_dir),
     )
     normalize_runtime_meta(runtime_dir)
