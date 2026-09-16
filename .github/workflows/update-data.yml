@@ -50,12 +50,10 @@ jobs:
 
           if is_fallback:
               today = datetime.now(ZoneInfo("Asia/Shanghai")).date().isoformat()
-
               try:
                   latest = json.loads(Path("data/latest.json").read_text(encoding="utf-8"))
               except Exception:
                   latest = {}
-
               try:
                   snapshot = json.loads(Path("data/snapshot.json").read_text(encoding="utf-8"))
               except Exception:
@@ -64,16 +62,13 @@ jobs:
               latest_trade_date = str(latest.get("trade_date") or "")
               latest_market_status = str(latest.get("market_status") or "")
               snapshot_trade_date = str(snapshot.get("trade_date") or "")
-
               already_fresh = (
                   latest_trade_date == today
                   and latest_market_status == "closed"
                   and snapshot_trade_date == today
               )
-
               should_run = not already_fresh
               reason = "fallback_already_fresh" if already_fresh else "fallback_refresh_required"
-
               print(json.dumps({
                   "today": today,
                   "latest_trade_date": latest_trade_date,
@@ -84,7 +79,6 @@ jobs:
 
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
               fh.write(f"should_run={'true' if should_run else 'false'}\n")
-
           print(f"decision={reason}; should_run={should_run}")
           PY
 
@@ -126,22 +120,18 @@ jobs:
           stocks = latest.get("stocks") or {}
           total = len(stocks)
           status = str(latest.get("market_status") or "")
-
           source_status = latest.get("source_status") or {}
           source_ok = [name for name in ("sina", "tencent") if source_status.get(name) == "ok"]
-
           validation = latest.get("validation_stats") or {}
           usable = int(validation.get("high") or 0) + int(validation.get("medium") or 0)
           invalid = int(validation.get("invalid") or 0)
           quote_coverage = usable / total if total else 0
           invalid_ratio = invalid / total if total else 1
-
           fundamental = latest.get("fundamental_stats") or {}
           valuation_coverage = int(fundamental.get("valuation_usable") or 0) / total if total else 0
           financial_coverage = int(fundamental.get("financial_usable") or 0) / total if total else 0
           errors = fundamental.get("errors") or []
           fatal_errors = [error for error in errors if not str(error).startswith("eastmoney_valuation:")]
-
           persist = bool(
               status == "closed"
               and total >= 3000
@@ -152,20 +142,15 @@ jobs:
               and financial_coverage >= 0.95
               and not fatal_errors
           )
-
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
               fh.write(f"persist={'true' if persist else 'false'}\n")
-
           print(json.dumps({
               "trade_date": latest.get("trade_date"),
               "market_status": status,
               "stocks": total,
               "quote_coverage": round(quote_coverage, 4),
               "valuation_coverage": round(valuation_coverage, 4),
-              "valuation_fresh_usable": fundamental.get("valuation_fresh_usable"),
-              "valuation_stale_fallback": fundamental.get("valuation_stale_fallback"),
               "financial_coverage": round(financial_coverage, 4),
-              "financial_refresh_mode": fundamental.get("financial_refresh_mode"),
               "persist": persist,
           }, ensure_ascii=False))
           PY
@@ -198,6 +183,10 @@ jobs:
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/build_industry_state.py
 
+      - name: Build full-market price-volume activation state
+        if: steps.gate.outputs.persist == 'true'
+        run: python scripts/build_full_market_price_structure.py
+
       - name: Build compact candidate snapshot
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/build_snapshot.py --source . --output data/snapshot.json
@@ -228,12 +217,10 @@ jobs:
             echo "daily market data unchanged"
             exit 0
           fi
-
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A data
           git commit -m "data: update daily market dataset"
-
           git push origin HEAD:main
 
       - name: Report skipped persistence
