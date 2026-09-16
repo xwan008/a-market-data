@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Integrity checks for compact data/snapshot.json."""
+"""Integrity checks for the V4 compact candidate snapshot."""
 
 from __future__ import annotations
 
@@ -7,7 +7,16 @@ import argparse
 import json
 from pathlib import Path
 
-from contracts import ELIGIBILITY_MAX_PE, ELIGIBILITY_MAX_PRICE, YOY_UNIT
+from contracts import ELIGIBILITY_MAX_PRICE, YOY_UNIT
+
+
+ALLOWED_ACTIVATION_TIERS = {
+    "starting_breakout",
+    "early_trend",
+    "active_pullback",
+    "pre_breakout",
+    "accumulation_base",
+}
 
 
 def fail(message: str) -> None:
@@ -24,7 +33,6 @@ def main() -> None:
         fail(f"missing file: {path}")
 
     data = json.loads(path.read_text(encoding="utf-8"))
-
     trade_date = data.get("trade_date")
     if not trade_date:
         fail("trade_date is missing")
@@ -42,21 +50,11 @@ def main() -> None:
         fail("market_state must be present")
     if market_state.get("trade_date") != trade_date:
         fail("market_state.trade_date must match snapshot.trade_date")
-    allowed_market_values = {
-        "trend": {"bullish", "bearish", "transition", "unknown"},
-        "breadth": {"strong", "weak", "neutral", "unknown"},
-        "liquidity": {"high", "low", "normal", "unknown"},
-        "risk_level": {"low", "medium", "high"},
-    }
-    for key, allowed in allowed_market_values.items():
-        if market_state.get(key) not in allowed:
-            fail(f"invalid market_state.{key}: {market_state.get(key)!r}")
 
     counts = data.get("counts") or {}
     universe = int(counts.get("universe_stocks") or 0)
     candidate_count = int(counts.get("candidates") or 0)
     industries = int(counts.get("industries") or 0)
-
     if universe < 3000:
         fail(f"unexpected upstream universe size: {universe}")
     if industries < 50:
@@ -101,42 +99,30 @@ def main() -> None:
         "industry_code",
         "fundamentals",
         "price_structure",
+        "market_activation",
     )
     for code, stock in candidates.items():
-        missing = [
-            key for key in required_candidate_fields if stock.get(key) is None
-        ]
+        missing = [key for key in required_candidate_fields if stock.get(key) is None]
         if missing:
             fail(f"candidate {code} missing fields: {missing}")
 
         price = stock.get("price")
-        if (
-            not isinstance(price, (int, float))
-            or isinstance(price, bool)
-            or price <= 0
-        ):
+        if not isinstance(price, (int, float)) or isinstance(price, bool) or price <= 0:
             fail(f"candidate {code} has invalid price: {price!r}")
         if price > ELIGIBILITY_MAX_PRICE:
-            fail(
-                f"candidate {code} price={price!r} exceeds "
-                f"{ELIGIBILITY_MAX_PRICE}"
-            )
+            fail(f"candidate {code} price={price!r} exceeds {ELIGIBILITY_MAX_PRICE}")
 
         fundamentals = stock.get("fundamentals") or {}
         if not fundamentals.get("report_date"):
             fail(f"candidate {code} missing report_date")
+        # V4 intentionally has no PE ceiling. PE/PB remain model risk context.
 
-        for pe_key in ("pe_ttm", "pe_dynamic"):
-            pe = fundamentals.get(pe_key)
-            if (
-                isinstance(pe, (int, float))
-                and not isinstance(pe, bool)
-                and pe > ELIGIBILITY_MAX_PE
-            ):
-                fail(
-                    f"candidate {code} {pe_key}={pe!r} exceeds "
-                    f"{ELIGIBILITY_MAX_PE}"
-                )
+        activation = stock.get("market_activation") or {}
+        tier = activation.get("activation_tier")
+        if tier not in ALLOWED_ACTIVATION_TIERS:
+            fail(f"candidate {code} invalid activation_tier: {tier!r}")
+        if activation.get("chase_risk") == "high":
+            fail(f"candidate {code} cannot have high chase risk")
 
         structure = stock.get("price_structure") or {}
         if structure.get("position_pct") is None:
@@ -149,8 +135,7 @@ def main() -> None:
     print(
         "snapshot valid: "
         f"universe={universe} candidates={candidate_count} "
-        f"industries={industries} "
-        f"market_risk={market_state.get('risk_level')} "
+        f"industries={industries} market_risk={market_state.get('risk_level')} "
         f"size={size_mb:.2f}MB"
     )
 
