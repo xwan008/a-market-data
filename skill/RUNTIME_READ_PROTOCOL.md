@@ -66,8 +66,9 @@ Risk Cluster Consolidation
 - Stage B 不得修改本轮 frozen `deep_read_codes`，但必须按照 `SKILL.md` 从中派生 Gate-filtered 与 `deep_research_required_codes`；
 - Gate-filtered 不是完整 Deep Research 四终态；
 - Stage B Gate 和 Deep Research 结果都只属于当前 invocation，不建立跨 invocation checkpoint，不读取上一轮公司研究结果续跑；
-- 本次触发只有两种结束：`COMPLETE + 正式榜`，或 `FAILED/INCOMPLETE + 无正式榜`；
-- “Stage A 本轮处理一部分、下次继续”“Gate 本轮处理一部分、下次继续”“Deep Research 本轮研究一部分、下次继续”都不是合法正常执行模式。
+- **正常控制流只有一个完成出口：`COMPLETE + 正式榜`。** `FAILED / INCOMPLETE / UNVERIFIED` 只用于发生可举证、不可恢复的客观硬失败后的审计，不是模型可自主选择的结束分支；
+- “Stage A 本轮处理一部分、下次继续”“Gate 本轮处理一部分、下次继续”“Deep Research 本轮研究一部分、下次继续”都不是合法正常执行模式；
+- 在没有客观硬失败时，只要 coverage 尚未闭合，模型的唯一合法动作就是继续当前流程的下一批，不得生成用户可见收尾回复。
 
 ---
 
@@ -131,9 +132,9 @@ Risk Cluster Consolidation
 EXECUTION_BOOTSTRAP_FAILED
 ```
 
-立即停止。不得降级为普通网页搜股。
+这是客观硬失败，立即停止。不得降级为普通网页搜股。
 
-Runtime Hard Gate 任一失败则停止：
+Runtime Hard Gate 任一失败属于客观硬失败并停止：
 
 - `runtime_validation.status != "passed"`；
 - snapshot 不是当前应使用的最近有效 A 股正式收盘；
@@ -169,7 +170,7 @@ range_n = ...line_count
 3. 不得重复区间替代缺失区间；
 4. 全部区间读取完成后才能开始 Stage A 判断；
 5. 某个有界区间读取失败，只重试该区间；只有持续不可读或连接器明确报错，才允许判定输入读取失败；
-6. 一次整文件响应截断本身不是失败理由，也不得触发 STOPPED_EARLY。
+6. 一次整文件响应截断本身不是失败理由，也不得成为任务结束理由。
 
 不得用 `candidate_file` 或部分 screening groups 替代未读取部分。只有完整覆盖全部 candidate member rows 后才能开始 Stage A 判断。
 
@@ -228,7 +229,7 @@ run_id = <本轮唯一值>
 
 同时写入五个正式 blob SHA、trade_date、candidate_count、信息边界字段，并清空四类集合、`deep_read_codes` 与 `ledger_entries`。
 
-写入后必须回读确认 status、run_id、五个 blob SHA 全部一致。不一致则停止，防止并发覆盖。
+写入后必须回读确认 status、run_id、五个 blob SHA 全部一致。若不一致，视为并发覆盖客观硬失败并停止。
 
 ### 5.3 Repository-only 信息边界
 
@@ -241,7 +242,7 @@ stage_a_information_boundary = VIOLATED
 external_company_research_before_freeze = true
 ```
 
-本轮 Ledger 必须 FAILED / 非 FROZEN，Stage B coverage = UNVERIFIED，停止整轮。
+这是客观协议违规；本轮 Ledger 必须 FAILED / 非 FROZEN，Stage B coverage = UNVERIFIED，停止整轮。
 
 ### 5.4 Stage A｜完整行业组原子化批处理
 
@@ -319,12 +320,9 @@ unique(stage_a_processed_codes) == candidate_codes
 - `stage_a_last_completed_code`
 - `tool_error`
 
-如果模型在无真实工具/系统错误时，`stage_a_processed_count < stage_a_expected_count` 主动结束，probe 写：
+**模型没有主动 `STOPPED_EARLY` 的控制权。** 在没有客观硬失败时，即使 Stage A coverage 尚未闭合，也不得写入“模型主动终止”类状态或原因；唯一合法动作是继续下一 Stage A batch。
 
-```text
-status = STOPPED_EARLY
-termination_reason = MODEL_TERMINATED_BEFORE_STAGE_A_COVERAGE
-```
+若宿主平台在模型控制之外强制中断 invocation，该事实只能由平台级日志或后验外部审计记录；模型不得预判、模拟或主动写出 `MODEL_TERMINATED_*` 作为收尾理由。
 
 ---
 
@@ -382,7 +380,7 @@ ledger_count == candidate_count == ledger_entries_count
 
 PEER_DOMINATED entry 额外必须包含 `dominated_by / price_structure_basis / valuation_basis / operating_basis / differentiated_advantage_check / uncertainty_check`。
 
-FROZEN 写入前再次回读当前 BUILDING Ledger，确认 run_id 与五个 blob SHA 未改变；写入必须使用当前 Ledger blob SHA。发现并发覆盖则停止。
+FROZEN 写入前再次回读当前 BUILDING Ledger，确认 run_id 与五个 blob SHA 未改变；写入必须使用当前 Ledger blob SHA。发现并发覆盖属于客观硬失败并停止。
 
 ---
 
@@ -412,7 +410,7 @@ Stage A 写入 FROZEN 后，不得凭内存直接进入 Stage B。
 ledger_validation = FAILED
 ```
 
-整轮停止，不得开始公司级外部研究，不得生成正式榜。
+这是客观硬失败；整轮停止，不得开始公司级外部研究，不得生成正式榜。
 
 通过后定义：
 
@@ -425,6 +423,15 @@ expected_stage_b_codes = pre_research_ledger.deep_read_codes
 注意：
 
 > **`expected_stage_b_codes` 是 Stage B 候选全集，不等于最终必须做完整 Deep Research 的集合。`expected_deep_research_codes` 必须等 Stage B Gate 完整覆盖后再派生。**
+
+### 7.1 PASSED → Gate Batch 1 原子迁移
+
+一旦 Frozen Ledger Hard Gate = `PASSED`：
+
+1. 唯一合法的下一阶段动作是构造并执行 `Gate Batch 1`；
+2. 在 `gate_processed_count > 0` 之前，不得写 FAILED / INCOMPLETE / STOPPED_EARLY，不得生成阶段总结，不得评估剩余工作量，不得输出用户可见收尾回复；
+3. 只有在 Hard Gate 通过后的下一实际工具/数据动作本身发生可举证且不可恢复的客观硬失败时，才允许进入失败审计；
+4. 候选数量、预计耗时、上下文长度、剩余 Deep Research 数量、是否“看起来做不完”均不是失败事件。
 
 ---
 
@@ -447,7 +454,7 @@ Gate 与 Deep Research 结论保存在本次执行上下文，不写入供下一
 - 从上一轮 actual / remaining 继续；
 - 因为已经找到若干 confirmed 就停止；
 - 因市场风险高而缩小 expected_stage_b_codes；
-- 因预计公司太多而预先 STOPPED_EARLY。
+- 因预计公司太多、耗时太长或后续研究量过大而结束任务。
 
 ### 8.2 Stage B Research Worthiness Gate｜必须覆盖全部 frozen codes
 
@@ -563,7 +570,7 @@ order = HIGH_PRIORITY original order → LOW_PRIORITY original order
 5. runtime 已有确定性价格、估值、财务字段直接使用，不重复网页搜索；
 6. 资料清楚的公司快速形成终态；只有业务异质、一次性收益、周期失真、来源冲突时追加更深检索；
 7. 持续维护 `actual_deep_researched_codes`；
-8. 必须继续直到 expected 全部形成终态或发生明确硬失败。
+8. 必须继续直到 expected 全部形成终态，除非发生第 9.4 节定义的客观硬失败。
 
 ### 8.6 完整 Deep Research 公司级终态
 
@@ -599,7 +606,7 @@ order = HIGH_PRIORITY original order → LOW_PRIORITY original order
 
 多个网站转载同一份公告只算同一个原始证据。
 
-### 8.8 Stage B Diagnostic Probe
+### 8.8 Stage B Diagnostic Probe｜只记录进度与真实故障
 
 `research/last_execution_probe.json` 可记录但不用于续跑：
 
@@ -618,23 +625,17 @@ order = HIGH_PRIORITY original order → LOW_PRIORITY original order
 - `current_batch_codes`
 - `last_completed_code`
 - `tool_error`
-- `termination_reason`
+- `hard_failure_reason`
 
-如果无真实工具/系统错误却在 Gate 未覆盖全部 `expected_stage_b_codes` 时主动结束：
+**模型不得创建或选择 `STOPPED_EARLY` / `MODEL_TERMINATED_*` 作为控制流状态。**
 
-```text
-status = STOPPED_EARLY
-termination_reason = MODEL_TERMINATED_BEFORE_STAGE_B_GATE_COVERAGE
-```
+在没有客观硬失败时：
 
-如果 Gate 已完成，但 `actual_deep_researched_count < expected_deep_research_count` 时主动结束：
+- Gate coverage 未闭合 → 唯一合法下一动作是下一 Gate batch；
+- Gate 已闭合但 Deep Research coverage 未闭合 → 唯一合法下一动作是下一 Deep Research batch；
+- 不得为了写 probe、解释风险或生成用户回复而结束研究流程。
 
-```text
-status = STOPPED_EARLY
-termination_reason = MODEL_TERMINATED_BEFORE_STAGE_B_DEEP_RESEARCH_COVERAGE
-```
-
-候选数量本身、预计耗时、预计“研究不完”都不是合法 STOPPED_EARLY 原因。
+Probe 中只有在真实工具/系统/输入/一致性故障已经发生并且重试或协议允许的恢复路径失败后，才允许写 `hard_failure_reason`。该字段必须描述已经发生的具体错误，不能使用“预计耗时过长”“上下文过长”“候选过多”“可能做不完”“模型决定终止”等推测性理由。
 
 ---
 
@@ -700,27 +701,44 @@ stage_b_coverage = COMPLETE
 
 随后才进入 Risk Cluster Consolidation 和正式榜。
 
-### 9.4 INCOMPLETE / FAILED
+### 9.4 FAILED / INCOMPLETE 只允许由客观硬失败触发
 
-只要本次 invocation 结束时：
+`FAILED / INCOMPLETE / UNVERIFIED` 不是 coverage 未闭合时可自主选择的退出状态。只有已经发生、可举证且无法按协议恢复的客观硬失败，导致本次 invocation 无法继续执行时，才允许失败收尾。
 
-- Gate 还有任何 expected Stage B code 未处理；或
-- 任一 `expected_deep_research_code` 没有完整 Deep Research 终态；
+允许的客观硬失败包括：
 
-则：
+- GitHub / Web / 其他必需工具明确返回错误，按规定重试后仍失败；
+- 正式输入缺失、持续不可读或无法解析；
+- Runtime Hard Gate 失败；
+- Frozen Ledger Hard Gate 失败；
+- Ledger / blob / run_id 发生并发覆盖或一致性冲突；
+- Stage A 信息边界已经实际违规；
+- 其他有明确系统/工具错误证据、使下一合法动作客观上无法执行的故障。
+
+以下均**不是**客观硬失败：
+
+- 候选数量大；
+- 剩余 batch 多；
+- 预计耗时长；
+- 预计无法完成；
+- 上下文已经很长；
+- 已经找到足够多 confirmed；
+- 市场风险高；
+- 模型主观认为应当结束。
+
+若客观硬失败发生时 coverage 尚未闭合，则：
 
 ```text
 stage_b_coverage = INCOMPLETE
 ```
 
-本次任务失败，不发布正式榜。
-
-必须列出：
+本次任务失败，不发布正式榜，并必须列出：
 
 - `missing_gate_codes`
 - `missing_deep_research_codes`
 - `unexpected_researched_codes`（如有）
-- `hard_failure_reason`（如有）
+- `hard_failure_reason`
+- 支持 `hard_failure_reason` 的实际工具/系统错误证据
 
 INCOMPLETE 不产生可供下一次续跑的正式研究状态。下一次触发重新从 Stage A 开始。
 
@@ -736,7 +754,7 @@ INCOMPLETE 不产生可供下一次续跑的正式研究状态。下一次触发
 - 当前正式输入与本轮 Ledger blob 不一致；
 - Gate / Deep Research coverage 集合无法验证。
 
-UNVERIFIED 同样不发布正式榜。
+UNVERIFIED 同样只在对应客观验证失败实际发生时使用，不发布正式榜。
 
 ---
 
@@ -876,13 +894,15 @@ Risk Cluster 是发布层去相关，不是研究层淘汰。
 
 > **Frozen Pre-Research Ledger 只是在同一次 invocation 内连接 Stage A 与 Stage B 的可审计硬检查点。**
 
+> **Frozen Hard Gate 一旦 PASSED，唯一下一动作是 Gate Batch 1；在 Batch 1 实际开始前不存在模型自主失败收尾分支。**
+
 > **不存在正式 Deep Research Ledger，不存在 resume_stage_b，不读取上一轮 company results。**
 
 > **PEER_DOMINATED 只表达严格公司级支配，不承担行业/风险簇去重。**
 
 > **`deep_read_codes` 是 Stage B 候选全集；Stage B Gate 必须完整覆盖后，才派生真正的 `deep_research_required_codes`。**
 
-> **Gate 只做两问硬门和极小 Q2-lite；只有明确 No 才停止。**
+> **Gate 只做两问硬门和极小 Q2-lite；只有明确 No 才将该公司标记为 Gate-filtered，否则继续。**
 
 > **Gate-filtered 不是完整 Deep Research 四终态。**
 
@@ -890,8 +910,10 @@ Risk Cluster 是发布层去相关，不是研究层淘汰。
 
 > **Stage B 完成的定义是 Gate coverage COMPLETE + Deep Research coverage COMPLETE，不是找到足够多可以出榜的公司。**
 
-> **候选数量大、预计耗时长、预计研究不完，不是合法提前结束理由。**
+> **候选数量大、预计耗时长、预计研究不完，不是客观硬失败，也不是合法提前结束理由。**
 
-> **Stage B coverage 未 COMPLETE 时，本次任务失败且没有正式独立机会榜。**
+> **模型不得创建 `STOPPED_EARLY` / `MODEL_TERMINATED_*` 作为自主控制流；失败收尾必须有已发生的客观硬失败证据。**
+
+> **Stage B coverage 未 COMPLETE 时不得生成正式独立机会榜；若无客观硬失败则必须继续执行，若有客观硬失败才允许 INCOMPLETE 收尾。**
 
 > **程序资格不由模型重算。**
