@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Integrity checks for the V4 compact candidate snapshot."""
+"""Integrity checks for compact data/snapshot.json."""
 
 from __future__ import annotations
 
@@ -7,16 +7,7 @@ import argparse
 import json
 from pathlib import Path
 
-from contracts import ELIGIBILITY_MAX_PRICE, YOY_UNIT
-
-
-ALLOWED_ACTIVATION_TIERS = {
-    "starting_breakout",
-    "early_trend",
-    "active_pullback",
-    "pre_breakout",
-    "accumulation_base",
-}
+from contracts import ELIGIBILITY_MAX_PE, ELIGIBILITY_MAX_PRICE, YOY_UNIT
 
 
 def fail(message: str) -> None:
@@ -50,6 +41,15 @@ def main() -> None:
         fail("market_state must be present")
     if market_state.get("trade_date") != trade_date:
         fail("market_state.trade_date must match snapshot.trade_date")
+    allowed_market_values = {
+        "trend": {"bullish", "bearish", "transition", "unknown"},
+        "breadth": {"strong", "weak", "neutral", "unknown"},
+        "liquidity": {"high", "low", "normal", "unknown"},
+        "risk_level": {"low", "medium", "high"},
+    }
+    for key, allowed in allowed_market_values.items():
+        if market_state.get(key) not in allowed:
+            fail(f"invalid market_state.{key}: {market_state.get(key)!r}")
 
     counts = data.get("counts") or {}
     universe = int(counts.get("universe_stocks") or 0)
@@ -99,7 +99,6 @@ def main() -> None:
         "industry_code",
         "fundamentals",
         "price_structure",
-        "market_activation",
     )
     for code, stock in candidates.items():
         missing = [key for key in required_candidate_fields if stock.get(key) is None]
@@ -115,14 +114,11 @@ def main() -> None:
         fundamentals = stock.get("fundamentals") or {}
         if not fundamentals.get("report_date"):
             fail(f"candidate {code} missing report_date")
-        # V4 intentionally has no PE ceiling. PE/PB remain model risk context.
 
-        activation = stock.get("market_activation") or {}
-        tier = activation.get("activation_tier")
-        if tier not in ALLOWED_ACTIVATION_TIERS:
-            fail(f"candidate {code} invalid activation_tier: {tier!r}")
-        if activation.get("chase_risk") == "high":
-            fail(f"candidate {code} cannot have high chase risk")
+        for pe_key in ("pe_ttm", "pe_dynamic"):
+            pe = fundamentals.get(pe_key)
+            if isinstance(pe, (int, float)) and not isinstance(pe, bool) and pe > ELIGIBILITY_MAX_PE:
+                fail(f"candidate {code} {pe_key}={pe!r} exceeds {ELIGIBILITY_MAX_PE}")
 
         structure = stock.get("price_structure") or {}
         if structure.get("position_pct") is None:
