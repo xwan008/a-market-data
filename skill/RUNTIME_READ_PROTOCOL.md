@@ -1,8 +1,8 @@
-# A股低风险买点榜｜V5 轻量运行协议
+# A股低风险买点榜｜V6 运行协议
 
-本文件是正式执行契约。V5 的唯一顺序是：
+本文件是正式执行契约。V6 的唯一顺序：
 
-> **行业景气/盈利确认 → 行业资金确认 → 行业内寻找早启动股票 → 公司排雷 → 最终少数深研 → 发布。**
+> **行业盈利/景气预资格 → 行业资金关注 → 公开研究产业领先变量 → 行业内寻找早启动/健康首次回踩 → 公司排雷 → 最终少数深研 → 发布。**
 
 模型判断细则以同版本 `skill/SKILL.md` 为准。
 
@@ -19,38 +19,49 @@
 
 这四项是模型执行期唯一必读输入。
 
-`full_market_price_structure.json`、`industry_state.json`、`screening_groups.json`、历史 Ledger/probe 都不是执行期 Hard Gate 必读文件。它们属于生成期来源或诊断视图。
+生成期大文件 `full_market_price_structure.json`、`industry_state.json`、`screening_groups.json` 不是执行期 Hard Gate 必读文件。
 
 ---
 
 ## 2. Runtime 的职责
 
-V5 runtime 不是“全市场技术候选”。它必须已经在构建阶段完成三层硬筛选：
+V6 runtime 必须满足“行业先于股票”。
+
+生成链应先在全市场行业层完成预资格：
 
 ```text
-第一层：行业基本面门
-T1_PROSPERITY_CONFIRMED / T2_PROFIT_TREND
+行业盈利基础：
+PROFIT_TREND_CONFIRMED / EARNINGS_IMPROVING / EARNINGS_TRANSMITTING
++
+行业资金：
+FUNDS_ENTERING / FUNDS_ATTENTION
+```
 
-第二层：行业资金门
-FUNDS_TESTING / TREND_FORMING
+然后才扫描这些行业中的全部结构可用股票，并在股票层保留：
 
-第三层：个股生命周期门
-PRE_BREAKOUT / ACCUMULATION_READY / FRESH_ACTIVATION / EARLY_EXPANSION / 严格REACCELERATION
+```text
+PRE_BREAKOUT
+ACCUMULATION_READY
+FRESH_ACTIVATION
+EARLY_EXPANSION
+HEALTHY_FIRST_PULLBACK
+REACCELERATION
 ```
 
 正式 `meta.structural_rule.selection_mode` 必须等于：
 
 ```text
-industry_dual_confirm_then_early_stock
+industry_first_leading_prosperity_then_stock
 ```
 
-且：
+并且：
 
 ```text
-meta.runtime_validation.industry_dual_confirm_gate_applied == true
+meta.runtime_validation.industry_first_pool_applied == true
+meta.runtime_validation.stock_lifecycle_gate_applied == true
 ```
 
-否则属于旧 runtime，不得作为 V5 正式输入。
+旧 `industry_dual_confirm_then_early_stock` 视为 V5，不得作为 V6 正式输入。
 
 ---
 
@@ -59,19 +70,20 @@ meta.runtime_validation.industry_dual_confirm_gate_applied == true
 必须满足：
 
 - `meta.runtime_validation.status == "passed"`；
-- `industry_dual_confirm_gate_applied == true`；
-- `meta.structural_rule.selection_mode == "industry_dual_confirm_then_early_stock"`；
+- `industry_first_pool_applied == true`；
+- `stock_lifecycle_gate_applied == true`；
+- `meta.structural_rule.selection_mode == "industry_first_leading_prosperity_then_stock"`；
+- `leading_prosperity_public_research_required == true`；
 - `meta.snapshot.market_status == "closed"`；
 - `meta.snapshot.trade_date == candidate_file.trade_date`；
 - candidate 文件存在、可解析、code 唯一；
 - `candidate_file.candidate_count == len(rows) == meta.candidate_count`；
 - columns 与 `meta.candidate_columns` 一致；
-- `selection_funnel.pre_gate_rows >= post_gate_rows == candidate_count`；
-- 行业景气/盈利、行业资金、个股启动和价格结构核心字段存在。
+- `selection_funnel.pre_lifecycle_rows >= post_lifecycle_rows == candidate_count`；
+- `prequalified_industry_count` 存在并大于等于 `post_lifecycle_industry_count`；
+- 每只候选的 `stock_lifecycle_stage` 属于 V6 合法集合。
 
-如果 V5 gate 后候选为 0，不视为 FAILED；应发布“本轮无满足条件机会”。
-
-不得因为生成期大文件无法直接读取而 FAILED。
+如果 lifecycle 后候选为0，不视为 FAILED；发布“本轮无满足条件机会”。
 
 ---
 
@@ -80,30 +92,33 @@ meta.runtime_validation.industry_dual_confirm_gate_applied == true
 ```text
 Bootstrap / Hard Gate
 ↓
-Layer 1｜复核行业双确认
-只处理 runtime 中已经通过 T1/T2 + 资金门的行业
+Layer 1｜行业池复核
+读取 runtime 中已经完成的盈利基础 + 资金预资格
 ↓
-Layer 2｜复核个股早启动
-确认不是 POST_PEAK_FADE / DISTRIBUTION
+Layer 2｜产业领先变量研究【必须执行】
+确认未来1–2季度的价格/价差/库存/订单/需求/产能/政策等
 ↓
-Layer 3｜公司轻量排雷
+只保留 LEADING_CONFIRMED / LEADING_EARLY 行业
 ↓
-形成少量最终研究对象
+Layer 3｜行业内部个股复核
+早启动 + 健康首次回踩；排除退潮/派发
+↓
+Layer 4｜公司轻量排雷
 ↓
 Focused Deep Research 3–5只
 ↓
 正式低风险买点榜
 ```
 
-不得重新从全市场寻找 runtime 之外的股票。
+禁止回到“先从全市场个股技术形态选29只，再反推行业”的旧路径。
 
 ---
 
-## 5. Layer 1｜行业双确认复核
+## 5. Layer 1｜行业预资格复核
 
-按 `industry_code` 聚合候选，只回答两个问题：
+对 runtime 中出现的每个行业说明：
 
-### A. 行业为什么正在变好？
+### 盈利基础
 使用：
 
 - `industry_trend`
@@ -113,9 +128,15 @@ Focused Deep Research 3–5只
 - `industry_aggregate_parent_profit_yoy`
 - `industry_confidence`
 
-正式行业必须可解释为 T1 或 T2。
+解释其属于：
 
-### B. 为什么市场现在开始交易它？
+- `PROFIT_TREND_CONFIRMED`
+- `EARNINGS_IMPROVING`
+- `EARNINGS_TRANSMITTING`
+
+注意：`EARNINGS_TRANSMITTING` 不是弱化版 T1，而是“收入/需求先改善、利润仍在传导”的早期状态。
+
+### 行业资金
 使用：
 
 - `industry_market_breadth`
@@ -125,100 +146,121 @@ Focused Deep Research 3–5只
 - `industry_median_volume_ratio_vs_20d`
 - `industry_expanding_volume_share`
 
-正式行业必须可解释为 FUNDS_TESTING 或 TREND_FORMING。
+解释其属于：
 
-如果某行数据与 V5 规则冲突，按更保守解释处理并从正式机会剔除，不得因为 runtime 已包含就机械保留。
+- `FUNDS_ENTERING`
+- `FUNDS_ATTENTION`
 
----
-
-## 6. Layer 2｜个股早启动复核
-
-只在合格行业内部研究股票。
-
-核心字段：
-
-- `activation_tier`
-- `day_change_pct`
-- `volume_ratio_1d_vs_20d`
-- `volume_ratio_5d_vs_20d`
-- `relative_strength_20d_vs_market_pct`
-- `return_10d_pct / return_20d_pct`
-- `close_change_5d_pct`
-- `high_20d`
-- `ma20 / ma60`
-- `position_pct`
-- `breakout_confirmed`
-- 支撑/成交密集区/阻力/失效位
-
-模型必须计算并理解：
-
-```text
-drawdown_from_20d_high_pct = (high_20d - price) / high_20d * 100
-```
-
-重点寻找：PRE_BREAKOUT、ACCUMULATION_READY、FRESH_ACTIVATION、EARLY_EXPANSION。
-
-`active_pullback` 默认不能成为正式新机会；只有满足 Skill 的严格 REACCELERATION 才可继续。
-
-POST_PEAK_FADE / DISTRIBUTION_RISK 必须直接排除，不能放入 WAIT_PULLBACK。
-
-成交量必须和价格方向一起解释。下跌放量不能自动视为资金流入。
+在全市场风险释放环境中，不得因为绝对量比 <1 就机械否定一个明显相对强势、广度扩散的行业。
 
 ---
 
-## 7. Layer 3｜公司轻量排雷
+## 6. Layer 2｜产业领先变量研究【新增核心步骤】
 
-只排除会破坏行业→公司传导的明显风险：
+对预资格行业做公开资料研究，不允许只凭仓库财报字段宣布“景气确认”。
 
-- 公司收入/核心利润恶化；
-- 归母与扣非严重背离；
-- 现金流明显冲突；
-- 一次性收益主导；
-- 行业改善但公司没有传导；
+每个行业原则上 1–3 次高质量定向查询，优先行业一手/权威来源，确认：
+
+- 产品价格/价差；
+- 库存与供需；
+- 订单/排产/稼动率；
+- 下游需求；
+- 产能变化；
+- 政策/资本开支；
+- 原料涨价能否向下游传导；
+- 最新业绩预告、出货、招投标、涨价函等。
+
+输出：
+
+- `LEADING_CONFIRMED`
+- `LEADING_EARLY`
+- `LEADING_WEAK`
+
+只有前两类进入个股研究。
+
+---
+
+## 7. Layer 3｜行业内部个股复核
+
+合法生命周期：
+
+- `PRE_BREAKOUT`
+- `ACCUMULATION_READY`
+- `FRESH_ACTIVATION`
+- `EARLY_EXPANSION`
+- `HEALTHY_FIRST_PULLBACK`
+- `REACCELERATION`
+
+重点理解：
+
+### `HEALTHY_FIRST_PULLBACK`
+允许市场整体下跌把强行业股票带回合理价格，但必须满足：
+
+- 所属行业领先逻辑/资金仍有效；
+- 前期涨幅不过度；
+- RS20 尚未明显转弱；
+- 回撤靠近 MA20/支撑/成交密集区；
+- 没有高位放量派发；
+- 中期结构未破坏。
+
+### 排除
+
+- `POST_PEAK_FADE`
+- `DISTRIBUTION_RISK`
+- 高位下跌放量；
+- 已完成大波段后的持续回落；
+- 跌破核心平台/均线且相对强度同步恶化。
+
+不得再用“距20日高点回撤5%”一刀切排除所有回踩。
+
+---
+
+## 8. Layer 4｜公司轻量排雷
+
+检查：
+
+- 公司收入/核心利润；
+- 归母与扣非；
+- 现金流；
+- 一次性收益；
+- 行业→公司传导；
 - 重大减持/监管/诉讼/业绩预警/资本运作；
-- 极端估值且增长不足。
+- 极端估值风险。
 
-PE/PB 只做风险修正，不做低估值排序。
-
-结束后只保留最终 3–5 只做公开深研；不足按实际数量继续。
+PE/PB 不做低估值排序。
 
 ---
 
-## 8. Focused Deep Research｜必须真实执行
+## 9. Focused Deep Research
 
-最终每家公司原则上 2–4 次定向公开查询，至少覆盖：
+最终通常3–5只，不足不凑数。每家公司原则上2–4次定向公开查询，至少确认：
 
-1. 最新主营收入、归母、扣非；
-2. 利润变化来源与一次性收益；
-3. 行业景气能否传导到公司；
-4. 近期重大减持、监管、诉讼、业绩预警、重大资本运作；
-5. 为什么资金是“现在”开始选择它。
+1. 最新主营/归母/扣非；
+2. 利润改善来源；
+3. 产业景气如何传导；
+4. 为什么资金现在关注它；
+5. 当前生命周期为什么不是退潮；
+6. 近期重大风险。
 
-优先公司公告、交易所、权威财经来源、行业一手来源。
-
-不得只读 runtime 后直接宣称已完成深度研究。
-
-单家公司无法确认时标记 `UNVERIFIED` 并移除，不拖垮整轮。
+关键事实无法确认时 `UNVERIFIED` 并移除。
 
 ---
 
-## 9. 正式输出
+## 10. 正式输出
 
-### A.【本轮行业双确认池】
-按行业输出：
+### A.【本轮行业机会池】
 
 ```text
-行业｜景气阶段(T1/T2)｜行业盈利证据｜资金阶段(FUNDS_TESTING/TREND_FORMING)｜资金证据
+行业｜盈利阶段｜产业领先阶段｜行业资金阶段｜核心证据｜反向风险
 ```
 
 ### B.【正式低风险启动榜】
-固定列：
 
 ```text
-股票｜行业｜行业景气｜行业盈利｜行业资金｜个股阶段｜状态｜当前价｜合理买入区间｜低风险买入区间｜失效价/条件｜第一阻力位｜深研结论｜核心风险
+股票｜行业｜产业景气｜行业盈利｜行业资金｜个股阶段｜状态｜当前价｜合理买入区间｜低风险买入区间｜失效价/条件｜第一阻力位｜深研结论｜核心风险
 ```
 
-状态只使用：
+状态：
 
 - `READY_TO_WATCH_ENTRY`
 - `WAIT_PULLBACK`
@@ -226,43 +268,44 @@ PE/PB 只做风险修正，不做低估值排序。
 - `EXCLUDE_FADE`
 - `UNVERIFIED`
 
-`EXCLUDE_FADE` 不给买入区间。
+`HEALTHY_FIRST_PULLBACK` 可以成为 READY，但必须有明确低风险结构依据。
 
-### C.【本轮筛选漏斗】
-必须给出：
+### C.【筛选漏斗】
 
-- runtime 生成前候选数 `pre_gate_rows`
-- 行业双确认+生命周期后候选数 `post_gate_rows`
-- 合格行业数 `eligible_industry_count`
+至少给出：
+
+- `prequalified_industry_count`
+- `pre_lifecycle_rows`
+- `post_lifecycle_rows`
+- `post_lifecycle_industry_count`
+- 最终产业领先变量确认行业数
 - 最终深研数
 
-用来验证系统是否真的先行业、后股票，而不是直接从个股挑。
+---
+
+## 11. 价格纪律
+
+当前价使用正式 runtime 收盘价。
+
+合理买入区间与低风险区间必须来自 MA、支撑、成交密集区、突破位、阻力和 invalidation。
+
+健康回踩的低风险区优先靠近支撑/成交密集承接，而不是等待重新大涨后追确认。
+
+不存在可靠区间写 `N/A`。
 
 ---
 
-## 10. 价格纪律
+## 12. 完成与失败
 
-当前价必须使用正式 runtime 对应 `trade_date` 的收盘价。
-
-合理买入区间、低风险买入区间、失效位、第一阻力位必须来自正式价格结构：MA、支撑、成交密集区、突破位、阻力、invalidation。
-
-不存在可靠低风险区时写 `N/A`；不得为了形成榜单而制造价格。
-
-当前价高于合理买入上沿，不得标记 READY。
-
----
-
-## 11. 完成与失败
-
-满足以下条件即可发布：
+满足以下即可发布：
 
 - Hard Gate 通过；
-- 完整消费 V5 runtime candidates；
-- 行业双确认复核完成；
-- 个股生命周期复核完成；
+- 完整消费 V6 runtime candidates；
+- 行业领先变量研究完成；
+- 生命周期复核完成；
 - 公司排雷完成；
-- 最终公司完成 Focused Deep Research，或无法确认者被移除。
+- 最终公司深研完成或无法确认者移除。
 
-只有四个正式输入不可读、trade_date 冲突、runtime validation 失败、或关键工具完全不可用才允许整轮 FAILED。
+只有正式输入不可读、trade_date冲突、runtime validation失败、或关键工具完全不可用才允许整轮 FAILED。
 
-候选少、最终只有1只、甚至0只，都不是失败理由。
+没有机会不是失败；宁可0只，也不能回到错误选股路径。
