@@ -40,6 +40,7 @@ def run_script(*args: str) -> None:
 
 
 def normalize_runtime_meta(runtime_dir: Path) -> None:
+    """Keep final meta compact and single-source."""
     meta_path = runtime_dir / "meta.json"
     meta = load_json(meta_path)
     snapshot_meta = meta.get("snapshot") or {}
@@ -56,14 +57,10 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
     assert meta.get("runtime_kind") == RUNTIME_KIND
     assert meta.get("runtime_format") == RUNTIME_FORMAT
     assert meta.get("yoy_unit") == YOY_UNIT
-
     validation = meta.get("runtime_validation") or {}
     assert validation.get("status") == "passed", validation
-    assert validation.get("industry_first_pool_applied") is True, validation
-    assert validation.get("stock_lifecycle_gate_applied") is True, validation
     assert validation.get("screening_group_view_valid") is True, validation
     assert validation.get("screening_group_line_addressable") is True, validation
-
     assert meta.get("candidate_count") == meta.get("structural_relevance_count")
     assert int(meta.get("source_candidate_count") or 0) >= int(
         meta.get("candidate_count") or 0
@@ -72,11 +69,6 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
     snapshot_meta = meta.get("snapshot") or {}
     assert "eligibility_audit" not in snapshot_meta
     assert "prefilter" not in snapshot_meta
-    industry_pool = snapshot_meta.get("industry_pool") or {}
-    assert isinstance(industry_pool, dict) and industry_pool
-    assert int(validation.get("prequalified_industry_count") or 0) == len(
-        industry_pool
-    )
 
     candidate_path = Path(meta["candidate_file"])
     assert candidate_path.exists(), candidate_path
@@ -87,7 +79,6 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
     assert candidate.get("source_candidate_count") == meta.get(
         "source_candidate_count"
     )
-
     rows = candidate.get("rows") or []
     columns = candidate.get("columns") or []
     assert candidate.get("candidate_count") == len(rows) == meta.get(
@@ -107,33 +98,8 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
         "industry_trend",
         "industry_strength",
         "industry_breadth",
-        "industry_confidence",
-        "industry_core_improving_breadth",
         "industry_aggregate_revenue_yoy",
         "industry_aggregate_parent_profit_yoy",
-        "industry_market_breadth",
-        "industry_market_activity",
-        "industry_market_confirmation",
-        "industry_market_breadth_score",
-        "industry_median_volume_ratio_vs_20d",
-        "industry_expanding_volume_share",
-        "activation_tier",
-        "chase_risk",
-        "volume_ratio_1d_vs_20d",
-        "volume_ratio_5d_vs_20d",
-        "relative_strength_20d_vs_market_pct",
-        "return_10d_pct",
-        "return_20d_pct",
-        "distance_to_ma20_pct",
-        "close_change_5d_pct",
-        "high_20d",
-        "low_20d",
-        "ma20",
-        "position_pct",
-        "breakout_confirmed",
-        "stock_lifecycle_stage",
-        "drawdown_from_20d_high_pct",
-        "prior_20d_swing_pct",
         "pe_ttm",
         "pe_dynamic",
         "pb",
@@ -144,6 +110,7 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
         "operating_cashflow_per_share",
         "gross_margin",
         "net_profit",
+        "position_pct",
         "support_distance_pct",
         "support_touches",
         "volume_zone_distance_pct",
@@ -159,20 +126,8 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
     assert not missing, missing
 
     code_idx = columns.index("code")
-    industry_idx = columns.index("industry_code")
-    lifecycle_idx = columns.index("stock_lifecycle_stage")
     candidate_codes = [str(row[code_idx]) for row in rows]
     assert len(candidate_codes) == len(set(candidate_codes))
-    assert all(str(row[industry_idx]) in industry_pool for row in rows)
-    allowed_lifecycle = {
-        "PRE_BREAKOUT",
-        "ACCUMULATION_READY",
-        "FRESH_ACTIVATION",
-        "EARLY_EXPANSION",
-        "HEALTHY_FIRST_PULLBACK",
-        "REACCELERATION",
-    }
-    assert all(str(row[lifecycle_idx]) in allowed_lifecycle for row in rows)
 
     screening_path = Path(meta["screening_group_file"])
     assert screening_path.exists(), screening_path
@@ -187,6 +142,7 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
     assert screening_columns == MEMBER_COLUMNS
     assert screening_columns == meta.get("screening_group_member_columns")
     screening_code_idx = screening_columns.index("code")
+
     screening_members = [
         member
         for group in (screening.get("groups") or [])
@@ -221,19 +177,15 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
     assert screening_validation.get("json_roundtrip_matches") is True
     assert screening_validation.get("line_addressable") is True
 
+    assert not (runtime_dir / "peer_groups.json").exists()
+    assert not (runtime_dir / "company_research_view.json").exists()
+    assert not (runtime_dir / "details").exists()
+    assert "peer_group_file" not in meta
+    assert "company_research_file" not in meta
+
     structural_rule = meta.get("structural_rule") or {}
     assert structural_rule
     assert structural_rule == candidate.get("structural_rule")
-    assert (
-        structural_rule.get("selection_mode")
-        == "industry_first_leading_prosperity_then_stock"
-    )
-    assert structural_rule.get("leading_prosperity_public_research_required") is True
-
-    funnel = meta.get("selection_funnel") or {}
-    assert int(funnel.get("post_lifecycle_rows") or 0) == len(candidate_codes)
-    assert int(funnel.get("pre_lifecycle_rows") or 0) >= len(candidate_codes)
-    assert int(funnel.get("prequalified_industry_count") or 0) == len(industry_pool)
 
     eligibility_audit = meta.get("eligibility_audit")
     if eligibility_audit:
@@ -251,9 +203,6 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
         "trade_date": snapshot_meta.get("trade_date"),
         "source_candidate_count": meta.get("source_candidate_count"),
         "candidate_count": meta.get("candidate_count"),
-        "prequalified_industry_count": funnel.get("prequalified_industry_count"),
-        "post_lifecycle_industry_count": funnel.get("post_lifecycle_industry_count"),
-        "selection_funnel": funnel,
         "screening_group_count": meta.get("screening_group_count"),
         "screening_group_singleton_count": meta.get("screening_group_singleton_count"),
         "screening_group_max_size": meta.get("screening_group_max_size"),
@@ -277,11 +226,6 @@ def main() -> None:
         "scripts/split_snapshot.py",
         str(snapshot),
         "--output-dir",
-        str(runtime_dir),
-    )
-    run_script(
-        "scripts/apply_industry_activation_gate.py",
-        "--runtime-dir",
         str(runtime_dir),
     )
     normalize_runtime_meta(runtime_dir)
