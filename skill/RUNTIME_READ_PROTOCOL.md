@@ -1,242 +1,210 @@
-# A股低风险买点榜｜V4 轻量运行协议
+# A股低风险买点榜｜V4.1 轻量运行协议
 
-本文件是“A股低风险买点榜”的正式执行契约。V4 的目标不是完成投资委员会式全量研究，而是稳定、快速地完成：
+本文件是正式执行契约。V4.1 的目标：
 
-> **行业资金趋势发现 → 个股早期启动确认 → 轻量基本面排雷 → 少量定向公开研究 → 发布。**
+> **行业资金确认 → 行情生命周期过滤 → 个股方向性资金确认 → 轻量基本面排雷 → 最终 3–5 只 Focused Deep Research → 正式榜。**
 
-模型判断细则以同一版本的 `skill/SKILL.md` 为准。
-
----
-
-## 1. 核心原则
-
-V4 只有四条核心约束：
-
-1. **资金趋势优先于低估值。** PE/PB 不再决定候选入口；
-2. **只研究已经出现市场验证、但尚未明显过热的股票。** “低位但无人交易”不是机会；
-3. **基本面用于排雷，不用于制造启动信号。**
-4. **完整执行优先于研究深度。** 正式公开研究只分配给最终 5–8 只股票；单家公司研究失败不得拖垮整轮。
-
-V4 明确废止旧流程中的 Frozen Pre-Research Ledger、Stage A 全候选逐只 Ledger、G1/G2/Q2-lite、多层 coverage、全候选 Deep Research、无限期 waiting_for_entry，以及低 PE 结构性优先级。
-
-`research/pre_research_ledger.json` 与历史 probe 仅视为旧版历史文件，不是 V4 正式输入。
+具体判断细则以同一版本 `skill/SKILL.md` 为准。
 
 ---
 
-## 2. 正式输入｜执行期只依赖紧凑 runtime
+## 1. 正式输入
 
-每次 19:00 正式版或手动正式触发，模型只读取当前 `main` 下：
+每次 19:00 正式版或手动正式触发，只读取当前 main：
 
 - `skill/RUNTIME_READ_PROTOCOL.md`
 - `skill/SKILL.md`
 - `data/runtime/meta.json`
-- `meta.candidate_file`（通常为 `data/runtime/candidates.json`）
+- `meta.candidate_file`（通常 `data/runtime/candidates.json`）
 
-这四项是 V4 模型执行期的唯一必读输入。
+这四项是执行期唯一必读正式输入。
 
-以下文件属于生成期来源或可选诊断信息，不得作为模型执行期 Hard Gate 的必读条件：
+以下均属于生成期来源/可选诊断，不得作为执行期 Hard Gate：
 
 - `data/research/full_market_price_structure.json`
 - `data/research/industry_state.json`
 - `data/runtime/screening_groups.json`
 - 历史 Ledger / probe / 旧榜单
 
-生成链已经负责校验全市场量价状态、行业状态与 snapshot/runtime 的日期一致性；只有这些生成期校验通过，才允许 `meta.runtime_validation.status == "passed"`。模型执行期不得重复读取巨型中间文件制造伪 FAILED。
-
-candidate_file 已包含正式需要的行业资金、个股量价启动、相对强度、价格结构、支撑、成交密集区、阻力与失效字段。
-
-### Runtime Hard Gate
-
-必须满足：
-
-- `meta.runtime_validation.status == "passed"`；
-- `meta.snapshot.market_status == "closed"`；
-- `meta.snapshot.trade_date == candidate_file.trade_date`；
-- candidate 文件存在、可解析、code 唯一；
-- `candidate_file.candidate_count == len(rows) == meta.candidate_count`；
-- candidate columns 与 `meta.candidate_columns` 一致；
-- candidate 中 `activation_tier` 属于 V4 合法集合；
-- 行业资金、个股量价启动和价格阶梯所需的核心结构字段存在。
-
-不得因为任何生成期大文件无法被模型连接器完整读取而判定 FAILED。
+生成期已经负责全市场数据、日期一致性、runtime validation；模型执行期不得重复读取巨型中间文件制造伪失败。
 
 ---
 
-## 3. 执行流程
+## 2. Runtime Hard Gate
+
+必须满足：
+
+- `meta.runtime_validation.status == "passed"`
+- `meta.snapshot.market_status == "closed"`
+- `meta.snapshot.trade_date == candidate_file.trade_date`
+- candidate 可解析、code 唯一
+- `candidate_count == len(rows) == meta.candidate_count`
+- columns 与 `meta.candidate_columns` 一致
+- 生命周期判断所需字段存在：`price/day_change_pct/high_20d/close_change_5d_pct/position_pct/ma20/volume_ratio_1d_vs_20d/volume_ratio_5d_vs_20d/relative_strength_20d_vs_market_pct`
+
+只有执行期正式输入不可读、日期冲突或 runtime validation 失败，整轮才允许 FAILED。
+
+---
+
+## 3. 固定执行顺序
 
 ```text
 Bootstrap / Runtime Hard Gate
 ↓
 Layer 1｜Industry Money Flow
-基于候选中携带的行业资金字段聚合判断
 ↓
-保留约 5–10 个有效行业方向
+Layer 2｜Lifecycle Gate
 ↓
-Layer 2｜Stock Activation
-完整读取 runtime candidates
-寻找资金已进入但尚未充分交易的股票
+Layer 3｜Directional Money Confirmation
 ↓
-形成约 15–25 只研究候选（不足时不凑数）
+约 8–12 只真正仍有资金确认的候选
 ↓
-Layer 3｜Light Fundamental Risk Filter
-只排除明显基本面/盈利质量/极端估值风险
+Layer 4｜Light Fundamental Risk Filter
 ↓
-选择最终 5–8 只公开研究对象
+最终 3–5 只
 ↓
-Targeted Public Research
-每家公司只确认关键风险与盈利真实性
-↓
-Price Ladder
-为正式机会计算价格阶梯
+Focused Deep Research
 ↓
 正式榜
 ```
 
-### 3.1 Layer 1｜Industry Money Flow
-
-从 candidate_file 按 `industry_code` 聚合，使用：
-
-- `industry_market_breadth`
-- `industry_market_activity`
-- `industry_market_confirmation`
-- `industry_market_breadth_score`
-- `industry_median_volume_ratio_vs_20d`
-- `industry_expanding_volume_share`
-
-行业基本面只做风险修正，不作为资金趋势的替代证据。优先研究资金试探 / 趋势形成阶段；有效行业少于 5 个时按实际数量继续，不凑数、不 FAILED。
-
-### 3.2 Layer 2｜Stock Activation
-
-完整读取 candidate 文件，不形成逐只 Ledger。
-
-合法 `activation_tier`：
-
-- `starting_breakout`
-- `pre_breakout`
-- `accumulation_base`
-- `early_trend`
-- `active_pullback`
-
-优先保留：行业资金趋势有效、`chase_risk != high`、20 日涨幅未透支、量能改善、相对市场强度不弱、失效位明确。
-
-“价格低 + PE低 + 没有成交量改善”不得进入最终研究池。
-
-### 3.3 Layer 3｜Light Fundamental Risk Filter
-
-只回答：
-
-> **有没有足以破坏这次交易逻辑的明显公司风险？**
-
-快速检查收入与核心利润、归母与扣非背离、经营现金流、一次性/非核心收益，以及极端估值与增长不匹配。PE/PB 是风险修正，不是排序发动机。
-
-最终只选 5–8 只进入公开研究；不足时按实际数量继续。
+不得跳过 Lifecycle Gate，不得仅凭 activation_tier 直接进入公司研究。
 
 ---
 
-## 4. Targeted Public Research｜只研究最终 5–8 只
+## 4. Layer 1｜Industry Money Flow
 
-每家公司原则上只做 1–3 次定向查询，重点确认：
+从 candidate_file 按行业聚合。
 
-1. 最新报告期主营/扣非盈利是否可信；
-2. 高增长是否来自重大一次性收益、投资收益或联营收益；
-3. 是否存在重大减持、监管、诉讼、业绩预警、重大资本运作等直接风险；
-4. 必要时确认行业逻辑能否传导到公司。
+`READY_TO_WATCH_ENTRY` 的行业原则上必须满足 `SKILL.md` 的 `TREND_FORMING`；`FUNDS_TESTING` 只能产生 OBSERVE，不能单独产生 READY。
 
-禁止为了“研究完整”扩展成长篇产业链、竞争格局、全历史估值研究。
-
-单家公司无法可靠确认时标记 `UNVERIFIED` 并移出正式可执行机会，但继续完成整轮。
+行业基本面只做风险修正，不能替代市场成交/广度/扩散证据。
 
 ---
 
-## 5. 发布状态
+## 5. Layer 2｜Lifecycle Gate
 
-正式输出只使用：
-
-### `READY_TO_WATCH_ENTRY`
-行业资金趋势有效、个股启动已被量价验证、基本面无明显破坏性风险、当前价格没有进入高追涨区。
-
-### `WAIT_PULLBACK`
-逻辑有效，但当前价格偏离合理风险收益区、靠近阻力或冲高明显。等待的是价格回到可接受区域。
-
-### `OBSERVE`
-行业有效，但个股启动证据尚未完成。下一轮仍未改善即可自然退出。
-
-### `UNVERIFIED`
-关键公司事实无法可靠确认，不作为正式执行机会。
-
----
-
-## 6. Price Ladder｜正式机会必须生成价格阶梯
-
-完成定向公开研究后，对所有正式榜股票生成以下字段；具体计算纪律以 `skill/SKILL.md` 第 9 节为准。
-
-### 必填字段
-
-- `current_price`：本轮 runtime 的正式收盘价；
-- `reasonable_entry_range`：在趋势仍有效、无需明显追高时的合理买入区间；
-- `low_risk_entry_range`：更靠近有效支撑/成交承接/突破回踩位的保守买入区间；
-- `invalidation_price_or_condition`：失效价或明确失效条件；
-- `first_resistance`：第一有效阻力位；无可靠上方阻力且处于价格发现阶段时写 `PRICE_DISCOVERY`。
-
-### 计算依据
-
-只能使用本轮正式 runtime 中的：
-
-- `price`
-- `ma20 / ma60`
-- `support_low / support_high / support_center`
-- `volume_zone_low / volume_zone_high / volume_zone_center`
-- `resistance_low / resistance_high / resistance_center`
-- `invalidation_price / invalidation_direction`
-- `activation_tier`
-- `chase_risk`
-- `distance_to_ma20_pct / distance_to_ma60_pct`
-- `downside_to_invalidation_pct`
-- breakout / relative-strength / volume confirmation 字段
-
-公开研究只负责确认公司风险，不得因为“公司很好”抬高买入区间。
-
-如果结构数据不足，必须写 `N/A` 并说明缺失依据，禁止猜测。
-
-当前价高于合理买入区间上沿时，不得标记 `READY_TO_WATCH_ENTRY`，应降为 `WAIT_PULLBACK` 或 `OBSERVE`。
-
----
-
-## 7. 完成条件与容错
-
-满足以下条件即可发布正式榜：
-
-- Runtime Hard Gate 通过；
-- candidate 文件完整消费；
-- 行业资金趋势聚合完成；
-- 轻量基本面排雷完成；
-- 最终 5–8 只完成定向研究，或将无法确认者标记 UNVERIFIED 并移除；
-- 正式机会完成 Price Ladder。
-
-不再要求全候选逐只 Deep Research、全候选逐只外部查询、Frozen Ledger、Gate coverage / Deep Research coverage 双闭合，或执行期直接读取全市场生成期大文件。
-
-只有四个模型执行期正式输入不可读、校验失败或关键工具完全不可用且无法继续时，整轮才允许 FAILED。
-
----
-
-## 8. 用户可见输出｜固定正式榜
-
-正式版必须先给资金趋势行业摘要，然后输出一张固定榜单：
+对每只候选计算：
 
 ```text
-股票｜状态｜当前价｜合理买入区间｜低风险买入区间｜失效价/条件｜第一阻力位｜启动证据｜核心风险
+drawdown_from_20d_high_pct = (high_20d - price) / high_20d * 100
 ```
 
-其中：
+然后按 `SKILL.md` 分类：
 
-- 当前价必须对应本轮 `trade_date` 正式收盘价；
-- 合理买入价和低风险价默认输出区间，不追求虚假精确；
-- `WAIT_PULLBACK` 必须明确“等到哪里”；
-- `OBSERVE` 若尚不存在可靠买点，可用触发条件替代强行给价格；
-- 第一阻力位用于初始风险收益判断，不等于正式止盈目标。
+- `FRESH_ACTIVATION`
+- `REACCELERATION`
+- `ORDERLY_FIRST_PULLBACK`
+- `POST_PEAK_FADE`
+- `DISTRIBUTION_RISK`
 
-正式版还可简要列：等待回踩、本轮退出/未确认，以及 trade_date / 市场环境 / 候选数量。
+`POST_PEAK_FADE` 和 `DISTRIBUTION_RISK` 是硬排除，不得进入最终深研池，不得出现在“低风险启动机会”或“等待回踩”。
 
-核心解释始终围绕：
+特别注意：
 
-> **资金为什么正在进入 → 个股为什么仍未充分交易 → 什么价格值得参与 → 什么条件会证明判断错误。**
+- 从近期高点明显回撤但只是量能尚存，不等于新资金进入；
+- 放量负收益/高位回撤优先解释为分歧或兑现风险；
+- `active_pullback` 默认只允许 WAIT_PULLBACK/OBSERVE，只有新的 `REACCELERATION` 才能升级 READY。
+
+---
+
+## 6. Layer 3｜Directional Money Confirmation
+
+成交量必须结合价格方向解释。
+
+`STRONG_MONEY_CONFIRMATION` 按 `SKILL.md` 执行。仅有以下情况不够：
+
+- 1日/5日量比接近 1；
+- 过去曾经放过量；
+- 当前相对强度尚可但正从高点退潮；
+- 缩量反弹；
+- 负涨幅的巨量日。
+
+通过生命周期 + 资金确认后，目标保留约 8–12 只；不足时按实际数量继续，不凑数。
+
+---
+
+## 7. Layer 4｜Light Fundamental Risk Filter
+
+只做结构化快速排雷：
+
+- 收入与核心利润同步恶化
+- 归母与扣非严重背离
+- 经营现金流和盈利严重冲突
+- 一次性/非核心收益主导
+- 极端估值而核心增长不足
+- 明显重大风险
+
+PE/PB 不做低估值排序。
+
+从剩余候选中选择最终 **3–5 只**进入 Focused Deep Research；不足 3 只时按实际数量研究，不凑数。
+
+---
+
+## 8. Focused Deep Research｜必须真实执行
+
+最终 3–5 只，每家公司原则上进行 2–4 次定向公开查询，至少覆盖：
+
+1. 最新财报/业绩预告中的主营、归母、扣非；
+2. 利润变化来源及一次性收益风险；
+3. 近期重大公告：减持、监管、诉讼、资本运作、业绩预警；
+4. 行业景气/资金逻辑是否真的传导到公司；
+5. 为什么市场现在选择它，而不是只说明公司长期质量。
+
+优先公司公告、交易所/权威财经源、行业一手来源。
+
+单家公司关键事实无法确认：标记 `UNVERIFIED` 并从正式可执行机会移除，然后继续其他公司。单家公司失败不得导致整轮 FAILED。
+
+禁止只读取 runtime 后在几十秒内把 3–5 只全部视为“已深研”；正式输出必须能展示每只公司的深研事实摘要与来源依据。
+
+---
+
+## 9. 正式输出
+
+### A. 本轮资金趋势行业
+3–6 个真正仍有资金扩散的方向；区分 `TREND_FORMING` 与 `FUNDS_TESTING`。
+
+### B. 正式低风险启动榜
+只放通过生命周期、方向性资金、基本面与深研的股票。
+
+固定列：
+
+```text
+股票｜状态｜当前价｜合理买入区间｜低风险买入区间｜失效价/条件｜第一阻力位｜生命周期｜资金确认｜启动证据｜深研结论｜核心风险
+```
+
+状态只允许：
+
+- `READY_TO_WATCH_ENTRY`
+- `WAIT_PULLBACK`
+- `OBSERVE`
+- `UNVERIFIED`
+- `EXCLUDE_FADE`
+
+`EXCLUDE_FADE` 只在“退出/排除说明”中出现，不得给买入区间。
+
+### C. 退出/排除
+只列会解释为什么某只看似强势股票实际上已经属于退潮/分歧的关键证据。
+
+明确注明 trade_date、市场环境、原始候选数、生命周期后候选数、最终深研数。
+
+---
+
+## 10. 完成与容错
+
+允许发布正式榜的条件：
+
+- Hard Gate 通过
+- 全部 runtime candidates 完成生命周期判断
+- 行业资金聚合完成
+- 方向性资金确认完成
+- 轻量基本面排雷完成
+- 最终 3–5 只已完成 Focused Deep Research，或无法确认者已剔除
+
+不再要求 Frozen Ledger、G1/G2、多层 coverage、全候选 Deep Research。
+
+但也不得为了追求速度跳过生命周期门或最终 3–5 只深研。
+
+核心发布原则：
+
+> **宁可最终只有 1–2 只，也不能把“上一波涨过、现在退潮”的股票包装成低风险买点。**
