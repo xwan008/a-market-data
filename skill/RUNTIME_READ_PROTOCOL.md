@@ -1,10 +1,22 @@
 # A股低风险买点榜｜运行时执行协议
 
-本文件是唯一正式执行契约。每次正式执行必须遵守：
+本文件是唯一正式执行契约。
 
-> **Stage 0 先从全行业识别 T1/T2 并直选 3 个行业 → 只在这 3 个行业对应的 runtime 候选中执行旧版 Stage A / Stage B / Deep Research → 最终价格阶梯。**
+## 0. 唯一改动边界
 
-不得再使用版本化 V4/V5/V6 生命周期门、行业预资格门或兼容分支。
+相对原低风险流程，**只改行业入口这一处**：
+
+```text
+原流程：全部盈利/可研究行业 → 对应股票 → Stage A → Stage B Gate → Deep Research → 正式榜
+
+当前流程：全部盈利/可研究行业
+→ 直接读取 industry_state.json
+→ 从中选最近景气更好、资金正在集中进入的 3 个行业
+→ 只取这 3 个行业对应股票
+→ Stage A → Stage B Gate → Deep Research → 正式榜
+```
+
+除“先缩成 3 个行业”外，Stage A、Frozen Ledger、Stage B Gate、Deep Research、Unified Entry Evaluation、Risk Cluster、价格纪律与发布语义全部沿用原流程，不得因为行业入口变化而新增 lifecycle / activation / 额外行业 Gate。
 
 ---
 
@@ -18,8 +30,6 @@
 - `meta.screening_group_file`
 - `meta.candidate_file`
 - `data/research/industry_state.json`
-
-公开 Web 研究只在 Stage 0 行业研究和 Stage B 之后允许使用；Stage A 公司筛选必须 repository-only。
 
 每次触发都是新的独立事务，不复用上一轮 Stage A / Gate / Deep Research 结论。
 
@@ -37,54 +47,95 @@
 - `screening_group_validation.status == passed`；
 - `screening_group_validation.line_addressable == true`；
 - YoY 单位为 `percentage_points`；
-- runtime 使用正式旧版结构筛选字段：`structure_tier / strong_support / strong_volume_zone`。
+- runtime 使用正式旧版结构筛选字段：`structure_tier / strong_support / strong_volume_zone`；
+- `industry_state.json` 可解析、`status == valid`、trade date 与正式收盘一致。
 
-不存在 `industry_first_pool_applied`、`stock_lifecycle_gate_applied`、`selection_mode=industry_first_leading_prosperity_then_stock` 等额外硬门要求。
+只有这些客观 Hard Gate 失败才允许整轮 FAILED。
 
-Hard Gate 失败才允许整轮 FAILED。
+候选少、行业少、Stage A / Stage B 尚未完成，都不是 FAILED 理由；没有客观硬失败时必须继续执行。
 
 ---
 
-## 3. Stage 0｜全行业 T0/T1/T2 入口
+## 3. Stage 0｜industry_state 直接选 3 个行业
 
-### 3.1 行业扫描范围
+### 3.1 不做全行业公开研究
 
-Stage 0 从 `data/research/industry_state.json` 的完整申万三级行业集合开始，不能从 runtime 股票候选反推行业。
+Stage 0 **只读取 `data/research/industry_state.json`**。
 
-先利用仓库结构化事实建立全行业扫描底稿，再针对最有希望的产业方向查询公开资料，完成 `SKILL.md` 定义的两条独立证据链：
+禁止把 Stage 0 扩张成：
 
-1. 产业链：T0 / T1 / T2；
-2. 市场链：新异动 / 候选趋势 / 趋势确认 / 高潮衰退 / 失效。
+- 对 333 个行业逐一做公开研究；
+- 为证明“严格全市场前三”而额外联网；
+- 从热点新闻或个股反推行业；
+- 新建 T0/T1/T2 深研任务；
+- 在这一层研究公司。
 
-### 3.2 只选 3 个行业
+`industry_state.json` 已经提供行业盈利/景气与市场资金结构的确定性聚合底稿，Stage 0 的职责只是从中缩小搜索空间。
 
-正式入口只接受 T1 / T2。
+### 3.2 先沿用原来的盈利行业资格
 
-优先：
+行业基础资格沿用原流程，不新增条件：
 
 ```text
-T1 + 候选趋势
-T1 + 趋势确认但未过热
-T2 + 候选趋势
-T2 + 趋势确认但未过热
+trend == improving
+OR
+(trend == stable AND breadth in {broad, divergent})
 ```
 
-从有效方向中直选 3 个，生成：
+这一步只是得到“原来本来就会继续下钻”的盈利/可研究行业池。
+
+### 3.3 再从该池中选最近景气 + 资金最集中的 3 个
+
+选择只使用 `industry_state.json` 已有字段，不联网：
+
+**景气/盈利侧：**
+
+- `trend`
+- `strength`
+- `breadth`
+- `confidence`
+- `core_improving_breadth`
+- `aggregate_revenue_yoy`
+- `aggregate_parent_profit_yoy`
+
+**资金/市场侧：**
+
+- `market_confirmation`
+- `market_activity`
+- `market_breadth`
+- `market_metrics.breadth_score`
+- `market_metrics.median_volume_ratio_vs_20d`
+- `market_metrics.expanding_volume_share`
+- `market_metrics.day_up_ratio`
+- `market_metrics.strong_up_ratio`
+- `market_metrics.five_day_up_ratio`
+
+选择原则：
+
+1. 先保证行业仍属于原盈利/可研究池；
+2. 优先景气 `improving`、盈利改善广度更高、收入/利润趋势更好的行业；
+3. 在这些行业中优先 `market_confirmation=strong`、`market_activity=active`、上涨广度高、成交扩散明显、相对量能增强的方向；
+4. 目标是找“最近景气仍在 + 资金正在集中”的 3 个行业，不要求证明数学意义上的绝对 Top 3；
+5. 若满足条件不足 3 个，按实际数量；不得用明显弱行业凑数。
+
+产出：
 
 ```text
 selected_industry_codes
 selected_industry_names
 ```
 
-若有效 T1/T2 少于 3 个，则按实际数量；不得用 T0 凑数。
+固定以后，**Stage 0 立即结束**。
 
-### 3.3 行业层在此结束
+### 3.4 行业层到此为止
 
-固定 selected industries 后：
+从这一刻起：
 
-- 不得再使用产业状态、资金标签、行业成交量门槛继续删除公司；
-- 后续 Stage A / Stage B 只研究 selected industries 中已经存在于正式 runtime 的候选；
-- 若某 selected industry 在 runtime 中没有候选，明确记录 `NO_RUNTIME_CANDIDATE`，不替换为第 4 个行业，除非 Stage 0 本身判断第 3 个行业无效。
+- 不得再用行业景气标签删个股；
+- 不得再用行业资金标签删个股；
+- 不得引入 lifecycle / activation tier；
+- 不得因为某只股票“没有跟上行业当日上涨”就直接排除；
+- 个股是否值得研究，完全回到原 Stage A / Stage B / Deep Research 规则。
 
 ---
 
@@ -92,11 +143,13 @@ selected_industry_names
 
 `screening_group_file` 是 Stage A 正式工作视图。
 
-按 meta 中 `screening_group_serialization.line_count` 使用 40 行有界区间完整读取；不得依赖一次整文件返回。
+按 `meta.screening_group_serialization.line_count` 使用 40 行有界区间完整读取；不得依赖一次整文件返回。
 
 完整读取后，只保留 `industry_code in selected_industry_codes` 的完整申万三级组作为本轮 Stage A universe。
 
 一个行业组不可拆分到不同判断批次。
+
+若某 selected industry 没有 runtime candidate，记录 `NO_RUNTIME_CANDIDATE`；这不是 FAILED，也不自动用第 4 个行业替换。
 
 ---
 
@@ -108,7 +161,7 @@ selected_industry_names
 
 1. 先写 `BUILDING`；
 2. 记录本轮正式文件 blob SHA、trade_date、selected_industry_codes；
-3. 完成全部 selected-industry Stage A 后一次性写 `FROZEN`；
+3. 完成 selected-industry 全部 Stage A 后一次性写 `FROZEN`；
 4. 下一次触发必须重建，不得 resume。
 
 Stage A 期间禁止公司级外部 Web 研究。
@@ -117,14 +170,15 @@ Stage A 期间禁止公司级外部 Web 研究。
 
 ## 6. Stage A｜Structured Screening
 
-只处理 selected industries 的全部 runtime candidates。
+从这里开始完全沿用原低风险流程。
 
-按 `SKILL.md`：
+只处理 selected industries 的全部 runtime candidates：
 
-1. 先做 `PEER_DOMINATED`；
-2. 未被支配者做 `CLEARLY_WEAK / PASS_TO_DEEP_RESEARCH / UNCERTAIN`；
+1. `PEER_DOMINATED`；
+2. 未被支配者进入 `CLEARLY_WEAK / PASS_TO_DEEP_RESEARCH / UNCERTAIN`；
 3. 每只公司恰好一个 ledger entry；
-4. 不得 Top N、不设行业配额、不因为已有好公司提前停止。
+4. 不得 Top N、不设行业配额、不因为已有好公司提前停止；
+5. Stage A 防漏优先。
 
 完成条件：
 
@@ -132,15 +186,13 @@ Stage A 期间禁止公司级外部 Web 研究。
 stage_a_processed_codes == selected_industry_runtime_candidate_codes
 ```
 
-然后冻结 Ledger，派生 `deep_read_codes`。
-
-若 selected industries 中 runtime 候选为 0，则正式输出“行业选中但当前无旧版低风险结构候选”，不是 FAILED。
+然后冻结 Ledger，派生 `deep_read_codes = PASS + UNCERTAIN`。
 
 ---
 
 ## 7. Stage B｜Research Worthiness Gate
 
-对 Frozen Ledger 的全部 `deep_read_codes` 执行：
+Frozen Ledger Hard Gate 通过后，对全部 `deep_read_codes` 按 `SKILL.md` 原规则执行：
 
 ```text
 Q1 核心盈利可信度
@@ -149,7 +201,9 @@ Q1 核心盈利可信度
 → deep_research_required_codes
 ```
 
-Gate 必须使用 `SKILL.md` 的固定规则，不允许重新引入 lifecycle / activation tier / industry money gate。
+Gate 是研究预算分配，不是排名。
+
+不得引入新的行业门、资金门、lifecycle、activation tier 或 Top N。
 
 Gate coverage 必须完整闭合。
 
@@ -157,60 +211,66 @@ Gate coverage 必须完整闭合。
 
 ## 8. Deep Research
 
-必须穷尽 `deep_research_required_codes`。
+必须穷尽 `deep_research_required_codes`，完全沿用原规则。
 
-每家公司研究真实主营、盈利驱动、行业到公司的传导、盈利质量、周期位置、风险与正常化估值。
+允许分 batch，但 batch 只用于执行，不具有排名/淘汰意义。
 
-允许分批执行，但 batch 不具有排名/淘汰意义。
-
-Deep Research 终态只允许：
+公司终态只允许：
 
 - `confirmed`
 - `waiting_for_entry`
 - `research_uncertain`
 - `excluded`
 
-coverage 未闭合时不得提前发布正式榜。
+当前价格不好只能进入 `waiting_for_entry`，不能仅因价格不好 `excluded`。
+
+coverage 未闭合时不得主动结束或发布正式榜。
 
 ---
 
-## 9. Risk Cluster / 正式榜
+## 9. Unified Entry Evaluation / Risk Cluster / 价格纪律
 
-只有：
+完全沿用原流程：
 
-```text
-stage_a_coverage = COMPLETE
-stage_b_gate_coverage = COMPLETE
-deep_research_coverage = COMPLETE
-```
+- 正常化盈利区间；
+- 可辩护的保守估值；
+- conservative fair value；
+- `conservative_upside` 原则上 `>= 15%`；
+- 当前价原则上距离最终安全区约 5% 以内，或存在同等可量化下行保护；
+- Risk Cluster 只在 Stage B 与 Deep Research coverage 完成后做发布层去相关；
+- 不反向修改公司研究状态。
 
-才允许发布。
-
-Risk Cluster 只在最终发布层去相关，不反向修改公司研究状态。
-
-正式输出三部分：
-
-### A.【今日行业入口】
-
-```text
-行业｜产业阶段(T1/T2)｜市场阶段｜核心正向证据｜反向证据
-```
-
-固定最多 3 个。
-
-### B.【A股低风险买点榜】
+正式输出保留：
 
 ```text
 股票｜行业｜状态｜当前价｜合理买入区间｜低风险买入区间｜失效价/条件｜第一阻力位｜核心逻辑｜核心风险
 ```
 
+无可靠低风险区间写 `N/A`，不得制造价格。
+
+---
+
+## 10. 正式输出与漏斗
+
+### A.【今日行业入口】
+
+只说明从 `industry_state.json` 选出的最多 3 个行业：
+
+```text
+行业｜景气/盈利摘要｜资金集中摘要｜为什么进入今日入口
+```
+
+### B.【A股低风险买点榜】
+
+按原低风险流程输出。
+
 ### C.【筛选漏斗】
 
 至少给出：
 
-- 全行业扫描数量；
-- T1/T2 有效行业数量；
-- selected industries = 3 或实际数量；
+- `industry_state` 行业总数；
+- 原盈利/可研究行业池数量；
+- selected industries 数量；
 - selected industries 对应 runtime candidate 数；
 - Stage A PASS / UNCERTAIN 数；
 - Gate 后 Deep Research 数；
@@ -218,35 +278,14 @@ Risk Cluster 只在最终发布层去相关，不反向修改公司研究状态�
 
 ---
 
-## 10. 价格纪律
+## 11. 不变原则
 
-当前价使用 runtime 对应 `trade_date` 收盘价。
+> **唯一变化：把原来的“所有盈利行业一起下钻”缩成“先从这些行业中选最近景气 + 资金集中的 3 个，再下钻”。**
 
-价格区间综合：
+> **行业入口只缩小搜索空间，不替代原个股研究。**
 
-- 正常化盈利和保守估值；
-- MA20 / MA60；
-- 支撑；
-- 成交密集区；
-- 最近阻力；
-- invalidation。
+> **Stage 0 不做公开行业深研。**
 
-没有可辩护低风险区间写 `N/A`。
+> **Stage A / Stage B / Deep Research / 估值 / Risk Cluster 不因入口变化而重写。**
 
-当前价高于合理区间上沿，不得作为立即执行机会。
-
----
-
-## 11. 禁止漂移
-
-正式主线禁止重新加入：
-
-- activation tier / lifecycle 硬门；
-- EARNINGS_TRANSMITTING / FUNDS_ATTENTION 等额外选股资格层；
-- 5% 回撤一刀切；
-- 绝对量比单一资金门；
-- 先个股再反推行业；
-- V4 / V4.1 / V5 / V6 等版本分支；
-- 为了凑榜单改变规则。
-
-今后的修改应直接修改本主线，不再新增并行版本。
+> **没有客观 Hard Gate 失败时，模型没有主动 FAILED / STOPPED_EARLY 的权限。**
