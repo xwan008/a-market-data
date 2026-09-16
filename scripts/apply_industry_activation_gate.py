@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+"""Apply the V6 stock lifecycle gate after the industry-first snapshot.
+
+Important invariant: industry selection has already happened upstream. This file
+must NOT recreate a strict financial/volume industry gate from each stock row.
+Its only job is to classify stocks inside the prequalified industry pool into
+useful early/low-risk lifecycle states and reject genuine fade/distribution.
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -65,79 +73,7 @@ def at(row: list[Any], index: dict[str, int], name: str) -> Any:
     return row[pos]
 
 
-def industry_fundamental_stage(
-    row: list[Any], index: dict[str, int]
-) -> str | None:
-    trend = str(at(row, index, "industry_trend") or "")
-    strength = str(at(row, index, "industry_strength") or "")
-    confidence = str(at(row, index, "industry_confidence") or "")
-    revenue = num(at(row, index, "industry_aggregate_revenue_yoy"))
-    profit = num(at(row, index, "industry_aggregate_parent_profit_yoy"))
-    breadth = num(at(row, index, "industry_core_improving_breadth"))
-
-    if confidence not in {"medium", "high"}:
-        return None
-    if revenue is None or profit is None or breadth is None:
-        return None
-
-    if (
-        trend == "improving"
-        and strength == "strong"
-        and revenue >= 5.0
-        and profit >= 20.0
-        and breadth >= 0.60
-    ):
-        return "T2_PROFIT_TREND"
-
-    if (
-        trend == "improving"
-        and revenue >= 0.0
-        and profit >= 10.0
-        and breadth >= 0.55
-    ):
-        return "T1_PROSPERITY_CONFIRMED"
-
-    return None
-
-
-def industry_market_stage(
-    row: list[Any], index: dict[str, int]
-) -> str | None:
-    breadth = str(at(row, index, "industry_market_breadth") or "")
-    activity = str(at(row, index, "industry_market_activity") or "")
-    confirmation = str(at(row, index, "industry_market_confirmation") or "")
-    breadth_score = num(at(row, index, "industry_market_breadth_score"))
-    volume_ratio = num(at(row, index, "industry_median_volume_ratio_vs_20d"))
-    expanding_share = num(at(row, index, "industry_expanding_volume_share"))
-
-    if None in {breadth_score, volume_ratio, expanding_share}:
-        return None
-
-    if (
-        confirmation == "strong"
-        and breadth == "broad"
-        and activity == "active"
-        and volume_ratio >= 1.05
-        and expanding_share >= 0.50
-        and breadth_score >= 0.55
-    ):
-        return "TREND_FORMING"
-
-    if (
-        breadth == "broad"
-        and activity in {"normal", "active"}
-        and volume_ratio >= 1.05
-        and expanding_share >= 0.55
-        and breadth_score >= 0.55
-    ):
-        return "FUNDS_TESTING"
-
-    return None
-
-
-def drawdown_from_high(
-    row: list[Any], index: dict[str, int]
-) -> float | None:
+def drawdown_from_high(row: list[Any], index: dict[str, int]) -> float | None:
     price = num(at(row, index, "price"))
     high = num(at(row, index, "high_20d"))
     if price is None or high is None or high <= 0:
@@ -145,7 +81,15 @@ def drawdown_from_high(
     return max(0.0, (high - price) / high * 100.0)
 
 
-def is_reacceleration(row: list[Any], index: dict[str, int]) -> bool:
+def prior_swing_pct(row: list[Any], index: dict[str, int]) -> float | None:
+    high = num(at(row, index, "high_20d"))
+    low = num(at(row, index, "low_20d"))
+    if high is None or low is None or low <= 0:
+        return None
+    return max(0.0, (high / low - 1.0) * 100.0)
+
+
+def reacceleration(row: list[Any], index: dict[str, int]) -> bool:
     price = num(at(row, index, "price"))
     ma20 = num(at(row, index, "ma20"))
     day = num(at(row, index, "day_change_pct"))
@@ -164,19 +108,19 @@ def is_reacceleration(row: list[Any], index: dict[str, int]) -> bool:
         and rs20 is not None
         and vol1 is not None
         and dd is not None
-        and price >= ma20
+        and price >= ma20 * 0.99
         and day >= 2.0
-        and close5 >= 0.0
-        and ret20 <= 10.0
+        and close5 >= -1.0
+        and ret20 <= 12.0
         and rs20 > 0.0
         and vol1 >= 1.50
-        and dd <= 4.0
+        and dd <= 6.0
     )
 
 
-def stock_lifecycle_stage(
+def classify_lifecycle(
     row: list[Any], index: dict[str, int]
-) -> str | None:
+) -> tuple[str | None, str | None, float | None, float | None]:
     tier = str(at(row, index, "activation_tier") or "")
     chase = str(at(row, index, "chase_risk") or "")
     price = num(at(row, index, "price"))
@@ -188,22 +132,22 @@ def stock_lifecycle_stage(
     vol5 = num(at(row, index, "volume_ratio_5d_vs_20d"))
     close5 = num(at(row, index, "close_change_5d_pct"))
     position = num(at(row, index, "position_pct"))
+    support_distance = num(at(row, index, "support_distance_pct"))
+    distance_ma20 = num(at(row, index, "distance_to_ma20_pct"))
     breakout = at(row, index, "breakout_confirmed") is True
+    strong_volume_zone = at(row, index, "strong_volume_zone") is True
     dd = drawdown_from_high(row, index)
+    swing = prior_swing_pct(row, index)
 
-    if chase == "high" or price is None or ret20 is None or rs20 is None:
-        return None
-    if dd is None:
-        return None
+    if chase == "high":
+        return None, "high_chase_risk", dd, swing
+    if price is None or ret20 is None or rs20 is None or dd is None:
+        return None, "lifecycle_data_missing", dd, swing
 
-    reaccel = is_reacceleration(row, index)
+    is_reaccel = reacceleration(row, index)
 
-    # Explicit fade / distribution protection. A stock that already had a run
-    # must prove fresh re-acceleration before it can re-enter the research pool.
-    if dd >= 5.0 and not reaccel:
-        return None
-    if dd >= 3.0 and close5 is not None and close5 < 0.0 and not reaccel:
-        return None
+    # Distribution is directional: high volume on a falling day after a pullback
+    # is not interpreted as fresh money entering.
     if (
         day is not None
         and day < 0.0
@@ -211,80 +155,132 @@ def stock_lifecycle_stage(
         and vol1 >= 1.50
         and dd >= 3.0
     ):
-        return None
+        return None, "distribution_risk", dd, swing
+
+    # A completed large swing followed by a weakening pullback is the pattern we
+    # previously misclassified as low-risk. Exclude it unless a fresh reaccel is
+    # already visible.
     if (
-        position is not None
-        and position >= 70.0
-        and dd >= 3.0
-        and (day is None or day <= 0.0)
-        and not reaccel
-    ):
-        return None
-    if (
-        ma20 is not None
-        and price < ma20
+        swing is not None
+        and swing >= 18.0
+        and dd >= 5.0
         and close5 is not None
         and close5 < 0.0
-        and not reaccel
+        and not is_reaccel
     ):
-        return None
+        return None, "post_peak_fade", dd, swing
+
+    if (
+        ma20 is not None
+        and price < ma20 * 0.97
+        and close5 is not None
+        and close5 < 0.0
+        and not is_reaccel
+    ):
+        return None, "structure_lost", dd, swing
+
+    if (
+        position is not None
+        and position >= 75.0
+        and dd >= 5.0
+        and close5 is not None
+        and close5 < 0.0
+        and vol5 is not None
+        and vol5 >= 1.10
+        and not is_reaccel
+    ):
+        return None, "high_zone_fade", dd, swing
+
+    if tier == "active_pullback" and is_reaccel:
+        return "REACCELERATION", None, dd, swing
 
     if (
         tier == "starting_breakout"
         and breakout
-        and ret20 <= 12.0
+        and ret20 <= 15.0
         and rs20 > 0.0
-        and dd <= 2.0
+        and dd <= 3.0
         and (day is None or day >= 0.0)
-        and (
-            (vol1 is not None and vol1 >= 1.30)
-            or (vol5 is not None and vol5 >= 1.15)
-        )
-    ):
-        return "FRESH_ACTIVATION"
-
-    if (
-        tier == "pre_breakout"
-        and ret20 <= 10.0
-        and rs20 >= 0.0
-        and dd <= 5.0
         and (
             (vol1 is not None and vol1 >= 1.20)
             or (vol5 is not None and vol5 >= 1.10)
         )
     ):
-        return "PRE_BREAKOUT"
+        return "FRESH_ACTIVATION", None, dd, swing
+
+    if (
+        tier == "pre_breakout"
+        and ret20 <= 12.0
+        and rs20 >= -0.5
+        and dd <= 8.0
+        and (ma20 is None or price >= ma20 * 0.97)
+        and (
+            (vol1 is not None and vol1 >= 1.00)
+            or (vol5 is not None and vol5 >= 1.00)
+            or strong_volume_zone
+        )
+    ):
+        return "PRE_BREAKOUT", None, dd, swing
 
     if (
         tier == "accumulation_base"
-        and ret20 <= 8.0
+        and ret20 <= 10.0
         and rs20 >= -1.0
-        and vol1 is not None
-        and vol1 >= 1.20
-        and vol5 is not None
-        and vol5 >= 1.05
+        and dd <= 10.0
+        and (
+            (vol1 is not None and vol1 >= 1.00)
+            or (vol5 is not None and vol5 >= 1.00)
+            or strong_volume_zone
+        )
     ):
-        return "ACCUMULATION_READY"
+        return "ACCUMULATION_READY", None, dd, swing
 
     if (
         tier == "early_trend"
-        and ret20 <= 10.0
+        and ret20 <= 12.0
         and rs20 > 0.0
-        and dd <= 3.0
+        and dd <= 5.0
         and close5 is not None
-        and close5 >= 1.0
-        and (ma20 is None or price >= ma20)
+        and close5 >= 0.0
+        and (ma20 is None or price >= ma20 * 0.98)
         and (
-            (vol1 is not None and vol1 >= 1.20)
-            or (vol5 is not None and vol5 >= 1.15)
+            (vol1 is not None and vol1 >= 1.10)
+            or (vol5 is not None and vol5 >= 1.05)
         )
     ):
-        return "EARLY_EXPANSION"
+        return "EARLY_EXPANSION", None, dd, swing
 
-    if tier == "active_pullback" and reaccel:
-        return "REACCELERATION"
+    # The key V6 repair: a broad-market selloff can create a better entry in a
+    # strong industry. A healthy first pullback is allowed when the prior move was
+    # not excessive, relative strength remains intact, the stock stays near MA20/
+    # support, and volume does not look like distribution.
+    if tier in {"active_pullback", "early_trend"}:
+        near_structure = (
+            (distance_ma20 is not None and abs(distance_ma20) <= 3.0)
+            or (support_distance is not None and support_distance <= 4.0)
+            or strong_volume_zone
+        )
+        pullback_volume_ok = (
+            vol5 is None
+            or vol5 <= 1.10
+            or (day is not None and day > 0.0 and vol1 is not None and vol1 >= 1.10)
+        )
+        prior_move_not_excessive = (
+            swing is None or swing <= 18.0 or ret20 <= 8.0
+        )
+        if (
+            2.0 <= dd <= 8.0
+            and ret20 <= 12.0
+            and rs20 >= 0.0
+            and (ma20 is None or price >= ma20 * 0.97)
+            and (close5 is None or close5 >= -6.0)
+            and near_structure
+            and pullback_volume_ok
+            and prior_move_not_excessive
+        ):
+            return "HEALTHY_FIRST_PULLBACK", None, dd, swing
 
-    return None
+    return None, "stock_not_early_or_low_risk", dd, swing
 
 
 def main() -> None:
@@ -297,90 +293,92 @@ def main() -> None:
     meta = load_json(meta_path)
     candidate_path = Path(meta["candidate_file"])
     candidate = load_json(candidate_path)
-    columns = candidate.get("columns") or []
+    columns = list(candidate.get("columns") or [])
     rows = candidate.get("rows") or []
     index = {name: i for i, name in enumerate(columns)}
+
+    industry_pool = ((meta.get("snapshot") or {}).get("industry_pool") or {})
+    if not isinstance(industry_pool, dict) or not industry_pool:
+        raise SystemExit("V6 requires snapshot.industry_pool to be non-empty")
 
     required = {
         "code",
         "price",
         "industry_code",
-        "industry_trend",
-        "industry_strength",
-        "industry_confidence",
-        "industry_core_improving_breadth",
-        "industry_aggregate_revenue_yoy",
-        "industry_aggregate_parent_profit_yoy",
-        "industry_market_breadth",
-        "industry_market_activity",
-        "industry_market_confirmation",
-        "industry_market_breadth_score",
-        "industry_median_volume_ratio_vs_20d",
-        "industry_expanding_volume_share",
         "activation_tier",
         "chase_risk",
         "volume_ratio_1d_vs_20d",
         "volume_ratio_5d_vs_20d",
         "relative_strength_20d_vs_market_pct",
         "return_20d_pct",
+        "distance_to_ma20_pct",
         "close_change_5d_pct",
         "high_20d",
+        "low_20d",
         "ma20",
         "position_pct",
+        "support_distance_pct",
+        "strong_volume_zone",
         "breakout_confirmed",
     }
     missing = sorted(required - set(columns))
     if missing:
-        raise SystemExit(f"industry-activation gate missing columns: {missing}")
+        raise SystemExit(f"stock lifecycle gate missing columns: {missing}")
 
     kept: list[list[Any]] = []
-    fundamental_counts: Counter[str] = Counter()
-    market_counts: Counter[str] = Counter()
     lifecycle_counts: Counter[str] = Counter()
     rejection_counts: Counter[str] = Counter()
-    eligible_industries: set[str] = set()
+    kept_industries: set[str] = set()
 
     for row in rows:
-        fundamental_stage = industry_fundamental_stage(row, index)
-        if not fundamental_stage:
-            rejection_counts["industry_fundamental_gate"] += 1
+        industry_code = str(at(row, index, "industry_code") or "")
+        if industry_code not in industry_pool:
+            rejection_counts["industry_pool_mismatch"] += 1
             continue
-        fundamental_counts[fundamental_stage] += 1
 
-        market_stage = industry_market_stage(row, index)
-        if not market_stage:
-            rejection_counts["industry_money_flow_gate"] += 1
+        stage, reason, dd, swing = classify_lifecycle(row, index)
+        if not stage:
+            rejection_counts[str(reason or "unknown")] += 1
             continue
-        market_counts[market_stage] += 1
 
-        lifecycle = stock_lifecycle_stage(row, index)
-        if not lifecycle:
-            rejection_counts["stock_not_early_activation"] += 1
-            continue
-        lifecycle_counts[lifecycle] += 1
+        kept.append([*row, stage, dd, swing])
+        lifecycle_counts[stage] += 1
+        kept_industries.add(industry_code)
 
-        kept.append(row)
-        eligible_industries.add(str(at(row, index, "industry_code") or ""))
+    output_columns = [
+        *columns,
+        "stock_lifecycle_stage",
+        "drawdown_from_20d_high_pct",
+        "prior_20d_swing_pct",
+    ]
 
     source_count = int(candidate.get("source_candidate_count") or len(rows))
     rule = {
-        "selection_mode": "industry_dual_confirm_then_early_stock",
-        "industry_fundamental_gate": ["T1_PROSPERITY_CONFIRMED", "T2_PROFIT_TREND"],
-        "industry_market_gate": ["FUNDS_TESTING", "TREND_FORMING"],
+        "selection_mode": "industry_first_leading_prosperity_then_stock",
+        "industry_prefilter": [
+            "PROFIT_TREND_CONFIRMED",
+            "EARNINGS_IMPROVING",
+            "EARNINGS_TRANSMITTING",
+        ],
+        "industry_market_prefilter": ["FUNDS_ATTENTION", "FUNDS_ENTERING"],
+        "leading_prosperity_public_research_required": True,
+        "stock_universe_scope": (
+            "all structurally usable profitable companies inside prequalified industries"
+        ),
         "stock_lifecycle_gate": [
             "PRE_BREAKOUT",
             "ACCUMULATION_READY",
             "FRESH_ACTIVATION",
             "EARLY_EXPANSION",
+            "HEALTHY_FIRST_PULLBACK",
             "REACCELERATION",
         ],
         "post_peak_fade_allowed": False,
         "distribution_risk_allowed": False,
-        "active_pullback_requires_reacceleration": True,
         "valuation_hard_ceiling": None,
         "note": (
-            "industry prosperity/profitability is the first gate; industry money flow "
-            "is the second gate; only then may early-stage stocks enter research"
+            "industry comes first; public leading-indicator research confirms prosperity; "
+            "healthy first pullbacks are allowed, completed-wave fades are not"
         ),
     }
 
@@ -393,39 +391,47 @@ def main() -> None:
     header["candidate_count"] = len(kept)
     header["structural_rule"] = rule
     header["selection_funnel"] = {
+        "prequalified_industry_count": len(industry_pool),
+        "pre_lifecycle_rows": len(rows),
+        "post_lifecycle_rows": len(kept),
+        "post_lifecycle_industry_count": len(kept_industries),
+        "stock_lifecycle_stage_counts": dict(sorted(lifecycle_counts.items())),
+        "rejection_counts": dict(sorted(rejection_counts.items())),
+        # Compatibility aliases for older display code only.
         "pre_gate_rows": len(rows),
         "post_gate_rows": len(kept),
-        "eligible_industry_count": len(eligible_industries),
-        "industry_fundamental_stage_counts": dict(fundamental_counts),
-        "industry_market_stage_counts": dict(market_counts),
-        "stock_lifecycle_stage_counts": dict(lifecycle_counts),
-        "rejection_counts": dict(rejection_counts),
+        "eligible_industry_count": len(kept_industries),
     }
-    write_row_json(candidate_path, header, columns, kept)
+    write_row_json(candidate_path, header, output_columns, kept)
 
     meta["source_candidate_count"] = source_count
     meta["candidate_count"] = len(kept)
     meta["structural_relevance_count"] = len(kept)
+    meta["candidate_columns"] = output_columns
     meta["structural_rule"] = rule
     meta["selection_funnel"] = header["selection_funnel"]
     validation = meta.get("runtime_validation") or {}
     validation["status"] = "passed"
-    validation["industry_dual_confirm_gate_applied"] = True
-    validation["post_gate_candidate_count"] = len(kept)
-    validation["eligible_industry_count"] = len(eligible_industries)
+    validation["industry_first_pool_applied"] = True
+    validation["stock_lifecycle_gate_applied"] = True
+    validation["prequalified_industry_count"] = len(industry_pool)
+    validation["post_lifecycle_candidate_count"] = len(kept)
+    validation["post_lifecycle_industry_count"] = len(kept_industries)
+    validation.pop("industry_dual_confirm_gate_applied", None)
+    validation.pop("post_gate_candidate_count", None)
+    validation.pop("eligible_industry_count", None)
     meta["runtime_validation"] = validation
     write_json(meta_path, meta)
 
     print(
         json.dumps(
             {
-                "pre_gate": len(rows),
-                "post_gate": len(kept),
-                "industries": len(eligible_industries),
-                "fundamental_stages": dict(fundamental_counts),
-                "market_stages": dict(market_counts),
-                "lifecycle_stages": dict(lifecycle_counts),
-                "rejections": dict(rejection_counts),
+                "prequalified_industries": len(industry_pool),
+                "pre_lifecycle": len(rows),
+                "post_lifecycle": len(kept),
+                "post_lifecycle_industries": len(kept_industries),
+                "lifecycle_stages": dict(sorted(lifecycle_counts.items())),
+                "rejections": dict(sorted(rejection_counts.items())),
             },
             ensure_ascii=False,
             separators=(",", ":"),
