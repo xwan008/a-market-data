@@ -183,10 +183,6 @@ jobs:
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/build_industry_state.py
 
-      - name: Build full-market price-volume activation state
-        if: steps.gate.outputs.persist == 'true'
-        run: python scripts/build_full_market_price_structure.py
-
       - name: Build compact candidate snapshot
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/build_snapshot.py --source . --output data/snapshot.json
