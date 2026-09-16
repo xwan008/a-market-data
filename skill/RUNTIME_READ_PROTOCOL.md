@@ -30,7 +30,7 @@ V4 明确废止旧流程中的：
 
 ---
 
-## 2. 正式输入
+## 2. 正式输入｜执行期只依赖紧凑 runtime
 
 每次 19:00 正式版或手动正式触发，模型只读取当前 `main` 下：
 
@@ -38,23 +38,48 @@ V4 明确废止旧流程中的：
 - `skill/SKILL.md`
 - `data/runtime/meta.json`
 - `meta.candidate_file`（通常为 `data/runtime/candidates.json`）
+
+这四项是 V4 模型执行期的唯一必读输入。
+
+以下文件均属于生成期来源或可选诊断信息，不得作为模型执行期 Hard Gate 的必读条件：
+
+- `data/research/full_market_price_structure.json`
 - `data/research/industry_state.json`
+- `data/runtime/screening_groups.json`
+- 历史 Ledger / probe / 旧榜单
 
-`screening_groups.json` 仅允许作为可选诊断信息，不是必读输入，不得因为没有完整消费 screening groups 而阻止发布。
+### 2.1 为什么不直接读取全市场生成期文件
 
-### 2.1 生成期中间文件边界
+`full_market_price_structure.json` 与 `industry_state.json` 在数据生成阶段负责把全市场原始状态压缩成正式 runtime。
 
-`data/research/full_market_price_structure.json` 是 **runtime 生成期中间文件**，不是模型执行期正式输入。
+生成链中：
 
-生成链必须先运行 `scripts/build_full_market_price_structure.py`，随后 `scripts/build_snapshot.py` 会读取该文件，并在生成 snapshot 前硬校验：
+1. `build_full_market_price_structure.py` 生成全市场量价/相对强度状态；
+2. `build_industry_state.py` 生成行业 breadth/activity/confirmation；
+3. `build_snapshot.py` 读取并校验这些来源，其中明确要求：
 
 ```text
 full_market_price_structure.reference_trade_date == snapshot trade_date
 ```
 
-如果该文件缺失、不可解析或日期不一致，snapshot/runtime 构建必须失败，因此不会产生 `runtime_validation.status == "passed"` 的正式 runtime。
+4. `build_runtime.py` 再把正式需要的行业与个股字段压缩进 `candidates.json` / `meta.json`；
+5. 只有全部生成期校验通过，才允许 `meta.runtime_validation.status == "passed"`。
 
-模型执行期不得为了重复验证生成期事实而直接读取这个全市场巨型文件。个股量价启动结论必须使用已经压缩进入 `candidate_file` 的：
+因此模型执行期不得再次读取全市场巨型中间文件重复验证同一事实，避免连接器截断、大文件读取失败造成伪 FAILED。
+
+### 2.2 candidate_file 已包含正式需要的市场证据
+
+行业资金字段：
+
+- `industry_market_breadth`
+- `industry_market_activity`
+- `industry_market_confirmation`
+- `industry_market_breadth_score`
+- `industry_median_volume_ratio_vs_20d`
+- `industry_expanding_volume_share`
+- `industry_trend / strength / breadth`
+
+个股启动字段：
 
 - `activation_tier`
 - `activation_structure_type`
@@ -64,26 +89,27 @@ full_market_price_structure.reference_trade_date == snapshot trade_date
 - `volume_ratio_5d_vs_20d`
 - `relative_strength_20d_vs_market_pct`
 - `return_10d_pct / return_20d_pct`
-- `breakout_*`
+- `breakout_confirmed / breakout_volume_confirmed / breakout_close_confirmed`
 - `downside_to_invalidation_pct`
 
-这样避免因为连接器无法完整返回大型生成期文件而产生伪硬失败。
+模型必须以这些压缩后的正式字段完成 Layer 1 / Layer 2，不得为了“更完整”回头消费全市场生成期文件。
 
 ### Runtime Hard Gate
 
 必须满足：
 
 - `meta.runtime_validation.status == "passed"`；
-- `snapshot.market_status == "closed"`；
-- `meta.snapshot.trade_date` 与 `candidate_file.trade_date` 一致；
-- `industry_state.baseline_trade_date == meta.snapshot.trade_date`；
+- `meta.snapshot.market_status == "closed"`；
+- `meta.snapshot.trade_date == candidate_file.trade_date`；
 - candidate 文件存在、可解析、code 唯一；
+- `candidate_file.candidate_count == len(rows) == meta.candidate_count`；
+- candidate columns 与 `meta.candidate_columns` 一致；
 - candidate 中 `activation_tier` 属于 V4 合法集合；
-- candidate 中量价启动核心字段存在，并与 `meta.candidate_columns` 一致。
+- 行业资金字段和个股量价启动核心字段存在。
 
-**不得因为 `full_market_price_structure.json` 无法被模型连接器完整读取而判定 FAILED。** 它的完整性与日期一致性属于生成期责任，由 snapshot/runtime 构建结果承担。
+不得因为任何生成期大文件无法被模型连接器完整读取而判定 FAILED。
 
-只有模型执行期正式输入不可读、日期不一致或 runtime 校验失败才属于硬失败。
+只有上述模型执行期正式输入不可读、日期不一致或 runtime 校验失败才属于硬失败。
 
 ---
 
@@ -93,7 +119,7 @@ full_market_price_structure.reference_trade_date == snapshot trade_date
 Bootstrap / Runtime Hard Gate
 ↓
 Layer 1｜Industry Money Flow
-全行业判断资金试探与趋势形成
+基于候选中携带的行业资金字段聚合判断
 ↓
 保留约 5–10 个有效行业方向
 ↓
@@ -116,18 +142,20 @@ Targeted Public Research
 
 ### 3.1 Layer 1｜Industry Money Flow
 
-必须以 `industry_state.json` 的市场证据为主：
+从 candidate_file 按 `industry_code` 聚合，使用同一行业候选携带的市场字段判断资金试探与趋势形成：
 
-- `market_breadth`
-- `market_activity`
-- `market_confirmation`
-- `market_metrics.breadth_score`
-- `market_metrics.median_volume_ratio_vs_20d`
-- `market_metrics.expanding_volume_share`
+- `industry_market_breadth`
+- `industry_market_activity`
+- `industry_market_confirmation`
+- `industry_market_breadth_score`
+- `industry_median_volume_ratio_vs_20d`
+- `industry_expanding_volume_share`
 
-行业基本面 `trend / aggregate_revenue_yoy / aggregate_parent_profit_yoy` 只做风险修正，不作为资金趋势的替代证据。
+行业基本面 `industry_trend / industry_aggregate_revenue_yoy / industry_aggregate_parent_profit_yoy` 只做风险修正，不作为资金趋势的替代证据。
 
-优先研究“资金试探 / 趋势形成”阶段；已明显过热或市场确认弱的行业不作为新机会核心来源。
+优先研究“资金试探 / 趋势形成”阶段；已明显过热或市场确认弱的方向不作为新机会核心来源。
+
+如果最终有效行业少于 5 个，按实际数量继续，不凑数，不 FAILED。
 
 ### 3.2 Layer 2｜Stock Activation
 
@@ -216,7 +244,7 @@ PE/PB 是风险修正，不是排序发动机。低 PE 不自动加分。
 
 - Runtime Hard Gate 通过；
 - candidate 文件完整消费；
-- 行业资金趋势完成；
+- 行业资金趋势聚合完成；
 - 轻量基本面排雷完成；
 - 对选中的最终 5–8 只完成定向研究，或将无法确认者标记 UNVERIFIED 并移除。
 
@@ -226,9 +254,9 @@ PE/PB 是风险修正，不是排序发动机。低 PE 不自动加分。
 - 全候选逐只外部资料查询；
 - Frozen Ledger；
 - Gate coverage / Deep Research coverage 双闭合；
-- 模型执行期直接读取全市场生成期中间文件。
+- 模型执行期直接读取行业/全市场生成期大文件。
 
-只有模型执行期正式输入不可读、校验失败或关键工具完全不可用且无法继续时，整轮才允许 FAILED。
+只有模型执行期四个正式输入不可读、校验失败或关键工具完全不可用且无法继续时，整轮才允许 FAILED。
 
 ---
 
