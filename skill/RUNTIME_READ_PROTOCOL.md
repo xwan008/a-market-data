@@ -18,11 +18,15 @@
 
 除“先缩成 3 个行业”外，Stage A、Frozen Ledger、Stage B Gate、Deep Research、Unified Entry Evaluation、Risk Cluster、价格纪律与发布语义全部沿用原流程，不得因为行业入口变化而新增 lifecycle / activation / 额外行业 Gate。
 
+`research/latest_formal_result.json` 仅用于把**已经完整完成的正式收盘研究结果**交给次日 07:00 早间版；它不是 Stage A / Stage B 的历史缓存，也不得用于下一轮正式版跳过任何研究步骤。
+
 ---
 
 ## 1. 正式输入
 
-每次 19:00 收盘正式版或手动正式触发，读取当前 `main`：
+### 1.1 19:00 收盘正式版 / 手动正式版
+
+每次读取当前 `main`：
 
 - `skill/RUNTIME_READ_PROTOCOL.md`
 - `skill/SKILL.md`
@@ -33,11 +37,21 @@
 
 每次触发都是新的独立事务，不复用上一轮 Stage A / Gate / Deep Research 结论。
 
+### 1.2 07:00 早间版
+
+早间版读取：
+
+- `skill/RUNTIME_READ_PROTOCOL.md`
+- `research/latest_formal_result.json`
+- 当前最新有效正式收盘 `data/runtime/meta.json`（只用于校验 trade_date / runtime 身份，不重新选股）
+
+早间版不得把 `latest_formal_result.json` 当作新的正式选股运行输入；它只用于隔夜风险检查与昨日计划的确认/降级/失效提示。
+
 ---
 
 ## 2. Bootstrap / Runtime Hard Gate
 
-必须确认：
+19:00 / 手动正式版必须确认：
 
 - `runtime_validation.status == passed`；
 - snapshot 为当前最近有效正式收盘；
@@ -278,14 +292,167 @@ coverage 未闭合时不得主动结束或发布正式榜。
 
 ---
 
-## 11. 不变原则
+## 11. 正式结果持久化｜19:00 / 手动正式版成功后的唯一交接
 
-> **唯一变化：把原来的“所有盈利行业一起下钻”缩成“先从这些行业中选最近景气 + 资金集中的 3 个，再下钻”。**
+### 11.1 持久化文件
+
+唯一正式交接文件：
+
+```text
+research/latest_formal_result.json
+```
+
+它保存**最近一次完整成功的正式版结果**，供次日 07:00 使用。
+
+它不得被 Stage A / Gate / Deep Research 用于跳过、恢复、缓存或复用公司研究结论。
+
+### 11.2 只有完整成功才能覆盖
+
+只有同时满足以下条件，才允许写入/覆盖 `latest_formal_result.json`：
+
+```text
+runtime_hard_gate = PASSED
+stage_a_coverage = COMPLETE
+stage_b_gate_coverage = COMPLETE
+deep_research_coverage = COMPLETE
+publication_ready = true
+```
+
+FAILED / INCOMPLETE / UNVERIFIED / coverage 未闭合的运行**绝不能覆盖上一份 COMPLETE 文件**。
+
+因此昨晚正式版失败时，早间版仍可继续读取更早一份仍有效的 COMPLETE 结果；不得用失败半成品替换它。
+
+### 11.3 最小正式结构
+
+`latest_formal_result.json` 至少包含：
+
+```json
+{
+  "schema_version": 1,
+  "result_kind": "a_share_low_risk_formal_result",
+  "status": "COMPLETE",
+  "trade_date": "YYYY-MM-DD",
+  "run_id": "...",
+  "published_at": "...+08:00",
+  "source_runtime_trade_date": "YYYY-MM-DD",
+  "source_runtime_commit_sha": "...",
+  "selected_industries": [
+    {
+      "code": "...",
+      "name": "...",
+      "prosperity_summary": "...",
+      "fund_concentration_summary": "..."
+    }
+  ],
+  "confirmed": [],
+  "waiting_for_entry": [],
+  "research_uncertain": [],
+  "excluded": [],
+  "funnel": {}
+}
+```
+
+每个 `confirmed` / `waiting_for_entry` 至少保存：
+
+- `code`
+- `name`
+- `industry_code`
+- `industry_name`
+- `status`
+- `current_price`
+- `reasonable_price_range`
+- `low_risk_buy_range`
+- `invalidation_price_or_condition`
+- `first_resistance`
+- `primary_profit_driver`
+- `dominant_risk_factor`
+- `core_logic`
+- `core_risk`
+
+`research_uncertain` / `excluded` 可以保存精简审计信息，但不得伪装成早间可执行候选。
+
+### 11.4 写入顺序与并发保护
+
+正式版完成公司研究与价格阶梯后：
+
+1. 构造完整 `latest_formal_result.json`；
+2. 若文件不存在则 create；存在则先读取当前 blob SHA 再 update；
+3. 写入后立即回读；
+4. 校验 `status == COMPLETE`、`trade_date`、`run_id`、selected industries、confirmed/waiting 集合与本轮最终结果一致；
+5. 校验通过后，才认为正式版的“发布 + 次日交接”事务 COMPLETE。
+
+如果发生写入冲突，必须先重新读取当前文件：
+
+- 若当前文件已经是**更晚 trade_date / 更晚正式 run** 的 COMPLETE 结果，不得回退覆盖；
+- 若当前文件仍是旧结果，可以用最新 SHA 重试一次；
+- 仍失败则记录 `FORMAL_RESULT_PERSISTENCE_FAILED`，不得声称早间交接已完成。
+
+---
+
+## 12. 07:00 早间版｜只做隔夜检查，不重新选股
+
+### 12.1 交接 Hard Gate
+
+07:00 首先读取 `research/latest_formal_result.json`，要求：
+
+```text
+result_kind == a_share_low_risk_formal_result
+status == COMPLETE
+trade_date == 当前最新有效正式收盘 runtime.trade_date
+source_runtime_trade_date == trade_date
+selected_industries 可解析且数量 1..3
+confirmed / waiting_for_entry 可解析
+```
+
+如果文件缺失、`EMPTY`、非 COMPLETE、trade_date 与当前最新有效正式收盘不一致或结构损坏：
+
+```text
+MORNING_HANDOFF_UNAVAILABLE
+```
+
+此时只说明缺少有效正式交接，**不得**从 runtime candidates 重新推测昨日 selected industries / confirmed / waiting，也不得启动 Stage 0 / Stage A / Deep Research。
+
+### 12.2 早间只允许检查什么
+
+早间版只围绕上一份 COMPLETE 结果中的：
+
+- `selected_industries`
+- `confirmed`
+- `waiting_for_entry`
+
+检查隔夜公开变量是否改变原判断，例如：
+
+- 对应商品价格 / 价差；
+- 海外同产业链公司表现；
+- 美元指数、美债收益率；
+- Nasdaq / 半导体等相关海外风险资产；
+- 中国资产海外表现；
+- 重大政策、公司公告、产业突发事件。
+
+输出只允许：
+
+- `NORMAL`：没有足以改变昨日计划的新信息；
+- `CAUTION`：出现需要降低执行积极性或等待确认的新风险；
+- `RISK_OFF`：出现直接触发昨日失效逻辑或显著破坏核心假设的新信息。
+
+早间版不得产生新的正式 selected industries、不得新增股票、不得重算完整估值、不得把 waiting 自动升级为 confirmed；真正的新选股与状态重建留给下一次正式版。
+
+---
+
+## 13. 不变原则
+
+> **唯一选股逻辑变化：把原来的“所有盈利行业一起下钻”缩成“先从这些行业中选最近景气 + 资金集中的 3 个，再下钻”。**
+
+> **正式结果持久化只解决 19:00 → 07:00 状态交接，不改变任何选股判断。**
 
 > **行业入口只缩小搜索空间，不替代原个股研究。**
 
 > **Stage 0 不做公开行业深研。**
 
-> **Stage A / Stage B / Deep Research / 估值 / Risk Cluster 不因入口变化而重写。**
+> **Stage A / Stage B / Deep Research / 估值 / Risk Cluster 不因入口变化或持久化机制而重写。**
+
+> **失败/未完成正式版永不覆盖上一份 COMPLETE 结果。**
+
+> **07:00 只读取 COMPLETE 结果做隔夜风险检查，不重新选股。**
 
 > **没有客观 Hard Gate 失败时，模型没有主动 FAILED / STOPPED_EARLY 的权限。**
