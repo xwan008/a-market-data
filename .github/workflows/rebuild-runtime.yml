@@ -35,9 +35,6 @@ jobs:
       - name: Ensure industry-state unit contract
         run: python scripts/ensure_industry_state_contract.py data/research/industry_state.json
 
-      - name: Rebuild full-market price-volume activation state
-        run: python scripts/build_full_market_price_structure.py
-
       - name: Rebuild compact snapshot from repository data
         run: |
           python scripts/build_snapshot.py --source . --output data/snapshot.json
@@ -53,12 +50,12 @@ jobs:
       - name: Commit rebuilt research data
         shell: bash
         run: |
-          if ! git status --porcelain -- data/research/full_market_price_structure.json data/research/industry_state.json data/snapshot.json data/runtime | grep -q .; then
+          if ! git status --porcelain -- data/research/industry_state.json data/snapshot.json data/runtime | grep -q .; then
             echo "research snapshot/runtime unchanged"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A data/research/full_market_price_structure.json data/research/industry_state.json data/snapshot.json data/runtime
-          git commit -m "data: rebuild V4 ChatGPT research runtime"
+          git add -A data/research/industry_state.json data/snapshot.json data/runtime
+          git commit -m "data: rebuild low-risk research runtime"
           git push origin HEAD:main
