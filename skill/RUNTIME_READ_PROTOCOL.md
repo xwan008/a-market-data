@@ -32,16 +32,42 @@ V4 明确废止旧流程中的：
 
 ## 2. 正式输入
 
-每次 19:00 正式版或手动正式触发，读取当前 `main` 下：
+每次 19:00 正式版或手动正式触发，模型只读取当前 `main` 下：
 
 - `skill/RUNTIME_READ_PROTOCOL.md`
 - `skill/SKILL.md`
 - `data/runtime/meta.json`
 - `meta.candidate_file`（通常为 `data/runtime/candidates.json`）
 - `data/research/industry_state.json`
-- `data/research/full_market_price_structure.json`
 
 `screening_groups.json` 仅允许作为可选诊断信息，不是必读输入，不得因为没有完整消费 screening groups 而阻止发布。
+
+### 2.1 生成期中间文件边界
+
+`data/research/full_market_price_structure.json` 是 **runtime 生成期中间文件**，不是模型执行期正式输入。
+
+生成链必须先运行 `scripts/build_full_market_price_structure.py`，随后 `scripts/build_snapshot.py` 会读取该文件，并在生成 snapshot 前硬校验：
+
+```text
+full_market_price_structure.reference_trade_date == snapshot trade_date
+```
+
+如果该文件缺失、不可解析或日期不一致，snapshot/runtime 构建必须失败，因此不会产生 `runtime_validation.status == "passed"` 的正式 runtime。
+
+模型执行期不得为了重复验证生成期事实而直接读取这个全市场巨型文件。个股量价启动结论必须使用已经压缩进入 `candidate_file` 的：
+
+- `activation_tier`
+- `activation_structure_type`
+- `activation_action`
+- `chase_risk`
+- `volume_ratio_1d_vs_20d`
+- `volume_ratio_5d_vs_20d`
+- `relative_strength_20d_vs_market_pct`
+- `return_10d_pct / return_20d_pct`
+- `breakout_*`
+- `downside_to_invalidation_pct`
+
+这样避免因为连接器无法完整返回大型生成期文件而产生伪硬失败。
 
 ### Runtime Hard Gate
 
@@ -49,12 +75,15 @@ V4 明确废止旧流程中的：
 
 - `meta.runtime_validation.status == "passed"`；
 - `snapshot.market_status == "closed"`；
-- 正式输入 trade_date 一致；
+- `meta.snapshot.trade_date` 与 `candidate_file.trade_date` 一致；
+- `industry_state.baseline_trade_date == meta.snapshot.trade_date`；
 - candidate 文件存在、可解析、code 唯一；
-- `full_market_price_structure.reference_trade_date == trade_date`；
-- candidate 中 `activation_tier` 属于 V4 合法集合。
+- candidate 中 `activation_tier` 属于 V4 合法集合；
+- candidate 中量价启动核心字段存在，并与 `meta.candidate_columns` 一致。
 
-只有输入不可读、日期不一致或校验失败才属于硬失败。
+**不得因为 `full_market_price_structure.json` 无法被模型连接器完整读取而判定 FAILED。** 它的完整性与日期一致性属于生成期责任，由 snapshot/runtime 构建结果承担。
+
+只有模型执行期正式输入不可读、日期不一致或 runtime 校验失败才属于硬失败。
 
 ---
 
@@ -196,9 +225,10 @@ PE/PB 是风险修正，不是排序发动机。低 PE 不自动加分。
 - 全候选逐只 Deep Research；
 - 全候选逐只外部资料查询；
 - Frozen Ledger；
-- Gate coverage / Deep Research coverage 双闭合。
+- Gate coverage / Deep Research coverage 双闭合；
+- 模型执行期直接读取全市场生成期中间文件。
 
-只有正式输入不可读、校验失败或关键工具完全不可用且无法继续时，整轮才允许 FAILED。
+只有模型执行期正式输入不可读、校验失败或关键工具完全不可用且无法继续时，整轮才允许 FAILED。
 
 ---
 
