@@ -47,6 +47,7 @@ def compact_industries(raw: dict[str, Any]) -> dict[str, Any]:
             "market_activity": item.get("market_activity"),
             "market_confirmation": item.get("market_confirmation"),
             "market_metrics": item.get("market_metrics"),
+            "buyability": item.get("buyability"),
         }
     return result
 
@@ -342,6 +343,7 @@ def build_snapshot(source: Path) -> dict[str, Any]:
             "baseline_trade_date": industry_raw.get("baseline_trade_date"),
             "generated_at": industry_raw.get("generated_at"),
             "yoy_unit": YOY_UNIT,
+            "buyability_context": industry_raw.get("buyability_context"),
             "level3": industries,
         },
         "candidates": candidates,
