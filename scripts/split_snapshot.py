@@ -12,17 +12,6 @@ from contracts import YOY_UNIT
 RUNTIME_KIND = "low_risk_research"
 RUNTIME_FORMAT = "model_ready_candidates"
 
-# Legacy low-risk structure thresholds are retained as context labels only.
-# They no longer decide whether a company reaches Stage A.
-SUPPORT_DISTANCE_LIMIT_PCT = 5.0
-VOLUME_DISTANCE_LIMIT_PCT = 5.0
-DEEP_POSITION_60D_LIMIT_PCT = 20.0
-POSITION_60D_LIMIT_PCT = 35.0
-DEEP_SUPPORT_DISTANCE_LIMIT_PCT = 3.0
-DEEP_SUPPORT_TOUCHES_MIN = 3
-DEEP_VOLUME_DISTANCE_LIMIT_PCT = 3.0
-DEEP_VOLUME_SHARE_MIN_PCT = 12.0
-
 CANDIDATE_COLUMNS = [
     "code","name","price","day_change_pct","industry_code","industry_name",
     "industry_trend","industry_strength","industry_breadth","industry_confidence",
@@ -36,9 +25,8 @@ CANDIDATE_COLUMNS = [
     "trend_state","break_state","support_low","support_high","support_center",
     "support_touches","support_last_touch_date","support_distance_pct","volume_zone_low",
     "volume_zone_high","volume_zone_center","volume_zone_share_pct","volume_zone_last_date",
-    "volume_zone_distance_pct","structure_status","structure_tier","strong_support","strong_volume_zone",
-    "resistance_low","resistance_high","resistance_center","resistance_touches",
-    "resistance_last_touch_date","invalidation_price","invalidation_direction",
+    "volume_zone_distance_pct","resistance_low","resistance_high","resistance_center",
+    "resistance_touches","resistance_last_touch_date","invalidation_price","invalidation_direction",
 ]
 
 
@@ -94,73 +82,12 @@ def industry_yoy_value(value: Any, source_unit: str | None) -> Any:
     return value
 
 
-def strong_support(support_distance: Any, support_touches: Any) -> bool:
-    return (
-        is_number(support_distance)
-        and float(support_distance) <= DEEP_SUPPORT_DISTANCE_LIMIT_PCT
-        and is_number(support_touches)
-        and float(support_touches) >= DEEP_SUPPORT_TOUCHES_MIN
-    )
-
-
-def strong_volume(volume_distance: Any, volume_share: Any) -> bool:
-    return (
-        is_number(volume_distance)
-        and float(volume_distance) <= DEEP_VOLUME_DISTANCE_LIMIT_PCT
-        and is_number(volume_share)
-        and float(volume_share) >= DEEP_VOLUME_SHARE_MIN_PCT
-    )
-
-
-def structure_label(
-    position_pct: Any,
-    support_distance: Any,
-    support_touches: Any,
-    volume_distance: Any,
-    volume_share: Any,
-) -> tuple[str, str | None, bool, bool]:
-    support_strong = strong_support(support_distance, support_touches)
-    volume_strong = strong_volume(volume_distance, volume_share)
-
-    if not is_number(position_pct):
-        return "WATCH_STRUCTURE", None, support_strong, volume_strong
-
-    position = float(position_pct)
-    if position <= DEEP_POSITION_60D_LIMIT_PCT and (
-        support_strong or volume_strong
-    ):
-        return (
-            "READY_STRUCTURE",
-            "deep_low_strong_acceptance",
-            support_strong,
-            volume_strong,
-        )
-
-    support_near = (
-        is_number(support_distance)
-        and float(support_distance) <= SUPPORT_DISTANCE_LIMIT_PCT
-    )
-    volume_near = (
-        is_number(volume_distance)
-        and float(volume_distance) <= VOLUME_DISTANCE_LIMIT_PCT
-    )
-    if (
-        position <= POSITION_60D_LIMIT_PCT
-        and position > DEEP_POSITION_60D_LIMIT_PCT
-        and support_near
-        and volume_near
-    ):
-        return (
-            "READY_STRUCTURE",
-            "mid_low_dual_acceptance",
-            support_strong,
-            volume_strong,
-        )
-
-    return "WATCH_STRUCTURE", None, support_strong, volume_strong
-
-
-def build_candidate_row(code: str, raw: dict[str, Any], industry: dict[str, Any], industry_yoy_unit: str | None) -> tuple[list[Any], dict[str, Any]]:
+def build_candidate_row(
+    code: str,
+    raw: dict[str, Any],
+    industry: dict[str, Any],
+    industry_yoy_unit: str | None,
+) -> list[Any]:
     fundamentals = raw.get("fundamentals") or {}
     structure = raw.get("price_structure") or {}
     support = structure.get("nearest_support") or {}
@@ -170,26 +97,11 @@ def build_candidate_row(code: str, raw: dict[str, Any], industry: dict[str, Any]
 
     support_distance = distance_pct(price, zone_part(support, "center"))
     volume_distance = distance_pct(price, zone_part(volume_zone, "center"))
-    support_touches = zone_part(support, "touches")
-    volume_share = zone_part(volume_zone, "volume_share_pct")
-    position_pct = structure.get("position_pct")
-
-    support_near = support_distance is not None and support_distance <= SUPPORT_DISTANCE_LIMIT_PCT
-    volume_near = volume_distance is not None and volume_distance <= VOLUME_DISTANCE_LIMIT_PCT
-    position_low = is_number(position_pct) and float(position_pct) <= POSITION_60D_LIMIT_PCT
-    position_deep_low = is_number(position_pct) and float(position_pct) <= DEEP_POSITION_60D_LIMIT_PCT
-
-    structure_status, structure_tier, support_strong, volume_strong = structure_label(
-        position_pct,
-        support_distance,
-        support_touches,
-        volume_distance,
-        volume_share,
+    invalidation_price, invalidation_direction = invalidation_parts(
+        structure.get("invalidation")
     )
 
-    invalidation_price, invalidation_direction = invalidation_parts(structure.get("invalidation"))
-
-    row = [
+    return [
         code, raw.get("name"), price, raw.get("day_change_pct"), raw.get("industry_code"), raw.get("industry_name"),
         industry.get("trend"), industry.get("strength"), industry.get("breadth"), industry.get("confidence"),
         industry.get("core_improving_breadth"), industry_yoy_value(industry.get("aggregate_revenue_yoy"), industry_yoy_unit),
@@ -200,26 +112,15 @@ def build_candidate_row(code: str, raw: dict[str, Any], industry: dict[str, Any]
         fundamentals.get("deduct_basic_eps_yoy"), fundamentals.get("operating_cashflow_per_share"), fundamentals.get("gross_margin"),
         fundamentals.get("net_profit"), fundamentals.get("basic_eps"), fundamentals.get("deduct_basic_eps"),
         structure.get("close_change_5d_pct"), structure.get("close_change_20d_pct"), structure.get("high_20d"), structure.get("low_20d"),
-        structure.get("high_60d"), structure.get("low_60d"), structure.get("ma20"), structure.get("ma60"), position_pct,
+        structure.get("high_60d"), structure.get("low_60d"), structure.get("ma20"), structure.get("ma60"), structure.get("position_pct"),
         structure.get("trend_state"), structure.get("break_state"),
-        zone_part(support, "low"), zone_part(support, "high"), zone_part(support, "center"), support_touches,
+        zone_part(support, "low"), zone_part(support, "high"), zone_part(support, "center"), zone_part(support, "touches"),
         zone_part(support, "last_touch_date"), support_distance,
-        zone_part(volume_zone, "low"), zone_part(volume_zone, "high"), zone_part(volume_zone, "center"), volume_share,
-        zone_part(volume_zone, "last_date"), volume_distance, structure_status, structure_tier, support_strong, volume_strong,
+        zone_part(volume_zone, "low"), zone_part(volume_zone, "high"), zone_part(volume_zone, "center"), zone_part(volume_zone, "volume_share_pct"),
+        zone_part(volume_zone, "last_date"), volume_distance,
         zone_part(resistance, "low"), zone_part(resistance, "high"), zone_part(resistance, "center"),
         zone_part(resistance, "touches"), zone_part(resistance, "last_touch_date"), invalidation_price, invalidation_direction,
     ]
-
-    return row, {
-        "support_near": support_near,
-        "volume_zone_near": volume_near,
-        "support_strong": support_strong,
-        "volume_zone_strong": volume_strong,
-        "position_60d_low": position_low,
-        "position_60d_deep_low": position_deep_low,
-        "structure_status": structure_status,
-        "structure_tier": structure_tier,
-    }
 
 
 def main() -> None:
@@ -253,92 +154,57 @@ def main() -> None:
     if len(candidate_codes) != len(set(candidate_codes)):
         raise SystemExit("duplicate candidate codes detected")
 
-    missing_industry_codes = sorted({str(raw.get("industry_code")) for raw in candidates.values() if not raw.get("industry_code") or raw.get("industry_code") not in level3})
+    missing_industry_codes = sorted({
+        str(raw.get("industry_code"))
+        for raw in candidates.values()
+        if not raw.get("industry_code") or raw.get("industry_code") not in level3
+    })
     if missing_industry_codes:
         sample = ",".join(missing_industry_codes[:10])
-        raise SystemExit(f"candidate industry mapping incomplete: count={len(missing_industry_codes)} sample={sample}")
+        raise SystemExit(
+            f"candidate industry mapping incomplete: count={len(missing_industry_codes)} sample={sample}"
+        )
 
     if output_dir.exists():
         shutil.rmtree(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     model_rows: list[list[Any]] = []
-    support_near_count = volume_near_count = support_strong_count = volume_strong_count = 0
-    low_position_count = deep_low_position_count = 0
-    ready_structure_count = watch_structure_count = 0
-
     for code, raw in candidates.items():
         industry = level3.get(raw.get("industry_code")) or {}
-        row, audit = build_candidate_row(code, raw, industry, industry_yoy_unit)
-        support_near_count += int(audit["support_near"])
-        volume_near_count += int(audit["volume_zone_near"])
-        support_strong_count += int(audit["support_strong"])
-        volume_strong_count += int(audit["volume_zone_strong"])
-        low_position_count += int(audit["position_60d_low"])
-        deep_low_position_count += int(audit["position_60d_deep_low"])
-        ready_structure_count += int(audit["structure_status"] == "READY_STRUCTURE")
-        watch_structure_count += int(audit["structure_status"] == "WATCH_STRUCTURE")
-        model_rows.append(row)
+        model_rows.append(
+            build_candidate_row(code, raw, industry, industry_yoy_unit)
+        )
 
     industry_idx = CANDIDATE_COLUMNS.index("industry_code")
     code_idx = CANDIDATE_COLUMNS.index("code")
-    model_rows.sort(key=lambda row: (str(row[industry_idx] or ""), str(row[code_idx] or "")))
-
-    structural_rule = {
-        "mode": "non_gating_context_label",
-        "ready_status": "READY_STRUCTURE",
-        "watch_status": "WATCH_STRUCTURE",
-        "deep_position_60d_pct_lte": DEEP_POSITION_60D_LIMIT_PCT,
-        "position_60d_pct_lte": POSITION_60D_LIMIT_PCT,
-        "deep_support_distance_pct_lte": DEEP_SUPPORT_DISTANCE_LIMIT_PCT,
-        "deep_support_touches_gte": DEEP_SUPPORT_TOUCHES_MIN,
-        "deep_volume_distance_pct_lte": DEEP_VOLUME_DISTANCE_LIMIT_PCT,
-        "deep_volume_share_pct_gte": DEEP_VOLUME_SHARE_MIN_PCT,
-        "deep_low_requires_acceptance": "strong_support_or_strong_volume",
-        "mid_low_support_distance_pct_lte": SUPPORT_DISTANCE_LIMIT_PCT,
-        "mid_low_volume_distance_pct_lte": VOLUME_DISTANCE_LIMIT_PCT,
-        "mid_low_requires_acceptance": "support_near_and_volume_zone_near",
-        "research_admission_veto": False,
-    }
+    model_rows.sort(
+        key=lambda row: (str(row[industry_idx] or ""), str(row[code_idx] or ""))
+    )
 
     candidates_filename = "candidates.json"
-    write_row_json(output_dir / candidates_filename, {
-        "runtime_format": RUNTIME_FORMAT,
-        "trade_date": trade_date,
-        "yoy_unit": YOY_UNIT,
-        "source_candidate_count": len(candidates),
-        "candidate_count": len(model_rows),
-        "structural_rule": structural_rule,
-    }, CANDIDATE_COLUMNS, model_rows)
+    write_row_json(
+        output_dir / candidates_filename,
+        {
+            "runtime_format": RUNTIME_FORMAT,
+            "trade_date": trade_date,
+            "yoy_unit": YOY_UNIT,
+            "source_candidate_count": len(candidates),
+            "candidate_count": len(model_rows),
+        },
+        CANDIDATE_COLUMNS,
+        model_rows,
+    )
 
-    meta_snapshot = {key: value for key, value in snapshot.items() if key not in {"candidates", "industry_state"}}
-    meta_snapshot["industry_state"] = {key: value for key, value in industry_state.items() if key != "level3"}
+    meta_snapshot = {
+        key: value
+        for key, value in snapshot.items()
+        if key not in {"candidates", "industry_state"}
+    }
+    meta_snapshot["industry_state"] = {
+        key: value for key, value in industry_state.items() if key != "level3"
+    }
     meta_snapshot["industry_state"]["yoy_unit"] = YOY_UNIT
-
-    structure_status_idx = CANDIDATE_COLUMNS.index("structure_status")
-    structure_tier_idx = CANDIDATE_COLUMNS.index("structure_tier")
-    strong_support_idx = CANDIDATE_COLUMNS.index("strong_support")
-    strong_volume_idx = CANDIDATE_COLUMNS.index("strong_volume_zone")
-    position_pct_idx = CANDIDATE_COLUMNS.index("position_pct")
-    support_distance_idx = CANDIDATE_COLUMNS.index("support_distance_pct")
-    support_touches_idx = CANDIDATE_COLUMNS.index("support_touches")
-    volume_distance_idx = CANDIDATE_COLUMNS.index("volume_zone_distance_pct")
-    volume_share_idx = CANDIDATE_COLUMNS.index("volume_zone_share_pct")
-
-    def row_matches_rule(row: list[Any]) -> bool:
-        expected_status, expected_tier, expected_support, expected_volume = structure_label(
-            row[position_pct_idx],
-            row[support_distance_idx],
-            row[support_touches_idx],
-            row[volume_distance_idx],
-            row[volume_share_idx],
-        )
-        return (
-            row[structure_status_idx] == expected_status
-            and row[structure_tier_idx] == expected_tier
-            and bool(row[strong_support_idx]) == expected_support
-            and bool(row[strong_volume_idx]) == expected_volume
-        )
 
     validation = {
         "status": "passed",
@@ -346,7 +212,6 @@ def main() -> None:
         "candidate_codes_unique": True,
         "source_candidate_count_matches_snapshot": len(candidates) == expected,
         "industry_mapping_complete": not missing_industry_codes,
-        "candidate_rows_match_structure_labels": all(row_matches_rule(row) for row in model_rows),
         "all_hard_eligible_candidates_retained": len(model_rows) == len(candidates),
         "yoy_unit": YOY_UNIT,
     }
@@ -358,23 +223,10 @@ def main() -> None:
         "snapshot": meta_snapshot,
         "source_candidate_count": len(candidates),
         "candidate_count": len(model_rows),
-        "structural_relevance_count": ready_structure_count,
         "industry_count": len(level3),
         "eligibility_audit": snapshot.get("eligibility_audit"),
         "candidate_file": f"{output_dir.as_posix()}/{candidates_filename}",
         "candidate_columns": CANDIDATE_COLUMNS,
-        "structural_rule": structural_rule,
-        "structural_filter_audit": {
-            "ready_structure_count": ready_structure_count,
-            "watch_structure_count": watch_structure_count,
-            "support_near_count": support_near_count,
-            "volume_zone_near_count": volume_near_count,
-            "strong_support_count": support_strong_count,
-            "strong_volume_zone_count": volume_strong_count,
-            "low_position_count": low_position_count,
-            "deep_low_position_count": deep_low_position_count,
-            "mid_low_position_count": low_position_count - deep_low_position_count,
-        },
         "runtime_validation": validation,
     }
     write_json(output_dir / "meta.json", meta)
@@ -382,7 +234,6 @@ def main() -> None:
     print(
         f"runtime base ready: kind={RUNTIME_KIND} format={RUNTIME_FORMAT} trade_date={trade_date} "
         f"source={len(candidates)} model_candidates={len(model_rows)} "
-        f"ready_structure={ready_structure_count} watch_structure={watch_structure_count} "
         f"industries={len(level3)} validation={validation['status']}"
     )
 
