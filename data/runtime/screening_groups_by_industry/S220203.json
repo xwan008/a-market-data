@@ -1,0 +1,29 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 7,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S220203",
+      "industry_name": "无机盐",
+      "candidate_count": 7,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"stable","strength":"weak","breadth":"divergent","confidence":"high","core_improving_breadth":0.5,"aggregate_revenue_yoy":-0.8819312380500001,"aggregate_parent_profit_yoy":-6.575000000000001,"market_breadth":"divergent","market_activity":"quiet","market_confirmation":"neutral"},
+      "members": [
+        ["003017","大洋生物","2026-06-30",21.63,2180304000.0,44.25196850393698,0.94657159735675,3,0.5457797477550405,18.59,22.215,null,null,"WATCH_STRUCTURE",null,true,true,20.41135608,18.97,1.86,4.94,11.9323494556,13.79,-4.416623195965919,0.51216056994,23.0198139088,57469343.79,0.5879,0.5497,false,true,false,false,false,false,0,6.4977,"limited_gap",0.8712,"supportive",12.8143,2.1584,"mixed"],
+        ["600367","红星发展","2026-06-30",36.37,12406930906.0,28.604294478527603,4.782483434168817,1,0.335739882973814,7.25,40.88,null,null,"READY_STRUCTURE","mid_low_dual_acceptance",false,false,125.8097263,73.65,4.9,3.37,-1.9922850348,7.38,0.0,0.422928124583,26.3068559856,84229480.74,0.25,0.23,true,true,false,false,false,false,0,8.0,"limited_gap",1.6917,"supportive",-1.1104,6.575,"mixed"],
+        ["600714","金瑞矿业","2026-06-30",17.52,5048848303.0,46.757164404223225,18.53856562922869,2,0.13622968667172716,7.65,22.58,null,null,"WATCH_STRUCTURE",null,false,false,453.88580625,150.52,6.55,2.2,-15.7941360695,-53.69,-55.81395348837209,0.091717338644,23.1738458227,16771327.25,0.058,0.057,false,false,false,true,true,false,0,1.7241,"limited_gap",1.5813,"supportive",-14.9122,-49.239,"aligned"],
+        ["600784","鲁银投资","2026-06-30",6.97,4709296371.0,36.48068669527897,8.906249999999991,1,null,null,7.695,8.38,"above","WATCH_STRUCTURE",null,false,false,31.80065469,21.85,1.4,3.25,2.9731350679,-16.6,-11.111111111111105,0.268994158233,23.1945614664,107786806.28,0.16,0.16,true,false,false,false,true,false,0,0.0,"limited_gap",1.6812,"supportive",3.8551,-4.5361,"mixed"],
+        ["603067","振华股份","2026-06-30",35.41,26753154556.0,31.62583518930957,5.105372514099136,1,0.07178263990548896,10.78,36.6833,33.69,"below","WATCH_STRUCTURE",null,false,false,39.97093763,43.4,6.18,7.71,28.1464402935,3.45,2.3809523809523725,-0.16762710748,25.0893743823,308211637.49,0.43,0.43,false,false,true,false,false,true,0,0.0,"limited_gap",-0.3898,"negative",29.0284,8.956,"mixed"],
+        ["603299","苏盐井神","2026-06-30",8.68,8287316262.0,7.766990291262134,null,null,0.7909294564074472,14.06,9.134,null,null,"READY_STRUCTURE","deep_low_strong_acceptance",false,true,23.49544632,23.7,1.03,2.44,-7.1220708406,-49.21,-52.05558772437753,0.024397394364,29.6135680687,174810083.24,0.1831,0.1656,false,false,false,true,true,false,0,9.5576,"limited_gap",0.1332,"weak",-6.2401,-45.4806,"aligned"],
+        ["603663","三祥新材","2026-06-30",44.85,26621620196.0,30.739828225379355,12.631843294826723,1,2.9933519341393673,11.39,45.73,null,null,"WATCH_STRUCTURE",null,false,false,177.88973974,172.85,18.39,5.46,0.2284225587,71.48,54.54545454545456,0.219929389862,28.7966213827,77009857.05,0.18,0.17,false,false,false,false,false,false,0,5.5556,"limited_gap",1.2218,"supportive",1.1104,61.1205,"mixed"]
+      ]
+    }
+  ]
+}

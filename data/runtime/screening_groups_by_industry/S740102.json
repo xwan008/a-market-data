@@ -1,0 +1,31 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 9,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S740102",
+      "industry_name": "焦煤",
+      "candidate_count": 9,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"improving","strength":"normal","breadth":"broad","confidence":"high","core_improving_breadth":0.7272727272727273,"aggregate_revenue_yoy":3.6866137617,"aggregate_parent_profit_yoy":22.84,"market_breadth":"narrow","market_activity":"quiet","market_confirmation":"weak"},
+      "members": [
+        ["000937","冀中能源","2026-06-30",4.45,17296711831.0,36.9942196531792,7.748184019370467,1,0.9548398584433105,15.56,4.46,null,null,"WATCH_STRUCTURE",null,false,true,32.72844105,32.77,0.9,1.39,1.597856585,-24.18,-26.78185745140389,0.240713366978,30.4636692519,263934358.48,0.0679,0.0678,true,false,false,false,true,false,0,0.1473,"limited_gap",3.5451,"supportive",-2.0888,-49.6219,"mixed"],
+        ["000983","山西焦煤","2026-06-30",6.6,37468866989.0,48.45360824742267,0.22779043280181746,2,0.7115671024325784,12.78,6.63,7.13,"above","WATCH_STRUCTURE",null,false,true,26.31150505,15.15,1.01,3.39,-0.1397235197,22.03,4.756637168141609,0.282070306413,29.7905455203,1236969534.66,0.2179,0.1894,true,false,false,false,false,false,0,13.0794,"limited_gap",1.2945,"supportive",-3.8263,-18.0834,"mixed"],
+        ["600123","兰花科创","2026-06-30",7.01,10327412547.0,76.10619469026548,1.8895348837209287,4,0.05275389594650838,9.87,7.015,7.45,"above","WATCH_STRUCTURE",null,true,false,-20.08082736,62.13,0.68,0.55,18.3220666654,44.6,null,0.190777588026,28.0299202924,83110382.03,0.06,0.0643,false,false,false,false,false,false,1,-7.1667,"limited_gap",3.1796,"supportive",14.6355,21.76,"aligned"],
+        ["600348","华阳股份","2026-06-30",9.18,33116850000.0,82.58598171528078,5.365853658536578,4,2.48509612164244,16.86,9.57,null,null,"WATCH_STRUCTURE",null,false,true,16.70944916,15.6,1.2,3.82,-11.731713938,35.63,26.08695652173911,0.193772359701,43.0980764017,1061528744.17,0.29,0.29,true,false,false,false,false,false,0,0.0,"limited_gap",0.6682,"supportive",-15.4183,3.247,"mixed"],
+        ["600395","盘江股份","2026-06-30",5.17,11098050702.0,43.99999999999998,0.29097963142579397,2,2.0206804009787724,7.28,5.74,null,null,"WATCH_STRUCTURE",null,false,false,27.88446234,87.51,1.05,0.594,-5.9520766476,1344.48,null,0.520253181863,29.1583642597,63407056.0,0.03,0.035,true,false,false,false,false,false,1,-16.6667,"limited_gap",17.3418,"supportive",-9.6387,1321.64,"mixed"],
+        ["600508","上海能源","2026-06-30",10.7,10826315640.0,59.85915492957745,0.18656716417911706,1,null,null,12.03,null,null,"WATCH_STRUCTURE",null,false,false,36.26699748,19.09,0.85,2.23,27.2058796934,38.02,30.000000000000004,1.099193010947,18.252820285,283492856.45,0.28,0.26,false,false,false,false,false,false,0,7.1429,"limited_gap",3.9257,"supportive",23.5193,7.16,"aligned"],
+        ["600985","淮北矿业","2026-06-30",16.63,44788892331.0,58.52713178294573,0.5186430336130962,3,10.36414194036486,17.05,17.3,17.49,"above","WATCH_STRUCTURE",null,true,false,26.13908476,18.07,1.06,2.94,3.6866137617,20.11,25.0,0.885578918204,20.4396413344,1239107460.32,0.46,0.45,false,false,false,false,false,false,0,2.1739,"limited_gap",1.9252,"supportive",0.0,2.16,"aligned"],
+        ["601666","平煤股份","2026-06-30",8.99,22199592330.0,60.6811145510836,0.07447175075305802,3,12.161892404431581,14.3,9.56,9.82,"above","WATCH_STRUCTURE",null,true,false,76.49526465,35.04,1.01,1.45,21.3438753172,22.84,13.886300093196645,1.033809126563,16.3127142466,316755460.63,0.1281,0.1222,false,false,false,false,false,false,0,4.6058,"limited_gap",8.0703,"supportive",17.6573,-8.9537,"aligned"],
+        ["601699","潞安环能","2026-06-30",15.61,46695897612.0,37.61682242990652,9.620786516853927,5,3.4274848105375364,21.11,15.9333,16.99,"above","WATCH_STRUCTURE",null,false,false,30.23084267,13.13,1.0,3.85,6.6840005595,31.85,49.99999999999998,0.138642899103,40.0877214149,1777889138.44,0.59,0.57,false,false,false,false,false,false,0,3.3898,"limited_gap",0.235,"weak",2.9974,27.16,"aligned"]
+      ]
+    }
+  ]
+}

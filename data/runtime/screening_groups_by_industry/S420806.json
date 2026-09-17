@@ -1,0 +1,27 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 5,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S420806",
+      "industry_name": "仓储物流",
+      "candidate_count": 5,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"stable","strength":"normal","breadth":"divergent","confidence":"medium","core_improving_breadth":0.5,"aggregate_revenue_yoy":13.55731470705,"aggregate_parent_profit_yoy":3.3499999999999996,"market_breadth":"narrow","market_activity":"normal","market_confirmation":"weak"},
+      "members": [
+        ["002930","宏川智慧","2026-06-30",9.03,4135787100.0,46.95945945945945,2.2650056625141484,2,0.21768677414721233,16.53,9.13,9.74,"above","WATCH_STRUCTURE",null,false,true,-10.50588996,86.95,2.11,1.13,13.8246216738,294.9,null,0.837796834949,40.7049118831,23783481.95,0.05,0.04,false,false,false,false,false,false,1,20.0,"material_positive_non_core",16.7559,"supportive",0.2673,291.55,"aligned"],
+        ["600787","中储股份","2026-06-30",4.62,10025767669.0,75.00000000000006,2.600546314597254,7,0.015149219815182654,42.63,4.69,null,null,"WATCH_STRUCTURE",null,true,true,31.53179339,26.74,0.72,1.3386,25.8295014366,-54.83,99.23076923076923,-0.49381654677,3.104797922,187472616.25,0.0864,0.0777,true,true,false,false,false,true,0,10.0694,"limited_gap",-5.7155,"negative",12.2722,95.8808,"aligned"],
+        ["600794","保税科技","2026-06-30",3.18,3816483859.0,64.28571428571433,3.357493418272823,3,0.5056890012642229,29.12,3.206,3.09,"below","WATCH_STRUCTURE",null,false,true,-41.2075157,39.87,1.53,1.92,-11.795748142,-1.67,0.0,0.200668013256,26.9602589843,47856857.88,0.04,0.03,false,true,false,true,false,false,0,25.0,"material_positive_non_core",5.0167,"supportive",-25.3531,-3.35,"mixed"],
+        ["603066","音飞储存","2026-06-30",8.95,2632911662.0,22.743682310469282,0.9019165727170245,3,4.902891569089379,8.1,9.225,null,null,"READY_STRUCTURE","mid_low_dual_acceptance",true,false,23.66750255,9.37,1.72,9.57,16.2261476294,125.32,0.6233766233766369,0.050201360647,22.5596594934,140478672.7,0.4775,0.1937,false,false,false,false,false,false,0,59.4346,"material_positive_non_core",0.1051,"weak",2.6688,-2.7266,"aligned"],
+        ["603713","密尔克卫","2026-06-30",65.8,11452394064.0,30.780952380952375,0.4426805067928439,1,0.9391327825145217,16.51,69.125,62.89,"below","READY_STRUCTURE","mid_low_dual_acceptance",false,true,17.45828909,15.02,2.0,7.92,13.2900077403,8.37,6.829268292682933,1.273953356758,10.8505202317,381217380.44,2.41,2.19,false,false,false,false,false,false,0,9.1286,"limited_gap",0.5286,"supportive",-0.2673,3.4793,"aligned"]
+      ]
+    }
+  ]
+}

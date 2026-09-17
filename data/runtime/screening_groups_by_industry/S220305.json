@@ -1,0 +1,27 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 5,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S220305",
+      "industry_name": "涂料油墨",
+      "candidate_count": 5,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"improving","strength":"strong","breadth":"broad","confidence":"medium","core_improving_breadth":0.8,"aggregate_revenue_yoy":13.2060661696,"aggregate_parent_profit_yoy":28.37,"market_breadth":"broad","market_activity":"normal","market_confirmation":"neutral"},
+      "members": [
+        ["000565","渝三峡Ａ","2026-06-30",6.62,2870380496.0,55.51724137931034,5.582137161084538,1,2.5228043548961683,9.81,6.98,6.27,"below","WATCH_STRUCTURE",null,false,false,211.82449847,58.2,2.24,1.93,13.8252533364,28.37,-66.66666666666666,-0.101331425781,25.6634337102,24660308.91,0.06,0.01,false,true,true,false,false,true,0,83.3333,"material_positive_non_core",-1.6889,"negative",0.6192,-95.0367,"mixed"],
+        ["002319","乐通股份","2026-06-30",9.95,2084251475.0,23.795180722891537,0.5000000000000071,1,null,null,11.1575,null,null,"WATCH_STRUCTURE",null,false,false,-5256.04419311,155.59,11.55,3.81,18.4917656656,327.89,null,-0.011508601391,19.9104519317,6697688.2,0.032,0.032,false,false,true,false,false,true,1,0.0,"limited_gap",-0.3596,"negative",5.2857,299.52,"aligned"],
+        ["603062","麦加芯彩","2026-06-30",36.73,3966840000.0,41.51547491995725,1.1845730027548202,1,1.820177748701252,11.72,39.59,38.36,"above","WATCH_STRUCTURE",null,false,false,28.75133877,52.39,1.96,1.8,-6.0383741601,-65.61,-68.88888888888889,-0.224822327778,19.3603312107,37857633.02,0.36,0.28,false,false,false,true,true,true,0,22.2222,"material_positive_non_core",-0.6245,"negative",-19.2444,-97.2589,"failed"],
+        ["603110","东方材料","2026-06-30",25.54,5139330735.0,73.35733573357335,5.9751037344398235,2,1.8199214623158586,12.25,25.555,null,null,"WATCH_STRUCTURE",null,false,true,1307.50385601,234.67,7.31,1.58,13.2060661696,1573.21,null,-0.015767180575,26.8668137261,10949891.31,0.05,0.05,false,false,true,false,false,true,1,0.0,"limited_gap",-0.3153,"negative",0.0,1544.84,"aligned"],
+        ["603823","百合花","2026-06-30",55.41,23070934479.0,25.551799562537276,5.032698322433881,2,1.3078049609925626,6.45,67.0,null,null,"WATCH_STRUCTURE",null,false,false,126.14772914,99.88,9.15,4.6,5.8722709515,16.03,13.043478260869556,0.312313058988,22.5383017128,115492755.02,0.28,0.26,false,false,false,false,false,false,0,7.1429,"limited_gap",1.1154,"supportive",-7.3338,-15.3265,"aligned"]
+      ]
+    }
+  ]
+}

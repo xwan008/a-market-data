@@ -1,0 +1,26 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 4,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S240501",
+      "industry_name": "稀土",
+      "candidate_count": 4,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"improving","strength":"strong","breadth":"broad","confidence":"medium","core_improving_breadth":1.0,"aggregate_revenue_yoy":15.181563419599998,"aggregate_parent_profit_yoy":127.85,"market_breadth":"broad","market_activity":"normal","market_confirmation":"neutral"},
+      "members": [
+        ["000831","中国稀土","2026-06-30",54.71,58059390351.0,54.20711974110033,0.5332407328287614,3,0.024864524904753934,13.54,56.32,62.5,"above","WATCH_STRUCTURE",null,true,true,234.28011428,122.51,11.47,4.81,-12.1896402618,46.53,55.52505147563487,0.669707516308,22.4086494838,236952193.68,0.2233,0.2266,true,false,false,false,false,false,0,-1.4778,"limited_gap",2.9991,"supportive",-27.3712,-72.3249,"mixed"],
+        ["600111","北方稀土","2026-06-30",37.49,135528818417.0,7.7200577200577225,2.1804306350504343,1,null,null,40.82,38.41,"below","WATCH_STRUCTURE",null,false,false,40.179007,33.0,5.16,8.02,36.747397269,120.46,128.83064516129033,0.334237676806,15.0254626695,2053166573.28,0.5679,0.5675,false,false,false,false,false,false,0,0.0704,"limited_gap",0.5886,"supportive",21.5658,0.9806,"aligned"],
+        ["600259","中稀有色","2026-06-30",82.9,27890536939.0,39.10878765247699,4.684934966536189,2,16.190412118561884,9.18,86.5,79.15,"above","WATCH_STRUCTURE",null,false,false,60.82766706,34.56,7.25,10.92,-6.3842704298,456.51,344.4444444444444,-0.523866789071,11.7535151558,403460048.74,1.2,1.2,true,false,true,false,false,true,0,0.0,"limited_gap",-0.4366,"negative",-21.5658,216.5944,"mixed"],
+        ["600392","盛和资源","2026-06-30",21.89,38369373617.0,19.12527798369164,1.0385414262635653,2,null,null,21.8,22.39,"above","WATCH_STRUCTURE",null,false,false,28.44865795,21.64,2.94,6.8,41.7648611587,135.24,141.22468659594983,-0.363804882385,12.6425008214,886615573.86,0.5058,0.5003,false,false,true,false,false,true,0,1.0874,"limited_gap",-0.7193,"negative",26.5833,13.3747,"aligned"]
+      ]
+    }
+  ]
+}

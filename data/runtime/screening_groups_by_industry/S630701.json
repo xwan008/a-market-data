@@ -1,0 +1,29 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 7,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S630701",
+      "industry_name": "锂电池",
+      "candidate_count": 7,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"improving","strength":"strong","breadth":"broad","confidence":"high","core_improving_breadth":0.8888888888888888,"aggregate_revenue_yoy":36.1136273935,"aggregate_parent_profit_yoy":27.11,"market_breadth":"divergent","market_activity":"normal","market_confirmation":"neutral"},
+      "members": [
+        ["000049","德赛电池","2026-06-30",22.27,8565900152.0,15.366430260047245,3.0064754856614178,1,null,null,23.7667,24.07,"above","WATCH_STRUCTURE",null,false,false,21.41463798,20.86,1.25,3.02,9.7787183907,110.44,157.24217844727693,0.949553875562,9.709592472,205277265.25,0.5337,0.444,false,false,false,false,false,false,0,16.8072,"limited_gap",1.7792,"supportive",-26.3349,130.1322,"aligned"],
+        ["001283","豪鹏科技","2026-06-30",47.81,6200006537.0,63.31791143423664,1.7017655817911175,1,0.15669778276827856,10.52,47.5,47.01,"below","WATCH_STRUCTURE",null,false,false,27.03912915,25.22,1.71,3.43,15.2466516264,27.11,-27.35849056603774,-2.366159414797,20.0855457346,122933409.88,0.95,0.77,false,true,true,false,false,true,0,18.9474,"limited_gap",-2.4907,"negative",-20.867,-54.4685,"mixed"],
+        ["002074","国轩高科","2026-06-30",26.14,47436920440.0,39.83903420523141,7.065328691378257,2,0.5670844778898652,13.24,27.9925,28.3,"above","WATCH_STRUCTURE",null,false,true,13.94099798,17.11,1.57,4.68,43.2206432636,278.05,50.0,0.235852046221,15.6032862472,1386048497.18,0.76,0.06,false,false,false,false,false,false,0,92.1053,"material_positive_non_core",0.3103,"weak",7.107,22.89,"aligned"],
+        ["002245","蔚蓝锂芯","2026-06-30",18.14,31022517794.0,41.58653846153847,0.777777777777781,1,0.4034958571104418,7.96,18.44,null,null,"WATCH_STRUCTURE",null,false,false,34.91710269,30.36,3.9,6.51,30.3482210273,53.39,-4.726448688896079,0.315655302208,20.2968453047,510970595.2,0.2992,0.2943,false,true,false,false,false,false,0,1.6377,"limited_gap",1.055,"supportive",-5.7654,-31.8364,"mixed"],
+        ["002850","科达利","2026-06-30",167.93,48083762484.0,6.330472103004291,1.9580462038189455,4,null,null,181.26,null,null,"READY_STRUCTURE","deep_low_strong_acceptance",true,false,24.81517632,25.49,3.18,6.84,38.584142277,22.57,26.23574144486691,2.926991655761,20.7221995894,943018605.91,3.41,3.32,false,false,false,false,false,false,0,2.6393,"limited_gap",0.8584,"supportive",2.4705,-0.8743,"aligned"],
+        ["600110","诺德股份","2026-06-30",12.19,21151855561.0,49.65357967667436,12.246777163904236,2,1.3805721889554257,8.28,12.6,11.67,"above","WATCH_STRUCTURE",null,false,false,-171.73362311,102.77,3.52,1.77,113.3287576188,242.07,null,-0.630557836444,9.159727711,102906126.6,0.0598,0.0293,false,false,true,false,false,true,1,51.0033,"material_positive_non_core",-10.5444,"negative",77.2151,214.96,"aligned"],
+        ["600478","科力远","2026-06-30",4.71,7978358094.0,21.495327102803707,4.0493074425077875,3,0.0807445497428929,21.34,4.825,null,null,"READY_STRUCTURE","mid_low_dual_acceptance",false,true,54.77352879,70.6,2.61,1.94,36.1136273935,10.32,4.929577464788726,-0.247912659961,15.1151306427,56503641.94,0.034,0.0298,false,false,true,false,false,true,0,12.3529,"limited_gap",-7.2915,"negative",0.0,-22.1804,"aligned"]
+      ]
+    }
+  ]
+}

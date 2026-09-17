@@ -1,0 +1,25 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 3,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S280303",
+      "industry_name": "汽车综合服务",
+      "candidate_count": 3,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"stable","strength":"weak","breadth":"broad","confidence":"low","core_improving_breadth":0.6666666666666666,"aggregate_revenue_yoy":-19.5534728591,"aggregate_parent_profit_yoy":4.56,"market_breadth":"narrow","market_activity":"normal","market_confirmation":"weak"},
+      "members": [
+        ["000757","浩物股份","2026-06-30",4.23,2253389082.0,74.62686567164181,22.25433526011562,2,0.5875440658049229,9.17,4.5129,4.42,"above","WATCH_STRUCTURE",null,false,false,62.56687799,60.25,1.4,1.16,-30.8113719081,-38.55,-44.26877470355731,0.31089546919,14.8867396719,18700674.18,0.0358,0.0282,false,false,false,true,true,false,0,21.2291,"material_positive_non_core",8.6842,"supportive",-11.2579,-48.8288,"mixed"],
+        ["600676","久事动娱","2026-06-30",6.64,6829193148.0,46.70658682634727,0.04967410774766008,3,1.5880787001621686,11.68,7.0457,null,null,"WATCH_STRUCTURE",null,true,false,-32.95809519,154.22,1.4,0.41,-19.5534728591,121.92,null,0.074801248593,6.2526071679,22141747.18,0.02,-0.14,true,false,false,false,false,false,1,800.0,"material_positive_non_core",3.7401,"supportive",0.0,117.36,"aligned"],
+        ["601965","中国汽研","2026-06-30",13.22,13255011676.0,50.22727272727274,0.30165912518853055,1,9.875496600674879,9.35,14.445,null,null,"WATCH_STRUCTURE",null,false,false,12.31516823,15.51,1.65,5.33,6.9076211464,4.56,5.12820512820511,0.089607552872,45.0161875304,427235758.63,0.43,0.41,false,false,false,false,false,false,0,4.6512,"limited_gap",0.2084,"weak",26.4611,0.5682,"mixed"]
+      ]
+    }
+  ]
+}

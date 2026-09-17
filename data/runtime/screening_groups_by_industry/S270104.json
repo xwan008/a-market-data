@@ -1,0 +1,29 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 7,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S270104",
+      "industry_name": "数字芯片设计",
+      "candidate_count": 7,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"improving","strength":"strong","breadth":"broad","confidence":"medium","core_improving_breadth":0.8571428571428571,"aggregate_revenue_yoy":40.6035594528,"aggregate_parent_profit_yoy":302.93,"market_breadth":"broad","market_activity":"normal","market_confirmation":"neutral"},
+      "members": [
+        ["001309","德明利","2026-06-30",401.0,90963990870.0,10.371517027863778,3.5974940257056156,2,0.32484233237995924,22.82,424.51,null,null,"READY_STRUCTURE","deep_low_strong_acceptance",false,true,13.33120274,7.56,9.3,95.11,311.5455913213,5201.6,null,-29.692284424241,47.1244497902,6017114995.48,26.76,26.53,false,false,true,false,false,true,1,0.8595,"limited_gap",-1.1096,"negative",270.942,4898.67,"aligned"],
+        ["002049","紫光国微","2026-06-30",60.41,50939746367.0,5.737458696305185,1.523781033993062,3,null,null,63.57,63.21,"above","READY_STRUCTURE","deep_low_strong_acceptance",true,false,33.01563406,31.93,3.6,5.65,13.0004772994,15.29,8.755165289256194,0.973613786752,53.5936044277,797706633.99,0.9495,0.8422,false,false,false,false,false,false,0,11.3007,"limited_gap",1.0254,"supportive",-27.6031,-294.1748,"aligned"],
+        ["002213","大为股份","2026-06-30",29.58,7111685215.0,43.7161163134549,2.1938158576610745,2,0.6338092856632518,12.08,31.33,null,null,"WATCH_STRUCTURE",null,false,true,359.78060993,150.0,10.81,4.27,1.0902626135,302.93,null,-1.255376607574,12.2175497655,23706322.21,0.1001,0.1317,false,false,true,false,false,true,1,-31.5684,"core_eps_above_reported",-12.5412,"negative",-39.5133,0.0,"aligned"],
+        ["603316","诚邦股份","2026-06-30",15.77,4257884230.0,33.407904548844144,13.208901651112706,1,4.034726620223765,9.34,15.72,null,null,"WATCH_STRUCTURE",null,false,false,-49.07596434,95.04,7.12,4.15,65.1564335356,314.61,null,-0.12683182715,9.2210869891,22399553.73,0.08,0.05,false,false,true,false,false,true,1,37.5,"material_positive_non_core",-1.5854,"negative",24.5529,11.68,"aligned"],
+        ["603501","豪威集团","2026-06-30",78.4,98611376136.0,6.7246835443038275,3.3618984838497186,1,null,null,91.69,null,null,"WATCH_STRUCTURE",null,false,false,30.46100047,40.42,3.04,3.73,0.4925959227,-39.85,-39.26380368098159,0.323365797213,28.7771546834,1219762603.08,0.97,0.99,true,false,false,false,true,false,0,-2.0619,"limited_gap",0.3334,"weak",-40.111,-342.1938,"mixed"],
+        ["603893","瑞芯微","2026-06-30",180.33,76305476372.0,16.347075743048922,3.930609186790399,5,0.5544350622882168,9.42,192.79,null,null,"WATCH_STRUCTURE",null,false,false,55.78558785,44.41,15.5,18.34,40.6035594528,61.73,61.78861788617886,1.892354771166,45.7909824874,859028900.86,2.04,1.99,false,false,false,false,false,false,0,2.451,"limited_gap",0.9276,"supportive",0.0,-241.1414,"aligned"],
+        ["603986","兆易创新","2026-06-30",373.14,262679898271.0,7.0727686631603675,1.4284355165336982,2,1.1813987188136457,4.97,398.0,398.0,"above","WATCH_STRUCTURE",null,false,false,33.12761402,19.15,7.01,23.13,178.6722977786,1091.5,753.6585365853659,8.618944799796,63.1304509177,6856786413.68,9.83,7.0,false,false,false,false,false,false,0,28.7894,"material_positive_non_core",0.8768,"supportive",138.0687,450.7285,"aligned"]
+      ]
+    }
+  ]
+}

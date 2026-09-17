@@ -1,0 +1,29 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 7,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S340701",
+      "industry_name": "软饮料",
+      "candidate_count": 7,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"improving","strength":"normal","breadth":"broad","confidence":"medium","core_improving_breadth":0.8571428571428571,"aggregate_revenue_yoy":13.5444394298,"aggregate_parent_profit_yoy":15.28,"market_breadth":"divergent","market_activity":"quiet","market_confirmation":"neutral"},
+      "members": [
+        ["000848","承德露露","2026-06-30",8.19,8353800606.0,46.874999999999964,1.5713169545967482,6,1.6406463302638337,15.14,8.18,8.54,"above","WATCH_STRUCTURE",null,true,true,12.5320507,14.02,2.59,8.43,11.2931890696,15.28,15.999999999999993,-0.181947848741,47.8597804865,297884799.22,0.29,0.29,false,false,true,false,false,true,0,0.0,"limited_gap",-0.6274,"negative",-2.2513,0.72,"aligned"],
+        ["600189","泉阳泉","2026-06-30",7.59,5428351393.0,51.04895104895106,3.9014373716632464,4,0.525806921579273,18.86,7.7133,7.7,"below","WATCH_STRUCTURE",null,false,true,178.91011704,70.08,4.29,3.11,13.5444394298,65.03,250.0,0.295939933818,36.1630726888,38731135.56,0.054,0.049,false,false,false,false,false,false,0,9.2593,"limited_gap",5.4804,"supportive",0.0,234.72,"aligned"],
+        ["600300","维维股份","2026-06-30",3.13,5061655023.0,57.352941176470566,0.9677419354838646,2,0.028762263909740144,19.14,3.2433,3.19,"below","WATCH_STRUCTURE",null,false,true,14.6600238,19.31,1.41,3.58,9.5411567567,8.91,14.28571428571428,0.062237504985,26.3223289942,131094026.47,0.08,0.08,false,false,false,false,false,false,0,0.0,"limited_gap",0.778,"supportive",-4.0033,-0.9943,"aligned"],
+        ["603156","养元饮品","2026-06-30",42.91,54078510357.0,41.02564102564102,0.278875203346513,1,2.6402782362424704,15.05,43.28,42.19,"above","WATCH_STRUCTURE",null,false,true,39.47419154,31.66,6.64,9.17,41.974937553,14.8,25.030132583366793,0.550986331824,41.3793070995,854004855.28,0.6776,0.6224,false,false,false,false,false,false,0,8.1464,"limited_gap",0.8131,"supportive",28.4305,9.7501,"aligned"],
+        ["603711","香飘飘","2026-06-30",11.1,4582902510.0,44.604316546762576,0.4524886877827958,4,0.6264221414390378,13.11,11.816,11.45,"below","WATCH_STRUCTURE",null,true,true,22.52127524,211.01,1.32,0.31,23.3140734099,111.1505955922,null,-0.331736218644,35.104952034,10859664.36,0.03,0.0,false,false,true,false,false,true,1,100.0,"material_positive_non_core",-11.0579,"negative",9.7696,95.8706,"aligned"],
+        ["605337","李子园","2026-06-30",8.86,3434282261.0,36.244541484716144,6.618531889289998,2,2.277580892793243,10.18,8.87,9.23,"below","WATCH_STRUCTURE",null,false,false,20.78847821,26.4,2.12,3.88,-2.6903726262,-32.34,-39.13043478260869,0.035738221832,34.7474451895,65035413.29,0.17,0.14,false,false,false,true,true,false,0,17.6471,"limited_gap",0.2102,"weak",-16.2348,-54.4104,"failed"],
+        ["605499","东鹏饮料","2026-06-30",111.55,81899933031.0,7.4123989218328825,1.2709940989559612,2,null,null,124.4567,null,null,"WATCH_STRUCTURE",null,false,false,16.68935987,14.28,4.21,19.03,15.8933393179,20.72,9.914369002793633,3.394992259255,48.3648973261,2866801858.34,3.9949,3.6197,false,false,false,false,false,false,0,9.392,"limited_gap",0.8498,"supportive",2.3489,-5.3656,"aligned"]
+      ]
+    }
+  ]
+}

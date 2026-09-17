@@ -1,0 +1,28 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 6,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S450302",
+      "industry_name": "超市",
+      "candidate_count": 6,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"stable","strength":"weak","breadth":"divergent","confidence":"medium","core_improving_breadth":0.42857142857142855,"aggregate_revenue_yoy":-2.7471687087,"aggregate_parent_profit_yoy":-4.57,"market_breadth":"narrow","market_activity":"quiet","market_confirmation":"weak"},
+      "members": [
+        ["002251","步步高","2026-06-30",3.49,9383561915.0,20.38834951456315,0.8670520231213945,1,0.20873245074771574,10.64,3.54,3.68,"below","READY_STRUCTURE","mid_low_dual_acceptance",false,false,169.41773424,32.76,1.1,1.7,9.7888790384,-28.62,365.1162790697675,0.200561720975,35.1282637284,143234563.45,0.05,0.02,true,true,false,false,false,false,0,60.0,"material_positive_non_core",4.0112,"supportive",12.536,369.6863,"mixed"],
+        ["002697","红旗连锁","2026-06-30",4.59,6242400000.0,59.34065934065934,1.3245033112582694,1,0.8613870088775628,20.79,4.752,4.69,"below","WATCH_STRUCTURE",null,false,true,13.34514489,11.65,1.27,5.47,-2.7471687087,-4.57,5.263157894736836,0.21465685536,29.6194019288,267948940.55,0.2,0.2,false,true,false,true,false,false,0,0.0,"limited_gap",1.0733,"supportive",0.0,9.8332,"mixed"],
+        ["601116","三江购物","2026-06-30",9.9,5422016160.0,26.573426573426573,4.210526315789478,3,null,null,10.21,null,null,"WATCH_STRUCTURE",null,false,false,33.51305288,41.22,1.64,1.9855,-8.2783414149,-28.03,-24.939855653568564,0.103827716832,24.49486349,65764628.18,0.1201,0.0936,false,false,false,true,true,false,0,22.0649,"material_positive_non_core",0.8645,"supportive",-5.5312,-20.3699,"aligned"],
+        ["601933","永辉超市","2026-06-30",2.99,26685861123.0,29.850746268656746,0.4468035072395636,6,null,null,3.155,3.08,"below","WATCH_STRUCTURE",null,true,false,-12.96304616,52.71,12.31,12.45,-20.5597888902,205.2327298464,null,0.022335928887,22.5212548646,253160017.97,0.03,0.0,true,false,false,false,false,false,1,100.0,"material_positive_non_core",0.7445,"supportive",-17.8126,209.8027,"mixed"],
+        ["603708","家家悦","2026-06-30",8.86,5655680661.0,30.54187192118224,0.9502515371716138,4,null,null,9.19,9.19,"below","WATCH_STRUCTURE",null,true,false,27.73493449,15.19,2.32,7.73,-0.4611568377,1.77,-3.44827586206895,1.747488056634,24.1818906933,186141974.1,0.3,0.28,true,true,false,false,false,false,0,6.6667,"limited_gap",5.825,"supportive",2.286,1.1217,"aligned"],
+        ["605188","国光连锁","2026-06-30",11.74,5960943910.0,18.51851851851853,0.7607776838546058,1,0.4561718869236291,8.42,11.91,null,null,"WATCH_STRUCTURE",null,false,false,342.03801063,137.52,4.81,1.78,1.054704443,8.92,15.412186379928317,0.193021073744,21.1670999643,21672592.58,0.0431,0.0322,false,false,false,false,false,false,0,25.29,"material_positive_non_core",4.4784,"supportive",3.8019,19.9822,"mixed"]
+      ]
+    }
+  ]
+}

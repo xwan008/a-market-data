@@ -1,0 +1,24 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 2,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S220404",
+      "industry_name": "其他化学纤维",
+      "candidate_count": 2,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"improving","strength":"strong","breadth":"broad","confidence":"low","core_improving_breadth":1.0,"aggregate_revenue_yoy":7.8661562691,"aggregate_parent_profit_yoy":78.87,"market_breadth":"broad","market_activity":"normal","market_confirmation":"neutral"},
+      "members": [
+        ["002254","泰和新材","2026-06-30",12.72,10831438488.0,21.677074041034803,2.1686746987951917,1,0.0785545954438318,10.23,13.285,11.9,"below","READY_STRUCTURE","mid_low_dual_acceptance",false,false,147.89547921,98.02,1.52,0.78,11.4164781837,135.31,null,0.086709407498,20.7969021907,55253202.26,0.06,0.01,false,false,false,false,false,false,1,83.3333,"material_positive_non_core",1.4452,"supportive",3.5503,56.44,"aligned"],
+        ["600063","皖维高新","2026-06-30",5.57,11524922921.0,11.904761904761918,0.12043211762803323,3,0.7183216583783281,10.4,5.62,5.67,"above","READY_STRUCTURE","deep_low_strong_acceptance",true,false,23.45394175,18.39,1.34,3.69,4.3158343545,22.43,26.724137931034477,0.240662052516,17.877434267,313306317.59,0.151,0.147,false,false,false,false,false,false,0,2.649,"limited_gap",1.5938,"supportive",-3.5503,-52.1459,"aligned"]
+      ]
+    }
+  ]
+}

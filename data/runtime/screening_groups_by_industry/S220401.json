@@ -1,0 +1,27 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 5,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S220401",
+      "industry_name": "涤纶",
+      "candidate_count": 5,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"stable","strength":"weak","breadth":"divergent","confidence":"medium","core_improving_breadth":0.42857142857142855,"aggregate_revenue_yoy":8.7846869845,"aggregate_parent_profit_yoy":-0.23,"market_breadth":"divergent","market_activity":"normal","market_confirmation":"neutral"},
+      "members": [
+        ["002206","海利得","2026-06-30",4.98,5786895556.0,10.606060606060646,null,null,0.09245487799977542,3.08,5.3167,null,null,"WATCH_STRUCTURE",null,false,false,11.26568672,9.79,1.44,7.19,-10.041043972,-0.23,-33.33333333333333,0.339119560926,24.026108808,295463513.3,0.26,0.2,false,false,false,true,true,false,0,23.0769,"material_positive_non_core",1.3043,"supportive",-18.8257,-33.1033,"mixed"],
+        ["002427","尤夫股份","2026-06-30",4.62,4552699430.0,53.246753246753265,8.534780463739509,3,0.24083837792097654,10.38,4.8,null,null,"WATCH_STRUCTURE",null,false,false,133.60115245,286.4,4.67,0.82,-4.6606793771,-33.24,-14.28571428571429,-0.198963009965,11.1178942288,7948244.62,0.0081,0.0084,false,false,false,true,true,true,0,-3.7037,"limited_gap",-24.5633,"negative",-13.4454,-14.0557,"mixed"],
+        ["603073","彩蝶实业","2026-06-30",15.71,1822360000.0,56.488549618320604,0.834403080872919,1,0.36799468452122847,12.06,16.025,null,null,"WATCH_STRUCTURE",null,false,true,36.47968257,35.8,1.31,1.83,4.0574373794,-43.61,-46.15384615384615,-0.111818306638,23.7542164281,25450185.47,0.22,0.21,true,false,false,false,true,true,0,4.5455,"limited_gap",-0.5083,"negative",-4.7272,-45.9238,"aligned"],
+        ["603225","新凤鸣","2026-06-30",16.74,28081245877.0,4.674457429048375,0.5347593582887692,1,null,null,18.47,19.52,"below","WATCH_STRUCTURE",null,false,false,16.05544159,9.76,1.29,7.12,21.5005034311,103.16,118.18181818181816,-1.662133966267,8.3933012121,1438899646.49,0.91,0.96,false,false,true,false,false,true,0,-5.4945,"limited_gap",-1.8265,"negative",12.7158,118.4118,"mixed"],
+        ["603332","苏州龙杰","2026-06-30",11.31,2446886651.0,61.53846153846153,1.5260323159784552,2,0.19678264782965102,13.73,11.425,null,null,"WATCH_STRUCTURE",null,false,true,24.96908136,22.4,1.87,4.11,29.7283948709,64.24,233.33333333333334,0.645384994889,12.9539489975,54612777.94,0.25,0.3,false,false,false,false,false,false,0,-20.0,"limited_gap",2.5815,"supportive",20.9437,233.5633,"mixed"]
+      ]
+    }
+  ]
+}

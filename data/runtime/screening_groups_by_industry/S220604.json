@@ -1,0 +1,23 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 1,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S220604",
+      "industry_name": "橡胶助剂",
+      "candidate_count": 1,
+      "single_candidate": true,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"improving","strength":"normal","breadth":"broad","confidence":"low","core_improving_breadth":1.0,"aggregate_revenue_yoy":29.0996907337,"aggregate_parent_profit_yoy":10.86,"market_breadth":"broad","market_activity":"active","market_confirmation":"strong"},
+      "members": [
+        ["603650","彤程新材","2026-06-30",69.31,42699786471.0,36.067481093659104,9.685076752650744,1,0.4251151172326737,5.58,68.87,65.1,"above","WATCH_STRUCTURE",null,false,false,71.08644843,54.88,10.17,9.04,29.0996907337,10.86,7.272727272727253,0.067581901428,23.0521361505,389033227.78,0.63,0.59,false,false,false,false,false,false,0,6.3492,"limited_gap",0.1073,"weak",0.0,-3.5873,"aligned"]
+      ]
+    }
+  ]
+}

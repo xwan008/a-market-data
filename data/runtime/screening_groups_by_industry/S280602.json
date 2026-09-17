@@ -1,0 +1,26 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 4,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S280602",
+      "industry_name": "商用载客车",
+      "candidate_count": 4,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"improving","strength":"normal","breadth":"broad","confidence":"medium","core_improving_breadth":0.6,"aggregate_revenue_yoy":3.6524784174,"aggregate_parent_profit_yoy":12.5378840465,"market_breadth":"narrow","market_activity":"active","market_confirmation":"weak"},
+      "members": [
+        ["000868","安凯客车","2026-06-30",3.69,3466809372.0,45.04504504504505,5.128205128205133,3,0.39450414909536,23.29,3.706,null,null,"WATCH_STRUCTURE",null,false,true,-48.3142958,921.01,4.32,0.23,8.0485969797,-89.77,null,-0.663803180394,8.0888784874,1882059.47,0.002,-0.01,true,false,false,false,false,true,1,600.0,"material_positive_non_core",-331.9016,"negative",4.3961,-102.3079,"mixed"],
+        ["000957","中通客车","2026-06-30",9.8,5810458573.0,46.38583054092872,0.924035020320684,7,0.3953694010509298,17.88,10.0055,10.16,"below","WATCH_STRUCTURE",null,true,true,12.85518305,10.28,1.72,8.63,1.8489596384,48.5,17.60135135135137,2.611270618298,17.2007878152,282732130.47,0.484,0.3481,false,false,false,false,false,false,0,28.0785,"material_positive_non_core",5.3952,"supportive",-1.8035,5.0635,"aligned"],
+        ["600066","宇通客车","2026-06-30",26.62,58935062116.0,9.68899521531103,null,null,0.9819967266775753,11.11,29.945,29.2,"below","WATCH_STRUCTURE",null,false,false,10.74207198,15.78,4.54,11.85,3.6524784174,-3.52,15.714285714285726,2.686946262702,24.4718613793,1867413428.32,0.84,0.81,true,true,false,false,false,false,0,3.5714,"limited_gap",3.1987,"supportive",0.0,3.1764,"aligned"],
+        ["600686","金龙汽车","2026-06-30",10.74,7701089259.0,26.77165354330708,0.12398967063496674,3,0.38491861058293564,13.39,11.04,null,null,"READY_STRUCTURE","mid_low_dual_acceptance",true,true,12.25805197,13.94,2.13,7.73,7.3383984459,137.58,1250.0,1.627329610728,13.1048432501,276146647.04,0.39,0.27,false,false,false,false,false,false,0,30.7692,"material_positive_non_core",4.1726,"supportive",3.6859,1237.4621,"aligned"]
+      ]
+    }
+  ]
+}

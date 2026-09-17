@@ -1,0 +1,25 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 3,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S640207",
+      "industry_name": "农用机械",
+      "candidate_count": 3,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"stable","strength":"normal","breadth":"broad","confidence":"medium","core_improving_breadth":0.75,"aggregate_revenue_yoy":13.5959921017,"aggregate_parent_profit_yoy":3.9949999999999997,"market_breadth":"divergent","market_activity":"quiet","market_confirmation":"neutral"},
+      "members": [
+        ["002890","弘宇股份","2026-06-30",14.16,2405432266.0,52.52918287937741,1.1067475901463717,2,0.4326547982126388,11.75,14.15,null,null,"WATCH_STRUCTURE",null,false,false,221.19324624,135.39,3.98,1.47,5.7222104347,6.27,17.777777777777782,-0.01883945528,17.7485752968,8883582.81,0.0523,0.0477,false,false,true,false,false,true,0,8.7954,"limited_gap",-0.3602,"negative",-7.8738,13.7828,"aligned"],
+        ["601038","XD一拖股","2026-06-30",14.4,16180491960.0,84.50704225352113,14.924181963288117,1,1.5908850400366874,14.58,14.35,null,null,"WATCH_STRUCTURE",null,false,true,19.60782307,10.34,1.99,9.76,13.8383580802,1.72,23.37556855100713,0.944152892682,16.6057035173,782287915.86,0.6962,0.7595,false,false,false,false,false,false,0,-9.0922,"limited_gap",1.3562,"supportive",0.2424,19.3806,"aligned"],
+        ["603029","天鹅股份","2026-06-30",15.82,1919630440.0,54.44444444444443,3.5679214402618653,2,0.2817576128133457,11.64,16.0,null,null,"WATCH_STRUCTURE",null,false,false,25.27423156,49.43,2.02,2.05,13.3536261232,7.3,57.14285714285714,-1.126952147154,26.9635451202,19417709.98,0.16,0.11,false,false,true,false,false,true,0,31.25,"material_positive_non_core",-7.0435,"negative",-0.2424,53.1479,"aligned"]
+      ]
+    }
+  ]
+}

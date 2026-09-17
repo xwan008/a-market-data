@@ -1,0 +1,24 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 2,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S720601",
+      "industry_name": "影视动漫制作",
+      "candidate_count": 2,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"stable","strength":"weak","breadth":"divergent","confidence":"high","core_improving_breadth":0.5555555555555556,"aggregate_revenue_yoy":-11.9346171581,"aggregate_parent_profit_yoy":0.28,"market_breadth":"broad","market_activity":"quiet","market_confirmation":"neutral"},
+      "members": [
+        ["002292","奥飞娱乐","2026-06-30",8.33,12317568476.0,77.0992366412214,0.23952095808382726,1,0.2574387834520701,16.67,8.27,null,null,"WATCH_STRUCTURE",null,false,true,58.9169284,35.35,4.06,5.78,11.1289680737,370.7,57.657657657657666,0.043643515591,51.5892884582,174201300.9,0.119,0.035,false,false,false,false,false,false,0,70.5882,"material_positive_non_core",0.3668,"weak",23.0636,57.3777,"mixed"],
+        ["601595","上海电影","2026-06-30",22.68,10165176000.0,84.60262939713371,28.838015167438293,2,2.1221413229950397,8.14,23.98,17.78,"below","WATCH_STRUCTURE",null,false,false,136.64011626,333.17,6.09,0.9,-12.3581382338,-71.62,-125.0,-0.101519878849,21.4261258609,15255378.65,0.03,-0.02,false,false,false,true,true,true,0,166.6667,"material_positive_non_core",-3.384,"negative",-0.4235,-125.28,"mixed"]
+      ]
+    }
+  ]
+}

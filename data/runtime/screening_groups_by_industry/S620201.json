@@ -1,0 +1,30 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 8,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S620201",
+      "industry_name": "装修装饰Ⅲ",
+      "candidate_count": 8,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"stable","strength":"weak","breadth":"broad","confidence":"high","core_improving_breadth":0.65,"aggregate_revenue_yoy":-9.74218384385,"aggregate_parent_profit_yoy":13.985,"market_breadth":"broad","market_activity":"quiet","market_confirmation":"neutral"},
+      "members": [
+        ["002081","金螳螂","2026-06-30",4.86,12904873129.0,49.8371335504886,4.291845493562235,2,null,null,5.835,5.82,"above","WATCH_STRUCTURE",null,false,false,32.8052917,20.98,0.94,2.21,-15.0799240164,-14.05,-32.95910184442663,-0.365391039073,13.3597357595,307598990.72,0.1158,0.0836,false,false,false,true,true,true,0,27.8066,"material_positive_non_core",-3.1554,"negative",-5.3377,-46.9441,"mixed"],
+        ["002375","亚厦股份","2026-06-30",3.76,5038386832.0,64.53089244851253,2.73224043715846,1,2.7013739040179177,11.63,3.95,null,null,"WATCH_STRUCTURE",null,false,false,15.24464395,16.41,0.61,1.84,-15.5453859097,0.36,22.222222222222232,-0.449031802634,15.939682561,153543704.66,0.11,0.11,true,false,true,false,false,true,0,0.0,"limited_gap",-4.0821,"negative",-5.8032,8.2372,"aligned"],
+        ["002811","郑中设计","2026-06-30",14.78,4551796674.0,83.75,7.804522246535364,1,1.1712038551841628,9.06,15.95,13.71,"below","WATCH_STRUCTURE",null,false,false,27.18538314,21.13,3.04,7.33,41.7277536396,14.4,20.68965517241379,0.144370964081,38.7844771005,107689246.32,0.36,0.35,false,false,false,false,false,false,0,2.7778,"limited_gap",0.401,"weak",51.4699,6.7047,"mixed"],
+        ["002830","名雕股份","2026-06-30",14.27,2652735920.0,48.42233009708738,8.024224072672208,1,3.7750256346857287,8.71,14.31,11.41,"below","WATCH_STRUCTURE",null,false,false,61.16026764,161.28,4.01,1.21,1.1741446615,7.05,-16.666666666666664,0.412683020667,31.6474132804,8223770.34,0.04,0.05,false,true,false,false,false,false,0,-25.0,"core_eps_above_reported",10.3171,"supportive",10.9163,-30.6517,"mixed"],
+        ["600234","科新发展","2026-06-30",20.72,5439434561.0,35.25046382189239,1.2410827714257686,5,14.231528342870996,10.22,21.87,null,null,"WATCH_STRUCTURE",null,true,false,-136.93017969,7740.31,12.03,0.08,17.0716765857,-98.47,null,0.063260857676,15.8496369963,351370.81,0.0013,-0.0056,true,false,false,false,false,false,1,530.7692,"material_positive_non_core",48.6622,"supportive",26.8139,-112.455,"mixed"],
+        ["601886","江河集团","2026-06-30",13.13,14876317048.0,83.88554216867472,2.0995334370140077,2,0.6770589723732355,10.47,13.42,14.0,"above","WATCH_STRUCTURE",null,false,false,20.58032909,16.88,2.14,6.0,15.9048327179,34.34,33.33333333333335,-0.618331053908,16.4274246959,440534741.57,0.39,0.4,false,false,true,false,false,true,0,-2.5641,"limited_gap",-1.5855,"negative",25.647,19.3483,"mixed"],
+        ["603137","恒尚节能","2026-06-30",19.04,3483050679.0,32.11798443260959,null,null,null,null,20.64,24.44,"above","WATCH_STRUCTURE",null,false,false,-68.75952597,58.44,2.93,2.54,-32.9393458577,-34.4,-33.33333333333333,0.380192015907,12.999583484,29801848.68,0.16,0.16,false,false,false,true,true,false,0,0.0,"limited_gap",2.3762,"supportive",-23.1972,-47.3183,"mixed"],
+        ["605287","德才股份","2026-06-30",34.7,4858000000.0,38.39617631439195,13.770491803278698,1,null,null,35.2,37.56,"below","WATCH_STRUCTURE",null,false,false,72.44319341,54.93,3.05,2.81,2.6206689923,-6.12,-32.325838555105044,0.348019698357,9.6446347599,44220683.16,0.3302,0.1836,true,false,false,false,true,false,0,44.3973,"material_positive_non_core",1.054,"supportive",12.3629,-46.3108,"mixed"]
+      ]
+    }
+  ]
+}

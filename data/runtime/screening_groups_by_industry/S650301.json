@@ -1,0 +1,27 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 5,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S650301",
+      "industry_name": "地面兵装Ⅲ",
+      "candidate_count": 5,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"stable","strength":"weak","breadth":"divergent","confidence":"medium","core_improving_breadth":0.5714285714285714,"aggregate_revenue_yoy":-8.6419661533,"aggregate_parent_profit_yoy":5.36,"market_breadth":"broad","market_activity":"normal","market_confirmation":"neutral"},
+      "members": [
+        ["000519","中兵红箭","2026-06-30",15.43,21487185092.0,25.292242295430384,6.340454858718125,1,0.7594506879460806,11.44,17.0,null,null,"WATCH_STRUCTURE",null,false,false,179.64554855,288.82,2.07,0.36,38.1509084566,191.36,null,-0.400551950495,18.4813424153,37197974.55,0.0267,0.0288,false,false,true,false,false,true,1,-7.8652,"limited_gap",-15.0019,"negative",46.7929,186.0,"mixed"],
+        ["000576","甘化科工","2026-06-30",8.21,3582993537.0,71.73913043478265,16.67400912359488,3,0.6818404787599344,13.33,8.14,null,null,"WATCH_STRUCTURE",null,false,true,46.19161497,50.31,2.12,2.14,117.4139587267,5.36,700.0,-0.121919213161,34.1881480893,35607699.5,0.08,0.08,false,false,true,false,false,true,0,0.0,"limited_gap",-1.524,"negative",126.0559,694.64,"mixed"],
+        ["002519","银河电子","2026-06-30",6.09,6859964169.0,76.66666666666664,8.652988403211408,2,0.3224380902499349,11.49,6.045,5.59,"below","WATCH_STRUCTURE",null,false,false,-138.81730569,630.38,3.09,0.25,114.4726247664,118.8818443281,null,-0.004453658595,18.5474540043,5441151.09,0.0048,-0.0027,false,false,true,false,false,true,1,156.25,"material_positive_non_core",-0.9278,"negative",123.1146,113.5218,"mixed"],
+        ["600184","光电股份","2026-06-30",21.27,12394613244.0,35.197889182058056,20.16949152542373,2,16.38023013410811,9.23,23.24,null,null,"WATCH_STRUCTURE",null,false,false,227.02870466,389.88,3.63,0.46,-10.5609408561,28.39,-87.16216216216216,0.153128437786,24.5058069732,15895422.84,0.0273,0.0019,true,true,false,false,false,false,0,93.0403,"material_positive_non_core",5.6091,"supportive",-1.919,-92.5222,"mixed"],
+        ["600967","内蒙一机","2026-06-30",13.47,22923174164.0,60.84656084656087,21.460775473399465,2,15.589575485055743,15.89,14.6,12.95,"below","WATCH_STRUCTURE",null,false,false,105.7722007,66.66,1.91,1.45,-8.6419661533,-40.72,-41.42011834319527,-0.446644354986,7.9707995154,171942971.37,0.101,0.099,false,false,false,true,true,true,0,1.9802,"limited_gap",-4.4222,"negative",0.0,-46.7801,"mixed"]
+      ]
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 4,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S421002",
+      "industry_name": "机场",
+      "candidate_count": 4,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"stable","strength":"normal","breadth":"divergent","confidence":"medium","core_improving_breadth":0.5,"aggregate_revenue_yoy":4.2352468481,"aggregate_parent_profit_yoy":2.835000000000001,"market_breadth":"narrow","market_activity":"normal","market_confirmation":"weak"},
+      "members": [
+        ["000089","深圳机场","2026-06-30",6.48,13288986418.0,56.98924731182801,1.0920436817472743,4,0.07412898443291882,25.99,6.6722,6.41,"below","WATCH_STRUCTURE",null,true,true,13.99214081,9.02,1.1,6.17,6.1184699802,135.97,2.8301886792452713,0.55416451695,24.0894373136,736766609.67,0.3593,0.1308,false,false,false,false,false,false,0,63.5959,"material_positive_non_core",1.5423,"supportive",1.8832,-0.0048,"aligned"],
+        ["600004","白云机场","2026-06-30",7.66,19741693621.0,68.00000000000004,2.7388073714423693,6,0.47294839145573964,32.32,7.66,null,null,"WATCH_STRUCTURE",null,true,true,17.243984,23.14,0.95,2.02,8.9520326914,-43.13,-33.33333333333333,0.676100109451,21.3233864629,426542432.65,0.17,0.16,true,false,false,false,true,false,0,5.8824,"limited_gap",3.9771,"supportive",4.7168,-36.1683,"mixed"],
+        ["600009","上海机场","2026-06-30",22.85,56857952964.0,23.913043478260892,2.9743127534925646,1,0.6271028202011754,10.46,23.722,23.25,"below","READY_STRUCTURE","mid_low_dual_acceptance",false,false,24.84375663,23.38,1.34,2.82,2.352023716,16.46,9.756097560975618,0.912191745067,24.737394856,1216000536.71,0.49,0.45,false,false,false,false,false,false,0,8.1633,"limited_gap",1.8616,"supportive",-1.8832,6.9211,"aligned"],
+        ["600897","厦门空港","2026-06-30",14.9,6212316600.0,57.63546798029559,2.6170798898071683,4,0.5805319292561112,34.89,14.8,14.67,"below","WATCH_STRUCTURE",null,true,true,12.72756061,12.42,1.51,4.99,-3.7478375363,-10.79,-6.577728367611635,0.173053505663,35.5938971282,250021516.57,0.5997,0.5042,false,false,false,true,true,false,0,15.9246,"limited_gap",0.2886,"weak",-7.9831,-9.4127,"failed"]
+      ]
+    }
+  ]
+}

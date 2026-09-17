@@ -1,0 +1,25 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 3,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S330201",
+      "industry_name": "彩电",
+      "candidate_count": 3,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"improving","strength":"strong","breadth":"broad","confidence":"medium","core_improving_breadth":0.75,"aggregate_revenue_yoy":5.961820148099999,"aggregate_parent_profit_yoy":48.135000000000005,"market_breadth":"broad","market_activity":"active","market_confirmation":"strong"},
+      "members": [
+        ["002429","兆驰股份","2026-06-30",8.17,36985104759.0,24.086021505376348,5.9662775616083,3,0.7736497564885866,13.75,8.15,null,null,"WATCH_STRUCTURE",null,false,true,35.80299543,47.27,2.22,2.24,8.2169687086,-40.86,-38.46153846153846,-0.144188526474,13.8674339275,391175622.41,0.09,0.08,true,false,false,false,true,true,0,11.1111,"limited_gap",-1.6021,"negative",2.2551,-86.5965,"mixed"],
+        ["600060","海信视像","2026-06-30",27.57,35978085043.0,72.19343696027634,0.9150805270863837,1,3.574192481948711,28.79,28.19,27.32,"below","WATCH_STRUCTURE",null,false,false,13.8715526,15.05,1.63,5.49,3.7066715876,13.23,17.475728155339798,0.869283798229,17.3459572128,1195373521.86,0.921,0.726,false,false,false,false,false,false,0,21.1726,"material_positive_non_core",0.9438,"supportive",-2.2551,-30.6593,"aligned"],
+        ["600839","四川长虹","2026-06-30",6.65,30698024076.0,35.766423357664245,3.7441497659906426,2,0.22758443985591847,11.92,7.108,null,null,"WATCH_STRUCTURE",null,false,false,14.38465977,9.32,1.88,10.2601,2.7677031379,228.62,-67.90830945558739,-0.795455827753,7.9466380729,1646106319.78,0.3576,0.0112,false,true,true,false,false,true,0,96.868,"material_positive_non_core",-2.2244,"negative",-3.1941,-116.0433,"mixed"]
+      ]
+    }
+  ]
+}

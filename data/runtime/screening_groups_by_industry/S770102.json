@@ -1,0 +1,25 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 3,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S770102",
+      "industry_name": "洗护用品",
+      "candidate_count": 3,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"improving","strength":"normal","breadth":"broad","confidence":"medium","core_improving_breadth":1.0,"aggregate_revenue_yoy":15.9499406066,"aggregate_parent_profit_yoy":14.8,"market_breadth":"broad","market_activity":"quiet","market_confirmation":"neutral"},
+      "members": [
+        ["001328","登康口腔","2026-06-30",29.29,5042970602.0,56.96347031963468,2.118016211975937,4,0.5436314307931039,17.0,29.07,28.62,"below","WATCH_STRUCTURE",null,true,true,25.5598016,24.87,3.42,6.52,14.1633397728,19.05,32.49999999999999,0.476138966149,52.7089462987,101378134.46,0.59,0.53,false,false,false,false,false,false,0,10.1695,"limited_gap",0.807,"supportive",-1.7866,17.7,"aligned"],
+        ["603059","倍加洁","2026-06-30",23.91,2405769207.0,41.836734693877574,2.41802488702319,6,0.6143537646833882,27.08,24.867,null,null,"WATCH_STRUCTURE",null,true,true,20.15100322,25.0,2.14,4.29,22.199929316,10.55,14.999999999999991,0.497883904522,25.5138003059,48113599.86,0.48,0.46,false,false,false,false,false,false,0,4.1667,"limited_gap",1.0373,"supportive",6.25,0.2,"aligned"],
+        ["603193","润本股份","2026-06-30",19.79,8006901684.0,40.1590457256461,6.646117035895391,3,2.5936121349735832,21.02,19.82,null,null,"WATCH_STRUCTURE",null,false,true,22.74252524,17.79,3.59,9.72,17.7365414404,20.03,22.72727272727273,0.466119413036,60.5203093119,225090488.36,0.56,0.54,false,false,false,false,false,false,0,3.5714,"limited_gap",0.8324,"supportive",1.7866,7.9273,"aligned"]
+      ]
+    }
+  ]
+}

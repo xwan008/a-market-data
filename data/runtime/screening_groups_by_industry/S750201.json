@@ -1,0 +1,26 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 4,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S750201",
+      "industry_name": "油田服务",
+      "candidate_count": 4,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"stable","strength":"normal","breadth":"divergent","confidence":"medium","core_improving_breadth":0.5714285714285714,"aggregate_revenue_yoy":2.0028088151,"aggregate_parent_profit_yoy":1.26,"market_breadth":"broad","market_activity":"quiet","market_confirmation":"neutral"},
+      "members": [
+        ["600871","石化油服","2026-06-30",2.23,42274212208.0,59.52380952380953,2.293577981651368,4,0.022426553038805426,26.61,2.312,2.19,"below","WATCH_STRUCTURE",null,true,true,62.52434791,41.48,4.22,5.36,1.6558557747,3.5,13.636363636363647,0.154911318989,8.4930280586,509539000.0,0.027,0.025,false,false,false,false,false,false,0,7.4074,"limited_gap",5.7375,"supportive",-0.347,12.3764,"aligned"],
+        ["600968","海油发展","2026-06-30",4.03,40965369922.0,85.3932584269663,5.913272010512486,4,0.2038888060072711,21.02,4.15,3.83,"below","WATCH_STRUCTURE",null,false,true,10.44240561,10.97,1.37,6.14,2.1356121503,2.11,-5.09977827050998,-0.245922999437,15.5641850577,1867991136.02,0.1838,0.1712,false,true,true,false,false,true,0,6.8553,"limited_gap",-1.338,"negative",0.1328,-6.3598,"mixed"],
+        ["601808","中海油服","2026-06-30",12.41,59215456720.0,68.86446886446889,1.4303228442991476,2,0.29903822840055616,27.45,12.57,null,null,"WATCH_STRUCTURE",null,false,true,15.23637824,14.74,1.25,4.24,2.0028088151,2.3,-7.317073170731703,-0.298212350511,18.5384215705,2008555728.0,0.42,0.38,false,true,true,false,false,true,0,9.5238,"limited_gap",-0.71,"negative",0.0,-8.5771,"mixed"],
+        ["603619","中曼石油","2026-06-30",22.13,10231550142.0,55.63816604708796,1.073304407398947,4,16.427113365180237,11.96,22.5,22.24,"below","WATCH_STRUCTURE",null,true,false,33.1874343,51.68,2.34,2.27,-13.8890858485,-67.03,-71.62162162162163,1.104726296868,41.5885359361,98991060.27,0.21,0.21,false,false,false,true,true,false,0,0.0,"limited_gap",5.2606,"supportive",-15.8919,-72.8816,"failed"]
+      ]
+    }
+  ]
+}

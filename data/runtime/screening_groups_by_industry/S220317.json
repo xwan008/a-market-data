@@ -1,0 +1,26 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 4,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S220317",
+      "industry_name": "胶黏剂及胶带",
+      "candidate_count": 4,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"improving","strength":"strong","breadth":"broad","confidence":"medium","core_improving_breadth":0.75,"aggregate_revenue_yoy":13.8853310649,"aggregate_parent_profit_yoy":103.805,"market_breadth":"broad","market_activity":"active","market_confirmation":"strong"},
+      "members": [
+        ["002669","康达新材","2026-06-30",14.17,4299178000.0,47.87472035794184,17.05906650144568,2,0.8986956673777019,12.43,18.2,null,null,"WATCH_STRUCTURE",null,false,true,41.76225759,74.96,1.57,1.03,22.5298547991,-43.96,-40.95238095238095,-1.237417200066,12.6026198962,28677905.63,0.099,0.062,true,false,false,false,true,true,0,37.3737,"material_positive_non_core",-12.4992,"negative",8.6445,-144.7574,"mixed"],
+        ["603051","鹿山新材","2026-06-30",23.72,3862396293.0,94.63276836158188,12.151300236406621,2,3.541901294710279,10.94,24.045,20.98,"below","WATCH_STRUCTURE",null,false,false,-86.59309933,43.35,2.22,2.61,-0.2162848271,179.55,1900.0,0.105735181717,18.6548851611,44550024.44,0.28,0.2,true,false,false,false,false,false,0,28.5714,"material_positive_non_core",0.3776,"weak",-14.1016,1796.195,"mixed"],
+        ["603681","永冠新材","2026-06-30",18.88,4488565750.0,33.26359832635982,3.6980891649777146,3,1.7553882388448911,17.85,18.7467,null,null,"READY_STRUCTURE","mid_low_dual_acceptance",false,true,24.20381432,24.34,1.29,3.08,10.0624041181,199.6,66.66666666666667,1.222703086537,8.717436331,92212648.72,0.46,0.05,false,false,false,false,false,false,0,89.1304,"material_positive_non_core",2.6581,"supportive",-3.8229,-37.1383,"aligned"],
+        ["603683","晶华新材","2026-06-30",16.21,4723310374.0,15.19119958093243,2.1424070573409053,1,2.131466698589315,19.7,16.09,16.52,"above","READY_STRUCTURE","deep_low_strong_acceptance",false,true,47.28248586,48.95,2.75,2.8624,17.7082580117,28.06,16.621067031463753,0.281465137156,18.0972436803,48245003.56,0.1679,0.1705,false,false,false,false,false,false,0,-1.5485,"limited_gap",1.6764,"supportive",3.8229,-87.1839,"aligned"]
+      ]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 3,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S270503",
+      "industry_name": "品牌消费电子",
+      "candidate_count": 3,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"stable","strength":"weak","breadth":"divergent","confidence":"medium","core_improving_breadth":0.5,"aggregate_revenue_yoy":-6.8441242819,"aggregate_parent_profit_yoy":-3.345,"market_breadth":"broad","market_activity":"quiet","market_confirmation":"neutral"},
+      "members": [
+        ["002351","漫步者","2026-06-30",9.67,8597664690.0,43.95604395604399,0.46753246753246674,2,4.0098094049821436,9.17,9.595,9.96,"below","WATCH_STRUCTURE",null,false,false,19.44846735,20.36,2.87,6.93,-6.2649616741,5.54,0.0,0.132702695963,42.374399016,211125621.34,0.24,0.21,true,true,false,false,false,false,0,12.5,"limited_gap",0.5529,"supportive",0.5792,3.345,"mixed"],
+        ["002841","视源股份","2026-06-30",47.54,33239328349.0,67.5534675819025,5.631533923631559,3,0.1650615515785881,18.0,50.5748,50.1652,"above","WATCH_STRUCTURE",null,false,true,15.55678385,10.93,2.37,10.93,36.1973177359,282.44,248.78048780487805,-1.55732449122,23.7073561971,1520876122.72,2.21,1.43,false,false,true,false,false,true,0,35.2941,"material_positive_non_core",-0.7047,"negative",43.0414,252.1255,"mixed"],
+        ["002888","惠威科技","2026-06-30",18.8,2775696146.0,54.85188968335037,7.6746849942726225,1,6.894100923951683,9.91,18.96,null,null,"WATCH_STRUCTURE",null,false,false,138.27156556,179.43,7.5,2.01,-7.4232868897,-12.23,-15.539305301645335,0.132001760702,33.3318953313,7734766.94,0.0526,0.0462,false,false,false,true,true,false,0,12.1673,"limited_gap",2.5095,"supportive",-0.5792,-12.1943,"aligned"]
+      ]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 3,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S760104",
+      "industry_name": "综合环境治理",
+      "candidate_count": 3,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"stable","strength":"weak","breadth":"divergent","confidence":"medium","core_improving_breadth":0.5714285714285714,"aggregate_revenue_yoy":-15.417805456,"aggregate_parent_profit_yoy":7.27,"market_breadth":"broad","market_activity":"normal","market_confirmation":"neutral"},
+      "members": [
+        ["000711","京蓝科技","2026-06-30",5.07,14974230921.0,36.742424242424256,0.0,1,0.8172761438883281,12.57,5.19,6.54,"above","WATCH_STRUCTURE",null,false,true,-210.11748617,100.9,20.51,11.6,98.0652175543,213.11,null,-0.049002340569,18.4913055144,74201518.71,0.0253,0.0019,false,false,true,false,false,true,1,92.4901,"material_positive_non_core",-1.9369,"negative",113.483,205.84,"mixed"],
+        ["002887","绿茵生态","2026-06-30",8.91,2726351423.0,3.797468354430375,0.621118012422357,2,null,null,9.88,10.19,"above","WATCH_STRUCTURE",null,false,false,25.59035846,30.98,1.19,1.81,-19.3551182325,-25.28,-15.124016938898965,-0.243900004364,44.7678597752,43999322.89,0.1438,0.1403,false,false,false,true,true,true,0,2.4339,"limited_gap",-1.6961,"negative",-3.9373,-22.394,"mixed"],
+        ["603686","福龙马","2026-06-30",14.35,5961426297.0,92.25806451612902,9.961685823754781,1,4.2097848267648414,12.66,null,12.77,"below","WATCH_STRUCTURE",null,false,false,36.80150934,29.64,1.71,2.88,7.6344187662,7.27,0.6818181818181834,0.179918854254,24.2577517086,100557089.43,0.24,0.2215,false,false,false,false,false,false,0,7.7083,"limited_gap",0.7497,"supportive",23.0522,-6.5882,"mixed"]
+      ]
+    }
+  ]
+}

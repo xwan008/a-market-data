@@ -1,0 +1,27 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 5,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S640206",
+      "industry_name": "纺织服装设备",
+      "candidate_count": 5,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"stable","strength":"normal","breadth":"divergent","confidence":"high","core_improving_breadth":0.5555555555555556,"aggregate_revenue_yoy":11.3261709666,"aggregate_parent_profit_yoy":3.01,"market_breadth":"broad","market_activity":"normal","market_confirmation":"neutral"},
+      "members": [
+        ["002722","物产金轮","2026-06-30",12.88,2864151489.0,68.05380411937792,1.6374038271848599,4,0.05826374053214437,25.25,13.04,null,null,"WATCH_STRUCTURE",null,true,true,16.18795937,16.8,0.96,2.86,11.3261709666,41.04,33.33333333333333,0.041328796326,20.0612920356,85262909.04,0.38,0.36,false,false,false,false,false,false,0,5.2632,"limited_gap",0.1088,"weak",0.0,30.3233,"aligned"],
+        ["003036","泰坦股份","2026-06-30",55.44,12008661311.0,24.215319564156772,10.39426523297491,1,0.06136519510522131,14.41,55.45,55.15,"above","WATCH_STRUCTURE",null,false,true,287.46330379,195.79,8.45,2.06,20.4829683596,-15.38,-40.0,-1.066936704076,15.328737839,30666595.49,0.14,0.06,true,false,false,false,true,true,0,57.1429,"material_positive_non_core",-7.621,"negative",9.1568,-43.01,"mixed"],
+        ["600232","金鹰股份","2026-06-30",6.43,2345140238.0,71.20418848167536,3.0448717948717867,5,0.3041884408392458,28.28,6.555,6.5,"below","WATCH_STRUCTURE",null,false,true,47.61862363,59.69,2.42,2.047,19.5430522479,324.0003829457,null,-0.187827234746,18.2604979013,19643000.41,0.054,0.048,false,false,true,false,false,true,1,11.1111,"limited_gap",-3.4783,"negative",8.2169,320.9904,"aligned"],
+        ["603095","越剑智能","2026-06-30",14.24,3677753408.0,50.48951048951048,4.297129631664143,3,0.027380141674680336,9.81,14.99,null,null,"WATCH_STRUCTURE",null,false,false,69.87538449,61.54,1.56,1.28,-17.1111573927,-52.29,-62.48146317350469,0.210645507401,11.9025591047,29880115.66,0.1162,0.0759,false,false,false,true,true,false,0,34.6816,"material_positive_non_core",1.8128,"supportive",-28.4373,-65.4915,"failed"],
+        ["603337","杰克科技","2026-06-30",35.91,17107096348.0,9.155485398579293,2.1040659653113303,3,null,null,39.1825,38.98,"above","READY_STRUCTURE","deep_low_strong_acceptance",true,false,19.65673481,17.39,3.16,9.18,16.241793394,3.01,2.083333333333326,1.183043286148,32.4199470492,491748025.06,1.09,0.98,false,false,false,false,false,false,0,10.0917,"limited_gap",1.0854,"supportive",4.9156,-0.9267,"aligned"]
+      ]
+    }
+  ]
+}

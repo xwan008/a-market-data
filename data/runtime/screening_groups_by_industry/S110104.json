@@ -1,0 +1,24 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 2,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S110104",
+      "industry_name": "食用菌",
+      "candidate_count": 2,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"improving","strength":"strong","breadth":"broad","confidence":"low","core_improving_breadth":1.0,"aggregate_revenue_yoy":5.3972955458500005,"aggregate_parent_profit_yoy":90.91,"market_breadth":"narrow","market_activity":"quiet","market_confirmation":"weak"},
+      "members": [
+        ["002772","众兴菌业","2026-06-30",10.68,4002250252.0,30.45267489711934,4.552129221732745,2,0.7914390814847879,15.45,10.98,11.11,"below","READY_STRUCTURE","mid_low_dual_acceptance",false,true,8.7616294,10.49,1.12,5.34,19.5533571019,176.51,208.13232253618193,0.457920529,30.9341683706,190849287.14,0.5093,0.4471,false,false,false,false,false,false,0,12.2128,"limited_gap",0.8991,"supportive",14.1561,117.2223,"aligned"],
+        ["600883","博闻科技","2026-06-30",7.83,1848569040.0,67.51054852320677,0.5082592121982216,1,1.3080774754492843,12.6,7.805,7.87,"below","WATCH_STRUCTURE",null,false,true,74.70873484,61.16,1.88,1.5161,-8.7587660102,5.31,9.225700164744644,-0.021402428162,5.3574738437,15112835.24,0.064,0.0663,true,false,true,false,false,true,0,-3.5937,"limited_gap",-0.3344,"negative",-14.1561,-81.6843,"mixed"]
+      ]
+    }
+  ]
+}

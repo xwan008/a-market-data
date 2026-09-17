@@ -1,0 +1,29 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 7,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S270203",
+      "industry_name": "被动元件",
+      "candidate_count": 7,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"improving","strength":"normal","breadth":"broad","confidence":"high","core_improving_breadth":0.75,"aggregate_revenue_yoy":17.93581887835,"aggregate_parent_profit_yoy":12.065000000000001,"market_breadth":"broad","market_activity":"normal","market_confirmation":"neutral"},
+      "members": [
+        ["000636","风华高科","2026-06-30",58.58,67219988745.0,45.20568695765078,4.773658135250661,1,0.45580664743750016,10.62,60.0,null,null,"WATCH_STRUCTURE",null,false,false,165.24580147,115.78,5.31,2.3,26.2768121063,74.01,66.66666666666667,0.139241732478,18.7570541492,290300156.58,0.25,0.25,false,false,false,false,false,false,0,0.0,"limited_gap",0.557,"supportive",8.341,54.6017,"aligned"],
+        ["002138","顺络电子","2026-06-30",51.12,41218994256.0,33.503836317135544,4.883052933935157,1,1.7428842674691354,7.21,50.6733,null,null,"READY_STRUCTURE","mid_low_dual_acceptance",false,false,41.96407911,46.1,6.28,6.78,19.6724390978,-7.98,-6.779661016949145,0.776859623835,33.588309397,447107886.72,0.57,0.55,true,false,false,false,true,false,0,3.5088,"limited_gap",1.3629,"supportive",1.7366,-18.8447,"mixed"],
+        ["002484","江海股份","2026-06-30",60.28,51269583163.0,11.161217587373168,0.9041591320072286,1,1.176928706184079,9.87,64.98,null,null,"WATCH_STRUCTURE",null,false,false,73.30357898,66.88,7.82,5.91,16.96473698,6.92,8.31086050502574,0.464705260178,25.184486291,383312921.32,0.4552,0.4418,false,false,false,false,false,false,0,2.9438,"limited_gap",1.0209,"supportive",-0.9711,-3.7541,"aligned"],
+        ["600237","铜峰电子","2026-06-30",9.74,6140970214.0,37.397260273972606,12.601156069364158,1,0.8177207328433975,11.33,10.1,8.06,"below","WATCH_STRUCTURE",null,false,false,54.06679568,58.89,3.1,2.6225,-10.5729390298,-10.81,-9.189842805320424,0.139646711706,25.7815759421,52137705.24,0.0827,0.0751,false,false,false,true,true,false,0,9.1898,"limited_gap",1.6886,"supportive",-28.5088,-21.2548,"failed"],
+        ["600563","法拉电子","2026-06-30",125.7,28282500000.0,8.567854909318333,0.3093028788960271,1,null,null,130.99,128.8,"above","WATCH_STRUCTURE",null,false,false,23.47298112,24.29,4.64,9.6,10.5786420456,2.23,3.2388663967611198,3.664574926622,33.0970403382,582137240.11,2.59,2.55,false,false,false,false,false,false,0,1.5444,"limited_gap",1.4149,"supportive",-7.3572,-8.8261,"aligned"],
+        ["603738","泰晶科技","2026-06-30",37.3,14393603452.0,24.97659176029962,9.802767147483069,4,0.9718199290760797,10.1,37.57,37.14,"above","WATCH_STRUCTURE",null,false,false,177.99758459,142.0,7.81,2.8,18.9069007767,129.93,233.33333333333334,0.208102294256,21.4533447503,50682475.48,0.13,0.1,false,false,false,false,false,false,0,23.0769,"material_positive_non_core",1.6008,"supportive",0.9711,221.2683,"aligned"],
+        ["603989","艾华集团","2026-06-30",35.48,14148709433.0,36.082474226804116,17.912927883017606,1,5.857045251798338,7.94,40.0,30.09,"below","WATCH_STRUCTURE",null,false,false,48.79895253,41.68,3.56,4.28,15.3532638586,17.21,14.268833087149169,0.092552696894,20.2043631277,169727503.24,0.4256,0.3868,false,false,false,false,false,false,0,9.1165,"limited_gap",0.2175,"weak",-2.5826,2.2038,"aligned"]
+      ]
+    }
+  ]
+}

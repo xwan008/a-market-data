@@ -1,0 +1,27 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 5,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S461102",
+      "industry_name": "培训教育",
+      "candidate_count": 5,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"improving","strength":"strong","breadth":"broad","confidence":"medium","core_improving_breadth":0.7142857142857143,"aggregate_revenue_yoy":8.4026253095,"aggregate_parent_profit_yoy":30.67,"market_breadth":"divergent","market_activity":"quiet","market_confirmation":"neutral"},
+      "members": [
+        ["000526","学大教育","2026-06-30",35.14,4282199370.0,74.16612164813601,2.538663554128968,3,0.7927545397054817,23.42,37.145,null,null,"WATCH_STRUCTURE",null,true,true,16.10119371,7.12,3.46,27.62,12.8729727473,30.85,42.00358382797624,2.378872592568,37.4550478231,300538136.45,2.5139,2.5359,false,false,false,false,false,false,0,-0.8751,"limited_gap",0.9463,"supportive",4.4703,11.3336,"aligned"],
+        ["002607","中公教育","2026-06-30",1.9,11718058839.0,33.823529411764696,8.571428571428566,4,0.17862771881895922,12.12,2.1533,2.01,"below","WATCH_STRUCTURE",null,false,true,194.22807142,80.01,14.11,9.22,1.2181990519,18.52,0.0,0.046678154916,60.3492748691,73224374.83,0.01,0.01,false,true,false,false,false,false,0,0.0,"limited_gap",4.6678,"supportive",-7.1844,-30.67,"mixed"],
+        ["003032","传智教育","2026-06-30",8.72,3509342200.0,45.64958283671038,66.73040152963671,1,null,null,12.3,12.3,"above","WATCH_STRUCTURE",null,false,false,-71.87245176,50.98,2.92,2.9,59.6629196377,577.83,null,0.220252480957,59.1003465779,34418058.43,0.09,0.06,false,false,false,false,false,false,1,33.3333,"material_positive_non_core",2.4472,"supportive",51.2603,547.16,"aligned"],
+        ["600661","昂立教育","2026-06-30",8.34,2389817242.0,48.47560975609756,0.11976047904191363,1,13.446235462150586,9.06,9.22,9.63,"above","WATCH_STRUCTURE",null,false,false,20.81765679,38.4,9.01,12.48,8.4026253095,977.3,null,0.543854020064,45.0618047811,31115668.43,0.1121,0.0915,false,false,false,false,false,false,1,18.3764,"limited_gap",4.8515,"supportive",0.0,946.63,"aligned"],
+        ["605098","行动教育","2026-06-30",54.69,6521842659.0,46.86495176848874,2.3664640800214105,7,1.1666817735338737,19.31,55.914,53.63,"below","WATCH_STRUCTURE",null,true,true,18.10469821,18.99,7.24,16.16,24.4396801967,30.67,24.752475247524753,1.864084754019,78.8631411171,171720069.24,1.44,1.26,false,false,false,false,false,false,0,12.5,"limited_gap",1.2945,"supportive",16.0371,-5.9175,"aligned"]
+      ]
+    }
+  ]
+}

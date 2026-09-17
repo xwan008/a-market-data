@@ -1,0 +1,25 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 3,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S490304",
+      "industry_name": "信托",
+      "candidate_count": 3,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"stable","strength":"normal","breadth":"broad","confidence":"low","core_improving_breadth":1.0,"aggregate_revenue_yoy":2.8540061757,"aggregate_parent_profit_yoy":4.61,"market_breadth":"broad","market_activity":"normal","market_confirmation":"neutral"},
+      "members": [
+        ["000563","陕国投Ａ","2026-06-30",2.97,15188491963.0,55.81395348837213,0.08424599831509322,8,0.1109877913429475,23.28,3.065,3.05,"above","WATCH_STRUCTURE",null,true,true,10.58536689,10.43,0.8,3.85,2.8540061757,0.32,0.7067137809187329,0.026946058222,null,727898704.68,0.1423,0.1425,false,false,false,false,false,false,1,-0.1405,"limited_gap",0.1894,"weak",0.0,-3.9033,"aligned"],
+        ["600517","国网英大","2026-06-30",4.98,28477810005.0,58.33333333333339,1.5497553017944639,5,0.7829777060546269,33.37,5.15,5.14,"above","WATCH_STRUCTURE",null,true,true,11.02357961,11.87,1.2,5.03,7.8,4.61,4.545454545454541,-0.288336271756,11.8604344,1199631158.72,0.21,0.207,false,false,true,false,false,true,0,1.4286,"limited_gap",-1.373,"negative",4.946,-0.0645,"aligned"],
+        ["600816","建元信托","2026-06-30",2.43,23922009257.0,20.588235294117712,0.8608379911060208,9,1.0142999667442623,14.1,2.534,null,null,"READY_STRUCTURE","mid_low_dual_acceptance",true,true,20.83647416,11.16,1.58,7.28,-25.45,2559.08,156.5217391304348,0.017995570376,null,1071335157.81,0.1088,0.0177,true,false,false,false,false,false,1,83.7316,"material_positive_non_core",0.1654,"weak",-28.304,151.9117,"mixed"]
+      ]
+    }
+  ]
+}

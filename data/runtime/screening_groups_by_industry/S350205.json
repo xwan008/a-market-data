@@ -1,0 +1,29 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 7,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S350205",
+      "industry_name": "鞋帽及其他",
+      "candidate_count": 7,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"stable","strength":"normal","breadth":"divergent","confidence":"high","core_improving_breadth":0.5,"aggregate_revenue_yoy":2.52936627415,"aggregate_parent_profit_yoy":57.16659177525,"market_breadth":"broad","market_activity":"quiet","market_confirmation":"neutral"},
+      "members": [
+        ["603001","奥康国际","2026-06-30",9.07,3636888600.0,42.18928164196124,2.3702031602708904,2,0.4248685322823279,8.58,9.67,null,null,"WATCH_STRUCTURE",null,false,false,-27.67688937,103.47,1.54,0.75,-28.8789715181,119.0931835505,null,0.415406062422,44.4329109937,17574291.85,0.0438,-0.0165,true,false,false,false,false,false,1,137.6712,"material_positive_non_core",9.4842,"supportive",-31.4083,61.9266,"mixed"],
+        ["603116","红蜻蜓","2026-06-30",6.12,3526348896.0,72.3404255319149,0.6578947368421059,2,0.13089005235602105,12.52,6.06,6.47,"above","WATCH_STRUCTURE",null,false,true,-32.56118353,196.96,1.47,0.36,-0.137689964,138.9677575273,null,0.032032645026,40.5835106087,8951952.28,0.02,0.0003,true,false,false,false,false,false,1,98.5,"material_positive_non_core",1.6016,"supportive",-2.6671,81.8012,"mixed"],
+        ["603307","扬州金泉","2026-06-30",24.36,2389144758.0,55.68181818181818,0.8817294429276488,3,0.5507268860048492,12.02,24.4467,null,null,"WATCH_STRUCTURE",null,true,true,22.51974606,19.11,1.7,4.33,8.0754047557,-4.76,-28.57142857142857,1.120873321234,24.5515471118,62499110.37,0.64,0.6,true,false,false,false,true,false,0,6.25,"limited_gap",1.7514,"supportive",5.546,-85.738,"mixed"],
+        ["603608","天创时尚","2026-06-30",20.23,8598350507.0,36.8939393939394,8.35565077664702,1,2.705995836929488,7.79,20.685,null,null,"WATCH_STRUCTURE",null,false,false,240.36190316,153.68,7.24,2.53,-3.0592527092,316.2,500.0,0.115740610249,68.3894396962,27975264.0,0.07,0.06,true,false,false,false,false,false,0,14.2857,"limited_gap",1.6534,"supportive",-5.5886,442.8334,"mixed"],
+        ["603665","康隆达","2026-06-30",21.02,3366725201.0,18.853362734288872,3.546798029556644,1,0.7057356372877832,13.98,21.43,null,null,"READY_STRUCTURE","deep_low_strong_acceptance",false,true,326.99141987,39.29,5.18,6.43,5.1964225123,-61.77,52.941176470588225,0.510967468305,24.2796256882,42848676.05,0.26,0.26,true,true,false,false,false,false,0,0.0,"limited_gap",1.9653,"supportive",2.6671,-4.2254,"aligned"],
+        ["603908","牧高笛","2026-06-30",18.39,1712605309.0,61.06382978723407,0.0,1,2.634222569483209,12.31,18.4667,null,null,"WATCH_STRUCTURE",null,false,true,-35.6395732,25.68,3.44,6.91,-2.6139947983,-29.37,-34.09090909090909,1.410431152997,29.7455936776,33344976.8,0.36,0.29,false,false,false,true,true,false,0,19.4444,"limited_gap",3.9179,"supportive",-5.1434,-91.2575,"failed"],
+        ["603958","哈森股份","2026-06-30",16.2,3553632000.0,34.964483030781366,0.3717472118959028,1,null,null,16.38,15.3,"below","WATCH_STRUCTURE",null,false,false,-151.12872834,70.7,5.4,3.82,12.9445796271,1569.4317775163,null,0.555770167259,35.4106230354,25132855.04,0.11,0.09,false,false,false,false,false,false,1,18.1818,"limited_gap",5.0525,"supportive",10.4152,1512.2652,"aligned"]
+      ]
+    }
+  ]
+}

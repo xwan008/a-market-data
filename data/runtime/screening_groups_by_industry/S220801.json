@@ -1,0 +1,27 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 5,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S220801",
+      "industry_name": "氮肥",
+      "candidate_count": 5,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"stable","strength":"normal","breadth":"divergent","confidence":"medium","core_improving_breadth":0.5,"aggregate_revenue_yoy":5.2993997876,"aggregate_parent_profit_yoy":15.019999999999998,"market_breadth":"broad","market_activity":"quiet","market_confirmation":"neutral"},
+      "members": [
+        ["000422","湖北宜化","2026-06-30",11.85,12887878837.0,5.774278215223069,null,null,null,null,13.266,null,null,"WATCH_STRUCTURE",null,false,false,17.67783275,20.18,2.1,5.15,11.5566705628,-19.94,-25.507047095221726,1.431992582551,14.3374153008,319334194.62,0.2935,0.2167,true,false,false,false,true,false,0,26.167,"material_positive_non_core",4.879,"supportive",6.2573,-40.527,"mixed"],
+        ["000912","泸天化","2026-06-30",4.05,6350400000.0,43.349753694581274,10.958904109589039,2,null,null,4.03,4.11,"below","WATCH_STRUCTURE",null,false,false,1094.6711929,383.3,1.0,0.13,-8.0335711331,-75.83,-170.0,0.184424106403,10.1776043542,8283872.94,0.005,-0.007,false,false,false,true,true,false,0,240.0,"material_positive_non_core",36.8848,"supportive",-13.333,-185.02,"failed"],
+        ["600227","赤天化","2026-06-30",4.0,6754910740.0,52.92207792207792,21.580547112462003,2,0.26429960604398756,6.09,4.0,null,null,"WATCH_STRUCTURE",null,false,false,-35.89939506,87.04,2.92,1.69,18.0199516898,179.2755001805,null,0.055301743561,14.756090754,38804491.42,0.023,0.0219,false,false,false,false,false,false,1,4.7826,"limited_gap",2.4044,"supportive",12.7206,164.2555,"aligned"],
+        ["600426","华鲁恒升","2026-06-30",19.73,54256375686.0,42.65383005441609,1.8585441404233323,1,1.304169233928945,11.83,20.292,null,null,"WATCH_STRUCTURE",null,false,false,13.23456815,11.53,1.55,6.87,8.8738463081,49.98,50.5449591280654,1.272616470934,24.0998324414,2352959838.15,1.108,1.105,false,false,false,false,false,false,0,0.2708,"limited_gap",1.1486,"supportive",3.5744,35.525,"aligned"],
+        ["600691","潞化科技","2026-06-30",2.87,6819068202.0,46.79487179487179,19.583333333333343,3,24.447142485473943,8.66,3.55,2.9,"below","WATCH_STRUCTURE",null,false,false,-12.38044931,74.3,2.13,1.4439,-8.1567150924,120.0737358366,null,-0.006866842135,3.5523905903,45891765.9,0.0193,-0.0385,true,false,true,false,false,true,1,299.4819,"material_positive_non_core",-0.3558,"negative",-13.4561,105.0537,"mixed"]
+      ]
+    }
+  ]
+}

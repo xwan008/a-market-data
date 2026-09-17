@@ -1,0 +1,24 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 2,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S730207",
+      "industry_name": "其他通信设备",
+      "candidate_count": 2,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"improving","strength":"strong","breadth":"broad","confidence":"low","core_improving_breadth":1.0,"aggregate_revenue_yoy":8.0951599585,"aggregate_parent_profit_yoy":4488.14300953325,"market_breadth":"broad","market_activity":"normal","market_confirmation":"neutral"},
+      "members": [
+        ["600345","长江通信","2026-06-30",53.83,17743021066.0,44.35957696827263,6.362378976486858,1,0.7575464271426269,6.54,53.5,46.17,"below","WATCH_STRUCTURE",null,false,false,26.454966,19.87,4.23,11.09,0.6651129068,8833.1060190665,null,-0.744253637029,13.4294202164,446404544.03,1.35,0.69,false,false,true,false,false,true,1,48.8889,"material_positive_non_core",-0.5513,"negative",-7.43,4344.963,"aligned"],
+        ["600776","东方通信","2026-06-30",13.55,17018800867.0,58.91566265060241,7.178168874826977,4,1.1028040172509002,14.24,13.96,12.74,"below","WATCH_STRUCTURE",null,false,true,31.11603949,26.53,4.22,8.15,15.5252070102,143.18,790.1500856388074,-0.238814493755,13.0898535621,320788906.38,0.255,0.0183978,false,false,true,false,false,true,0,92.7852,"material_positive_non_core",-0.9365,"negative",7.43,-3697.9929,"aligned"]
+      ]
+    }
+  ]
+}

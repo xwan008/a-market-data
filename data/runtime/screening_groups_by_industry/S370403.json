@@ -1,0 +1,28 @@
+{
+  "runtime_format": "screening_group_view",
+  "trade_date": "2026-09-16",
+  "yoy_unit": "percentage_points",
+  "candidate_count": 6,
+  "group_count": 1,
+  "purpose": "single deterministic fact view for all non-web pre-research screening: first peer dominance, then company absolute-quality pre-screen; structure_status is context, not an admission veto; no score, ranking, or model conclusion is precomputed",
+  "member_columns": ["code","name","report_date","price","market_cap","position_pct","support_distance_pct","support_touches","volume_zone_distance_pct","volume_zone_share_pct","resistance_center","invalidation_price","invalidation_direction","structure_status","structure_tier","strong_support","strong_volume_zone","pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy","deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin","net_profit","basic_eps","deduct_basic_eps","quality_flag.revenue_profit_direction_divergence","quality_flag.profit_deduct_direction_divergence","quality_flag.profit_growth_cashflow_negative","quality_flag.revenue_and_profit_both_negative","quality_flag.profit_and_deduct_both_negative","quality_flag.negative_operating_cashflow_per_share","quality_flag.core_financial_missing_count","quality_fact.non_core_eps_share_pct","quality_fact.one_off_profit_signal","quality_fact.cashflow_to_eps_ratio","quality_fact.cashflow_profit_alignment","quality_fact.industry_revenue_company_gap_pp","quality_fact.industry_profit_company_core_gap_pp","quality_fact.industry_company_transmission"],
+  "industry_context_fields": ["yoy_unit","trend","strength","breadth","confidence","core_improving_breadth","aggregate_revenue_yoy","aggregate_parent_profit_yoy","market_breadth","market_activity","market_confirmation"],
+  "quality_fact_rules": {"one_off_material_non_core_share_pct_gte":20.0,"cashflow_weak_ratio_lt":0.5,"cashflow_negative_ratio_lt":0.0,"industry_core_profit_metric":"deduct_basic_eps_yoy_fallback_net_profit_yoy","industry_transmission_failed_rule":"industry revenue/profit YoY > 0 while company revenue/core-profit YoY < 0","single_fact_is_not_hard_veto":true},
+  "groups": [
+    {
+      "industry_code": "S370403",
+      "industry_name": "线下药店",
+      "candidate_count": 6,
+      "single_candidate": false,
+      "industry_context": {"yoy_unit":"percentage_points","trend":"improving","strength":"normal","breadth":"broad","confidence":"medium","core_improving_breadth":0.8333333333333334,"aggregate_revenue_yoy":0.2826807309999999,"aggregate_parent_profit_yoy":10.905000000000001,"market_breadth":"narrow","market_activity":"quiet","market_confirmation":"weak"},
+      "members": [
+        ["002727","一心堂","2026-06-30",10.79,6318668509.0,39.4285714285714,8.989898989898977,1,4.8173225439814935,8.93,11.38,11.38,"above","WATCH_STRUCTURE",null,false,false,23.34819401,12.3,0.85,3.46,-5.0186284049,2.88,-2.841319528052,2.133182198759,33.2292884274,256845650.6,0.4474,0.4035,true,true,false,false,false,false,0,9.8122,"limited_gap",4.768,"supportive",-5.3013,-13.7463,"failed"],
+        ["600833","第一医药","2026-06-30",10.15,2264326422.0,32.673267326732685,5.072463768115944,1,2.519039250146452,8.91,10.28,10.87,"above","WATCH_STRUCTURE",null,false,false,32.3970992,43.26,2.02,2.29,-1.5076812281,86.6,-85.39603960396039,0.095802641073,15.2753263178,26169780.29,0.1173,0.0059,true,true,false,false,false,false,0,94.9702,"material_positive_non_core",0.8167,"supportive",-1.7904,-96.301,"failed"],
+        ["603233","大参林","2026-06-30",18.22,20749929354.0,68.39285714285714,0.2751788662630553,3,0.8370614679598145,20.93,18.4267,null,null,"WATCH_STRUCTURE",null,true,true,15.21498764,11.2,2.75,11.59,3.4647439278,16.1,18.840579710144922,1.13214695445,35.5978311423,926701008.2,0.81,0.82,false,false,false,false,false,false,0,-1.2346,"limited_gap",1.3977,"supportive",3.1821,7.9356,"aligned"],
+        ["603883","老百姓","2026-06-30",12.69,9630317095.0,68.02614252099387,1.2526928907683719,4,0.7014982224479435,8.91,12.8727,null,null,"WATCH_STRUCTURE",null,true,false,22.35624027,10.78,1.43,6.61,2.0730426901,12.3,13.99999999999999,1.850039294747,32.4500627413,446783698.0,0.59,0.57,false,false,false,false,false,false,0,3.3898,"limited_gap",3.1357,"supportive",1.7904,3.095,"aligned"],
+        ["603939","益丰药房","2026-06-30",22.61,27412194108.0,60.93943139678615,1.8743804631882508,5,0.8033132834059413,23.32,23.305,null,null,"WATCH_STRUCTURE",null,true,true,15.55554893,14.22,2.3,8.01,3.4820903267,9.51,11.267605633802823,1.19891837953,40.2969181687,963777247.55,0.79,0.79,false,false,false,false,false,false,0,0.0,"limited_gap",1.5176,"supportive",3.1994,0.3626,"aligned"],
+        ["605266","健之佳","2026-06-30",15.18,2345961647.0,19.89664082687337,5.343511450381676,1,null,null,16.25,16.32,"above","WATCH_STRUCTURE",null,false,false,18.12603276,21.86,0.92,1.99,-6.141030997,-25.87,-33.33333333333333,3.847996360597,36.2990872988,53653966.3,0.35,0.28,false,false,false,true,true,false,0,20.0,"limited_gap",10.9943,"supportive",-6.4237,-44.2383,"failed"]
+      ]
+    }
+  ]
+}
