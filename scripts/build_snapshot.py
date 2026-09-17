@@ -2,8 +2,7 @@
 """Build the compact candidate snapshot from shared upstream data.
 
 This stage owns deterministic research admission only. It does not value,
-rank, or select final investments. Legacy PE/price limits are diagnostics, not
-hard eligibility vetoes.
+rank, or select final investments.
 """
 
 from __future__ import annotations
@@ -14,11 +13,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from contracts import (
-    LEGACY_REFERENCE_MAX_PE,
-    LEGACY_REFERENCE_MAX_PRICE,
-    YOY_UNIT,
-)
+from contracts import YOY_UNIT
 from snapshot_io import write_snapshot
 
 
@@ -67,12 +62,6 @@ def industry_allowed(item: dict[str, Any] | None) -> bool:
 
 
 def company_exclusion_reason(raw: dict[str, Any]) -> str | None:
-    """Return a true hard research-admission failure.
-
-    Valuation level, nominal share price, and current low-risk structure are not
-    admission vetoes. Those facts remain available to Stage A / Stage B / final
-    entry evaluation.
-    """
     name = str(raw.get("name") or "").upper()
     if "ST" in name:
         return "st"
@@ -228,7 +217,6 @@ def build_snapshot(source: Path) -> dict[str, Any]:
     mapping_count = 0
     candidates: dict[str, Any] = {}
     eligibility_reasons: Counter[str] = Counter()
-    reference_counts: Counter[str] = Counter()
 
     for shard_path in shard_paths:
         shard = load_json(shard_path)
@@ -272,20 +260,6 @@ def build_snapshot(source: Path) -> dict[str, Any]:
             eligibility_reasons["eligible"] += 1
             candidates[code] = compact_candidate(raw)
 
-            if is_number(price) and price > LEGACY_REFERENCE_MAX_PRICE:
-                reference_counts["price_above_legacy_120"] += 1
-            pe_ttm = fundamentals.get("pe_ttm")
-            pe_dynamic = fundamentals.get("pe_dynamic")
-            pe_ttm_high = is_number(pe_ttm) and pe_ttm > LEGACY_REFERENCE_MAX_PE
-            pe_dynamic_high = (
-                is_number(pe_dynamic) and pe_dynamic > LEGACY_REFERENCE_MAX_PE
-            )
-            reference_counts["pe_ttm_above_legacy_30"] += int(pe_ttm_high)
-            reference_counts["pe_dynamic_above_legacy_30"] += int(pe_dynamic_high)
-            reference_counts["any_pe_above_legacy_30"] += int(
-                pe_ttm_high or pe_dynamic_high
-            )
-
     if len(trade_dates) != 1:
         raise RuntimeError(
             f"upstream shards do not share one trade_date: {sorted(trade_dates)}"
@@ -324,32 +298,14 @@ def build_snapshot(source: Path) -> dict[str, Any]:
         "rules": {
             "industry": "improving OR stable with divergent/broad breadth",
             "st": "exclude names containing ST",
-            "invalid_price": "price must be numeric and > 0; no nominal-price ceiling",
+            "invalid_price": "price must be numeric and > 0",
             "non_positive_profit": "net_profit must be > 0",
-            "valuation": (
-                "no PE ceiling at research admission; PE is retained for Stage A/Q2"
-            ),
+            "valuation_context": "at least one usable valuation or market-cap field is required",
             "severe_revenue_profit_deterioration": (
                 "exclude when revenue_yoy < -20 and net_profit_yoy < -50"
             ),
             "data_or_trend_incomplete": (
                 "report_date + usable valuation + >=20 trend points + 60d structure required"
-            ),
-        },
-        "non_gating_legacy_reference_counts": {
-            "legacy_price_reference": LEGACY_REFERENCE_MAX_PRICE,
-            "legacy_pe_reference": LEGACY_REFERENCE_MAX_PE,
-            "price_above_legacy_120": reference_counts.get(
-                "price_above_legacy_120", 0
-            ),
-            "pe_ttm_above_legacy_30": reference_counts.get(
-                "pe_ttm_above_legacy_30", 0
-            ),
-            "pe_dynamic_above_legacy_30": reference_counts.get(
-                "pe_dynamic_above_legacy_30", 0
-            ),
-            "any_pe_above_legacy_30": reference_counts.get(
-                "any_pe_above_legacy_30", 0
             ),
         },
     }
