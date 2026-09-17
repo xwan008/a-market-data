@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "result_kind": "a_share_trend_handoff",
+  "trade_date": "2026-09-16",
+  "generated_at": "2026-09-17T16:05:48+08:00",
+  "source": {
+    "task": "A股板块趋势榜",
+    "logic_unchanged": true,
+    "mode": "manual_linked_validation",
+    "basis": "latest valid trend-pool state carried through the 2026-09-17 morning incremental review"
+  },
+  "signals": [
+    {
+      "rank": 1,
+      "trend_name": "半导体设备/材料",
+      "trend_state": "T1",
+      "industry_codes": ["S270108", "S270103"],
+      "industry_names": ["半导体设备", "半导体材料"],
+      "mapping_status": "resolved"
+    },
+    {
+      "rank": 2,
+      "trend_name": "PCB/CCL",
+      "trend_state": "T2",
+      "industry_codes": ["S270202"],
+      "industry_names": ["印制电路板"],
+      "mapping_status": "resolved"
+    },
+    {
+      "rank": 3,
+      "trend_name": "风电设备",
+      "trend_state": "T1",
+      "industry_codes": ["S630602"],
+      "industry_names": ["风电零部件"],
+      "mapping_status": "resolved"
+    },
+    {
+      "rank": 4,
+      "trend_name": "CPO/光模块",
+      "trend_state": "T2",
+      "industry_codes": [],
+      "industry_names": [],
+      "mapping_status": "unresolved",
+      "mapping_note": "当前 research-eligible screening_group_index 中无可高置信度映射到 CPO/光模块核心公司的三级行业 shard；S730207 其他通信设备仅含长江通信、东方通信，不应强行映射。"
+    },
+    {
+      "rank": 5,
+      "trend_name": "煤炭",
+      "trend_state": "T2",
+      "industry_codes": ["S740101", "S740102"],
+      "industry_names": ["动力煤", "焦煤"],
+      "mapping_status": "resolved"
+    },
+    {
+      "rank": 6,
+      "trend_name": "铜/有色",
+      "trend_state": "T2",
+      "industry_codes": ["S240302"],
+      "industry_names": ["铜"],
+      "mapping_status": "resolved"
+    }
+  ]
+}
