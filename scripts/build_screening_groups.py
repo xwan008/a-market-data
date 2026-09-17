@@ -29,6 +29,7 @@ MEMBER_BASE_FIELDS = [
     "resistance_center",
     "invalidation_price",
     "invalidation_direction",
+    "structure_status",
     "structure_tier",
     "strong_support",
     "strong_volume_zone",
@@ -102,13 +103,6 @@ def compact_json(value: Any) -> str:
 
 
 def serialize_screening_payload(payload: dict[str, Any]) -> str:
-    """Serialize the model work view as compact, line-addressable JSON.
-
-    Repeated member field names are stored once in `member_columns`; each member
-    is one compact JSON array on one physical line. This keeps the file easy to
-    read in bounded line ranges without inflating token volume with repeated
-    object keys.
-    """
     groups = payload["groups"]
     header_items = [(key, value) for key, value in payload.items() if key != "groups"]
 
@@ -495,7 +489,8 @@ def main() -> None:
         "purpose": (
             "single deterministic fact view for all non-web pre-research "
             "screening: first peer dominance, then company absolute-quality "
-            "pre-screen; no score, ranking, or model conclusion is precomputed"
+            "pre-screen; structure_status is context, not an admission veto; "
+            "no score, ranking, or model conclusion is precomputed"
         ),
         "member_columns": MEMBER_COLUMNS,
         "industry_context_fields": [
