@@ -32,20 +32,23 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Ensure industry-state unit contract
+      - name: Ensure base industry-state contract
         run: python scripts/ensure_industry_state_contract.py data/research/industry_state.json
 
-      - name: Rebuild compact snapshot from repository data
+      - name: Build research-eligible snapshot for buyability aggregation
+        run: python scripts/build_snapshot.py --source . --output data/snapshot.json
+
+      - name: Attach and validate industry buyability context
+        run: |
+          python scripts/augment_industry_buyability.py --snapshot data/snapshot.json --industry-state data/research/industry_state.json
+          python scripts/ensure_industry_state_contract.py data/research/industry_state.json --require-buyability
+
+      - name: Rebuild final snapshot with buyability context
         run: |
           python scripts/build_snapshot.py --source . --output data/snapshot.json
           python scripts/attach_market_state.py data/snapshot.json
           python scripts/normalize_snapshot_source.py data/snapshot.json
           python scripts/validate_snapshot.py data/snapshot.json
-
-      - name: Attach industry buyability context
-        run: |
-          python scripts/augment_industry_buyability.py --snapshot data/snapshot.json --industry-state data/research/industry_state.json
-          python scripts/ensure_industry_state_contract.py data/research/industry_state.json
 
       - name: Build and validate research runtime
         run: |
@@ -60,7 +63,7 @@ jobs:
             exit 0
           fi
           git config user.name "github-actions[bot]"
-          git config user.email "4189822+github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A data/research/industry_state.json data/snapshot.json data/runtime
           git commit -m "data: rebuild low-risk research runtime"
           git push origin HEAD:main
