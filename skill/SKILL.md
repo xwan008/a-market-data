@@ -1,20 +1,21 @@
 # A股低风险买点榜｜模型判断规则
 
-## 1. 目标与唯一改动
+## 1. 目标
 
 目标仍然是：
 
-> **寻找基本面没有明显恶化，当前价格经过价值与价格结构双重验证后具备安全边际，向下剩余空间有限，而未来 1–2 个季度保守上行空间充足的 A 股公司。**
+> **寻找基本面没有明显恶化，经过价值与价格结构双重验证后具备安全边际，向下剩余空间有限，而未来 1–2 个季度保守上行空间充足的 A 股公司。**
 
-核心原则仍然是：
+核心原则：
 
 > **先看还能跌多少，再看能涨多少。**
 
-相对原流程，只有一个变化：
+当前主线有两处明确调整：
 
-> **原来从全部盈利/可研究行业一起下钻；现在先从这些行业中选“最近景气仍好 + 资金正在集中”的 3 个行业，再进入完全相同的个股流程。**
+1. 原来从全部盈利/可研究行业一起下钻；现在先选“最近景气仍好 + 资金正在集中”的最多 3 个行业；
+2. Stage A 前不再用 `PE<=30`、`股价<=120`、旧低位结构规则提前删除公司。真正的估值与买点判断回到 Stage A、Stage B 和最终 Entry Evaluation。
 
-除行业入口外，Structured Screening、Stage B Gate、Deep Research、估值、Risk Cluster、最终安全区规则全部不变。
+除此之外，Structured Screening、Stage B Gate、Deep Research、估值、Risk Cluster 与最终安全区规则不变。
 
 ---
 
@@ -22,9 +23,7 @@
 
 Stage 0 只读取 `data/research/industry_state.json`，不做公开行业深研。
 
-### 2.1 原盈利/可研究行业池
-
-沿用原资格：
+原盈利/可研究行业资格：
 
 ```text
 trend == improving
@@ -32,51 +31,55 @@ OR
 (trend == stable AND breadth in {broad, divergent})
 ```
 
-这代表原流程本来就会继续下钻的行业集合。
+从中只使用 JSON 已有字段，优先选择盈利/景气仍改善，同时市场确认更强、活跃度提升、上涨广度扩散、相对量能增强的最多 3 个行业。
 
-### 2.2 从中选 3 个最近景气 + 资金集中的行业
-
-只使用 JSON 已有字段。
-
-景气/盈利看：
-
-- `trend`
-- `strength`
-- `breadth`
-- `confidence`
-- `core_improving_breadth`
-- `aggregate_revenue_yoy`
-- `aggregate_parent_profit_yoy`
-
-资金集中看：
-
-- `market_confirmation`
-- `market_activity`
-- `market_breadth`
-- `market_metrics.breadth_score`
-- `market_metrics.median_volume_ratio_vs_20d`
-- `market_metrics.expanding_volume_share`
-- `market_metrics.day_up_ratio`
-- `market_metrics.strong_up_ratio`
-- `market_metrics.five_day_up_ratio`
-
-优先选择：盈利/景气仍改善，同时出现较强市场确认、活跃度提升、上涨广度扩散和相对成交量增强的行业。
-
-目标是得到最多 3 个当前最值得下钻的行业，不要求证明数学意义的绝对前三名。
-
-若不足 3 个，按实际数量。
-
-固定 `selected_industry_codes` 后，行业层立即结束；后续不得再用行业标签、资金标签、生命周期标签机械删除公司。
+固定 `selected_industry_codes` 后行业层结束；后续不得再用行业景气、资金、生命周期标签机械删除公司。
 
 ---
 
-## 3. Structured Screening / Model Prescreen
+## 3. Stage A 前程序事实｜宽准入，不提前替模型做估值
 
-这一层恢复原流程，只使用锁定 GitHub runtime 的结构化事实。
+程序只保留真正的硬研究资格：
 
-Stage A 只处理 `selected_industry_codes` 对应的完整 screening groups；除此之外判断标准不变。
+- 非 ST；
+- 有效正价格；
+- `net_profit > 0`；
+- report / valuation context / 趋势 / 60日结构数据完整；
+- 不满足严重收入利润双杀排除条件；
+- 所属行业属于原盈利/可研究行业池。
 
-### 3.1 同行明确支配
+以下旧条件全部降为**非硬门事实**：
+
+- `PE > 30`；
+- `price > 120`；
+- 60日位置高于 35%；
+- 未满足旧支撑/成交密集区组合条件。
+
+程序对旧低风险结构只输出：
+
+```text
+READY_STRUCTURE
+WATCH_STRUCTURE
+```
+
+含义：
+
+- `READY_STRUCTURE`：旧低位结构条件已经满足，是价格结构上的正向证据；
+- `WATCH_STRUCTURE`：当前结构尚不够理想，需要 Stage A / Gate / 最终 Entry Evaluation 继续判断，但**不代表公司不值得研究**。
+
+因此：
+
+> **结构标签回答“现在的价格结构有多舒服”，不回答“这家公司是否有资格进入研究”。**
+
+原 30 倍 PE、120 元股价仅保留为诊断参考，不具有一票否决权。
+
+---
+
+## 4. Structured Screening / Model Prescreen
+
+Stage A 只处理 `selected_industry_codes` 对应的完整 screening groups，并覆盖其中全部 `READY_STRUCTURE + WATCH_STRUCTURE` 候选。
+
+### 4.1 同行明确支配
 
 在每个申万三级行业组内，多只公司只比较：
 
@@ -84,7 +87,7 @@ Stage A 只处理 `selected_industry_codes` 对应的完整 screening groups；�
 - 估值质量；
 - 经营质量。
 
-A 只有在存在 B 且同时满足时，才允许标记 `PEER_DOMINATED`：
+A 只有在存在 B 且同时满足时，才允许 `PEER_DOMINATED`：
 
 1. B 在价格结构、估值质量、经营质量三个维度没有一个明显弱于 A；
 2. B 至少一个维度明显更优；
@@ -95,7 +98,7 @@ A 只有在存在 B 且同时满足时，才允许标记 `PEER_DOMINATED`：
 
 不得用 `PEER_DOMINATED` 表达 Top N、同行太多、风险簇压缩或研究预算不足。
 
-### 3.2 公司绝对质量
+### 4.2 公司绝对质量
 
 未被同行支配的公司只允许：
 
@@ -103,7 +106,7 @@ A 只有在存在 B 且同时满足时，才允许标记 `PEER_DOMINATED`：
 - `PASS_TO_DEEP_RESEARCH`
 - `UNCERTAIN`
 
-单一 PE、ROE、利润增长、负现金流、行业状态或单个质量标签不得一票淘汰。
+单一 PE、股价绝对值、`WATCH_STRUCTURE`、ROE、利润增长、负现金流、行业状态或单个质量标签均不得一票淘汰。
 
 多个彼此独立的负向事实，可以与价格结构、估值和经营趋势共同支持 `CLEARLY_WEAK`。
 
@@ -111,7 +114,18 @@ A 只有在存在 B 且同时满足时，才允许标记 `PEER_DOMINATED`：
 
 Stage A 防漏优先。
 
-### 3.3 完整 Ledger
+### 4.3 价格不好 ≠ 公司不值得研究
+
+如果公司基本面和研究价值成立，但当前：
+
+- PE 偏高；
+- 位置偏高；
+- 支撑较远；
+- 尚未回到低风险区；
+
+不得因为这些事实在 Stage A 提前删除。它可以继续进入 Stage B / Deep Research，并最终落到 `waiting_for_entry`。
+
+### 4.4 完整 Ledger
 
 每只候选恰好一个 `ledger_entry`：
 
@@ -134,9 +148,9 @@ UNCERTAIN
 
 ---
 
-## 4. Stage B｜Research Worthiness Gate
+## 5. Stage B｜Research Worthiness Gate
 
-Gate 仍然只回答两个问题：
+Gate 仍只回答：
 
 > **Q1：正常化后的核心盈利是否可信、可持续？**
 
@@ -148,7 +162,7 @@ Gate 仍然只回答两个问题：
 
 Gate 不允许综合评分、Top N、行业配额或相对排名。
 
-### 4.1 Q1 硬门
+### 5.1 Q1 硬门
 
 满足任一条件才允许 `gate_filtered_q1`：
 
@@ -162,7 +176,7 @@ Gate 不允许综合评分、Top N、行业配额或相对排名。
    AND deduct_basic_eps_yoy <= 5
 ```
 
-### 4.2 Q2 粗筛
+### 5.2 Q2 粗筛
 
 定义：
 
@@ -190,7 +204,9 @@ normalized_pe_proxy = max(pe_ttm, pe_dynamic) among positive values
    AND deduct_basic_eps_yoy < 20
 ```
 
-### 4.3 Q2-lite
+注意：研究准入层取消 PE30 硬门，**不等于取消估值纪律**。估值正式在 Q2 与最终 Entry Evaluation 处理。
+
+### 5.3 Q2-lite
 
 只在估值边界或利润异常时允许 1–2 次公司级定向查询，确认归母/扣非、一次性收益、联营/投资收益。
 
@@ -209,7 +225,7 @@ deep_research_required_codes
 
 ---
 
-## 5. Deep Research
+## 6. Deep Research
 
 对全部 `deep_research_required_codes` 完整研究，不设 Top N 配额。
 
@@ -229,9 +245,9 @@ Deep Research 可以分 batch，但 batch 只具有执行意义，不具有投�
 
 ---
 
-## 6. Research Support Test + Unified Entry Evaluation
+## 7. Research Support Test + Unified Entry Evaluation
 
-先判断研究逻辑是否成立：
+先判断研究逻辑：
 
 - 被实质反证 → `excluded`
 - 一次定向补查后仍存在实质缺口/冲突 → `research_uncertain`
@@ -264,11 +280,11 @@ entry_ready = true  → confirmed
 entry_ready = false → waiting_for_entry
 ```
 
-当前价格不好不能因此 `excluded`。
+因此，`WATCH_STRUCTURE`、高 PE、较高价格位置最终完全可以合理落到 `waiting_for_entry`，而不是在研究前消失。
 
 ---
 
-## 7. Risk Cluster Consolidation
+## 8. Risk Cluster Consolidation
 
 只有 Stage B Gate 与 Deep Research coverage 全部完成后，才执行 Risk Cluster。
 
@@ -284,9 +300,9 @@ entry_ready = false → waiting_for_entry
 
 ---
 
-## 8. 最终估值与价格阶梯
+## 9. 最终估值与价格阶梯
 
-程序 Structure Filter 只表示值得研究，不是最终价值底。
+Stage A 前的结构标签不是最终价值底。
 
 Deep Research 后尽量形成：
 
@@ -304,17 +320,19 @@ Deep Research 后尽量形成：
 
 ---
 
-## 9. 不变原则
+## 10. 不变原则
 
-> **程序负责事实和资格，模型负责关系和解释。**
+> **程序负责真正的硬资格和结构化事实，模型负责关系和解释。**
 
-> **唯一入口变化：所有盈利/可研究行业 → 选最近景气 + 资金集中的 3 个行业 → 原流程下钻。**
+> **行业入口只负责从原盈利/可研究行业中选最近景气 + 资金集中的最多 3 个。**
 
-> **Stage 0 不做公开行业 Deep Research。**
+> **PE30、股价120、旧低位结构不再是 Stage A 前硬门。**
 
-> **Stage A 只使用锁定 runtime；Frozen Ledger 后才进入 Stage B。**
+> **`READY_STRUCTURE / WATCH_STRUCTURE` 只是价格结构上下文。**
 
-> **Stage B Gate 只回答核心盈利是否可信、当前是否可能存在低风险安全边际。**
+> **Stage B Q2 与最终正常化估值继续维持低风险纪律。**
+
+> **公司值得研究但当前价格不好，应进入 `waiting_for_entry`，而不是在 runtime 被删除。**
 
 > **Gate-filtered 不伪装成完整 Deep Research 四终态。**
 
@@ -325,5 +343,3 @@ Deep Research 后尽量形成：
 > **Risk Cluster 只在发布层去相关。**
 
 > **正式机会集合不设 Top N、目标数量或固定上限。**
-
-> **结构硬筛是研究准入，不是最终价值底。**
