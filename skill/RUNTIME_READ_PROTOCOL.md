@@ -43,7 +43,8 @@
 - candidate、完整 screening view、industry shards 股票全集一致；
 - candidate code 唯一；
 - YoY 单位为 `percentage_points`；
-- `industry_state.json` 可解析、`status == valid`、trade date 与正式收盘一致。
+- `industry_state.json` 可解析、`status == valid`、trade date 与正式收盘一致；
+- `industry_state.buyability_context.status == valid` 且 `buyability_context.trade_date` 与正式收盘一致。
 
 研究准入只包括：
 
@@ -58,7 +59,7 @@
 
 ---
 
-## 3. Stage 0｜从 industry_state 动态选择 3–5 个行业
+## 3. Stage 0｜景气 + 资金 + 可买性，动态选择 3–5 个行业
 
 Stage 0 以 `data/research/industry_state.json` 为行业判断源，不做全行业公开研究。
 
@@ -70,9 +71,9 @@ OR
 (trend == stable AND breadth in {broad, divergent})
 ```
 
-在资格池中，只用 JSON 已有字段按“景气/盈利改善 + 资金集中”形成有序行业候选序列。
+只有先进入上述资格池的行业才参与排序。排序同时使用三类证据：
 
-景气/盈利侧：
+### 3.1 景气 / 盈利改善
 
 - `trend`
 - `strength`
@@ -82,7 +83,7 @@ OR
 - `aggregate_revenue_yoy`
 - `aggregate_parent_profit_yoy`
 
-资金/市场侧：
+### 3.2 资金 / 市场确认
 
 - `market_confirmation`
 - `market_activity`
@@ -94,7 +95,35 @@ OR
 - `market_metrics.strong_up_ratio`
 - `market_metrics.five_day_up_ratio`
 
-随后读取 `meta.screening_group_index_file` 中对应行业的 `candidate_count`，只用于决定行业入口宽度：
+### 3.3 可买性 / 拥挤度
+
+读取每个行业的 `buyability`：
+
+- `buyability.label`
+- `buyability.score`
+- `buyability.components.valuation_attractiveness`
+- `buyability.components.price_attractiveness`
+- `buyability.components.earnings_support`
+- `buyability.metrics.median_positive_pe`
+- `buyability.metrics.median_60d_position_pct`
+- `buyability.metrics.median_20d_change_pct`
+- `buyability.metrics.median_core_profit_yoy`
+- `buyability.metrics.core_profit_positive_share`
+- `buyability.metrics.median_roe`
+- `buyability.metrics.positive_operating_cashflow_share`
+
+`buyability` 只用于行业入口排序，不是行业或个股硬门。目标是避免把“景气最强 + 资金最热”机械等同于“低风险买点最多”。
+
+排序原则：
+
+1. 景气恶化行业不能仅凭便宜进入资格池；
+2. 资金很强但 `buyability` 明显 stretched 的行业，应相对降序；
+3. 景气改善仍成立、资金已有确认，同时 `buyability` 更 favorable / balanced 的行业，应相对前移；
+4. 不要求三个维度同时最强，也不做固定行业类型配额；
+5. 不以单个 PE、单个价格位置或单个可买性分数决定行业去留；
+6. 目标是寻找“基本面改善仍在、市场开始确认、但价格与估值尚未普遍透支”的行业。
+
+形成有序行业候选序列后，再读取 `meta.screening_group_index_file` 中对应行业的 `candidate_count`，只用于决定入口宽度：
 
 1. 先选择有序候选中的前 3 个行业；
 2. 计算这 3 个行业的 runtime candidate 合计；
@@ -231,10 +260,10 @@ coverage 未闭合时不得主动结束或发布正式榜。
 ### A.【今日行业入口】
 
 ```text
-行业｜景气/盈利摘要｜资金集中摘要｜为什么进入今日入口
+行业｜景气/盈利摘要｜资金确认摘要｜可买性摘要｜为什么进入今日入口
 ```
 
-输出本轮动态选中的 3–5 个行业。
+输出本轮动态选中的 3–5 个行业，并明确说明三维证据如何共同支持入口排序。
 
 ### B.【A股低风险买点榜】
 
@@ -286,7 +315,7 @@ FAILED / INCOMPLETE / UNVERIFIED / coverage 未闭合的运行绝不能覆盖上
 - `published_at`
 - `source_runtime_trade_date`
 - `source_runtime_commit_sha`
-- `selected_industries`
+- `selected_industries`（保存景气、资金与可买性摘要）
 - `confirmed`
 - `waiting_for_entry`
 - `research_uncertain`
