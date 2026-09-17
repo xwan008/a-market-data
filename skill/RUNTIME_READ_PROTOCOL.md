@@ -1,6 +1,6 @@
 # A股低风险买点榜｜运行时执行协议
 
-本文件是唯一正式执行契约。买点榜不再重新选择行业；趋势榜负责发现趋势，行业代码只负责把趋势路由到现有申万三级公司池。
+本文件是唯一正式执行契约。趋势榜负责发现趋势，买点榜通过趋势 handoff 路由到公司，并依次完成 Transmission → Expectation → Risk–Reward。
 
 ## 1. 正式输入
 
@@ -11,21 +11,22 @@
 - `skill/RUNTIME_READ_PROTOCOL.md`
 - `skill/SKILL.md`
 - `research/trend_handoff.json`
+- `research/theme_routing_fallback.json`
 - `data/runtime/meta.json`
 - `meta.screening_group_index_file`
 - handoff 中所有已解析 `industry_codes` 对应的 `screening_groups_by_industry/<industry_code>.json`
 
-每次正式触发都是新的独立事务，不复用上一轮 Transmission / Expectation / Risk–Reward 结论。
+每次正式触发都是新的独立事务，生成新的 `run_id`，从当次 routed company universe 开始。
 
 ### 1.2 07:00 早间版
 
-只读取：
+读取：
 
 - `skill/RUNTIME_READ_PROTOCOL.md`
 - `research/latest_formal_result.json`
-- 当前最新有效正式收盘 `data/runtime/meta.json`（校验 runtime 身份）
+- 当前最新有效正式收盘 `data/runtime/meta.json`
 
-早间版不重新路由公司，不重新研究新股票。
+早间版只做隔夜增量复核。
 
 ---
 
@@ -44,40 +45,39 @@
 - 每条 signal 至少包含 `trend_name / trend_state / market_state / industry_codes / industry_names`；
 - 每个已解析 industry code 必须能在 `screening_group_index_file` 中解析。
 
-`industry_state` 与 `buyability` 不再是买点榜行业入口 Hard Gate，也不得用于重新选择或重排趋势行业。
+若 `signals` 为空，本轮可直接 COMPLETE，并标记 `NO_ACTIVE_TREND`。
 
-若 handoff 合法但 `signals` 为空，本轮可直接 COMPLETE，并标记 `NO_ACTIVE_TREND`，不强行寻找公司。
+若某个 signal `mapping_status == unresolved`，先尝试 `theme_routing_fallback.json` 中与该主题完全匹配的显式路由；所有 fallback industry/company code 必须在当前 runtime 中验证。仍无法解析则记录 `ROUTING_UNRESOLVED`，不得猜测。
 
-若某个 signal `mapping_status == unresolved`，必须保留并记录 `ROUTING_UNRESOLVED`；不得猜代码。它不阻断其他 resolved signals 的完整研究，但正式输出必须显式披露 routing gap。
-
-若某个已解析行业在 runtime 中没有候选，记录 `NO_RUNTIME_CANDIDATE`；这不是整轮 FAILED。
+若某个已解析行业在 runtime 中没有候选，记录 `NO_RUNTIME_CANDIDATE`；不阻断其他 resolved signals。
 
 ---
 
 ## 3. Trend Handoff / Routing
 
-趋势榜是唯一行业发现器。买点榜不得再次执行“景气 + 资金 + 可买性”排序，也不得执行动态 3–5 行业扩展。
-
-执行：
-
 1. 保留 handoff 中 signals 原顺序；
-2. 对全部已解析 `industry_codes` 做有序去重，形成 `routed_industry_codes`；
-3. 读取这些行业的完整 runtime shards；
-4. 公司研究全集 = routed shards 中全部 runtime candidates 的精确并集；
-5. 保存每家公司来自哪些 `trend_name / trend_state / market_state`，供后续 Expectation 使用；
-6. `market_state` 只是趋势榜原市场生命周期的透传上下文，不允许买点榜修改趋势榜状态。
+2. 先使用 handoff 自带 `industry_codes`；
+3. 对 unresolved signal，可使用显式 theme routing fallback；
+4. 所有行业代码和公司代码必须通过当前 runtime 身份校验；
+5. 对 routed industry codes 有序去重并读取完整 industry shards；
+6. 公司研究全集 = routed industry candidates 与合法 fallback company seeds 的精确并集；
+7. 保存每家公司对应的 `trend_name / trend_state / market_state`；
+8. `market_state` 只作为市场生命周期上下文，不修改趋势榜结论。
 
-行业代码只承担路由功能，不构成买卖判断。
+行业代码和主题 fallback 只承担路由功能，不构成买卖判断。
 
 ---
 
-## 4. Fresh Transaction / Coverage
-
-每次触发生成新 `run_id`，从新的公司全集开始。不得 resume，不得复用上一轮公司结论。
-
-不再要求旧版 Stage A → Q1 → Q2 → Q2-lite → Deep Research 五层正式漏斗；这些旧指标仍可作为事实输入，但不得成为与前瞻预期脱节的机械硬门。
+## 4. Coverage
 
 全流程不得 Top N、不得行业配额、不得因为已有 READY 提前停止。
+
+必须记录并闭合：
+
+- `routing_coverage`
+- `transmission_coverage`
+- `expectation_coverage`
+- `risk_reward_coverage`
 
 ---
 
@@ -103,11 +103,11 @@
 - 库存周期变化；
 - 市占率或产品结构变化。
 
-“属于这个行业”本身不足以证明传导。PE、ROE、当期利润、现金流等可用于解释风险，但任何单一历史指标都不得自动否决有明确前瞻传导证据的公司。
+“属于这个行业”本身不足以证明传导。历史财务与估值用于解释风险和质量，不替代前瞻传导判断。
 
 `NOT_SUPPORTED` → `DROP`。
 
-`UNCERTAIN` 允许一次定向补查；仍存在关键缺口则保留 `UNCERTAIN`。
+`UNCERTAIN` 允许一次定向补查；仍有关键缺口则保留 `UNCERTAIN`。
 
 Transmission coverage 完成条件：
 
@@ -130,18 +130,23 @@ transmission_processed_codes == routed_company_codes
 
 预期阶段只允许：
 
+- `EARLY`
+- `CONFIRMING`
+- `PRICED_IN`
+- `EXHAUSTED`
+- `UNCERTAIN`
+
+定义：
+
 - `EARLY`：催化已出现，财报和股价尚未充分反映；
-- `CONFIRMING`：订单/价格/销量开始兑现，市场开始确认，仍有可验证的后续增量；
-- `PRICED_IN`：主要催化已带来显著重估且财务已大量兑现，新增惊喜有限；
-- `EXHAUSTED`：利好仍在公布但股价不再确认或边际盈利驱动转弱；
+- `CONFIRMING`：基本面开始兑现，市场开始确认，未来 1–2 季度仍有可验证增量；
+- `PRICED_IN`：主要催化已推动显著重估且财务已大量兑现，新增惊喜有限；
+- `EXHAUSTED`：利好仍在公布但股价不再确认，或核心驱动边际转弱；
 - `UNCERTAIN`：时间链或定价证据不足/冲突。
 
 不得仅凭一天涨跌或单个技术位置判断预期阶段。
 
-趋势 handoff 的 `market_state` 是重要上下文：
-
-- 候选趋势 / 趋势确认不自动等于 EARLY / CONFIRMING；仍需公司自身时间链验证；
-- 高潮/衰退是重要的已定价风险证据，但若公司存在独立、尚未兑现的新催化，可单独建立新的预期周期。
+趋势 handoff 的 `market_state` 是重要上下文，但公司 expectation 必须由自身事件—价格—财务时间链验证。
 
 若 Expectation = `PRICED_IN / EXHAUSTED` 且没有新的独立预期重置：
 
@@ -150,15 +155,13 @@ status = WAIT
 wait_reason = WAIT_EXPECTATION
 ```
 
-此类公司不再要求完整 fair value 计算，以节省研究预算；只有出现独立、可验证的新驱动，才重新进入 EARLY/CONFIRMING 并进入完整 Risk–Reward。
-
 Expectation coverage 必须覆盖全部 Transmission `SUPPORTED` 公司。
 
 ---
 
-## 7. Risk–Reward｜最后才判断买点
+## 7. Risk–Reward｜最后判断买点
 
-完整 Risk–Reward universe 只包括：
+完整 Risk–Reward universe：
 
 ```text
 Transmission = SUPPORTED
@@ -169,12 +172,12 @@ AND
 )
 ```
 
-对该 universe 统一执行：
+统一执行：
 
 ```text
 未来 1–2 季度可验证驱动
 → 正常化/前瞻盈利区间
-→ 中枢 × 可辩护的保守估值
+→ 中枢 × 可辩护保守估值
 → conservative fair value
 → low-risk buy range / downside anchor
 → conservative upside
@@ -185,29 +188,29 @@ AND
 1. 强周期公司使用正常化盈利，不得峰值简单年化；
 2. 当前历史 PE 只是背景，不替代前瞻盈利；
 3. 原则上 `conservative_upside >= 15%`；
-4. 当前价原则上应接近低风险安全区，或存在同等可量化的下行保护；
+4. 当前价原则上应接近低风险安全区，或存在同等可量化下行保护；
 5. 必须明确最可能推翻逻辑的事实与失效条件。
 
 最终状态：
 
-- `READY`：Transmission 支持 + Expectation 为 EARLY/CONFIRMING（或有明确新的预期重置）+ 风险收益合格；
-- `WAIT`：逻辑成立，但价格、预期阶段或安全边际尚不合适；
-- `UNCERTAIN`：关键证据缺口/冲突；
-- `DROP`：传导/核心逻辑被实质反证，或风险收益结构性不成立。
+- `READY`
+- `WAIT`
+- `UNCERTAIN`
+- `DROP`
 
-WAIT 可带原因标签：`WAIT_EXPECTATION / WAIT_PRICE / WAIT_MARGIN / WAIT_CATALYST`。
+WAIT 原因标签：`WAIT_EXPECTATION / WAIT_PRICE / WAIT_MARGIN / WAIT_CATALYST`。
 
 Risk–Reward coverage 完成条件：
 
 ```text
-所有 EARLY / CONFIRMING / 新预期重置公司均完成风险收益判断
+所有 EARLY / CONFIRMING / 新预期重置公司完成风险收益判断
 +
-所有 PRICED_IN / EXHAUSTED 无重置公司均已记录 WAIT_EXPECTATION
+所有 PRICED_IN / EXHAUSTED 无重置公司记录 WAIT_EXPECTATION
 ```
 
 ---
 
-## 8. Coverage / 正式发布
+## 8. 正式发布
 
 只有同时满足：
 
@@ -227,7 +230,7 @@ publication_ready = true
 research/latest_formal_result.json
 ```
 
-FAILED / INCOMPLETE / UNVERIFIED 绝不能覆盖上一份 COMPLETE。
+FAILED / INCOMPLETE / UNVERIFIED 不得覆盖上一份 COMPLETE。
 
 正式结果至少保存：
 
@@ -295,10 +298,3 @@ MORNING_HANDOFF_UNAVAILABLE
 ```
 
 若有效，只围绕 READY / WAIT 检查隔夜商品、海外同行、重大公告、政策或突发是否改变原 Transmission / Expectation / Risk–Reward。
-
-早间版不得：
-
-- 新增公司；
-- 重做行业路由；
-- 从零重建完整 Expectation；
-- 自动把 WAIT 升级成 READY。
