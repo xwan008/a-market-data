@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-目标仍然是：
+目标是：
 
 > **寻找基本面没有明显恶化，经过价值与价格结构双重验证后具备安全边际，向下剩余空间有限，而未来 1–2 个季度保守上行空间充足的 A 股公司。**
 
@@ -10,20 +10,21 @@
 
 > **先看还能跌多少，再看能涨多少。**
 
-当前主线有两处明确调整：
+当前主线：
 
-1. 原来从全部盈利/可研究行业一起下钻；现在先选“最近景气仍好 + 资金正在集中”的最多 3 个行业；
-2. Stage A 前不再用 `PE<=30`、`股价<=120`、旧低位结构规则提前删除公司。真正的估值与买点判断回到 Stage A、Stage B 和最终 Entry Evaluation。
-
-除此之外，Structured Screening、Stage B Gate、Deep Research、估值、Risk Cluster 与最终安全区规则不变。
+1. 先从盈利/可研究行业中选择“最近景气仍好 + 资金正在集中”的最多 3 个行业；
+2. 对这 3 个行业内全部满足研究资格的公司执行 Structured Screening；
+3. Stage B 判断核心盈利可信度与粗略安全边际；
+4. 对通过 Gate 的公司执行 Deep Research；
+5. 用正常化盈利、保守估值与价格结构形成最终低风险买点判断。
 
 ---
 
-## 2. Stage 0｜行业入口只做缩圈
+## 2. Stage 0｜行业入口
 
 Stage 0 只读取 `data/research/industry_state.json`，不做公开行业深研。
 
-原盈利/可研究行业资格：
+盈利/可研究行业资格：
 
 ```text
 trend == improving
@@ -31,57 +32,38 @@ OR
 (trend == stable AND breadth in {broad, divergent})
 ```
 
-从中只使用 JSON 已有字段，优先选择盈利/景气仍改善，同时市场确认更强、活跃度提升、上涨广度扩散、相对量能增强的最多 3 个行业。
+从资格池中，只使用 JSON 已有字段，优先选择盈利/景气仍改善，同时市场确认更强、活跃度提升、上涨广度扩散、相对量能增强的最多 3 个行业。
 
-固定 `selected_industry_codes` 后行业层结束；后续不得再用行业景气、资金、生命周期标签机械删除公司。
+固定 `selected_industry_codes` 后行业层结束；后续公司判断只使用公司事实与必要的行业传导事实。
 
 ---
 
-## 3. Stage A 前程序事实｜宽准入，不提前替模型做估值
+## 3. Stage A 前研究资格
 
-程序只保留真正的硬研究资格：
+程序只负责确定研究资格与提供结构化事实。
+
+研究资格要求：
 
 - 非 ST；
 - 有效正价格；
 - `net_profit > 0`；
 - report / valuation context / 趋势 / 60日结构数据完整；
 - 不满足严重收入利润双杀排除条件；
-- 所属行业属于原盈利/可研究行业池。
+- 所属行业属于盈利/可研究行业池。
 
-以下旧条件全部降为**非硬门事实**：
+满足研究资格的公司全部进入所选行业的 Stage A 工作集。
 
-- `PE > 30`；
-- `price > 120`；
-- 60日位置高于 35%；
-- 未满足旧支撑/成交密集区组合条件。
-
-程序对旧低风险结构只输出：
-
-```text
-READY_STRUCTURE
-WATCH_STRUCTURE
-```
-
-含义：
-
-- `READY_STRUCTURE`：旧低位结构条件已经满足，是价格结构上的正向证据；
-- `WATCH_STRUCTURE`：当前结构尚不够理想，需要 Stage A / Gate / 最终 Entry Evaluation 继续判断，但**不代表公司不值得研究**。
-
-因此：
-
-> **结构标签回答“现在的价格结构有多舒服”，不回答“这家公司是否有资格进入研究”。**
-
-原 30 倍 PE、120 元股价仅保留为诊断参考，不具有一票否决权。
+价格、估值、支撑、成交密集区、位置、ROE、现金流、收入与利润变化等都作为 Stage A / Stage B / Entry Evaluation 的事实输入，由后续阶段综合判断。
 
 ---
 
 ## 4. Structured Screening / Model Prescreen
 
-Stage A 只处理 `selected_industry_codes` 对应的完整 screening groups，并覆盖其中全部 `READY_STRUCTURE + WATCH_STRUCTURE` 候选。
+Stage A 只处理 `selected_industry_codes` 对应的完整 screening groups，并覆盖其中全部候选。
 
 ### 4.1 同行明确支配
 
-在每个申万三级行业组内，多只公司只比较：
+在每个申万三级行业组内，多只公司比较：
 
 - 价格结构；
 - 估值质量；
@@ -106,26 +88,15 @@ A 只有在存在 B 且同时满足时，才允许 `PEER_DOMINATED`：
 - `PASS_TO_DEEP_RESEARCH`
 - `UNCERTAIN`
 
-单一 PE、股价绝对值、`WATCH_STRUCTURE`、ROE、利润增长、负现金流、行业状态或单个质量标签均不得一票淘汰。
+Stage A 综合使用估值、价格结构、ROE、盈利增长、现金流、行业传导与质量事实。
 
-多个彼此独立的负向事实，可以与价格结构、估值和经营趋势共同支持 `CLEARLY_WEAK`。
+任何单一指标都不足以一票淘汰；多个彼此独立且方向一致的负向事实，可以支持 `CLEARLY_WEAK`。
 
 若周期、会计口径或业务结构可能实质改变判断，使用 `UNCERTAIN`。
 
 Stage A 防漏优先。
 
-### 4.3 价格不好 ≠ 公司不值得研究
-
-如果公司基本面和研究价值成立，但当前：
-
-- PE 偏高；
-- 位置偏高；
-- 支撑较远；
-- 尚未回到低风险区；
-
-不得因为这些事实在 Stage A 提前删除。它可以继续进入 Stage B / Deep Research，并最终落到 `waiting_for_entry`。
-
-### 4.4 完整 Ledger
+### 4.3 完整 Ledger
 
 每只候选恰好一个 `ledger_entry`：
 
@@ -150,7 +121,7 @@ UNCERTAIN
 
 ## 5. Stage B｜Research Worthiness Gate
 
-Gate 仍只回答：
+Gate 只回答：
 
 > **Q1：正常化后的核心盈利是否可信、可持续？**
 
@@ -203,8 +174,6 @@ normalized_pe_proxy = max(pe_ttm, pe_dynamic) among positive values
    AND deduct_basic_eps_yoy is not null
    AND deduct_basic_eps_yoy < 20
 ```
-
-注意：研究准入层取消 PE30 硬门，**不等于取消估值纪律**。估值正式在 Q2 与最终 Entry Evaluation 处理。
 
 ### 5.3 Q2-lite
 
@@ -280,7 +249,7 @@ entry_ready = true  → confirmed
 entry_ready = false → waiting_for_entry
 ```
 
-因此，`WATCH_STRUCTURE`、高 PE、较高价格位置最终完全可以合理落到 `waiting_for_entry`，而不是在研究前消失。
+公司研究逻辑成立但当前价格不满足低风险条件时，进入 `waiting_for_entry`。
 
 ---
 
@@ -302,8 +271,6 @@ entry_ready = false → waiting_for_entry
 
 ## 9. 最终估值与价格阶梯
 
-Stage A 前的结构标签不是最终价值底。
-
 Deep Research 后尽量形成：
 
 - `reasonable_price_range`
@@ -320,19 +287,17 @@ Deep Research 后尽量形成：
 
 ---
 
-## 10. 不变原则
+## 10. 执行原则
 
-> **程序负责真正的硬资格和结构化事实，模型负责关系和解释。**
+> **程序负责研究资格和结构化事实，模型负责关系和解释。**
 
-> **行业入口只负责从原盈利/可研究行业中选最近景气 + 资金集中的最多 3 个。**
+> **行业入口只负责从盈利/可研究行业中选最近景气 + 资金集中的最多 3 个。**
 
-> **PE30、股价120、旧低位结构不再是 Stage A 前硬门。**
+> **Stage A 对选中行业全部研究候选完整覆盖。**
 
-> **`READY_STRUCTURE / WATCH_STRUCTURE` 只是价格结构上下文。**
+> **Stage B Q2 与最终正常化估值维持低风险纪律。**
 
-> **Stage B Q2 与最终正常化估值继续维持低风险纪律。**
-
-> **公司值得研究但当前价格不好，应进入 `waiting_for_entry`，而不是在 runtime 被删除。**
+> **公司值得研究但当前价格不满足低风险条件时进入 `waiting_for_entry`。**
 
 > **Gate-filtered 不伪装成完整 Deep Research 四终态。**
 
