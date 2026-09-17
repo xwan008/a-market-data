@@ -7,7 +7,7 @@ import argparse
 import json
 from pathlib import Path
 
-from contracts import ELIGIBILITY_MAX_PE, ELIGIBILITY_MAX_PRICE, YOY_UNIT
+from contracts import YOY_UNIT
 
 
 def fail(message: str) -> None:
@@ -108,24 +108,34 @@ def main() -> None:
         price = stock.get("price")
         if not isinstance(price, (int, float)) or isinstance(price, bool) or price <= 0:
             fail(f"candidate {code} has invalid price: {price!r}")
-        if price > ELIGIBILITY_MAX_PRICE:
-            fail(f"candidate {code} price={price!r} exceeds {ELIGIBILITY_MAX_PRICE}")
 
         fundamentals = stock.get("fundamentals") or {}
         if not fundamentals.get("report_date"):
             fail(f"candidate {code} missing report_date")
 
-        for pe_key in ("pe_ttm", "pe_dynamic"):
-            pe = fundamentals.get(pe_key)
-            if isinstance(pe, (int, float)) and not isinstance(pe, bool) and pe > ELIGIBILITY_MAX_PE:
-                fail(f"candidate {code} {pe_key}={pe!r} exceeds {ELIGIBILITY_MAX_PE}")
+        net_profit = fundamentals.get("net_profit")
+        if (
+            not isinstance(net_profit, (int, float))
+            or isinstance(net_profit, bool)
+            or net_profit <= 0
+        ):
+            fail(f"candidate {code} has non-positive net_profit: {net_profit!r}")
+
+        if not any(
+            isinstance(fundamentals.get(key), (int, float))
+            and not isinstance(fundamentals.get(key), bool)
+            for key in ("pe_ttm", "pe_dynamic", "pb", "market_cap")
+        ):
+            fail(f"candidate {code} missing usable valuation context")
 
         structure = stock.get("price_structure") or {}
         if structure.get("position_pct") is None:
             fail(f"candidate {code} missing position_pct")
 
+    # Widened admission can legitimately increase the compact snapshot size.
+    # Keep a safety ceiling without re-introducing valuation/price vetoes.
     size_mb = path.stat().st_size / (1024 * 1024)
-    if size_mb > 3.0:
+    if size_mb > 8.0:
         fail(f"snapshot is too large for compact target: {size_mb:.2f} MB")
 
     print(
