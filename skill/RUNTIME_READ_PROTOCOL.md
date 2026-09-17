@@ -15,7 +15,7 @@
 - `meta.screening_group_index_file`
 - Stage 0 选中行业对应的 `screening_groups_by_industry/<industry_code>.json`
 
-`meta.screening_group_file` 是完整审计视图；Stage A 只需要读取选中行业的 per-industry shard。
+`meta.screening_group_file` 是完整审计视图；Stage A 只读取选中行业的 per-industry shard。
 
 每次正式触发都是新的独立事务，不复用上一轮 Stage A / Gate / Deep Research 结论。
 
@@ -58,9 +58,9 @@
 
 ---
 
-## 3. Stage 0｜从 industry_state 选最多 3 个行业
+## 3. Stage 0｜从 industry_state 动态选择 3–5 个行业
 
-Stage 0 只读取 `data/research/industry_state.json`，不做全行业公开研究。
+Stage 0 以 `data/research/industry_state.json` 为行业判断源，不做全行业公开研究。
 
 盈利/可研究行业资格：
 
@@ -70,7 +70,7 @@ OR
 (trend == stable AND breadth in {broad, divergent})
 ```
 
-在资格池中，只用 JSON 已有字段优先选择“景气仍改善 + 资金正在集中”的最多 3 个行业。
+在资格池中，只用 JSON 已有字段按“景气/盈利改善 + 资金集中”形成有序行业候选序列。
 
 景气/盈利侧：
 
@@ -94,9 +94,19 @@ OR
 - `market_metrics.strong_up_ratio`
 - `market_metrics.five_day_up_ratio`
 
-目标是得到当前最值得下钻的 3 个行业；不足 3 个按实际数量。
+随后读取 `meta.screening_group_index_file` 中对应行业的 `candidate_count`，只用于决定行业入口宽度：
 
-固定 `selected_industry_codes` 后行业层结束。后续公司判断只使用公司与行业事实，不再追加新的行业入口门槛。
+1. 先选择有序候选中的前 3 个行业；
+2. 计算这 3 个行业的 runtime candidate 合计；
+3. 若合计 `< 30`，加入第 4 个行业；
+4. 若加入第 4 个后合计仍 `< 30`，加入第 5 个行业；
+5. 一旦合计 `>= 30` 或已选择 5 个行业，立即停止扩展。
+
+因此正式 `selected_industry_codes` 数量为 3–5 个。若合格行业不足 3 个，则按实际数量执行并明确记录原因。
+
+若某个高排序行业在 index 中 `candidate_count == 0`，其计数按 0 处理；动态扩展仍按上述规则继续，最多到第 5 个行业，不再向后无限补位。
+
+固定 `selected_industry_codes` 后行业层结束。后续公司判断只使用公司事实与必要的行业传导事实，不再追加新的行业入口门槛。
 
 ---
 
@@ -104,13 +114,12 @@ OR
 
 Stage 0 完成后：
 
-1. 读取 `meta.screening_group_index_file`；
-2. 找到每个 `selected_industry_code` 对应 shard；
-3. 只读取这 1–3 个完整 industry shard；
-4. shard 较长时按其 `line_count` 使用 40 行有界区间完整读取；
-5. 一个申万三级行业组不可拆成不同判断批次。
+1. 根据 `meta.screening_group_index_file` 找到每个 `selected_industry_code` 对应 shard；
+2. 只读取这 3–5 个完整 industry shard；
+3. shard 较长时按其 `line_count` 使用 40 行有界区间完整读取；
+4. 一个申万三级行业组不可拆成不同判断批次。
 
-若某 selected industry 在 index 中没有 runtime candidate，记录 `NO_RUNTIME_CANDIDATE`；这不是 FAILED，也不自动用第 4 个行业替换。
+若某 selected industry 在 index 中没有 runtime candidate，记录 `NO_RUNTIME_CANDIDATE`；这不是 FAILED。
 
 Stage A universe 必须等于选中行业 shards 中全部候选的并集。
 
@@ -225,7 +234,7 @@ coverage 未闭合时不得主动结束或发布正式榜。
 行业｜景气/盈利摘要｜资金集中摘要｜为什么进入今日入口
 ```
 
-最多 3 个。
+输出本轮动态选中的 3–5 个行业。
 
 ### B.【A股低风险买点榜】
 
@@ -299,7 +308,7 @@ result_kind == a_share_low_risk_formal_result
 status == COMPLETE
 trade_date == 当前最新有效正式收盘 runtime.trade_date
 source_runtime_trade_date == trade_date
-selected_industries 可解析且数量 1..3
+selected_industries 可解析且通常为 3..5
 confirmed / waiting_for_entry 可解析
 ```
 
