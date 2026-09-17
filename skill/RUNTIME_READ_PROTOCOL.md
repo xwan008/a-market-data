@@ -1,28 +1,6 @@
 # A股低风险买点榜｜运行时执行协议
 
-本文件是唯一正式执行契约。
-
-## 0. 当前主线边界
-
-相对原低风险流程，目前只有两处明确调整：
-
-```text
-1. 行业入口：
-全部盈利/可研究行业
-→ 从 industry_state.json 中按最近景气 + 资金集中选最多 3 个行业
-→ 只在这 3 个行业中下钻
-
-2. Stage A 前研究准入：
-不再用 PE<=30、股价<=120、旧低位结构规则提前删除公司
-→ 只保留真正的硬资格
-→ PE / 股价 / 价格结构作为 Stage A、Stage B、最终买点判断的事实输入
-```
-
-除此之外，Stage A、Frozen Ledger、Stage B Gate、Deep Research、Unified Entry Evaluation、Risk Cluster、价格纪律与发布语义全部沿用原流程。
-
-`research/latest_formal_result.json` 仅用于把已经完整完成的正式收盘研究结果交给次日 07:00；它不是下一轮正式版的研究缓存。
-
----
+本文件是唯一正式执行契约。只描述当前有效流程，不保留历史版本分支。
 
 ## 1. 正式输入
 
@@ -33,12 +11,11 @@
 - `skill/RUNTIME_READ_PROTOCOL.md`
 - `skill/SKILL.md`
 - `data/runtime/meta.json`
-- `meta.candidate_file`
 - `data/research/industry_state.json`
 - `meta.screening_group_index_file`
 - Stage 0 选中行业对应的 `screening_groups_by_industry/<industry_code>.json`
 
-`meta.screening_group_file` 仍是完整审计视图，但在已存在并验证 per-industry shard 时，不要求为 Stage A 先完整读取全量 screening file。
+`meta.screening_group_file` 是完整审计视图；Stage A 只需要读取选中行业的 per-industry shard。
 
 每次正式触发都是新的独立事务，不复用上一轮 Stage A / Gate / Deep Research 结论。
 
@@ -48,7 +25,7 @@
 
 - `skill/RUNTIME_READ_PROTOCOL.md`
 - `research/latest_formal_result.json`
-- 当前最新有效正式收盘 `data/runtime/meta.json`（只做 trade_date / runtime 身份校验）
+- 当前最新有效正式收盘 `data/runtime/meta.json`（仅校验 trade_date / runtime 身份）
 
 早间版不重新选股。
 
@@ -60,45 +37,32 @@
 
 - `runtime_validation.status == passed`；
 - snapshot 为当前最近有效正式收盘；
-- meta / candidates 可解析；
+- meta 可解析；
 - `screening_group_validation.status == passed`；
 - `screening_group_industry_shard_validation.status == passed`；
 - candidate、完整 screening view、industry shards 股票全集一致；
 - candidate code 唯一；
 - YoY 单位为 `percentage_points`；
-- `structure_status` 仅为 `READY_STRUCTURE / WATCH_STRUCTURE`；
-- `structural_rule.mode == non_gating_context_label`；
-- `structural_rule.research_admission_veto == false`；
 - `industry_state.json` 可解析、`status == valid`、trade date 与正式收盘一致。
 
-真正的硬研究准入只包括：
+研究准入只包括：
 
 - 非 ST；
 - price 为有效正数；
 - `net_profit > 0`；
 - report / valuation context / 20日以上趋势 / 60日结构数据完整；
 - 不满足“收入同比 < -20 且净利润同比 < -50”的严重经营恶化条件；
-- 行业属于原盈利/可研究池。
+- 行业属于盈利/可研究行业池。
 
-明确禁止把以下条件重新解释为 Stage A 前硬门：
-
-- `PE > 30`；
-- `price > 120`；
-- `WATCH_STRUCTURE`；
-- 60日位置高于 35%；
-- 未满足旧支撑/成交密集区组合条件。
-
-这些只能作为后续判断事实。
-
-只有客观 Hard Gate 失败才允许整轮 FAILED。候选多、Stage A / Stage B 尚未完成、研究工作量大，都不是失败理由。
+只有客观 Hard Gate 失败才允许整轮 FAILED。候选多、研究工作量大、某阶段尚未完成，都不是失败理由。
 
 ---
 
-## 3. Stage 0｜industry_state 直接选最多 3 个行业
+## 3. Stage 0｜从 industry_state 选最多 3 个行业
 
 Stage 0 只读取 `data/research/industry_state.json`，不做全行业公开研究。
 
-先沿用原盈利/可研究行业资格：
+盈利/可研究行业资格：
 
 ```text
 trend == improving
@@ -106,7 +70,7 @@ OR
 (trend == stable AND breadth in {broad, divergent})
 ```
 
-然后只用 JSON 已有字段，从中优先选择“景气仍改善 + 资金正在集中”的最多 3 个行业。
+在资格池中，只用 JSON 已有字段优先选择“景气仍改善 + 资金正在集中”的最多 3 个行业。
 
 景气/盈利侧：
 
@@ -130,9 +94,9 @@ OR
 - `market_metrics.strong_up_ratio`
 - `market_metrics.five_day_up_ratio`
 
-目标不是证明数学意义绝对 Top 3，而是得到当前最值得下钻的 3 个行业。若不足 3 个按实际数量。
+目标是得到当前最值得下钻的 3 个行业；不足 3 个按实际数量。
 
-固定 `selected_industry_codes` 后，行业层立即结束；后续不得再用行业景气、行业资金、lifecycle、activation 标签机械删除公司。
+固定 `selected_industry_codes` 后行业层结束。后续公司判断只使用公司与行业事实，不再追加新的行业入口门槛。
 
 ---
 
@@ -141,7 +105,7 @@ OR
 Stage 0 完成后：
 
 1. 读取 `meta.screening_group_index_file`；
-2. 对每个 `selected_industry_code` 查找对应 shard 文件；
+2. 找到每个 `selected_industry_code` 对应 shard；
 3. 只读取这 1–3 个完整 industry shard；
 4. shard 较长时按其 `line_count` 使用 40 行有界区间完整读取；
 5. 一个申万三级行业组不可拆成不同判断批次。
@@ -169,9 +133,9 @@ Stage A 期间禁止公司级外部 Web 研究。
 
 ## 6. Stage A｜Structured Screening
 
-处理 selected industries 的全部 runtime candidates，包括 `READY_STRUCTURE` 和 `WATCH_STRUCTURE`。
+处理 selected industries 的全部 runtime candidates。
 
-按原规则：
+对每个行业完整执行：
 
 1. `PEER_DOMINATED`；
 2. 未被支配者进入 `CLEARLY_WEAK / PASS_TO_DEEP_RESEARCH / UNCERTAIN`；
@@ -179,12 +143,7 @@ Stage A 期间禁止公司级外部 Web 研究。
 4. 不得 Top N、不设行业配额、不因为已有好公司提前停止；
 5. Stage A 防漏优先。
 
-使用纪律：
-
-- `READY_STRUCTURE` 表示旧低风险结构已经满足，只是正向价格结构证据；
-- `WATCH_STRUCTURE` 表示当前结构不够理想，但**不是淘汰状态**；
-- PE 高于 30、股价高于 120、60日位置较高都只能参与“估值质量 / 价格结构”综合判断，不能单独形成 `CLEARLY_WEAK`；
-- 公司值得研究但价格暂时不理想，应允许继续到后续流程，最终可落到 `waiting_for_entry`。
+Stage A 使用的事实包括价格结构、估值、盈利质量、现金流、行业到公司的传导等。任何单一指标都不足以替代综合判断；多个彼此独立且方向一致的负向事实可以支持 `CLEARLY_WEAK`。
 
 完成条件：
 
@@ -192,7 +151,7 @@ Stage A 期间禁止公司级外部 Web 研究。
 stage_a_processed_codes == selected_industry_runtime_candidate_codes
 ```
 
-然后冻结 Ledger，派生：
+冻结 Ledger 后派生：
 
 ```text
 deep_read_codes = PASS_TO_DEEP_RESEARCH + UNCERTAIN
@@ -202,7 +161,7 @@ deep_read_codes = PASS_TO_DEEP_RESEARCH + UNCERTAIN
 
 ## 7. Stage B｜Research Worthiness Gate
 
-Frozen Ledger Hard Gate 通过后，对全部 `deep_read_codes` 按 `SKILL.md` 原规则执行：
+Frozen Ledger Hard Gate 通过后，对全部 `deep_read_codes` 按 `SKILL.md` 执行：
 
 ```text
 Q1 核心盈利可信度
@@ -211,9 +170,7 @@ Q1 核心盈利可信度
 → deep_research_required_codes
 ```
 
-Gate 是研究预算分配，不是排名。不得引入新的行业门、资金门、lifecycle、activation tier 或 Top N。
-
-PE 是否过高正式由这里的 Q2 与后续正常化估值处理，而不是在研究准入层提前删除。
+Gate 是研究预算分配，不是排名。不得引入 Top N、行业配额或额外相对排名。
 
 Gate coverage 必须完整闭合。
 
@@ -221,9 +178,9 @@ Gate coverage 必须完整闭合。
 
 ## 8. Deep Research
 
-必须穷尽 `deep_research_required_codes`，完全沿用原规则。
+必须穷尽 `deep_research_required_codes`。
 
-允许分 batch，但 batch 只用于执行，不具有排名/淘汰意义。
+允许分 batch，但 batch 只用于执行，不具有排名或淘汰意义。
 
 公司终态只允许：
 
@@ -232,7 +189,7 @@ Gate coverage 必须完整闭合。
 - `research_uncertain`
 - `excluded`
 
-当前价格不好只能进入 `waiting_for_entry`，不能仅因价格不好 `excluded`。
+研究逻辑成立但当前价格不满足低风险条件时进入 `waiting_for_entry`。
 
 coverage 未闭合时不得主动结束或发布正式榜。
 
@@ -240,7 +197,7 @@ coverage 未闭合时不得主动结束或发布正式榜。
 
 ## 9. Unified Entry Evaluation / Risk Cluster / 价格纪律
 
-完全沿用原流程：
+完全按 `SKILL.md`：
 
 - 正常化盈利区间；
 - 可辩护的保守估值；
@@ -272,17 +229,16 @@ coverage 未闭合时不得主动结束或发布正式榜。
 
 ### B.【A股低风险买点榜】
 
-按原低风险流程输出。
+按当前低风险流程输出。
 
 ### C.【筛选漏斗】
 
 至少给出：
 
 - `industry_state` 行业总数；
-- 原盈利/可研究行业池数量；
+- 盈利/可研究行业池数量；
 - selected industries 数量；
-- selected industries 对应 broad runtime candidate 数；
-- 其中 `READY_STRUCTURE / WATCH_STRUCTURE` 数；
+- selected industries 对应 runtime candidate 数；
 - Stage A PASS / UNCERTAIN 数；
 - Gate 后 Deep Research 数；
 - confirmed / waiting / uncertain / excluded 数。
@@ -364,25 +320,3 @@ MORNING_HANDOFF_UNAVAILABLE
 - `RISK_OFF`
 
 早间版不得新增股票、不得生成新的 selected industries、不得重算完整估值、不得把 waiting 自动升级为 confirmed。
-
----
-
-## 13. 不变原则
-
-> **行业入口只负责把原盈利/可研究行业缩成最近景气 + 资金集中的最多 3 个。**
-
-> **Stage A 前只做真正的研究资格排雷，不再用 PE、名义股价或旧低位结构提前删公司。**
-
-> **`READY_STRUCTURE / WATCH_STRUCTURE` 是价格结构事实标签，不是公司研究资格。**
-
-> **PE 过高由 Stage B Q2 与最终正常化估值处理。**
-
-> **公司值得研究但当前价格不好，应走到 `waiting_for_entry`，而不是在 runtime 消失。**
-
-> **Stage A / Stage B / Deep Research / 估值 / Risk Cluster 的核心判断规则不因本次准入放宽而重写。**
-
-> **正式结果持久化只解决 19:00 → 07:00 状态交接。**
-
-> **失败/未完成正式版永不覆盖上一份 COMPLETE。**
-
-> **没有客观 Hard Gate 失败时，模型没有主动 FAILED / STOPPED_EARLY 的权限。**
