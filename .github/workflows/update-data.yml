@@ -199,6 +199,12 @@ jobs:
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/validate_snapshot.py data/snapshot.json
 
+      - name: Attach industry buyability context
+        if: steps.gate.outputs.persist == 'true'
+        run: |
+          python scripts/augment_industry_buyability.py --snapshot data/snapshot.json --industry-state data/research/industry_state.json
+          python scripts/ensure_industry_state_contract.py data/research/industry_state.json
+
       - name: Build and validate ChatGPT research runtime
         if: steps.gate.outputs.persist == 'true'
         run: |
