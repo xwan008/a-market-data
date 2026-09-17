@@ -4,329 +4,200 @@
 
 目标是：
 
-> **寻找基本面没有明显恶化，经过价值与价格结构双重验证后具备安全边际，向下剩余空间有限，而未来 1–2 个季度保守上行空间充足的 A 股公司。**
+> **从趋势榜已经发现的市场主线中，寻找未来 1–2 个季度盈利改善有事实基础、尚未被市场充分定价，并且当前下行风险可控的公司。**
 
-核心原则：
-
-> **先看还能跌多少，再看能涨多少。**
-
-当前主线：
-
-1. 先从盈利/可研究行业中按“景气改善 + 资金确认 + 可买性”形成有序行业候选；
-2. 动态选择 3–5 个行业，使 Stage A 搜索空间具备足够覆盖但仍保持可执行；
-3. 对选中行业内全部满足研究资格的公司执行 Structured Screening；
-4. Stage B 判断核心盈利可信度与粗略安全边际；
-5. 对通过 Gate 的公司执行 Deep Research；
-6. 用正常化盈利、保守估值与价格结构形成最终低风险买点判断。
-
----
-
-## 2. Stage 0｜行业入口
-
-Stage 0 以 `data/research/industry_state.json` 为行业判断源，不做公开行业深研。
-
-盈利/可研究行业资格：
+主线只保留：
 
 ```text
-trend == improving
-OR
-(trend == stable AND breadth in {broad, divergent})
+Trend Handoff
+→ Transmission
+→ Expectation
+→ Risk–Reward
+→ READY / WAIT / UNCERTAIN / DROP
 ```
 
-只有进入上述资格池的行业参与排序。行业排序同时使用三类证据：
-
-- **景气 / 盈利改善**：`trend`、`strength`、`breadth`、`confidence`、`core_improving_breadth`、收入与归母利润聚合同比；
-- **资金 / 市场确认**：`market_confirmation`、`market_activity`、市场广度、相对量能、扩量占比及近期上涨广度；
-- **可买性 / 拥挤度**：`buyability.label`、`buyability.score` 及其估值吸引力、价格吸引力、盈利支持三个组件和底层统计。
-
-`buyability` 只用于 Stage 0 的行业排序，不是行业或个股硬门，也不替代 Stage A、Q2 或最终估值。行业景气和资金很强但整体估值、价格位置已经明显拥挤时应相对降序；景气改善仍成立、资金已有确认且可买性更好的行业应相对前移。
-
-排序目标不是寻找“最热行业”，而是寻找：
-
-> **基本面改善仍在、市场开始确认、但价格与估值尚未普遍透支的行业。**
-
-行业入口宽度按 runtime candidate 数动态确定：
-
-1. 先取有序候选中的前 3 个行业；
-2. 若这 3 个行业对应的 runtime candidate 合计 `< 30`，加入第 4 个；
-3. 若加入第 4 个后仍 `< 30`，加入第 5 个；
-4. 一旦合计 `>= 30` 或已经选择 5 个行业即停止。
-
-若合格行业不足 3 个，则按实际数量执行并说明原因。若某行业缺少可买性证据，则降低该维度的判断置信度，不把缺失本身解释成淘汰。
-
-固定 `selected_industry_codes` 后行业层结束；后续公司判断只使用公司事实与必要的行业传导事实。
+趋势榜负责发现行业趋势；买点榜不得重新做行业排名。
 
 ---
 
-## 3. Stage A 前研究资格
+## 2. Trend Handoff｜趋势只负责路由
 
-程序只负责确定研究资格与提供结构化事实。
+买点榜直接读取 `research/trend_handoff.json` 的趋势主题与申万三级行业代码，并完整展开对应 runtime company universe。
 
-研究资格要求：
+行业代码只承担路由功能：
 
-- 非 ST；
-- 有效正价格；
-- `net_profit > 0`；
-- report / valuation context / 趋势 / 60日结构数据完整；
-- 不满足严重收入利润双杀排除条件；
-- 所属行业属于盈利/可研究行业池。
+- 不重新按景气、资金或 buyability 排名；
+- 不再动态选 3–5 个行业；
+- 不因为行业整体估值高就跳过其中可能存在的个股预期差；
+- 不因为行业整体便宜就自动提高个股优先级。
 
-满足研究资格的公司全部进入所选行业的 Stage A 工作集。
-
-价格、估值、支撑、成交密集区、位置、ROE、现金流、收入与利润变化等都作为 Stage A / Stage B / Entry Evaluation 的事实输入，由后续阶段综合判断。
+同一公司可继承多个 trend signals。
 
 ---
 
-## 4. Structured Screening / Model Prescreen
+## 3. Transmission｜谁真正吃到趋势
 
-Stage A 只处理 `selected_industry_codes` 对应的完整 screening groups，并覆盖其中全部候选。
+对 routed universe 每家公司都问：
 
-### 4.1 同行明确支配
+> **趋势为什么会让这家公司未来 1–2 个季度赚得更多？**
 
-在每个申万三级行业组内，多只公司比较：
+只允许：
 
-- 价格结构；
-- 估值质量；
-- 经营质量。
-
-A 只有在存在 B 且同时满足时，才允许 `PEER_DOMINATED`：
-
-1. B 在价格结构、估值质量、经营质量三个维度没有一个明显弱于 A；
-2. B 至少一个维度明显更优；
-3. A 没有 B 无法覆盖的明显差异化优势；
-4. 不存在业务异质性、周期失真或数据冲突，需要公开研究才能判断。
-
-只要互有胜负、不可比或不确定，就不得做同行支配淘汰。
-
-不得用 `PEER_DOMINATED` 表达 Top N、同行太多、风险簇压缩或研究预算不足。
-
-### 4.2 公司绝对质量
-
-未被同行支配的公司只允许：
-
-- `CLEARLY_WEAK`
-- `PASS_TO_DEEP_RESEARCH`
+- `SUPPORTED`
+- `NOT_SUPPORTED`
 - `UNCERTAIN`
 
-Stage A 综合使用估值、价格结构、ROE、盈利增长、现金流、行业传导与质量事实。
+高质量前瞻证据包括：
 
-任何单一指标都不足以一票淘汰；多个彼此独立且方向一致的负向事实，可以支持 `CLEARLY_WEAK`。
+- 已签或在手订单及明确交付窗口；
+- 产品价格/价差已经变化；
+- 销量、出货或产能利用率变化；
+- 新产能已经投产并进入爬坡；
+- 客户定点、认证或份额变化；
+- 库存周期已发生反转；
+- 产品结构改善可验证。
 
-若周期、会计口径或业务结构可能实质改变判断，使用 `UNCERTAIN`。
+仅有“属于该板块”不算证据。
 
-Stage A 防漏优先。
+历史 PE、ROE、当期利润、现金流、一次性收益等继续使用，但它们是解释公司质量和风险的事实，不是脱离前瞻驱动的一票否决器。
 
-### 4.3 完整 Ledger
+当历史财报很差、但已有明确未来订单/交付/价格驱动时，应研究未来传导，不得仅凭过去利润直接淘汰。
 
-每只候选恰好一个 `ledger_entry`：
+`NOT_SUPPORTED` → `DROP`。
 
-```text
-code / result / reason_code / reason
-```
-
-`result` 只能是：
-
-```text
-PEER_DOMINATED
-CLEARLY_WEAK
-PASS_TO_DEEP_RESEARCH
-UNCERTAIN
-```
-
-`PASS_TO_DEEP_RESEARCH + UNCERTAIN` 派生 `deep_read_codes`。
-
-禁止综合评分、Top N、机械 Top1/Top2、行业配额、找到几只好公司后提前停止。
+`UNCERTAIN` 最多允许一次针对关键缺口的定向补查；仍无法确认则保留 `UNCERTAIN`。
 
 ---
 
-## 5. Stage B｜Research Worthiness Gate
+## 4. Expectation｜市场已经交易了多少
 
-Gate 只回答：
-
-> **Q1：正常化后的核心盈利是否可信、可持续？**
-
-> **Q2：如果核心盈利可信，以当前价格粗看，是否仍有可能形成低风险安全边际？**
-
-默认原则：
-
-> **只有明确 No 才 Gate-filter；信息不足、边界或可解释，一律继续。**
-
-Gate 不允许综合评分、Top N、行业配额或相对排名。
-
-### 5.1 Q1 硬门
-
-满足任一条件才允许 `gate_filtered_q1`：
+Transmission `SUPPORTED` 后，必须重建事件—价格—财务时间链：
 
 ```text
-1. net_profit_yoy < 0 AND deduct_basic_eps_yoy < 0
-2. net_profit_yoy >= 20 AND deduct_basic_eps_yoy <= -10
-3. quality_flag.profit_growth_cashflow_negative == true
-   AND (deduct_basic_eps_yoy is null OR deduct_basic_eps_yoy <= 0)
-4. net_profit_yoy >= 50
-   AND deduct_basic_eps_yoy is not null
-   AND deduct_basic_eps_yoy <= 5
+催化出现
+→ 市场开始交易
+→ 股价重估
+→ 订单/价格/销量进入财务报表
+→ 当前还有多少新增预期
 ```
 
-### 5.2 Q2 粗筛
+预期阶段：
 
-定义：
+### EARLY
 
-```text
-min_positive_pe = min(pe_ttm, pe_dynamic) among positive values
-normalized_pe_proxy = max(pe_ttm, pe_dynamic) among positive values
-```
+催化已经发生，但财务尚未充分体现，股价也尚未明显重估。
 
-若没有可用正 PE，不因 Q2 机械淘汰。
+### CONFIRMING
 
-满足任一条件才允许 `gate_filtered_q2`：
+订单/价格/销量开始兑现，盈利逻辑获得初步确认，股价开始反应，但仍有未来 1–2 季度可验证增量。
 
-```text
-1. pe_ttm > 25 AND pe_dynamic > 25
-   AND deduct_basic_eps_yoy < 20
-   AND roe < 8
+### PRICED_IN
 
-2. min_positive_pe > 22
-   AND deduct_basic_eps_yoy <= 5
-   AND roe < 8
+主要催化已经推动股价显著重估，随后财报大量兑现，市场对该利好的认知已较充分，新增惊喜有限。
 
-3. normalized_pe_proxy > 20
-   AND roe < 5
-   AND deduct_basic_eps_yoy is not null
-   AND deduct_basic_eps_yoy < 20
-```
+### EXHAUSTED
 
-### 5.3 Q2-lite
+利好或高增长数字仍在公布，但股价不再确认、开始回落，或核心驱动的边际改善已经转弱。
 
-只在估值边界或利润异常时允许 1–2 次公司级定向查询，确认归母/扣非、一次性收益、联营/投资收益。
+### UNCERTAIN
 
-只有高置信度确认非经常性收益或投资收益主导、导致表面低估值明显失真时，才允许 `gate_filtered_q2_lite`。
+催化时间、财务兑现或市场定价证据存在关键缺口/冲突。
 
-Q2-lite 不扩张成完整产业链或目标价研究。
+判断规则：
 
-Gate 全覆盖后派生：
-
-```text
-gate_filtered_q1_codes
-gate_filtered_q2_codes
-gate_filtered_q2_lite_codes
-deep_research_required_codes
-```
+1. 不用单日涨跌判断预期阶段；
+2. 不因股价从高点大跌就自动认为“重新便宜”；
+3. 不因财报同比高增就自动认为未来仍有预期差；
+4. `PRICED_IN / EXHAUSTED` 若没有新的催化或重置，通常只能 WAIT；
+5. 若旧预期出清后出现一个独立、可验证的新驱动，可建立新的 EARLY/CONFIRMING 周期；
+6. 至少记录一条最可能推翻当前 expectation_stage 的反向证据。
 
 ---
 
-## 6. Deep Research
+## 5. Risk–Reward｜最后才讨论价格
 
-对全部 `deep_research_required_codes` 完整研究，不设 Top N 配额。
-
-至少确认：
-
-1. 真实主营、主要产品和业务；
-2. `primary_profit_driver`；
-3. `dominant_risk_factor`；
-4. 未来 1–2 个季度盈利逻辑是否可验证；
-5. 行业→公司传导是否成立；
-6. 收入、扣非、现金流、毛利率异常如何解释；
-7. 一次性收益是否重大；
-8. 是否处于周期盈利高点；
-9. 至少一条最可能推翻当前判断的反向证据。
-
-Deep Research 可以分 batch，但 batch 只具有执行意义，不具有投资比较、配额、排名或淘汰意义。
-
----
-
-## 7. Research Support Test + Unified Entry Evaluation
-
-先判断研究逻辑：
-
-- 被实质反证 → `excluded`
-- 一次定向补查后仍存在实质缺口/冲突 → `research_uncertain`
-- 研究逻辑成立 → 进入 Unified Entry Evaluation
-
-只有 `research_supported = true` 的公司进入统一 Entry Evaluation：
+只有 Transmission 有支持、Expectation 足够明确后，才做统一风险收益评估：
 
 ```text
-正常化盈利区间
-→ 正常化盈利中枢
-× 可辩护的保守估值
-→ conservative_fair_value / 最终安全区
-→ conservative_upside
-→ current_price 与 low_risk_buy_range 的关系
-→ entry_ready
+未来 1–2 季度驱动
+→ 前瞻/正常化盈利区间
+→ 盈利中枢 × 保守估值
+→ conservative fair value
+→ low-risk buy range
+→ downside anchor
+→ conservative upside
 ```
 
 原则：
 
-1. 强周期公司必须使用正常化盈利；
-2. 正式 conservative fair value 默认采用“正常化盈利区间中枢 × 可辩护保守估值”；
-3. 盈利下沿 × 估值下沿只作 stress floor；
-4. 原则上 `conservative_upside >= 15%`；
-5. 原则上当前价距离最终安全区约 5% 以内，或有同等强度、可量化下行保护。
+1. 强周期公司必须正常化盈利，不得峰值简单年化；
+2. 当前历史 PE 只是背景，估值要匹配未来可持续盈利；
+3. 正式 fair value 默认用“正常化盈利中枢 × 可辩护保守估值”；
+4. 盈利下沿 × 估值下沿只作 stress floor；
+5. 原则上 `conservative_upside >= 15%`；
+6. 当前价原则上应在低风险区附近，或存在同等可量化下行保护；
+7. 必须给出失效条件，不把趋势延续视为必然。
 
-映射：
+---
+
+## 6. 最终状态
+
+### READY
+
+同时满足：
+
+- Transmission = SUPPORTED；
+- Expectation = EARLY / CONFIRMING，或有充分证据证明出现新的独立预期重置；
+- 未来驱动可验证；
+- 风险收益合格；
+- 当前价格具备安全边际。
+
+READY 不代表下一交易日一定上涨。
+
+### WAIT
+
+核心逻辑成立，但至少一项不合格：
+
+- 当前价格过高；
+- 保守上行不足；
+- expectation 已 PRICED_IN / EXHAUSTED；
+- 需要新的催化或更好的入场价格。
+
+### UNCERTAIN
+
+关键传导、预期阶段或正常化盈利存在无法消除的实质缺口/冲突。
+
+### DROP
+
+以下之一成立：
+
+- 趋势无法实质传导到公司；
+- 原核心逻辑被公开事实实质反证；
+- 即使采用合理前瞻假设，风险收益结构仍明显不成立。
+
+不得为了减少研究量使用 DROP。
+
+---
+
+## 7. 研究纪律
+
+- routed universe 全覆盖，不设 Top N；
+- 不设行业配额；
+- 不因为已找到 READY 就提前停止；
+- 不用单一 PE / PB / ROE / K线位置 / 当期利润增速决定状态；
+- 不把 Web 热度当成传导证据；
+- 优先公司公告、交易所披露、正式财报、投资者关系记录等一手证据；
+- 对前瞻催化必须区分“已经发生的事实”与“管理层目标/机构预测”；
+- 每家公司都要给出最关键 falsifier。
+
+---
+
+## 8. 正式输出字段
 
 ```text
-entry_ready = true  → confirmed
-entry_ready = false → waiting_for_entry
+股票｜趋势主题｜三级行业｜预期阶段｜状态｜当前价｜合理价值区｜低风险区｜传导/催化证据｜市场已定价证据｜失效条件｜核心风险
 ```
 
-公司研究逻辑成立但当前价格不满足低风险条件时，进入 `waiting_for_entry`。
+无可靠价值区或低风险区时写 `N/A`，不得制造价格。
 
----
-
-## 8. Risk Cluster Consolidation
-
-只有 Stage B Gate 与 Deep Research coverage 全部完成后，才执行 Risk Cluster。
-
-归簇主要看：
-
-- `primary_profit_driver` 是否高度重合；
-- 上涨催化是否依赖同一关键变量；
-- 最重要反向风险是否会由同一变量同时触发。
-
-不得按申万行业代码机械归并。
-
-同一风险簇多家公司都 `confirmed` 时，公司状态保持不变；正式榜可选 representative，其余作为 alternatives。
-
----
-
-## 9. 最终估值与价格阶梯
-
-Deep Research 后尽量形成：
-
-- `reasonable_price_range`
-- `base_fair_value`
-- `low_risk_buy_range`
-- `conservative_upside`
-- `downside_to_safety_zone`
-- `hard_risk_boundary`
-- 第一阻力位
-
-最终安全区综合正常化盈利、保守估值、PE/PB 与 ROE/增长/现金流匹配、重要支撑、前期低点和成交密集区。
-
-无可靠低风险买入区间时写 `N/A`，不得制造价格。
-
----
-
-## 10. 执行原则
-
-> **程序负责研究资格和结构化事实，模型负责关系和解释。**
-
-> **行业入口按景气 + 资金 + 可买性形成顺序，并动态选择 3–5 个行业。**
-
-> **可买性只影响 Stage 0 排序，不替代公司研究与最终估值。**
-
-> **Stage A 对选中行业全部研究候选完整覆盖。**
-
-> **Stage B Q2 与最终正常化估值维持低风险纪律。**
-
-> **公司值得研究但当前价格不满足低风险条件时进入 `waiting_for_entry`。**
-
-> **Gate-filtered 不伪装成完整 Deep Research 四终态。**
-
-> **Batch 只用于执行分包，不用于投资比较、配额或组内淘汰。**
-
-> **完整 Deep Research 公司状态只走 Research Support Test → Unified Entry Evaluation → 四状态映射。**
-
-> **Risk Cluster 只在发布层去相关。**
-
-> **正式机会集合不设 Top N、目标数量或固定上限。**
+最终正式机会集合不设固定数量或上限。
