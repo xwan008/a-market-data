@@ -188,6 +188,7 @@ jobs:
         if: steps.gate.outputs.persist == 'true'
         run: |
           python scripts/build_runtime.py data/snapshot.json --output-dir data/runtime
+          python scripts/enrich_screening_group_cache.py --runtime-dir data/runtime
           python scripts/compact_screening_groups.py --runtime-dir data/runtime
 
       - name: Commit updated daily data
