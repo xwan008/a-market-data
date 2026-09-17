@@ -11,10 +11,10 @@
 - `skill/RUNTIME_READ_PROTOCOL.md`
 - `skill/SKILL.md`
 - `research/trend_handoff.json`
-- `research/theme_routing_fallback.json`
+- `research/theme_alias_map.json`
 - `data/runtime/meta.json`
 - `meta.screening_group_index_file`
-- handoff 中所有已解析 `industry_codes` 对应的 `screening_groups_by_industry/<industry_code>.json`
+- handoff 中所有已解析且当前 screening runtime 中存在的 `industry_codes` 对应的 `screening_groups_by_industry/<industry_code>.json`
 
 每次正式触发都是新的独立事务，生成新的 `run_id`，从当次 routed company universe 开始。
 
@@ -42,29 +42,32 @@
 - `research/trend_handoff.json` 可解析；
 - `result_kind == a_share_trend_handoff`；
 - handoff `trade_date == runtime.trade_date`；
-- 每条 signal 至少包含 `trend_name / trend_state / market_state / industry_codes / industry_names`；
-- 每个已解析 industry code 必须能在 `screening_group_index_file` 中解析。
+- 每条 signal 至少包含 `trend_name / trend_state / market_state / industry_codes / industry_names`。
 
 若 `signals` 为空，本轮可直接 COMPLETE，并标记 `NO_ACTIVE_TREND`。
 
-若某个 signal `mapping_status == unresolved`，先尝试 `theme_routing_fallback.json` 中与该主题完全匹配的显式路由；所有 fallback industry/company code 必须在当前 runtime 中验证。仍无法解析则记录 `ROUTING_UNRESOLVED`，不得猜测。
+行业映射与当日候选可用性是两个独立状态：
 
-若某个已解析行业在 runtime 中没有候选，记录 `NO_RUNTIME_CANDIDATE`；不阻断其他 resolved signals。
+- 趋势主题优先沿用 handoff 已解析的申万三级行业；
+- 若某个 signal `mapping_status == unresolved`，允许使用 `research/theme_alias_map.json` 中与该主题完全匹配的显式 alias 路由；
+- alias 命中后即视为行业映射已解析，不要求该行业必须出现在当前 `screening_group_index_file`；
+- 若 alias 命中得到的行业当前没有 screening runtime 候选，记录 `NO_RUNTIME_CANDIDATE`，不得重新降级为 `ROUTING_UNRESOLVED`；
+- 只有 handoff 与 alias map 都无法解析主题时，才记录 `ROUTING_UNRESOLVED`，不得猜测代码。
 
 ---
 
 ## 3. Trend Handoff / Routing
 
 1. 保留 handoff 中 signals 原顺序；
-2. 先使用 handoff 自带 `industry_codes`；
-3. 对 unresolved signal，可使用显式 theme routing fallback；
-4. 所有行业代码和公司代码必须通过当前 runtime 身份校验；
-5. 对 routed industry codes 有序去重并读取完整 industry shards；
-6. 公司研究全集 = routed industry candidates 与合法 fallback company seeds 的精确并集；
+2. 先使用 handoff 自带 `industry_codes / industry_names`；
+3. 对 unresolved signal，仅允许使用 `research/theme_alias_map.json` 中完全匹配的人工维护 alias；
+4. alias 只负责把市场主题转换成已确认的申万三级行业代码/名称，不参与趋势评分、升级、降级或买卖判断；
+5. 对所有已解析行业代码有序去重：若代码存在于当前 `screening_group_index_file`，读取对应完整 industry shard；若不存在，记录该行业 `NO_RUNTIME_CANDIDATE`，不尝试读取不存在的 shard；
+6. 公司研究全集 = 所有当前 runtime 中可用的 routed industry candidates 的精确并集；
 7. 保存每家公司对应的 `trend_name / trend_state / market_state`；
 8. `market_state` 只作为市场生命周期上下文，不修改趋势榜结论。
 
-行业代码和主题 fallback 只承担路由功能，不构成买卖判断。
+行业代码和 theme alias 只承担路由功能，不构成买卖判断。
 
 ---
 
