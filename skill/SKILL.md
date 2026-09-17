@@ -33,6 +33,13 @@ Trend Handoff
 
 同一公司可继承多个 trend signals。
 
+handoff 应同时透传趋势榜原有的：
+
+- `trend_state`：T0 / T1 / T2；
+- `market_state`：观察 / 候选趋势 / 趋势确认 / 高潮或衰退等原市场生命周期状态。
+
+`market_state` 只作为 Expectation 的市场定价上下文，不允许反向修改趋势榜结论。
+
 ---
 
 ## 3. Transmission｜谁真正吃到趋势
@@ -108,15 +115,25 @@ Transmission `SUPPORTED` 后，必须重建事件—价格—财务时间链：
 1. 不用单日涨跌判断预期阶段；
 2. 不因股价从高点大跌就自动认为“重新便宜”；
 3. 不因财报同比高增就自动认为未来仍有预期差；
-4. `PRICED_IN / EXHAUSTED` 若没有新的催化或重置，通常只能 WAIT；
-5. 若旧预期出清后出现一个独立、可验证的新驱动，可建立新的 EARLY/CONFIRMING 周期；
+4. `PRICED_IN / EXHAUSTED` 若没有新的独立催化或预期重置，直接进入 `WAIT_EXPECTATION`，不再消耗完整估值研究预算；
+5. 若旧预期出清后出现一个独立、可验证的新驱动，可建立新的 EARLY/CONFIRMING 周期，并重新进入 Risk–Reward；
 6. 至少记录一条最可能推翻当前 expectation_stage 的反向证据。
+
+`WAIT_EXPECTATION` 是 `WAIT` 的原因标签，不是新的最终状态。
 
 ---
 
 ## 5. Risk–Reward｜最后才讨论价格
 
-只有 Transmission 有支持、Expectation 足够明确后，才做统一风险收益评估：
+完整 Risk–Reward 只对以下公司执行：
+
+- Transmission = `SUPPORTED`；且
+- Expectation = `EARLY / CONFIRMING`；或
+- 有充分证据证明出现新的独立预期重置。
+
+对于无新重置的 `PRICED_IN / EXHAUSTED`，记录 `WAIT_EXPECTATION` 即可，不要求重复做完整 fair value，以避免把研究预算浪费在已知无法 READY 的股票上。
+
+进入 Risk–Reward 后：
 
 ```text
 未来 1–2 季度驱动
@@ -160,8 +177,15 @@ READY 不代表下一交易日一定上涨。
 
 - 当前价格过高；
 - 保守上行不足；
-- expectation 已 PRICED_IN / EXHAUSTED；
+- expectation 已 PRICED_IN / EXHAUSTED 且没有新的预期重置；
 - 需要新的催化或更好的入场价格。
+
+可记录原因标签：
+
+- `WAIT_EXPECTATION`
+- `WAIT_PRICE`
+- `WAIT_MARGIN`
+- `WAIT_CATALYST`
 
 ### UNCERTAIN
 
@@ -195,9 +219,11 @@ READY 不代表下一交易日一定上涨。
 ## 8. 正式输出字段
 
 ```text
-股票｜趋势主题｜三级行业｜预期阶段｜状态｜当前价｜合理价值区｜低风险区｜传导/催化证据｜市场已定价证据｜失效条件｜核心风险
+股票｜趋势主题｜趋势状态｜市场状态｜三级行业｜预期阶段｜状态｜WAIT原因｜当前价｜合理价值区｜低风险区｜传导/催化证据｜市场已定价证据｜失效条件｜核心风险
 ```
 
-无可靠价值区或低风险区时写 `N/A`，不得制造价格。
+- READY 以及因价格/安全边际等待的 WAIT 必须给出可辩护的价值区与低风险区；
+- `WAIT_EXPECTATION` 若尚无新预期重置，可写价值区 `N/A`，避免制造伪精确估值；
+- 无可靠价值区或低风险区时写 `N/A`，不得制造价格。
 
 最终正式机会集合不设固定数量或上限。
