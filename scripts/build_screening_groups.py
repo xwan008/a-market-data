@@ -92,6 +92,7 @@ def load_json(path: Path) -> dict[str, Any]:
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n",
         encoding="utf-8",
@@ -134,6 +135,7 @@ def serialize_screening_payload(payload: dict[str, Any]) -> str:
 
 
 def write_screening_json(path: Path, payload: dict[str, Any]) -> dict[str, Any]:
+    path.parent.mkdir(parents=True, exist_ok=True)
     text = serialize_screening_payload(payload)
     path.write_text(text, encoding="utf-8")
 
@@ -196,14 +198,10 @@ def quality_flags(row: list[Any], index: dict[str, int]) -> dict[str, Any]:
 
     return {
         "revenue_profit_direction_divergence": bool(
-            revenue_sign is not None
-            and profit_sign is not None
-            and revenue_sign != profit_sign
+            revenue_sign is not None and profit_sign is not None and revenue_sign != profit_sign
         ),
         "profit_deduct_direction_divergence": bool(
-            profit_sign is not None
-            and deduct_sign is not None
-            and profit_sign != deduct_sign
+            profit_sign is not None and deduct_sign is not None and profit_sign != deduct_sign
         ),
         "profit_growth_cashflow_negative": bool(
             numeric(net_profit_yoy) is not None
@@ -226,9 +224,7 @@ def quality_flags(row: list[Any], index: dict[str, int]) -> dict[str, Any]:
         "negative_operating_cashflow_per_share": bool(
             ocfps_number is not None and ocfps_number < 0
         ),
-        "core_financial_missing_count": sum(
-            value in (None, "") for value in core_fields
-        ),
+        "core_financial_missing_count": sum(value in (None, "") for value in core_fields),
     }
 
 
@@ -260,9 +256,7 @@ def quality_facts(row: list[Any], index: dict[str, int]) -> dict[str, Any]:
             cashflow_alignment = "supportive"
 
     industry_revenue_yoy = numeric(row[index["industry_aggregate_revenue_yoy"]])
-    industry_profit_yoy = numeric(
-        row[index["industry_aggregate_parent_profit_yoy"]]
-    )
+    industry_profit_yoy = numeric(row[index["industry_aggregate_parent_profit_yoy"]])
     company_revenue_yoy = numeric(row[index["revenue_yoy"]])
     company_core_profit_yoy = numeric(row[index["deduct_basic_eps_yoy"]])
     if company_core_profit_yoy is None:
@@ -301,20 +295,12 @@ def quality_facts(row: list[Any], index: dict[str, int]) -> dict[str, Any]:
             transmission = "mixed"
 
     return {
-        "non_core_eps_share_pct": (
-            round(non_core_share, 4) if non_core_share is not None else None
-        ),
+        "non_core_eps_share_pct": round(non_core_share, 4) if non_core_share is not None else None,
         "one_off_profit_signal": one_off_signal,
-        "cashflow_to_eps_ratio": (
-            round(cashflow_ratio, 4) if cashflow_ratio is not None else None
-        ),
+        "cashflow_to_eps_ratio": round(cashflow_ratio, 4) if cashflow_ratio is not None else None,
         "cashflow_profit_alignment": cashflow_alignment,
-        "industry_revenue_company_gap_pp": (
-            round(revenue_gap, 4) if revenue_gap is not None else None
-        ),
-        "industry_profit_company_core_gap_pp": (
-            round(profit_gap, 4) if profit_gap is not None else None
-        ),
+        "industry_revenue_company_gap_pp": round(revenue_gap, 4) if revenue_gap is not None else None,
+        "industry_profit_company_core_gap_pp": round(profit_gap, 4) if profit_gap is not None else None,
         "industry_company_transmission": transmission,
     }
 
@@ -329,9 +315,7 @@ def main() -> None:
     meta = load_json(meta_path)
 
     if meta.get("yoy_unit") != YOY_UNIT:
-        raise SystemExit(
-            f"unexpected runtime YoY unit: {meta.get('yoy_unit')!r}"
-        )
+        raise SystemExit(f"unexpected runtime YoY unit: {meta.get('yoy_unit')!r}")
 
     candidate_path = Path(meta["candidate_file"])
     candidate_payload = load_json(candidate_path)
@@ -349,9 +333,7 @@ def main() -> None:
     }
     missing = sorted(required - set(columns))
     if missing:
-        raise SystemExit(
-            f"candidate columns missing for screening view: {missing}"
-        )
+        raise SystemExit(f"candidate columns missing for screening view: {missing}")
 
     grouped: dict[str, list[list[Any]]] = defaultdict(list)
     for row in rows:
@@ -359,7 +341,6 @@ def main() -> None:
 
     groups: list[dict[str, Any]] = []
     screening_codes: list[str] = []
-
     report_date_available = 0
     valuation_core_complete = 0
     operating_core_complete = 0
@@ -368,10 +349,7 @@ def main() -> None:
     transmission_fact_available = 0
 
     for industry_code in sorted(grouped):
-        group_rows = sorted(
-            grouped[industry_code],
-            key=lambda row: str(row[index["code"]] or ""),
-        )
+        group_rows = sorted(grouped[industry_code], key=lambda row: str(row[index["code"]] or ""))
         first = group_rows[0]
         members: list[list[Any]] = []
 
@@ -389,10 +367,7 @@ def main() -> None:
             screening_codes.append(code)
             report_date_available += int(row[index["report_date"]] not in (None, ""))
             valuation_core_complete += int(
-                all(
-                    row[index[field]] not in (None, "")
-                    for field in ("pe_ttm", "pb", "roe")
-                )
+                all(row[index[field]] not in (None, "") for field in ("pe_ttm", "pb", "roe"))
             )
             operating_core_complete += int(
                 all(
@@ -406,15 +381,9 @@ def main() -> None:
                     )
                 )
             )
-            one_off_fact_available += int(
-                facts["one_off_profit_signal"] != "unavailable"
-            )
-            cashflow_fact_available += int(
-                facts["cashflow_profit_alignment"] != "unavailable"
-            )
-            transmission_fact_available += int(
-                facts["industry_company_transmission"] != "unavailable"
-            )
+            one_off_fact_available += int(facts["one_off_profit_signal"] != "unavailable")
+            cashflow_fact_available += int(facts["cashflow_profit_alignment"] != "unavailable")
+            transmission_fact_available += int(facts["industry_company_transmission"] != "unavailable")
 
         groups.append(
             {
@@ -437,23 +406,16 @@ def main() -> None:
     candidate_set = set(candidate_codes)
     screening_set = set(screening_codes)
     codes_unique = len(screening_codes) == len(screening_set)
-    exact_match = (
-        candidate_set == screening_set
-        and len(candidate_codes) == len(screening_codes)
-    )
+    exact_match = candidate_set == screening_set and len(candidate_codes) == len(screening_codes)
     if not codes_unique or not exact_match:
         raise SystemExit(
             "screening group candidate coverage mismatch: "
-            f"candidate={len(candidate_codes)} "
-            f"screening={len(screening_codes)} "
+            f"candidate={len(candidate_codes)} screening={len(screening_codes)} "
             f"unique={codes_unique} exact_match={exact_match}"
         )
 
     singleton_count = sum(1 for group in groups if group["single_candidate"])
-    max_group_size = max(
-        (group["candidate_count"] for group in groups),
-        default=0,
-    )
+    max_group_size = max((group["candidate_count"] for group in groups), default=0)
     candidate_count = len(candidate_codes)
 
     coverage = {
@@ -477,6 +439,17 @@ def main() -> None:
         "single_fact_is_not_hard_veto": True,
     }
 
+    purpose = (
+        "single deterministic fact view for all non-web pre-research screening: "
+        "first peer dominance, then company absolute-quality pre-screen; "
+        "structure_status is context, not an admission veto; no score, ranking, "
+        "or model conclusion is precomputed"
+    )
+    industry_context_fields = [
+        "yoy_unit",
+        *(field.removeprefix("industry_") for field in INDUSTRY_CONTEXT_FIELDS),
+    ]
+
     filename = "screening_groups.json"
     payload = {
         "runtime_format": SCREENING_GROUP_FORMAT,
@@ -486,17 +459,9 @@ def main() -> None:
         "group_count": len(groups),
         "singleton_group_count": singleton_count,
         "max_group_size": max_group_size,
-        "purpose": (
-            "single deterministic fact view for all non-web pre-research "
-            "screening: first peer dominance, then company absolute-quality "
-            "pre-screen; structure_status is context, not an admission veto; "
-            "no score, ranking, or model conclusion is precomputed"
-        ),
+        "purpose": purpose,
         "member_columns": MEMBER_COLUMNS,
-        "industry_context_fields": [
-            "yoy_unit",
-            *(field.removeprefix("industry_") for field in INDUSTRY_CONTEXT_FIELDS),
-        ],
+        "industry_context_fields": industry_context_fields,
         "quality_fact_rules": quality_fact_rules,
         "coverage": coverage,
         "groups": groups,
@@ -514,22 +479,71 @@ def main() -> None:
         "status": "passed",
         "candidate_codes_unique": codes_unique,
         "candidate_codes_exact_match": exact_match,
-        "candidate_count_matches": candidate_count
-        == int(meta.get("candidate_count") or 0),
-        "trade_date_matches": payload.get("trade_date")
-        == (meta.get("snapshot") or {}).get("trade_date"),
+        "candidate_count_matches": candidate_count == int(meta.get("candidate_count") or 0),
+        "trade_date_matches": payload.get("trade_date") == (meta.get("snapshot") or {}).get("trade_date"),
         "yoy_unit_matches": payload.get("yoy_unit") == meta.get("yoy_unit"),
         "member_rows_count_matches": member_rows_count == candidate_count,
         "member_rows_well_formed": member_rows_well_formed,
         "json_roundtrip_matches": serialization["json_roundtrip_matches"],
         "line_addressable": serialization["line_addressable"],
     }
-    if not all(
-        value is True
-        for key, value in validation.items()
-        if key != "status"
-    ):
+    if not all(value is True for key, value in validation.items() if key != "status"):
         raise SystemExit(f"screening group validation failed: {validation}")
+
+    # Build per-industry shards so Stage 0 can choose three industries first and
+    # Stage A can read only those three groups instead of the full expanded view.
+    shard_dir = runtime_dir / "screening_groups_by_industry"
+    shard_dir.mkdir(parents=True, exist_ok=True)
+    shard_index: dict[str, Any] = {}
+    shard_codes: list[str] = []
+
+    code_index = MEMBER_COLUMNS.index("code")
+    for group in groups:
+        industry_code = str(group["industry_code"])
+        shard_filename = f"{industry_code}.json"
+        shard_path = shard_dir / shard_filename
+        shard_payload = {
+            "runtime_format": SCREENING_GROUP_FORMAT,
+            "trade_date": candidate_payload.get("trade_date"),
+            "yoy_unit": YOY_UNIT,
+            "candidate_count": group["candidate_count"],
+            "group_count": 1,
+            "purpose": purpose,
+            "member_columns": MEMBER_COLUMNS,
+            "industry_context_fields": industry_context_fields,
+            "quality_fact_rules": quality_fact_rules,
+            "groups": [group],
+        }
+        shard_serialization = write_screening_json(shard_path, shard_payload)
+        for member in group["members"]:
+            shard_codes.append(str(member[code_index]))
+        shard_index[industry_code] = {
+            "industry_name": group["industry_name"],
+            "candidate_count": group["candidate_count"],
+            "file": shard_path.as_posix(),
+            "line_count": shard_serialization["line_count"],
+            "max_line_length": shard_serialization["max_line_length"],
+        }
+
+    shard_exact_match = (
+        len(shard_codes) == len(set(shard_codes))
+        and set(shard_codes) == candidate_set
+        and len(shard_codes) == candidate_count
+    )
+    if not shard_exact_match:
+        raise SystemExit("industry screening shards do not exactly cover candidates")
+
+    index_filename = "screening_group_index.json"
+    index_payload = {
+        "runtime_format": "screening_group_index",
+        "trade_date": candidate_payload.get("trade_date"),
+        "yoy_unit": YOY_UNIT,
+        "candidate_count": candidate_count,
+        "industry_count": len(groups),
+        "member_columns": MEMBER_COLUMNS,
+        "industries": shard_index,
+    }
+    write_json(runtime_dir / index_filename, index_payload)
 
     meta["screening_group_file"] = f"{runtime_dir.as_posix()}/{filename}"
     meta["screening_group_format"] = SCREENING_GROUP_FORMAT
@@ -548,19 +562,27 @@ def main() -> None:
         if key not in {"json_roundtrip_matches", "line_addressable"}
     }
     meta["screening_group_validation"] = validation
+    meta["screening_group_index_file"] = f"{runtime_dir.as_posix()}/{index_filename}"
+    meta["screening_group_industry_shard_dir"] = shard_dir.as_posix()
+    meta["screening_group_industry_shard_count"] = len(shard_index)
+    meta["screening_group_industry_shard_validation"] = {
+        "status": "passed",
+        "candidate_codes_exact_match": shard_exact_match,
+        "industry_count_matches": len(shard_index) == len(groups),
+    }
 
     runtime_validation = meta.get("runtime_validation") or {}
     runtime_validation["screening_group_view_valid"] = True
     runtime_validation["screening_group_line_addressable"] = True
+    runtime_validation["screening_group_industry_shards_valid"] = True
     meta["runtime_validation"] = runtime_validation
     write_json(meta_path, meta)
 
     print(
         "screening group view ready: "
-        f"candidates={candidate_count} groups={len(groups)} "
+        f"candidates={candidate_count} groups={len(groups)} shards={len(shard_index)} "
         f"singletons={singleton_count} max_group_size={max_group_size} "
-        f"lines={serialization['line_count']} "
-        f"max_line_length={serialization['max_line_length']}"
+        f"lines={serialization['line_count']} max_line_length={serialization['max_line_length']}"
     )
 
 
