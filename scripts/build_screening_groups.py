@@ -29,10 +29,6 @@ MEMBER_BASE_FIELDS = [
     "resistance_center",
     "invalidation_price",
     "invalidation_direction",
-    "structure_status",
-    "structure_tier",
-    "strong_support",
-    "strong_volume_zone",
     "pe_ttm",
     "pe_dynamic",
     "pb",
@@ -441,9 +437,9 @@ def main() -> None:
 
     purpose = (
         "single deterministic fact view for all non-web pre-research screening: "
-        "first peer dominance, then company absolute-quality pre-screen; "
-        "structure_status is context, not an admission veto; no score, ranking, "
-        "or model conclusion is precomputed"
+        "first peer dominance, then company absolute-quality pre-screen; raw valuation, "
+        "price and structure facts are exposed without precomputed investment labels, "
+        "scores or rankings"
     )
     industry_context_fields = [
         "yoy_unit",
@@ -490,8 +486,6 @@ def main() -> None:
     if not all(value is True for key, value in validation.items() if key != "status"):
         raise SystemExit(f"screening group validation failed: {validation}")
 
-    # Build per-industry shards so Stage 0 can choose three industries first and
-    # Stage A can read only those three groups instead of the full expanded view.
     shard_dir = runtime_dir / "screening_groups_by_industry"
     shard_dir.mkdir(parents=True, exist_ok=True)
     shard_index: dict[str, Any] = {}
