@@ -183,27 +183,23 @@ jobs:
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/build_industry_state.py
 
-      - name: Build compact candidate snapshot
+      - name: Build research-eligible snapshot for buyability aggregation
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/build_snapshot.py --source . --output data/snapshot.json
 
-      - name: Attach market environment to snapshot
-        if: steps.gate.outputs.persist == 'true'
-        run: python scripts/attach_market_state.py data/snapshot.json
-
-      - name: Normalize snapshot source metadata
-        if: steps.gate.outputs.persist == 'true'
-        run: python scripts/normalize_snapshot_source.py data/snapshot.json
-
-      - name: Validate compact snapshot
-        if: steps.gate.outputs.persist == 'true'
-        run: python scripts/validate_snapshot.py data/snapshot.json
-
-      - name: Attach industry buyability context
+      - name: Attach and validate industry buyability context
         if: steps.gate.outputs.persist == 'true'
         run: |
           python scripts/augment_industry_buyability.py --snapshot data/snapshot.json --industry-state data/research/industry_state.json
-          python scripts/ensure_industry_state_contract.py data/research/industry_state.json
+          python scripts/ensure_industry_state_contract.py data/research/industry_state.json --require-buyability
+
+      - name: Rebuild final compact snapshot
+        if: steps.gate.outputs.persist == 'true'
+        run: |
+          python scripts/build_snapshot.py --source . --output data/snapshot.json
+          python scripts/attach_market_state.py data/snapshot.json
+          python scripts/normalize_snapshot_source.py data/snapshot.json
+          python scripts/validate_snapshot.py data/snapshot.json
 
       - name: Build and validate ChatGPT research runtime
         if: steps.gate.outputs.persist == 'true'
