@@ -61,10 +61,16 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
     assert validation.get("status") == "passed", validation
     assert validation.get("screening_group_view_valid") is True, validation
     assert validation.get("screening_group_line_addressable") is True, validation
-    assert meta.get("candidate_count") == meta.get("structural_relevance_count")
-    assert int(meta.get("source_candidate_count") or 0) >= int(
+    assert validation.get("all_hard_eligible_candidates_retained") is True, validation
+    assert meta.get("candidate_count") == meta.get("source_candidate_count")
+    assert int(meta.get("structural_relevance_count") or 0) <= int(
         meta.get("candidate_count") or 0
     )
+
+    structural_audit = meta.get("structural_filter_audit") or {}
+    assert int(structural_audit.get("ready_structure_count") or 0) + int(
+        structural_audit.get("watch_structure_count") or 0
+    ) == int(meta.get("candidate_count") or 0)
 
     snapshot_meta = meta.get("snapshot") or {}
     assert "eligibility_audit" not in snapshot_meta
@@ -115,6 +121,7 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
         "support_touches",
         "volume_zone_distance_pct",
         "volume_zone_share_pct",
+        "structure_status",
         "structure_tier",
         "strong_support",
         "strong_volume_zone",
@@ -124,6 +131,10 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
     }
     missing = sorted(required_columns - set(columns))
     assert not missing, missing
+
+    status_idx = columns.index("structure_status")
+    statuses = {row[status_idx] for row in rows}
+    assert statuses <= {"READY_STRUCTURE", "WATCH_STRUCTURE"}, statuses
 
     code_idx = columns.index("code")
     candidate_codes = [str(row[code_idx]) for row in rows]
@@ -186,6 +197,8 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
     structural_rule = meta.get("structural_rule") or {}
     assert structural_rule
     assert structural_rule == candidate.get("structural_rule")
+    assert structural_rule.get("mode") == "non_gating_context_label"
+    assert structural_rule.get("research_admission_veto") is False
 
     eligibility_audit = meta.get("eligibility_audit")
     if eligibility_audit:
@@ -203,6 +216,8 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
         "trade_date": snapshot_meta.get("trade_date"),
         "source_candidate_count": meta.get("source_candidate_count"),
         "candidate_count": meta.get("candidate_count"),
+        "ready_structure_count": structural_audit.get("ready_structure_count"),
+        "watch_structure_count": structural_audit.get("watch_structure_count"),
         "screening_group_count": meta.get("screening_group_count"),
         "screening_group_singleton_count": meta.get("screening_group_singleton_count"),
         "screening_group_max_size": meta.get("screening_group_max_size"),
