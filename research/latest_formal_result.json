@@ -1,17 +1,32 @@
 {
   "schema_version": 1,
   "result_kind": "a_share_low_risk_formal_result",
-  "status": "EMPTY",
-  "trade_date": null,
-  "run_id": null,
-  "published_at": null,
-  "source_runtime_trade_date": null,
-  "source_runtime_commit_sha": null,
-  "selected_industries": [],
+  "status": "COMPLETE",
+  "trade_date": "2026-09-16",
+  "run_id": "20260917T0805-CN-manual-formal-01",
+  "published_at": "2026-09-17T08:31:00+08:00",
+  "source_runtime_trade_date": "2026-09-16",
+  "source_runtime_commit_sha": "be3ab4988811d6835085bcdfb101d892be20c1bb",
+  "selected_industries": [
+    {"code":"S270103","name":"半导体材料","trend":"improving","strength":"strong","confidence":"medium","market_confirmation":"strong","market_activity":"active","breadth_score":1.0,"median_volume_ratio_vs_20d":1.4062387467153912,"expanding_volume_share":0.8333333333333334,"note":"景气改善广度1.0，收入/归母利润同比约+38.04%/+51.18%，当日与5日上涨广度均为1.0；无runtime低位结构候选。"},
+    {"code":"S730205","name":"通信线缆及配套","trend":"improving","strength":"strong","confidence":"high","market_confirmation":"strong","market_activity":"active","breadth_score":0.9125,"median_volume_ratio_vs_20d":1.2650259987415762,"expanding_volume_share":0.75,"note":"盈利改善广度0.875，收入/归母利润同比约+31.12%/+139.22%，5日上涨广度1.0；无runtime低位结构候选。"},
+    {"code":"S220505","name":"膜材料","trend":"improving","strength":"strong","confidence":"high","market_confirmation":"strong","market_activity":"active","breadth_score":0.875,"median_volume_ratio_vs_20d":1.4904352885357763,"expanding_volume_share":0.6666666666666666,"note":"盈利改善广度0.833，收入/归母利润同比约+14.46%/+31.43%，资金广度与量能同时确认；runtime有1只低位结构候选。"}
+  ],
   "confirmed": [],
-  "waiting_for_entry": [],
+  "waiting_for_entry": [
+    {
+      "code":"000920","name":"沃顿科技","industry_code":"S220505","industry":"膜材料","status":"waiting_for_entry","current_price":11.48,
+      "reasonable_price_range":"10.30-10.60","low_risk_buy_range":"N/A","invalidation":"基本面：膜业务收入/利润兑现持续低于行业改善，或经营现金流与利润背离继续恶化；价格层面不制造缺乏结构证据的硬止损价。","first_resistance":11.7467,
+      "primary_profit_driver":"膜材料业务在反渗透/纳滤等分离膜应用中的需求扩张、产品结构与产能利用率改善。","dominant_risk_factor":"当前公司收入增速显著落后于行业聚合增速，且经营现金流/每股收益匹配偏弱；若行业景气不能传导到公司，估值缺乏安全垫。",
+      "core_logic":"2026H1结构化数据中收入同比约+0.68%、归母+6.62%、扣非EPS同比约+6.94%，行业膜材料为improving/strong/broad；公开资料显示公司核心仍是膜产品与相关水处理业务，机构对2026-2027盈利仍有增长预期。",
+      "core_risk":"按较保守的2027盈利预期与18-19倍估值，保守价值下沿约12.2元附近；相对11.48元仅约6%-7%上行，不满足15%安全边际原则，因此只能等待更低价格。",
+      "conservative_fair_value_range":"12.20-12.90","conservative_upside_at_current_price":"约6%-12%","entry_evaluation":"WAIT"
+    }
+  ],
   "research_uncertain": [],
   "excluded": [],
-  "funnel": {},
-  "note": "Only a COMPLETE 19:00 or manual formal run may overwrite this file. Failed or incomplete runs must preserve the latest COMPLETE result."
+  "gate": {"deep_read_codes":["000920"],"q1_filtered":[],"q2_filtered":[],"q2_lite_filtered":[],"deep_research_required_codes":["000920"],"coverage":"COMPLETE"},
+  "coverage": {"runtime_hard_gate":"PASSED","stage_a_coverage":"COMPLETE","stage_b_gate_coverage":"COMPLETE","deep_research_coverage":"COMPLETE","publication_ready":true},
+  "funnel": {"industry_state_total":333,"profitable_researchable_industry_count":null,"profitable_researchable_industry_count_note":"本轮完整333行业blob已用于资格过滤与优先选择，但协议当前未要求仓库预计算/持久化该中间计数；为避免伪造，保留null。","selected_industries":3,"selected_industries_with_runtime_candidates":1,"selected_industry_runtime_candidates":1,"stage_a_pass":1,"stage_a_uncertain":0,"gate_deep_research":1,"confirmed":0,"waiting_for_entry":1,"research_uncertain":0,"excluded":0},
+  "note":"Formal result persisted after complete Stage A/Gate/Deep Research coverage. Two of the three strongest industry entries had no low-risk runtime candidates, so they were not replaced by fourth/fifth industries per protocol."
 }
