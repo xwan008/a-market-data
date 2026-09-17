@@ -44,7 +44,6 @@ jobs:
           event = os.environ.get("TRIGGER_EVENT", "")
           schedule = os.environ.get("TRIGGER_SCHEDULE", "")
           is_fallback = event == "schedule" and schedule == "37 8 * * 1-5"
-
           should_run = True
           reason = "primary_or_manual_run"
 
@@ -58,7 +57,6 @@ jobs:
                   snapshot = json.loads(Path("data/snapshot.json").read_text(encoding="utf-8"))
               except Exception:
                   snapshot = {}
-
               latest_trade_date = str(latest.get("trade_date") or "")
               latest_market_status = str(latest.get("market_status") or "")
               snapshot_trade_date = str(snapshot.get("trade_date") or "")
@@ -69,13 +67,6 @@ jobs:
               )
               should_run = not already_fresh
               reason = "fallback_already_fresh" if already_fresh else "fallback_refresh_required"
-              print(json.dumps({
-                  "today": today,
-                  "latest_trade_date": latest_trade_date,
-                  "latest_market_status": latest_market_status,
-                  "snapshot_trade_date": snapshot_trade_date,
-                  "already_fresh": already_fresh,
-              }, ensure_ascii=False))
 
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
               fh.write(f"should_run={'true' if should_run else 'false'}\n")
@@ -179,21 +170,13 @@ jobs:
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/enrich_shards_with_industry.py
 
-      - name: Rebuild industry state with market confirmation
-        if: steps.gate.outputs.persist == 'true'
-        run: python scripts/build_industry_state.py
-
-      - name: Build research-eligible snapshot for buyability aggregation
-        if: steps.gate.outputs.persist == 'true'
-        run: python scripts/build_snapshot.py --source . --output data/snapshot.json
-
-      - name: Attach and validate industry buyability context
+      - name: Rebuild industry state
         if: steps.gate.outputs.persist == 'true'
         run: |
-          python scripts/augment_industry_buyability.py --snapshot data/snapshot.json --industry-state data/research/industry_state.json
-          python scripts/ensure_industry_state_contract.py data/research/industry_state.json --require-buyability
+          python scripts/build_industry_state.py
+          python scripts/ensure_industry_state_contract.py data/research/industry_state.json
 
-      - name: Rebuild final compact snapshot
+      - name: Build and validate compact snapshot
         if: steps.gate.outputs.persist == 'true'
         run: |
           python scripts/build_snapshot.py --source . --output data/snapshot.json
