@@ -40,7 +40,6 @@ def run_script(*args: str) -> None:
 
 
 def normalize_runtime_meta(runtime_dir: Path) -> None:
-    """Keep final meta compact and single-source."""
     meta_path = runtime_dir / "meta.json"
     meta = load_json(meta_path)
     snapshot_meta = meta.get("snapshot") or {}
@@ -61,6 +60,7 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
     assert validation.get("status") == "passed", validation
     assert validation.get("screening_group_view_valid") is True, validation
     assert validation.get("screening_group_line_addressable") is True, validation
+    assert validation.get("screening_group_industry_shards_valid") is True, validation
     assert validation.get("all_hard_eligible_candidates_retained") is True, validation
     assert meta.get("candidate_count") == meta.get("source_candidate_count")
     assert int(meta.get("structural_relevance_count") or 0) <= int(
@@ -82,52 +82,23 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
     assert candidate.get("runtime_format") == RUNTIME_FORMAT
     assert candidate.get("yoy_unit") == YOY_UNIT
     assert candidate.get("trade_date") == snapshot_meta.get("trade_date")
-    assert candidate.get("source_candidate_count") == meta.get(
-        "source_candidate_count"
-    )
+    assert candidate.get("source_candidate_count") == meta.get("source_candidate_count")
     rows = candidate.get("rows") or []
     columns = candidate.get("columns") or []
-    assert candidate.get("candidate_count") == len(rows) == meta.get(
-        "candidate_count"
-    )
+    assert candidate.get("candidate_count") == len(rows) == meta.get("candidate_count")
     assert columns == meta.get("candidate_columns")
-    assert not (MODEL_NOISE_COLUMNS & set(columns)), (
-        MODEL_NOISE_COLUMNS & set(columns)
-    )
+    assert not (MODEL_NOISE_COLUMNS & set(columns)), MODEL_NOISE_COLUMNS & set(columns)
 
     required_columns = {
-        "code",
-        "name",
-        "price",
-        "industry_code",
-        "industry_name",
-        "industry_trend",
-        "industry_strength",
-        "industry_breadth",
-        "industry_aggregate_revenue_yoy",
-        "industry_aggregate_parent_profit_yoy",
-        "pe_ttm",
-        "pe_dynamic",
-        "pb",
-        "roe",
-        "revenue_yoy",
-        "net_profit_yoy",
-        "deduct_basic_eps_yoy",
-        "operating_cashflow_per_share",
-        "gross_margin",
-        "net_profit",
-        "position_pct",
-        "support_distance_pct",
-        "support_touches",
-        "volume_zone_distance_pct",
-        "volume_zone_share_pct",
-        "structure_status",
-        "structure_tier",
-        "strong_support",
-        "strong_volume_zone",
-        "resistance_center",
-        "invalidation_price",
-        "invalidation_direction",
+        "code","name","price","industry_code","industry_name",
+        "industry_trend","industry_strength","industry_breadth",
+        "industry_aggregate_revenue_yoy","industry_aggregate_parent_profit_yoy",
+        "pe_ttm","pe_dynamic","pb","roe","revenue_yoy","net_profit_yoy",
+        "deduct_basic_eps_yoy","operating_cashflow_per_share","gross_margin",
+        "net_profit","position_pct","support_distance_pct","support_touches",
+        "volume_zone_distance_pct","volume_zone_share_pct","structure_status",
+        "structure_tier","strong_support","strong_volume_zone","resistance_center",
+        "invalidation_price","invalidation_direction",
     }
     missing = sorted(required_columns - set(columns))
     assert not missing, missing
@@ -163,14 +134,8 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
         isinstance(member, list) and len(member) == len(screening_columns)
         for member in screening_members
     )
-    screening_codes = [
-        str(member[screening_code_idx]) for member in screening_members
-    ]
-    assert (
-        len(screening_codes)
-        == len(set(screening_codes))
-        == len(candidate_codes)
-    )
+    screening_codes = [str(member[screening_code_idx]) for member in screening_members]
+    assert len(screening_codes) == len(set(screening_codes)) == len(candidate_codes)
     assert set(screening_codes) == set(candidate_codes)
 
     screening_serialization = meta.get("screening_group_serialization") or {}
@@ -187,6 +152,21 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
     assert screening_validation.get("member_rows_well_formed") is True
     assert screening_validation.get("json_roundtrip_matches") is True
     assert screening_validation.get("line_addressable") is True
+
+    shard_validation = meta.get("screening_group_industry_shard_validation") or {}
+    assert shard_validation.get("status") == "passed"
+    assert shard_validation.get("candidate_codes_exact_match") is True
+    assert shard_validation.get("industry_count_matches") is True
+    index_path = Path(meta["screening_group_index_file"])
+    assert index_path.exists(), index_path
+    index_payload = load_json(index_path)
+    assert index_payload.get("runtime_format") == "screening_group_index"
+    assert index_payload.get("trade_date") == snapshot_meta.get("trade_date")
+    assert index_payload.get("candidate_count") == meta.get("candidate_count")
+    assert index_payload.get("industry_count") == meta.get("screening_group_count")
+    assert len(index_payload.get("industries") or {}) == meta.get(
+        "screening_group_industry_shard_count"
+    )
 
     assert not (runtime_dir / "peer_groups.json").exists()
     assert not (runtime_dir / "company_research_view.json").exists()
@@ -205,9 +185,7 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
         universe = int(eligibility_audit.get("universe_count") or 0)
         eligible = int(eligibility_audit.get("eligible_count") or 0)
         exclusions = eligibility_audit.get("exclusive_first_failure_counts") or {}
-        assert universe == eligible + sum(
-            int(value or 0) for value in exclusions.values()
-        )
+        assert universe == eligible + sum(int(value or 0) for value in exclusions.values())
         assert eligible == int(meta.get("source_candidate_count") or 0)
 
     return {
@@ -219,6 +197,7 @@ def validate_runtime(runtime_dir: Path) -> dict[str, Any]:
         "ready_structure_count": structural_audit.get("ready_structure_count"),
         "watch_structure_count": structural_audit.get("watch_structure_count"),
         "screening_group_count": meta.get("screening_group_count"),
+        "screening_group_industry_shard_count": meta.get("screening_group_industry_shard_count"),
         "screening_group_singleton_count": meta.get("screening_group_singleton_count"),
         "screening_group_max_size": meta.get("screening_group_max_size"),
         "screening_group_coverage": meta.get("screening_group_coverage"),
@@ -237,18 +216,9 @@ def main() -> None:
     snapshot = Path(args.snapshot)
     runtime_dir = Path(args.output_dir)
 
-    run_script(
-        "scripts/split_snapshot.py",
-        str(snapshot),
-        "--output-dir",
-        str(runtime_dir),
-    )
+    run_script("scripts/split_snapshot.py", str(snapshot), "--output-dir", str(runtime_dir))
     normalize_runtime_meta(runtime_dir)
-    run_script(
-        "scripts/build_screening_groups.py",
-        "--runtime-dir",
-        str(runtime_dir),
-    )
+    run_script("scripts/build_screening_groups.py", "--runtime-dir", str(runtime_dir))
 
     summary = validate_runtime(runtime_dir)
     print(json.dumps(summary, ensure_ascii=False, separators=(",", ":")))
