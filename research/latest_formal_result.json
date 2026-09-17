@@ -1,13 +1,19 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "result_kind": "a_share_low_risk_formal_result",
   "status": "COMPLETE",
   "publication_ready": true,
   "trade_date": "2026-09-17",
-  "run_id": "20260917T2117-CN-manual-formal-07",
-  "published_at": "2026-09-17T21:17:26+08:00",
+  "run_id": "20260917T2155-CN-manual-formal-08",
+  "published_at": "2026-09-17T21:55:30+08:00",
   "source_runtime_trade_date": "2026-09-17",
-  "source_runtime_commit_sha": "4b2a9479a9ae7b22e2e925081fcc15d6a3acbb19",
+  "source_runtime_commit_sha": "7106f69921be4eab0050df4f6d3296029ac82a32",
+  "source_runtime_meta_blob_sha": "bb3e1ccd9682a662e531203854acecd33d6ceaed",
+  "source_handoff_blob_sha": "fa2c94445353b5897dca4442fb18366db58a7e9f",
+  "rule_overrides": {
+    "routing": "skill/TREND_HANDOFF_ROUTING_OVERRIDE.md",
+    "prescreen": "skill/PRE_SCREEN_RESEARCH_SCOPE_OVERRIDE.md"
+  },
   "trend_handoff": {
     "result_kind": "a_share_trend_handoff",
     "trade_date": "2026-09-17",
@@ -17,42 +23,71 @@
       {"rank":3,"trend_name":"半导体设备/材料","trend_state":"T1","market_state":"趋势确认","industry_codes":["S270108","S270103"],"industry_names":["半导体设备","半导体材料"],"mapping_status":"resolved"}
     ]
   },
-  "routing_gaps": [
-    {"trend_name":"CRO/医疗研发外包","industry_code":"S370603","industry":"医疗研发外包","mapping_status":"resolved","runtime_status":"NO_RUNTIME_CANDIDATE"}
-  ],
+  "routing_gaps": [],
   "routed_industries": [
-    {"industry_code":"S370603","industry":"医疗研发外包","runtime_candidate_count":0,"runtime_status":"NO_RUNTIME_CANDIDATE"},
-    {"industry_code":"S630602","industry":"风电零部件","runtime_candidate_count":8,"runtime_status":"READY"},
-    {"industry_code":"S270108","industry":"半导体设备","runtime_candidate_count":4,"runtime_status":"READY"},
-    {"industry_code":"S270103","industry":"半导体材料","runtime_candidate_count":6,"runtime_status":"READY"}
+    {"industry_code":"S370603","industry":"医疗研发外包","universe_count":5,"hard_eligible_count":5,"deep_research_count":5},
+    {"industry_code":"S630602","industry":"风电零部件","universe_count":9,"hard_eligible_count":8,"deep_research_count":5},
+    {"industry_code":"S270108","industry":"半导体设备","universe_count":5,"hard_eligible_count":4,"deep_research_count":4},
+    {"industry_code":"S270103","industry":"半导体材料","universe_count":6,"hard_eligible_count":6,"deep_research_count":5}
   ],
   "runtime_market_context": {"trend":"bearish","breadth":"neutral","liquidity":"normal","risk_level":"medium","advance_ratio":0.46144161158325464,"above_ma20_ratio":0.2559017941454202,"above_ma60_ratio":0.4985835694050991},
+  "hard_filtered_out": [
+    {"code":"600072","name":"中船科技","industry_code":"S630602","industry":"风电零部件","reason":"net_profit<=0; 2026H1 attributable net profit -520.93m"},
+    {"code":"603690","name":"至纯科技","industry_code":"S270108","industry":"半导体设备","reason":"net_profit<=0; 2026H1 revenue_yoy -36.57% and net_profit_yoy -710.09%"}
+  ],
+  "pre_screen_selected": [
+    {"code":"002821","name":"凯莱英","industry_code":"S370603","industry":"医疗研发外包","pre_screen_score":null,"selection_reason":"hard_eligible_count<=5; all selected"},
+    {"code":"600721","name":"百花医药","industry_code":"S370603","industry":"医疗研发外包","pre_screen_score":null,"selection_reason":"hard_eligible_count<=5; all selected"},
+    {"code":"603127","name":"昭衍新药","industry_code":"S370603","industry":"医疗研发外包","pre_screen_score":null,"selection_reason":"hard_eligible_count<=5; all selected"},
+    {"code":"603259","name":"药明康德","industry_code":"S370603","industry":"医疗研发外包","pre_screen_score":null,"selection_reason":"hard_eligible_count<=5; all selected"},
+    {"code":"603456","name":"九洲药业","industry_code":"S370603","industry":"医疗研发外包","pre_screen_score":null,"selection_reason":"hard_eligible_count<=5; all selected"},
+    {"code":"002487","name":"大金重工","industry_code":"S630602","industry":"风电零部件","pre_screen_score":0.71875,"selection_rank":1},
+    {"code":"000809","name":"和展能源","industry_code":"S630602","industry":"风电零部件","pre_screen_score":0.7125,"selection_rank":2},
+    {"code":"603507","name":"振江股份","industry_code":"S630602","industry":"风电零部件","pre_screen_score":0.675,"selection_rank":3},
+    {"code":"603063","name":"禾望电气","industry_code":"S630602","industry":"风电零部件","pre_screen_score":0.65,"selection_rank":4},
+    {"code":"603218","name":"日月股份","industry_code":"S630602","industry":"风电零部件","pre_screen_score":0.6125,"selection_rank":5},
+    {"code":"002371","name":"北方华创","industry_code":"S270108","industry":"半导体设备","pre_screen_score":0.75,"selection_rank":1},
+    {"code":"603991","name":"领先股份","industry_code":"S270108","industry":"半导体设备","pre_screen_score":0.7375,"selection_rank":2},
+    {"code":"603061","name":"金海通","industry_code":"S270108","industry":"半导体设备","pre_screen_score":0.725,"selection_rank":3},
+    {"code":"003043","name":"华亚智能","industry_code":"S270108","industry":"半导体设备","pre_screen_score":0.6625,"selection_rank":4},
+    {"code":"002119","name":"康强电子","industry_code":"S270103","industry":"半导体材料","pre_screen_score":0.691667,"selection_rank":1},
+    {"code":"002409","name":"雅克科技","industry_code":"S270103","industry":"半导体材料","pre_screen_score":0.666667,"selection_rank":2},
+    {"code":"003026","name":"中晶科技","industry_code":"S270103","industry":"半导体材料","pre_screen_score":0.6,"selection_rank":3},
+    {"code":"605358","name":"立昂微","industry_code":"S270103","industry":"半导体材料","pre_screen_score":0.583333,"selection_rank":4},
+    {"code":"600641","name":"先导基电","industry_code":"S270103","industry":"半导体材料","pre_screen_score":0.458333,"selection_rank":5}
+  ],
+  "pre_screened_out": [
+    {"code":"002531","name":"天顺风能","industry_code":"S630602","industry":"风电零部件","pre_screen_score":0.53125,"pre_screen_status":"PRE_SCREENED_OUT","reason":"rank 6; score gap to rank5 > 0.03"},
+    {"code":"603985","name":"恒润股份","industry_code":"S630602","industry":"风电零部件","pre_screen_score":0.50625,"pre_screen_status":"PRE_SCREENED_OUT","reason":"rank 7"},
+    {"code":"601218","name":"吉鑫科技","industry_code":"S630602","industry":"风电零部件","pre_screen_score":0.46875,"pre_screen_status":"PRE_SCREENED_OUT","reason":"rank 8"},
+    {"code":"600206","name":"有研新材","industry_code":"S270103","industry":"半导体材料","pre_screen_score":0.375,"pre_screen_status":"PRE_SCREENED_OUT","reason":"rank 6; score gap to rank5 > 0.03"}
+  ],
   "ready": [],
   "wait": [
-    {"code":"002487","name":"大金重工","trend_name":"风电设备","trend_state":"T1","market_state":"趋势确认","industry_code":"S630602","industry":"风电零部件","expectation_stage":"CONFIRMING","status":"WAIT","wait_reason":"WAIT_PRICE","current_price":41.21,"reasonable_price_range":"36-40","low_risk_buy_range":"31-34","transmission_evidence":"2026H1公司继续推进欧洲风电母港运营和海外海工项目，已签部分海外项目包含母港服务，未来1–2季度仍存在海外海风交付传导。","pricing_evidence":"当前价41.21元，接近runtime第一阻力42.34元；TTM PE约26.4倍，按保守正常化盈利估值安全边际不足。","invalidation":"若欧洲海风项目交付延后、海外订单转弱，或原材料价格显著侵蚀项目毛利率，则逻辑失效。","primary_profit_driver":"海外海风项目交付、欧洲风电母港服务与高端海工产能利用率提升。","dominant_risk_factor":"海外项目交付节奏和原材料价格波动。"},
-    {"code":"603507","name":"振江股份","trend_name":"风电设备","trend_state":"T1","market_state":"趋势确认","industry_code":"S630602","industry":"风电零部件","expectation_stage":"CONFIRMING","status":"WAIT","wait_reason":"WAIT_PRICE","current_price":23.98,"reasonable_price_range":"18-22","low_risk_buy_range":"16.5-18.5","transmission_evidence":"2026H1主营仍保持增长，风电与紧固件订单和新产线构成后续传导路径；但归母利润受非经常因素抬升。","pricing_evidence":"当前价23.98元已高于保守价值区上沿，且runtime显示非核心收益占比较高，正常化盈利不能按归母高增直接年化。","invalidation":"若风电与紧固件订单转弱或新产线爬坡不达预期，则核心盈利下修。","primary_profit_driver":"风电、紧固件订单增长与新产能释放。","dominant_risk_factor":"非经常收益抬升利润、正常化盈利不确定。"},
-    {"code":"002371","name":"北方华创","trend_name":"半导体设备/材料","trend_state":"T1","market_state":"趋势确认","industry_code":"S270108","industry":"半导体设备","expectation_stage":"CONFIRMING","status":"WAIT","wait_reason":"WAIT_MARGIN","current_price":665.5,"reasonable_price_range":"N/A","low_risk_buy_range":"N/A","transmission_evidence":"公司公开交流与2026H1披露均指向国内逻辑、存储、先进封装设备需求旺盛，先进产品持续验证和量产，未来1–2季度传导路径明确。","pricing_evidence":"当前价665.5元，TTM PE约85倍、动态PE约72倍；即使订单景气，现阶段难给出满足15%保守上行的稳定正常化估值区。","invalidation":"若先进制程设备验证/量产不及预期、设备价格竞争加剧或订单交付放缓，则盈利预期下修。","primary_profit_driver":"先进制程、存储、先进封装设备国产替代与订单交付。","dominant_risk_factor":"高估值、成熟制程价格竞争和先进产品验证节奏。"},
-    {"code":"003043","name":"华亚智能","trend_name":"半导体设备/材料","trend_state":"T1","market_state":"趋势确认","industry_code":"S270108","industry":"半导体设备","expectation_stage":"CONFIRMING","status":"WAIT","wait_reason":"WAIT_MARGIN","current_price":63.17,"reasonable_price_range":"N/A","low_risk_buy_range":"N/A","transmission_evidence":"2026H1披露显示高端装备特别是半导体设备结构件需求仍是增长主线，公司半导体相关业务已进入批量供货阶段。","pricing_evidence":"当前TTM PE约96倍、动态PE约125倍，估值对未来增长要求很高，无法形成可辩护的低风险安全边际。","invalidation":"若半导体设备客户扩产放缓、结构件国产替代渗透低于预期或客户集中度风险上升，则传导减弱。","primary_profit_driver":"半导体设备精密结构件需求、国产替代和外包比例提升。","dominant_risk_factor":"高估值与客户/订单兑现节奏。"},
-    {"code":"603061","name":"金海通","trend_name":"半导体设备/材料","trend_state":"T1","market_state":"趋势确认","industry_code":"S270108","industry":"半导体设备","expectation_stage":"CONFIRMING","status":"WAIT","wait_reason":"WAIT_MARGIN","current_price":350.48,"reasonable_price_range":"N/A","low_risk_buy_range":"N/A","transmission_evidence":"2026H1受AI、高性能计算、新能源汽车需求驱动，测试分选机销量和境外订单增长；营收与核心利润高增，行业趋势已传导。","pricing_evidence":"当前TTM PE约112倍、动态PE约89倍，盈利高增已对应较高估值，保守估值下安全边际不足。","invalidation":"若封测设备需求降温、海外订单增速回落或产品迭代无法维持竞争力，则高增长预期失效。","primary_profit_driver":"AI/HPC与汽车芯片带动测试分选设备销量及海外订单增长。","dominant_risk_factor":"高估值与半导体设备周期波动。"},
-    {"code":"002409","name":"雅克科技","trend_name":"半导体设备/材料","trend_state":"T1","market_state":"趋势确认","industry_code":"S270103","industry":"半导体材料","expectation_stage":"CONFIRMING","status":"WAIT","wait_reason":"WAIT_CATALYST","current_price":134.69,"reasonable_price_range":"N/A","low_risk_buy_range":"N/A","transmission_evidence":"半导体前驱体、光刻胶和电子材料具备国产替代路径；公司公开说明光刻胶仍处客户导入、产能逐步释放阶段，后续增长依赖验证转量产。","pricing_evidence":"runtime显示H1收入和利润仅温和增长，而TTM PE约62倍；新增产能利用率与客户导入仍需进一步兑现。","invalidation":"若前驱体/光刻胶客户导入和产能利用率提升持续低于预期，则新增盈利驱动不足。","primary_profit_driver":"半导体前驱体、光刻胶和电子材料国产替代及客户导入。","dominant_risk_factor":"客户验证与产能利用率兑现节奏。"}
+    {"code":"002487","name":"大金重工","trend_name":"风电设备","trend_state":"T1","market_state":"趋势确认","industry_code":"S630602","industry":"风电零部件","expectation_stage":"CONFIRMING","status":"WAIT","wait_reason":"WAIT_PRICE","current_price":41.21,"reasonable_price_range":"36-40","low_risk_buy_range":"31-34","transmission_evidence":"海外海风项目、欧洲风电母港服务与高端海工产能仍有未来1–2季度交付传导。","pricing_evidence":"当前价接近runtime第一阻力42.34元，保守正常化盈利估值安全边际不足。","invalidation":"欧洲海风交付延后、海外订单转弱或原材料价格显著侵蚀毛利。","primary_profit_driver":"海外海风项目交付和欧洲母港服务。","dominant_risk_factor":"项目交付节奏与原材料成本。"},
+    {"code":"603507","name":"振江股份","trend_name":"风电设备","trend_state":"T1","market_state":"趋势确认","industry_code":"S630602","industry":"风电零部件","expectation_stage":"CONFIRMING","status":"WAIT","wait_reason":"WAIT_PRICE","current_price":23.98,"reasonable_price_range":"18-22","low_risk_buy_range":"16.5-18.5","transmission_evidence":"风电与紧固件订单、新产线构成后续传导，但归母利润含较高非核心收益。","pricing_evidence":"当前价高于保守价值区上沿，不能按归母高增直接年化。","invalidation":"订单转弱或新产线爬坡不及预期。","primary_profit_driver":"风电、紧固件订单与产能释放。","dominant_risk_factor":"非经常收益和正常化盈利不确定。"},
+    {"code":"002371","name":"北方华创","trend_name":"半导体设备/材料","trend_state":"T1","market_state":"趋势确认","industry_code":"S270108","industry":"半导体设备","expectation_stage":"CONFIRMING","status":"WAIT","wait_reason":"WAIT_MARGIN","current_price":665.5,"reasonable_price_range":"N/A","low_risk_buy_range":"N/A","transmission_evidence":"逻辑、存储、先进封装设备需求旺盛，先进产品持续验证和量产。","pricing_evidence":"TTM PE约85倍、动态PE约72倍，保守情景难形成>=15%稳定上行空间。","invalidation":"先进设备验证/量产不及预期、价格竞争或订单交付放缓。","primary_profit_driver":"先进制程、存储、先进封装设备国产替代。","dominant_risk_factor":"高估值与产品验证节奏。"},
+    {"code":"003043","name":"华亚智能","trend_name":"半导体设备/材料","trend_state":"T1","market_state":"趋势确认","industry_code":"S270108","industry":"半导体设备","expectation_stage":"CONFIRMING","status":"WAIT","wait_reason":"WAIT_MARGIN","current_price":63.17,"reasonable_price_range":"N/A","low_risk_buy_range":"N/A","transmission_evidence":"半导体设备精密结构件需求仍是增长主线，相关业务处批量供货阶段。","pricing_evidence":"TTM PE约96倍、动态PE约125倍，安全边际不足。","invalidation":"客户扩产放缓、国产替代渗透不及预期或客户集中风险上升。","primary_profit_driver":"半导体设备精密结构件需求。","dominant_risk_factor":"高估值与订单兑现节奏。"},
+    {"code":"603061","name":"金海通","trend_name":"半导体设备/材料","trend_state":"T1","market_state":"趋势确认","industry_code":"S270108","industry":"半导体设备","expectation_stage":"CONFIRMING","status":"WAIT","wait_reason":"WAIT_MARGIN","current_price":350.48,"reasonable_price_range":"N/A","low_risk_buy_range":"N/A","transmission_evidence":"AI/HPC与汽车芯片需求带动测试分选机销量和境外订单，H1营收与核心利润高增。","pricing_evidence":"TTM PE约112倍、动态PE约89倍，高增长已对应较高估值。","invalidation":"封测设备需求降温、海外订单回落或产品迭代失速。","primary_profit_driver":"测试分选设备销量及海外订单。","dominant_risk_factor":"高估值和设备周期。"},
+    {"code":"002409","name":"雅克科技","trend_name":"半导体设备/材料","trend_state":"T1","market_state":"趋势确认","industry_code":"S270103","industry":"半导体材料","expectation_stage":"CONFIRMING","status":"WAIT","wait_reason":"WAIT_CATALYST","current_price":134.69,"reasonable_price_range":"N/A","low_risk_buy_range":"N/A","transmission_evidence":"前驱体、光刻胶、电子材料国产替代路径明确，仍在推进客户导入和产能释放。","pricing_evidence":"H1收入利润仅温和增长，TTM PE约62倍，新增产能利用率与客户转量产仍待验证。","invalidation":"客户导入与产能利用率持续低于预期。","primary_profit_driver":"前驱体、光刻胶和电子材料国产替代。","dominant_risk_factor":"客户验证和产能利用率。"},
+    {"code":"603259","name":"药明康德","trend_name":"CRO/医疗研发外包","trend_state":"T2","market_state":"趋势确认","industry_code":"S370603","industry":"医疗研发外包","expectation_stage":"CONFIRMING","status":"WAIT","wait_reason":"WAIT_MARGIN","current_price":160.49,"reasonable_price_range":"N/A","low_risk_buy_range":"N/A","transmission_evidence":"2026H1收入同比+38.9%，持续经营收入+48.0%，持续经营在手订单664.3亿元、同比+25.2%，订单与交付均支持未来传导。","pricing_evidence":"9月17日PE-TTM约22.45倍，处自身近年较高估值分位；基本面强但低风险安全边际不足。","invalidation":"在手订单增速显著放缓、产能释放不及预期或地缘/监管风险影响核心客户需求。","primary_profit_driver":"CRDMO订单增长、后期项目推进与新增产能释放。","dominant_risk_factor":"估值分位较高及海外监管/客户集中风险。"},
+    {"code":"002821","name":"凯莱英","trend_name":"CRO/医疗研发外包","trend_state":"T2","market_state":"趋势确认","industry_code":"S370603","industry":"医疗研发外包","expectation_stage":"CONFIRMING","status":"WAIT","wait_reason":"WAIT_MARGIN","current_price":186.23,"reasonable_price_range":"N/A","low_risk_buy_range":"N/A","transmission_evidence":"H1收入+13.13%，在手订单16.73亿美元同比+53.77%，年初至披露日新签订单+54.59%，新兴业务和大分子订单增长强。","pricing_evidence":"当前PE约64.9倍，而归母净利仍同比下降15.71%；订单景气已较强但估值对兑现要求高。","invalidation":"新签订单转收入速度低于预期、汇率拖累扩大或大分子/商业化项目交付延迟。","primary_profit_driver":"CDMO在手订单、新兴业务和商业化产能交付。","dominant_risk_factor":"高估值、汇率和订单转收入节奏。"},
+    {"code":"603456","name":"九洲药业","trend_name":"CRO/医疗研发外包","trend_state":"T2","market_state":"趋势确认","industry_code":"S370603","industry":"医疗研发外包","expectation_stage":"EARLY","status":"WAIT","wait_reason":"WAIT_CATALYST","current_price":15.48,"reasonable_price_range":"N/A","low_risk_buy_range":"N/A","transmission_evidence":"H1 CDMO新签订单稳健增长；国内新增29家客户、48个项目、新签107单，TIDES在手订单同比+32%，新产能推进。","pricing_evidence":"H1收入同比-10.3%、归母净利-26.3%，订单改善尚未充分转化为报表，当前更依赖后续季度兑现。","invalidation":"订单转收入继续迟滞、毛利率修复中断或大客户项目收缩。","primary_profit_driver":"CDMO项目储备、TIDES订单与新产能释放。","dominant_risk_factor":"订单到收入/利润的兑现时点。"}
   ],
   "uncertain": [
-    {"code":"000809","name":"和展能源","trend_name":"风电设备","trend_state":"T1","market_state":"趋势确认","industry_code":"S630602","industry":"风电零部件","status":"UNCERTAIN","uncertain_stage":"EXPECTATION/RISK_REWARD","reason":"2026H1虽完成转型后盈利改善，但盈利基数很小、估值口径异常且正常化盈利样本不足，无法可靠给出低风险价值区。","current_price":3.56},
-    {"code":"601218","name":"吉鑫科技","trend_name":"风电设备","trend_state":"T1","market_state":"趋势确认","industry_code":"S630602","industry":"风电零部件","status":"UNCERTAIN","uncertain_stage":"TRANSMISSION","reason":"H1收入和利润改善，但扣非与归母分化、非核心收益占比较高，行业改善能否稳定传导到未来1–2季度核心盈利仍缺直接证据。","current_price":5.74},
-    {"code":"603991","name":"领先股份","trend_name":"半导体设备/材料","trend_state":"T1","market_state":"趋势确认","industry_code":"S270108","industry":"半导体设备","status":"UNCERTAIN","uncertain_stage":"EXPECTATION/RISK_REWARD","reason":"H1收入利润高增但基数效应极强，TTM PE约175倍，缺少足以支撑正常化盈利中枢和保守估值区间的稳定证据。","current_price":179.02},
-    {"code":"002119","name":"康强电子","trend_name":"半导体设备/材料","trend_state":"T1","market_state":"趋势确认","industry_code":"S270103","industry":"半导体材料","status":"UNCERTAIN","uncertain_stage":"RISK_REWARD","reason":"收入与核心利润方向改善，但经营现金流为负，利润与现金流质量冲突，正常化盈利和安全边际难以确认。","current_price":24.24},
-    {"code":"003026","name":"中晶科技","trend_name":"半导体设备/材料","trend_state":"T1","market_state":"趋势确认","industry_code":"S270103","industry":"半导体材料","status":"UNCERTAIN","uncertain_stage":"EXPECTATION","reason":"H1收入利润改善，但缺少足够公司级新订单或产能利用率证据来判断未来1–2季度是否继续加速，且估值较高。","current_price":37.0},
-    {"code":"600206","name":"有研新材","trend_name":"半导体设备/材料","trend_state":"T1","market_state":"趋势确认","industry_code":"S270103","industry":"半导体材料","status":"UNCERTAIN","uncertain_stage":"RISK_REWARD","reason":"H1利润改善但经营现金流为负，非核心收益占比较高，当前盈利质量不足以建立稳定的正常化估值中枢。","current_price":50.55},
-    {"code":"600641","name":"先导基电","trend_name":"半导体设备/材料","trend_state":"T1","market_state":"趋势确认","industry_code":"S270103","industry":"半导体材料","status":"UNCERTAIN","uncertain_stage":"RISK_REWARD","reason":"H1利润高增但扣非/核心口径缺失、非核心收益占比极高且经营现金流为负，无法确认可持续盈利。","current_price":36.8},
-    {"code":"605358","name":"立昂微","trend_name":"半导体设备/材料","trend_state":"T1","market_state":"趋势确认","industry_code":"S270103","industry":"半导体材料","status":"UNCERTAIN","uncertain_stage":"EXPECTATION/RISK_REWARD","reason":"行业硅片需求改善，但公司12英寸外延片项目此前因产能利用不足而延期，盈利修复与产能兑现仍存在冲突，当前高估值下难确认低风险区。","current_price":45.27}
+    {"code":"000809","name":"和展能源","trend_name":"风电设备","industry_code":"S630602","industry":"风电零部件","status":"UNCERTAIN","uncertain_stage":"EXPECTATION/RISK_REWARD","reason":"转型后盈利基数很小、估值口径异常且正常化盈利样本不足。","current_price":3.56},
+    {"code":"603991","name":"领先股份","trend_name":"半导体设备/材料","industry_code":"S270108","industry":"半导体设备","status":"UNCERTAIN","uncertain_stage":"EXPECTATION/RISK_REWARD","reason":"H1高增基数效应极强，TTM PE约175倍，缺少稳定正常化盈利中枢。","current_price":179.02},
+    {"code":"002119","name":"康强电子","trend_name":"半导体设备/材料","industry_code":"S270103","industry":"半导体材料","status":"UNCERTAIN","uncertain_stage":"RISK_REWARD","reason":"收入与核心利润改善但经营现金流为负，盈利与现金流质量冲突。","current_price":24.24},
+    {"code":"003026","name":"中晶科技","trend_name":"半导体设备/材料","industry_code":"S270103","industry":"半导体材料","status":"UNCERTAIN","uncertain_stage":"EXPECTATION","reason":"H1改善，但缺少足够公司级新订单/产能利用率证据确认未来1–2季度继续加速。","current_price":37.0},
+    {"code":"600641","name":"先导基电","trend_name":"半导体设备/材料","industry_code":"S270103","industry":"半导体材料","status":"UNCERTAIN","uncertain_stage":"RISK_REWARD","reason":"利润高增但核心口径缺失、非核心收益占比极高且经营现金流为负。","current_price":36.8},
+    {"code":"605358","name":"立昂微","trend_name":"半导体设备/材料","industry_code":"S270103","industry":"半导体材料","status":"UNCERTAIN","uncertain_stage":"EXPECTATION/RISK_REWARD","reason":"硅片需求改善与项目产能利用不足/延期证据冲突，且估值高。","current_price":45.27},
+    {"code":"603127","name":"昭衍新药","trend_name":"CRO/医疗研发外包","industry_code":"S370603","industry":"医疗研发外包","status":"UNCERTAIN","uncertain_stage":"RISK_REWARD","reason":"在手订单+60.9%、新签订单+98%显示强传导，但H1归母利润几乎被生物资产公允价值变动贡献覆盖，实验室服务及其他业务仍亏损，无法可靠正常化盈利。","current_price":44.05},
+    {"code":"600721","name":"百花医药","trend_name":"CRO/医疗研发外包","industry_code":"S370603","industry":"医疗研发外包","status":"UNCERTAIN","uncertain_stage":"EXPECTATION","reason":"新增订单+12.64%、Q2现金流改善，但H1收入-22.13%、扣非净利-49.35%，同时60日股价曾大幅重估，事件—价格—财务时间链冲突较大。","current_price":11.87}
   ],
   "drop": [
-    {"code":"002531","name":"天顺风能","trend_name":"风电设备","trend_state":"T1","market_state":"趋势确认","industry_code":"S630602","industry":"风电零部件","status":"DROP","reason":"公司已更正2026H1非经常性损益口径，更正后扣非归母净利润为负，核心盈利并未承接行业改善，Transmission=NOT_SUPPORTED。","current_price":8.17},
-    {"code":"603063","name":"禾望电气","trend_name":"风电设备","trend_state":"T1","market_state":"趋势确认","industry_code":"S630602","industry":"风电零部件","status":"DROP","reason":"runtime显示公司收入、利润和扣非均下降，industry_company_transmission=failed，风电趋势未传导到公司核心盈利。","current_price":30.16},
-    {"code":"603218","name":"日月股份","trend_name":"风电设备","trend_state":"T1","market_state":"趋势确认","industry_code":"S630602","industry":"风电零部件","status":"DROP","reason":"runtime显示收入、利润和扣非均明显下降，industry_company_transmission=failed，Transmission不成立。","current_price":9.29},
-    {"code":"603985","name":"恒润股份","trend_name":"风电设备","trend_state":"T1","market_state":"趋势确认","industry_code":"S630602","industry":"风电零部件","status":"DROP","reason":"2026H1风电板块订单规模缩减、收入下降，利润增长主要来自非风电板块，原风电趋势传导被实质反证。","current_price":16.62}
+    {"code":"603063","name":"禾望电气","trend_name":"风电设备","industry_code":"S630602","industry":"风电零部件","status":"DROP","reason":"收入、利润和核心利润均下降，风电趋势未传导至公司核心盈利。","current_price":30.16},
+    {"code":"603218","name":"日月股份","trend_name":"风电设备","industry_code":"S630602","industry":"风电零部件","status":"DROP","reason":"收入、利润和核心利润均明显下降，Transmission不成立。","current_price":9.29}
   ],
-  "coverage": {"runtime_hard_gate":"PASSED","trend_handoff_gate":"PASSED","routing_coverage":"COMPLETE","transmission_coverage":"COMPLETE","expectation_coverage":"COMPLETE","risk_reward_coverage":"COMPLETE"},
-  "funnel": {"trend_signals_total":3,"trend_signals_resolved":3,"trend_signals_unresolved":0,"routed_industries_total":4,"routed_industries_runtime_available":3,"routed_industries_no_runtime_candidate":1,"routed_runtime_candidates":18,"transmission_supported":13,"transmission_uncertain":1,"transmission_not_supported":4,"expectation_early":0,"expectation_confirming":6,"expectation_priced_in":0,"expectation_exhausted":0,"expectation_uncertain":7,"risk_reward_universe":6,"ready":0,"wait":6,"uncertain":8,"drop":4},
-  "note":"Manual formal rerun after narrowing trend_handoff to the current new-position priority list only. The market runtime and trade date are unchanged from the prior run; non-handoff trends were removed from the research universe rather than reclassified."
+  "coverage": {"runtime_hard_gate":"PASSED","trend_handoff_gate":"PASSED","routing_coverage":"COMPLETE","pre_screen_coverage":"COMPLETE","transmission_coverage":"COMPLETE","expectation_coverage":"COMPLETE","risk_reward_coverage":"COMPLETE"},
+  "funnel": {"trend_signals_total":3,"trend_signals_resolved":3,"trend_signals_unresolved":0,"routed_industries_total":4,"routed_universe_companies":25,"hard_eligible_companies":23,"hard_filtered_out":2,"pre_screen_selected":19,"pre_screened_out":4,"transmission_supported":17,"transmission_uncertain":0,"transmission_not_supported":2,"expectation_early":1,"expectation_confirming":11,"expectation_priced_in":0,"expectation_exhausted":0,"expectation_uncertain":5,"risk_reward_universe":12,"ready":0,"wait":9,"uncertain":8,"drop":2}
 }
