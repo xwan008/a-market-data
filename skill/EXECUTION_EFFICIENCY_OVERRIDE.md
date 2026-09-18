@@ -25,13 +25,13 @@
 Freeze 前：
 
 1. `trend_handoff.json` 原则上读一次；
-2. `company_industry_index.json` 原则上读一次；
+2. `company_industry_index.json` 固定按当前 `main` 执行一次 SHA 解析 + Blob 内部解析/Universe 投影；
 3. 先得到完整 `universe_company_codes`；
 4. 由全部 universe codes 计算所需 shard 前缀；
 5. shard 前缀去重后，按固定小批次读取；默认每批约 6–8 个，若工具环境限制更严可进一步减小 batch；
-6. 每个 shard 在工具调用内部立即 JSON 解析，只抽取本轮目标 company codes，并投影为 working set 标准字段；不得把完整 shard 原文批量返回执行上下文；
-7. 只有“JSON 可解析 + 目标公司抽取完成 + 标准字段投影完成”才算该 shard 成功读取；成功后本轮不得再次读取；
-8. 标准读取为空、截断或不可解析时，只算读取路径失败，允许同一 shard 改用 GitHub REST Contents/Blob 做一次同源 fallback；fallback 成功后停止读取，仍失败则阻断 Freeze；
+6. 每个 shard 固定执行当前 `main` 的 SHA → Blob，并在同一次执行器调用内部立即完成解码（如需要）、JSON 解析、目标 company codes 抽取与 working set 标准字段投影；不得把完整 shard / Blob 原文批量返回执行上下文；
+7. 标准文件读取只负责取得 blob SHA；其 `content` 为空、截断或未返回完整正文不得视为失败，只要 SHA 有效就必须继续 Blob 读取；
+8. 只有“Blob 获取成功 + JSON 可解析 + 目标公司抽取完成 + 标准字段投影完成”才算该 shard 成功物化并计入 `unique_shard_read_count`；用于取得 SHA 的标准读取不计数。成功后本轮不得再次读取；无法取得有效 SHA、Blob 读取失败、JSON 无法解析或目标投影失败时才阻断 Freeze；
 9. 每批只累积标准化目标公司事实，不提前进入硬过滤或预筛；
 10. 全部所需 shard 的目标公司事实收集完成后，再统一构造每个 routed 三级行业的 run-local working set。
 
@@ -135,7 +135,7 @@ Web 只补关键前瞻假设，不得变成第二轮全面估值深研。
 
 ## 7. 外部调用纪律
 
-1. 能批量不串行；仓库 shard 读取采用受控小批次，并在工具调用内部完成解析与目标公司字段投影，避免完整 shard 原文撑爆执行上下文；
+1. 能批量不串行；仓库 shard 采用受控小批次执行当前 `main` 的 SHA → Blob，并在同一次执行器调用内部完成解析与目标公司字段投影，避免完整 shard / Blob 原文撑爆执行上下文；
 2. working set 已有字段不再上 Web；
 3. 同一 URL/公告同轮不重复读；
 4. 查询失败最多使用一次合理替代源；
