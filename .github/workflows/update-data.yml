@@ -170,6 +170,10 @@ jobs:
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/enrich_shards_with_industry.py
 
+      - name: Build low-risk industry working sets
+        if: steps.gate.outputs.persist == 'true'
+        run: python scripts/build_low_risk_working_sets.py
+
       - name: Rebuild industry state
         if: steps.gate.outputs.persist == 'true'
         run: |
