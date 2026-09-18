@@ -8,7 +8,7 @@
 Trend Handoff
 → 解析本轮三级行业
 → company_industry_index 找出每个行业全部策略公司
-→ 按所需 shard 前缀去重，一次读取这些公司的完整事实
+→ 按所需 shard 前缀去重后分批读取；每个唯一 shard 本轮最多读取一次
 → 动态生成“本轮行业工作集”（每个三级行业一个 working set）
 → 冻结 working set；以下阶段不再读取 company_industry_index / shard
 → 公司级硬过滤
@@ -49,7 +49,7 @@ Trend Handoff
 
 ### 3.2 Facts
 
-根据 `universe_company_codes` 计算所需 `data/shards/<前5位>.json`，按 shard 前缀去重，一次读取。
+根据 `universe_company_codes` 计算所需 `data/shards/<前5位>.json`，按 shard 前缀去重后采用小批次读取。工具层可分成多个 batch，以避免单轮工具调用上限；但每个唯一 shard 本轮最多读取一次。所有所需 shard 收集完成后，再统一构造本轮 working sets。
 
 从 shard 为每家公司提取本轮后续所需的完整事实，至少包括：
 - code / name / industry_code / industry_name；
@@ -166,7 +166,7 @@ reasonable_price_range
 ```text
 1次 trend_handoff
 1次 company_industry_index
-N次去重后的 shard 读取，用于一次性构建全部 routed working sets
+N次去重后的 shard 读取，可按小批次执行；每个唯一 shard 最多一次，全部收集后统一构建 routed working sets
 working set freeze
 后续 0 次 company_industry_index 读取
 后续 0 次 shard 读取
@@ -205,4 +205,4 @@ working set freeze
 
 ## 11. 一句话版本
 
-> 趋势榜先选行业；company_industry_index 找全公司；一次性从去重 shard 把这些公司的完整事实抽出来，按行业动态生成本轮工作文件；工作文件生成后锁定，后面的硬过滤、预筛、研究、估值和买点全部只围绕这些文件进行。
+> 趋势榜先选行业；company_industry_index 找全公司；去重 shard 后按小批次把这些公司的完整事实收集齐，每个唯一 shard 本轮最多读取一次；随后按行业动态生成本轮工作文件并锁定，后面的硬过滤、预筛、研究、估值和买点全部只围绕这些文件进行。
