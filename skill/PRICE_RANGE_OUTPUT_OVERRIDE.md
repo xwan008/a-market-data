@@ -83,7 +83,7 @@ reentry_trigger
 只有同时满足：
 
 ```text
-runtime_hard_gate = PASSED
+materialized_view_gate = PASSED
 trend_handoff_gate = PASSED
 routing_coverage = COMPLETE
 pre_screen_coverage = COMPLETE
@@ -117,5 +117,5 @@ publication_ready = true
 - 不为了填数字而伪造估值区间；
 - 无法形成可辩护估值时宁可转 UNCERTAIN；
 - 榜单价格区间是研究结果，不是保证成交或收益；
-- 当前价必须来自本轮正式收盘 runtime；
+- 当前价必须来自本轮正式收盘 frozen working set；
 - 价格区间若因新财报、订单、重大事件或价格大幅波动失效，应在下一次正式版重新计算。
