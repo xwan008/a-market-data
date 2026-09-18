@@ -123,7 +123,7 @@ Web 深研用于修正关键前瞻假设，不再作为“是否能算出价格�
 ### E. Stable Yield / Utilities / Infrastructure
 典型：公用事业、电网/燃气、部分交运基础设施、成熟运营商。
 
-理想主锚：DDM / FCFE / dividend yield；若 runtime 暂无股息字段，则日常模型采用：
+理想主锚：DDM / FCFE / dividend yield；若 frozen working set 暂无股息字段，则日常模型采用：
 - peer PE / PB；
 - ROE / 现金流稳定性；
 - MA60 / 成交密集区权重提高。
@@ -147,7 +147,7 @@ Web 深研用于修正关键前瞻假设，不再作为“是否能算出价格�
 A股普通地产开发商如果缺少可靠 NAV、杠杆和项目质量数据，不得只因为 PB 低就给出低风险结论；PB 只能是代理锚，并降低 valuation_confidence。
 
 ### H. Pipeline / Option-like Biotech
-若盈利主要由单一创新药管线、临床/审批事件驱动，传统 PE/PB 可能失真。应优先 rNPV / pipeline scenario；日常 runtime 无法支持时，允许转 UNCERTAIN，不强制机械给区间。
+若盈利主要由单一创新药管线、临床/审批事件驱动，传统 PE/PB 可能失真。应优先 rNPV / pipeline scenario；当前 working set 与可核验证据无法支持时，允许转 UNCERTAIN，不强制机械给区间。
 
 ---
 
@@ -272,4 +272,4 @@ READY / WAIT 必须增加：
 - McKinsey：周期公司单点倍数容易误导，应使用 through-cycle / normalized 场景；高增长公司不宜机械依赖单点倍数；
 - CFA real estate：REIT/地产证券应使用 NAV、FFO/AFFO 等更贴合资产与现金流的指标。
 
-这些来源决定“选什么估值工具”；具体 A 股买入区不照搬海外行业倍数，而使用本轮 A 股同三级行业 peer statistics + 公司质量 + runtime 价格结构计算。
+这些来源决定“选什么估值工具”；具体 A 股买入区不照搬海外行业倍数，而使用本轮 A 股同三级行业 peer statistics + 公司质量 + frozen working set 价格结构计算。
