@@ -27,11 +27,11 @@
 - `data/low_risk/index.json`
 - canonical flow 要求的阶段规则文件
 
-Universe 权威来源、预物化行业事实读取和 run-local working set 构造严格由 canonical flow 负责。正式榜运行时使用 `data/low_risk/index.json` 与 `data/low_risk/by_industry/*.json`；不得重新现场解析 company_industry_index 或 shards。
+Universe 权威来源、预物化行业事实读取和 run-local working set 构造严格由 canonical flow 负责。正式榜运行时使用 `data/low_risk/index.json`，再按 index 指向读取 routed 行业的 `manifest.json + part-xxx.json`；不得读取 legacy 单行业大文件，也不得重新现场解析 company_industry_index 或 shards。
 
 19:00 正式版与手动正式版均为 Fresh Run：不得读取上一份 `research/latest_formal_result.json` 作为本轮计算输入，不得复用上一轮 working set、pre-screen、Transmission、Expectation、valuation 或 Price Range 结论来跳过阶段。上一份 COMPLETE 只允许在本轮完成后用于差异对比。07:00 早间增量版除外。
 
-正式版 / 手动版必须执行 canonical flow 定义的 **Materialized Runtime View Protocol**：先读取 `data/low_risk/index.json`，校验其 trade_date 与 validation。对 routed 行业，index 中存在者逐个读取 `data/low_risk/by_industry/<industry_code>.json`；在已通过全量分区校验的 index 中不存在者标记 `NO_UNIVERSE_MEMBER`。这些文件由 GitHub Actions 从 company_industry_index + shards 确定性生成并校验；正式榜运行时不得回退为模型现场读取大 JSON。
+正式版 / 手动版必须执行 canonical flow 定义的 **Materialized Runtime View Protocol**：先读取 `data/low_risk/index.json`，校验 trade_date、validation 与 `materialized_layout == "chunked_manifest_v1"`。对 routed 行业，index 中存在者读取对应 `manifest_file`，再按 manifest.parts 顺序完整读取全部 part；在已通过全量分区校验的 index 中不存在者标记 `NO_UNIVERSE_MEMBER`。manifest/parts 由 GitHub Actions 从 company_industry_index + shards 确定性生成并校验；正式榜不得回退读取大 JSON 或 legacy 单行业文件。
 
 旧 `data/snapshot.json`、`data/runtime/*`、screening group、candidate/compact cache 均属于已停用 Legacy Runtime artifacts。它们即使仍作为历史文件保留，也不得参与任何正式版、手动版或早间版计算、Gate、freshness 判断或 fallback。
 
@@ -44,6 +44,10 @@ Universe 权威来源、预物化行业事实读取和 run-local working set 构
 - `data/low_risk/index.json` 可解析；
 - `runtime_format == "low_risk_industry_working_set_index"`；
 - `validation.status == passed`；
+- `materialized_layout == chunked_manifest_v1`；
+- `validation.chunk_manifest_complete == true`；
+- `validation.chunk_company_coverage_exact == true`；
+- `validation.chunk_size_within_limit == true`；
 - `research/trend_handoff.json` 可解析；
 - `result_kind == a_share_trend_handoff`；
 - handoff `trade_date == data/low_risk/index.json.trade_date`；
@@ -76,11 +80,12 @@ post_freeze_shard_read_count == 0
 其中：
 - Universe 权威来源仍是 `data/research/company_industry_index.json`，但运行时通过 GitHub Actions 已验证的 `data/low_risk/*` 物化视图消费；
 - 公司完整事实权威来源仍是 `data/shards/*.json`，但运行时不直接读取 shards；
-- Freeze 前每个 routed 行业事实文件最多读取一次并完整进入 working set；
-- Freeze 后不得再读取任何 materialized industry file、company_industry_index 或 shard；
+- Freeze 前每个 routed 行业 manifest 最多读取一次，manifest 声明的每个 part 最多读取一次，并完整进入 working set；
+- Freeze 前必须证明 manifest company_count、parts company_count、company codes 与 index 完整一致且无重复；
+- Freeze 后不得再读取任何 manifest、part、legacy materialized industry file、company_industry_index 或 shard；
 - 后续硬过滤、预筛、Transmission、Expectation、估值与价格区间全部消费 frozen working set。
 
-运行时 `unique_shard_read_count == 0`，因为 shard ETL 已在 GitHub Actions 数据生产层完成；应额外记录 `materialized_industry_read_count` 与 `post_freeze_materialized_read_count`。
+运行时 `unique_shard_read_count == 0`，因为 shard ETL 已在 GitHub Actions 数据生产层完成；应记录 `materialized_manifest_read_count`、`materialized_part_read_count`、`materialized_industry_complete_count`、`legacy_industry_file_read_count` 与 `post_freeze_materialized_read_count`。
 
 若 Freeze Gate 不成立，正式版不得覆盖上一份 COMPLETE。
 
