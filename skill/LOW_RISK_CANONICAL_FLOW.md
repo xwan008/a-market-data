@@ -102,8 +102,9 @@ GitHub 构建必须保证 mapped company coverage、industry partition、trade_d
    - company_count 与 index 一致；
    - `len(universe_company_codes) == company_count`；
    - `chunking.part_count == len(parts)`；
-3. 按 `parts[*].part_number` 升序读取全部 part，每个 part 只读一次，不得抽样或跳读；
-4. 每个 part 必须满足：
+3. 按 `parts[*].part_number` 升序读取全部 part。part 文件是 pretty-print 多行 JSON；若一次返回不足以覆盖整文件，必须使用行范围分页读取（推荐每段 100–150 行），从第 1 行连续读取到 EOF。允许同一 part 有多个物理 segment fetch，但不得跳行、重叠遗漏或只取前段；
+4. 将同一 part 的所有 segment 按行顺序原样拼接后，必须先成功解析完整 JSON；只有完整解析并通过下列校验后，才计为 1 次逻辑 `materialized_part_read_count`；
+5. 每个 part 必须满足：
    - `runtime_format == "low_risk_industry_working_set_chunk"`；
    - trade_date / industry identity 与 manifest 一致；
    - part_number 与 manifest entry 一致；
@@ -127,7 +128,7 @@ manifest.parts 中 company_codes 的按序拼接 == manifest.universe_company_co
 set(all part companies[*].code) == set(manifest.universe_company_codes)
 不存在重复 code
 index.industries[industry_code].company_count == manifest.company_count
-实际读取 part 数 == manifest.chunking.part_count == index.industries[industry_code].part_count
+实际完整解析并校验通过的逻辑 part 数 == manifest.chunking.part_count == index.industries[industry_code].part_count
 working_set_count == routed_industry_with_universe_count
 working_set_company_count == sum(routed industries with universe 的 company_count)
 ```
@@ -199,7 +200,7 @@ reasonable_price_range
 1次 trend_handoff
 1次 data/low_risk/index.json
 N次 routed industry manifest（N == routed_industry_with_universe_count）
-P次 part 文件（P == 所有 routed manifest 声明的 part_count 总和）
+P个逻辑 part（P == 所有 routed manifest 声明的 part_count 总和；每个 part 可由多个按行 segment fetch 完成）
 working set freeze
 后续 0 次 manifest/part/legacy materialized 读取
 全程 0 次 company_industry_index 大文件读取
@@ -233,6 +234,7 @@ working set freeze
   "materialized_index_read_count": 1,
   "materialized_manifest_read_count": 0,
   "materialized_part_read_count": 0,
+  "materialized_part_segment_fetch_count": 0,
   "materialized_industry_complete_count": 0,
   "unique_shard_read_count": 0,
   "legacy_industry_file_read_count": 0,
@@ -244,6 +246,7 @@ working set freeze
 发布前要求：
 - `materialized_manifest_read_count == routed_industry_with_universe_count`；
 - `materialized_part_read_count == routed manifest 声明的 part_count 总和`；
+- `materialized_part_segment_fetch_count >= materialized_part_read_count`，且所有 segment 必须连续覆盖各 part 从第1行到 EOF；
 - `materialized_industry_complete_count == routed_industry_with_universe_count`；
 - `legacy_industry_file_read_count == 0`；
 - `unique_shard_read_count == 0`；
@@ -255,4 +258,4 @@ working set freeze
 
 ## 11. 一句话版本
 
-> GitHub Actions 把 company_industry_index + shards 确定性物化成“行业 manifest + 有界小 part”；低风险榜按 Trend Handoff 完整读取 manifest 声明的全部 parts、证明 Universe 无遗漏后 Freeze，再完成预筛、研究、估值与买点，规避单个行业大 JSON 被工具截断的问题。
+> GitHub Actions 把 company_industry_index + shards 确定性物化成“行业 manifest + 有界、pretty-print 的多行 part”；低风险榜按 Trend Handoff 对每个 part 从第1行连续分页读取到 EOF，完整拼接并解析后证明 Universe 无遗漏再 Freeze，从根源规避单行大 JSON 无法分页导致的截断。
