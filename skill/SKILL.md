@@ -1,48 +1,38 @@
 # A股低风险买点榜｜模型判断规则
 
-## 1. 目标
+## 1. 职责边界
 
-目标是：
-
-> **从趋势榜已经发现的市场主线中，寻找未来 1–2 个季度盈利改善有事实基础、尚未被市场充分定价，并且当前下行风险可控的公司。**
-
-主线：
+本文件只定义公司级研究判断：
 
 ```text
-Trend Handoff
-→ Routing
-→ Transmission
+Transmission
 → Expectation
 → Risk–Reward
 → READY / WAIT / UNCERTAIN / DROP
 ```
 
----
+本文件**不定义**：
+- routed 行业如何展开公司；
+- Universe 来源；
+- shard / cache / working set 的读取方式；
+- 预筛 Top5/6 的执行范围；
+- 价格区间具体估值算法。
 
-## 2. Trend Handoff / Routing
+这些分别由以下文件负责：
 
-买点榜读取 `research/trend_handoff.json`，获得趋势主题、产业状态、市场生命周期状态和申万三级行业代码，并完整展开对应 runtime company universe。
-
-若趋势主题无法通过 handoff 自带的三级行业代码解析，可读取 `research/theme_routing_fallback.json` 中的显式主题路由。Fallback 只允许保存人工确认的行业代码或公司代码，并且所有代码都必须在当前 runtime 中验证；无法验证的映射保持 unresolved。
-
-行业代码和主题 fallback 只承担路由功能。
-
-同一公司可以继承多个 trend signals。
-
-handoff 透传：
-
-- `trend_state`：T0 / T1 / T2；
-- `market_state`：观察 / 候选趋势 / 趋势确认 / 高潮或衰退等市场生命周期状态。
-
-`market_state` 作为 Expectation 的市场定价上下文。
+- 主流程：`LOW_RISK_CANONICAL_FLOW.md`
+- 预筛：`PRE_SCREEN_RESEARCH_SCOPE_OVERRIDE.md`
+- 估值：`INDUSTRY_ADAPTIVE_VALUATION_OVERRIDE.md`
+- 价格区间：`PRICE_RANGE_OUTPUT_OVERRIDE.md`
+- 执行效率：`EXECUTION_EFFICIENCY_OVERRIDE.md`
 
 ---
 
-## 3. Transmission｜谁真正吃到趋势
+## 2. Transmission｜趋势是否真正传导到公司
 
-对 routed universe 每家公司都问：
+只对预筛选中的 deep-research 公司判断：
 
-> **趋势为什么会让这家公司未来 1–2 个季度赚得更多？**
+> 趋势为什么会让这家公司未来 1–2 个季度赚得更多？
 
 状态：
 
@@ -50,155 +40,149 @@ handoff 透传：
 - `NOT_SUPPORTED`
 - `UNCERTAIN`
 
-高质量前瞻证据包括：
+优先前瞻证据：
 
-- 已签或在手订单及明确交付窗口；
-- 产品价格/价差已经变化；
-- 销量、出货或产能利用率变化；
-- 新产能已经投产并进入爬坡；
-- 客户定点、认证或份额变化；
-- 库存周期已发生反转；
-- 产品结构改善可验证。
+- 已签/在手订单及交付窗口；
+- 产品价格/价差变化；
+- 销量/出货变化；
+- 新产能投产与爬坡；
+- 客户定点/认证；
+- 库存周期变化；
+- 市占率或产品结构变化。
 
-仅有“属于该板块”不算证据。
+“属于该板块”本身不足以证明传导。
 
-历史 PE、ROE、当期利润、现金流、一次性收益等用于解释公司质量与风险，但前瞻传导优先回答未来 1–2 个季度的盈利变化。
+历史 PE、PB、ROE、当期利润、现金流和一次性收益用于解释公司质量与风险，不替代前瞻传导。
 
-当历史财报很差、但已有明确未来订单/交付/价格驱动时，应继续验证未来传导。
+`NOT_SUPPORTED → DROP`。
 
-`NOT_SUPPORTED` → `DROP`。
-
-`UNCERTAIN` 最多允许一次针对关键缺口的定向补查；仍无法确认则保留 `UNCERTAIN`。
+`UNCERTAIN` 最多允许一次针对明确证据缺口的定向补证；仍无法确认则保留 UNCERTAIN。
 
 ---
 
-## 4. Expectation｜市场已经交易了多少
+## 3. Expectation｜市场已经交易了多少
 
-Transmission `SUPPORTED` 后，重建事件—价格—财务时间链：
+仅对 Transmission=`SUPPORTED` 的公司重建：
 
 ```text
 催化出现
 → 市场开始交易
 → 股价重估
-→ 订单/价格/销量进入财务报表
+→ 订单/价格/销量进入财务
 → 当前还有多少新增预期
 ```
 
-预期阶段：
+阶段：
 
-### EARLY
-催化已经发生，但财务尚未充分体现，股价也尚未明显重估。
+- `EARLY`
+- `CONFIRMING`
+- `PRICED_IN`
+- `EXHAUSTED`
+- `UNCERTAIN`
 
-### CONFIRMING
-订单/价格/销量开始兑现，盈利逻辑获得初步确认，股价开始反应，但未来 1–2 个季度仍有可验证增量。
+定义：
 
-### PRICED_IN
-主要催化已经推动股价显著重估，随后财报大量兑现，市场认知已经较充分，新增惊喜有限。
+- EARLY：催化已出现，但财务和股价尚未充分反映；
+- CONFIRMING：基本面开始兑现，未来 1–2 季度仍有可验证增量；
+- PRICED_IN：主要催化已推动显著重估，新增惊喜有限；
+- EXHAUSTED：利好仍在公布但股价不再确认，或核心驱动边际转弱；
+- UNCERTAIN：事件—价格—财务时间链存在关键缺口或冲突。
 
-### EXHAUSTED
-利好或高增长数字仍在公布，但股价不再确认、开始回落，或核心驱动的边际改善已经转弱。
-
-### UNCERTAIN
-催化时间、财务兑现或市场定价证据存在关键缺口/冲突。
-
-判断规则：
-
-1. 不用单日涨跌判断预期阶段；
-2. 股价从高点大跌本身不能证明出现新的预期周期；
-3. 财报同比高增本身不能证明未来仍有预期差；
-4. `PRICED_IN / EXHAUSTED` 若没有新的独立催化或预期重置，进入 `WAIT_EXPECTATION`；
-5. 若旧预期出清后出现独立、可验证的新驱动，可建立新的 EARLY/CONFIRMING 周期，并重新进入 Risk–Reward；
-6. 至少记录一条最可能推翻当前 expectation_stage 的反向证据。
-
-`WAIT_EXPECTATION` 是 `WAIT` 的原因标签。
+不得仅凭单日涨跌或单一技术位置判断 expectation。
 
 ---
 
-## 5. Risk–Reward｜最后讨论价格
+## 4. Risk–Reward｜最后讨论价格
 
-完整 Risk–Reward 研究对象：
-
-- Transmission = `SUPPORTED`；且
-- Expectation = `EARLY / CONFIRMING`；或
-- 有充分证据证明出现新的独立预期重置。
-
-进入 Risk–Reward 后：
+完整 Risk–Reward 对象：
 
 ```text
-未来 1–2 季度驱动
-→ 前瞻/正常化盈利区间
-→ 盈利中枢 × 保守估值
-→ conservative fair value
-→ low-risk buy range
-→ downside anchor
-→ conservative upside
+Transmission = SUPPORTED
+AND
+(
+  Expectation in {EARLY, CONFIRMING}
+  OR 新的独立预期重置成立
+)
 ```
 
-原则：
+估值与价格区间必须调用行业自适应估值与价格区间规则，不再默认要求完整 DCF。
 
-1. 强周期公司使用正常化盈利；
-2. 当前历史 PE 是背景，估值要匹配未来可持续盈利；
-3. 正式 fair value 默认用“正常化盈利中枢 × 可辩护保守估值”；
-4. 盈利下沿 × 估值下沿只作 stress floor；
-5. 原则上 `conservative_upside >= 15%`；
-6. 当前价原则上应在低风险区附近，或存在同等可量化下行保护；
-7. 必须给出失效条件。
+基本链：
+
+```text
+未来1–2季度可验证驱动
+→ 行业适配估值锚
+→ 公司质量修正
+→ fundamental anchor
+→ 市场结构锚
+→ reasonable price range
+→ safety margin
+→ low-risk buy range
+```
+
+强周期公司必须使用正常化盈利思想，不得用周期峰值利润简单外推。
+
+必须记录最可能推翻当前结论的事实与失效条件。
 
 ---
 
-## 6. 最终状态
+## 5. 最终状态
 
 ### READY
-同时满足：
 
+同时满足：
 - Transmission = SUPPORTED；
-- Expectation = EARLY / CONFIRMING，或有充分证据证明出现新的独立预期重置；
+- Expectation = EARLY / CONFIRMING，或存在独立预期重置；
 - 未来驱动可验证；
-- 风险收益合格；
-- 当前价格具备安全边际。
+- 估值与风险收益合格；
+- 当前价格具备足够安全边际。
 
 READY 不代表下一交易日一定上涨。
 
 ### WAIT
-核心逻辑成立，但价格、预期阶段、安全边际或催化时点尚不合适。
 
-原因标签：
+核心逻辑成立，且已形成完整可辩护价格区间，但当前价格、预期、安全边际或催化时点尚不合适。
 
+标签：
 - `WAIT_EXPECTATION`
 - `WAIT_PRICE`
 - `WAIT_MARGIN`
 - `WAIT_CATALYST`
 
 ### UNCERTAIN
-关键传导、预期阶段或正常化盈利存在无法消除的实质缺口/冲突。
+
+关键传导、预期阶段、盈利质量、行业关键估值变量或估值锚之间存在无法消除的实质缺口/冲突。
 
 ### DROP
-趋势无法实质传导到公司、核心逻辑被事实反证，或风险收益结构性不成立。
+
+趋势无法实质传导到公司，核心逻辑被事实反证，或风险收益结构性失效。
 
 ---
 
-## 7. 研究纪律
+## 6. 研究纪律
 
-- routed universe 全覆盖；
-- 不设 Top N；
-- 不设行业配额；
-- 不因为已找到 READY 就提前停止；
-- 不用单一 PE / PB / ROE / K线位置 / 当期利润增速决定状态；
-- 不把 Web 热度当成传导证据；
-- 优先公司公告、交易所披露、正式财报、投资者关系记录等一手证据；
-- 对前瞻催化区分“已经发生的事实”与“管理层目标/机构预测”；
-- 每家公司都记录关键 falsifier。
+- 只研究预筛选中的 deep-research 公司；
+- 不因为已找到 READY 就提前停止其他已入选公司的 coverage；
+- 不用单一 PE / PB / ROE / K线位置 / 当期利润增速决定最终状态；
+- 不把 Web 热度当成 Transmission 证据；
+- 优先公司公告、交易所披露、正式财报和投资者关系记录等一手证据；
+- 区分“已发生事实”与“管理层目标/机构预测”；
+- 每家公司都记录关键 falsifier；
+- 无法形成可靠价格区间时不得保留 READY / WAIT，应进入 UNCERTAIN。
 
 ---
 
-## 8. 正式输出字段
+## 7. 输出语义
 
-```text
-股票｜趋势主题｜趋势状态｜市场状态｜三级行业｜预期阶段｜状态｜WAIT原因｜当前价｜合理价值区｜低风险区｜传导/催化证据｜市场已定价证据｜失效条件｜核心风险
-```
+READY / WAIT 必须输出：
+- current_price
+- reasonable_price_range
+- low_risk_buy_range
+- price_range_basis
+- reentry_trigger
+- transmission_evidence
+- invalidation
 
-- READY 以及因价格/安全边际等待的 WAIT 给出可辩护的价值区与低风险区；
-- `WAIT_EXPECTATION` 在没有新预期重置时可写价值区 `N/A`；
-- 无可靠价值区或低风险区时写 `N/A`。
+价格区间不得写 N/A / 待估值 / 待确认。
 
-最终正式机会集合不设固定数量或上限。
+具体字段和发布 Gate 以 `PRICE_RANGE_OUTPUT_OVERRIDE.md` 为准。
