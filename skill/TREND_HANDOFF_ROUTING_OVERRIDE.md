@@ -7,13 +7,14 @@
 ```text
 trend_handoff
 → resolved 三级行业
-→ company_industry_index
+→ data/low_risk/index.json
+→ routed industry materialized file
 → 本轮 universe company codes
 ```
 
 到此结束。
 
-本文件不读取个股 shard、不做硬过滤、不做预筛、不做 Transmission / Expectation / Risk–Reward。
+本文件不读取原始 company_industry_index / 个股 shard，不做硬过滤、不做预筛、不做 Transmission / Expectation / Risk–Reward。
 
 完整数据读取与 run-local working set 构造由 `LOW_RISK_CANONICAL_FLOW.md` 统一负责。
 
@@ -23,18 +24,17 @@ trend_handoff
 
 1. 优先使用 `research/trend_handoff.json` 中已经明确的申万三级行业代码。
 2. 已 resolved 的三级行业直接进入公司展开。
-3. 不得使用 `industry_state` 的 trend / strength / breadth / confidence / buyability 作为买点榜准入或否决条件。
-4. 不得使用 `screening_group_index.json`、`screening_groups_by_industry`、candidate cache 决定行业是否存在公司。
-5. 唯一 Universe 来源：
-   `data/research/company_industry_index.json`
-6. 对每个 routed 三级行业按 `sw_level3_code` 展开当前策略主板 universe 的全部公司。
+3. 不得使用 `industry_state` 或任何 Legacy Runtime 的 candidate/screening 结果作为买点榜准入、否决或排序条件。
+4. 数据生产层的 Universe 权威仍是 `data/research/company_industry_index.json`；正式榜运行时不直接读取它。
+5. 正式榜运行时以已校验的 `data/low_risk/index.json` 作为行业存在性与 company_count 索引，并读取对应 `data/low_risk/by_industry/<industry_code>.json` 得到完整 `universe_company_codes`。
+6. routed 行业不在 materialized index 中时标记数据链缺口并阻断，不得回退旧 runtime 或现场解析大 JSON。
 7. 同一公司被多个 trend signal / industry route 命中时，只保留一份公司事实，但保留全部趋势来源上下文。
 
 ---
 
 ## 3. Unresolved / Empty 语义
 
-- handoff 行业映射成功，但 company_industry_index 中没有策略公司：
+- handoff 行业映射成功，且 materialized index 明确 company_count == 0：
   `NO_UNIVERSE_MEMBER`
 - 行业有公司但后续全部被公司级硬过滤：
   `NO_ELIGIBLE_COMPANY`
@@ -56,8 +56,7 @@ Routing 只输出：
 随后交给 canonical flow：
 
 ```text
-Universe
-→ 去重 shard 一次性读取
+Materialized Industry View
 → run-local working set
 → Freeze
 ```
