@@ -105,14 +105,22 @@ jobs:
       - name: Commit updated weekly research data
         shell: bash
         run: |
-          if ! git status --porcelain -- data | grep -q .; then
-            echo "weekly research data unchanged"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Stage first, then decide whether there is anything to persist.
+          # Force-add low_risk so formatting-only/materialization changes are never skipped.
+          git add -A data
+          git add -f -A data/low_risk
+
+          echo "staged weekly data diff:"
+          git diff --cached --stat -- data || true
+
+          if git diff --cached --quiet -- data; then
+            echo "weekly research data unchanged after staging"
             exit 0
           fi
 
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A data
           git commit -m "data: refresh weekly research dataset"
 
           for attempt in 1 2 3; do
