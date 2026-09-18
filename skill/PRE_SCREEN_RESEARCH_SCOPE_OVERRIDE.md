@@ -14,8 +14,8 @@ Frozen Working Set
 
 本文件不负责：
 - 展开行业 Universe；
-- 读取 company_industry_index；
-- 读取 shard；
+- 读取 materialized industry view；
+- 读取任何原始 company_industry_index / shard；
 - 构造 working set。
 
 这些由 `LOW_RISK_CANONICAL_FLOW.md` 在 Freeze 前完成。
@@ -33,9 +33,10 @@ Frozen Working Set
 ```text
 working_set_company_count == universe_company_count
 post_freeze_shard_read_count == 0
+post_freeze_materialized_read_count == 0
 ```
 
-预筛阶段不得再次访问 company_industry_index、shard、screening group 或 Web。
+预筛阶段不得再次访问 materialized industry file、company_industry_index、shard、Legacy Runtime artifacts 或 Web。
 
 ---
 
