@@ -29,6 +29,8 @@
 
 Universe、shard 读取和 run-local working set 构造严格由 canonical flow 负责。
 
+19:00 正式版与手动正式版均为 Fresh Run：不得读取上一份 `research/latest_formal_result.json` 作为本轮计算输入，不得复用上一轮 working set、pre-screen、Transmission、Expectation、valuation 或 Price Range 结论来跳过阶段。上一份 COMPLETE 只允许在本轮完成后用于差异对比。07:00 早间增量版除外。
+
 对于 `data/research/company_industry_index.json` 这类大文件，单次文件读取返回空内容、截断或解析失败只视为“读取路径失败”，不视为“Universe 为空”。必须按 canonical flow 对同一文件执行 GitHub REST Contents/Blob 重读；只有替代读取也失败或不可解析时，才允许阻断 Universe / Working Set Gate。
 
 本任务**不得**把以下文件作为 Universe 或事实入口：
