@@ -40,6 +40,8 @@ Trend Handoff
 
 `data/research/company_industry_index.json` 是“某三级行业有哪些策略公司”的唯一权威来源。
 
+读取该文件时采用同源容错：优先使用标准文件读取；若返回空内容、截断或不可解析，不得据此判定 Universe 为空，应立即改用 GitHub REST Contents/Blob 对**同一 main 分支、同一路径、同一文件**重读。只有两种读取方式都失败或都无法解析时，才允许将 Universe 构建判定为失败。该容错只改变读取方式，不改变 Universe 来源。
+
 对每个 resolved 三级行业：
 1. 从 company_industry_index 找出全部策略公司；
 2. 得到 `universe_company_codes`；
