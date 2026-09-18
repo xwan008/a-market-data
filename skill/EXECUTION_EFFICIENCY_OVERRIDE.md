@@ -6,7 +6,7 @@
 
 ```text
 一次展开 Universe
-→ 去重 shard 后小批次读取
+→ 去重 shard 后小批次读取并工具内投影目标公司事实
 → 动态生成每行业 working set
 → Freeze
 → Hard Filter
@@ -29,9 +29,11 @@ Freeze 前：
 3. 先得到完整 `universe_company_codes`；
 4. 由全部 universe codes 计算所需 shard 前缀；
 5. shard 前缀去重后，按固定小批次读取；默认每批约 6–8 个，若工具环境限制更严可进一步减小 batch；
-6. 每个唯一 shard 本轮最多读取一次，不得因分批而重复读取；
-7. 每批读取后只累积本轮所需公司事实，不提前进入硬过滤或预筛；
-8. 全部所需 shard 收集完成后，再统一构造每个 routed 三级行业的 run-local working set。
+6. 每个 shard 在工具调用内部立即 JSON 解析，只抽取本轮目标 company codes，并投影为 working set 标准字段；不得把完整 shard 原文批量返回执行上下文；
+7. 只有“JSON 可解析 + 目标公司抽取完成 + 标准字段投影完成”才算该 shard 成功读取；成功后本轮不得再次读取；
+8. 标准读取为空、截断或不可解析时，只算读取路径失败，允许同一 shard 改用 GitHub REST Contents/Blob 做一次同源 fallback；fallback 成功后停止读取，仍失败则阻断 Freeze；
+9. 每批只累积标准化目标公司事实，不提前进入硬过滤或预筛；
+10. 全部所需 shard 的目标公司事实收集完成后，再统一构造每个 routed 三级行业的 run-local working set。
 
 Freeze Gate：
 
@@ -133,7 +135,7 @@ Web 只补关键前瞻假设，不得变成第二轮全面估值深研。
 
 ## 7. 外部调用纪律
 
-1. 能批量不串行；仓库 shard 读取采用受控小批次，避免单轮工具调用上限；
+1. 能批量不串行；仓库 shard 读取采用受控小批次，并在工具调用内部完成解析与目标公司字段投影，避免完整 shard 原文撑爆执行上下文；
 2. working set 已有字段不再上 Web；
 3. 同一 URL/公告同轮不重复读；
 4. 查询失败最多使用一次合理替代源；
@@ -167,7 +169,8 @@ Web 只补关键前瞻假设，不得变成第二轮全面估值深研。
 
 - working_set_company_count != universe_company_count；
 - post_freeze_shard_read_count > 0；
-- 同一 shard 重复读取；
+- 已成功物化的同一 shard 被再次读取；
+- batch 返回完整 shard 原文而不是标准化目标公司事实；
 - single_company_followup_count 接近 deep_research_company_count；
 - PRE_SCREENED_OUT / NOT_SUPPORTED 仍继续后续深研；
 - 正式版或手动正式版复用上一轮阶段结论、从而跳过本轮任一阶段。
