@@ -54,16 +54,18 @@ jobs:
               except Exception:
                   latest = {}
               try:
-                  snapshot = json.loads(Path("data/snapshot.json").read_text(encoding="utf-8"))
+                  low_risk = json.loads(Path("data/low_risk/index.json").read_text(encoding="utf-8"))
               except Exception:
-                  snapshot = {}
+                  low_risk = {}
               latest_trade_date = str(latest.get("trade_date") or "")
               latest_market_status = str(latest.get("market_status") or "")
-              snapshot_trade_date = str(snapshot.get("trade_date") or "")
+              low_risk_trade_date = str(low_risk.get("trade_date") or "")
+              low_risk_valid = (low_risk.get("validation") or {}).get("status") == "passed"
               already_fresh = (
                   latest_trade_date == today
                   and latest_market_status == "closed"
-                  and snapshot_trade_date == today
+                  and low_risk_trade_date == today
+                  and low_risk_valid
               )
               should_run = not already_fresh
               reason = "fallback_already_fresh" if already_fresh else "fallback_refresh_required"
@@ -174,26 +176,6 @@ jobs:
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/build_low_risk_working_sets.py
 
-      - name: Rebuild industry state
-        if: steps.gate.outputs.persist == 'true'
-        run: |
-          python scripts/build_industry_state.py
-          python scripts/ensure_industry_state_contract.py data/research/industry_state.json
-
-      - name: Build and validate compact snapshot
-        if: steps.gate.outputs.persist == 'true'
-        run: |
-          python scripts/build_snapshot.py --source . --output data/snapshot.json
-          python scripts/attach_market_state.py data/snapshot.json
-          python scripts/normalize_snapshot_source.py data/snapshot.json
-          python scripts/validate_snapshot.py data/snapshot.json
-
-      - name: Build and validate ChatGPT research runtime
-        if: steps.gate.outputs.persist == 'true'
-        run: |
-          python scripts/build_runtime.py data/snapshot.json --output-dir data/runtime
-          python scripts/compact_screening_groups.py --runtime-dir data/runtime
-
       - name: Commit updated daily data
         if: steps.gate.outputs.persist == 'true'
         shell: bash
@@ -210,4 +192,4 @@ jobs:
 
       - name: Report skipped persistence
         if: steps.gate.outputs.persist != 'true'
-        run: echo "Current market snapshot did not pass the completed-session data gate; repository data was not changed."
+        run: echo "Current market dataset did not pass the completed-session data gate; repository data was not changed."
