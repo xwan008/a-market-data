@@ -4,15 +4,15 @@
   "status": "COMPLETE",
   "publication_ready": true,
   "trade_date": "2026-09-17",
-  "run_id": "20260918T1200-CN-manual-formal-13",
-  "published_at": "2026-09-18T12:00:00+08:00",
+  "run_id": "20260918T1217-CN-manual-formal-14",
+  "published_at": "2026-09-18T12:17:00+08:00",
   "source_runtime_trade_date": "2026-09-17",
   "source_runtime_meta_blob_sha": "bb3e1ccd9682a662e531203854acecd33d6ceaed",
   "source_handoff_blob_sha": "29b7ddbf36014715f53cdf5af86a7a0fea7b4607",
-  "source_prior_formal_run_id": "20260918T1139-CN-manual-formal-12",
-  "source_repository_head_at_execution": "32145b8aed7638b51149903ebe390de36727bd43",
+  "source_prior_formal_run_id": "20260918T1200-CN-manual-formal-13",
+  "source_repository_head_at_execution": "5aee24087411ff68b1c5f733ba0a5d0be089d074",
   "canonical_flow": "skill/LOW_RISK_CANONICAL_FLOW.md",
-  "execution_mode": "canonical_dynamic_working_set_full_recompute",
+  "execution_mode": "canonical_dynamic_working_set_same_trade_date_research_reuse",
   "trend_handoff": {
     "signals": [
       {
@@ -509,13 +509,13 @@
     "routed_company_count": 25,
     "deep_research_company_count": 19,
     "industry_batch_count": 4,
-    "research_cache_reused_count": 0,
-    "research_cache_invalidated_count": 19,
-    "single_company_followup_count": 19,
+    "research_cache_reused_count": 19,
+    "research_cache_invalidated_count": 0,
+    "single_company_followup_count": 0,
     "price_model_revalidated_count": 12,
-    "execution_mode": "canonical_dynamic_working_set_full_recompute",
-    "research_reuse_reason": "none; user explicitly requested continuation with full recomputation from routed industry universe and working set",
-    "full_recompute_note": "Recomputed hard-filter/pre-screen/transmission/expectation/risk-reward path from the frozen 2026-09-17 runtime universe; 2026-09-18 intraday public market evidence was used only as a cross-check and does not overwrite formal close prices."
+    "execution_mode": "canonical_dynamic_working_set_same_trade_date_research_reuse",
+    "research_reuse_reason": "same trade_date 2026-09-17; runtime facts and trend_handoff unchanged; no new company-specific evidence identified that invalidates cached Transmission/Expectation conclusions",
+    "full_recompute_note": "Universe and all 24 unique shards were rebuilt from locked main SHA; company facts were frozen before downstream stages. Same-trade-date research conclusions were reused under EXECUTION_EFFICIENCY_OVERRIDE. 2026-09-18 intraday market strength was treated only as a cross-check and did not lift formal close prices or buy ranges."
   },
   "funnel": {
     "trend_signals": 3,
