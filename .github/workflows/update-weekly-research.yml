@@ -36,7 +36,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Preserve previous verified market snapshot
+      - name: Preserve previous verified market dataset
         shell: bash
         run: |
           if [ -f data/latest.json ]; then
@@ -99,37 +99,8 @@ jobs:
           print({'industry_mapping_coverage': round(coverage, 4), 'mapped': mapped, 'stocks': total})
           PY
 
-      - name: Rebuild weekly industry profitability state
-        run: python scripts/build_industry_state.py
-
-      - name: Rebuild compact candidate snapshot
-        run: python scripts/build_snapshot.py --source . --output data/snapshot.json
-
-      - name: Attach latest market environment to snapshot
-        shell: bash
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          snapshot = json.loads(Path('data/snapshot.json').read_text(encoding='utf-8'))
-          market_path = Path('data/market_state.json')
-          if market_path.exists():
-              market = json.loads(market_path.read_text(encoding='utf-8'))
-              if market.get('trade_date') == snapshot.get('trade_date'):
-                  snapshot['market_state'] = market
-          Path('data/snapshot.json').write_text(
-              json.dumps(snapshot, ensure_ascii=False, separators=(',', ':')) + '\n',
-              encoding='utf-8',
-          )
-          PY
-
-      - name: Normalize and validate compact snapshot
-        run: |
-          python scripts/normalize_snapshot_source.py data/snapshot.json
-          python scripts/validate_snapshot.py data/snapshot.json
-
-      - name: Build and validate ChatGPT research runtime
-        run: python scripts/build_runtime.py data/snapshot.json --output-dir data/runtime
+      - name: Rebuild low-risk industry working sets
+        run: python scripts/build_low_risk_working_sets.py
 
       - name: Commit updated weekly research data
         shell: bash
