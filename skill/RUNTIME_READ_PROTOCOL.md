@@ -1,237 +1,108 @@
-# A股低风险买点榜｜运行时执行协议
+# A股低风险买点榜｜运行时与发布协议
 
-本文件是唯一正式执行契约。趋势榜负责发现趋势，买点榜通过趋势 handoff 路由到公司，并依次完成 Transmission → Expectation → Risk–Reward。
+## 1. 职责边界
 
-## 1. 正式输入
+本文件只负责：
+- runtime / handoff 有效性校验；
+- 正式结果发布 Gate；
+- 结果回读校验；
+- 07:00 早间增量版。
 
-### 1.1 19:00 / 手动正式版
+**本文件不定义 Universe、不定义公司事实读取路径、不定义 working set 构造方式。**
 
-读取当前 `main`：
+正式主流程唯一以：
+`skill/LOW_RISK_CANONICAL_FLOW.md`
+为准。
 
-- `skill/RUNTIME_READ_PROTOCOL.md`
-- `skill/SKILL.md`
-- `research/trend_handoff.json`
-- `research/theme_alias_map.json`
-- `data/runtime/meta.json`
-- `meta.screening_group_index_file`
-- handoff 中所有已解析且当前 screening runtime 中存在的 `industry_codes` 对应的 `screening_groups_by_industry/<industry_code>.json`
-
-每次正式触发都是新的独立事务，生成新的 `run_id`，从当次 routed company universe 开始。
-
-### 1.2 07:00 早间版
-
-读取：
-
-- `skill/RUNTIME_READ_PROTOCOL.md`
-- `research/latest_formal_result.json`
-- 当前最新有效正式收盘 `data/runtime/meta.json`
-
-早间版只做隔夜增量复核。
+若本文件与 canonical flow 冲突，以 canonical flow 为准。
 
 ---
 
-## 2. Bootstrap / Hard Gate
+## 2. 19:00 / 手动正式版输入
 
-19:00 / 手动正式版必须确认：
+必须读取当前 main：
+
+- `skill/LOW_RISK_CANONICAL_FLOW.md`
+- `research/trend_handoff.json`
+- `data/runtime/meta.json`
+- canonical flow 要求的阶段规则文件
+
+Universe、shard 读取和 run-local working set 构造严格由 canonical flow 负责。
+
+本任务**不得**把以下文件作为 Universe 或事实入口：
+
+- `data/runtime/screening_group_index.json`
+- `data/runtime/screening_groups_by_industry/*.json`
+- 任何 candidate/compact cache
+
+这些文件可服务仓库其他流程，但不属于低风险买点榜正式数据链。
+
+---
+
+## 3. Runtime / Handoff Hard Gate
+
+正式版至少确认：
 
 - `runtime_validation.status == passed`；
-- `screening_group_validation.status == passed`；
-- `screening_group_industry_shard_validation.status == passed`；
-- candidate、完整 screening view、industry shards 股票全集一致；
-- candidate code 唯一；
 - `research/trend_handoff.json` 可解析；
 - `result_kind == a_share_trend_handoff`；
 - handoff `trade_date == runtime.trade_date`；
-- 每条 signal 至少包含 `trend_name / trend_state / market_state / industry_codes / industry_names`。
+- 每条 signal 至少包含：
+  - `trend_name`
+  - `trend_state`
+  - `market_state`
+  - `industry_codes`
+  - `industry_names`
+- 已解析 signal 的行业代码能够交给 canonical flow 路由。
 
-若 `signals` 为空，本轮可直接 COMPLETE，并标记 `NO_ACTIVE_TREND`。
+若 `signals` 为空，本轮可直接 COMPLETE，并标记：
+`NO_ACTIVE_TREND`。
 
-行业映射与当日候选可用性是两个独立状态：
-
-- 趋势主题优先沿用 handoff 已解析的申万三级行业；
-- 若某个 signal `mapping_status == unresolved`，允许使用 `research/theme_alias_map.json` 中与该主题完全匹配的显式 alias 路由；
-- alias 命中后即视为行业映射已解析，不要求该行业必须出现在当前 `screening_group_index_file`；
-- 若 alias 命中得到的行业当前没有 screening runtime 候选，记录 `NO_RUNTIME_CANDIDATE`，不得重新降级为 `ROUTING_UNRESOLVED`；
-- 只有 handoff 与 alias map 都无法解析主题时，才记录 `ROUTING_UNRESOLVED`，不得猜测代码。
-
----
-
-## 3. Trend Handoff / Routing
-
-1. 保留 handoff 中 signals 原顺序；
-2. 先使用 handoff 自带 `industry_codes / industry_names`；
-3. 对 unresolved signal，仅允许使用 `research/theme_alias_map.json` 中完全匹配的人工维护 alias；
-4. alias 只负责把市场主题转换成已确认的申万三级行业代码/名称，不参与趋势评分、升级、降级或买卖判断；
-5. 对所有已解析行业代码有序去重：若代码存在于当前 `screening_group_index_file`，读取对应完整 industry shard；若不存在，记录该行业 `NO_RUNTIME_CANDIDATE`，不尝试读取不存在的 shard；
-6. 公司研究全集 = 所有当前 runtime 中可用的 routed industry candidates 的精确并集；
-7. 保存每家公司对应的 `trend_name / trend_state / market_state`；
-8. `market_state` 只作为市场生命周期上下文，不修改趋势榜结论。
-
-行业代码和 theme alias 只承担路由功能，不构成买卖判断。
+不得因为 routed 行业不在 screening runtime/candidate cache 中而判定：
+`NO_RUNTIME_CANDIDATE`。
 
 ---
 
-## 4. Coverage
+## 4. Working Set Freeze Gate
 
-全流程不得 Top N、不得行业配额、不得因为已有 READY 提前停止。
+正式版进入公司级分析前必须满足：
 
-必须记录并闭合：
+```text
+working_set_count == routed_industry_count
+working_set_company_count == universe_company_count
+post_freeze_shard_read_count == 0
+```
 
-- `routing_coverage`
-- `transmission_coverage`
-- `expectation_coverage`
-- `risk_reward_coverage`
+其中：
+- Universe 唯一来自 `data/research/company_industry_index.json`；
+- 公司完整事实由 canonical flow 在 Freeze 前从去重 shard 一次性提取；
+- Freeze 后不得再读取 company_industry_index 或任何个股 shard；
+- 后续硬过滤、预筛、Transmission、Expectation、估值与价格区间全部消费 frozen working set。
+
+若 Freeze Gate 不成立，正式版不得覆盖上一份 COMPLETE。
 
 ---
 
-## 5. Transmission｜趋势是否真正传导到公司
-
-对 routed company universe 全覆盖判断：
-
-- `SUPPORTED`
-- `NOT_SUPPORTED`
-- `UNCERTAIN`
-
-核心问题：
-
-> 趋势榜发现的变化，是否有客观路径进入这家公司未来 1–2 个季度的收入、利润或现金流？
-
-优先证据：
-
-- 已签/在手订单及交付窗口；
-- 产品价格或价差变化；
-- 销量/出货变化；
-- 新产能投产与爬坡；
-- 客户定点/认证；
-- 库存周期变化；
-- 市占率或产品结构变化。
-
-“属于这个行业”本身不足以证明传导。历史财务与估值用于解释风险和质量，不替代前瞻传导判断。
-
-`NOT_SUPPORTED` → `DROP`。
-
-`UNCERTAIN` 允许一次定向补查；仍有关键缺口则保留 `UNCERTAIN`。
-
-Transmission coverage 完成条件：
-
-```text
-transmission_processed_codes == routed_company_codes
-```
-
----
-
-## 6. Expectation｜市场已经交易到哪一步
-
-对 Transmission `SUPPORTED` 的公司重建：
-
-```text
-催化/订单/价格变化何时出现
-→ 股价何时开始反应
-→ 财务数字何时开始兑现
-→ 当前还有多少增量预期尚未体现
-```
-
-预期阶段只允许：
-
-- `EARLY`
-- `CONFIRMING`
-- `PRICED_IN`
-- `EXHAUSTED`
-- `UNCERTAIN`
-
-定义：
-
-- `EARLY`：催化已出现，财报和股价尚未充分反映；
-- `CONFIRMING`：基本面开始兑现，市场开始确认，未来 1–2 季度仍有可验证增量；
-- `PRICED_IN`：主要催化已推动显著重估且财务已大量兑现，新增惊喜有限；
-- `EXHAUSTED`：利好仍在公布但股价不再确认，或核心驱动边际转弱；
-- `UNCERTAIN`：时间链或定价证据不足/冲突。
-
-不得仅凭一天涨跌或单个技术位置判断预期阶段。
-
-趋势 handoff 的 `market_state` 是重要上下文，但公司 expectation 必须由自身事件—价格—财务时间链验证。
-
-若 Expectation = `PRICED_IN / EXHAUSTED` 且没有新的独立预期重置：
-
-```text
-status = WAIT
-wait_reason = WAIT_EXPECTATION
-```
-
-Expectation coverage 必须覆盖全部 Transmission `SUPPORTED` 公司。
-
----
-
-## 7. Risk–Reward｜最后判断买点
-
-完整 Risk–Reward universe：
-
-```text
-Transmission = SUPPORTED
-AND
-(
-  Expectation in {EARLY, CONFIRMING}
-  OR 新的独立预期重置成立
-)
-```
-
-统一执行：
-
-```text
-未来 1–2 季度可验证驱动
-→ 正常化/前瞻盈利区间
-→ 中枢 × 可辩护保守估值
-→ conservative fair value
-→ low-risk buy range / downside anchor
-→ conservative upside
-```
-
-原则：
-
-1. 强周期公司使用正常化盈利，不得峰值简单年化；
-2. 当前历史 PE 只是背景，不替代前瞻盈利；
-3. 原则上 `conservative_upside >= 15%`；
-4. 当前价原则上应接近低风险安全区，或存在同等可量化下行保护；
-5. 必须明确最可能推翻逻辑的事实与失效条件。
-
-最终状态：
-
-- `READY`
-- `WAIT`
-- `UNCERTAIN`
-- `DROP`
-
-WAIT 原因标签：`WAIT_EXPECTATION / WAIT_PRICE / WAIT_MARGIN / WAIT_CATALYST`。
-
-Risk–Reward coverage 完成条件：
-
-```text
-所有 EARLY / CONFIRMING / 新预期重置公司完成风险收益判断
-+
-所有 PRICED_IN / EXHAUSTED 无重置公司记录 WAIT_EXPECTATION
-```
-
----
-
-## 8. 正式发布
+## 5. Coverage / Publication Gate
 
 只有同时满足：
 
 ```text
 runtime_hard_gate = PASSED
 trend_handoff_gate = PASSED
+working_set_gate = PASSED
 routing_coverage = COMPLETE
+pre_screen_coverage = COMPLETE
 transmission_coverage = COMPLETE
 expectation_coverage = COMPLETE
 risk_reward_coverage = COMPLETE
+price_range_coverage = COMPLETE
 publication_ready = true
 ```
 
 才允许覆盖：
 
-```text
-research/latest_formal_result.json
-```
+`research/latest_formal_result.json`
 
 FAILED / INCOMPLETE / UNVERIFIED 不得覆盖上一份 COMPLETE。
 
@@ -241,63 +112,73 @@ FAILED / INCOMPLETE / UNVERIFIED 不得覆盖上一份 COMPLETE。
 - `result_kind = a_share_low_risk_formal_result`
 - `status = COMPLETE`
 - `trade_date / run_id / published_at`
-- `source_runtime_commit_sha`
+- runtime / handoff provenance
 - `trend_handoff`
 - `routing_gaps`
 - `routed_industries`
+- `hard_filtered_out`
+- `pre_screen_selected`
+- `pre_screened_out`
 - `ready / wait / uncertain / drop`
+- `coverage`
+- `data_access_audit`
+- `execution_audit`
 - `funnel`
 
-为兼容早间版，可同时写别名：
+推荐 data access 审计字段：
 
-- `confirmed = ready`
-- `waiting_for_entry = wait`
-- `research_uncertain = uncertain`
-- `excluded = drop`
+```json
+{
+  "routed_industry_count": 0,
+  "universe_company_count": 0,
+  "working_set_count": 0,
+  "working_set_company_count": 0,
+  "unique_shard_read_count": 0,
+  "post_freeze_shard_read_count": 0
+}
+```
 
-每只 READY 以及因价格/安全边际等待的 WAIT 至少保存：code、name、trend_name、trend_state、market_state、industry、expectation_stage、current_price、reasonable_price_range、low_risk_buy_range、transmission_evidence、pricing_evidence、invalidation、primary_profit_driver、dominant_risk_factor。
+不再使用 `compact_cache_hit_count`、`new_shard_fallback_company_count` 等旧主链审计字段。
 
-`WAIT_EXPECTATION` 可将 reasonable/low-risk range 写为 `N/A`，但必须保存 expectation_stage、pricing_evidence 与重新进入估值研究的触发条件。
-
-写入后必须立即回读校验。
+写入后必须立即回读校验 JSON、status、trade_date、run_id、coverage 与 data_access_audit。
 
 ---
 
-## 9. 正式输出
+## 6. READY / WAIT 价格完整性
 
-### A.【趋势路由】
+READY / WAIT 的价格字段完整性由：
+`PRICE_RANGE_OUTPUT_OVERRIDE.md`
+负责。
 
-```text
-趋势主题｜产业状态｜市场状态｜三级行业｜行业代码｜映射状态
-```
+本协议不允许任何规则绕过价格区间 Gate。
 
-### B.【A股低风险买点榜】
-
-```text
-股票｜趋势主题｜三级行业｜预期阶段｜状态｜WAIT原因｜当前价｜合理价值区｜低风险区｜传导/催化证据｜市场已定价证据｜失效条件｜核心风险
-```
-
-### C.【筛选漏斗】
-
-至少给出：
-
-- trend signals 总数 / resolved / unresolved；
-- routed industries 数量；
-- routed runtime candidate 数；
-- Transmission SUPPORTED / UNCERTAIN / NOT_SUPPORTED；
-- Expectation EARLY / CONFIRMING / PRICED_IN / EXHAUSTED / UNCERTAIN；
-- READY / WAIT / UNCERTAIN / DROP。
+正式榜中的 WAIT 不得因为旧协议而允许 `N/A` 区间；无法形成可辩护区间时按价格规则进入 UNCERTAIN。
 
 ---
 
-## 10. 07:00 早间版
+## 7. 07:00 早间增量版
 
-读取上一份 `research/latest_formal_result.json`，要求 `status == COMPLETE` 且 `trade_date == 当前最新有效正式收盘 runtime.trade_date`。
+读取：
+
+- 上一份 `research/latest_formal_result.json`
+- 当前最新有效正式收盘 `data/runtime/meta.json`
+- 必要的隔夜公开信息
+
+要求上一份正式结果：
+- `status == COMPLETE`
+- `trade_date == 当前最新有效正式收盘 trade_date`
 
 若无有效交接：
 
-```text
-MORNING_HANDOFF_UNAVAILABLE
-```
+`MORNING_HANDOFF_UNAVAILABLE`
 
-若有效，只围绕 READY / WAIT 检查隔夜商品、海外同行、重大公告、政策或突发是否改变原 Transmission / Expectation / Risk–Reward。
+早间版只围绕上一正式版 READY / WAIT 检查隔夜新增信息是否改变：
+
+- Transmission
+- Expectation
+- Risk–Reward
+- 已有价格区间的有效性
+
+默认复用上一正式版已验证研究，不从零重建正式流程。
+
+如重大新信息使价格区间失效，明确标记下一正式版需要重算，不得继续沿用失效区间。
