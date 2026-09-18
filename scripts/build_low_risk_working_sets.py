@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
@@ -10,19 +11,26 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 FORMAT = "low_risk_industry_working_set"
+MANIFEST_FORMAT = "low_risk_industry_working_set_manifest"
+CHUNK_FORMAT = "low_risk_industry_working_set_chunk"
 INDEX_FORMAT = "low_risk_industry_working_set_index"
+DEFAULT_MAX_COMPANIES_PER_PART = 5
+DEFAULT_MAX_PART_BYTES = 96 * 1024
 
 
 def load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def write_json(path: Path, payload: dict[str, Any]) -> None:
+def serialize_json(payload: dict[str, Any]) -> str:
+    return json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n"
+
+
+def write_json(path: Path, payload: dict[str, Any]) -> int:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
-        json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n",
-        encoding="utf-8",
-    )
+    text = serialize_json(payload)
+    path.write_text(text, encoding="utf-8")
+    return len(text.encode("utf-8"))
 
 
 def project_company(code: str, stock: dict[str, Any], industry: dict[str, Any]) -> dict[str, Any]:
@@ -85,12 +93,99 @@ def project_company(code: str, stock: dict[str, Any], industry: dict[str, Any]) 
     }
 
 
+def build_part_payload(
+    *,
+    trade_date: str,
+    generated_at: str,
+    industry_code: str,
+    industry_name: str,
+    part_number: int,
+    rows: list[dict[str, Any]],
+) -> dict[str, Any]:
+    codes = [str(row["code"]) for row in rows]
+    return {
+        "runtime_format": CHUNK_FORMAT,
+        "trade_date": trade_date,
+        "generated_at": generated_at,
+        "industry_code": industry_code,
+        "industry_name": industry_name,
+        "part_number": part_number,
+        "company_count": len(rows),
+        "company_codes": codes,
+        "companies": rows,
+    }
+
+
+def split_rows(
+    *,
+    trade_date: str,
+    generated_at: str,
+    industry_code: str,
+    industry_name: str,
+    rows: list[dict[str, Any]],
+    max_companies_per_part: int,
+    max_part_bytes: int,
+) -> list[list[dict[str, Any]]]:
+    parts: list[list[dict[str, Any]]] = []
+    current: list[dict[str, Any]] = []
+
+    for row in rows:
+        candidate = current + [row]
+        candidate_payload = build_part_payload(
+            trade_date=trade_date,
+            generated_at=generated_at,
+            industry_code=industry_code,
+            industry_name=industry_name,
+            part_number=len(parts) + 1,
+            rows=candidate,
+        )
+        candidate_bytes = len(serialize_json(candidate_payload).encode("utf-8"))
+        exceeds_count = len(candidate) > max_companies_per_part
+        exceeds_bytes = candidate_bytes > max_part_bytes
+
+        if current and (exceeds_count or exceeds_bytes):
+            parts.append(current)
+            current = [row]
+            single_payload = build_part_payload(
+                trade_date=trade_date,
+                generated_at=generated_at,
+                industry_code=industry_code,
+                industry_name=industry_name,
+                part_number=len(parts) + 1,
+                rows=current,
+            )
+            single_bytes = len(serialize_json(single_payload).encode("utf-8"))
+            if single_bytes > max_part_bytes:
+                raise SystemExit(
+                    f"single company exceeds max part size: industry={industry_code} "
+                    f"code={row.get('code')} bytes={single_bytes} limit={max_part_bytes}"
+                )
+        else:
+            if exceeds_bytes:
+                raise SystemExit(
+                    f"single company exceeds max part size: industry={industry_code} "
+                    f"code={row.get('code')} bytes={candidate_bytes} limit={max_part_bytes}"
+                )
+            current = candidate
+
+    if current:
+        parts.append(current)
+    return parts
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--industry-index", default="data/research/company_industry_index.json")
     parser.add_argument("--shard-dir", default="data/shards")
     parser.add_argument("--output-dir", default="data/low_risk")
+    parser.add_argument("--max-companies-per-part", type=int, default=DEFAULT_MAX_COMPANIES_PER_PART)
+    parser.add_argument("--max-part-bytes", type=int, default=DEFAULT_MAX_PART_BYTES)
     args = parser.parse_args()
+
+    if args.max_companies_per_part < 1:
+        raise SystemExit("max-companies-per-part must be >= 1")
+    if args.max_part_bytes < 4096:
+        raise SystemExit("max-part-bytes must be >= 4096")
 
     index_path = Path(args.industry_index)
     shard_dir = Path(args.shard_dir)
@@ -191,21 +286,28 @@ def main() -> None:
     industry_dir.mkdir(parents=True, exist_ok=True)
     for stale in industry_dir.glob("*.json"):
         stale.unlink()
+    for stale_dir in industry_dir.iterdir():
+        if stale_dir.is_dir():
+            shutil.rmtree(stale_dir)
 
     generated_at = datetime.now(ZoneInfo("Asia/Shanghai")).isoformat()
     industry_index: dict[str, Any] = {}
     written_codes: set[str] = set()
+    total_parts = 0
+    max_written_part_bytes = 0
 
     for industry_code in sorted(expected_by_industry):
         info = expected_by_industry[industry_code]
+        industry_name = info["industry_name"]
         codes = sorted(info["codes"])
         rows = [projected[code] for code in codes]
-        payload = {
+
+        legacy_payload = {
             "runtime_format": FORMAT,
             "trade_date": trade_date,
             "generated_at": generated_at,
             "industry_code": industry_code,
-            "industry_name": info["industry_name"],
+            "industry_name": industry_name,
             "company_count": len(rows),
             "universe_company_codes": codes,
             "source": {
@@ -215,13 +317,94 @@ def main() -> None:
             },
             "companies": rows,
         }
-        out_path = industry_dir / f"{industry_code}.json"
-        write_json(out_path, payload)
+        legacy_path = industry_dir / f"{industry_code}.json"
+        write_json(legacy_path, legacy_payload)
+
+        parts = split_rows(
+            trade_date=trade_date,
+            generated_at=generated_at,
+            industry_code=industry_code,
+            industry_name=industry_name,
+            rows=rows,
+            max_companies_per_part=args.max_companies_per_part,
+            max_part_bytes=args.max_part_bytes,
+        )
+
+        chunk_dir = industry_dir / industry_code
+        chunk_dir.mkdir(parents=True, exist_ok=True)
+        part_entries: list[dict[str, Any]] = []
+        chunk_codes: list[str] = []
+
+        for part_number, part_rows in enumerate(parts, start=1):
+            part_payload = build_part_payload(
+                trade_date=trade_date,
+                generated_at=generated_at,
+                industry_code=industry_code,
+                industry_name=industry_name,
+                part_number=part_number,
+                rows=part_rows,
+            )
+            part_path = chunk_dir / f"part-{part_number:03d}.json"
+            part_bytes = write_json(part_path, part_payload)
+            if part_bytes > args.max_part_bytes:
+                raise SystemExit(
+                    f"written part exceeds max size: {part_path} bytes={part_bytes} "
+                    f"limit={args.max_part_bytes}"
+                )
+            part_codes = [str(row["code"]) for row in part_rows]
+            chunk_codes.extend(part_codes)
+            part_entries.append(
+                {
+                    "part_number": part_number,
+                    "file": part_path.as_posix(),
+                    "company_count": len(part_rows),
+                    "company_codes": part_codes,
+                    "byte_size": part_bytes,
+                }
+            )
+            total_parts += 1
+            max_written_part_bytes = max(max_written_part_bytes, part_bytes)
+
+        if chunk_codes != codes:
+            raise SystemExit(
+                f"chunk company order/coverage mismatch for {industry_code}: "
+                f"expected={codes} actual={chunk_codes}"
+            )
+
+        manifest_payload = {
+            "runtime_format": MANIFEST_FORMAT,
+            "layout_version": 1,
+            "trade_date": trade_date,
+            "generated_at": generated_at,
+            "industry_code": industry_code,
+            "industry_name": industry_name,
+            "company_count": len(rows),
+            "universe_company_codes": codes,
+            "source": {
+                "universe_authority": index_path.as_posix(),
+                "company_fact_authority": f"{shard_dir.as_posix()}/<code[:5]>.json",
+                "materialization": "deterministic_join_projection_chunked",
+                "legacy_file": legacy_path.as_posix(),
+            },
+            "chunking": {
+                "max_companies_per_part": args.max_companies_per_part,
+                "max_part_bytes": args.max_part_bytes,
+                "part_count": len(part_entries),
+            },
+            "parts": part_entries,
+        }
+        manifest_path = chunk_dir / "manifest.json"
+        write_json(manifest_path, manifest_payload)
+
         written_codes.update(codes)
         industry_index[industry_code] = {
-            "industry_name": info["industry_name"],
+            "industry_name": industry_name,
             "company_count": len(rows),
-            "file": out_path.as_posix(),
+            "layout": "chunked_manifest_v1",
+            "manifest_file": manifest_path.as_posix(),
+            "part_count": len(part_entries),
+            "legacy_file": legacy_path.as_posix(),
+            "file": legacy_path.as_posix(),
         }
 
     if written_codes != expected_codes:
@@ -235,12 +418,23 @@ def main() -> None:
         "company_count": len(expected_codes),
         "source_company_industry_index": index_path.as_posix(),
         "source_shard_dir": shard_dir.as_posix(),
+        "materialized_layout": "chunked_manifest_v1",
+        "chunking": {
+            "max_companies_per_part": args.max_companies_per_part,
+            "max_part_bytes": args.max_part_bytes,
+            "total_parts": total_parts,
+            "max_written_part_bytes": max_written_part_bytes,
+            "legacy_single_file_retained": True,
+        },
         "validation": {
             "status": "passed",
             "mapped_company_coverage_exact": True,
             "industry_partition_exact": True,
             "shard_trade_date_consistent": True,
             "industry_mapping_consistent": True,
+            "chunk_manifest_complete": True,
+            "chunk_company_coverage_exact": True,
+            "chunk_size_within_limit": True,
         },
         "industries": industry_index,
     }
@@ -252,7 +446,10 @@ def main() -> None:
                 "trade_date": trade_date,
                 "industry_count": len(industry_index),
                 "company_count": len(expected_codes),
+                "total_parts": total_parts,
+                "max_written_part_bytes": max_written_part_bytes,
                 "output_dir": output_dir.as_posix(),
+                "layout": "chunked_manifest_v1",
                 "validation": "passed",
             },
             ensure_ascii=False,
