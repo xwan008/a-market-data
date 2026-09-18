@@ -31,7 +31,7 @@ Universe、shard 读取和 run-local working set 构造严格由 canonical flow 
 
 19:00 正式版与手动正式版均为 Fresh Run：不得读取上一份 `research/latest_formal_result.json` 作为本轮计算输入，不得复用上一轮 working set、pre-screen、Transmission、Expectation、valuation 或 Price Range 结论来跳过阶段。上一份 COMPLETE 只允许在本轮完成后用于差异对比。07:00 早间增量版除外。
 
-对于 `data/research/company_industry_index.json` 这类大文件，单次文件读取返回空内容、截断或解析失败只视为“读取路径失败”，不视为“Universe 为空”。必须按 canonical flow 对同一文件执行 GitHub REST Contents/Blob 重读；只有替代读取也失败或不可解析时，才允许阻断 Universe / Working Set Gate。
+对于 `data/research/company_industry_index.json` 与 `data/shards/*.json` 这类已知大 JSON，正式版必须执行 canonical flow 定义的 **Mandatory Large-JSON Blob Protocol**：标准文件读取仅用于取得当前 `main` 对应 blob SHA，随后固定使用 GitHub Blob，并在同一次执行器调用内部完成解码（如需要）、`JSON.parse`、目标记录筛选与标准字段投影。标准文件读取的 `content` 为空、截断或未返回完整正文，只要 SHA 有效，就不得视为读取失败，也不得阻断 Universe / Working Set Gate。
 
 本任务**不得**把以下文件作为 Universe 或事实入口：
 
@@ -83,7 +83,7 @@ post_freeze_shard_read_count == 0
 - Freeze 后不得再读取 company_industry_index 或任何个股 shard；
 - 后续硬过滤、预筛、Transmission、Expectation、估值与价格区间全部消费 frozen working set。
 
-若 shard 标准读取返回空内容、截断或不可解析，该次不算成功读取；允许按 canonical flow 对同一 shard 使用一次 GitHub REST Contents/Blob 同源 fallback。只有成功解析并完成目标公司标准字段投影后，才计入 `unique_shard_read_count`；成功后不得再次读取该 shard。
+shard 的标准文件读取只负责解析当前 `main` 的 blob SHA，不负责提供完整正文，因此其 `content` 为空或截断不算失败。只有 GitHub Blob 获取成功、JSON 可解析、目标公司抽取完成且标准字段投影完成后，才计入 `unique_shard_read_count`；用于取得 SHA 的标准读取不计数。成功物化后不得再次读取该 shard。只有无法取得有效 SHA、Blob 读取失败、JSON 无法解析，或目标公司无法完成抽取/投影时，才允许阻断 Working Set Freeze。
 
 若 Freeze Gate 不成立，正式版不得覆盖上一份 COMPLETE。
 
