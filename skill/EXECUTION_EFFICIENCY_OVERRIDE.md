@@ -5,8 +5,8 @@
 在不降低研究标准的前提下，将正式版稳定执行为：
 
 ```text
-一次展开 Universe
-→ 去重 shard 后小批次读取并工具内投影目标公司事实
+一次展开 routed industries
+→ 逐行业读取 manifest + 全部有界 parts
 → 动态生成每行业 working set
 → Freeze
 → Hard Filter
@@ -27,23 +27,28 @@
 1. `company_industry_index.json` 作为 Universe 权威来源；
 2. `data/shards/*.json` 作为公司事实权威来源；
 3. `scripts/build_low_risk_working_sets.py` 每次有效收盘更新后全量执行 deterministic join/projection；
-4. 输出 `data/low_risk/index.json` 与 `data/low_risk/by_industry/*.json`；
-5. 只有 mapped company coverage、industry partition、trade_date、industry mapping 全部校验通过才允许提交。
+4. 输出 `data/low_risk/index.json`、每行业 `manifest.json + part-xxx.json`；迁移期同时保留 legacy 单行业文件但正式榜不得读取；
+5. 每 part 默认最多 5 家且 <=96 KiB；
+6. 只有 mapped company coverage、industry partition、trade_date、industry mapping、chunk coverage、chunk size 全部校验通过才允许提交。
 
 正式榜运行时 Freeze 前：
 
 1. `trend_handoff.json` 原则上读一次；
 2. `data/low_risk/index.json` 原则上读一次；
-3. 只读取 routed 三级行业对应的小文件，每个行业最多一次；
-4. 每个行业文件直接形成一个 run-local working set，不再现场拼 shards；
-5. 全部 routed 行业工作集完成后统一 Freeze。
+3. 每个 routed 行业读取一次 manifest；
+4. 按 manifest 声明完整读取全部 parts，每个 part 最多一次，不抽样、不跳读；
+5. 将 parts 拼接并校验覆盖后形成 run-local working set；
+6. 全部 routed 行业工作集完成后统一 Freeze。
 
 Freeze Gate：
 
 ```text
 working_set_company_count == universe_company_count
 working_set_count == routed_industry_count
-materialized_industry_read_count == routed_industry_count
+materialized_manifest_read_count == routed_industry_with_universe_count
+materialized_part_read_count == routed manifests 声明的 part_count 总和
+materialized_industry_complete_count == routed_industry_with_universe_count
+legacy_industry_file_read_count == 0
 ```
 
 Freeze 后：
@@ -52,7 +57,8 @@ Freeze 后：
 - `post_freeze_materialized_read_count == 0`
 - 不得读取 company_industry_index；
 - 不得读取任何个股 shard；
-- 不得再次读取 materialized industry file；
+- 不得再次读取 manifest / part；
+- 不得读取 legacy materialized industry file；
 - 不得读取 screening_groups_by_industry 作为低风险任务数据源；
 - 所有内部公司事实只来自 frozen working set。
 
@@ -98,7 +104,7 @@ Hard Filter
 
 ## 5. 正式版 Fresh Run
 
-19:00 正式版与手动正式版不得复用上一轮执行结果来跳过本轮步骤。每次都必须重新完成：Universe 展开、shard 收集、working set 构造与 Freeze、Hard Filter、Pre-screen、Transmission、Expectation、Risk–Reward / Price Range。
+19:00 正式版与手动正式版不得复用上一轮执行结果来跳过本轮步骤。每次都必须重新完成：Trend Handoff 路由、manifest/parts 完整读取、working set 构造与 Freeze、Hard Filter、Pre-screen、Transmission、Expectation、Risk–Reward / Price Range。
 
 上一轮正式结果、上一轮研究摘要及上一轮公司状态只能在本轮完整计算结束后用于差异对比，不得作为本轮阶段结论输入。
 
@@ -139,7 +145,7 @@ Web 只补关键前瞻假设，不得变成第二轮全面估值深研。
 
 ## 7. 外部调用纪律
 
-1. 能批量不串行；正式榜运行时按 routed industry 直接读取预物化小文件，不再现场读取/解析 shards；
+1. 能批量不串行；正式榜运行时按 routed industry 读取 manifest + 有界 parts，不再现场读取/解析 shards；
 2. working set 已有字段不再上 Web；
 3. 同一 URL/公告同轮不重复读；
 4. 查询失败最多使用一次合理替代源；
@@ -159,7 +165,10 @@ Web 只补关键前瞻假设，不得变成第二轮全面估值深研。
     "working_set_count": 0,
     "working_set_company_count": 0,
     "materialized_index_read_count": 1,
-    "materialized_industry_read_count": 0,
+    "materialized_manifest_read_count": 0,
+    "materialized_part_read_count": 0,
+    "materialized_industry_complete_count": 0,
+    "legacy_industry_file_read_count": 0,
     "unique_shard_read_count": 0,
     "post_freeze_shard_read_count": 0,
     "post_freeze_materialized_read_count": 0
@@ -177,7 +186,8 @@ Web 只补关键前瞻假设，不得变成第二轮全面估值深研。
 - working_set_company_count != universe_company_count；
 - post_freeze_shard_read_count > 0；
 - 正式榜运行时直接读取了 company_industry_index 或 shard；
-- 同一 materialized industry file 被再次读取；
+- 同一 manifest 或 part 被再次读取；
+- legacy industry file 被正式榜读取；
 - single_company_followup_count 接近 deep_research_company_count；
 - PRE_SCREENED_OUT / NOT_SUPPORTED 仍继续后续深研；
 - 正式版或手动正式版复用上一轮阶段结论、从而跳过本轮任一阶段。
@@ -197,7 +207,8 @@ Web 只补关键前瞻假设，不得变成第二轮全面估值深研。
 正常形态应是：
 
 ```text
-约等于 routed 行业数量的 working sets
+约等于 routed 行业数量的 manifests + manifest 声明的全部 parts
++ 约等于 routed 行业数量的 working sets
 + 约等于 routed 行业数量的批量行业研究
 + 少量真正必要的单公司补证
 ```
