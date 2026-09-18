@@ -233,7 +233,7 @@ working set freeze
 - 为物化视图已提供的 PE/PB/MA60/support/volume-zone 再上 Web；
 - 将上一轮 working set 或阶段结论作为本轮输入。
 
-`screening_groups_by_industry` 可以继续存在供其他流程使用，但 A股低风险买点榜主流程忽略它。
+旧 `snapshot / runtime / screening_groups / industry_state` artifacts 可暂时作为历史数据保留，但已退出活动生产链；任何正式低风险榜流程不得读取、依赖或回退到这些 Legacy Runtime artifacts。
 
 ## 10. 执行审计
 
