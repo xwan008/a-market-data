@@ -3,7 +3,7 @@
 ## 1. 职责边界
 
 本文件只负责：
-- runtime / handoff 有效性校验；
+- materialized view / handoff 有效性校验；
 - 正式结果发布 Gate；
 - 结果回读校验；
 - 07:00 早间增量版。
@@ -24,7 +24,7 @@
 
 - `skill/LOW_RISK_CANONICAL_FLOW.md`
 - `research/trend_handoff.json`
-- `data/runtime/meta.json`
+- `data/low_risk/index.json`
 - canonical flow 要求的阶段规则文件
 
 Universe 权威来源、预物化行业事实读取和 run-local working set 构造严格由 canonical flow 负责。正式榜运行时使用 `data/low_risk/index.json` 与 `data/low_risk/by_industry/*.json`；不得重新现场解析 company_industry_index 或 shards。
@@ -33,24 +33,20 @@ Universe 权威来源、预物化行业事实读取和 run-local working set 构
 
 正式版 / 手动版必须执行 canonical flow 定义的 **Materialized Runtime View Protocol**：先读取 `data/low_risk/index.json`，校验其 trade_date、validation 与 routed industry coverage，再逐个读取本轮 routed 行业对应的 `data/low_risk/by_industry/<industry_code>.json`。这些文件由 GitHub Actions 从 company_industry_index + shards 确定性生成并校验；正式榜运行时不得回退为模型现场读取大 JSON。
 
-本任务**不得**把以下文件作为 Universe 或事实入口：
-
-- `data/runtime/screening_group_index.json`
-- `data/runtime/screening_groups_by_industry/*.json`
-- 任何 candidate/compact cache
-
-这些文件可服务仓库其他流程，但不属于低风险买点榜正式数据链。
+旧 `data/snapshot.json`、`data/runtime/*`、screening group、candidate/compact cache 均属于已停用 Legacy Runtime artifacts。它们即使仍作为历史文件保留，也不得参与任何正式版、手动版或早间版计算、Gate、freshness 判断或 fallback。
 
 ---
 
-## 3. Runtime / Handoff Hard Gate
+## 3. Materialized View / Handoff Hard Gate
 
 正式版至少确认：
 
-- `runtime_validation.status == passed`；
+- `data/low_risk/index.json` 可解析；
+- `runtime_format == "low_risk_industry_working_set_index"`；
+- `validation.status == passed`；
 - `research/trend_handoff.json` 可解析；
 - `result_kind == a_share_trend_handoff`；
-- handoff `trade_date == runtime.trade_date`；
+- handoff `trade_date == data/low_risk/index.json.trade_date`；
 - 每条 signal 至少包含：
   - `trend_name`
   - `trend_state`
@@ -95,7 +91,7 @@ post_freeze_shard_read_count == 0
 只有同时满足：
 
 ```text
-runtime_hard_gate = PASSED
+materialized_view_gate = PASSED
 trend_handoff_gate = PASSED
 working_set_gate = PASSED
 routing_coverage = COMPLETE
@@ -119,7 +115,7 @@ FAILED / INCOMPLETE / UNVERIFIED 不得覆盖上一份 COMPLETE。
 - `result_kind = a_share_low_risk_formal_result`
 - `status = COMPLETE`
 - `trade_date / run_id / published_at`
-- runtime / handoff provenance
+- materialized view / handoff provenance
 - `trend_handoff`
 - `routing_gaps`
 - `routed_industries`
@@ -171,7 +167,7 @@ READY / WAIT 的价格字段完整性由：
 读取：
 
 - 上一份 `research/latest_formal_result.json`
-- 当前最新有效正式收盘 `data/runtime/meta.json`
+- 当前最新有效正式收盘 `data/low_risk/index.json`
 - 必要的隔夜公开信息
 
 要求上一份正式结果：
