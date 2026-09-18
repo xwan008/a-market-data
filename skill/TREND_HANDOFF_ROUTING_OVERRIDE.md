@@ -27,7 +27,7 @@ trend_handoff
 3. 不得使用 `industry_state` 或任何 Legacy Runtime 的 candidate/screening 结果作为买点榜准入、否决或排序条件。
 4. 数据生产层的 Universe 权威仍是 `data/research/company_industry_index.json`；正式榜运行时不直接读取它。
 5. 正式榜运行时以已校验的 `data/low_risk/index.json` 作为行业存在性与 company_count 索引，并读取对应 `data/low_risk/by_industry/<industry_code>.json` 得到完整 `universe_company_codes`。
-6. routed 行业不在 materialized index 中时标记数据链缺口并阻断，不得回退旧 runtime 或现场解析大 JSON。
+6. 若 `data/low_risk/index.json` 已通过全量覆盖校验，而 routed 行业代码不在 `industries` 中，则语义为 `NO_UNIVERSE_MEMBER`；只有 index 无效、trade_date 不匹配，或 index 已列出行业但对应文件缺失/无效时才属于数据链缺口。不得回退旧 runtime 或现场解析大 JSON。
 7. 同一公司被多个 trend signal / industry route 命中时，只保留一份公司事实，但保留全部趋势来源上下文。
 
 ---
