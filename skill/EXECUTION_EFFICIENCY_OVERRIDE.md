@@ -36,7 +36,7 @@
 1. `trend_handoff.json` 原则上读一次；
 2. `data/low_risk/index.json` 原则上读一次；
 3. 每个 routed 行业读取一次 manifest；
-4. 按 manifest 声明完整读取全部 parts，每个 part 最多一次，不抽样、不跳读；
+4. 按 manifest 声明完整读取全部 parts；每个 part 使用多行 JSON，必要时以 100–150 行为一段连续读取到 EOF，不抽样、不跳行；完整拼接解析成功后才算一个逻辑 part read；
 5. 将 parts 拼接并校验覆盖后形成 run-local working set；
 6. 全部 routed 行业工作集完成后统一 Freeze。
 
@@ -47,6 +47,7 @@ working_set_company_count == universe_company_count
 working_set_count == routed_industry_count
 materialized_manifest_read_count == routed_industry_with_universe_count
 materialized_part_read_count == routed manifests 声明的 part_count 总和
+materialized_part_segment_fetch_count >= materialized_part_read_count
 materialized_industry_complete_count == routed_industry_with_universe_count
 legacy_industry_file_read_count == 0
 ```
@@ -167,6 +168,7 @@ Web 只补关键前瞻假设，不得变成第二轮全面估值深研。
     "materialized_index_read_count": 1,
     "materialized_manifest_read_count": 0,
     "materialized_part_read_count": 0,
+    "materialized_part_segment_fetch_count": 0,
     "materialized_industry_complete_count": 0,
     "legacy_industry_file_read_count": 0,
     "unique_shard_read_count": 0,
