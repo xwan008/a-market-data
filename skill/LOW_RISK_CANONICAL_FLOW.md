@@ -23,6 +23,12 @@ Trend Handoff
 
 不得建立第二套并行主流程。
 
+### 正式版 / 手动版 Fresh Run 纪律
+
+19:00 正式版与任何手动正式版，每次执行都必须从 Trend Handoff 开始重新完整执行本文件主流程。上一轮 `latest_formal_result.json`、上一轮 working set、上一轮 pre-screen、Transmission、Expectation、valuation / Price Range 结论只能用于任务结束后的对比，不得作为本轮计算输入，也不得用于跳过任何阶段。
+
+07:00 早间版是唯一允许基于上一份 COMPLETE 做增量复核的例外，具体规则由 `RUNTIME_READ_PROTOCOL.md` 定义。
+
 ## 2. 第一步：Trend Handoff 只决定行业
 
 读取 `research/trend_handoff.json`。
