@@ -31,7 +31,7 @@ Universe 权威来源、预物化行业事实读取和 run-local working set 构
 
 19:00 正式版与手动正式版均为 Fresh Run：不得读取上一份 `research/latest_formal_result.json` 作为本轮计算输入，不得复用上一轮 working set、pre-screen、Transmission、Expectation、valuation 或 Price Range 结论来跳过阶段。上一份 COMPLETE 只允许在本轮完成后用于差异对比。07:00 早间增量版除外。
 
-正式版 / 手动版必须执行 canonical flow 定义的 **Materialized Runtime View Protocol**：先读取 `data/low_risk/index.json`，校验其 trade_date、validation 与 routed industry coverage，再逐个读取本轮 routed 行业对应的 `data/low_risk/by_industry/<industry_code>.json`。这些文件由 GitHub Actions 从 company_industry_index + shards 确定性生成并校验；正式榜运行时不得回退为模型现场读取大 JSON。
+正式版 / 手动版必须执行 canonical flow 定义的 **Materialized Runtime View Protocol**：先读取 `data/low_risk/index.json`，校验其 trade_date 与 validation。对 routed 行业，index 中存在者逐个读取 `data/low_risk/by_industry/<industry_code>.json`；在已通过全量分区校验的 index 中不存在者标记 `NO_UNIVERSE_MEMBER`。这些文件由 GitHub Actions 从 company_industry_index + shards 确定性生成并校验；正式榜运行时不得回退为模型现场读取大 JSON。
 
 旧 `data/snapshot.json`、`data/runtime/*`、screening group、candidate/compact cache 均属于已停用 Legacy Runtime artifacts。它们即使仍作为历史文件保留，也不得参与任何正式版、手动版或早间版计算、Gate、freshness 判断或 fallback。
 
@@ -68,7 +68,7 @@ Universe 权威来源、预物化行业事实读取和 run-local working set 构
 正式版进入公司级分析前必须满足：
 
 ```text
-working_set_count == routed_industry_count
+working_set_count == routed_industry_with_universe_count
 working_set_company_count == universe_company_count
 post_freeze_shard_read_count == 0
 ```
@@ -133,6 +133,8 @@ FAILED / INCOMPLETE / UNVERIFIED 不得覆盖上一份 COMPLETE。
 ```json
 {
   "routed_industry_count": 0,
+  "routed_industry_with_universe_count": 0,
+  "no_universe_industry_count": 0,
   "universe_company_count": 0,
   "working_set_count": 0,
   "working_set_company_count": 0,
