@@ -85,10 +85,10 @@ GitHub 构建必须保证：
 - `runtime_format == "low_risk_industry_working_set_index"`；
 - `validation.status == "passed"`；
 - `trade_date == 本轮最新有效正式收盘 trade_date`；
-- 每个 routed 三级行业在 `industries` 中存在；
+- 对每个 routed 三级行业：若存在于 `industries`，则读取对应 materialized file；若在一个 `validation.status == passed` 且全量分区精确的 index 中不存在，则标记 `NO_UNIVERSE_MEMBER`，不读取文件，也不视为数据故障；
 - 对应 `file` 指向 `data/low_risk/by_industry/<industry_code>.json`。
 
-任一条件不满足，阻断 Working Set Gate；不得回退为模型现场读取完整 `company_industry_index.json` 或 shards 来“补跑”。
+index 本身无效、trade_date 不匹配，或 index 明明列出某行业但对应 materialized file 缺失/校验失败时，才阻断 Working Set Gate；不得回退为模型现场读取完整 `company_industry_index.json` 或 shards 来“补跑”。
 
 ### 3.3 每行业一个事实文件
 
@@ -144,8 +144,8 @@ index.industries[industry_code].company_count == industry_file.company_count
 并校验：
 
 ```text
-working_set_count == routed_industry_count
-working_set_company_count == sum(routed industry company_count)
+working_set_count == routed_industry_with_universe_count
+working_set_company_count == sum(routed industries with universe 的 company_count)
 ```
 
 通过后 Freeze。
@@ -218,7 +218,7 @@ reasonable_price_range
 ```text
 1次 trend_handoff
 1次 data/low_risk/index.json
-N次 routed industry materialized files（N == routed_industry_count，每个行业最多一次）
+N次 routed industry materialized files（N == routed_industry_with_universe_count，每个有 Universe 的行业最多一次；NO_UNIVERSE_MEMBER 不读文件）
 working set freeze
 后续 0 次 materialized industry file 读取
 全程 0 次 company_industry_index 大文件读取
@@ -242,6 +242,8 @@ working set freeze
 ```json
 "data_access_audit": {
   "routed_industry_count": 0,
+  "routed_industry_with_universe_count": 0,
+  "no_universe_industry_count": 0,
   "universe_company_count": 0,
   "working_set_company_count": 0,
   "working_set_count": 0,
@@ -255,15 +257,15 @@ working set freeze
 
 其中：
 - `universe_company_count` = 本轮 routed 行业物化事实文件的 company_count 总和；
-- `materialized_industry_read_count == routed_industry_count`；
+- `materialized_industry_read_count == routed_industry_with_universe_count`；
 - 正式榜运行时不直接读取 shards，因此 `unique_shard_read_count == 0`；
 - `post_freeze_shard_read_count == 0`；
 - `post_freeze_materialized_read_count == 0`。
 
 发布前要求：
 - `working_set_company_count == universe_company_count`；
-- `working_set_count == routed_industry_count`；
-- `materialized_industry_read_count == routed_industry_count`；
+- `working_set_count == routed_industry_with_universe_count`；
+- `materialized_industry_read_count == routed_industry_with_universe_count`；
 - 两类 post-freeze read count 都为 0。
 
 否则视为数据访问流程不完整，不得把执行路径描述为 canonical complete。
