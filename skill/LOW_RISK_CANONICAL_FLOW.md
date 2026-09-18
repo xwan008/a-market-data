@@ -8,7 +8,7 @@
 Trend Handoff
 → 解析本轮三级行业
 → company_industry_index 找出每个行业全部策略公司
-→ 按所需 shard 前缀去重后分批读取；每个唯一 shard 本轮最多读取一次
+→ 按所需 shard 前缀去重后分批读取；工具内立即解析并只投影目标公司事实
 → 动态生成“本轮行业工作集”（每个三级行业一个 working set）
 → 冻结 working set；以下阶段不再读取 company_industry_index / shard
 → 公司级硬过滤
@@ -55,7 +55,19 @@ Trend Handoff
 
 ### 3.2 Facts
 
-根据 `universe_company_codes` 计算所需 `data/shards/<前5位>.json`，按 shard 前缀去重后采用小批次读取。工具层可分成多个 batch，以避免单轮工具调用上限；但每个唯一 shard 本轮最多读取一次。所有所需 shard 收集完成后，再统一构造本轮 working sets。
+根据 `universe_company_codes` 计算所需 `data/shards/<前5位>.json`，按 shard 前缀去重后采用小批次读取。工具层可分成多个 batch，以避免单轮工具调用上限。
+
+每个 shard 的读取必须在**同一次工具调用内部**完成以下动作后，才把结果返回执行上下文：
+
+1. 读取该 shard；
+2. 立即解析 JSON；
+3. 根据本轮 `universe_company_codes` 只抽取该 shard 中真正需要的目标公司；
+4. 立即投影为 working set 所需的标准公司事实；
+5. 只返回这些目标公司的标准化事实，不得把完整 shard 原文返回模型上下文。
+
+“每个唯一 shard 本轮最多读取一次”是指**最多成功物化一次**。只有满足“JSON 可解析 + 本轮目标公司抽取完成 + 标准字段投影完成”才记为成功读取。若标准读取返回空内容、明显截断或 JSON 不可解析，该次只算读取路径失败，不计入成功读取次数；允许对**同一 main、同一路径、同一 shard**改用 GitHub REST Contents/Blob 做一次同源 fallback。fallback 成功后不得再读该 shard；fallback 仍失败才标记该 shard 读取失败并阻断 Working Set Freeze。
+
+所有所需 shard 的目标公司事实收集完成后，再统一构造本轮 working sets。
 
 从 shard 为每家公司提取本轮后续所需的完整事实，至少包括：
 - code / name / industry_code / industry_name；
@@ -172,7 +184,7 @@ reasonable_price_range
 ```text
 1次 trend_handoff
 1次 company_industry_index
-N次去重后的 shard 读取，可按小批次执行；每个唯一 shard 最多一次，全部收集后统一构建 routed working sets
+N个唯一 shard 的目标公司事实物化，可按小批次执行；成功物化后不得重读，全部收集后统一构建 routed working sets
 working set freeze
 后续 0 次 company_industry_index 读取
 后续 0 次 shard 读取
@@ -183,7 +195,8 @@ working set freeze
 - 在硬过滤/预筛/估值阶段重新逐股 fetch shard；
 - 使用 `screening_groups_by_industry` 作为本任务正式主流程的数据层；
 - 为 shard 已提供的 PE/PB/MA60/support/volume-zone 再上 Web；
-- 同一 shard 前缀重复读取。
+- 已成功物化的同一 shard 再次读取。
+- 将完整 shard 原文批量返回执行上下文，而不是在工具调用内部只投影目标公司事实。
 
 `screening_groups_by_industry` 可以继续存在供其他流程使用，但 A股低风险买点榜主流程忽略它。
 
@@ -211,4 +224,4 @@ working set freeze
 
 ## 11. 一句话版本
 
-> 趋势榜先选行业；company_industry_index 找全公司；去重 shard 后按小批次把这些公司的完整事实收集齐，每个唯一 shard 本轮最多读取一次；随后按行业动态生成本轮工作文件并锁定，后面的硬过滤、预筛、研究、估值和买点全部只围绕这些文件进行。
+> 趋势榜先选行业；company_industry_index 找全公司；去重 shard 后按小批次读取，并在工具调用内部立即解析、只抽取目标公司并投影为标准事实；全部事实收集齐后按行业动态生成本轮工作文件并锁定，后面的硬过滤、预筛、研究、估值和买点全部只围绕这些文件进行。
