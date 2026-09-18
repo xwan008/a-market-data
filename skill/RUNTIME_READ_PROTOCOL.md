@@ -80,12 +80,12 @@ post_freeze_shard_read_count == 0
 其中：
 - Universe 权威来源仍是 `data/research/company_industry_index.json`，但运行时通过 GitHub Actions 已验证的 `data/low_risk/*` 物化视图消费；
 - 公司完整事实权威来源仍是 `data/shards/*.json`，但运行时不直接读取 shards；
-- Freeze 前每个 routed 行业 manifest 最多读取一次，manifest 声明的每个 part 最多读取一次，并完整进入 working set；
+- Freeze 前每个 routed 行业 manifest 最多读取一次；manifest 声明的每个 part 必须从第1行连续分页读取到 EOF。一个 part 可有多个物理 segment fetch，但完整拼接、JSON 解析和字段校验全部通过后才算 1 个逻辑 part read；
 - Freeze 前必须证明 manifest company_count、parts company_count、company codes 与 index 完整一致且无重复；
 - Freeze 后不得再读取任何 manifest、part、legacy materialized industry file、company_industry_index 或 shard；
 - 后续硬过滤、预筛、Transmission、Expectation、估值与价格区间全部消费 frozen working set。
 
-运行时 `unique_shard_read_count == 0`，因为 shard ETL 已在 GitHub Actions 数据生产层完成；应记录 `materialized_manifest_read_count`、`materialized_part_read_count`、`materialized_industry_complete_count`、`legacy_industry_file_read_count` 与 `post_freeze_materialized_read_count`。
+运行时 `unique_shard_read_count == 0`，因为 shard ETL 已在 GitHub Actions 数据生产层完成；应记录 `materialized_manifest_read_count`、`materialized_part_read_count`、`materialized_part_segment_fetch_count`、`materialized_industry_complete_count`、`legacy_industry_file_read_count` 与 `post_freeze_materialized_read_count`。
 
 若 Freeze Gate 不成立，正式版不得覆盖上一份 COMPLETE。
 
