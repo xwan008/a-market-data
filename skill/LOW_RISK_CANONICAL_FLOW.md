@@ -105,7 +105,6 @@ union(working_set[*].company_codes)
 只对 frozen working set 中的公司执行公司级硬条件：
 - ST；
 - 无效/非正价格；
-- 净利润非正；
 - 关键数据严重缺失；
 - revenue_yoy < -20% 且 net_profit_yoy < -50%；
 - 其他正式协议公司级硬条件。
