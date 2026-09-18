@@ -188,13 +188,22 @@ jobs:
         if: steps.gate.outputs.persist == 'true'
         shell: bash
         run: |
-          if ! git status --porcelain -- data | grep -q .; then
-            echo "daily market data unchanged"
-            exit 0
-          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Stage first, then decide whether there is anything to persist.
+          # Force-add low_risk so formatting-only/materialization changes are never skipped.
           git add -A data
+          git add -f -A data/low_risk
+
+          echo "staged daily data diff:"
+          git diff --cached --stat -- data || true
+
+          if git diff --cached --quiet -- data; then
+            echo "daily market data unchanged after staging"
+            exit 0
+          fi
+
           git commit -m "data: update daily market dataset"
           git push origin HEAD:main
 
