@@ -14,7 +14,6 @@
 → 按行业批量 Transmission
 → SUPPORTED 才进入 Expectation
 → 必要对象进入估值与 Price Range
-→ 复用未失效的同交易日研究结论
 ```
 
 不得退化为逐家公司反复读取仓库或多轮串行 Web 搜索。
@@ -91,29 +90,13 @@ Hard Filter
 
 ---
 
-## 5. 同交易日研究缓存
+## 5. 正式版 Fresh Run
 
-这里的“缓存”只指**研究结论缓存**，不指公司事实数据缓存。
+19:00 正式版与手动正式版不得复用上一轮执行结果来跳过本轮步骤。每次都必须重新完成：Universe 展开、shard 收集、working set 构造与 Freeze、Hard Filter、Pre-screen、Transmission、Expectation、Risk–Reward / Price Range。
 
-允许复用同交易日已经完成的：
-- 一手证据摘要；
-- Transmission 结论；
-- 未变化的 Expectation 时间链；
-- 关键前瞻假设。
+上一轮正式结果、上一轮研究摘要及上一轮公司状态只能在本轮完整计算结束后用于差异对比，不得作为本轮阶段结论输入。
 
-必须满足：
-
-```text
-trade_date 相同
-company_code 相同
-runtime 基础事实未变化
-trend_handoff 来源趋势未实质变化
-无新增重大公告/事件使结论失效
-```
-
-公司事实本轮仍以 frozen working set 为唯一内部来源。
-
-不得把 `screening_groups_by_industry`、compact cache 等重新引入正式主链。
+07:00 早间增量版不受此条限制，按 `RUNTIME_READ_PROTOCOL.md` 复用上一份 COMPLETE。
 
 ---
 
@@ -175,8 +158,6 @@ Web 只补关键前瞻假设，不得变成第二轮全面估值深研。
   "execution_audit": {
     "deep_research_company_count": 0,
     "industry_batch_count": 0,
-    "research_cache_reused_count": 0,
-    "research_cache_invalidated_count": 0,
     "single_company_followup_count": 0
   }
 }
@@ -189,7 +170,7 @@ Web 只补关键前瞻假设，不得变成第二轮全面估值深研。
 - 同一 shard 重复读取；
 - single_company_followup_count 接近 deep_research_company_count；
 - PRE_SCREENED_OUT / NOT_SUPPORTED 仍继续后续深研；
-- 同交易日无变化却从零重做全部公司研究。
+- 正式版或手动正式版复用上一轮阶段结论、从而跳过本轮任一阶段。
 
 ---
 
