@@ -27,11 +27,11 @@
 - `data/runtime/meta.json`
 - canonical flow 要求的阶段规则文件
 
-Universe、shard 读取和 run-local working set 构造严格由 canonical flow 负责。
+Universe 权威来源、预物化行业事实读取和 run-local working set 构造严格由 canonical flow 负责。正式榜运行时使用 `data/low_risk/index.json` 与 `data/low_risk/by_industry/*.json`；不得重新现场解析 company_industry_index 或 shards。
 
 19:00 正式版与手动正式版均为 Fresh Run：不得读取上一份 `research/latest_formal_result.json` 作为本轮计算输入，不得复用上一轮 working set、pre-screen、Transmission、Expectation、valuation 或 Price Range 结论来跳过阶段。上一份 COMPLETE 只允许在本轮完成后用于差异对比。07:00 早间增量版除外。
 
-对于 `data/research/company_industry_index.json` 与 `data/shards/*.json` 这类已知大 JSON，正式版必须执行 canonical flow 定义的 **Mandatory Large-JSON Blob Protocol**：标准文件读取仅用于取得当前 `main` 对应 blob SHA，随后固定使用 GitHub Blob，并在同一次执行器调用内部完成解码（如需要）、`JSON.parse`、目标记录筛选与标准字段投影。标准文件读取的 `content` 为空、截断或未返回完整正文，只要 SHA 有效，就不得视为读取失败，也不得阻断 Universe / Working Set Gate。
+正式版 / 手动版必须执行 canonical flow 定义的 **Materialized Runtime View Protocol**：先读取 `data/low_risk/index.json`，校验其 trade_date、validation 与 routed industry coverage，再逐个读取本轮 routed 行业对应的 `data/low_risk/by_industry/<industry_code>.json`。这些文件由 GitHub Actions 从 company_industry_index + shards 确定性生成并校验；正式榜运行时不得回退为模型现场读取大 JSON。
 
 本任务**不得**把以下文件作为 Universe 或事实入口：
 
@@ -78,12 +78,13 @@ post_freeze_shard_read_count == 0
 ```
 
 其中：
-- Universe 唯一来自 `data/research/company_industry_index.json`；
-- 公司完整事实由 canonical flow 在 Freeze 前从去重 shard 中提取；每个 shard 必须在工具调用内部解析并只返回本轮目标公司的标准化事实；
-- Freeze 后不得再读取 company_industry_index 或任何个股 shard；
+- Universe 权威来源仍是 `data/research/company_industry_index.json`，但运行时通过 GitHub Actions 已验证的 `data/low_risk/*` 物化视图消费；
+- 公司完整事实权威来源仍是 `data/shards/*.json`，但运行时不直接读取 shards；
+- Freeze 前每个 routed 行业事实文件最多读取一次并完整进入 working set；
+- Freeze 后不得再读取任何 materialized industry file、company_industry_index 或 shard；
 - 后续硬过滤、预筛、Transmission、Expectation、估值与价格区间全部消费 frozen working set。
 
-shard 的标准文件读取只负责解析当前 `main` 的 blob SHA，不负责提供完整正文，因此其 `content` 为空或截断不算失败。只有 GitHub Blob 获取成功、JSON 可解析、目标公司抽取完成且标准字段投影完成后，才计入 `unique_shard_read_count`；用于取得 SHA 的标准读取不计数。成功物化后不得再次读取该 shard。只有无法取得有效 SHA、Blob 读取失败、JSON 无法解析，或目标公司无法完成抽取/投影时，才允许阻断 Working Set Freeze。
+运行时 `unique_shard_read_count == 0`，因为 shard ETL 已在 GitHub Actions 数据生产层完成；应额外记录 `materialized_industry_read_count` 与 `post_freeze_materialized_read_count`。
 
 若 Freeze Gate 不成立，正式版不得覆盖上一份 COMPLETE。
 
@@ -139,8 +140,11 @@ FAILED / INCOMPLETE / UNVERIFIED 不得覆盖上一份 COMPLETE。
   "universe_company_count": 0,
   "working_set_count": 0,
   "working_set_company_count": 0,
+  "materialized_index_read_count": 1,
+  "materialized_industry_read_count": 0,
   "unique_shard_read_count": 0,
-  "post_freeze_shard_read_count": 0
+  "post_freeze_shard_read_count": 0,
+  "post_freeze_materialized_read_count": 0
 }
 ```
 
