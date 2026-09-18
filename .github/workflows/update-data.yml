@@ -60,7 +60,15 @@ jobs:
               latest_trade_date = str(latest.get("trade_date") or "")
               latest_market_status = str(latest.get("market_status") or "")
               low_risk_trade_date = str(low_risk.get("trade_date") or "")
-              low_risk_valid = (low_risk.get("validation") or {}).get("status") == "passed"
+              low_risk_validation = low_risk.get("validation") or {}
+              low_risk_valid = bool(
+                  low_risk.get("runtime_format") == "low_risk_industry_working_set_index"
+                  and low_risk_validation.get("status") == "passed"
+                  and low_risk.get("materialized_layout") == "chunked_manifest_v1"
+                  and low_risk_validation.get("chunk_manifest_complete") is True
+                  and low_risk_validation.get("chunk_company_coverage_exact") is True
+                  and low_risk_validation.get("chunk_size_within_limit") is True
+              )
               already_fresh = (
                   latest_trade_date == today
                   and latest_market_status == "closed"
