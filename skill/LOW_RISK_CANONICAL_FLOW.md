@@ -46,7 +46,24 @@ Trend Handoff
 
 `data/research/company_industry_index.json` 是“某三级行业有哪些策略公司”的唯一权威来源。
 
-读取该文件时采用同源容错：优先使用标准文件读取；若返回空内容、截断或不可解析，不得据此判定 Universe 为空，应立即改用 GitHub REST Contents/Blob 对**同一 main 分支、同一路径、同一文件**重读。只有两种读取方式都失败或都无法解析时，才允许将 Universe 构建判定为失败。该容错只改变读取方式，不改变 Universe 来源。
+### 3.1.1 Mandatory Large-JSON Blob Protocol
+
+`data/research/company_industry_index.json` 属于已知大 JSON，固定采用 **SHA → Blob → JSON.parse → filter/projection** 读取协议，不得依赖标准文件读取返回完整 content。
+
+固定执行方式：
+1. 对同一 `main`、同一路径调用标准文件读取，只用于取得当前文件的 blob SHA；
+2. 即使标准读取的 `content` 为空、被截断或未返回完整正文，只要 blob SHA 有效，就**不得**据此判定读取失败或 Universe 为空；
+3. 立即对该 SHA 调用 GitHub Blob 读取；
+4. 必须在**同一次执行器调用内部**完成 Blob 内容解码（如需要）、`JSON.parse`、按本轮 routed 三级行业筛选，并展开 `universe_company_codes`；
+5. 只把 routed industries 与对应 Universe 投影结果返回执行上下文，完整大 JSON 原文不得返回模型上下文。
+
+只有以下情况才允许判定 Universe 读取失败并阻断后续流程：
+- 无法取得当前 `main` 对应该路径的有效 blob SHA；
+- GitHub Blob 读取失败；
+- Blob 内容无法完成 JSON 解析；
+- routed 三级行业无法完成目标记录筛选/Universe 投影。
+
+标准文件读取的 `content` 为空本身**绝不构成失败**。该协议只改变读取方式，不改变 Universe 权威来源。
 
 对每个 resolved 三级行业：
 1. 从 company_industry_index 找出全部策略公司；
@@ -55,17 +72,27 @@ Trend Handoff
 
 ### 3.2 Facts
 
-根据 `universe_company_codes` 计算所需 `data/shards/<前5位>.json`，按 shard 前缀去重后采用小批次读取。工具层可分成多个 batch，以避免单轮工具调用上限。
+根据 `universe_company_codes` 计算所需 `data/shards/<前5位>.json`，按 shard 前缀去重后采用小批次读取。工具层可分成多个 batch，以避免单轮工具调用上限；默认每批约 6–8 个，环境限制更严时可减小 batch。
 
-每个 shard 的读取必须在**同一次工具调用内部**完成以下动作后，才把结果返回执行上下文：
+`data/shards/*.json` 同样属于已知大 JSON，固定采用 **SHA → Blob → JSON.parse → target filter → projection** 协议。每个 shard 必须在**同一次执行器调用内部**完成：
 
-1. 读取该 shard；
-2. 立即解析 JSON；
-3. 根据本轮 `universe_company_codes` 只抽取该 shard 中真正需要的目标公司；
-4. 立即投影为 working set 所需的标准公司事实；
-5. 只返回这些目标公司的标准化事实，不得把完整 shard 原文返回模型上下文。
+1. 对同一 `main`、同一路径做标准文件读取，只取得该 shard 当前 blob SHA；
+2. `fetch_file.content` 为空、截断或未返回完整正文时，只要 SHA 有效，仍必须继续，不得判定 shard 读取失败；
+3. 以该 SHA 读取 GitHub Blob；
+4. 立即解码（如需要）并解析 JSON；
+5. 根据本轮 `universe_company_codes` 只抽取该 shard 中真正需要的目标公司；
+6. 立即投影为 working set 所需的标准公司事实；
+7. 只返回这些目标公司的标准化事实，不得把完整 shard / Blob 原文返回模型上下文。
 
-“每个唯一 shard 本轮最多读取一次”是指**最多成功物化一次**。只有满足“JSON 可解析 + 本轮目标公司抽取完成 + 标准字段投影完成”才记为成功读取。若标准读取返回空内容、明显截断或 JSON 不可解析，该次只算读取路径失败，不计入成功读取次数；允许对**同一 main、同一路径、同一 shard**改用 GitHub REST Contents/Blob 做一次同源 fallback。fallback 成功后不得再读该 shard；fallback 仍失败才标记该 shard 读取失败并阻断 Working Set Freeze。
+“每个唯一 shard 本轮最多读取一次”是指**最多成功物化一次**。只有满足“Blob 获取成功 + JSON 可解析 + 本轮目标公司抽取完成 + 标准字段投影完成”才记为成功读取，并计入 `unique_shard_read_count`。用于取得 SHA 的标准文件读取不计入该字段。
+
+只有以下情况才允许标记 shard 读取失败并阻断 Working Set Freeze：
+- 无法取得当前 `main` 对应该 shard 的有效 blob SHA；
+- GitHub Blob 读取失败；
+- Blob 内容无法 JSON 解析；
+- 本轮目标公司无法完成抽取或标准字段投影。
+
+标准文件读取的 `content` 为空本身不算失败；成功物化后本轮不得再读该 shard。
 
 所有所需 shard 的目标公司事实收集完成后，再统一构造本轮 working sets。
 
@@ -183,8 +210,8 @@ reasonable_price_range
 
 ```text
 1次 trend_handoff
-1次 company_industry_index
-N个唯一 shard 的目标公司事实物化，可按小批次执行；成功物化后不得重读，全部收集后统一构建 routed working sets
+1次 company_industry_index 的 SHA 解析 + Blob 内部解析/Universe 投影
+N个唯一 shard 的 SHA 解析 + Blob 目标公司事实物化，可按小批次执行；成功物化后不得重读，全部收集后统一构建 routed working sets
 working set freeze
 后续 0 次 company_industry_index 读取
 后续 0 次 shard 读取
@@ -224,4 +251,4 @@ working set freeze
 
 ## 11. 一句话版本
 
-> 趋势榜先选行业；company_industry_index 找全公司；去重 shard 后按小批次读取，并在工具调用内部立即解析、只抽取目标公司并投影为标准事实；全部事实收集齐后按行业动态生成本轮工作文件并锁定，后面的硬过滤、预筛、研究、估值和买点全部只围绕这些文件进行。
+> 趋势榜先选行业；company_industry_index 与 shard 这类已知大 JSON 固定走当前 main 的 SHA → Blob，并在同一次执行器调用内部立即 JSON 解析、筛选与投影；全部目标公司事实收集齐后按行业动态生成本轮工作文件并锁定，后面的硬过滤、预筛、研究、估值和买点全部只围绕这些文件进行。
