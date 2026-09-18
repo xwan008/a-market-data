@@ -4,15 +4,15 @@
   "status": "COMPLETE",
   "publication_ready": true,
   "trade_date": "2026-09-17",
-  "run_id": "20260918T1139-CN-manual-formal-12",
-  "published_at": "2026-09-18T11:39:00+08:00",
+  "run_id": "20260918T1200-CN-manual-formal-13",
+  "published_at": "2026-09-18T12:00:00+08:00",
   "source_runtime_trade_date": "2026-09-17",
   "source_runtime_meta_blob_sha": "bb3e1ccd9682a662e531203854acecd33d6ceaed",
   "source_handoff_blob_sha": "29b7ddbf36014715f53cdf5af86a7a0fea7b4607",
-  "source_prior_formal_run_id": "20260917T2310-CN-manual-formal-11",
+  "source_prior_formal_run_id": "20260918T1139-CN-manual-formal-12",
   "source_repository_head_at_execution": "32145b8aed7638b51149903ebe390de36727bd43",
   "canonical_flow": "skill/LOW_RISK_CANONICAL_FLOW.md",
-  "execution_mode": "canonical_dynamic_working_set_same_trade_day_reuse",
+  "execution_mode": "canonical_dynamic_working_set_full_recompute",
   "trend_handoff": {
     "signals": [
       {
@@ -508,13 +508,14 @@
   "execution_audit": {
     "routed_company_count": 25,
     "deep_research_company_count": 19,
-    "industry_batch_count": 0,
-    "research_cache_reused_count": 19,
-    "research_cache_invalidated_count": 0,
-    "single_company_followup_count": 0,
+    "industry_batch_count": 4,
+    "research_cache_reused_count": 0,
+    "research_cache_invalidated_count": 19,
+    "single_company_followup_count": 19,
     "price_model_revalidated_count": 12,
-    "execution_mode": "canonical_dynamic_working_set_same_trade_day_reuse",
-    "research_reuse_reason": "same latest valid formal close (2026-09-17); runtime facts unchanged; morning handoff signal set semantically unchanged; no evidence invalidated"
+    "execution_mode": "canonical_dynamic_working_set_full_recompute",
+    "research_reuse_reason": "none; user explicitly requested continuation with full recomputation from routed industry universe and working set",
+    "full_recompute_note": "Recomputed hard-filter/pre-screen/transmission/expectation/risk-reward path from the frozen 2026-09-17 runtime universe; 2026-09-18 intraday public market evidence was used only as a cross-check and does not overwrite formal close prices."
   },
   "funnel": {
     "trend_signals": 3,
