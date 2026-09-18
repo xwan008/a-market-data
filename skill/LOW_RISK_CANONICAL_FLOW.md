@@ -7,10 +7,12 @@
 ```text
 Trend Handoff
 → 解析本轮三级行业
-→ 读取 data/low_risk/index.json（GitHub Actions 已从 company_industry_index + shards 确定性物化）
-→ 只读取 routed 三级行业对应的 data/low_risk/by_industry/<industry_code>.json
-→ 将这些行业事实文件复制/映射为本轮 run-local working set
-→ Freeze；以下阶段不再读取任何 company_industry_index / shard / low_risk 行业文件
+→ 读取 data/low_risk/index.json
+→ 对每个 routed 行业读取 manifest.json
+→ 按 manifest.parts 顺序读取全部 part-xxx.json，并在本轮上下文中拼接完整行业事实
+→ 校验 manifest / parts / index 覆盖完全一致
+→ 映射为本轮 run-local working set
+→ Freeze；以下阶段不再读取任何 company_industry_index / shard / low_risk manifest / part / legacy 单文件
 → 公司级硬过滤
 → 行业内轻量预筛（Top5 / 并列第6）
 → Transmission
@@ -44,115 +46,93 @@ Trend Handoff
 
 ### 3.1 数据权威与运行时视图
 
-低风险榜的数据权威**没有改变**：
-
+低风险榜的数据权威没有改变：
 - Universe 权威来源：`data/research/company_industry_index.json`；
 - 公司事实权威来源：`data/shards/<前5位>.json`。
 
-但正式版 / 手动版运行时**不得再让模型现场解析上述大 JSON**。GitHub Actions 在每次有效正式收盘数据更新后运行：
-
-`scripts/build_low_risk_working_sets.py`
-
-由 Python 确定性执行：
+正式版 / 手动版运行时不得现场解析上述大 JSON。GitHub Actions 每次有效正式收盘后运行 `scripts/build_low_risk_working_sets.py`，确定性执行：
 
 ```text
-company_industry_index.json
-+ data/shards/*.json
-→ industry partition
-→ exact join
-→ standard fact projection
-→ validation
+company_industry_index.json + data/shards/*.json
+→ industry partition / exact join / standard fact projection / validation
 → data/low_risk/index.json
-→ data/low_risk/by_industry/<industry_code>.json
+→ data/low_risk/by_industry/<industry_code>/manifest.json
+→ data/low_risk/by_industry/<industry_code>/part-001.json ...
 ```
 
-因此 `data/low_risk/*` 是上述权威数据的**物化运行时视图**，不是第二套 Universe、candidate cache、screening 结果或选股规则。
+迁移期暂时继续生成旧 `data/low_risk/by_industry/<industry_code>.json`，但新正式主流程禁止读取该 legacy 单文件。
 
-GitHub 构建必须保证：
-- mapped company coverage exact；
-- industry partition exact；
-- shard trade_date consistent；
-- index / shard industry mapping consistent；
-- 任一缺失或不一致则 Actions 失败，不得提交半成品。
+chunk 生产约束：
+- 每 part 默认最多 5 家公司；
+- 每 part 紧凑 JSON 默认不得超过 96 KiB；
+- 若达到字节上限，允许少于 5 家；
+- 单家公司本身超过上限则构建失败；
+- manifest 必须列出全部 part、各 part 的 company codes、company_count 与 byte_size。
+
+GitHub 构建必须保证 mapped company coverage、industry partition、trade_date、industry mapping、chunk manifest、chunk company coverage 与 chunk size 全部校验通过；否则不得提交半成品。
 
 ### 3.2 Runtime Materialized View Gate
 
-正式版 / 手动版从 Trend Handoff 得到 routed 三级行业后，先读取：
-
-`data/low_risk/index.json`
-
-必须满足：
+先读取 `data/low_risk/index.json`，必须满足：
 - `runtime_format == "low_risk_industry_working_set_index"`；
 - `validation.status == "passed"`；
-- `trade_date == 本轮最新有效正式收盘 trade_date`；
-- 对每个 routed 三级行业：若存在于 `industries`，则读取对应 materialized file；若在一个 `validation.status == passed` 且全量分区精确的 index 中不存在，则标记 `NO_UNIVERSE_MEMBER`，不读取文件，也不视为数据故障；
-- 对应 `file` 指向 `data/low_risk/by_industry/<industry_code>.json`。
+- `materialized_layout == "chunked_manifest_v1"`；
+- `validation.chunk_manifest_complete == true`；
+- `validation.chunk_company_coverage_exact == true`；
+- `validation.chunk_size_within_limit == true`；
+- `trade_date == 本轮最新有效正式收盘 trade_date`。
 
-index 本身无效、trade_date 不匹配，或 index 明明列出某行业但对应 materialized file 缺失/校验失败时，才阻断 Working Set Gate；不得回退为模型现场读取完整 `company_industry_index.json` 或 shards 来“补跑”。
+对每个 routed 行业：
+- 若存在于 index，必须读取其 `manifest_file`；
+- 若在已通过全量覆盖校验的 index 中不存在，标记 `NO_UNIVERSE_MEMBER`；
+- `manifest_file` 必须指向 `data/low_risk/by_industry/<industry_code>/manifest.json`；
+- index 中 `legacy_file` / `file` 只用于迁移兼容，正式版 / 手动版不得读取。
 
-### 3.3 每行业一个事实文件
+任何 index / manifest / part 无效时阻断 Working Set Gate；不得回退读取完整 company_industry_index、shards 或 legacy 单文件。
 
-对每个 routed 三级行业只读取一次：
+### 3.3 Manifest + Chunk 读取协议
 
-`data/low_risk/by_industry/<industry_code>.json`
+对每个 routed 且有 Universe 的行业：
 
-每个文件必须至少包含：
-- `runtime_format == "low_risk_industry_working_set"`；
-- trade_date；
-- industry_code / industry_name；
-- company_count；
-- universe_company_codes；
-- source provenance；
-- companies 全量标准事实。
+1. 读取一次 `manifest.json`；
+2. 校验：
+   - `runtime_format == "low_risk_industry_working_set_manifest"`；
+   - `layout_version == 1`；
+   - trade_date / industry_code / industry_name 与 index 一致；
+   - company_count 与 index 一致；
+   - `len(universe_company_codes) == company_count`；
+   - `chunking.part_count == len(parts)`；
+3. 按 `parts[*].part_number` 升序读取全部 part，每个 part 只读一次，不得抽样或跳读；
+4. 每个 part 必须满足：
+   - `runtime_format == "low_risk_industry_working_set_chunk"`；
+   - trade_date / industry identity 与 manifest 一致；
+   - part_number 与 manifest entry 一致；
+   - `company_count == len(company_codes) == len(companies)`；
+   - `set(companies[*].code) == set(company_codes)`；
+   - company_codes 与 manifest 对应 entry 完全一致；
+5. 拼接全部 part 的 companies 形成该行业 run-local working set。
 
-公司事实至少包括：
-- code / name / industry_code / industry_name；
-- current price / market cap；
-- PE TTM / dynamic PE / PB / ROE；
-- revenue_yoy / net_profit_yoy / deduct_basic_eps_yoy；
-- operating_cashflow_per_share / gross_margin / EPS；
-- MA20 / MA60；
-- high_60d / low_60d / position_pct；
-- support zones；
-- resistance zones；
-- dense / volume-profile price zones；
-- trend_state / break_state / invalidation；
-- 其他硬过滤、预筛和估值需要的已物化 runtime facts。
-
-读取后立即映射为本轮 run-local working set：
-
-```text
-working_set[S370603] = data/low_risk/by_industry/S370603.json
-working_set[S630602] = data/low_risk/by_industry/S630602.json
-...
-```
-
-这些 run-local working sets 只存在于本轮执行上下文；仓库里的 `data/low_risk/by_industry/*.json` 是数据生产层的预物化事实文件，不包含本轮 PRE_SCREEN / Transmission / Expectation / valuation / Price Range 结论。
+公司事实字段仍至少覆盖 code/name、价格/市值、PE/PB/ROE、收入利润现金流、MA20/MA60、60日高低与位置、support/resistance/dense/volume zones、trend_state/break_state/invalidation 等硬过滤、预筛和估值所需事实。
 
 ### 3.4 Freeze Gate
 
-Freeze 前必须校验每个 routed 行业：
+Freeze 前每个 routed 行业必须证明：
 
 ```text
-industry_file.trade_date == data/low_risk/index.json.trade_date
-industry_file.company_count == len(industry_file.companies)
-industry_file.company_count == len(industry_file.universe_company_codes)
-set(companies[*].code) == set(universe_company_codes)
-index.industries[industry_code].company_count == industry_file.company_count
-```
-
-并校验：
-
-```text
+manifest.trade_date == index.trade_date
+manifest.company_count == len(manifest.universe_company_codes)
+manifest.company_count == sum(parts[*].company_count)
+manifest.parts 中 company_codes 的按序拼接 == manifest.universe_company_codes
+实际读取 part company codes 的按序拼接 == manifest.universe_company_codes
+set(all part companies[*].code) == set(manifest.universe_company_codes)
+不存在重复 code
+index.industries[industry_code].company_count == manifest.company_count
+实际读取 part 数 == manifest.chunking.part_count == index.industries[industry_code].part_count
 working_set_count == routed_industry_with_universe_count
 working_set_company_count == sum(routed industries with universe 的 company_count)
 ```
 
-通过后 Freeze。
-
-**从此之后，本轮硬过滤、预筛、Transmission、Expectation、估值和价格区间只消费 frozen working set。不得再读取 `company_industry_index.json`、任何 `data/shards/*.json`、或再次读取 `data/low_risk/by_industry/*.json`。**
-
-正式版 / 手动版的 Fresh Run 仍然成立：每轮都必须重新从 Trend Handoff 路由、重新读取当期 routed 行业事实、重新执行 Hard Filter → Pre-screen → Transmission → Expectation → valuation / Price Range。预物化只替代底层 deterministic ETL，不得复用上一轮研究结论。
+通过后 Freeze。此后硬过滤、预筛、Transmission、Expectation、估值和价格区间只消费 frozen working set；不得再读取 company_industry_index、shards、manifest、part 或 legacy 单文件。
 
 ## 4. Stage A：公司级硬过滤
 
@@ -218,26 +198,29 @@ reasonable_price_range
 ```text
 1次 trend_handoff
 1次 data/low_risk/index.json
-N次 routed industry materialized files（N == routed_industry_with_universe_count，每个有 Universe 的行业最多一次；NO_UNIVERSE_MEMBER 不读文件）
+N次 routed industry manifest（N == routed_industry_with_universe_count）
+P次 part 文件（P == 所有 routed manifest 声明的 part_count 总和）
 working set freeze
-后续 0 次 materialized industry file 读取
+后续 0 次 manifest/part/legacy materialized 读取
 全程 0 次 company_industry_index 大文件读取
 全程 0 次 data/shards/*.json 读取
 必要的行业批次 Web/公告研究
 ```
 
 禁止：
-- 正式榜运行时重新现场解析 `company_industry_index.json` 或 shards；
-- 在硬过滤/预筛/估值阶段重新读取行业事实文件；
-- 使用 `screening_groups_by_industry`、candidate/compact cache 作为本任务正式主流程的数据层；
-- 为物化视图已提供的 PE/PB/MA60/support/volume-zone 再上 Web；
+- 正式榜现场解析 company_industry_index 或 shards；
+- 读取 legacy `data/low_risk/by_industry/<industry_code>.json`；
+- 跳读、抽样或重复读取 manifest 声明的 part；
+- Freeze 后再读取 manifest / part；
+- 使用 screening_groups、candidate/compact cache 作为正式主流程数据层；
+- 为物化视图已有 PE/PB/MA60/support/volume-zone 再上 Web；
 - 将上一轮 working set 或阶段结论作为本轮输入。
 
-旧 `snapshot / runtime / screening_groups / industry_state` artifacts 可暂时作为历史数据保留，但已退出活动生产链；任何正式低风险榜流程不得读取、依赖或回退到这些 Legacy Runtime artifacts。
+旧 snapshot/runtime/screening_groups/industry_state 及 legacy 单行业大文件可暂时保留，但已退出活动生产链。
 
 ## 10. 执行审计
 
-正式结果建议保存：
+正式结果保存：
 
 ```json
 "data_access_audit": {
@@ -248,28 +231,28 @@ working set freeze
   "working_set_company_count": 0,
   "working_set_count": 0,
   "materialized_index_read_count": 1,
-  "materialized_industry_read_count": 0,
+  "materialized_manifest_read_count": 0,
+  "materialized_part_read_count": 0,
+  "materialized_industry_complete_count": 0,
   "unique_shard_read_count": 0,
+  "legacy_industry_file_read_count": 0,
   "post_freeze_shard_read_count": 0,
   "post_freeze_materialized_read_count": 0
 }
 ```
 
-其中：
-- `universe_company_count` = 本轮 routed 行业物化事实文件的 company_count 总和；
-- `materialized_industry_read_count == routed_industry_with_universe_count`；
-- 正式榜运行时不直接读取 shards，因此 `unique_shard_read_count == 0`；
-- `post_freeze_shard_read_count == 0`；
-- `post_freeze_materialized_read_count == 0`。
-
 发布前要求：
+- `materialized_manifest_read_count == routed_industry_with_universe_count`；
+- `materialized_part_read_count == routed manifest 声明的 part_count 总和`；
+- `materialized_industry_complete_count == routed_industry_with_universe_count`；
+- `legacy_industry_file_read_count == 0`；
+- `unique_shard_read_count == 0`；
 - `working_set_company_count == universe_company_count`；
 - `working_set_count == routed_industry_with_universe_count`；
-- `materialized_industry_read_count == routed_industry_with_universe_count`；
 - 两类 post-freeze read count 都为 0。
 
-否则视为数据访问流程不完整，不得把执行路径描述为 canonical complete。
+否则不得把执行路径描述为 canonical complete。
 
 ## 11. 一句话版本
 
-> GitHub Actions 先把 company_industry_index + shards 确定性物化成按三级行业拆分的小事实文件；低风险榜运行时只按 Trend Handoff 读取对应行业文件并 Freeze，之后重新完成预筛、研究、估值与买点，不再让 automation 现场处理大 JSON。
+> GitHub Actions 把 company_industry_index + shards 确定性物化成“行业 manifest + 有界小 part”；低风险榜按 Trend Handoff 完整读取 manifest 声明的全部 parts、证明 Universe 无遗漏后 Freeze，再完成预筛、研究、估值与买点，规避单个行业大 JSON 被工具截断的问题。
