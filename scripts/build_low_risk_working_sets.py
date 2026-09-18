@@ -23,7 +23,7 @@ def load_json(path: Path) -> dict[str, Any]:
 
 
 def serialize_json(payload: dict[str, Any]) -> str:
-    return json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n"
+    return json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> int:
