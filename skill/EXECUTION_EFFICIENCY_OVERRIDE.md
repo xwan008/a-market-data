@@ -6,7 +6,7 @@
 
 ```text
 一次展开 Universe
-→ 去重 shard 一次性读取
+→ 去重 shard 后小批次读取
 → 动态生成每行业 working set
 → Freeze
 → Hard Filter
@@ -29,9 +29,10 @@ Freeze 前：
 2. `company_industry_index.json` 原则上读一次；
 3. 先得到完整 `universe_company_codes`；
 4. 由全部 universe codes 计算所需 shard 前缀；
-5. shard 前缀去重后，每个 shard 最多读取一次；
-6. 从这些 shard 一次性提取本轮公司完整事实；
-7. 动态构造每个 routed 三级行业的 run-local working set。
+5. shard 前缀去重后，按固定小批次读取；默认每批约 6–8 个，若工具环境限制更严可进一步减小 batch；
+6. 每个唯一 shard 本轮最多读取一次，不得因分批而重复读取；
+7. 每批读取后只累积本轮所需公司事实，不提前进入硬过滤或预筛；
+8. 全部所需 shard 收集完成后，再统一构造每个 routed 三级行业的 run-local working set。
 
 Freeze Gate：
 
@@ -149,7 +150,7 @@ Web 只补关键前瞻假设，不得变成第二轮全面估值深研。
 
 ## 7. 外部调用纪律
 
-1. 能批量不串行；
+1. 能批量不串行；仓库 shard 读取采用受控小批次，避免单轮工具调用上限；
 2. working set 已有字段不再上 Web；
 3. 同一 URL/公告同轮不重复读；
 4. 查询失败最多使用一次合理替代源；
