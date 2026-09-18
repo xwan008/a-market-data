@@ -25,13 +25,13 @@
 → low_risk_buy_range
 ```
 
-Web 深研用于修正关键前瞻假设，不再作为“是否能算出价格区间”的默认前提。
+Web 深研用于修正关键前瞻假设，不再作为“是否能算出价格区间”的默认前提。公司当前价格、财务、估值和 60 日结构事实只来自本轮 frozen working set。
 
 ---
 
 ## 2. 同业统计先于固定倍数
 
-对每个 routed 三级行业，使用已经展开并通过公司级硬过滤的全部公司计算 peer statistics。只使用正且可用的估值字段：
+对每个 routed 三级行业，只使用 **frozen working set 中通过公司级硬过滤的全部公司** 计算 peer statistics。Freeze 后不得为同行统计重新读取 company_industry_index、shard 或 screening group。只使用正且可用的估值字段：
 
 - `pe_dynamic`
 - `pe_ttm`
