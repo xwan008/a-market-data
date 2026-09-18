@@ -79,9 +79,11 @@ post_freeze_shard_read_count == 0
 
 其中：
 - Universe 唯一来自 `data/research/company_industry_index.json`；
-- 公司完整事实由 canonical flow 在 Freeze 前从去重 shard 一次性提取；
+- 公司完整事实由 canonical flow 在 Freeze 前从去重 shard 中提取；每个 shard 必须在工具调用内部解析并只返回本轮目标公司的标准化事实；
 - Freeze 后不得再读取 company_industry_index 或任何个股 shard；
 - 后续硬过滤、预筛、Transmission、Expectation、估值与价格区间全部消费 frozen working set。
+
+若 shard 标准读取返回空内容、截断或不可解析，该次不算成功读取；允许按 canonical flow 对同一 shard 使用一次 GitHub REST Contents/Blob 同源 fallback。只有成功解析并完成目标公司标准字段投影后，才计入 `unique_shard_read_count`；成功后不得再次读取该 shard。
 
 若 Freeze Gate 不成立，正式版不得覆盖上一份 COMPLETE。
 
