@@ -1,24 +1,24 @@
 {
   "schema_version": 7,
-  "generated_at": "2026-09-20T17:00:17.923252+08:00",
-  "trade_date": "2026-09-18",
-  "market_status": "closed_or_no_trade",
+  "generated_at": "2026-09-21T19:45:47.851708+08:00",
+  "trade_date": "2026-09-21",
+  "market_status": "closed",
   "shard_key_length": 5,
   "shard": "60377",
   "stocks": {
     "603773": {
       "name": "沃格光电",
-      "price": 94.1,
-      "prev_close": 95.0,
-      "open": 96.83,
-      "high": 96.83,
-      "low": 90.75,
-      "price_time": "2026-09-18T15:34:59+08:00",
+      "price": 95.96,
+      "prev_close": 94.1,
+      "open": 94.99,
+      "high": 100.5,
+      "low": 94.32,
+      "price_time": "2026-09-21T15:34:59+08:00",
       "confidence": "high",
       "primary_source": "sina",
       "source_prices": {
-        "sina": 94.1,
-        "tencent": 94.1
+        "sina": 95.96,
+        "tencent": 95.96
       },
       "fundamentals": {
         "valuation_date": "2026-09-18",
@@ -44,27 +44,25 @@
           "valuation": "eastmoney_market_cross_section",
           "financial": "eastmoney_RPT_LICO_FN_CPD"
         },
-        "warnings": []
+        "warnings": [
+          "valuation_stale_fallback"
+        ]
       },
       "trend": {
         "points": 65,
-        "last_date": "2026-09-18",
-        "last_close": 94.1,
+        "last_date": "2026-09-21",
+        "last_close": 95.96,
         "history_confidence": "medium",
         "history_warnings": [
           "full_refresh_older_than_10d"
         ],
         "history_basis": "tencent_qfq_plus_live_tail",
         "last_full_refresh": "2026-09-05T15:00:49.573530+08:00",
-        "high_20d": 102.0,
+        "high_20d": 101.86,
         "low_20d": 80.84,
-        "close_change_5d_pct": 5.849268841394806,
-        "close_change_20d_pct": -0.5075068724889054,
+        "close_change_5d_pct": 6.173932285903949,
+        "close_change_20d_pct": 0.08343763037128582,
         "last5": [
-          {
-            "date": "2026-09-14",
-            "close": 88.9
-          },
           {
             "date": "2026-09-15",
             "close": 90.38
@@ -80,16 +78,20 @@
           {
             "date": "2026-09-18",
             "close": 94.1
+          },
+          {
+            "date": "2026-09-21",
+            "close": 95.96
           }
         ],
         "structure_60d": {
           "points": 60,
-          "high": 184.09,
+          "high": 173.57,
           "low": 64.69,
-          "close_change_pct": -42.39363330272421,
-          "ma20": 90.8715,
-          "ma60": 97.68116666666667,
-          "position_pct": 24.631490787269676,
+          "close_change_pct": -41.117997177394614,
+          "ma20": 90.9405,
+          "ma60": 96.55799999999999,
+          "position_pct": 28.719691403379866,
           "support_zones": [
             {
               "low": 91.4265,
@@ -115,18 +117,11 @@
           ],
           "resistance_zones": [
             {
-              "low": 91.7235,
-              "high": 93.5765,
-              "center": 92.65,
-              "touches": 1,
-              "last_touch_date": "2026-09-07"
-            },
-            {
-              "low": 99.99,
-              "high": 102.01,
-              "center": 101.0,
-              "touches": 1,
-              "last_touch_date": "2026-08-28"
+              "low": 100.495,
+              "high": 102.3693,
+              "center": 101.43,
+              "touches": 2,
+              "last_touch_date": "2026-09-17"
             },
             {
               "low": 116.028,
@@ -134,22 +129,26 @@
               "center": 117.2,
               "touches": 1,
               "last_touch_date": "2026-08-19"
+            },
+            {
+              "low": 135.2934,
+              "high": 138.0266,
+              "center": 136.66,
+              "touches": 1,
+              "last_touch_date": "2026-07-10"
             }
           ],
           "structure_evolution": {
             "pivot_window": 2,
             "confirmation_lag_sessions": 2,
-            "trend_state": "bearish",
-            "break_state": "bearish_structure_under_threat",
-            "invalidation": {
-              "direction": "above",
-              "price": 92.65
-            },
+            "trend_state": "transition",
+            "break_state": "bearish_structure_break_confirmed",
+            "invalidation": null,
             "latest_high": {
-              "date": "2026-09-07",
+              "date": "2026-09-17",
               "type": "high",
-              "price": 92.65,
-              "label": "LH"
+              "price": 101.86,
+              "label": "HH"
             },
             "latest_low": {
               "date": "2026-09-11",
@@ -158,12 +157,6 @@
               "label": "LL"
             },
             "pivots": [
-              {
-                "date": "2026-07-23",
-                "type": "high",
-                "price": 89.25,
-                "label": "LH"
-              },
               {
                 "date": "2026-08-03",
                 "type": "low",
@@ -205,17 +198,23 @@
                 "type": "low",
                 "price": 80.84,
                 "label": "LL"
+              },
+              {
+                "date": "2026-09-17",
+                "type": "high",
+                "price": 101.86,
+                "label": "HH"
               }
             ]
           },
           "dense_price_zones": [
             {
               "low": 94.1071,
-              "high": 96.3594,
-              "center": 95.182,
-              "closes": 10,
+              "high": 96.4398,
+              "center": 95.2527,
+              "closes": 11,
               "relation": "current",
-              "last_date": "2026-09-17"
+              "last_date": "2026-09-21"
             },
             {
               "low": 85.0725,
@@ -238,7 +237,7 @@
               "high": 94.5705,
               "center": 93.455,
               "closes": 4,
-              "relation": "current",
+              "relation": "below",
               "last_date": "2026-09-18"
             },
             {
@@ -257,7 +256,7 @@
               "low": 93.5035,
               "high": 96.6307,
               "center": 95.4316,
-              "volume_share_pct": 15.92,
+              "volume_share_pct": 15.91,
               "days": 8,
               "relation": "current",
               "last_date": "2026-09-17"
@@ -266,10 +265,19 @@
               "low": 86.6512,
               "high": 89.445,
               "center": 87.9687,
-              "volume_share_pct": 9.25,
+              "volume_share_pct": 9.24,
               "days": 7,
               "relation": "below",
               "last_date": "2026-09-14"
+            },
+            {
+              "low": 96.3591,
+              "high": 98.4163,
+              "center": 97.1253,
+              "volume_share_pct": 8.33,
+              "days": 5,
+              "relation": "current",
+              "last_date": "2026-09-21"
             },
             {
               "low": 91.1917,
@@ -277,7 +285,7 @@
               "center": 93.0741,
               "volume_share_pct": 8.1,
               "days": 5,
-              "relation": "current",
+              "relation": "below",
               "last_date": "2026-09-18"
             },
             {
@@ -288,15 +296,6 @@
               "days": 3,
               "relation": "above",
               "last_date": "2026-07-10"
-            },
-            {
-              "low": 96.3591,
-              "high": 98.4163,
-              "center": 97.2091,
-              "volume_share_pct": 5.86,
-              "days": 4,
-              "relation": "above",
-              "last_date": "2026-08-28"
             }
           ]
         }
@@ -307,17 +306,17 @@
     },
     "603776": {
       "name": "永安行",
-      "price": 19.61,
-      "prev_close": 19.44,
-      "open": 19.58,
-      "high": 19.7,
-      "low": 19.5,
-      "price_time": "2026-09-18T15:34:59+08:00",
+      "price": 19.64,
+      "prev_close": 19.61,
+      "open": 19.55,
+      "high": 19.89,
+      "low": 19.55,
+      "price_time": "2026-09-21T15:34:59+08:00",
       "confidence": "high",
       "primary_source": "sina",
       "source_prices": {
-        "sina": 19.61,
-        "tencent": 19.61
+        "sina": 19.64,
+        "tencent": 19.64
       },
       "fundamentals": {
         "valuation_date": "2026-09-18",
@@ -343,12 +342,14 @@
           "valuation": "eastmoney_market_cross_section",
           "financial": "eastmoney_RPT_LICO_FN_CPD"
         },
-        "warnings": []
+        "warnings": [
+          "valuation_stale_fallback"
+        ]
       },
       "trend": {
         "points": 65,
-        "last_date": "2026-09-18",
-        "last_close": 19.61,
+        "last_date": "2026-09-21",
+        "last_close": 19.64,
         "history_confidence": "medium",
         "history_warnings": [
           "full_refresh_older_than_10d"
@@ -357,13 +358,9 @@
         "last_full_refresh": "2026-09-05T15:00:49.573530+08:00",
         "high_20d": 20.95,
         "low_20d": 19.13,
-        "close_change_5d_pct": 0.4096262160778297,
-        "close_change_20d_pct": -4.89815712900098,
+        "close_change_5d_pct": 1.9730010384215957,
+        "close_change_20d_pct": -3.9138943248532287,
         "last5": [
-          {
-            "date": "2026-09-14",
-            "close": 19.53
-          },
           {
             "date": "2026-09-15",
             "close": 19.26
@@ -379,16 +376,20 @@
           {
             "date": "2026-09-18",
             "close": 19.61
+          },
+          {
+            "date": "2026-09-21",
+            "close": 19.64
           }
         ],
         "structure_60d": {
           "points": 60,
           "high": 22.15,
           "low": 18.11,
-          "close_change_pct": -4.107579462102684,
-          "ma20": 20.022000000000002,
-          "ma60": 20.079333333333334,
-          "position_pct": 37.128712871287135,
+          "close_change_pct": -5.893627216099661,
+          "ma20": 19.973,
+          "ma60": 20.065833333333334,
+          "position_pct": 37.87128712871291,
           "support_zones": [
             {
               "low": 18.0194,
@@ -428,10 +429,10 @@
               "last_touch_date": "2026-07-30"
             },
             {
-              "low": 21.9994,
-              "high": 22.2607,
-              "center": 22.13,
-              "touches": 2,
+              "low": 21.8889,
+              "high": 22.3311,
+              "center": 22.11,
+              "touches": 1,
               "last_touch_date": "2026-08-13"
             }
           ],
@@ -461,7 +462,7 @@
                 "date": "2026-07-15",
                 "type": "high",
                 "price": 19.71,
-                "label": "LH"
+                "label": null
               },
               {
                 "date": "2026-07-21",
@@ -509,12 +510,12 @@
           },
           "dense_price_zones": [
             {
-              "low": 20.0492,
-              "high": 20.703,
-              "center": 20.3118,
+              "low": 20.0095,
+              "high": 20.5422,
+              "center": 20.2364,
               "closes": 11,
               "relation": "above",
-              "last_date": "2026-09-04"
+              "last_date": "2026-09-07"
             },
             {
               "low": 19.0343,
@@ -534,11 +535,11 @@
             },
             {
               "low": 19.5119,
-              "high": 20.2105,
-              "center": 19.9033,
-              "closes": 9,
+              "high": 20.1302,
+              "center": 19.8188,
+              "closes": 8,
               "relation": "current",
-              "last_date": "2026-09-18"
+              "last_date": "2026-09-21"
             },
             {
               "low": 21.5119,
@@ -553,49 +554,49 @@
           "volume_profile_unit": "shares",
           "volume_profile_zones": [
             {
-              "low": 20.0625,
+              "low": 20.0459,
               "high": 20.6862,
-              "center": 20.377,
-              "volume_share_pct": 26.74,
+              "center": 20.3678,
+              "volume_share_pct": 25.17,
               "days": 14,
               "relation": "above",
               "last_date": "2026-09-04"
             },
             {
-              "low": 18.5634,
-              "high": 19.2323,
-              "center": 18.9131,
-              "volume_share_pct": 18.93,
-              "days": 13,
-              "relation": "below",
-              "last_date": "2026-08-04"
-            },
-            {
-              "low": 21.2665,
-              "high": 21.7683,
-              "center": 21.532,
-              "volume_share_pct": 17.44,
+              "low": 21.0509,
+              "high": 21.7482,
+              "center": 21.4728,
+              "volume_share_pct": 17.4,
               "days": 7,
               "relation": "above",
               "last_date": "2026-08-18"
             },
             {
-              "low": 20.623,
-              "high": 21.2624,
-              "center": 20.948,
-              "volume_share_pct": 9.81,
-              "days": 5,
-              "relation": "above",
-              "last_date": "2026-09-01"
+              "low": 18.5634,
+              "high": 19.1653,
+              "center": 18.8751,
+              "volume_share_pct": 16.6,
+              "days": 12,
+              "relation": "below",
+              "last_date": "2026-08-04"
             },
             {
-              "low": 19.2168,
+              "low": 19.041,
               "high": 19.7013,
-              "center": 19.4751,
-              "volume_share_pct": 9.66,
-              "days": 9,
+              "center": 19.4,
+              "volume_share_pct": 12.74,
+              "days": 10,
               "relation": "current",
               "last_date": "2026-09-18"
+            },
+            {
+              "low": 21.5517,
+              "high": 21.8922,
+              "center": 21.7377,
+              "volume_share_pct": 10.28,
+              "days": 5,
+              "relation": "above",
+              "last_date": "2026-08-17"
             }
           ]
         }
@@ -606,17 +607,17 @@
     },
     "603777": {
       "name": "来伊份",
-      "price": 13.18,
-      "prev_close": 13.07,
-      "open": 13.08,
-      "high": 13.34,
-      "low": 13.03,
-      "price_time": "2026-09-18T15:34:59+08:00",
+      "price": 13.73,
+      "prev_close": 13.18,
+      "open": 13.26,
+      "high": 14.07,
+      "low": 13.18,
+      "price_time": "2026-09-21T15:34:59+08:00",
       "confidence": "high",
       "primary_source": "sina",
       "source_prices": {
-        "sina": 13.18,
-        "tencent": 13.18
+        "sina": 13.73,
+        "tencent": 13.73
       },
       "fundamentals": {
         "valuation_date": "2026-09-18",
@@ -642,12 +643,14 @@
           "valuation": "eastmoney_market_cross_section",
           "financial": "eastmoney_RPT_LICO_FN_CPD"
         },
-        "warnings": []
+        "warnings": [
+          "valuation_stale_fallback"
+        ]
       },
       "trend": {
         "points": 65,
-        "last_date": "2026-09-18",
-        "last_close": 13.18,
+        "last_date": "2026-09-21",
+        "last_close": 13.73,
         "history_confidence": "medium",
         "history_warnings": [
           "full_refresh_older_than_10d"
@@ -656,13 +659,9 @@
         "last_full_refresh": "2026-09-05T15:00:49.573530+08:00",
         "high_20d": 15.36,
         "low_20d": 12.72,
-        "close_change_5d_pct": 1.3846153846153841,
-        "close_change_20d_pct": -0.302571860816947,
+        "close_change_5d_pct": 4.252088078967353,
+        "close_change_20d_pct": 1.779095626389915,
         "last5": [
-          {
-            "date": "2026-09-14",
-            "close": 13.0
-          },
           {
             "date": "2026-09-15",
             "close": 13.17
@@ -678,16 +677,20 @@
           {
             "date": "2026-09-18",
             "close": 13.18
+          },
+          {
+            "date": "2026-09-21",
+            "close": 13.73
           }
         ],
         "structure_60d": {
           "points": 60,
           "high": 17.5,
           "low": 10.85,
-          "close_change_pct": -16.370558375634513,
-          "ma20": 13.7265,
-          "ma60": 14.120333333333333,
-          "position_pct": 35.037593984962406,
+          "close_change_pct": -11.59047005795234,
+          "ma20": 13.752,
+          "ma60": 14.086500000000001,
+          "position_pct": 43.30827067669174,
           "support_zones": [
             {
               "low": 12.6564,
@@ -695,6 +698,13 @@
               "center": 12.7767,
               "touches": 3,
               "last_touch_date": "2026-09-15"
+            },
+            {
+              "low": 13.532,
+              "high": 13.7785,
+              "center": 13.655,
+              "touches": 2,
+              "last_touch_date": "2026-08-31"
             },
             {
               "low": 10.7415,
@@ -798,44 +808,44 @@
           },
           "dense_price_zones": [
             {
-              "low": 13.0046,
-              "high": 13.2961,
-              "center": 13.1633,
-              "closes": 9,
+              "low": 13.6116,
+              "high": 14.07,
+              "center": 13.811,
+              "closes": 10,
               "relation": "current",
+              "last_date": "2026-09-21"
+            },
+            {
+              "low": 12.935,
+              "high": 13.2961,
+              "center": 13.147,
+              "closes": 10,
+              "relation": "below",
               "last_date": "2026-09-18"
             },
             {
-              "low": 13.6614,
-              "high": 14.1202,
-              "center": 13.8611,
+              "low": 13.9798,
+              "high": 14.3514,
+              "center": 14.1722,
               "closes": 9,
               "relation": "above",
-              "last_date": "2026-09-10"
+              "last_date": "2026-09-07"
             },
             {
-              "low": 13.9897,
-              "high": 14.4519,
-              "center": 14.2089,
-              "closes": 9,
-              "relation": "above",
-              "last_date": "2026-09-08"
-            },
-            {
-              "low": 14.3479,
+              "low": 14.3081,
               "high": 14.7634,
-              "center": 14.5337,
-              "closes": 8,
+              "center": 14.5167,
+              "closes": 9,
               "relation": "above",
               "last_date": "2026-09-09"
             },
             {
-              "low": 13.3628,
-              "high": 13.7484,
-              "center": 13.582,
+              "low": 15.3727,
+              "high": 15.7986,
+              "center": 15.58,
               "closes": 5,
               "relation": "above",
-              "last_date": "2026-09-16"
+              "last_date": "2026-07-10"
             }
           ],
           "volume_profile_method": "daily_typical_price_approx",
@@ -845,27 +855,27 @@
               "low": 13.6647,
               "high": 14.1001,
               "center": 13.8938,
-              "volume_share_pct": 16.02,
+              "volume_share_pct": 16.01,
               "days": 11,
-              "relation": "above",
+              "relation": "current",
               "last_date": "2026-09-10"
             },
             {
               "low": 13.9798,
               "high": 14.4217,
               "center": 14.1687,
-              "volume_share_pct": 13.72,
+              "volume_share_pct": 13.71,
               "days": 9,
               "relation": "above",
               "last_date": "2026-09-08"
             },
             {
               "low": 12.9483,
-              "high": 13.3966,
-              "center": 13.1831,
-              "volume_share_pct": 13.66,
-              "days": 10,
-              "relation": "current",
+              "high": 13.3933,
+              "center": 13.1635,
+              "volume_share_pct": 12.04,
+              "days": 9,
+              "relation": "below",
               "last_date": "2026-09-18"
             },
             {
@@ -878,13 +888,13 @@
               "last_date": "2026-09-09"
             },
             {
-              "low": 14.6762,
-              "high": 15.0113,
-              "center": 14.8636,
-              "volume_share_pct": 7.33,
-              "days": 4,
-              "relation": "above",
-              "last_date": "2026-08-18"
+              "low": 13.2634,
+              "high": 13.7283,
+              "center": 13.4733,
+              "volume_share_pct": 9.0,
+              "days": 5,
+              "relation": "current",
+              "last_date": "2026-09-21"
             }
           ]
         }
@@ -895,17 +905,17 @@
     },
     "603778": {
       "name": "国晟科技",
-      "price": 9.1,
-      "prev_close": 8.88,
-      "open": 8.96,
-      "high": 9.59,
-      "low": 8.9,
-      "price_time": "2026-09-18T15:34:59+08:00",
+      "price": 9.22,
+      "prev_close": 9.1,
+      "open": 9.01,
+      "high": 9.29,
+      "low": 9.0,
+      "price_time": "2026-09-21T15:34:59+08:00",
       "confidence": "high",
       "primary_source": "sina",
       "source_prices": {
-        "sina": 9.1,
-        "tencent": 9.1
+        "sina": 9.22,
+        "tencent": 9.22
       },
       "fundamentals": {
         "valuation_date": "2026-09-18",
@@ -931,12 +941,14 @@
           "valuation": "eastmoney_market_cross_section",
           "financial": "eastmoney_RPT_LICO_FN_CPD"
         },
-        "warnings": []
+        "warnings": [
+          "valuation_stale_fallback"
+        ]
       },
       "trend": {
         "points": 65,
-        "last_date": "2026-09-18",
-        "last_close": 9.1,
+        "last_date": "2026-09-21",
+        "last_close": 9.22,
         "history_confidence": "medium",
         "history_warnings": [
           "full_refresh_older_than_10d"
@@ -945,13 +957,9 @@
         "last_full_refresh": "2026-09-05T15:00:49.573530+08:00",
         "high_20d": 11.42,
         "low_20d": 8.86,
-        "close_change_5d_pct": -6.474820143884896,
-        "close_change_20d_pct": -1.8338727076591121,
+        "close_change_5d_pct": 0.6550218340611424,
+        "close_change_20d_pct": -1.8104366347177825,
         "last5": [
-          {
-            "date": "2026-09-14",
-            "close": 9.73
-          },
           {
             "date": "2026-09-15",
             "close": 9.16
@@ -967,30 +975,34 @@
           {
             "date": "2026-09-18",
             "close": 9.1
+          },
+          {
+            "date": "2026-09-21",
+            "close": 9.22
           }
         ],
         "structure_60d": {
           "points": 60,
           "high": 13.3,
           "low": 7.56,
-          "close_change_pct": -24.79338842975207,
-          "ma20": 9.882,
-          "ma60": 10.075833333333334,
-          "position_pct": 26.829268292682922,
+          "close_change_pct": -25.04065040650406,
+          "ma20": 9.8795,
+          "ma60": 10.027833333333334,
+          "position_pct": 28.919860627177712,
           "support_zones": [
+            {
+              "low": 8.8157,
+              "high": 9.055,
+              "center": 8.935,
+              "touches": 2,
+              "last_touch_date": "2026-09-17"
+            },
             {
               "low": 8.2883,
               "high": 8.5324,
               "center": 8.41,
               "touches": 2,
               "last_touch_date": "2026-07-30"
-            },
-            {
-              "low": 8.9199,
-              "high": 9.1001,
-              "center": 9.01,
-              "touches": 1,
-              "last_touch_date": "2026-08-25"
             },
             {
               "low": 7.4844,
@@ -1026,12 +1038,9 @@
           "structure_evolution": {
             "pivot_window": 2,
             "confirmation_lag_sessions": 2,
-            "trend_state": "bullish",
-            "break_state": "bullish_structure_under_threat",
-            "invalidation": {
-              "direction": "below",
-              "price": 9.58
-            },
+            "trend_state": "transition",
+            "break_state": "bullish_structure_break_confirmed",
+            "invalidation": null,
             "latest_high": {
               "date": "2026-09-04",
               "type": "high",
@@ -1039,18 +1048,12 @@
               "label": "HH"
             },
             "latest_low": {
-              "date": "2026-09-02",
+              "date": "2026-09-17",
               "type": "low",
-              "price": 9.58,
-              "label": "HL"
+              "price": 8.86,
+              "label": "LL"
             },
             "pivots": [
-              {
-                "date": "2026-07-30",
-                "type": "low",
-                "price": 8.49,
-                "label": "HL"
-              },
               {
                 "date": "2026-08-13",
                 "type": "high",
@@ -1092,98 +1095,104 @@
                 "type": "high",
                 "price": 11.42,
                 "label": "HH"
+              },
+              {
+                "date": "2026-09-17",
+                "type": "low",
+                "price": 8.86,
+                "label": "LL"
               }
             ]
           },
           "dense_price_zones": [
             {
-              "low": 10.5868,
-              "high": 10.8841,
-              "center": 10.7256,
-              "closes": 9,
-              "relation": "above",
-              "last_date": "2026-09-08"
-            },
-            {
-              "low": 10.3281,
+              "low": 10.3082,
               "high": 10.5625,
-              "center": 10.4488,
-              "closes": 8,
+              "center": 10.4389,
+              "closes": 9,
               "relation": "above",
               "last_date": "2026-09-10"
             },
             {
-              "low": 8.8356,
-              "high": 9.1455,
-              "center": 8.9833,
-              "closes": 6,
-              "relation": "current",
-              "last_date": "2026-09-18"
-            },
-            {
-              "low": 9.1142,
-              "high": 9.3967,
-              "center": 9.28,
-              "closes": 5,
+              "low": 9.2236,
+              "high": 9.5475,
+              "center": 9.37,
+              "closes": 8,
               "relation": "current",
               "last_date": "2026-09-16"
             },
             {
-              "low": 8.358,
-              "high": 8.6128,
-              "center": 8.476,
-              "closes": 5,
-              "relation": "below",
-              "last_date": "2026-07-30"
+              "low": 9.7211,
+              "high": 10.0299,
+              "center": 9.8533,
+              "closes": 6,
+              "relation": "above",
+              "last_date": "2026-09-11"
+            },
+            {
+              "low": 10.5868,
+              "high": 10.8037,
+              "center": 10.6833,
+              "closes": 6,
+              "relation": "above",
+              "last_date": "2026-09-08"
+            },
+            {
+              "low": 10.736,
+              "high": 11.0047,
+              "center": 10.87,
+              "closes": 6,
+              "relation": "above",
+              "last_date": "2026-09-04"
             }
           ],
           "volume_profile_method": "daily_typical_price_approx",
           "volume_profile_unit": "shares",
           "volume_profile_zones": [
             {
-              "low": 10.5337,
-              "high": 10.8808,
-              "center": 10.71,
-              "volume_share_pct": 18.97,
+              "low": 10.4906,
+              "high": 10.8071,
+              "center": 10.6686,
+              "volume_share_pct": 21.1,
               "days": 10,
               "relation": "above",
               "last_date": "2026-09-09"
             },
             {
-              "low": 10.7858,
-              "high": 11.0918,
-              "center": 10.8782,
-              "volume_share_pct": 10.91,
-              "days": 5,
+              "low": 10.7626,
+              "high": 10.9377,
+              "center": 10.8544,
+              "volume_share_pct": 11.9,
+              "days": 6,
               "relation": "above",
               "last_date": "2026-09-04"
             },
             {
-              "low": 9.7808,
-              "high": 10.0835,
-              "center": 9.932,
-              "volume_share_pct": 9.64,
-              "days": 6,
+              "low": 9.7311,
+              "high": 10.0701,
+              "center": 9.8895,
+              "volume_share_pct": 11.0,
+              "days": 7,
               "relation": "above",
               "last_date": "2026-09-14"
             },
             {
-              "low": 10.3082,
-              "high": 10.6128,
-              "center": 10.4812,
-              "volume_share_pct": 9.61,
-              "days": 6,
-              "relation": "above",
-              "last_date": "2026-09-10"
+              "low": 9.1109,
+              "high": 9.2795,
+              "center": 9.1953,
+              "volume_share_pct": 8.31,
+              "days": 5,
+              "relation": "current",
+              "last_date": "2026-09-21"
             },
             {
-              "low": 9.1109,
-              "high": 9.3666,
-              "center": 9.2229,
-              "volume_share_pct": 8.83,
-              "days": 7,
-              "relation": "current",
-              "last_date": "2026-09-18"
+              "low": 8.7394,
+              "high": 9.055,
+              "center": 8.8936,
+              "volume_share_pct": 8.02,
+              "days": 4,
+              "relation": "below",
+              "last_date": "2026-09-17"
             }
           ]
         }
@@ -1194,17 +1203,17 @@
     },
     "603779": {
       "name": "威龙股份",
-      "price": 8.24,
+      "price": 8.43,
       "prev_close": 8.24,
-      "open": 8.24,
-      "high": 8.38,
-      "low": 8.2,
-      "price_time": "2026-09-18T15:00:03+08:00",
+      "open": 8.21,
+      "high": 8.44,
+      "low": 8.21,
+      "price_time": "2026-09-21T15:34:59+08:00",
       "confidence": "high",
       "primary_source": "sina",
       "source_prices": {
-        "sina": 8.24,
-        "tencent": 8.24
+        "sina": 8.43,
+        "tencent": 8.43
       },
       "fundamentals": {
         "valuation_date": "2026-09-18",
@@ -1230,12 +1239,14 @@
           "valuation": "eastmoney_market_cross_section",
           "financial": "eastmoney_RPT_LICO_FN_CPD"
         },
-        "warnings": []
+        "warnings": [
+          "valuation_stale_fallback"
+        ]
       },
       "trend": {
         "points": 65,
-        "last_date": "2026-09-18",
-        "last_close": 8.24,
+        "last_date": "2026-09-21",
+        "last_close": 8.43,
         "history_confidence": "medium",
         "history_warnings": [
           "full_refresh_older_than_10d"
@@ -1243,14 +1254,10 @@
         "history_basis": "tencent_qfq_plus_live_tail",
         "last_full_refresh": "2026-09-05T15:00:49.573530+08:00",
         "high_20d": 9.33,
-        "low_20d": 7.7,
-        "close_change_5d_pct": 1.980198019801982,
-        "close_change_20d_pct": 4.303797468354431,
+        "low_20d": 7.71,
+        "close_change_5d_pct": 8.07692307692307,
+        "close_change_20d_pct": 5.904522613065333,
         "last5": [
-          {
-            "date": "2026-09-14",
-            "close": 8.08
-          },
           {
             "date": "2026-09-15",
             "close": 7.8
@@ -1266,16 +1273,20 @@
           {
             "date": "2026-09-18",
             "close": 8.24
+          },
+          {
+            "date": "2026-09-21",
+            "close": 8.43
           }
         ],
         "structure_60d": {
           "points": 60,
           "high": 9.33,
           "low": 6.47,
-          "close_change_pct": 10.90174966352626,
-          "ma20": 8.229000000000001,
-          "ma60": 7.889833333333334,
-          "position_pct": 61.888111888111894,
+          "close_change_pct": 12.250332889480697,
+          "ma20": 8.2555,
+          "ma60": 7.9065,
+          "position_pct": 68.53146853146852,
           "support_zones": [
             {
               "low": 7.6814,
@@ -1306,13 +1317,6 @@
               "center": 8.5233,
               "touches": 3,
               "last_touch_date": "2026-09-02"
-            },
-            {
-              "low": 8.0794,
-              "high": 8.3415,
-              "center": 8.21,
-              "touches": 2,
-              "last_touch_date": "2026-08-18"
             },
             {
               "low": 9.2037,
@@ -1393,72 +1397,72 @@
           },
           "dense_price_zones": [
             {
-              "low": 7.6615,
-              "high": 7.9294,
-              "center": 7.815,
-              "closes": 14,
+              "low": 8.0894,
+              "high": 8.2912,
+              "center": 8.1964,
+              "closes": 11,
+              "relation": "below",
+              "last_date": "2026-09-18"
+            },
+            {
+              "low": 7.761,
+              "high": 7.9395,
+              "center": 7.8627,
+              "closes": 11,
               "relation": "below",
               "last_date": "2026-09-15"
             },
             {
-              "low": 8.0595,
-              "high": 8.2912,
-              "center": 8.1883,
-              "closes": 12,
-              "relation": "current",
-              "last_date": "2026-09-18"
+              "low": 7.4924,
+              "high": 7.7586,
+              "center": 7.6418,
+              "closes": 11,
+              "relation": "below",
+              "last_date": "2026-08-21"
             },
             {
-              "low": 7.8605,
-              "high": 8.1204,
-              "center": 7.9711,
+              "low": 7.9003,
+              "high": 8.1405,
+              "center": 7.9933,
               "closes": 9,
               "relation": "below",
               "last_date": "2026-09-16"
             },
             {
-              "low": 7.4724,
-              "high": 7.7284,
-              "center": 7.5938,
-              "closes": 8,
-              "relation": "below",
-              "last_date": "2026-08-19"
-            },
-            {
               "low": 8.2983,
               "high": 8.5224,
-              "center": 8.408,
-              "closes": 5,
+              "center": 8.4117,
+              "closes": 6,
               "relation": "current",
-              "last_date": "2026-09-10"
+              "last_date": "2026-09-21"
             }
           ],
           "volume_profile_method": "daily_typical_price_approx",
           "volume_profile_unit": "shares",
           "volume_profile_zones": [
             {
-              "low": 7.8937,
+              "low": 8.1059,
+              "high": 8.3348,
+              "center": 8.1966,
+              "volume_share_pct": 16.8,
+              "days": 9,
+              "relation": "below",
+              "last_date": "2026-09-18"
+            },
+            {
+              "low": 7.9003,
               "high": 8.1572,
-              "center": 8.0135,
-              "volume_share_pct": 17.23,
-              "days": 12,
+              "center": 8.0173,
+              "volume_share_pct": 16.57,
+              "days": 11,
               "relation": "below",
               "last_date": "2026-09-14"
             },
             {
-              "low": 8.1059,
-              "high": 8.3348,
-              "center": 8.1966,
-              "volume_share_pct": 16.69,
-              "days": 9,
-              "relation": "current",
-              "last_date": "2026-09-18"
-            },
-            {
-              "low": 7.698,
-              "high": 7.9663,
-              "center": 7.8176,
-              "volume_share_pct": 15.86,
+              "low": 7.7079,
+              "high": 7.973,
+              "center": 7.8304,
+              "volume_share_pct": 15.41,
               "days": 14,
               "relation": "below",
               "last_date": "2026-09-16"
@@ -1466,18 +1470,18 @@
             {
               "low": 8.3082,
               "high": 8.5391,
-              "center": 8.3973,
-              "volume_share_pct": 9.59,
-              "days": 6,
+              "center": 8.3947,
+              "volume_share_pct": 10.38,
+              "days": 7,
               "relation": "current",
-              "last_date": "2026-09-11"
+              "last_date": "2026-09-21"
             },
             {
               "low": 7.5156,
-              "high": 7.7653,
-              "center": 7.6808,
-              "volume_share_pct": 8.56,
-              "days": 5,
+              "high": 7.7753,
+              "center": 7.6883,
+              "volume_share_pct": 9.94,
+              "days": 6,
               "relation": "below",
               "last_date": "2026-08-21"
             }
