@@ -273,6 +273,34 @@ def main() -> int:
         for code in sorted(target_codes)
     }
 
+    formal_prev_close_comparable_count = 0
+    formal_prev_close_matched_count = 0
+    for item in low_risk_items:
+        code = str(item.get("code") or "").zfill(6)
+        formal_close = market.positive_number(item.get("current_price"))
+        live_prev_close = market.positive_number((quotes.get(code) or {}).get("prev_close"))
+        if formal_close is None or live_prev_close is None:
+            continue
+        formal_prev_close_comparable_count += 1
+        diff_ratio = abs(formal_close - live_prev_close) / live_prev_close
+        if diff_ratio <= 0.005:
+            formal_prev_close_matched_count += 1
+
+    if low_risk_items:
+        required_comparable = max(1, (len(low_risk_items) * 8 + 9) // 10)
+        formal_prev_close_alignment_ratio = (
+            formal_prev_close_matched_count / formal_prev_close_comparable_count
+            if formal_prev_close_comparable_count
+            else 0.0
+        )
+        formal_prev_close_alignment_passed = bool(
+            formal_prev_close_comparable_count >= required_comparable
+            and formal_prev_close_alignment_ratio >= 0.80
+        )
+    else:
+        formal_prev_close_alignment_ratio = 1.0
+        formal_prev_close_alignment_passed = True
+
     for industry_code, industry in industries.items():
         codes = industry["company_codes"]
         industry["metrics"] = metrics_for_codes(codes, quotes)
@@ -346,6 +374,7 @@ def main() -> int:
                 "passed"
                 if trade_date == now.date().isoformat()
                 and source_handoff_trade_date_consistent
+                and formal_prev_close_alignment_passed
                 and quote_coverage >= 0.90
                 and not manifest_errors
                 else "degraded"
@@ -354,6 +383,10 @@ def main() -> int:
                 source_trend_trade_date and source_low_risk_trade_date
             ),
             "source_handoff_trade_date_consistent": source_handoff_trade_date_consistent,
+            "formal_prev_close_comparable_count": formal_prev_close_comparable_count,
+            "formal_prev_close_matched_count": formal_prev_close_matched_count,
+            "formal_prev_close_alignment_ratio": round(formal_prev_close_alignment_ratio, 4),
+            "formal_prev_close_alignment_passed": formal_prev_close_alignment_passed,
             "target_company_count": total_quotes,
             "usable_quote_count": usable_quotes,
             "quote_coverage": round(quote_coverage, 4),
