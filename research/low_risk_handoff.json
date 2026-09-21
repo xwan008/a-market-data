@@ -1,55 +1,141 @@
 {
   "schema_version": 1,
   "result_kind": "a_share_low_risk_handoff",
-  "trade_date": "2026-09-18",
-  "generated_at": "2026-09-19T16:24:00+08:00",
+  "trade_date": "2026-09-21",
+  "generated_at": "2026-09-21T19:59:24+08:00",
   "source": {
     "task": "A股低风险买点榜",
     "logic_unchanged": true,
-    "execution_mode": "manual_formal_initialization"
+    "execution_mode": "manual_formal_fresh_run",
+    "formal_result_run_id": "202609211959-CN-manual-formal-01",
+    "formal_result_commit": "6da13a1824c14aba4dd9495f402b33857ab25e6e"
   },
   "items": [
     {
       "rank": 1,
+      "code": "603259",
+      "company_name": "药明康德",
+      "trend_name": "CRO/医疗研发外包",
+      "industry_code": "S370603",
+      "industry_name": "医疗研发外包",
+      "status": "WAIT",
+      "wait_reason": "WAIT_PRICE",
+      "current_price": 167.96,
+      "reasonable_buy_range": {
+        "low": 150,
+        "high": 160,
+        "currency": "CNY"
+      },
+      "low_risk_buy_range": {
+        "low": 128,
+        "high": 142,
+        "currency": "CNY"
+      },
+      "wait_or_trigger_condition": "价格回到150-160元且订单/TIDES增长保持；128-142元为低风险优先区。",
+      "invalidation_condition": "若在手订单、TIDES客户/项目增长明显放缓，或新增需求无法继续转化为收入与核心利润，则逻辑失效。",
+      "valuation_archetype": "Growth-Tech/R&D",
+      "price_range_basis": "在手订单/TIDES客户与项目增长支撑盈利传导；同业动态PE与增长质量给出更高基本面锚，但当前处于60日高位，执行价由150-160元支撑与成交密集区约束。",
+      "reentry_trigger": "价格回到150-160元且订单/TIDES增长保持；128-142元为低风险优先区。",
+      "transmission": "SUPPORTED",
+      "expectation": "CONFIRMING"
+    },
+    {
+      "rank": 2,
+      "code": "603127",
+      "company_name": "昭衍新药",
+      "trend_name": "CRO/医疗研发外包",
+      "industry_code": "S370603",
+      "industry_name": "医疗研发外包",
+      "status": "WAIT",
+      "wait_reason": "WAIT_PRICE",
+      "current_price": 46.74,
+      "reasonable_buy_range": {
+        "low": 40,
+        "high": 43,
+        "currency": "CNY"
+      },
+      "low_risk_buy_range": {
+        "low": 34,
+        "high": 37.5,
+        "currency": "CNY"
+      },
+      "wait_or_trigger_condition": "价格回到40-43元且新签/在手订单增速与产能利用率未恶化；34-37.5元为低风险区。",
+      "invalidation_condition": "若新签订单/在手订单增长明显回落、产能利用率下降或核心经营改善不能延续，则逻辑失效。",
+      "valuation_archetype": "Growth-Tech/R&D",
+      "price_range_basis": "新签订单、在手订单与产能利用率支持未来传导；当前价格高于40-43元主要支撑/成交区，低风险区进一步按CRO波动与盈利质量折价。",
+      "reentry_trigger": "价格回到40-43元且新签/在手订单增速与产能利用率未恶化；34-37.5元为低风险区。",
+      "transmission": "SUPPORTED",
+      "expectation": "CONFIRMING"
+    },
+    {
+      "rank": 3,
+      "code": "603456",
+      "company_name": "九洲药业",
+      "trend_name": "CRO/医疗研发外包",
+      "industry_code": "S370603",
+      "industry_name": "医疗研发外包",
+      "status": "WAIT",
+      "wait_reason": "WAIT_MARGIN",
+      "current_price": 16.2,
+      "reasonable_buy_range": {
+        "low": 14.5,
+        "high": 16,
+        "currency": "CNY"
+      },
+      "low_risk_buy_range": {
+        "low": 12.5,
+        "high": 14,
+        "currency": "CNY"
+      },
+      "wait_or_trigger_condition": "价格<=16元且新项目/TIDES订单继续转化；12.5-14元为低风险优先区。",
+      "invalidation_condition": "若新项目转化放缓、TIDES在手订单增长逆转或H2核心经营仍持续下滑，则逻辑失效。",
+      "valuation_archetype": "Growth-Tech/R&D",
+      "price_range_basis": "H1同比仍承压，但新项目、新客户及TIDES在手订单提供前瞻修复；当前已接近合理区上沿，需更高安全边际。",
+      "reentry_trigger": "价格<=16元且新项目/TIDES订单继续转化；12.5-14元为低风险优先区。",
+      "transmission": "SUPPORTED",
+      "expectation": "CONFIRMING"
+    },
+    {
+      "rank": 4,
       "code": "002371",
       "company_name": "北方华创",
       "trend_name": "半导体设备/材料",
       "industry_code": "S270108",
       "industry_name": "半导体设备",
       "status": "WAIT",
-      "wait_reason": "WAIT_PRICE",
-      "current_price": 686.51,
+      "wait_reason": "WAIT_MARGIN",
+      "current_price": 676.61,
       "reasonable_buy_range": {
-        "low": 655,
+        "low": 650,
         "high": 680,
         "currency": "CNY"
       },
       "low_risk_buy_range": {
-        "low": 620,
-        "high": 640,
+        "low": 610,
+        "high": 635,
         "currency": "CNY"
       },
-      "wait_or_trigger_condition": "回落至合理区上沿680元以下后再观察；进入620–640元低风险区且半导体设备趋势未恶化时优先复核。",
-      "invalidation_condition": "若半导体设备需求/订单兑现明显放缓，且后续收入与核心利润无法继续确认当前T1趋势传导，则本轮逻辑失效。",
-      "valuation_archetype": "Growth-Tech",
-      "price_range_basis": "同业dynamic PE中位数+公司质量修正；以664元附近支撑/676元附近成交区和MA60共同约束。",
-      "reentry_trigger": "价格<=680元；更优为进入620–640元且行业状态正常/修复。",
+      "wait_or_trigger_condition": "650-680元内且批量应用/收入增长逻辑不弱化；610-635元为低风险优先区。",
+      "invalidation_condition": "若半导体设备客户扩产/国产替代需求明显转弱，或收入与核心利润增速连续下行，则逻辑失效。",
+      "valuation_archetype": "Growth-Tech/R&D",
+      "price_range_basis": "行业同业动态PE与公司收入增长/现金流质量支持基本面锚；当前已进入657-680元成交密集与664元支撑区，但距离更严格安全边际仍不足。",
+      "reentry_trigger": "650-680元内且批量应用/收入增长逻辑不弱化；610-635元为低风险优先区。",
       "transmission": "SUPPORTED",
       "expectation": "CONFIRMING"
     },
     {
-      "rank": 2,
+      "rank": 5,
       "code": "603061",
       "company_name": "金海通股份",
       "trend_name": "半导体设备/材料",
       "industry_code": "S270108",
       "industry_name": "半导体设备",
       "status": "WAIT",
-      "wait_reason": "WAIT_MARGIN",
-      "current_price": 348.79,
+      "wait_reason": "WAIT_PRICE",
+      "current_price": 357.3,
       "reasonable_buy_range": {
         "low": 320,
-        "high": 340,
+        "high": 350,
         "currency": "CNY"
       },
       "low_risk_buy_range": {
@@ -57,16 +143,16 @@
         "high": 310,
         "currency": "CNY"
       },
-      "wait_or_trigger_condition": "测试分选机需求与海外订单仍在增长，但当前价高于合理区；回落至320–340元再评估，285–310元进入低风险复核区。",
-      "invalidation_condition": "若境外订单增长逆转、测试分选机销量/交付明显回落，或新增客户扩张失速，则传导逻辑失效。",
-      "valuation_archetype": "Growth-Tech",
-      "price_range_basis": "同业dynamic PE中位数上修+高增长质量；以319–334元支撑/成交密集区约束。",
-      "reentry_trigger": "价格进入320–340元且行业保持正常/修复；285–310元为低风险优先区。",
+      "wait_or_trigger_condition": "价格<=350元且境外订单及测试分选机销量增长维持；285-310元为低风险区。",
+      "invalidation_condition": "若境外订单、测试分选机销量或AI/HPC/汽车相关需求明显回落，则传导逻辑失效。",
+      "valuation_archetype": "Growth-Tech/R&D",
+      "price_range_basis": "测试分选机销量、境外订单与核心利润高速增长支持同业溢价，但当前价格高于319-350元主要支撑/成交区，需等待价格回归。",
+      "reentry_trigger": "价格<=350元且境外订单及测试分选机销量增长维持；285-310元为低风险区。",
       "transmission": "SUPPORTED",
       "expectation": "CONFIRMING"
     },
     {
-      "rank": 3,
+      "rank": 6,
       "code": "603991",
       "company_name": "领先股份",
       "trend_name": "半导体设备/材料",
@@ -74,10 +160,10 @@
       "industry_name": "半导体设备",
       "status": "WAIT",
       "wait_reason": "WAIT_EXPECTATION",
-      "current_price": 179.82,
+      "current_price": 175.62,
       "reasonable_buy_range": {
         "low": 168,
-        "high": 176,
+        "high": 178,
         "currency": "CNY"
       },
       "low_risk_buy_range": {
@@ -85,16 +171,16 @@
         "high": 158,
         "currency": "CNY"
       },
-      "wait_or_trigger_condition": "业绩扭亏和订单交付已被快速交易，等待回落至168–176元，或出现新的独立订单/盈利上修形成预期重置。",
-      "invalidation_condition": "若新增高端订单承接、产能利用率或交付效率低于预期，且利润改善无法延续，则本轮逻辑失效。",
-      "valuation_archetype": "Growth-Tech",
-      "price_range_basis": "同业dynamic PE+高增长修正，但对20日快速重估和高位置给予折价；以171元附近支撑约束。",
-      "reentry_trigger": "价格<=176元或出现新的独立预期重置；145–158元为低风险优先区。",
+      "wait_or_trigger_condition": "价格回到168-178元且订单交付/产能利用率继续兑现，或出现新的独立订单/盈利预期重置；145-158元为低风险区。",
+      "invalidation_condition": "若在手订单转化、产能利用率或高端订单承接低于预期，且利润兑现明显弱化，则逻辑失效。",
+      "valuation_archetype": "Growth-Tech/R&D",
+      "price_range_basis": "在手订单与新产能支持盈利兑现，但20日涨幅与60日位置已反映较多预期；合理区由171元结构支撑与同业估值共同约束。",
+      "reentry_trigger": "价格回到168-178元且订单交付/产能利用率继续兑现，或出现新的独立订单/盈利预期重置；145-158元为低风险区。",
       "transmission": "SUPPORTED",
       "expectation": "PRICED_IN"
     },
     {
-      "rank": 4,
+      "rank": 7,
       "code": "002119",
       "company_name": "康强电子",
       "trend_name": "半导体设备/材料",
@@ -102,7 +188,7 @@
       "industry_name": "半导体材料",
       "status": "WAIT",
       "wait_reason": "WAIT_PRICE",
-      "current_price": 24.82,
+      "current_price": 24.76,
       "reasonable_buy_range": {
         "low": 22.5,
         "high": 24.2,
@@ -113,24 +199,24 @@
         "high": 21.5,
         "currency": "CNY"
       },
-      "wait_or_trigger_condition": "引线框架/键合丝景气传导成立，但经营现金流偏弱；回落至22.5–24.2元再观察，19.5–21.5元优先复核。",
-      "invalidation_condition": "若引线框架和键合丝高增长明显回落，或负经营现金流持续且无法通过回款改善，则逻辑失效。",
-      "valuation_archetype": "Growth-Tech",
-      "price_range_basis": "半导体材料同业dynamic PE中位数折价+现金流质量修正；参考21.7元支撑和23元附近成交密集区。",
-      "reentry_trigger": "价格<=24.2元且行业正常/修复；19.5–21.5元为低风险区。",
+      "wait_or_trigger_condition": "价格<=24.2元且引线框架/键合丝需求保持；19.5-21.5元为低风险区。",
+      "invalidation_condition": "若引线框架/键合丝需求与国产替代进度明显转弱，或负经营现金流持续恶化，则逻辑失效。",
+      "valuation_archetype": "Growth-Tech/R&D",
+      "price_range_basis": "引线框架/键合丝收入与国产替代传导成立，但经营现金流偏弱；当前略高于22.5-24.2元结构与估值共同可接受区。",
+      "reentry_trigger": "价格<=24.2元且引线框架/键合丝需求保持；19.5-21.5元为低风险区。",
       "transmission": "SUPPORTED",
       "expectation": "CONFIRMING"
     },
     {
-      "rank": 5,
+      "rank": 8,
       "code": "002409",
       "company_name": "雅克科技",
       "trend_name": "半导体设备/材料",
       "industry_code": "S270103",
       "industry_name": "半导体材料",
       "status": "WAIT",
-      "wait_reason": "WAIT_PRICE",
-      "current_price": 138.83,
+      "wait_reason": "WAIT_MARGIN",
+      "current_price": 137.43,
       "reasonable_buy_range": {
         "low": 125,
         "high": 138,
@@ -141,16 +227,16 @@
         "high": 120,
         "currency": "CNY"
       },
-      "wait_or_trigger_condition": "前驱体、光刻胶配套与电子特气扩产提供增量，但当前价略高于合理区；回落至125–138元再评估。",
-      "invalidation_condition": "若UP CHEM新产能、内蒙古特气项目投产延期，或主流晶圆厂导入/放量不及预期，则逻辑失效。",
-      "valuation_archetype": "Growth-Tech",
-      "price_range_basis": "同业dynamic PE+平台化材料业务质量修正；结构锚取125元附近支撑和136元附近成交区。",
-      "reentry_trigger": "价格进入125–138元且新增产能/客户导入继续兑现；110–120元为低风险区。",
+      "wait_or_trigger_condition": "价格维持125-138元且客户认证/产能放量继续兑现；110-120元为低风险区。",
+      "invalidation_condition": "若前驱体/光刻胶客户认证或放量明显延迟，新增产能利用率无法提升，则逻辑失效。",
+      "valuation_archetype": "Growth-Tech/R&D",
+      "price_range_basis": "前驱体出货、存储客户放量与光刻胶导入提供中期增量，但认证/利用率仍需验证；当前位于合理区上沿，安全边际不足。",
+      "reentry_trigger": "价格维持125-138元且客户认证/产能放量继续兑现；110-120元为低风险区。",
       "transmission": "SUPPORTED",
       "expectation": "CONFIRMING"
     },
     {
-      "rank": 6,
+      "rank": 9,
       "code": "003026",
       "company_name": "中晶科技",
       "trend_name": "半导体设备/材料",
@@ -158,106 +244,22 @@
       "industry_name": "半导体材料",
       "status": "WAIT",
       "wait_reason": "WAIT_PRICE",
-      "current_price": 37.2,
+      "current_price": 37.89,
       "reasonable_buy_range": {
-        "low": 28,
-        "high": 31,
+        "low": 29,
+        "high": 32,
         "currency": "CNY"
       },
       "low_risk_buy_range": {
         "low": 24.5,
-        "high": 27,
+        "high": 27.5,
         "currency": "CNY"
       },
-      "wait_or_trigger_condition": "半导体硅片/硅棒/功率器件收入均增长，但股价20日已明显重估；等待回落至28–31元。",
-      "invalidation_condition": "若硅片、硅棒或功率器件收入增速显著回落，且毛利改善无法延续，则逻辑失效。",
-      "valuation_archetype": "Growth-Tech",
-      "price_range_basis": "同业dynamic PE中位数附近估值+近期重估折价；参考27.6–29.5元支撑/成交区。",
-      "reentry_trigger": "价格<=31元且行业状态不恶化；24.5–27元为低风险区。",
-      "transmission": "SUPPORTED",
-      "expectation": "CONFIRMING"
-    },
-    {
-      "rank": 7,
-      "code": "603259",
-      "company_name": "药明康德",
-      "trend_name": "CRO/医疗研发外包",
-      "industry_code": "S370603",
-      "industry_name": "医疗研发外包",
-      "status": "WAIT",
-      "wait_reason": "WAIT_MARGIN",
-      "current_price": 160,
-      "reasonable_buy_range": {
-        "low": 148,
-        "high": 158,
-        "currency": "CNY"
-      },
-      "low_risk_buy_range": {
-        "low": 125,
-        "high": 140,
-        "currency": "CNY"
-      },
-      "wait_or_trigger_condition": "在手订单增长支撑未来传导，但当前价位于60日较高区域；等待回落至148–158元，125–140元为低风险优先区。",
-      "invalidation_condition": "若在手订单增长明显放缓、客户取消/延期显著增加，或新增需求无法继续转化为收入，则逻辑失效。",
+      "wait_or_trigger_condition": "价格回到29-32元且三类核心产品增长与毛利改善延续；24.5-27.5元为低风险区。",
+      "invalidation_condition": "若硅片/硅棒/功率器件收入增速明显回落或毛利改善逆转，则逻辑失效。",
       "valuation_archetype": "Growth-Tech/R&D",
-      "price_range_basis": "CRO同业PE中位数+高增长/现金流质量修正；以151元附近支撑和158–160元成交区约束。",
-      "reentry_trigger": "价格<=158元且订单趋势维持；125–140元为低风险区。",
-      "transmission": "SUPPORTED",
-      "expectation": "CONFIRMING"
-    },
-    {
-      "rank": 8,
-      "code": "603127",
-      "company_name": "昭衍新药",
-      "trend_name": "CRO/医疗研发外包",
-      "industry_code": "S370603",
-      "industry_name": "医疗研发外包",
-      "status": "WAIT",
-      "wait_reason": "WAIT_PRICE",
-      "current_price": 45.76,
-      "reasonable_buy_range": {
-        "low": 39.5,
-        "high": 42,
-        "currency": "CNY"
-      },
-      "low_risk_buy_range": {
-        "low": 34,
-        "high": 37.5,
-        "currency": "CNY"
-      },
-      "wait_or_trigger_condition": "在手订单和新签订单强劲，但核心盈利质量仍需继续确认；等待39.5–42元合理区。",
-      "invalidation_condition": "若新签订单/在手订单增速显著回落，或实验室服务核心经营改善停滞，则逻辑失效。",
-      "valuation_archetype": "Growth-Tech/R&D",
-      "price_range_basis": "CRO同业PE折价+盈利质量修正；结构锚取40.2元支撑与43–46元成交区。",
-      "reentry_trigger": "价格进入39.5–42元且订单与核心经营继续改善；34–37.5元为低风险区。",
-      "transmission": "SUPPORTED",
-      "expectation": "CONFIRMING"
-    },
-    {
-      "rank": 9,
-      "code": "603456",
-      "company_name": "九洲药业",
-      "trend_name": "CRO/医疗研发外包",
-      "industry_code": "S370603",
-      "industry_name": "医疗研发外包",
-      "status": "WAIT",
-      "wait_reason": "WAIT_MARGIN",
-      "current_price": 15.52,
-      "reasonable_buy_range": {
-        "low": 14.5,
-        "high": 15.5,
-        "currency": "CNY"
-      },
-      "low_risk_buy_range": {
-        "low": 12.8,
-        "high": 14,
-        "currency": "CNY"
-      },
-      "wait_or_trigger_condition": "Q2环比修复、新项目与TIDES订单增长提供传导，但上半年同比仍下降；当前接近合理区，等待更高安全边际。",
-      "invalidation_condition": "若Q2修复无法延续、新项目转化放缓或TIDES在手订单增长逆转，则逻辑失效。",
-      "valuation_archetype": "Growth-Tech/R&D",
-      "price_range_basis": "CRO同业PE折价+同比下滑修正；参考14.2–15.2元支撑/成交区。",
-      "reentry_trigger": "价格<=15.5元且Q3订单/经营继续修复；12.8–14元为低风险区。",
+      "price_range_basis": "单晶硅片、硅棒和功率器件收入均增长且毛利率改善，但近20日已快速重估；合理区回到29-32元成交/支撑区域。",
+      "reentry_trigger": "价格回到29-32元且三类核心产品增长与毛利改善延续；24.5-27.5元为低风险区。",
       "transmission": "SUPPORTED",
       "expectation": "CONFIRMING"
     },
@@ -270,7 +272,7 @@
       "industry_name": "风电零部件",
       "status": "WAIT",
       "wait_reason": "WAIT_MARGIN",
-      "current_price": 39.6,
+      "current_price": 39.7,
       "reasonable_buy_range": {
         "low": 37.5,
         "high": 40.5,
@@ -281,11 +283,11 @@
         "high": 35.5,
         "currency": "CNY"
       },
-      "wait_or_trigger_condition": "海外海风与船舶订单提供中期传导，当前已进入合理区但安全边际仍不足；等待32–35.5元低风险区或更强订单兑现。",
-      "invalidation_condition": "若欧洲海风项目/母港服务或船舶订单出现大规模延期、取消，且盈利兑现明显弱于订单增长，则逻辑失效。",
-      "valuation_archetype": "Industrial",
-      "price_range_basis": "风电同业PE/PB+订单周期修正；结构锚取38.5–40.3元支撑/成交区。",
-      "reentry_trigger": "行业保持正常/修复且价格进入32–35.5元；若订单继续超预期，可在37.5–40.5元重新评估。",
+      "wait_or_trigger_condition": "37.5-40.5元仅在海外订单/项目交付保持时观察；32-35.5元为低风险优先区。",
+      "invalidation_condition": "若海外海风/船舶订单发生大规模延期或取消，或项目利润兑现明显弱于订单增长，则逻辑失效。",
+      "valuation_archetype": "Industrial-Manufacturing",
+      "price_range_basis": "海外海风订单与项目交付路径支撑中期盈利，但当前已在39-40元成交密集区，工业周期与项目执行风险要求更高安全边际。",
+      "reentry_trigger": "37.5-40.5元仅在海外订单/项目交付保持时观察；32-35.5元为低风险优先区。",
       "transmission": "SUPPORTED",
       "expectation": "CONFIRMING"
     },
@@ -297,11 +299,11 @@
       "industry_code": "S630602",
       "industry_name": "风电零部件",
       "status": "WAIT",
-      "wait_reason": "WAIT_MARGIN",
-      "current_price": 24.2,
+      "wait_reason": "WAIT_PRICE",
+      "current_price": 26.48,
       "reasonable_buy_range": {
         "low": 22.8,
-        "high": 24.5,
+        "high": 25,
         "currency": "CNY"
       },
       "low_risk_buy_range": {
@@ -309,11 +311,11 @@
         "high": 21.5,
         "currency": "CNY"
       },
-      "wait_or_trigger_condition": "在手订单和长期框架订单充足，当前已在合理区，但非经常性收益贡献较高且安全边际不足；等待19.5–21.5元。",
+      "wait_or_trigger_condition": "价格回到22.8-25元且在手订单/框架订单未恶化；19.5-21.5元为低风险区。",
       "invalidation_condition": "若在手订单明显下降、长期框架订单大额延期/变更，或主营利润改善无法覆盖非经常性收益回落，则逻辑失效。",
-      "valuation_archetype": "Industrial",
-      "price_range_basis": "风电同业PE/PB+订单质量修正；结构锚取22.9–24.4元支撑/成交区。",
-      "reentry_trigger": "价格进入19.5–21.5元且订单未恶化；22.8–24.5元仅作合理区观察。",
+      "valuation_archetype": "Industrial-Manufacturing",
+      "price_range_basis": "在手风电订单和长期框架订单提供传导，但非经常性收益贡献与股价处于60日高位要求折价；当前已高于主要结构区。",
+      "reentry_trigger": "价格回到22.8-25元且在手订单/框架订单未恶化；19.5-21.5元为低风险区。",
       "transmission": "SUPPORTED",
       "expectation": "CONFIRMING"
     }
