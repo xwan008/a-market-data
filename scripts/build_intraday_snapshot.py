@@ -128,6 +128,13 @@ def main() -> int:
     now = datetime.now(market.TZ)
     trend = read_json(TREND_PATH)
     low_risk = read_json(LOW_RISK_PATH)
+    source_trend_trade_date = trend.get("trade_date")
+    source_low_risk_trade_date = low_risk.get("trade_date")
+    source_handoff_trade_date_consistent = bool(
+        source_trend_trade_date
+        and source_low_risk_trade_date
+        and source_trend_trade_date == source_low_risk_trade_date
+    )
 
     industries: dict[str, dict] = {}
     trends: dict[str, dict] = {}
@@ -154,6 +161,15 @@ def main() -> int:
             if manifest.get("industry_code") != industry_code:
                 manifest_errors.append(f"{industry_code}:manifest_identity_mismatch")
                 continue
+            if (
+                source_low_risk_trade_date
+                and manifest.get("trade_date") != source_low_risk_trade_date
+            ):
+                manifest_errors.append(
+                    f"{industry_code}:manifest_trade_date_mismatch:"
+                    f"{manifest.get('trade_date')}!={source_low_risk_trade_date}"
+                )
+                continue
 
             company_codes = [str(code).zfill(6) for code in manifest.get("universe_company_codes") or []]
             target_codes.update(company_codes)
@@ -167,6 +183,7 @@ def main() -> int:
                 "trend_name": trend_name,
                 "trend_state": signal.get("trend_state"),
                 "market_state": signal.get("market_state"),
+                "source_scope": "trend",
                 "company_codes": company_codes,
             }
 
@@ -184,8 +201,60 @@ def main() -> int:
         for item in (low_risk.get("items") or [])
         if item.get("status") in {"READY", "WAIT"}
     ]
+    low_risk_only_attempted: set[str] = set()
     for item in low_risk_items:
         target_codes.add(str(item.get("code") or "").zfill(6))
+        industry_code = str(item.get("industry_code") or "")
+        if (
+            not industry_code
+            or industry_code in industries
+            or industry_code in low_risk_only_attempted
+        ):
+            continue
+
+        low_risk_only_attempted.add(industry_code)
+        manifest_path = MANIFEST_ROOT / industry_code / "manifest.json"
+        try:
+            manifest = read_json(manifest_path)
+        except Exception as exc:
+            manifest_errors.append(
+                f"{industry_code}:low_risk_only_manifest_read_failed:"
+                f"{type(exc).__name__}:{exc}"
+            )
+            continue
+
+        if manifest.get("industry_code") != industry_code:
+            manifest_errors.append(
+                f"{industry_code}:low_risk_only_manifest_identity_mismatch"
+            )
+            continue
+        if (
+            source_low_risk_trade_date
+            and manifest.get("trade_date") != source_low_risk_trade_date
+        ):
+            manifest_errors.append(
+                f"{industry_code}:low_risk_only_manifest_trade_date_mismatch:"
+                f"{manifest.get('trade_date')}!={source_low_risk_trade_date}"
+            )
+            continue
+
+        company_codes = [
+            str(code).zfill(6)
+            for code in manifest.get("universe_company_codes") or []
+        ]
+        target_codes.update(company_codes)
+        industries[industry_code] = {
+            "industry_code": industry_code,
+            "industry_name": manifest.get("industry_name")
+            or item.get("industry_name"),
+            "manifest_trade_date": manifest.get("trade_date"),
+            "trend_rank": None,
+            "trend_name": item.get("trend_name"),
+            "trend_state": None,
+            "market_state": None,
+            "source_scope": "low_risk_only",
+            "company_codes": company_codes,
+        }
 
     sina, sina_error = market.safe_fetch(market.fetch_sina_snapshot, "sina")
     tencent, tencent_error = market.safe_fetch(market.fetch_tencent_snapshot, "tencent")
@@ -246,6 +315,7 @@ def main() -> int:
             "industry_median_change_pct": industry_median,
             "relative_to_industry_pct": relative_to_industry,
             "in_monitored_industry_universe": code in set(industry.get("company_codes") or []),
+            "trend_in_current_handoff": str(item.get("trend_name") or "") in trends,
         }
 
     usable_quotes = sum(
@@ -264,8 +334,8 @@ def main() -> int:
         "captured_at": now.isoformat(),
         "timezone": "Asia/Shanghai",
         "market_status": market.clock_market_status(now),
-        "source_trend_trade_date": trend.get("trade_date"),
-        "source_low_risk_trade_date": low_risk.get("trade_date"),
+        "source_trend_trade_date": source_trend_trade_date,
+        "source_low_risk_trade_date": source_low_risk_trade_date,
         "source_status": {
             "sina": "ok" if sina else "failed",
             "tencent": "ok" if tencent else "failed",
@@ -275,10 +345,15 @@ def main() -> int:
             "status": (
                 "passed"
                 if trade_date == now.date().isoformat()
+                and source_handoff_trade_date_consistent
                 and quote_coverage >= 0.90
                 and not manifest_errors
                 else "degraded"
             ),
+            "source_handoff_dates_present": bool(
+                source_trend_trade_date and source_low_risk_trade_date
+            ),
+            "source_handoff_trade_date_consistent": source_handoff_trade_date_consistent,
             "target_company_count": total_quotes,
             "usable_quote_count": usable_quotes,
             "quote_coverage": round(quote_coverage, 4),
