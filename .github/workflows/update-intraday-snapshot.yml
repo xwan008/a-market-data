@@ -54,6 +54,9 @@ jobs:
           assert payload.get("result_kind") == "a_share_intraday_market_snapshot"
           assert payload.get("trade_date") == today
           validation = payload.get("validation") or {}
+          assert validation.get("status") == "passed"
+          assert validation.get("source_handoff_dates_present") is True
+          assert validation.get("source_handoff_trade_date_consistent") is True
           assert validation.get("quote_coverage", 0) >= 0.90
           assert not validation.get("manifest_errors")
           assert payload.get("trends")
