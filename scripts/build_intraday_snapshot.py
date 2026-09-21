@@ -49,17 +49,20 @@ def choose_quote(code: str, sina: dict[str, dict], tencent: dict[str, dict], tra
 
     source, base, other = fresh_sources[0]
     primary = market.positive_number(base.get("price"))
-    secondary = (
-        market.positive_number(other.get("price"))
-        if market.source_is_fresh(other, trade_date)
-        else None
-    )
+    secondary = market.positive_number(other.get("price")) if other else None
     validation = market.validate_price(
         primary_price=primary,
         secondary_price=secondary,
     )
     change_pct = market.calculate_change_pct(base.get("price"), base.get("prev_close"))
     warnings = list(validation.warnings)
+    for name, item in (("sina", s), ("tencent", t)):
+        if (
+            item
+            and market.positive_number(item.get("price")) is not None
+            and not market.source_is_fresh(item, trade_date)
+        ):
+            warnings.append(f"{name}_date_unverified")
     warnings += market.validate_quote_fields(
         {
             "price": base.get("price"),
