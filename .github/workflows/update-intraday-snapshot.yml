@@ -1,0 +1,91 @@
+name: Update Intraday Market Snapshot
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "40 1 * * 1-5"
+    - cron: "40 2 * * 1-5"
+    - cron: "25 5 * * 1-5"
+    - cron: "25 6 * * 1-5"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/external-trigger-intraday.txt"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-intraday-market-snapshot
+  cancel-in-progress: true
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Build intraday snapshot
+        run: python scripts/build_intraday_snapshot.py
+
+      - name: Validate snapshot
+        run: |
+          python - <<'PY'
+          import json
+          from datetime import datetime
+          from pathlib import Path
+          from zoneinfo import ZoneInfo
+
+          path = Path("research/intraday_market_snapshot.json")
+          payload = json.loads(path.read_text(encoding="utf-8"))
+          today = datetime.now(ZoneInfo("Asia/Shanghai")).date().isoformat()
+
+          assert payload.get("result_kind") == "a_share_intraday_market_snapshot"
+          assert payload.get("trade_date") == today
+          validation = payload.get("validation") or {}
+          assert validation.get("quote_coverage", 0) >= 0.90
+          assert not validation.get("manifest_errors")
+          assert payload.get("trends")
+          assert payload.get("industries")
+          print(json.dumps({
+              "trade_date": payload.get("trade_date"),
+              "captured_at": payload.get("captured_at"),
+              "quote_coverage": validation.get("quote_coverage"),
+              "trends": len(payload.get("trends") or {}),
+              "industries": len(payload.get("industries") or {}),
+              "low_risk_stocks": len(payload.get("low_risk_stocks") or {}),
+          }, ensure_ascii=False))
+          PY
+
+      - name: Commit intraday snapshot only
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add research/intraday_market_snapshot.json
+
+          if git diff --cached --quiet -- research/intraday_market_snapshot.json; then
+            echo "intraday snapshot unchanged"
+            exit 0
+          fi
+
+          git commit -m "data: update intraday market snapshot"
+          git pull --rebase origin main
+          git push origin HEAD:main
