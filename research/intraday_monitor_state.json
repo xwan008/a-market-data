@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "result_kind": "a_share_intraday_monitor_state",
-  "trade_date": "2026-09-18",
+  "trade_date": "2026-09-21",
   "monitor_date": "2026-09-21",
-  "last_scan_at": "2026-09-21T10:46:05+08:00",
+  "last_scan_at": "2026-09-21T14:43:04+08:00",
   "frozen_trend_trade_date": "2026-09-18",
   "frozen_low_risk_trade_date": "2026-09-18",
   "frozen_trends": [
@@ -12,11 +12,21 @@
     {"rank":3,"trend_name":"风电设备","industry_codes":["S630602"]}
   ],
   "industry_history": {
-    "半导体设备/材料": [{"scan_at":"2026-09-21T10:46:05+08:00","previous_state":"正常","current_state":"正常","data_quality":"DATA_INSUFFICIENT","note":"可核验早盘信息显示半导体方向走强，但缺少10:46时点完整板块上涨覆盖率、成分股收益中位数及龙头/中票同步扩散数据，按状态机不得据单一信息判分歧。"}],
-    "CRO/医疗研发外包": [{"scan_at":"2026-09-21T10:46:05+08:00","previous_state":"正常","current_state":"正常","data_quality":"DATA_INSUFFICIENT","note":"可核验早盘信息显示CRO概念走强，但缺少10:46时点完整板块广度、收益中位数和龙头/跟随扩散数据，按状态机不得据单一信息判分歧。"}],
-    "风电设备": [{"scan_at":"2026-09-21T10:46:05+08:00","previous_state":"正常","current_state":"正常","data_quality":"DATA_INSUFFICIENT","note":"未取得10:46时点可核验的风电零部件完整板块广度、收益中位数及龙头/跟随扩散数据，维持冻结基准状态，不做方向性迁移。"}]
+    "半导体设备/材料": [
+      {"scan_at":"2026-09-21T10:46:05+08:00","previous_state":"正常","current_state":"正常","data_quality":"DATA_INSUFFICIENT","note":"早盘扫描数据不足，维持正常。"},
+      {"scan_at":"2026-09-21T14:43:04+08:00","snapshot_at":"2026-09-21T14:38:29.955883+08:00","previous_state":"正常","current_state":"分歧","data_quality":"READY","metrics":{"up_ratio":0.2727,"median_change_pct":-0.5742,"up_count":3,"down_count":8,"quoted_count":11},"note":"上涨覆盖率仅27.27%，收益中位数-0.5742%，8跌3涨；设备与材料两个三级行业均多数下跌，弱势已扩散而非单一龙头波动，满足至少两类结构同步弱化。"}
+    ],
+    "CRO/医疗研发外包": [
+      {"scan_at":"2026-09-21T10:46:05+08:00","previous_state":"正常","current_state":"正常","data_quality":"DATA_INSUFFICIENT","note":"早盘扫描数据不足，维持正常。"},
+      {"scan_at":"2026-09-21T14:43:04+08:00","snapshot_at":"2026-09-21T14:38:29.955883+08:00","previous_state":"正常","current_state":"正常","data_quality":"READY","metrics":{"up_ratio":1.0,"median_change_pct":4.2526,"up_count":5,"down_count":0,"quoted_count":5},"note":"5只全部上涨，中位数+4.2526%，上涨覆盖率100%，强势广泛扩散，未见同步弱化。"}
+    ],
+    "风电设备": [
+      {"scan_at":"2026-09-21T10:46:05+08:00","previous_state":"正常","current_state":"正常","data_quality":"DATA_INSUFFICIENT","note":"早盘扫描数据不足，维持正常。"},
+      {"scan_at":"2026-09-21T14:43:04+08:00","snapshot_at":"2026-09-21T14:38:29.955883+08:00","previous_state":"正常","current_state":"分歧","data_quality":"READY","metrics":{"up_ratio":0.3333,"median_change_pct":-0.2941,"up_count":3,"down_count":6,"quoted_count":9},"note":"上涨覆盖率33.33%，收益中位数-0.2941%，6跌3涨，正收益集中于少数成分，整体扩散偏弱，满足广度与中位数/扩散同步弱化。"}
+    ]
   },
   "stock_history": {
-    "scan_2026-09-21T10:46:05+08:00": {"data_quality":"DATA_INSUFFICIENT","note":"low_risk_handoff为2026-09-18正式版本且可用，但未取得全部冻结READY/WAIT个股在10:46时点的可核验实时价格与相对行业强弱，因此不输出买点/风险状态变化，避免用非实时或不完整数据触发行动状态。"}
+    "scan_2026-09-21T10:46:05+08:00": {"data_quality":"DATA_INSUFFICIENT","note":"早盘未取得完整快照，未触发行动状态。"},
+    "scan_2026-09-21T14:43:04+08:00": {"data_quality":"READY","snapshot_at":"2026-09-21T14:38:29.955883+08:00","note":"冻结READY/WAIT个股均按同一快照核验。半导体设备/材料与风电设备进入分歧，相关个股即使接近或满足原买点也应暂停买入；CRO行业保持正常。本次用户可见层仅报告满足关注条件或相较前次产生明确行动变化的项目。"}
   }
 }
