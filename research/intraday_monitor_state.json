@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "result_kind": "a_share_intraday_monitor_state",
+  "trade_date": "2026-09-18",
+  "monitor_date": "2026-09-21",
+  "last_scan_at": "2026-09-21T10:46:05+08:00",
+  "frozen_trend_trade_date": "2026-09-18",
+  "frozen_low_risk_trade_date": "2026-09-18",
+  "frozen_trends": [
+    {"rank":1,"trend_name":"半导体设备/材料","industry_codes":["S270108","S270103"]},
+    {"rank":2,"trend_name":"CRO/医疗研发外包","industry_codes":["S370603"]},
+    {"rank":3,"trend_name":"风电设备","industry_codes":["S630602"]}
+  ],
+  "industry_history": {
+    "半导体设备/材料": [{"scan_at":"2026-09-21T10:46:05+08:00","previous_state":"正常","current_state":"正常","data_quality":"DATA_INSUFFICIENT","note":"可核验早盘信息显示半导体方向走强，但缺少10:46时点完整板块上涨覆盖率、成分股收益中位数及龙头/中票同步扩散数据，按状态机不得据单一信息判分歧。"}],
+    "CRO/医疗研发外包": [{"scan_at":"2026-09-21T10:46:05+08:00","previous_state":"正常","current_state":"正常","data_quality":"DATA_INSUFFICIENT","note":"可核验早盘信息显示CRO概念走强，但缺少10:46时点完整板块广度、收益中位数和龙头/跟随扩散数据，按状态机不得据单一信息判分歧。"}],
+    "风电设备": [{"scan_at":"2026-09-21T10:46:05+08:00","previous_state":"正常","current_state":"正常","data_quality":"DATA_INSUFFICIENT","note":"未取得10:46时点可核验的风电零部件完整板块广度、收益中位数及龙头/跟随扩散数据，维持冻结基准状态，不做方向性迁移。"}]
+  },
+  "stock_history": {
+    "scan_2026-09-21T10:46:05+08:00": {"data_quality":"DATA_INSUFFICIENT","note":"low_risk_handoff为2026-09-18正式版本且可用，但未取得全部冻结READY/WAIT个股在10:46时点的可核验实时价格与相对行业强弱，因此不输出买点/风险状态变化，避免用非实时或不完整数据触发行动状态。"}
+  }
+}
