@@ -57,6 +57,7 @@ jobs:
           assert validation.get("status") == "passed"
           assert validation.get("source_handoff_dates_present") is True
           assert validation.get("source_handoff_trade_date_consistent") is True
+          assert validation.get("formal_prev_close_alignment_passed") is True
           assert validation.get("quote_coverage", 0) >= 0.90
           assert not validation.get("manifest_errors")
           assert payload.get("trends")
