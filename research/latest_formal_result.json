@@ -3,29 +3,450 @@
   "result_kind": "a_share_low_risk_formal_result",
   "status": "COMPLETE",
   "publication_ready": true,
-  "trade_date": "2026-09-18",
-  "run_id": "20260918T1902-CN-formal-03",
-  "published_at": "2026-09-18T19:02:22+08:00",
+  "trade_date": "2026-09-21",
+  "run_id": "202609211959-CN-manual-formal-01",
+  "published_at": "2026-09-21T19:59:00+08:00",
   "canonical_flow": "skill/LOW_RISK_CANONICAL_FLOW.md",
-  "execution_mode": "canonical_chunked_manifest_fresh_run",
-  "trend_handoff": {"signals":[{"rank":1,"trend_name":"半导体设备/材料","trend_state":"T1","market_state":"趋势确认","industry_codes":["S270108","S270103"],"industry_names":["半导体设备","半导体材料"],"mapping_status":"resolved"},{"rank":2,"trend_name":"CRO/医疗研发外包","trend_state":"T2","market_state":"趋势确认","industry_codes":["S370603"],"industry_names":["医疗研发外包"],"mapping_status":"resolved"},{"rank":3,"trend_name":"风电设备","trend_state":"T1","market_state":"候选趋势","industry_codes":["S630602"],"industry_names":["风电零部件"],"mapping_status":"resolved"}]},
+  "execution_mode": "canonical_chunked_manifest_manual_fresh_run",
+  "trend_handoff": {
+    "signals": [
+      {
+        "rank": 1,
+        "trend_name": "CRO/医疗研发外包",
+        "trend_state": "T2",
+        "market_state": "趋势确认",
+        "industry_codes": [
+          "S370603"
+        ],
+        "industry_names": [
+          "医疗研发外包"
+        ],
+        "mapping_status": "resolved"
+      },
+      {
+        "rank": 2,
+        "trend_name": "半导体设备/材料",
+        "trend_state": "T1",
+        "market_state": "趋势确认",
+        "industry_codes": [
+          "S270108",
+          "S270103"
+        ],
+        "industry_names": [
+          "半导体设备",
+          "半导体材料"
+        ],
+        "mapping_status": "resolved"
+      },
+      {
+        "rank": 3,
+        "trend_name": "风电设备",
+        "trend_state": "T1",
+        "market_state": "候选趋势",
+        "industry_codes": [
+          "S630602"
+        ],
+        "industry_names": [
+          "风电零部件"
+        ],
+        "mapping_status": "resolved"
+      }
+    ]
+  },
   "routing_gaps": [],
-  "routed_industries": [{"industry_code":"S270108","industry":"半导体设备","universe_count":5,"hard_eligible_count":4,"deep_research_count":4},{"industry_code":"S270103","industry":"半导体材料","universe_count":6,"hard_eligible_count":6,"deep_research_count":5},{"industry_code":"S370603","industry":"医疗研发外包","universe_count":5,"hard_eligible_count":5,"deep_research_count":5},{"industry_code":"S630602","industry":"风电零部件","universe_count":9,"hard_eligible_count":8,"deep_research_count":5}],
-  "hard_filtered_out": [{"code":"603690","name":"至纯科技","reason":"net_profit<=0 and revenue_yoy<-20% with severe profit deterioration"},{"code":"600072","name":"中船科技","reason":"net_profit<=0"}],
-  "pre_screened_out": [{"code":"600206","name":"有研新材","industry":"半导体材料","status":"PRE_SCREENED_OUT"},{"code":"002531","name":"天顺风能","industry":"风电零部件","status":"PRE_SCREENED_OUT"},{"code":"601218","name":"吉鑫科技","industry":"风电零部件","status":"PRE_SCREENED_OUT"},{"code":"603985","name":"恒润股份","industry":"风电零部件","status":"PRE_SCREENED_OUT"}],
+  "routed_industries": [
+    {
+      "industry_code": "S370603",
+      "industry": "医疗研发外包",
+      "universe_count": 5,
+      "hard_eligible_count": 5,
+      "deep_research_count": 5
+    },
+    {
+      "industry_code": "S270108",
+      "industry": "半导体设备",
+      "universe_count": 5,
+      "hard_eligible_count": 4,
+      "deep_research_count": 4
+    },
+    {
+      "industry_code": "S270103",
+      "industry": "半导体材料",
+      "universe_count": 6,
+      "hard_eligible_count": 6,
+      "deep_research_count": 5
+    },
+    {
+      "industry_code": "S630602",
+      "industry": "风电零部件",
+      "universe_count": 9,
+      "hard_eligible_count": 9,
+      "deep_research_count": 5
+    }
+  ],
+  "hard_filtered_out": [
+    {
+      "code": "603690",
+      "name": "至纯科技",
+      "reason": "revenue_yoy<-20% and net_profit_yoy<-50%; current net profit is negative"
+    }
+  ],
+  "pre_screened_out": [
+    {
+      "code": "600206",
+      "name": "有研新材",
+      "industry": "半导体材料",
+      "status": "PRE_SCREENED_OUT"
+    },
+    {
+      "code": "603218",
+      "name": "日月股份",
+      "industry": "风电零部件",
+      "status": "PRE_SCREENED_OUT"
+    },
+    {
+      "code": "601218",
+      "name": "吉鑫科技",
+      "industry": "风电零部件",
+      "status": "PRE_SCREENED_OUT"
+    },
+    {
+      "code": "603985",
+      "name": "恒润股份",
+      "industry": "风电零部件",
+      "status": "PRE_SCREENED_OUT"
+    },
+    {
+      "code": "002531",
+      "name": "天顺风能",
+      "industry": "风电零部件",
+      "status": "PRE_SCREENED_OUT"
+    }
+  ],
   "ready": [],
   "wait": [
-    {"code":"002487","name":"大金重工","trend_name":"风电设备","industry":"风电零部件","expectation_stage":"CONFIRMING","status":"WAIT","wait_reason":"WAIT_MARGIN","current_price":39.6,"valuation_archetype":"Industrial-Manufacturing","primary_valuation_metric":"dynamic PE + peer growth/cashflow adjustment","fundamental_anchor_price":53.0,"structure_anchor_center":39.6,"reasonable_price_range":"36-40","low_risk_buy_range":"31-34","price_range_basis":"peer PE anchor remains above market structure; current dense/volume zone around 39-40 constrains execution; industrial volatility safety margin applied","reentry_trigger":"31-34 is low-risk zone; 36-40 only if overseas offshore-wind delivery/order path remains intact"},
-    {"code":"603507","name":"振江股份","trend_name":"风电设备","industry":"风电零部件","expectation_stage":"CONFIRMING","status":"WAIT","wait_reason":"WAIT_MARGIN","current_price":24.2,"valuation_archetype":"Industrial-Manufacturing","primary_valuation_metric":"dynamic PE + peer quality adjustment","fundamental_anchor_price":41.0,"structure_anchor_center":23.86,"reasonable_price_range":"22-24","low_risk_buy_range":"19-21.5","price_range_basis":"order growth and cashflow support fundamental anchor, but one-off contribution and 60d position require structure cap and industrial safety margin","reentry_trigger":"22-24 only while order backlog/new-line delivery remains intact; 19-21.5 is low-risk zone"},
-    {"code":"002371","name":"北方华创","trend_name":"半导体设备/材料","industry":"半导体设备","expectation_stage":"CONFIRMING","status":"WAIT","wait_reason":"WAIT_PRICE","current_price":686.51,"valuation_archetype":"Growth-Tech/R&D","primary_valuation_metric":"dynamic PE peer growth adjustment","fundamental_anchor_price":690.0,"structure_anchor_center":669.3,"reasonable_price_range":"650-680","low_risk_buy_range":"600-630","price_range_basis":"peer dynamic PE with slower profit growth limits premium; support/dense zones around 664-676 define structure; high-growth-tech safety margin applied","reentry_trigger":"650-680 if batch shipments/order logic remains intact; 600-630 is low-risk zone"},
-    {"code":"603061","name":"金海通股份","trend_name":"半导体设备/材料","industry":"半导体设备","expectation_stage":"CONFIRMING","status":"WAIT","wait_reason":"WAIT_PRICE","current_price":348.79,"valuation_archetype":"Growth-Tech/R&D","primary_valuation_metric":"dynamic/TTM PE peer growth adjustment","fundamental_anchor_price":350.0,"structure_anchor_center":334.8,"reasonable_price_range":"315-345","low_risk_buy_range":"270-300","price_range_basis":"high revenue/core-profit growth supports peer premium, while current valuation and volatility cap entry; 319-335 support/volume zones anchor structure","reentry_trigger":"<=345 with overseas order/test-handler demand intact; 270-300 is low-risk zone"},
-    {"code":"603259","name":"药明康德","trend_name":"CRO/医疗研发外包","industry":"医疗研发外包","expectation_stage":"PRICED_IN","status":"WAIT","wait_reason":"WAIT_EXPECTATION","current_price":160.0,"valuation_archetype":"Growth-Tech/R&D","primary_valuation_metric":"dynamic PE peer growth adjustment","fundamental_anchor_price":190.0,"structure_anchor_center":157.98,"reasonable_price_range":"148-160","low_risk_buy_range":"125-138","price_range_basis":"order growth and raised guidance support fundamental anchor, but 60d position is high and major catalyst has been repriced; structure caps reasonable entry","reentry_trigger":"new independent expectation reset or price returns into 148-160; 125-138 is low-risk zone"}
+    {
+      "code": "603259",
+      "name": "药明康德",
+      "trend_name": "CRO/医疗研发外包",
+      "industry": "医疗研发外包",
+      "expectation_stage": "CONFIRMING",
+      "status": "WAIT",
+      "wait_reason": "WAIT_PRICE",
+      "current_price": 167.96,
+      "valuation_archetype": "Growth-Tech/R&D",
+      "primary_valuation_metric": "dynamic PE + peer growth adjustment",
+      "fundamental_anchor_price": 188,
+      "structure_anchor_center": 157,
+      "reasonable_price_range": "150-160",
+      "low_risk_buy_range": "128-142",
+      "price_range_basis": "在手订单/TIDES客户与项目增长支撑盈利传导；同业动态PE与增长质量给出更高基本面锚，但当前处于60日高位，执行价由150-160元支撑与成交密集区约束。",
+      "reentry_trigger": "价格回到150-160元且订单/TIDES增长保持；128-142元为低风险优先区。",
+      "transmission_evidence": "2026H1收入与核心利润增长，TIDES客户/分子数量继续扩张，在手订单保持增长。",
+      "invalidation": "若在手订单、TIDES客户/项目增长明显放缓，或新增需求无法继续转化为收入与核心利润，则逻辑失效。"
+    },
+    {
+      "code": "603127",
+      "name": "昭衍新药",
+      "trend_name": "CRO/医疗研发外包",
+      "industry": "医疗研发外包",
+      "expectation_stage": "CONFIRMING",
+      "status": "WAIT",
+      "wait_reason": "WAIT_PRICE",
+      "current_price": 46.74,
+      "valuation_archetype": "Growth-Tech/R&D",
+      "primary_valuation_metric": "dynamic PE + peer growth adjustment",
+      "fundamental_anchor_price": 49,
+      "structure_anchor_center": 42.5,
+      "reasonable_price_range": "40-43",
+      "low_risk_buy_range": "34-37.5",
+      "price_range_basis": "新签订单、在手订单与产能利用率支持未来传导；当前价格高于40-43元主要支撑/成交区，低风险区进一步按CRO波动与盈利质量折价。",
+      "reentry_trigger": "价格回到40-43元且新签/在手订单增速与产能利用率未恶化；34-37.5元为低风险区。",
+      "transmission_evidence": "2026H1新签订单与在手订单同比明显增长，Q2订单量价延续Q1且产能利用率较高。",
+      "invalidation": "若新签订单/在手订单增长明显回落、产能利用率下降或核心经营改善不能延续，则逻辑失效。"
+    },
+    {
+      "code": "603456",
+      "name": "九洲药业",
+      "trend_name": "CRO/医疗研发外包",
+      "industry": "医疗研发外包",
+      "expectation_stage": "CONFIRMING",
+      "status": "WAIT",
+      "wait_reason": "WAIT_MARGIN",
+      "current_price": 16.2,
+      "valuation_archetype": "Growth-Tech/R&D",
+      "primary_valuation_metric": "dynamic PE + peer quality adjustment",
+      "fundamental_anchor_price": 17.5,
+      "structure_anchor_center": 15.2,
+      "reasonable_price_range": "14.5-16",
+      "low_risk_buy_range": "12.5-14",
+      "price_range_basis": "H1同比仍承压，但新项目、新客户及TIDES在手订单提供前瞻修复；当前已接近合理区上沿，需更高安全边际。",
+      "reentry_trigger": "价格<=16元且新项目/TIDES订单继续转化；12.5-14元为低风险优先区。",
+      "transmission_evidence": "2026H1新增项目和客户继续扩展，TIDES在手订单增长并推进产能建设，提供未来1-2季度修复路径。",
+      "invalidation": "若新项目转化放缓、TIDES在手订单增长逆转或H2核心经营仍持续下滑，则逻辑失效。"
+    },
+    {
+      "code": "002371",
+      "name": "北方华创",
+      "trend_name": "半导体设备/材料",
+      "industry": "半导体设备",
+      "expectation_stage": "CONFIRMING",
+      "status": "WAIT",
+      "wait_reason": "WAIT_MARGIN",
+      "current_price": 676.61,
+      "valuation_archetype": "Growth-Tech/R&D",
+      "primary_valuation_metric": "dynamic PE + peer growth adjustment",
+      "fundamental_anchor_price": 730,
+      "structure_anchor_center": 664.1,
+      "reasonable_price_range": "650-680",
+      "low_risk_buy_range": "610-635",
+      "price_range_basis": "行业同业动态PE与公司收入增长/现金流质量支持基本面锚；当前已进入657-680元成交密集与664元支撑区，但距离更严格安全边际仍不足。",
+      "reentry_trigger": "650-680元内且批量应用/收入增长逻辑不弱化；610-635元为低风险优先区。",
+      "transmission_evidence": "2026H1收入继续增长，核心半导体设备产品持续拓展并进入客户批量应用。",
+      "invalidation": "若半导体设备客户扩产/国产替代需求明显转弱，或收入与核心利润增速连续下行，则逻辑失效。"
+    },
+    {
+      "code": "603061",
+      "name": "金海通股份",
+      "trend_name": "半导体设备/材料",
+      "industry": "半导体设备",
+      "expectation_stage": "CONFIRMING",
+      "status": "WAIT",
+      "wait_reason": "WAIT_PRICE",
+      "current_price": 357.3,
+      "valuation_archetype": "Growth-Tech/R&D",
+      "primary_valuation_metric": "dynamic/TTM PE + peer growth adjustment",
+      "fundamental_anchor_price": 358,
+      "structure_anchor_center": 334.8,
+      "reasonable_price_range": "320-350",
+      "low_risk_buy_range": "285-310",
+      "price_range_basis": "测试分选机销量、境外订单与核心利润高速增长支持同业溢价，但当前价格高于319-350元主要支撑/成交区，需等待价格回归。",
+      "reentry_trigger": "价格<=350元且境外订单及测试分选机销量增长维持；285-310元为低风险区。",
+      "transmission_evidence": "2026H1境外订单同比增长、测试分选机销量显著提升，收入和扣非利润同步高速增长。",
+      "invalidation": "若境外订单、测试分选机销量或AI/HPC/汽车相关需求明显回落，则传导逻辑失效。"
+    },
+    {
+      "code": "603991",
+      "name": "领先股份",
+      "trend_name": "半导体设备/材料",
+      "industry": "半导体设备",
+      "expectation_stage": "PRICED_IN",
+      "status": "WAIT",
+      "wait_reason": "WAIT_EXPECTATION",
+      "current_price": 175.62,
+      "valuation_archetype": "Growth-Tech/R&D",
+      "primary_valuation_metric": "dynamic PE + peer growth adjustment",
+      "fundamental_anchor_price": 185,
+      "structure_anchor_center": 171,
+      "reasonable_price_range": "168-178",
+      "low_risk_buy_range": "145-158",
+      "price_range_basis": "在手订单与新产能支持盈利兑现，但20日涨幅与60日位置已反映较多预期；合理区由171元结构支撑与同业估值共同约束。",
+      "reentry_trigger": "价格回到168-178元且订单交付/产能利用率继续兑现，或出现新的独立订单/盈利预期重置；145-158元为低风险区。",
+      "transmission_evidence": "2026H1公司围绕在手订单优化排产、提升产能利用率和订单交付效率，并使用新产能承接高端订单。",
+      "invalidation": "若在手订单转化、产能利用率或高端订单承接低于预期，且利润兑现明显弱化，则逻辑失效。"
+    },
+    {
+      "code": "002119",
+      "name": "康强电子",
+      "trend_name": "半导体设备/材料",
+      "industry": "半导体材料",
+      "expectation_stage": "CONFIRMING",
+      "status": "WAIT",
+      "wait_reason": "WAIT_PRICE",
+      "current_price": 24.76,
+      "valuation_archetype": "Growth-Tech/R&D",
+      "primary_valuation_metric": "dynamic PE + peer quality adjustment",
+      "fundamental_anchor_price": 25.2,
+      "structure_anchor_center": 23.8,
+      "reasonable_price_range": "22.5-24.2",
+      "low_risk_buy_range": "19.5-21.5",
+      "price_range_basis": "引线框架/键合丝收入与国产替代传导成立，但经营现金流偏弱；当前略高于22.5-24.2元结构与估值共同可接受区。",
+      "reentry_trigger": "价格<=24.2元且引线框架/键合丝需求保持；19.5-21.5元为低风险区。",
+      "transmission_evidence": "2026H1引线框架收入同比大增、键合丝增长，车规/功率/AI电源芯片需求与国产替代继续支撑高端封装材料。",
+      "invalidation": "若引线框架/键合丝需求与国产替代进度明显转弱，或负经营现金流持续恶化，则逻辑失效。"
+    },
+    {
+      "code": "002409",
+      "name": "雅克科技",
+      "trend_name": "半导体设备/材料",
+      "industry": "半导体材料",
+      "expectation_stage": "CONFIRMING",
+      "status": "WAIT",
+      "wait_reason": "WAIT_MARGIN",
+      "current_price": 137.43,
+      "valuation_archetype": "Growth-Tech/R&D",
+      "primary_valuation_metric": "dynamic PE + peer growth/catalyst adjustment",
+      "fundamental_anchor_price": 180,
+      "structure_anchor_center": 130.2,
+      "reasonable_price_range": "125-138",
+      "low_risk_buy_range": "110-120",
+      "price_range_basis": "前驱体出货、存储客户放量与光刻胶导入提供中期增量，但认证/利用率仍需验证；当前位于合理区上沿，安全边际不足。",
+      "reentry_trigger": "价格维持125-138元且客户认证/产能放量继续兑现；110-120元为低风险区。",
+      "transmission_evidence": "前驱体出货同比增长，存储客户扩产带来增量，更多前驱体与光刻胶产品持续推进客户认证和导入。",
+      "invalidation": "若前驱体/光刻胶客户认证或放量明显延迟，新增产能利用率无法提升，则逻辑失效。"
+    },
+    {
+      "code": "003026",
+      "name": "中晶科技",
+      "trend_name": "半导体设备/材料",
+      "industry": "半导体材料",
+      "expectation_stage": "CONFIRMING",
+      "status": "WAIT",
+      "wait_reason": "WAIT_PRICE",
+      "current_price": 37.89,
+      "valuation_archetype": "Growth-Tech/R&D",
+      "primary_valuation_metric": "dynamic PE + peer growth adjustment",
+      "fundamental_anchor_price": 36.7,
+      "structure_anchor_center": 29.5,
+      "reasonable_price_range": "29-32",
+      "low_risk_buy_range": "24.5-27.5",
+      "price_range_basis": "单晶硅片、硅棒和功率器件收入均增长且毛利率改善，但近20日已快速重估；合理区回到29-32元成交/支撑区域。",
+      "reentry_trigger": "价格回到29-32元且三类核心产品增长与毛利改善延续；24.5-27.5元为低风险区。",
+      "transmission_evidence": "2026H1硅片、硅棒、功率芯片及器件收入分别增长，核心产品毛利总体改善，已体现产业景气向公司收入传导。",
+      "invalidation": "若硅片/硅棒/功率器件收入增速明显回落或毛利改善逆转，则逻辑失效。"
+    },
+    {
+      "code": "002487",
+      "name": "大金重工",
+      "trend_name": "风电设备",
+      "industry": "风电零部件",
+      "expectation_stage": "CONFIRMING",
+      "status": "WAIT",
+      "wait_reason": "WAIT_MARGIN",
+      "current_price": 39.7,
+      "valuation_archetype": "Industrial-Manufacturing",
+      "primary_valuation_metric": "PE + PB/ROE + order-cycle adjustment",
+      "fundamental_anchor_price": 49,
+      "structure_anchor_center": 39.4,
+      "reasonable_price_range": "37.5-40.5",
+      "low_risk_buy_range": "32-35.5",
+      "price_range_basis": "海外海风订单与项目交付路径支撑中期盈利，但当前已在39-40元成交密集区，工业周期与项目执行风险要求更高安全边际。",
+      "reentry_trigger": "37.5-40.5元仅在海外订单/项目交付保持时观察；32-35.5元为低风险优先区。",
+      "transmission_evidence": "2026H1披露新增多艘船舶订单、欧洲风电母港网络和在建海外风电项目，形成2027-2030交付储备。",
+      "invalidation": "若海外海风/船舶订单发生大规模延期或取消，或项目利润兑现明显弱于订单增长，则逻辑失效。"
+    },
+    {
+      "code": "603507",
+      "name": "振江股份",
+      "trend_name": "风电设备",
+      "industry": "风电零部件",
+      "expectation_stage": "CONFIRMING",
+      "status": "WAIT",
+      "wait_reason": "WAIT_PRICE",
+      "current_price": 26.48,
+      "valuation_archetype": "Industrial-Manufacturing",
+      "primary_valuation_metric": "PE + PB/ROE + order-quality adjustment",
+      "fundamental_anchor_price": 38,
+      "structure_anchor_center": 23.9,
+      "reasonable_price_range": "22.8-25",
+      "low_risk_buy_range": "19.5-21.5",
+      "price_range_basis": "在手风电订单和长期框架订单提供传导，但非经常性收益贡献与股价处于60日高位要求折价；当前已高于主要结构区。",
+      "reentry_trigger": "价格回到22.8-25元且在手订单/框架订单未恶化；19.5-21.5元为低风险区。",
+      "transmission_evidence": "2026H1末在手订单48.43亿元，其中风电设备40.64亿元，并有延伸至2031年的框架订单储备。",
+      "invalidation": "若在手订单明显下降、长期框架订单大额延期/变更，或主营利润改善无法覆盖非经常性收益回落，则逻辑失效。"
+    }
   ],
-  "uncertain": [{"code":"003043","name":"华亚智能","stage":"TRANSMISSION","reason":"forward 1-2 quarter order/delivery path not closed"},{"code":"603991","name":"领先股份","stage":"TRANSMISSION","reason":"forward transmission evidence not closed"},{"code":"002119","name":"康强电子","stage":"TRANSMISSION","reason":"negative operating cashflow and no closed forward order/customer evidence"},{"code":"002409","name":"雅克科技","stage":"TRANSMISSION","reason":"forward earnings timing remains insufficiently closed"},{"code":"003026","name":"中晶科技","stage":"TRANSMISSION","reason":"forward order/customer evidence not closed"},{"code":"600641","name":"先导基电","stage":"TRANSMISSION","reason":"deducted EPS quality conflict and forward evidence gap"},{"code":"605358","name":"立昂微","stage":"TRANSMISSION","reason":"company-specific 1-2 quarter earnings transmission not verified"},{"code":"000809","name":"和展能源","stage":"RISK_REWARD","reason":"orders support transmission but tiny earnings base and valuation dispersion prevent defensible range"},{"code":"002821","name":"凯莱英","stage":"RISK_REWARD","reason":"orders support transmission but reported/adjusted earnings and peer anchors diverge too much"},{"code":"603127","name":"昭衍新药","stage":"RISK_REWARD","reason":"H1 profit dominated by biological-asset fair-value gains; PE anchor unreliable"}],
-  "drop": [{"code":"600721","name":"百花医药","reason":"Transmission NOT_SUPPORTED"},{"code":"603456","name":"九洲药业","reason":"Transmission NOT_SUPPORTED"},{"code":"603063","name":"禾望电气","reason":"Transmission NOT_SUPPORTED"},{"code":"603218","name":"日月股份","reason":"Transmission NOT_SUPPORTED"}],
-  "coverage": {"materialized_view_gate":"PASSED","trend_handoff_gate":"PASSED","working_set_gate":"PASSED","routing_coverage":"COMPLETE","pre_screen_coverage":"COMPLETE","transmission_coverage":"COMPLETE","expectation_coverage":"COMPLETE","risk_reward_coverage":"COMPLETE","price_range_coverage":"COMPLETE"},
-  "data_access_audit": {"routed_industry_count":4,"routed_industry_with_universe_count":4,"no_universe_industry_count":0,"universe_company_count":25,"working_set_count":4,"working_set_company_count":25,"materialized_index_read_count":1,"materialized_manifest_read_count":4,"materialized_part_read_count":6,"materialized_part_segment_fetch_count":36,"materialized_industry_complete_count":4,"legacy_industry_file_read_count":0,"unique_shard_read_count":0,"post_freeze_shard_read_count":0,"post_freeze_materialized_read_count":0},
-  "execution_audit": {"deep_research_company_count":19,"industry_batch_count":4,"cache_reused_count":0,"cache_invalidated_count":0,"single_company_followup_count":9},
-  "funnel": {"trend_signals":3,"routed_industries":4,"universe_companies":25,"hard_filtered_out":2,"hard_eligible":23,"pre_screen_selected":19,"pre_screened_out":4,"transmission_supported":8,"transmission_uncertain":7,"transmission_not_supported":4,"ready":0,"wait":5,"uncertain":10,"drop":4},
-  "publication_note": "Fresh run from 2026-09-18 handoff and chunked materialized view. No legacy/shard/post-freeze materialized reads."
+  "uncertain": [
+    {
+      "code": "002821",
+      "name": "凯莱英",
+      "stage": "RISK_REWARD",
+      "reason": "订单/产能传导成立，但当前估值显著高于CRO同业中枢且核心利润增速偏弱，基本面锚与结构锚分歧过大，无法形成足够稳健的低风险区。"
+    },
+    {
+      "code": "003043",
+      "name": "华亚智能",
+      "stage": "TRANSMISSION",
+      "reason": "当前收入/利润增长可见，但未来1-2季度订单/交付路径缺少足够闭环证据；同时动态PE明显高于同行中枢。"
+    },
+    {
+      "code": "600641",
+      "name": "先导基电",
+      "stage": "TRANSMISSION",
+      "reason": "净利润增长与扣非EPS/经营现金流存在显著背离，且半导体材料趋势向公司核心盈利的传导仍不清晰。"
+    },
+    {
+      "code": "605358",
+      "name": "立昂微",
+      "stage": "RISK_REWARD",
+      "reason": "硅片需求传导存在，但非核心收益占比较高且动态PE远高于同行中枢，基本面与结构锚无法形成可靠安全边际。"
+    },
+    {
+      "code": "000809",
+      "name": "和展能源",
+      "stage": "RISK_REWARD",
+      "reason": "收入增长来自低基数且盈利基数很小，动态PE显著高于风电零部件同行，当前高位下无法形成可辩护低风险区。"
+    },
+    {
+      "code": "600072",
+      "name": "中船科技",
+      "stage": "TRANSMISSION",
+      "reason": "收入增长但净利润及毛利仍为负，缺少未来1-2季度风电业务盈利转正的可验证闭环，PE锚不可用。"
+    }
+  ],
+  "drop": [
+    {
+      "code": "600721",
+      "name": "百花医药",
+      "reason": "Transmission NOT_SUPPORTED: 收入与核心利润继续下降、经营现金流偏弱，定向补证仍未形成未来1-2季度可验证的CRO传导链。"
+    },
+    {
+      "code": "603063",
+      "name": "禾望电气",
+      "reason": "Transmission NOT_SUPPORTED: H1收入与核心利润均下降，未找到足以证明未来1-2季度风电零部件趋势将转化为公司增量盈利的闭环证据。"
+    }
+  ],
+  "coverage": {
+    "materialized_view_gate": "PASSED",
+    "trend_handoff_gate": "PASSED",
+    "working_set_gate": "PASSED",
+    "routing_coverage": "COMPLETE",
+    "pre_screen_coverage": "COMPLETE",
+    "transmission_coverage": "COMPLETE",
+    "expectation_coverage": "COMPLETE",
+    "risk_reward_coverage": "COMPLETE",
+    "price_range_coverage": "COMPLETE"
+  },
+  "data_access_audit": {
+    "routed_industry_count": 4,
+    "routed_industry_with_universe_count": 4,
+    "no_universe_industry_count": 0,
+    "universe_company_count": 25,
+    "working_set_count": 4,
+    "working_set_company_count": 25,
+    "materialized_index_read_count": 1,
+    "materialized_manifest_read_count": 4,
+    "materialized_part_read_count": 6,
+    "materialized_part_segment_fetch_count": 36,
+    "materialized_industry_complete_count": 4,
+    "legacy_industry_file_read_count": 0,
+    "unique_shard_read_count": 0,
+    "post_freeze_shard_read_count": 0,
+    "post_freeze_materialized_read_count": 0
+  },
+  "execution_audit": {
+    "deep_research_company_count": 19,
+    "industry_batch_count": 4,
+    "cache_reused_count": 0,
+    "cache_invalidated_count": 0,
+    "single_company_followup_count": 5
+  },
+  "funnel": {
+    "trend_signals": 3,
+    "routed_industries": 4,
+    "universe_companies": 25,
+    "hard_filtered_out": 1,
+    "hard_eligible": 24,
+    "pre_screen_selected": 19,
+    "pre_screened_out": 5,
+    "transmission_supported": 14,
+    "transmission_uncertain": 3,
+    "transmission_not_supported": 2,
+    "ready": 0,
+    "wait": 11,
+    "uncertain": 6,
+    "drop": 2
+  },
+  "data_quality_note": "2026-09-21收盘行情、行业映射与working sets均通过正式Gate；Eastmoney当日估值刷新出现502，估值字段使用2026-09-18最近有效值并降低估值置信度，价格与结构数据为2026-09-21收盘。",
+  "publication_note": "Fresh run from 2026-09-21 trend handoff and 2026-09-21 chunked materialized view. No legacy/shard/post-freeze materialized reads."
 }
