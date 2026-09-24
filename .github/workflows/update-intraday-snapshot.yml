@@ -2,6 +2,9 @@ name: Update Intraday Market Snapshot
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "35,40 9,10,13,14 * * 1-5"
+      timezone: "Asia/Shanghai"
   push:
     branches:
       - main
@@ -13,7 +16,7 @@ permissions:
 
 concurrency:
   group: update-intraday-market-snapshot
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   snapshot:
@@ -27,19 +30,73 @@ jobs:
           ref: main
           fetch-depth: 1
 
+      - name: Check scheduled snapshot freshness
+        id: freshness
+        if: github.event_name == 'schedule'
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from datetime import datetime
+          from pathlib import Path
+          from zoneinfo import ZoneInfo
+
+          path = Path("research/intraday_market_snapshot.json")
+          skip = False
+          reason = "snapshot missing"
+
+          if path.exists():
+              try:
+                  payload = json.loads(path.read_text(encoding="utf-8"))
+                  now = datetime.now(ZoneInfo("Asia/Shanghai"))
+                  captured_raw = payload.get("captured_at")
+                  captured = datetime.fromisoformat(captured_raw) if captured_raw else None
+                  if captured and captured.tzinfo is None:
+                      captured = captured.replace(tzinfo=ZoneInfo("Asia/Shanghai"))
+
+                  validation = payload.get("validation") or {}
+                  age_seconds = (now - captured).total_seconds() if captured else None
+
+                  fresh = (
+                      payload.get("trade_date") == now.date().isoformat()
+                      and age_seconds is not None
+                      and 0 <= age_seconds <= 8 * 60
+                      and validation.get("status") == "passed"
+                      and validation.get("quote_coverage", 0) >= 0.90
+                      and not validation.get("manifest_errors")
+                  )
+
+                  if fresh:
+                      skip = True
+                      reason = f"snapshot already fresh: captured_at={captured_raw}, age_seconds={age_seconds:.0f}"
+                  else:
+                      reason = f"snapshot stale or invalid: captured_at={captured_raw}, age_seconds={age_seconds}"
+              except Exception as exc:
+                  reason = f"freshness check failed, refresh required: {exc}"
+
+          print(reason)
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
+              fh.write(f"skip={'true' if skip else 'false'}\n")
+          PY
+
       - name: Setup Python
+        if: steps.freshness.outputs.skip != 'true'
         uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
 
       - name: Install dependencies
+        if: steps.freshness.outputs.skip != 'true'
         run: pip install -r requirements.txt
 
       - name: Build intraday snapshot
+        if: steps.freshness.outputs.skip != 'true'
         run: python scripts/build_intraday_snapshot.py
 
       - name: Validate snapshot
+        if: steps.freshness.outputs.skip != 'true'
         run: |
           python - <<'PY'
           import json
@@ -73,6 +130,7 @@ jobs:
           PY
 
       - name: Commit intraday snapshot only
+        if: steps.freshness.outputs.skip != 'true'
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
