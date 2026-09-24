@@ -5,17 +5,23 @@ workflow in `xwan008/a-market-data` at 09:37, 10:37, 13:37, and 14:37
 Asia/Shanghai, Monday to Friday. The Cron expression is in UTC. It only has a
 scheduled handler and does not publish a public HTTP endpoint.
 
-## Deploy
+## Deploy in the browser (no local Git or CLI)
 
-1. Sign in to Cloudflare and GitHub as `xwan008`.
-2. In GitHub, create a fine-grained personal access token with repository
-   access limited to `xwan008/a-market-data` and **Actions: Read and write**.
-   Set an expiration date and retain the token privately.
-3. From this directory, run `npx wrangler login`, then
-   `npx wrangler secret put GITHUB_TOKEN`. Paste the token at Wrangler's secret
-   prompt; never commit it or paste it into chat.
-4. Run `npx wrangler deploy`. Check that the Cron trigger is
-   `37 1,2,5,6 * * MON-FRI`. Trigger propagation can take up to 15 minutes.
+1. In Cloudflare, go to **Workers & Pages > Create application > Import a
+   repository**. Connect GitHub and select `xwan008/a-market-data`.
+2. Name the Worker `a-market-intraday-trigger`, set the production branch to
+   `main` and the root directory to `cloudflare/intraday-trigger`, then select
+   **Save and Deploy**. This directory contains the Wrangler configuration and
+   source code. The first deployment can succeed without a token, but the
+   scheduled handler will fail until the secret is added.
+3. Create a fine-grained GitHub personal access token limited to
+   `xwan008/a-market-data` with **Actions: Read and write**. Keep it private.
+   In the Cloudflare Worker, select **Settings > Variables and Secrets > Add**,
+   choose **Secret**, name it `GITHUB_TOKEN`, paste the token and **Deploy**.
+4. Confirm the Worker has Cron trigger `37 1,2,5,6 * * MON-FRI`. Trigger
+   propagation can take up to 15 minutes. Restrict Workers Builds watch paths
+   to `cloudflare/intraday-trigger/**` so market-data commits do not redeploy
+   the Worker.
 5. At the next trading-day slot, verify the Worker invocation succeeded, the
    GitHub run has event `workflow_dispatch` and conclusion `success`, and
    `research/intraday_market_snapshot.json` has a fresh `captured_at` with
