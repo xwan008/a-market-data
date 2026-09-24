@@ -1,0 +1,13 @@
+name = "a-market-intraday-trigger"
+main = "src/index.mjs"
+compatibility_date = "2026-09-24"
+workers_dev = false
+
+[observability]
+enabled = true
+
+[secrets]
+required = ["GITHUB_TOKEN"]
+
+[triggers]
+crons = ["37 1,2,5,6 * * MON-FRI"]
