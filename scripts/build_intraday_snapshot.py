@@ -13,6 +13,7 @@ TREND_PATH = RESEARCH_DIR / "trend_handoff.json"
 LOW_RISK_PATH = RESEARCH_DIR / "low_risk_handoff.json"
 SNAPSHOT_PATH = RESEARCH_DIR / "intraday_market_snapshot.json"
 MANIFEST_ROOT = ROOT / "data" / "low_risk" / "by_industry"
+HISTORY_CONTEXT_RUNTIME_FORMAT = "low_risk_industry_working_set_chunk"
 
 
 def read_json(path: Path) -> dict:
@@ -124,6 +125,108 @@ def metrics_for_codes(codes: list[str], quotes: dict[str, dict]) -> dict:
     }
 
 
+def project_history_context(company: dict, source_trade_date: str | None) -> dict:
+    return {
+        "source_trade_date": source_trade_date,
+        "history_confidence": company.get("history_confidence"),
+        "close_change_5d_pct": round_or_none(company.get("close_change_5d_pct")),
+        "trend_state": company.get("trend_state"),
+        "break_state": company.get("break_state"),
+        "latest_high": company.get("latest_high"),
+        "latest_low": company.get("latest_low"),
+        "invalidation": company.get("invalidation"),
+    }
+
+
+def load_history_contexts(
+    low_risk_items: list[dict],
+    manifests: dict[str, dict],
+    expected_trade_date: str | None,
+) -> tuple[dict[str, dict], list[str], int]:
+    """Load only the small materialized parts that contain monitored READY/WAIT stocks.
+
+    History context is optional enrichment. Any read/validation failure is reported
+    but must never block the live intraday snapshot.
+    """
+    contexts: dict[str, dict] = {}
+    errors: list[str] = []
+    required_parts: dict[str, dict] = {}
+
+    for item in low_risk_items:
+        code = str(item.get("code") or "").zfill(6)
+        industry_code = str(item.get("industry_code") or "")
+        manifest = manifests.get(industry_code)
+        if not manifest:
+            errors.append(f"{code}:history_context_manifest_unavailable:{industry_code}")
+            continue
+
+        matched_part = None
+        for part in manifest.get("parts") or []:
+            part_codes = {str(x).zfill(6) for x in part.get("company_codes") or []}
+            if code in part_codes:
+                matched_part = part
+                break
+
+        if not matched_part:
+            errors.append(f"{code}:history_context_part_not_found:{industry_code}")
+            continue
+
+        part_file = str(matched_part.get("file") or "")
+        if not part_file:
+            errors.append(f"{code}:history_context_part_file_missing:{industry_code}")
+            continue
+
+        entry = required_parts.setdefault(
+            part_file,
+            {
+                "industry_code": industry_code,
+                "part_number": matched_part.get("part_number"),
+                "codes": set(),
+            },
+        )
+        entry["codes"].add(code)
+
+    part_read_count = 0
+    for part_file, request in required_parts.items():
+        try:
+            payload = read_json(ROOT / part_file)
+            part_read_count += 1
+
+            if payload.get("runtime_format") != HISTORY_CONTEXT_RUNTIME_FORMAT:
+                raise ValueError("runtime_format_mismatch")
+            if expected_trade_date and payload.get("trade_date") != expected_trade_date:
+                raise ValueError(
+                    f"trade_date_mismatch:{payload.get('trade_date')}!={expected_trade_date}"
+                )
+            if payload.get("industry_code") != request["industry_code"]:
+                raise ValueError("industry_identity_mismatch")
+            if payload.get("part_number") != request["part_number"]:
+                raise ValueError("part_number_mismatch")
+
+            companies = {
+                str(company.get("code") or "").zfill(6): company
+                for company in payload.get("companies") or []
+                if company.get("code")
+            }
+            for code in request["codes"]:
+                company = companies.get(code)
+                if not company:
+                    errors.append(f"{code}:history_context_company_missing:{part_file}")
+                    continue
+                contexts[code] = project_history_context(
+                    company,
+                    expected_trade_date,
+                )
+        except Exception as exc:
+            for code in request["codes"]:
+                errors.append(
+                    f"{code}:history_context_read_failed:{part_file}:"
+                    f"{type(exc).__name__}:{exc}"
+                )
+
+    return contexts, errors, part_read_count
+
+
 def main() -> int:
     now = datetime.now(market.TZ)
     trend = read_json(TREND_PATH)
@@ -140,6 +243,7 @@ def main() -> int:
     trends: dict[str, dict] = {}
     target_codes: set[str] = set()
     manifest_errors: list[str] = []
+    manifests: dict[str, dict] = {}
 
     for signal in trend.get("signals") or []:
         trend_name = str(signal.get("trend_name") or "")
@@ -171,6 +275,7 @@ def main() -> int:
                 )
                 continue
 
+            manifests[industry_code] = manifest
             company_codes = [str(code).zfill(6) for code in manifest.get("universe_company_codes") or []]
             target_codes.update(company_codes)
             grouped_codes.extend(company_codes)
@@ -238,6 +343,7 @@ def main() -> int:
             )
             continue
 
+        manifests[industry_code] = manifest
         company_codes = [
             str(code).zfill(6)
             for code in manifest.get("universe_company_codes") or []
@@ -255,6 +361,13 @@ def main() -> int:
             "source_scope": "low_risk_only",
             "company_codes": company_codes,
         }
+
+
+    history_contexts, history_context_errors, history_context_part_read_count = load_history_contexts(
+        low_risk_items,
+        manifests,
+        source_low_risk_trade_date,
+    )
 
     sina, sina_error = market.safe_fetch(market.fetch_sina_snapshot, "sina")
     tencent, tencent_error = market.safe_fetch(market.fetch_tencent_snapshot, "tencent")
@@ -344,6 +457,8 @@ def main() -> int:
             "relative_to_industry_pct": relative_to_industry,
             "in_monitored_industry_universe": code in set(industry.get("company_codes") or []),
             "trend_in_current_handoff": str(item.get("trend_name") or "") in trends,
+            "history_context_status": "available" if code in history_contexts else "unavailable",
+            "history_context": history_contexts.get(code),
         }
 
     usable_quotes = sum(
@@ -391,6 +506,11 @@ def main() -> int:
             "usable_quote_count": usable_quotes,
             "quote_coverage": round(quote_coverage, 4),
             "manifest_errors": manifest_errors,
+            "history_context_target_count": len(low_risk_items),
+            "history_context_available_count": len(history_contexts),
+            "history_context_unavailable_count": max(0, len(low_risk_items) - len(history_contexts)),
+            "history_context_part_read_count": history_context_part_read_count,
+            "history_context_errors": history_context_errors,
         },
         "trends": trends,
         "industries": industries,
@@ -411,6 +531,8 @@ def main() -> int:
                 "quote_coverage": round(quote_coverage, 4),
                 "industry_count": len(industries),
                 "low_risk_stock_count": len(low_risk_stocks),
+                "history_context_available_count": len(history_contexts),
+                "history_context_part_read_count": history_context_part_read_count,
                 "validation_status": payload["validation"]["status"],
             },
             ensure_ascii=False,
