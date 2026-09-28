@@ -2,11 +2,13 @@
 // This Worker NEVER dispatches daily or weekly workflows.
 // Set GH_TOKEN as a Cloudflare Secret. No public trigger endpoints.
 //
-// Existing Cron from earlier instructions is compatible:
-//   * 1,2,5,6,9 * * *
-// Only four exact Beijing-time slots below can dispatch, so UTC hour 9
-// (Beijing 17:00) and all other minutes are ALWAYS ignored.
-// If configuring Cron afresh, use: * 1,2,5,6 * * 1-5
+// Configure these THREE Cloudflare cron triggers (UTC):
+//   37 1,2 * * MON-FRI  => 09:37 and 10:37 Beijing
+//   17 5   * * MON-FRI  => 13:17 Beijing
+//   27 6   * * MON-FRI  => 14:27 Beijing
+// Cloudflare weekday numbering differs from some cron systems:
+// 1=SUN, 2=MON ... 6=FRI. Prefer MON-FRI to avoid ambiguity.
+// Delete any old high-frequency Cron such as "* 1,2,5,6,9 * * *".
 
 const API = "https://api.github.com/repos/xwan008/a-market-data";
 const WORKFLOW = "update-intraday-snapshot.yml";
