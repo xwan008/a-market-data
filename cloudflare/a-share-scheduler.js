@@ -1,135 +1,106 @@
-// A-share scheduler: Cloudflare Cron -> existing GitHub Actions.
-// No public endpoint can dispatch workflows. GH_TOKEN is a Cloudflare Secret.
-// Cron to configure in Cloudflare dashboard (UTC): * 1,2,5,6,9 * * *
+// Cloudflare Worker: intraday snapshot dispatch ONLY.
+// This Worker NEVER dispatches daily or weekly workflows.
+// Set GH_TOKEN as a Cloudflare Secret. No public trigger endpoints.
+//
+// Existing Cron from earlier instructions is compatible:
+//   * 1,2,5,6,9 * * *
+// Only four exact Beijing-time slots below can dispatch, so UTC hour 9
+// (Beijing 17:00) and all other minutes are ALWAYS ignored.
+// If configuring Cron afresh, use: * 1,2,5,6 * * 1-5
 
-const OWNER = "xwan008";
-const REPO = "a-market-data";
-const API = "https://api.github.com/repos/" + OWNER + "/" + REPO;
-const MAX_DELAY_MS = 90_000;
-
-// Official SSE closures for the REMAINDER of 2026. Update before 2027.
-// Saturdays and Sundays are handled separately.
-const CLOSED_2026 = new Set([
-  "2026-10-01", "2026-10-02", "2026-10-03",
-  "2026-10-04", "2026-10-05", "2026-10-06",
-  "2026-10-07"
+const API = "https://api.github.com/repos/xwan008/a-market-data";
+const WORKFLOW = "update-intraday-snapshot.yml";
+const SLOTS = new Set(["09:37", "10:37", "13:17", "14:27"]);
+const HOLIDAYS_2026_REMAINDER = new Set([
+  "2026-10-01", "2026-10-02", "2026-10-03", "2026-10-04",
+  "2026-10-05", "2026-10-06", "2026-10-07"
 ]);
 
-function chinaTime(utcDate) {
-  const d = new Date(utcDate.getTime() + 8 * 60 * 60 * 1000);
+function beijingTime(utc) {
+  const d = new Date(utc.getTime() + 8 * 60 * 60 * 1000);
   const pad = n => String(n).padStart(2, "0");
   return {
     date: d.getUTCFullYear() + "-" + pad(d.getUTCMonth() + 1) + "-" + pad(d.getUTCDate()),
+    year: d.getUTCFullYear(),
     weekday: d.getUTCDay(),
-    hourMinute: pad(d.getUTCHours()) + ":" + pad(d.getUTCMinutes()),
-    year: d.getUTCFullYear()
+    time: pad(d.getUTCHours()) + ":" + pad(d.getUTCMinutes())
   };
 }
 
-async function githubRequest(env, path, options = {}) {
-  const response = await fetch(API + path, {
-    ...options,
-    headers: {
-      Authorization: "Bearer " + env.GH_TOKEN,
-      Accept: "application/vnd.github+json",
-      "X-GitHub-Api-Version": "2026-03-10",
-      "User-Agent": "a-share-scheduler",
-      ...(options.headers || {})
-    }
-  });
-  if (!response.ok) {
-    throw new Error("GitHub HTTP " + response.status + ": " + path);
-  }
-  return response;
-}
-
-async function dispatch(env, workflow, slotTime) {
-  // Avoid a second run if either Cloudflare or the previous ChatGPT
-  // scheduler already started THIS SAME workflow near this time.
-  // This is best-effort deduplication, not a durable distributed lock.
-  const path = "/actions/workflows/" + workflow;
-  const listResponse = await githubRequest(env, path + "/runs?per_page=15");
-  const list = await listResponse.json();
-  const earlierRun = (list.workflow_runs || []).find(run => {
-    const createdAt = Date.parse(run.created_at);
-    return Number.isFinite(createdAt) &&
-      createdAt >= slotTime.getTime() - 2 * 60_000 &&
-      createdAt <= Date.now() + 30_000;
-  });
-  if (earlierRun) {
-    console.log(JSON.stringify({
-      status: "skipped_existing_run",
-      workflow,
-      run_id: earlierRun.id,
-      run_url: earlierRun.html_url
-    }));
-    return;
-  }
-
-  const response = await githubRequest(env, path + "/dispatches", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ref: "main", return_run_details: true })
-  });
-  if (response.status !== 200) {
-    throw new Error("Dispatch returned unexpected status " + response.status);
-  }
-  const result = await response.json();
-  if (!result.workflow_run_id) {
-    throw new Error("Dispatch returned no workflow_run_id");
-  }
-  console.log(JSON.stringify({
-    status: "dispatched",
-    workflow,
-    run_id: result.workflow_run_id,
-    run_url: result.html_url
-  }));
+function githubHeaders(env) {
+  return {
+    Authorization: "Bearer " + env.GH_TOKEN,
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2026-03-10",
+    "User-Agent": "a-share-scheduler"
+  };
 }
 
 export default {
-  // Public site exposes HEALTH ONLY. It never dispatches GitHub jobs.
+  // Public endpoint is read-only and cannot start GitHub Actions.
   async fetch() {
-    return Response.json({
-      service: "a-share-scheduler",
-      mode: "scheduled-only"
-    });
+    return Response.json({ service: "a-share-scheduler", scope: "intraday-only" });
   },
 
   async scheduled(controller, env) {
-    const scheduledAt = new Date(controller.scheduledTime);
-    const delayedBy = Date.now() - scheduledAt.getTime();
-    if (delayedBy > MAX_DELAY_MS || delayedBy < -30_000) {
-      console.warn("Skipping late/invalid cron invocation: " + delayedBy + " ms");
+    const planned = new Date(controller.scheduledTime);
+    const cn = beijingTime(planned);
+
+    // A scheduled execution must start close to its planned slot.
+    if (Math.abs(Date.now() - planned.getTime()) > 90_000) {
+      console.warn("Skip delayed Cron execution", cn);
       return;
     }
 
-    const cn = chinaTime(scheduledAt);
-    const weekdays = cn.weekday >= 1 && cn.weekday <= 5;
-    let workflow = null;
-
-    // The weekly refresh is allowed on Sundays, independent of exchange holidays.
-    if (cn.hourMinute === "17:00" && cn.weekday === 0) {
-      workflow = "update-weekly-research.yml";
-    } else if (weekdays) {
-      // Fail closed when the next year's official exchange calendar is not set.
-      if (cn.year !== 2026) {
-        console.error("No approved A-share trading calendar for " + cn.year);
-        return;
-      }
-      if (CLOSED_2026.has(cn.date)) {
-        console.log("Exchange closed: " + cn.date);
-        return;
-      }
-      const intraday = new Set(["09:37", "10:37", "13:17", "14:27"]);
-      if (intraday.has(cn.hourMinute)) {
-        workflow = "update-intraday-snapshot.yml";
-      } else if (cn.hourMinute === "17:00") {
-        workflow = "update-data.yml";
-      }
+    // Fail closed if future exchange calendar has not been approved.
+    if (cn.year !== 2026) {
+      console.warn("Trading calendar not configured for year", cn.year);
+      return;
+    }
+    if (cn.weekday < 1 || cn.weekday > 5 ||
+        HOLIDAYS_2026_REMAINDER.has(cn.date) ||
+        !SLOTS.has(cn.time)) {
+      return;
     }
 
-    if (!workflow) return;
-    if (!env.GH_TOKEN) throw new Error("GH_TOKEN Cloudflare Secret is missing");
-    await dispatch(env, workflow, scheduledAt);
+    if (!env.GH_TOKEN) throw new Error("GH_TOKEN Secret is missing");
+    const headers = githubHeaders(env);
+    const workflowPath = "/actions/workflows/" + WORKFLOW;
+
+    // If old ChatGPT scheduling already started this snapshot,
+    // do not create another run. This is best-effort deduplication.
+    const runsResponse = await fetch(
+      API + workflowPath + "/runs?per_page=15",
+      { headers }
+    );
+    if (!runsResponse.ok) {
+      throw new Error("Cannot check existing runs: HTTP " + runsResponse.status);
+    }
+    const runs = await runsResponse.json();
+    const existing = (runs.workflow_runs || []).find(run => {
+      const created = Date.parse(run.created_at);
+      return Number.isFinite(created) &&
+        created >= planned.getTime() - 120_000 &&
+        created <= Date.now() + 30_000;
+    });
+    if (existing) {
+      console.log("Existing intraday snapshot run: " + existing.id);
+      return;
+    }
+
+    // ONLY the intraday snapshot workflow may be dispatched.
+    const response = await fetch(API + workflowPath + "/dispatches", {
+      method: "POST",
+      headers: { ...headers, "Content-Type": "application/json" },
+      body: JSON.stringify({ ref: "main", return_run_details: true })
+    });
+    if (response.status !== 200) {
+      throw new Error("Intraday dispatch failed: HTTP " + response.status);
+    }
+    const result = await response.json();
+    if (!result.workflow_run_id) {
+      throw new Error("Intraday dispatch returned no workflow_run_id");
+    }
+    console.log("Dispatched intraday run", result.workflow_run_id, result.html_url);
   }
 };
