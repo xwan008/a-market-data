@@ -41,7 +41,8 @@
       "example_codes": [
         "002460"
       ],
-      "materialized_company_count": 7
+      "materialized_company_count": 7,
+      "limitation": "Keep as research candidate for actual lithium-metal anode/solid-state integrated businesses such as 002460. Broad lithium mining/salt price exposure is not proof of solid-state incremental profit for every company."
     },
     {
       "code": "S240504",
@@ -52,16 +53,6 @@
       ],
       "materialized_company_count": 12,
       "limitation": "材料适用性并不证明订单或盈利传导"
-    },
-    {
-      "code": "S760102",
-      "name": "水务及水治理",
-      "link": "跨主业固态电解质粉体/固液混合电池新项目",
-      "example_codes": [
-        "603200"
-      ],
-      "materialized_company_count": 24,
-      "limitation": "行业身份较宽，标准行业内Top5可能遗漏跨界公司"
     }
   ],
   "evidence": [
@@ -119,7 +110,8 @@
       "industry_code": "S760102",
       "as_of": "2026-08-30",
       "finding": "公司半年报披露计划投资固液混合电芯及500吨/年固态电解质粉体产业化项目；项目为规划而非实际收入",
-      "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12556014&stockid=603200"
+      "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12556014&stockid=603200",
+      "routing_status": "WATCHLIST_ONLY_NOT_AUTOMATIC_THEME_UNIVERSE"
     },
     {
       "code": "300450",
@@ -179,10 +171,29 @@
       "S630702",
       "S630703",
       "S240603",
-      "S240504",
-      "S760102"
+      "S240504"
     ],
-    "trend_scheduler_limitation": "The current trend task's routing precedence uses already-explicit or exact-index industry resolution before theme_alias_map. Merely changing the alias map cannot guarantee a corrected handoff. On next formal trend run, exact matches for this reviewed alias must use the updated six-industry route, preserving the separately researched trend/rank and all other algorithm rules.",
-    "formal_run_condition": "Do not claim the low-risk formal run has applied the new map until a same-trade-date research/trend_handoff.json is fully published/read back with all six corrected codes AND the materialized index/manifest/parts pass their existing gates. Rebuild non-mainboard market data separately before claiming 300/688 coverage."
-  }
+    "trend_scheduler_limitation": "Existing trend handoff retains three routes and prioritizes already-explicit mappings. The next formal trend run must incorporate the updated reviewed five-industry alias; do not append the water-treatment industry. Preserve independently determined trend/rank.",
+    "formal_run_condition": "Do not claim expanded thematic routing until same-trade-date trend_handoff is fully republished/read back with the five new codes and materialized index/manifest/parts pass gates. Company-level watchlist is not an exception in the existing canonical flow. Expand non-mainboard data pipeline separately before claiming 300/688 coverage."
+  },
+  "cross_industry_company_watchlist": [
+    {
+      "code": "603200",
+      "company": "上海洗霸",
+      "sw_level3_code": "S760102",
+      "sw_level3_name": "水务及水治理",
+      "routing_status": "WATCHLIST_ONLY_NOT_AUTOMATIC_THEME_UNIVERSE",
+      "basis": "2026 half-year report discloses solid-electrolyte powder product validation and small-batch orders, with follow-on industrial projects proposed; this does not make the water-treatment SW industry a solid-state theme.",
+      "source_url": "https://static.cninfo.com.cn/finalpage/2026-08-28/1225516191.PDF",
+      "canonical_handling": "Requires a separately designed, validated company-level cross-industry exception that preserves current company eligibility, pre-screen and valuation rules. Current canonical flow does not consume this watchlist."
+    }
+  ],
+  "removed_overbroad_industry_routes": [
+    {
+      "code": "S760102",
+      "name": "水务及水治理",
+      "reason": "one cross-sector company does not justify routing the full 24-company water industry",
+      "example_code": "603200"
+    }
+  ]
 }
