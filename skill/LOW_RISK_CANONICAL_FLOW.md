@@ -15,8 +15,8 @@ Trend Handoff
 → Freeze；以下阶段不再读取任何 company_industry_index / shard / low_risk manifest / part / legacy 单文件
 → 公司级硬过滤
 → 行业内轻量预筛（Top5 / 并列第6）
-→ Transmission
-→ Expectation
+→ Transmission（SUPPORTED / EARLY_EVIDENCE / NOT_SUPPORTED / UNCERTAIN）
+→ Expectation（仅 SUPPORTED；EARLY_EVIDENCE 留在独立观察池）
 → 行业自适应估值 + 价格结构
 → reasonable_price_range / low_risk_buy_range
 → READY / WAIT / UNCERTAIN / DROP
@@ -161,19 +161,21 @@ working_set_company_count == sum(routed industries with universe 的 company_cou
 
 ## 6. Stage C：Transmission
 
-只对 pre-screen selected 公司研究未来 1–2 季度行业趋势是否能传导到公司盈利。按 `EXECUTION_EFFICIENCY_OVERRIDE.md` **两步搜证**：每行业一次研究批次，批次内按具体产业环节分组（每组约 2–3 家）并行短查询，覆盖公告、财报、交易所披露及 IR，不限单一检索站点；批量后逐家检查无来源、证据过期及遗漏趋势相关业务的缺口，只有补证可能改变判断时才对该公司最多一次定向补证。Web/公告/IR 只补 working set 不可能提供的前瞻证据；不机械要求每家公司单独公告、精确利润预测或额外重复检索。
+只对 pre-screen selected 公司验证行业趋势与公司业务的可归因传导。未来 1–2 季度是重点研究窗口，不是 SUPPORTED 的强制订单兑现或精确利润预测门槛。已核实的、与本轮趋势直接相关的有效订单、客户认证、明确商业化项目或实际交付，可以支持商业传导；必须核验其与本轮趋势的直接关联，不能把普通业务订单冒充趋势订单。只有政策、技术储备或研发进展且已核实公司直接业务关联、但尚无可靠商业验证时记 `EARLY_EVIDENCE`，进入独立观察池，不进入 Expectation、READY/WAIT 或正式 handoff。订单兑现时间、盈利弹性与市场计价的不确定性移交 Expectation 和 Risk–Reward，不因缺少精确季度利润预测而判 UNCERTAIN。
 
-每家入选公司都须有独立判断记录：关键证据及来源（允许共享行业来源，但必须验证公司关联）、行业驱动→业务敞口→盈利机制、未解决缺口/反证及最终 Transmission 状态。正常搜证仍不能确认时记 UNCERTAIN；必要检索因工具故障未执行时记 RESEARCH_INCOMPLETE，不进入发布。
+按 `EXECUTION_EFFICIENCY_OVERRIDE.md` **两步搜证**：每行业一次研究批次，批次内按具体产业环节分组（每组约 2–3 家）并行短查询，覆盖公告、财报、交易所披露及 IR，不限单一检索站点；批量后逐家检查无来源、证据过期及遗漏趋势相关业务的缺口，只有补证可能改变判断时才对该公司最多一次定向补证。Web/公告/IR 只补 working set 不可能提供的前瞻证据；不机械要求每家公司单独公告、精确利润预测或额外重复检索。
+
+每家入选公司都须有独立判断记录：关键证据及来源（允许共享行业来源，但必须验证公司关联）、行业驱动→业务敞口→商业传导证据/未来兑现窗口、未解决缺口/反证及最终 Transmission 状态。正常搜证仍不能确认公司直接关联或关键商业事实时记 UNCERTAIN；仅政策主题而无可核实公司直接业务关联不能标 EARLY_EVIDENCE。对拟判 UNCERTAIN/NOT_SUPPORTED 者必须检查已取得的一手公告、财报、IR 中是否存在与结论相矛盾的相关订单、客户认证或交付证据；发现具体矛盾时先做必要定向核查。必要检索因工具故障未执行或已发现的关键矛盾未核清时记 RESEARCH_INCOMPLETE，不进入发布。
 
 ### Transmission Research Gate
 
-正式发布前验证：全部 pre-screen selected 公司均有上述可追溯记录，并逐家记录具体趋势业务关联、所属批量短查询、取得证据及新鲜度、无来源/过期/遗漏业务的缺口检查结果、是否需要定向补证及执行结果或不补证理由；存在可能改变判断的可核查关键缺口时，必要补证须已执行。无来源不自动视为完成研究；无可核查关联或补证不会改变判断时可不补查，但必须说明。不存在未完成的必要检索或以统一模板冒充独立判断。
+正式发布前验证：全部 pre-screen selected 公司均有上述可追溯记录，并逐家记录具体趋势业务关联、所属批量短查询、取得证据及新鲜度、无来源/过期/遗漏业务的缺口检查结果、是否需要定向补证及执行结果或不补证理由；EARLY_EVIDENCE 必须单列并记录公司直接关联证据、尚未商业验证的缺口与下一次验证触发条件；各 Transmission 状态计数之和必须等于 pre_screen selected 去重公司数；存在可能改变判断的可核查关键缺口时，必要补证须已执行。无来源不自动视为完成研究；无可核查关联或补证不会改变判断时可不补查，但必须说明。不存在未完成的必要检索或以统一模板冒充独立判断。
 
-全部满足时 `coverage.transmission_research_gate = "PASSED"`，否则为 `"FAILED"`，不得发布 COMPLETE。该 Gate 仅检查研究是否真实充分执行，不要求出现 READY/WAIT，不改变 SUPPORTED、NOT_SUPPORTED、UNCERTAIN 或估值/价格区间标准。
+全部满足时 `coverage.transmission_research_gate = "PASSED"`，否则为 `"FAILED"`，不得发布 COMPLETE。该 Gate 仅检查研究是否真实充分执行，不要求出现 READY/WAIT，不改变 SUPPORTED、EARLY_EVIDENCE、NOT_SUPPORTED、UNCERTAIN 或估值/价格区间标准。
 
 ## 7. Stage D：Expectation
 
-只对 Transmission=SUPPORTED 公司判断：EARLY / CONFIRMING / PRICED_IN / EXHAUSTED / UNCERTAIN。
+只对 Transmission=SUPPORTED 公司判断：EARLY / CONFIRMING / PRICED_IN / EXHAUSTED / UNCERTAIN。Transmission=EARLY_EVIDENCE 仅留在独立观察池，不进入 Expectation、READY/WAIT 或正式 handoff。
 
 ## 8. Stage E：行业自适应估值与买点
 
