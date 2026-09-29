@@ -102,7 +102,7 @@ GitHub 构建必须保证 mapped company coverage、industry partition、trade_d
    - company_count 与 index 一致；
    - `len(universe_company_codes) == company_count`；
    - `chunking.part_count == len(parts)`；
-3. 按 `parts[*].part_number` 升序读取全部 part。part 文件是 pretty-print 多行 JSON；若一次返回不足以覆盖整文件，必须使用行范围分页读取（推荐每段 100–150 行），从第 1 行连续读取到 EOF。允许同一 part 有多个物理 segment fetch，但不得跳行、重叠遗漏或只取前段；
+3. 按 `parts[*].part_number` 升序读取全部 part。part 文件是 pretty-print 多行 JSON，且由生产层限制为有界大小；默认每个 part 使用一次完整文件读取（不指定行范围），该次返回必须覆盖第 1 行到 EOF。只有工具明确返回截断、响应大小限制或无法获得完整 EOF 时，才改用行范围分页（推荐每段 100–150 行），从第 1 行连续读取到 EOF。已一次完整返回的 part 禁止再次分页或重读；
 4. 将同一 part 的所有 segment 按行顺序原样拼接后，必须先成功解析完整 JSON；只有完整解析并通过下列校验后，才计为 1 次逻辑 `materialized_part_read_count`；
 5. 每个 part 必须满足：
    - `runtime_format == "low_risk_industry_working_set_chunk"`；
@@ -200,7 +200,7 @@ reasonable_price_range
 1次 trend_handoff
 1次 data/low_risk/index.json
 N次 routed industry manifest（N == routed_industry_with_universe_count）
-P个逻辑 part（P == 所有 routed manifest 声明的 part_count 总和；每个 part 可由多个按行 segment fetch 完成）
+P个逻辑 part（P == 所有 routed manifest 声明的 part_count 总和；每个 part 默认 1 次完整文件 fetch，只有明确截断时才可由多个连续按行 segment fetch 完成）
 working set freeze
 后续 0 次 manifest/part/legacy materialized 读取
 全程 0 次 company_industry_index 大文件读取
@@ -258,4 +258,4 @@ working set freeze
 
 ## 11. 一句话版本
 
-> GitHub Actions 把 company_industry_index + shards 确定性物化成“行业 manifest + 有界、pretty-print 的多行 part”；低风险榜按 Trend Handoff 对每个 part 从第1行连续分页读取到 EOF，完整拼接并解析后证明 Universe 无遗漏再 Freeze，从根源规避单行大 JSON 无法分页导致的截断。
+> GitHub Actions 把 company_industry_index + shards 确定性物化成“行业 manifest + 有界、pretty-print 的多行 part”；低风险榜按 Trend Handoff 对每个 part 优先一次完整读取到 EOF，只有明确截断时才连续分页，完整解析后证明 Universe 无遗漏再 Freeze，从根源规避单行大 JSON 无法分页导致的截断。
