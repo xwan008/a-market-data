@@ -32,11 +32,12 @@ Transmission
 
 只对预筛选中的 deep-research 公司判断：
 
-> 趋势为什么会让这家公司未来 1–2 个季度赚得更多？
+> 本轮行业趋势是否已有可核验的公司级业务传导？未来 1–2 季度是重点研究窗口，用于观察兑现节奏与盈利机制，但不要求精确季度利润预测。
 
 状态：
 
-- `SUPPORTED`
+- `SUPPORTED`：已核实与本轮趋势直接相关的有效商业订单、客户认证、明确商业化项目或实际交付；不强制要求未来两个季度全部兑现
+- `EARLY_EVIDENCE`：政策/技术/研发阶段，已核实公司与本轮趋势的直接业务关联，但尚无可靠商业验证；单列观察，不进入 Expectation、READY/WAIT 或 handoff
 - `NOT_SUPPORTED`
 - `UNCERTAIN`
 
@@ -50,7 +51,7 @@ Transmission
 - 库存周期变化；
 - 市占率或产品结构变化。
 
-判定链条是：**已核实行业驱动 → 公司实际业务敞口 → 未来 1–2 季度可信的盈利改善机制**。上述证据类型择其有解释力者即可，不要求必须取得新增订单、精确利润预测或完整财务兑现；但不得仅凭行业景气或已有财务表现推断未来传导。
+判定链条是：**已核实行业驱动 → 公司实际业务敞口 → 可核验商业传导证据**。未来 1–2 季度主要用于研究兑现窗口、盈利弹性与财务传导，不是 SUPPORTED 的硬性兑现期限。上述证据类型择其有解释力者即可，不要求必须取得精确利润预测或完整财务兑现；但不得仅凭行业景气或已有财务表现推断未来传导。
 
 “属于该板块”本身不足以证明传导。
 
@@ -58,13 +59,15 @@ Transmission
 
 `NOT_SUPPORTED → DROP`。
 
-`UNCERTAIN` 按 `EXECUTION_EFFICIENCY_OVERRIDE.md` 的“两步搜证”认定：行业批量搜证后，只有可能改变结论的关键缺口才允许最多一次定向补证。正常检索后仍不能建立可信传导链，保留 UNCERTAIN；有明确反证才判 NOT_SUPPORTED。必要检索因工具故障未执行时属于 RESEARCH_INCOMPLETE，不冒充 UNCERTAIN。
+`EARLY_EVIDENCE → 独立观察池`：不得伪装成 SUPPORTED，也不得自动进入 READY / WAIT；必须记录公司直接关联证据、尚未完成的商业化验证以及下一次验证触发条件。
+
+`UNCERTAIN` 按 `EXECUTION_EFFICIENCY_OVERRIDE.md` 的“两步搜证”认定：行业批量搜证后，只有可能改变结论的关键缺口才允许最多一次定向补证。正常检索后仍不能确认公司直接业务关联或关键商业事实，保留 UNCERTAIN；有明确反证才判 NOT_SUPPORTED。对拟判 UNCERTAIN / NOT_SUPPORTED 的公司，必须检查已取得的一手公告、财报、交易所披露和 IR 是否存在与结论相冲突的相关订单、客户认证或交付证据；若存在具体可核查矛盾，须先完成必要补证。必要检索因工具故障未执行，或已发现关键矛盾但未核清时，属于 RESEARCH_INCOMPLETE，不冒充 UNCERTAIN。
 
 ---
 
 ## 3. Expectation｜市场已经交易了多少
 
-仅对 Transmission=`SUPPORTED` 的公司重建：
+仅对 Transmission=`SUPPORTED` 的公司重建；Transmission=`EARLY_EVIDENCE` 仅保留在独立观察池，不进入本阶段：
 
 ```text
 催化出现
