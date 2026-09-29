@@ -36,7 +36,7 @@
 1. `trend_handoff.json` 原则上读一次；
 2. `data/low_risk/index.json` 原则上读一次；
 3. 每个 routed 行业读取一次 manifest；
-4. 按 manifest 声明完整读取全部 parts；每个 part 使用多行 JSON，必要时以 100–150 行为一段连续读取到 EOF，不抽样、不跳行；完整拼接解析成功后才算一个逻辑 part read；
+4. 按 manifest 声明完整读取全部 parts；每个有界多行 JSON part 默认一次完整文件读取到 EOF，只有工具明确返回截断、响应大小限制或无法获得完整 EOF 时，才以 100–150 行为一段连续分页，不抽样、不跳行；已完整返回的 part 禁止再次分页或重读，完整解析成功后才算一个逻辑 part read；
 5. 将 parts 拼接并校验覆盖后形成 run-local working set；
 6. 全部 routed 行业工作集完成后统一 Freeze。
 
