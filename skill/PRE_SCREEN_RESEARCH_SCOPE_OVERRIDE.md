@@ -140,7 +140,10 @@ Deep Research Set：
 随后：
 - Transmission 只覆盖 Deep Research Set；
 - Expectation 覆盖其中所有 Transmission=SUPPORTED；
+- Transmission=EARLY_EVIDENCE 单列观察，记录公司直接关联证据、商业化缺口与下一次验证触发条件，不进入 Expectation、READY / WAIT 或 handoff；
 - Risk–Reward 按后续规则闭合。
+
+Transmission 各状态（SUPPORTED / EARLY_EVIDENCE / NOT_SUPPORTED / UNCERTAIN）的去重公司数之和必须等于 Deep Research Set 去重公司数；必要检索未完成的 RESEARCH_INCOMPLETE 不得伪装成其中任一状态并发布 COMPLETE。
 
 ---
 
