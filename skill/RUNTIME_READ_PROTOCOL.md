@@ -80,7 +80,7 @@ post_freeze_shard_read_count == 0
 其中：
 - Universe 权威来源仍是 `data/research/company_industry_index.json`，但运行时通过 GitHub Actions 已验证的 `data/low_risk/*` 物化视图消费；
 - 公司完整事实权威来源仍是 `data/shards/*.json`，但运行时不直接读取 shards；
-- Freeze 前每个 routed 行业 manifest 最多读取一次；manifest 声明的每个 part 必须从第1行连续分页读取到 EOF。一个 part 可有多个物理 segment fetch，但完整拼接、JSON 解析和字段校验全部通过后才算 1 个逻辑 part read；
+- Freeze 前每个 routed 行业 manifest 最多读取一次；manifest 声明的每个有界 part 默认一次完整文件读取并覆盖第1行到 EOF，只有工具明确返回截断、响应大小限制或无法获得完整 EOF 时才允许连续分页。已完整返回的 part 不得再次分页或重读；完整 JSON 解析和字段校验全部通过后才算 1 个逻辑 part read；
 - Freeze 前必须证明 manifest company_count、parts company_count、company codes 与 index 完整一致且无重复；
 - Freeze 后不得再读取任何 manifest、part、legacy materialized industry file、company_industry_index 或 shard；
 - 后续硬过滤、预筛、Transmission、Expectation、估值与价格区间全部消费 frozen working set。
