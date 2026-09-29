@@ -2,6 +2,12 @@ name: Update Market Data
 
 on:
   workflow_dispatch:
+    inputs:
+      skip_if_fresh:
+        description: "Cloudflare dispatch: skip if today's formal data is already valid"
+        required: false
+        type: boolean
+        default: false
   push:
     branches:
       - main
@@ -33,6 +39,7 @@ jobs:
         env:
           TRIGGER_EVENT: ${{ github.event_name }}
           TRIGGER_SCHEDULE: ${{ github.event.schedule }}
+          SKIP_IF_FRESH: ${{ inputs.skip_if_fresh }}
         run: |
           python - <<'PY'
           import json
@@ -43,7 +50,10 @@ jobs:
 
           event = os.environ.get("TRIGGER_EVENT", "")
           schedule = os.environ.get("TRIGGER_SCHEDULE", "")
-          is_fallback = event == "schedule" and schedule == "37 8 * * 1-5"
+          is_fallback = (
+              (event == "schedule" and schedule == "37 8 * * 1-5")
+              or (event == "workflow_dispatch" and os.environ.get("SKIP_IF_FRESH", "").lower() == "true")
+          )
           should_run = True
           reason = "primary_or_manual_run"
 
