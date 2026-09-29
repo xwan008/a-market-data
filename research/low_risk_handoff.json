@@ -1,12 +1,49 @@
 {
-  "schema_version": 1,
-  "result_kind": "a_share_low_risk_handoff",
+  "schema_version": "low_risk_handoff_v2",
+  "status": "COMPLETE",
   "trade_date": "2026-09-29",
-  "generated_at": "2026-09-29T20:31:49+08:00",
-  "source": {
-    "task": "A股低风险买点榜",
-    "formal_result_run_id": "low-risk-20260929T203149+0800",
-    "formal_result_status": "COMPLETE"
-  },
-  "items": []
+  "generated_at": "2026-09-29T21:03:35+08:00",
+  "source_run_id": "low-risk-20260929T210335+0800",
+  "items": [
+    {
+      "rank": 1,
+      "code": "002074",
+      "company_name": "国轩高科",
+      "trend_name": "固态电池",
+      "industry_code": "S630701",
+      "industry_name": "锂电池",
+      "status": "WAIT_CATALYST",
+      "current_price": 28.68,
+      "reasonable_buy_range": [
+        26,
+        28
+      ],
+      "low_risk_buy_range": [
+        22.5,
+        24.5
+      ],
+      "wait_or_trigger_condition": "公司公告固态电池产线完成调试并出现首批交付，且股价回到26–28元合理区间；低风险区22.5–24.5元。",
+      "invalidation": "产线/小批量节点明显延期，或后续披露无法形成客户验证与交付。"
+    },
+    {
+      "rank": 2,
+      "code": "002463",
+      "company_name": "沪电股份",
+      "trend_name": "PCB/CCL",
+      "industry_code": "S270202",
+      "industry_name": "印制电路板",
+      "status": "WAIT_MARGIN",
+      "current_price": 119.07,
+      "reasonable_buy_range": [
+        114.5,
+        121
+      ],
+      "low_risk_buy_range": [
+        96,
+        104.5
+      ],
+      "wait_or_trigger_condition": "股价回落至104.5元或以下；或新一季报告确认高端PCB订单与产能兑现后重新计算仍具足够安全边际。",
+      "invalidation": "高端PCB订单/产能爬坡低于预期，或利润增速显著落后于估值消化速度。"
+    }
+  ]
 }
