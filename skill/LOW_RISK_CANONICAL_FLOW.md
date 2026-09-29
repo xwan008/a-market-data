@@ -161,9 +161,15 @@ working_set_company_count == sum(routed industries with universe 的 company_cou
 
 ## 6. Stage C：Transmission
 
-只对 pre-screen selected 公司研究未来1–2季度行业趋势是否能传导到公司盈利。
+只对 pre-screen selected 公司研究未来 1–2 季度行业趋势是否能传导到公司盈利。按 `EXECUTION_EFFICIENCY_OVERRIDE.md` **两步搜证**：每行业一次批量研究；只有关键缺口可能改变判断时才对该公司最多一次定向补证。Web/公告/IR 只补 working set 不可能提供的前瞻证据；不机械要求每家公司单独公告、精确利润预测或额外重复检索。
 
-Web/公告/IR 只补 working set 不可能提供的前瞻证据，例如订单、产能、交付、客户、产品结构、价格变化。
+每家入选公司都须有独立判断记录：关键证据及来源（允许共享行业来源，但必须验证公司关联）、行业驱动→业务敞口→盈利机制、未解决缺口/反证及最终 Transmission 状态。正常搜证仍不能确认时记 UNCERTAIN；必要检索因工具故障未执行时记 RESEARCH_INCOMPLETE，不进入发布。
+
+### Transmission Research Gate
+
+正式发布前验证：全部 pre-screen selected 公司均有上述可追溯记录；无实质证据者须记录实际检索范围和未解决的决定性缺口；有必要的定向补证须已执行或有明确不执行理由；不存在未完成的必要检索或以统一模板冒充独立判断。
+
+全部满足时 `coverage.transmission_research_gate = "PASSED"`，否则为 `"FAILED"`，不得发布 COMPLETE。该 Gate 仅检查研究是否真实充分执行，不要求出现 READY/WAIT，不改变 SUPPORTED、NOT_SUPPORTED、UNCERTAIN 或估值/价格区间标准。
 
 ## 7. Stage D：Expectation
 
@@ -253,6 +259,8 @@ working set freeze
 - `working_set_company_count == universe_company_count`；
 - `working_set_count == routed_industry_with_universe_count`；
 - 两类 post-freeze read count 都为 0。
+
+同时要求 `coverage.transmission_research_gate == "PASSED"`。允许行业批次共用来源，但公司结论、搜证轨迹及必要补证必须可逐家审计；研究工具故障未完成必要检索时不得以 UNCERTAIN 掩盖失败，也不得发布 COMPLETE。
 
 否则不得把执行路径描述为 canonical complete。
 
