@@ -2,8 +2,8 @@
   "schema_version": "low_risk_handoff_v2",
   "status": "COMPLETE",
   "trade_date": "2026-09-29",
-  "generated_at": "2026-09-29T21:03:35+08:00",
-  "source_run_id": "low-risk-20260929T210335+0800",
+  "generated_at": "2026-09-29T21:49:33+08:00",
+  "source_run_id": "low-risk-20260929T214933+0800",
   "items": [
     {
       "rank": 1,
@@ -12,7 +12,7 @@
       "trend_name": "固态电池",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "status": "WAIT_CATALYST",
+      "status": "WAIT_PRICE",
       "current_price": 28.68,
       "reasonable_buy_range": [
         26,
@@ -22,8 +22,8 @@
         22.5,
         24.5
       ],
-      "wait_or_trigger_condition": "公司公告固态电池产线完成调试并出现首批交付，且股价回到26–28元合理区间；低风险区22.5–24.5元。",
-      "invalidation": "产线/小批量节点明显延期，或后续披露无法形成客户验证与交付。"
+      "wait_or_trigger_condition": "股价回到26–28元合理区；优先等待22.5–24.5元低风险区，且量产交付未出现延期。",
+      "invalidation": "固液混合交付或全固态装车节点明显延期。"
     },
     {
       "rank": 2,
@@ -42,8 +42,48 @@
         96,
         104.5
       ],
-      "wait_or_trigger_condition": "股价回落至104.5元或以下；或新一季报告确认高端PCB订单与产能兑现后重新计算仍具足够安全边际。",
-      "invalidation": "高端PCB订单/产能爬坡低于预期，或利润增速显著落后于估值消化速度。"
+      "wait_or_trigger_condition": "股价回落至104.5元或以下；或新季度确认高端PCB订单与产能兑现后重算仍具安全边际。",
+      "invalidation": "高端PCB产能爬坡或订单兑现明显低于预期。"
+    },
+    {
+      "rank": 3,
+      "code": "002384",
+      "company_name": "东山精密",
+      "trend_name": "PCB/CCL",
+      "industry_code": "S270202",
+      "industry_name": "印制电路板",
+      "status": "WAIT_MARGIN",
+      "current_price": 171.21,
+      "reasonable_buy_range": [
+        160,
+        175
+      ],
+      "low_risk_buy_range": [
+        132,
+        148
+      ],
+      "wait_or_trigger_condition": "股价进入148元以下低风险区，或后续季度披露AI PCB订单与利润贡献显著上修并重算估值。",
+      "invalidation": "AI PCB/光模块量产未能转化为利润，或跌破关键结构后增长预期同步下修。"
+    },
+    {
+      "rank": 4,
+      "code": "001389",
+      "company_name": "广合科技",
+      "trend_name": "PCB/CCL",
+      "industry_code": "S270202",
+      "industry_name": "印制电路板",
+      "status": "WAIT_PRICE",
+      "current_price": 191.84,
+      "reasonable_buy_range": [
+        165,
+        180
+      ],
+      "low_risk_buy_range": [
+        140,
+        152
+      ],
+      "wait_or_trigger_condition": "股价回到165–180元合理区；优先等待140–152元低风险区，或Q4新增产能盈利兑现后重算。",
+      "invalidation": "泰国工厂Q4扩产延期或服务器客户认证未转化为量产订单。"
     }
   ]
 }
