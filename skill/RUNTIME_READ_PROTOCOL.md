@@ -127,11 +127,11 @@ FAILED / INCOMPLETE / UNVERIFIED 不得覆盖上一份 COMPLETE。
 - `hard_filtered_out`
 - `pre_screen_selected`
 - `pre_screened_out`
-- `ready / wait / uncertain / drop`
+- `ready / wait / early_evidence / uncertain / drop`
 - `coverage`
 - `data_access_audit`
 - `execution_audit`
-- `funnel`
+- `funnel`（至少区分 transmission_supported / transmission_early_evidence / transmission_uncertain / transmission_not_supported，状态计数与 Deep Research Set 去重公司数一致）
 
 推荐 data access 审计字段：
 
@@ -185,7 +185,7 @@ READY / WAIT 的价格字段完整性由：
 
 `MORNING_HANDOFF_UNAVAILABLE`
 
-早间版只围绕上一正式版 READY / WAIT 检查隔夜新增信息是否改变：
+早间版只围绕上一正式版 READY / WAIT 检查隔夜新增信息是否改变；`early_evidence` 不进入正式 handoff，也不作为早间 READY / WAIT 增量复核对象：
 
 - Transmission
 - Expectation
