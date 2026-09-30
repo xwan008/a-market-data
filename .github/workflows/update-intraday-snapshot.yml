@@ -111,6 +111,10 @@ jobs:
         if: steps.freshness.outputs.skip != 'true'
         run: python -m unittest discover -s tests -p 'test_low_risk_handoff_contract.py'
 
+      - name: Test cross-day continuity
+        if: steps.freshness.outputs.skip != 'true'
+        run: python -m unittest discover -s tests -p "test_intraday_crossday.py"
+
       - name: Build intraday snapshot
         if: steps.freshness.outputs.skip != 'true'
         run: python scripts/build_intraday_snapshot.py
@@ -162,6 +166,14 @@ jobs:
           assert not validation.get("manifest_errors")
           assert payload.get("trends")
           assert payload.get("industries")
+          assert validation.get("board_history_target_count") in (0, len(payload["trends"]))
+          if validation.get("board_history_target_count") == 0:
+              assert validation.get("crossday_history_errors"), "unexpectedly missing board history"
+          for trend in payload["trends"].values():
+              assert trend.get("history_context_status") in {"available", "partial", "unavailable"}
+              context = trend.get("history_context")
+              if context is not None:
+                  assert context.get("baseline_trade_date") == handoff.get("trade_date")
           print(json.dumps({
               "trade_date": payload.get("trade_date"),
               "captured_at": payload.get("captured_at"),
@@ -179,9 +191,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add research/intraday_market_snapshot.json
+          git add research/intraday_market_snapshot.json research/intraday_crossday_archive.json
 
-          if git diff --cached --quiet -- research/intraday_market_snapshot.json; then
+          if git diff --cached --quiet -- research/intraday_market_snapshot.json research/intraday_crossday_archive.json; then
             echo "intraday snapshot unchanged"
             exit 0
           fi

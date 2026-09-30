@@ -6,6 +6,7 @@ from pathlib import Path
 from statistics import median
 
 import fetch_market as market
+import intraday_crossday_context as crossday
 
 ROOT = Path(__file__).resolve().parents[1]
 RESEARCH_DIR = ROOT / "research"
@@ -450,6 +451,53 @@ def main() -> int:
     for trend_name, trend_item in trends.items():
         trend_item["metrics"] = metrics_for_codes(trend_item["company_codes"], quotes)
 
+    # Cross-day references are independent of same-day previous_* transitions.
+    board_history_audit = {
+        "board_history_target_count": 0,
+        "board_history_5d_available_count": 0,
+        "board_history_20d_available_count": 0,
+        "board_previous_day_available_count": 0,
+        "board_history_shard_read_count": 0,
+        "board_history_errors": [],
+    }
+    crossday_errors: list[str] = []
+    crossday_archive = None
+    previous_day_stock_refs: dict[str, dict] = {}
+    if source_handoff_trade_date_consistent and trade_date:
+        archive_healthy = True
+        try:
+            old_archive = crossday.read_archive()
+        except (ValueError, TypeError, OSError, json.JSONDecodeError) as exc:
+            old_archive = {"schema_version": 1, "result_kind": "a_share_intraday_crossday_archive", "days": []}
+            archive_healthy = False
+            crossday_errors.append(f"archive_read_invalid_not_overwritten:{type(exc).__name__}")
+        try:
+            merged_archive = crossday.merge_archive(old_archive, crossday.MONITOR_PATH, trade_date)
+            contexts, board_history_audit = crossday.build_board_context(
+                trends, source_low_risk_trade_date, merged_archive
+            )
+            for name, context in contexts.items():
+                trend_item = trends[name]
+                trend_item["history_context"] = context
+                statuses = (context["five_day"]["status"], context["twenty_day"]["status"])
+                trend_item["history_context_status"] = (
+                    "available" if "available" in statuses or context["previous_trade_day"]
+                    else "partial" if "partial" in statuses else "unavailable"
+                )
+            previous_day = next(
+                (d for d in merged_archive["days"] if d["trade_date"] == source_low_risk_trade_date),
+                None,
+            )
+            if previous_day:
+                previous_day_stock_refs = previous_day.get("stocks") or {}
+            if archive_healthy:
+                crossday_archive = merged_archive
+        except (ValueError, TypeError, OSError, KeyError) as exc:
+            crossday_errors.append(f"board_history_unavailable:{type(exc).__name__}")
+    for trend_item in trends.values():
+        trend_item.setdefault("history_context", None)
+        trend_item.setdefault("history_context_status", "unavailable")
+
     low_risk_stocks: dict[str, dict] = {}
     for item in low_risk_items:
         code = str(item.get("code") or "").zfill(6)
@@ -488,6 +536,12 @@ def main() -> int:
             "trend_in_current_handoff": str(item.get("trend_name") or "") in trends,
             "history_context_status": "available" if code in history_contexts else "unavailable",
             "history_context": history_contexts.get(code),
+            "previous_trade_day_monitor": (
+                {"trade_date": source_low_risk_trade_date,
+                 "basis": "last_persisted_intraday_scan_not_official_close",
+                 **previous_day_stock_refs[code]}
+                if code in previous_day_stock_refs else None
+            ),
         }
 
     expected_low_risk_codes = {str(item["code"]).zfill(6) for item in low_risk_items}
@@ -557,11 +611,19 @@ def main() -> int:
             "history_context_unavailable_count": max(0, len(low_risk_items) - len(history_contexts)),
             "history_context_part_read_count": history_context_part_read_count,
             "history_context_errors": history_context_errors,
+            **board_history_audit,
+            "crossday_archive_days": len(crossday_archive["days"]) if crossday_archive else 0,
+            "crossday_history_errors": crossday_errors,
         },
         "trends": trends,
         "industries": industries,
         "low_risk_stocks": low_risk_stocks,
     }
+
+    if crossday_archive is not None:
+        crossday.ARCHIVE_PATH.write_text(
+            json.dumps(crossday_archive, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
 
     SNAPSHOT_PATH.write_text(
         json.dumps(payload, ensure_ascii=False, indent=2),
