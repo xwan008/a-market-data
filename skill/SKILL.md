@@ -148,11 +148,13 @@ READY 不代表下一交易日一定上涨。
 
 核心逻辑成立，且已形成完整可辩护价格区间，但当前价格、预期、安全边际或催化时点尚不合适。
 
-标签：
-- `WAIT_EXPECTATION`
-- `WAIT_PRICE`
-- `WAIT_MARGIN`
-- `WAIT_CATALYST`
+最终状态统一保存为 `status: "WAIT"`，等待原因必须单独保存在 `wait_reason`，不得将原因编码进 `status`。合法原因：
+- `WAIT_EXPECTATION`：市场预期已较充分计价；
+- `WAIT_PRICE`：当前价格高于合理/低风险区；
+- `WAIT_MARGIN`：价格可能处于合理区，但安全边际不足；
+- `WAIT_CATALYST`：仍需等待订单、利润、产能或客户等催化确认。
+
+`wait_reason` 是分类枚举；如需自然语言解释，使用 `wait_reason_detail`。READY 的 `wait_reason` 为 null。
 
 ### UNCERTAIN
 
@@ -178,6 +180,8 @@ READY 不代表下一交易日一定上涨。
 ---
 
 ## 7. 输出语义
+
+READY / WAIT 的 `status` 只能分别为 `READY` 或 `WAIT`，不允许 `status: "WAIT_PRICE"` 等子状态。WAIT 必须有上述合法的 `wait_reason`；READY 的 `wait_reason` 为 null。
 
 READY / WAIT 必须输出：
 - current_price
