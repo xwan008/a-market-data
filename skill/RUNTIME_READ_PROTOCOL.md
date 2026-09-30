@@ -37,6 +37,16 @@ Universe 权威来源、预物化行业事实读取和 run-local working set 构
 
 ---
 
+### 2.1 运行时环境兼容性预检（在首次读取 Working Set 之前）
+
+每轮正式版/手动版在首次读取 `data/low_risk/index.json` 或任何行业 manifest/part **之前**，必须在本轮实际执行分片校验的同一运行环境执行 `LOW_RISK_CANONICAL_FLOW.md` 所定义的严格 UTF-8 字节计数器和 ASCII/中文/emoji/LF/非法代理项预检；不可假设 `TextEncoder` 已定义，也不可用未验证的运行时 API。预检失败按 `RUNTIME_BYTE_VALIDATOR_UNAVAILABLE` 停止，不允许先把全部分片读完再发现校验器无法运行。
+
+逐个 part 必须保留工具返回的未经改写的完整原始文本（从第 1 行到 EOF，含末尾换行），以其真实 UTF-8 字节数核对 manifest `parts[*].byte_size`；该数值由 GitHub Actions 生产脚本按 pretty-print 文本落盘时计算，绝不拿 `JSON.stringify` 后的文本长度、字符个数或工具带行号的渲染文本冒充字节校验。不能取得完整可核验原文则 `PART_RAW_TEXT_UNVERIFIED`，字节不符则 `PART_BYTE_SIZE_MISMATCH`；任何一种失败都禁止 Freeze 和发布。
+
+不改变原有“一次完整返回的 part 禁止再次分页或重读”纪律：同轮缓存原始正文仍完整且来源可核验时，可只重算缓存上的校验，不增加读取次数；如本轮已结束或缓存缺失，必须在**下一次独立 Fresh Run** 先自检后读取，绝不跨轮复用旧工作集。本轮任何字节或运行时校验失败，写请求标记 `NOT_ATTEMPTED`；不得覆盖现有 `COMPLETE` 正式榜和 handoff，不得虚报 READBACK。
+
+---
+
 ## 3. Materialized View / Handoff Hard Gate
 
 正式版至少确认：
