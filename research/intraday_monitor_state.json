@@ -35,7 +35,40 @@
       ]
     }
   ],
-  "frozen_low_risk_stocks": [],
+  "frozen_low_risk_stocks": [
+    {
+      "rank": 1,
+      "code": "002074",
+      "company_name": "国轩高科",
+      "trend_name": "固态电池",
+      "formal_status": "WAIT",
+      "wait_reason": "WAIT_PRICE"
+    },
+    {
+      "rank": 2,
+      "code": "002463",
+      "company_name": "沪电股份",
+      "trend_name": "PCB/CCL",
+      "formal_status": "WAIT",
+      "wait_reason": "WAIT_MARGIN"
+    },
+    {
+      "rank": 3,
+      "code": "002384",
+      "company_name": "东山精密",
+      "trend_name": "PCB/CCL",
+      "formal_status": "WAIT",
+      "wait_reason": "WAIT_MARGIN"
+    },
+    {
+      "rank": 4,
+      "code": "001389",
+      "company_name": "广合科技",
+      "trend_name": "PCB/CCL",
+      "formal_status": "WAIT",
+      "wait_reason": "WAIT_PRICE"
+    }
+  ],
   "industry_history": {
     "固态电池": [
       {
@@ -119,11 +152,14 @@
       }
     ]
   },
-  "stock_history": {
-    "scan_2026-09-30T09:46:21+08:00": {
-      "data_quality": "READY",
-      "snapshot_at": "2026-09-30T09:38:26.993682+08:00",
-      "stocks": {}
-    }
+  "stock_history": {},
+  "stock_universe_recovery": {
+    "reason": "Initial stock set was empty because WAIT_* labels were filtered by old snapshot builder.",
+    "source_run_id": "low-risk-20260929T214933+0800",
+    "repaired_using": "research/low_risk_handoff.json",
+    "invalid_stock_scans_cleared": 1,
+    "industry_history_preserved": true,
+    "market_prices_not_reconstructed": true,
+    "next_stock_scan_requires_fresh_snapshot": true
   }
 }
