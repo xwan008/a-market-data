@@ -13,22 +13,26 @@
     "errors": []
   },
   "validation": {
-    "status": "passed",
+    "status": "degraded",
     "source_handoff_dates_present": true,
     "source_handoff_trade_date_consistent": true,
     "formal_prev_close_comparable_count": 0,
     "formal_prev_close_matched_count": 0,
-    "formal_prev_close_alignment_ratio": 1.0,
-    "formal_prev_close_alignment_passed": true,
+    "formal_prev_close_alignment_ratio": null,
+    "formal_prev_close_alignment_passed": false,
     "target_company_count": 76,
     "usable_quote_count": 76,
-    "quote_coverage": 1.0,
+    "quote_coverage": 1,
     "manifest_errors": [],
     "history_context_target_count": 0,
     "history_context_available_count": 0,
     "history_context_unavailable_count": 0,
     "history_context_part_read_count": 0,
-    "history_context_errors": []
+    "history_context_errors": [],
+    "low_risk_handoff_item_count": 4,
+    "low_risk_stock_count": 0,
+    "low_risk_stock_coverage_passed": false,
+    "invalidation_reason": "Legacy WAIT_* substatuses were dropped by snapshot filtering; 4 canonical handoff stocks missing."
   },
   "trends": {
     "固态电池": {
@@ -91,7 +95,7 @@
       "metrics": {
         "company_count": 43,
         "quoted_count": 43,
-        "coverage_ratio": 1.0,
+        "coverage_ratio": 1,
         "up_count": 16,
         "down_count": 25,
         "flat_count": 2,
@@ -139,7 +143,7 @@
       "metrics": {
         "company_count": 24,
         "quoted_count": 24,
-        "coverage_ratio": 1.0,
+        "coverage_ratio": 1,
         "up_count": 4,
         "down_count": 20,
         "flat_count": 0,
@@ -172,7 +176,7 @@
       "metrics": {
         "company_count": 9,
         "quoted_count": 9,
-        "coverage_ratio": 1.0,
+        "coverage_ratio": 1,
         "up_count": 8,
         "down_count": 1,
         "flat_count": 0,
@@ -208,7 +212,7 @@
       "metrics": {
         "company_count": 9,
         "quoted_count": 9,
-        "coverage_ratio": 1.0,
+        "coverage_ratio": 1,
         "up_count": 4,
         "down_count": 5,
         "flat_count": 0,
@@ -219,16 +223,80 @@
         "data_quality": "READY"
       },
       "stocks": {
+        "600110": {
+          "name": "诺德股份",
+          "price": 11,
+          "prev_close": 11.18,
+          "change_pct": -1.61,
+          "quote_time": "2026-09-30T09:38:25+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 11,
+            "tencent": 11
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "600152": {
+          "name": "维科技术",
+          "price": 8.5,
+          "prev_close": 8.32,
+          "change_pct": 2.1635,
+          "quote_time": "2026-09-30T09:38:25+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 8.5,
+            "tencent": 8.5
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "600241": {
+          "name": "时代万恒",
+          "price": 9.72,
+          "prev_close": 8.84,
+          "change_pct": 9.9548,
+          "quote_time": "2026-09-30T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 9.72,
+            "tencent": 9.72
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "600478": {
+          "name": "科力远",
+          "price": 4.47,
+          "prev_close": 4.49,
+          "change_pct": -0.4454,
+          "quote_time": "2026-09-30T09:38:25+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 4.47,
+            "tencent": 4.47
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
         "000049": {
           "name": "德赛电池",
-          "price": 22.0,
+          "price": 22,
           "prev_close": 21.99,
           "change_pct": 0.0455,
           "quote_time": "2026-09-30T09:38:27+08:00",
           "primary_source": "sina",
           "source_prices": {
-            "sina": 22.0,
-            "tencent": 22.0
+            "sina": 22,
+            "tencent": 22
           },
           "confidence": "high",
           "warnings": [
@@ -285,78 +353,14 @@
         },
         "002850": {
           "name": "科达利",
-          "price": 157.0,
+          "price": 157,
           "prev_close": 158.17,
           "change_pct": -0.7397,
           "quote_time": "2026-09-30T09:38:27+08:00",
           "primary_source": "sina",
           "source_prices": {
-            "sina": 157.0,
-            "tencent": 157.0
-          },
-          "confidence": "high",
-          "warnings": [
-            "tencent_date_unverified"
-          ]
-        },
-        "600110": {
-          "name": "诺德股份",
-          "price": 11.0,
-          "prev_close": 11.18,
-          "change_pct": -1.61,
-          "quote_time": "2026-09-30T09:38:25+08:00",
-          "primary_source": "sina",
-          "source_prices": {
-            "sina": 11.0,
-            "tencent": 11.0
-          },
-          "confidence": "high",
-          "warnings": [
-            "tencent_date_unverified"
-          ]
-        },
-        "600152": {
-          "name": "维科技术",
-          "price": 8.5,
-          "prev_close": 8.32,
-          "change_pct": 2.1635,
-          "quote_time": "2026-09-30T09:38:25+08:00",
-          "primary_source": "sina",
-          "source_prices": {
-            "sina": 8.5,
-            "tencent": 8.5
-          },
-          "confidence": "high",
-          "warnings": [
-            "tencent_date_unverified"
-          ]
-        },
-        "600241": {
-          "name": "时代万恒",
-          "price": 9.72,
-          "prev_close": 8.84,
-          "change_pct": 9.9548,
-          "quote_time": "2026-09-30T09:38:27+08:00",
-          "primary_source": "sina",
-          "source_prices": {
-            "sina": 9.72,
-            "tencent": 9.72
-          },
-          "confidence": "high",
-          "warnings": [
-            "tencent_date_unverified"
-          ]
-        },
-        "600478": {
-          "name": "科力远",
-          "price": 4.47,
-          "prev_close": 4.49,
-          "change_pct": -0.4454,
-          "quote_time": "2026-09-30T09:38:25+08:00",
-          "primary_source": "sina",
-          "source_prices": {
-            "sina": 4.47,
-            "tencent": 4.47
+            "sina": 157,
+            "tencent": 157
           },
           "confidence": "high",
           "warnings": [
@@ -393,7 +397,7 @@
       "metrics": {
         "company_count": 14,
         "quoted_count": 14,
-        "coverage_ratio": 1.0,
+        "coverage_ratio": 1,
         "up_count": 4,
         "down_count": 10,
         "flat_count": 0,
@@ -404,6 +408,70 @@
         "data_quality": "READY"
       },
       "stocks": {
+        "600884": {
+          "name": "杉杉股份",
+          "price": 11.47,
+          "prev_close": 11.58,
+          "change_pct": -0.9499,
+          "quote_time": "2026-09-30T09:38:25+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 11.47,
+            "tencent": 11.47
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "603026": {
+          "name": "石大胜华",
+          "price": 55.72,
+          "prev_close": 55.87,
+          "change_pct": -0.2685,
+          "quote_time": "2026-09-30T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 55.72,
+            "tencent": 55.72
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "603659": {
+          "name": "璞泰来",
+          "price": 21.29,
+          "prev_close": 21.27,
+          "change_pct": 0.094,
+          "quote_time": "2026-09-30T09:38:25+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 21.29,
+            "tencent": 21.28
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "603906": {
+          "name": "龙蟠科技",
+          "price": 17.25,
+          "prev_close": 17.31,
+          "change_pct": -0.3466,
+          "quote_time": "2026-09-30T09:38:26+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 17.25,
+            "tencent": 17.25
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
         "000009": {
           "name": "中国宝安",
           "price": 6.85,
@@ -502,14 +570,14 @@
         },
         "002709": {
           "name": "天赐材料",
-          "price": 31.0,
+          "price": 31,
           "prev_close": 31.08,
           "change_pct": -0.2574,
           "quote_time": "2026-09-30T09:38:27+08:00",
           "primary_source": "sina",
           "source_prices": {
-            "sina": 31.0,
-            "tencent": 31.0
+            "sina": 31,
+            "tencent": 31
           },
           "confidence": "high",
           "warnings": [
@@ -563,70 +631,6 @@
           "warnings": [
             "tencent_date_unverified"
           ]
-        },
-        "600884": {
-          "name": "杉杉股份",
-          "price": 11.47,
-          "prev_close": 11.58,
-          "change_pct": -0.9499,
-          "quote_time": "2026-09-30T09:38:25+08:00",
-          "primary_source": "sina",
-          "source_prices": {
-            "sina": 11.47,
-            "tencent": 11.47
-          },
-          "confidence": "high",
-          "warnings": [
-            "tencent_date_unverified"
-          ]
-        },
-        "603026": {
-          "name": "石大胜华",
-          "price": 55.72,
-          "prev_close": 55.87,
-          "change_pct": -0.2685,
-          "quote_time": "2026-09-30T09:38:27+08:00",
-          "primary_source": "sina",
-          "source_prices": {
-            "sina": 55.72,
-            "tencent": 55.72
-          },
-          "confidence": "high",
-          "warnings": [
-            "tencent_date_unverified"
-          ]
-        },
-        "603659": {
-          "name": "璞泰来",
-          "price": 21.29,
-          "prev_close": 21.27,
-          "change_pct": 0.094,
-          "quote_time": "2026-09-30T09:38:25+08:00",
-          "primary_source": "sina",
-          "source_prices": {
-            "sina": 21.29,
-            "tencent": 21.28
-          },
-          "confidence": "high",
-          "warnings": [
-            "tencent_date_unverified"
-          ]
-        },
-        "603906": {
-          "name": "龙蟠科技",
-          "price": 17.25,
-          "prev_close": 17.31,
-          "change_pct": -0.3466,
-          "quote_time": "2026-09-30T09:38:26+08:00",
-          "primary_source": "sina",
-          "source_prices": {
-            "sina": 17.25,
-            "tencent": 17.25
-          },
-          "confidence": "high",
-          "warnings": [
-            "tencent_date_unverified"
-          ]
         }
       }
     },
@@ -645,11 +649,11 @@
       "metrics": {
         "company_count": 1,
         "quoted_count": 1,
-        "coverage_ratio": 1.0,
+        "coverage_ratio": 1,
         "up_count": 1,
         "down_count": 0,
         "flat_count": 0,
-        "up_ratio": 1.0,
+        "up_ratio": 1,
         "median_change_pct": 0.5666,
         "max_change_pct": 0.5666,
         "min_change_pct": 0.5666,
@@ -695,17 +699,33 @@
       "metrics": {
         "company_count": 7,
         "quoted_count": 7,
-        "coverage_ratio": 1.0,
+        "coverage_ratio": 1,
         "up_count": 0,
         "down_count": 7,
         "flat_count": 0,
-        "up_ratio": 0.0,
+        "up_ratio": 0,
         "median_change_pct": -0.6846,
         "max_change_pct": -0.3904,
         "min_change_pct": -1.5214,
         "data_quality": "READY"
       },
       "stocks": {
+        "603399": {
+          "name": "永杉锂业",
+          "price": 12.99,
+          "prev_close": 13.16,
+          "change_pct": -1.2918,
+          "quote_time": "2026-09-30T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 12.99,
+            "tencent": 12.99
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
         "000762": {
           "name": "西藏矿业",
           "price": 20.41,
@@ -801,22 +821,6 @@
           "warnings": [
             "tencent_date_unverified"
           ]
-        },
-        "603399": {
-          "name": "永杉锂业",
-          "price": 12.99,
-          "prev_close": 13.16,
-          "change_pct": -1.2918,
-          "quote_time": "2026-09-30T09:38:27+08:00",
-          "primary_source": "sina",
-          "source_prices": {
-            "sina": 12.99,
-            "tencent": 12.99
-          },
-          "confidence": "high",
-          "warnings": [
-            "tencent_date_unverified"
-          ]
         }
       }
     },
@@ -846,7 +850,7 @@
       "metrics": {
         "company_count": 12,
         "quoted_count": 12,
-        "coverage_ratio": 1.0,
+        "coverage_ratio": 1,
         "up_count": 7,
         "down_count": 3,
         "flat_count": 2,
@@ -857,6 +861,70 @@
         "data_quality": "READY"
       },
       "stocks": {
+        "600281": {
+          "name": "华阳新材",
+          "price": 4.66,
+          "prev_close": 4.71,
+          "change_pct": -1.0616,
+          "quote_time": "2026-09-30T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 4.66,
+            "tencent": 4.66
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "600301": {
+          "name": "华锡有色",
+          "price": 49.44,
+          "prev_close": 48.64,
+          "change_pct": 1.6447,
+          "quote_time": "2026-09-30T09:38:25+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 49.44,
+            "tencent": 49.44
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "600456": {
+          "name": "宝钛股份",
+          "price": 24.72,
+          "prev_close": 24.58,
+          "change_pct": 0.5696,
+          "quote_time": "2026-09-30T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 24.72,
+            "tencent": 24.72
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "600459": {
+          "name": "贵研铂业",
+          "price": 18.02,
+          "prev_close": 18.02,
+          "change_pct": 0,
+          "quote_time": "2026-09-30T09:38:25+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 18.02,
+            "tencent": 18.02
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
         "000960": {
           "name": "锡业股份",
           "price": 30.62,
@@ -925,7 +993,7 @@
           "name": "宝武镁业",
           "price": 11.04,
           "prev_close": 11.04,
-          "change_pct": 0.0,
+          "change_pct": 0,
           "quote_time": "2026-09-30T09:38:24+08:00",
           "primary_source": "sina",
           "source_prices": {
@@ -984,70 +1052,6 @@
           "warnings": [
             "tencent_date_unverified"
           ]
-        },
-        "600281": {
-          "name": "华阳新材",
-          "price": 4.66,
-          "prev_close": 4.71,
-          "change_pct": -1.0616,
-          "quote_time": "2026-09-30T09:38:27+08:00",
-          "primary_source": "sina",
-          "source_prices": {
-            "sina": 4.66,
-            "tencent": 4.66
-          },
-          "confidence": "high",
-          "warnings": [
-            "tencent_date_unverified"
-          ]
-        },
-        "600301": {
-          "name": "华锡有色",
-          "price": 49.44,
-          "prev_close": 48.64,
-          "change_pct": 1.6447,
-          "quote_time": "2026-09-30T09:38:25+08:00",
-          "primary_source": "sina",
-          "source_prices": {
-            "sina": 49.44,
-            "tencent": 49.44
-          },
-          "confidence": "high",
-          "warnings": [
-            "tencent_date_unverified"
-          ]
-        },
-        "600456": {
-          "name": "宝钛股份",
-          "price": 24.72,
-          "prev_close": 24.58,
-          "change_pct": 0.5696,
-          "quote_time": "2026-09-30T09:38:27+08:00",
-          "primary_source": "sina",
-          "source_prices": {
-            "sina": 24.72,
-            "tencent": 24.72
-          },
-          "confidence": "high",
-          "warnings": [
-            "tencent_date_unverified"
-          ]
-        },
-        "600459": {
-          "name": "贵研铂业",
-          "price": 18.02,
-          "prev_close": 18.02,
-          "change_pct": 0.0,
-          "quote_time": "2026-09-30T09:38:25+08:00",
-          "primary_source": "sina",
-          "source_prices": {
-            "sina": 18.02,
-            "tencent": 18.02
-          },
-          "confidence": "high",
-          "warnings": [
-            "tencent_date_unverified"
-          ]
         }
       }
     },
@@ -1089,7 +1093,7 @@
       "metrics": {
         "company_count": 24,
         "quoted_count": 24,
-        "coverage_ratio": 1.0,
+        "coverage_ratio": 1,
         "up_count": 4,
         "down_count": 20,
         "flat_count": 0,
@@ -1100,6 +1104,166 @@
         "data_quality": "READY"
       },
       "stocks": {
+        "600183": {
+          "name": "生益科技",
+          "price": 131.03,
+          "prev_close": 132.98,
+          "change_pct": -1.4664,
+          "quote_time": "2026-09-30T09:38:26+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 131.03,
+            "tencent": 131.03
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "600601": {
+          "name": "方正科技",
+          "price": 13.52,
+          "prev_close": 13.72,
+          "change_pct": -1.4577,
+          "quote_time": "2026-09-30T09:38:26+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 13.52,
+            "tencent": 13.52
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "603186": {
+          "name": "华正新材",
+          "price": 210.48,
+          "prev_close": 212,
+          "change_pct": -0.717,
+          "quote_time": "2026-09-30T09:38:26+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 210.48,
+            "tencent": 210.48
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "603228": {
+          "name": "景旺电子",
+          "price": 103.59,
+          "prev_close": 100.53,
+          "change_pct": 3.0439,
+          "quote_time": "2026-09-30T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 103.59,
+            "tencent": 103.59
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "603328": {
+          "name": "依顿电子",
+          "price": 14.13,
+          "prev_close": 14.44,
+          "change_pct": -2.1468,
+          "quote_time": "2026-09-30T09:38:25+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 14.13,
+            "tencent": 14.14
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "603386": {
+          "name": "骏亚科技",
+          "price": 17.78,
+          "prev_close": 18.45,
+          "change_pct": -3.6314,
+          "quote_time": "2026-09-30T09:38:26+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 17.78,
+            "tencent": 17.78
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "603920": {
+          "name": "世运电路",
+          "price": 44.73,
+          "prev_close": 46.13,
+          "change_pct": -3.0349,
+          "quote_time": "2026-09-30T09:38:25+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 44.73,
+            "tencent": 44.71
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "603936": {
+          "name": "博敏电子",
+          "price": 20.01,
+          "prev_close": 20.53,
+          "change_pct": -2.5329,
+          "quote_time": "2026-09-30T09:38:25+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 20.01,
+            "tencent": 20.01
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "605058": {
+          "name": "澳弘电子",
+          "price": 55.02,
+          "prev_close": 59.6,
+          "change_pct": -7.6846,
+          "quote_time": "2026-09-30T09:38:25+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 55.02,
+            "tencent": 55
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "605258": {
+          "name": "协和电子",
+          "price": 41.25,
+          "prev_close": 44.01,
+          "change_pct": -6.2713,
+          "quote_time": "2026-09-30T09:38:25+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 41.25,
+            "tencent": 41.25
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
         "000823": {
           "name": "超声电子",
           "price": 23.79,
@@ -1323,166 +1487,6 @@
           "warnings": [
             "tencent_date_unverified"
           ]
-        },
-        "600183": {
-          "name": "生益科技",
-          "price": 131.03,
-          "prev_close": 132.98,
-          "change_pct": -1.4664,
-          "quote_time": "2026-09-30T09:38:26+08:00",
-          "primary_source": "sina",
-          "source_prices": {
-            "sina": 131.03,
-            "tencent": 131.03
-          },
-          "confidence": "high",
-          "warnings": [
-            "tencent_date_unverified"
-          ]
-        },
-        "600601": {
-          "name": "方正科技",
-          "price": 13.52,
-          "prev_close": 13.72,
-          "change_pct": -1.4577,
-          "quote_time": "2026-09-30T09:38:26+08:00",
-          "primary_source": "sina",
-          "source_prices": {
-            "sina": 13.52,
-            "tencent": 13.52
-          },
-          "confidence": "high",
-          "warnings": [
-            "tencent_date_unverified"
-          ]
-        },
-        "603186": {
-          "name": "华正新材",
-          "price": 210.48,
-          "prev_close": 212.0,
-          "change_pct": -0.717,
-          "quote_time": "2026-09-30T09:38:26+08:00",
-          "primary_source": "sina",
-          "source_prices": {
-            "sina": 210.48,
-            "tencent": 210.48
-          },
-          "confidence": "high",
-          "warnings": [
-            "tencent_date_unverified"
-          ]
-        },
-        "603228": {
-          "name": "景旺电子",
-          "price": 103.59,
-          "prev_close": 100.53,
-          "change_pct": 3.0439,
-          "quote_time": "2026-09-30T09:38:27+08:00",
-          "primary_source": "sina",
-          "source_prices": {
-            "sina": 103.59,
-            "tencent": 103.59
-          },
-          "confidence": "high",
-          "warnings": [
-            "tencent_date_unverified"
-          ]
-        },
-        "603328": {
-          "name": "依顿电子",
-          "price": 14.13,
-          "prev_close": 14.44,
-          "change_pct": -2.1468,
-          "quote_time": "2026-09-30T09:38:25+08:00",
-          "primary_source": "sina",
-          "source_prices": {
-            "sina": 14.13,
-            "tencent": 14.14
-          },
-          "confidence": "high",
-          "warnings": [
-            "tencent_date_unverified"
-          ]
-        },
-        "603386": {
-          "name": "骏亚科技",
-          "price": 17.78,
-          "prev_close": 18.45,
-          "change_pct": -3.6314,
-          "quote_time": "2026-09-30T09:38:26+08:00",
-          "primary_source": "sina",
-          "source_prices": {
-            "sina": 17.78,
-            "tencent": 17.78
-          },
-          "confidence": "high",
-          "warnings": [
-            "tencent_date_unverified"
-          ]
-        },
-        "603920": {
-          "name": "世运电路",
-          "price": 44.73,
-          "prev_close": 46.13,
-          "change_pct": -3.0349,
-          "quote_time": "2026-09-30T09:38:25+08:00",
-          "primary_source": "sina",
-          "source_prices": {
-            "sina": 44.73,
-            "tencent": 44.71
-          },
-          "confidence": "high",
-          "warnings": [
-            "tencent_date_unverified"
-          ]
-        },
-        "603936": {
-          "name": "博敏电子",
-          "price": 20.01,
-          "prev_close": 20.53,
-          "change_pct": -2.5329,
-          "quote_time": "2026-09-30T09:38:25+08:00",
-          "primary_source": "sina",
-          "source_prices": {
-            "sina": 20.01,
-            "tencent": 20.01
-          },
-          "confidence": "high",
-          "warnings": [
-            "tencent_date_unverified"
-          ]
-        },
-        "605058": {
-          "name": "澳弘电子",
-          "price": 55.02,
-          "prev_close": 59.6,
-          "change_pct": -7.6846,
-          "quote_time": "2026-09-30T09:38:25+08:00",
-          "primary_source": "sina",
-          "source_prices": {
-            "sina": 55.02,
-            "tencent": 55.0
-          },
-          "confidence": "high",
-          "warnings": [
-            "tencent_date_unverified"
-          ]
-        },
-        "605258": {
-          "name": "协和电子",
-          "price": 41.25,
-          "prev_close": 44.01,
-          "change_pct": -6.2713,
-          "quote_time": "2026-09-30T09:38:25+08:00",
-          "primary_source": "sina",
-          "source_prices": {
-            "sina": 41.25,
-            "tencent": 41.25
-          },
-          "confidence": "high",
-          "warnings": [
-            "tencent_date_unverified"
-          ]
         }
       }
     },
@@ -1509,7 +1513,7 @@
       "metrics": {
         "company_count": 9,
         "quoted_count": 9,
-        "coverage_ratio": 1.0,
+        "coverage_ratio": 1,
         "up_count": 8,
         "down_count": 1,
         "flat_count": 0,
@@ -1520,54 +1524,6 @@
         "data_quality": "READY"
       },
       "stocks": {
-        "000809": {
-          "name": "和展能源",
-          "price": 3.48,
-          "prev_close": 3.47,
-          "change_pct": 0.2882,
-          "quote_time": "2026-09-30T09:38:27+08:00",
-          "primary_source": "sina",
-          "source_prices": {
-            "sina": 3.48,
-            "tencent": 3.48
-          },
-          "confidence": "high",
-          "warnings": [
-            "tencent_date_unverified"
-          ]
-        },
-        "002487": {
-          "name": "大金重工",
-          "price": 44.74,
-          "prev_close": 42.93,
-          "change_pct": 4.2162,
-          "quote_time": "2026-09-30T09:38:27+08:00",
-          "primary_source": "sina",
-          "source_prices": {
-            "sina": 44.74,
-            "tencent": 44.74
-          },
-          "confidence": "high",
-          "warnings": [
-            "tencent_date_unverified"
-          ]
-        },
-        "002531": {
-          "name": "天顺风能",
-          "price": 7.73,
-          "prev_close": 7.64,
-          "change_pct": 1.178,
-          "quote_time": "2026-09-30T09:38:27+08:00",
-          "primary_source": "sina",
-          "source_prices": {
-            "sina": 7.73,
-            "tencent": 7.73
-          },
-          "confidence": "high",
-          "warnings": [
-            "tencent_date_unverified"
-          ]
-        },
         "600072": {
           "name": "中船科技",
           "price": 9.7,
@@ -1663,9 +1619,62 @@
           "warnings": [
             "tencent_date_unverified"
           ]
+        },
+        "000809": {
+          "name": "和展能源",
+          "price": 3.48,
+          "prev_close": 3.47,
+          "change_pct": 0.2882,
+          "quote_time": "2026-09-30T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 3.48,
+            "tencent": 3.48
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "002487": {
+          "name": "大金重工",
+          "price": 44.74,
+          "prev_close": 42.93,
+          "change_pct": 4.2162,
+          "quote_time": "2026-09-30T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 44.74,
+            "tencent": 44.74
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "002531": {
+          "name": "天顺风能",
+          "price": 7.73,
+          "prev_close": 7.64,
+          "change_pct": 1.178,
+          "quote_time": "2026-09-30T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 7.73,
+            "tencent": 7.73
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
         }
       }
     }
   },
-  "low_risk_stocks": {}
+  "low_risk_stocks": {},
+  "contract_correction": {
+    "kind": "invalidate_missing_wait_stocks",
+    "market_quotes_unchanged": true,
+    "requires_fresh_snapshot": true
+  }
 }
