@@ -31,6 +31,36 @@ Trend Handoff
 
 07:00 早间版是唯一允许基于上一份 COMPLETE 做增量复核的例外，具体规则由 `RUNTIME_READ_PROTOCOL.md` 定义。
 
+### 运行时 UTF-8 字节校验前置自检（正式版/手动版强制）
+
+在本轮首次读取 data/low_risk/index.json、manifest 或 part **之前**，必须在本轮实际分片校验所用的同一执行环境完成校验器自检。禁止假设 TextEncoder、Node Buffer 或浏览器全局对象一定存在。优先使用下面无需任何外部 API 的严格 UTF-8 字节计数器；若改用 Python 3，可对**同一原始正文**以 len(raw.encode("utf-8")) 等价校验。
+
+```javascript
+function exactUtf8ByteLength(s) {
+  let n = 0;
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    if (c <= 0x7F) n++;
+    else if (c <= 0x7FF) n += 2;
+    else if (c >= 0xD800 && c <= 0xDBFF) {
+      const next = s.charCodeAt(++i);
+      if (!(next >= 0xDC00 && next <= 0xDFFF)) throw new Error("INVALID_UTF16");
+      n += 4;
+    } else if (c >= 0xDC00 && c <= 0xDFFF) throw new Error("INVALID_UTF16");
+    else n += 3;
+  }
+  return n;
+}
+```
+
+自检必须在同一执行环境实际执行并断言：ASCII 为 5 字节、中文“中”为 3 字节、表情“😀”为 4 字节、字符串 `A中😀` 加一个实际 LF 换行共 9 字节；不完整 UTF-16 代理项必须抛错。Python 替代实现也要进行对应严格编码测试。自检未执行、无法执行或不通过时，报 RUNTIME_BYTE_VALIDATOR_UNAVAILABLE，停止本轮 Working Set 文件读取及后续研究/写入，绝不跳过 byte_size Gate。
+
+**byte_size 精确定义：** 生产脚本 scripts/build_low_risk_working_sets.py 通过 json.dumps(payload, ensure_ascii=False, indent=2) 加末尾 LF 换行，再按 UTF-8 写入 part；manifest.parts[*].byte_size 是这一**完整原始文件文本**的 UTF-8 字节数（含缩进、空格及末尾换行），不是压缩或重新序列化后的 JSON 长度。读取 part 后保留未经变更的从第 1 行到 EOF 的 raw 正文，直接核对 exactUtf8ByteLength(raw) === manifest 中对应 byte_size，然后再 JSON.parse(raw) 并验证身份、计数及覆盖。不得通过 JSON.stringify、去除或增加末尾换行、换行归一化，或复制工具附加行号的显示文本去核对长度。
+
+如工具明确截断，沿用原有从第 1 行连续分页至 EOF 的唯一许可并无损拼接，再校验；已完整返回的 part 禁止重新分页或再次读取。如果无法确认原始文本完整、字节等价，报 PART_RAW_TEXT_UNVERIFIED；若实际字节数不一致，报 PART_BYTE_SIZE_MISMATCH。两种情况都不得 Freeze 或发布。
+
+**同轮失败恢复：** 对已完整读取的 part 绝不重新获取。若本轮全部原始内容与来源仍无损保留在本地，只允许在缓存上重新执行修复后的校验（不增加读次数），并重做全部身份/覆盖 Gate；缓存不存在、本轮已结束时，保持失败且不覆盖原 COMPLETE 或 handoff。下一次独立 Fresh Run 必须先自检，再重新按既定规则读取本轮 index、handoff、manifest 与全部 parts；不能复用上一轮缓存或研究结论。
+
 ## 2. 第一步：Trend Handoff 只决定行业
 
 读取 `research/trend_handoff.json`。
@@ -103,7 +133,7 @@ GitHub 构建必须保证 mapped company coverage、industry partition、trade_d
    - `len(universe_company_codes) == company_count`；
    - `chunking.part_count == len(parts)`；
 3. 按 `parts[*].part_number` 升序读取全部 part。part 文件是 pretty-print 多行 JSON，且由生产层限制为有界大小；默认每个 part 使用一次完整文件读取（不指定行范围），该次返回必须覆盖第 1 行到 EOF。只有工具明确返回截断、响应大小限制或无法获得完整 EOF 时，才改用行范围分页（推荐每段 100–150 行），从第 1 行连续读取到 EOF。已一次完整返回的 part 禁止再次分页或重读；
-4. 将同一 part 的所有 segment 按行顺序原样拼接后，必须先成功解析完整 JSON；只有完整解析并通过下列校验后，才计为 1 次逻辑 `materialized_part_read_count`；
+4. 将同一 part 的 segment 按行顺序无损拼接成完整原始正文，先按本文件的前置 UTF-8 协议验证 manifest 对应的 byte_size，再成功解析完整 JSON；只有字节、解析及下列字段校验全部通过后才计为 1 次逻辑 `materialized_part_read_count`；
 5. 每个 part 必须满足：
    - `runtime_format == "low_risk_industry_working_set_chunk"`；
    - trade_date / industry identity 与 manifest 一致；
@@ -111,7 +141,7 @@ GitHub 构建必须保证 mapped company coverage、industry partition、trade_d
    - `company_count == len(company_codes) == len(companies)`；
    - `set(companies[*].code) == set(company_codes)`；
    - company_codes 与 manifest 对应 entry 完全一致；
-5. 拼接全部 part 的 companies 形成该行业 run-local working set。
+6. 拼接全部 part 的 companies 形成该行业 run-local working set。
 
 公司事实字段仍至少覆盖 code/name、价格/市值、PE/PB/ROE、收入利润现金流、MA20/MA60、60日高低与位置、support/resistance/dense/volume zones、trend_state/break_state/invalidation 等硬过滤、预筛和估值所需事实。
 
