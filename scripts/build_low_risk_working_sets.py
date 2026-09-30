@@ -72,7 +72,8 @@ def project_company(code: str, stock: dict[str, Any], industry: dict[str, Any]) 
         "fundamental_warnings": fundamentals.get("warnings") or [],
         "history_confidence": trend.get("history_confidence"),
         "history_warnings": trend.get("history_warnings") or [],
-        "close_change_5d_pct": trend.get("close_change_5d_pct"),
+        "close_change_5d_pct": trend.get("close_change_5d_pct"),  # Preserve existing low-risk research inputs.
+        "close_change_7d_pct": trend.get("close_change_7d_pct"),
         "close_change_20d_pct": trend.get("close_change_20d_pct"),
         "high_60d": structure.get("high"),
         "low_60d": structure.get("low"),

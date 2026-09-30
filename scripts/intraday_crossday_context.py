@@ -162,7 +162,7 @@ def build_board_context(trends: dict, baseline_date: str, archive: dict) -> tupl
         contexts[name] = {
             "baseline_trade_date": baseline_date,
             "constituent_basis": "current_frozen_universe_completed_sessions",
-            "five_day": return_summary(codes, histories, 5),
+            "seven_day": return_summary(codes, histories, 7),
             "previous_trade_day": ({
                 "trade_date": baseline_date,
                 "basis": "last_persisted_intraday_scan_not_official_close",
@@ -172,8 +172,38 @@ def build_board_context(trends: dict, baseline_date: str, archive: dict) -> tupl
         }
     return contexts, {
         "board_history_target_count": len(contexts),
-        "board_history_5d_available_count": sum(v["five_day"]["status"] == "available" for v in contexts.values()),
+        "board_history_7d_available_count": sum(v["seven_day"]["status"] == "available" for v in contexts.values()),
         "board_previous_day_available_count": sum(v["previous_trade_day"] is not None for v in contexts.values()),
         "board_history_shard_read_count": count,
         "board_history_errors": errors,
+    }
+
+
+def build_stock_seven_day_context(codes: set[str], baseline_date: str) -> tuple[dict, dict]:
+    """Seven completed stock-to-stock return intervals, from eight valid closes.
+
+    Independent of materialized low-risk parts so newly configured windows are
+    available on the first intraday refresh, even before the next daily rebuild.
+    """
+    histories, errors, shard_count = read_price_histories(codes, baseline_date)
+    contexts = {}
+    for code in sorted(codes):
+        rows = histories.get(code) or []
+        enough = len(rows) >= 8
+        contexts[code] = {
+            "source_trade_date": baseline_date,
+            "window_sessions": 7,
+            "status": "available" if enough else "unavailable",
+            "observation_count": 8 if enough else len(rows),
+            "close_change_7d_pct": (
+                round((rows[-1]["close"] / rows[-8]["close"] - 1) * 100, 4)
+                if enough else None
+            ),
+            "basis": "eight_valid_completed_session_closes",
+        }
+    return contexts, {
+        "stock_history_7d_target_count": len(codes),
+        "stock_history_7d_available_count": sum(x["status"] == "available" for x in contexts.values()),
+        "stock_history_7d_shard_read_count": shard_count,
+        "stock_history_7d_errors": errors,
     }

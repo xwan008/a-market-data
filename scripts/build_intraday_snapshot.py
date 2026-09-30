@@ -158,7 +158,7 @@ def project_history_context(company: dict, source_trade_date: str | None) -> dic
     return {
         "source_trade_date": source_trade_date,
         "history_confidence": company.get("history_confidence"),
-        "close_change_5d_pct": round_or_none(company.get("close_change_5d_pct")),
+        "close_change_7d_pct": round_or_none(company.get("close_change_7d_pct")),
         "trend_state": company.get("trend_state"),
         "break_state": company.get("break_state"),
         "latest_high": company.get("latest_high"),
@@ -454,10 +454,17 @@ def main() -> int:
     # Cross-day references are independent of same-day previous_* transitions.
     board_history_audit = {
         "board_history_target_count": 0,
-        "board_history_5d_available_count": 0,
+        "board_history_7d_available_count": 0,
         "board_previous_day_available_count": 0,
         "board_history_shard_read_count": 0,
         "board_history_errors": [],
+    }
+    stock_seven_day_contexts: dict[str, dict] = {}
+    stock_seven_day_audit = {
+        "stock_history_7d_target_count": 0,
+        "stock_history_7d_available_count": 0,
+        "stock_history_7d_shard_read_count": 0,
+        "stock_history_7d_errors": [],
     }
     crossday_errors: list[str] = []
     crossday_archive = None
@@ -475,13 +482,17 @@ def main() -> int:
             contexts, board_history_audit = crossday.build_board_context(
                 trends, source_low_risk_trade_date, merged_archive
             )
+            stock_seven_day_contexts, stock_seven_day_audit = crossday.build_stock_seven_day_context(
+                {str(item["code"]).zfill(6) for item in low_risk_items},
+                source_low_risk_trade_date,
+            )
             for name, context in contexts.items():
                 trend_item = trends[name]
                 trend_item["history_context"] = context
-                five_day_status = context["five_day"]["status"]
+                seven_day_status = context["seven_day"]["status"]
                 trend_item["history_context_status"] = (
-                    "available" if five_day_status == "available" or context["previous_trade_day"]
-                    else "partial" if five_day_status == "partial" else "unavailable"
+                    "available" if seven_day_status == "available" or context["previous_trade_day"]
+                    else "partial" if seven_day_status == "partial" else "unavailable"
                 )
             previous_day = next(
                 (d for d in merged_archive["days"] if d["trade_date"] == source_low_risk_trade_date),
@@ -496,6 +507,13 @@ def main() -> int:
     for trend_item in trends.values():
         trend_item.setdefault("history_context", None)
         trend_item.setdefault("history_context_status", "unavailable")
+    # Prefer the same eight validated completed-session closes used by boards.
+    # Never present a stale legacy five-close metric as a seven-session return.
+    for code, context in history_contexts.items():
+        stock_seven = stock_seven_day_contexts.get(code) or {}
+        context["close_change_7d_pct"] = stock_seven.get("close_change_7d_pct")
+        context["seven_day_status"] = stock_seven.get("status", "unavailable")
+        context["seven_day_window_sessions"] = 7
 
     low_risk_stocks: dict[str, dict] = {}
     for item in low_risk_items:
@@ -535,6 +553,7 @@ def main() -> int:
             "trend_in_current_handoff": str(item.get("trend_name") or "") in trends,
             "history_context_status": "available" if code in history_contexts else "unavailable",
             "history_context": history_contexts.get(code),
+            "seven_day": stock_seven_day_contexts.get(code),
             "previous_trade_day_monitor": (
                 {"trade_date": source_low_risk_trade_date,
                  "basis": "last_persisted_intraday_scan_not_official_close",
@@ -611,6 +630,7 @@ def main() -> int:
             "history_context_part_read_count": history_context_part_read_count,
             "history_context_errors": history_context_errors,
             **board_history_audit,
+            **stock_seven_day_audit,
             "crossday_archive_days": len(crossday_archive["days"]) if crossday_archive else 0,
             "crossday_history_errors": crossday_errors,
         },

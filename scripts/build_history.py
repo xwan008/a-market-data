@@ -483,9 +483,11 @@ def build_stock_summary(
     closes = [float(r["close"]) for r in rows]
     points = len(rows)
     last5 = rows[-5:]
+    last8 = rows[-8:]
     last20 = rows[-20:]
     last60 = rows[-60:]
     last5_closes = [float(r["close"]) for r in last5]
+    last8_closes = [float(r["close"]) for r in last8]
     last20_closes = [float(r["close"]) for r in last20]
     last60_closes = [float(r["close"]) for r in last60]
     current_close = closes[-1]
@@ -510,7 +512,8 @@ def build_stock_summary(
         "last_full_refresh": item.get("last_full_refresh"),
         "high_20d": high20,
         "low_20d": low20,
-        "close_change_5d_pct": pct_change(last5_closes[0], last5_closes[-1]) if points >= 5 else None,
+        "close_change_5d_pct": pct_change(last5_closes[0], last5_closes[-1]) if points >= 5 else None,  # Legacy research compatibility.
+        "close_change_7d_pct": pct_change(last8_closes[0], last8_closes[-1]) if points >= 8 else None,
         "close_change_20d_pct": pct_change(last20_closes[0], last20_closes[-1]) if points >= 20 else None,
         "last5": [{"date": r.get("date"), "close": r.get("close")} for r in last5],
     }
@@ -558,7 +561,7 @@ def main() -> int:
         "stocks": {},
     }
     shard_files = sorted(HISTORY_SHARDS_DIR.glob("*.json"))
-    coverage_5d = coverage_20d = coverage_60d = 0
+    coverage_5d = coverage_7d = coverage_20d = coverage_60d = 0
     quality_counts = {"high": 0, "medium": 0, "invalid": 0}
     max_points = 0
 
@@ -576,6 +579,8 @@ def main() -> int:
             max_points = max(max_points, points)
             if points >= 5:
                 coverage_5d += 1
+            if points >= 8:
+                coverage_7d += 1
             if points >= 20:
                 coverage_20d += 1
             if points >= 60:
@@ -587,6 +592,7 @@ def main() -> int:
     out["coverage"] = {
         "stocks": total,
         "points_ge_5": coverage_5d,
+        "points_ge_8_for_7d_return": coverage_7d,
         "points_ge_20": coverage_20d,
         "points_ge_60": coverage_60d,
         "history_confidence": quality_counts,

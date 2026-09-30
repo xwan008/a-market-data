@@ -169,14 +169,25 @@ jobs:
           assert validation.get("board_history_target_count") in (0, len(payload["trends"]))
           if validation.get("board_history_target_count") == 0:
               assert validation.get("crossday_history_errors"), "unexpectedly missing board history"
+          assert "board_history_5d_available_count" not in validation
           assert "board_history_20d_available_count" not in validation
+          assert validation.get("stock_history_7d_target_count") == len(stocks)
           for trend in payload["trends"].values():
               assert trend.get("history_context_status") in {"available", "partial", "unavailable"}
               context = trend.get("history_context")
               if context is not None:
                   assert context.get("baseline_trade_date") == handoff.get("trade_date")
-                  assert "five_day" in context and context["five_day"]["window_sessions"] == 5
-                  assert "twenty_day" not in context
+                  assert "seven_day" in context and context["seven_day"]["window_sessions"] == 7
+                  assert "five_day" not in context and "twenty_day" not in context
+          for stock in stocks.values():
+              seven = stock.get("seven_day")
+              assert seven is not None and seven["window_sessions"] == 7
+              assert "close_change_5d_pct" not in (stock.get("history_context") or {})
+              if seven["status"] == "available":
+                  assert seven["observation_count"] == 8
+                  assert seven["close_change_7d_pct"] is not None
+              if stock.get("history_context"):
+                  assert stock["history_context"]["close_change_7d_pct"] == seven["close_change_7d_pct"]
           print(json.dumps({
               "trade_date": payload.get("trade_date"),
               "captured_at": payload.get("captured_at"),

@@ -56,13 +56,49 @@ class CrossDayTest(unittest.TestCase):
                 result, audit = cd.build_board_context(
                     {"风电设备": {"industry_codes": ["S2"], "company_codes": ["002487"]}}, dates[-1], archive)
             ctx = result["风电设备"]
-            self.assertEqual(ctx["five_day"]["status"], "available")
-            self.assertEqual(ctx["five_day"]["window_sessions"], 5)
-            self.assertEqual(ctx["five_day"]["sample_count"], 1)
-            self.assertNotIn("twenty_day", ctx)
-            self.assertNotIn("board_history_20d_available_count", audit)
+            self.assertEqual(ctx["seven_day"]["status"], "available")
+            self.assertEqual(ctx["seven_day"]["window_sessions"], 7)
+            self.assertEqual(ctx["seven_day"]["sample_count"], 1)
+            self.assertAlmostEqual(ctx["seven_day"]["median_constituent_return_pct"], (120 / 113 - 1) * 100, places=4)
+            self.assertNotIn("five_day", ctx)
+            self.assertEqual(audit["board_history_7d_available_count"], 1)
+            self.assertNotIn("board_history_5d_available_count", audit)
             self.assertFalse(ctx["previous_trade_day"]["same_industry_codes"])
             self.assertEqual(audit["board_previous_day_available_count"], 1)
+
+    def test_stock_7d_requires_eight_valid_closes_and_is_stale_safe(self):
+        with tempfile.TemporaryDirectory() as temp:
+            store = Path(temp) / "0024.json"
+            rows = [
+                {"date": f"2026-09-{d:02d}", "close": 100 + d, "confidence": "high"}
+                for d in range(15, 23)
+            ]
+            store.write_text(json.dumps({"stocks": {"002487": {"history": rows}}}), encoding="utf-8")
+            with patch.object(cd, "HISTORY_SHARDS_DIR", Path(temp)):
+                ready, audit = cd.build_stock_seven_day_context({"002487"}, "2026-09-22")
+                stale, _ = cd.build_stock_seven_day_context({"002487"}, "2026-09-23")
+            self.assertEqual(ready["002487"]["window_sessions"], 7)
+            self.assertEqual(ready["002487"]["observation_count"], 8)
+            self.assertAlmostEqual(ready["002487"]["close_change_7d_pct"], (122 / 115 - 1) * 100, places=4)
+            self.assertEqual(audit["stock_history_7d_available_count"], 1)
+            self.assertEqual(stale["002487"]["status"], "unavailable")
+            rows[0]["confidence"] = "invalid"
+            store.write_text(json.dumps({"stocks": {"002487": {"history": rows}}}), encoding="utf-8")
+            with patch.object(cd, "HISTORY_SHARDS_DIR", Path(temp)):
+                short, _ = cd.build_stock_seven_day_context({"002487"}, "2026-09-22")
+            self.assertEqual(short["002487"]["status"], "unavailable")
+            self.assertIsNone(short["002487"]["close_change_7d_pct"])
+
+    def test_upstream_stock_summary_adds_7d_without_breaking_research(self):
+        from build_history import build_stock_summary
+        rows = [{"date": f"2026-09-{d:02d}", "close": 100 + d,
+                 "high": 101 + d, "low": 99 + d, "confidence": "high"}
+                for d in range(15, 23)]
+        data = build_stock_summary({"history": rows}, expected_trade_date="2026-09-22")
+        self.assertAlmostEqual(data["close_change_7d_pct"], (122 / 115 - 1) * 100, places=4)
+        self.assertIn("close_change_5d_pct", data)  # Other formal research remains untouched.
+        self.assertEqual(build_stock_summary({"history": rows[:-1]},
+                         expected_trade_date="2026-09-21")["close_change_7d_pct"], None)
 
 
 if __name__ == "__main__":
