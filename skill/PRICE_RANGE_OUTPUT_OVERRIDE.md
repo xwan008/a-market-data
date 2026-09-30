@@ -11,7 +11,8 @@
 - `current_price`
 - `reasonable_price_range`
 - `low_risk_buy_range`
-- `wait_reason`（READY 可为空）
+- `wait_reason`（WAIT 必须是合法原因枚举；READY 为 null）
+- `wait_reason_detail`（可选的自然语言解释）
 - `price_range_basis`
 - `reentry_trigger`
 
@@ -42,7 +43,7 @@
 若进入 Risk–Reward 后仍无法可靠给出 `reasonable_price_range` 或 `low_risk_buy_range`，则该公司：
 
 - 不得保留在 `READY`；
-- 不得保留在 `WAIT_PRICE / WAIT_MARGIN / WAIT_CATALYST / WAIT_EXPECTATION`；
+- 不得保留在 `WAIT`（无论其 `wait_reason` 为何）；
 - 必须转入 `UNCERTAIN`；
 - `uncertain_stage` 记为 `RISK_REWARD` 或更准确的冲突阶段；
 - `reason` 必须明确说明为什么正常化盈利、保守估值或安全边际无法建立。
@@ -51,14 +52,14 @@
 
 ## 4. WAIT 的含义
 
-只有 Transmission=`SUPPORTED` 且已经完成价格区间计算、但当前价格或催化条件尚未满足时，才允许使用 WAIT。Transmission=`EARLY_EVIDENCE` 不得进入 WAIT：
+只有 Transmission=`SUPPORTED` 且已经完成价格区间计算、但当前价格或催化条件尚未满足时，才允许使用 WAIT。Transmission=`EARLY_EVIDENCE` 不得进入 WAIT。统一输出 `status: "WAIT"`，下列标签仅能写入 `wait_reason`，绝不作为 `status`：
 
 - `WAIT_PRICE`：价格仍高于合理/低风险区；
 - `WAIT_MARGIN`：已有可辩护价格区间，但当前安全边际不足；
 - `WAIT_CATALYST`：已有可辩护价格区间，但仍需订单、利润、产能或客户验证等催化确认；
 - `WAIT_EXPECTATION`：已有可辩护价格区间，但当前预期已较充分计价，需要新的预期重置或价格回到对应区间。
 
-WAIT 必须同时保存明确的 `reentry_trigger`。
+WAIT 必须同时保存明确的 `reentry_trigger`。自然语言等待说明写在 `wait_reason_detail`，不可覆盖枚举字段 `wait_reason`；READY 保存 `status: "READY"` 且 `wait_reason: null`。正式榜和 `research/low_risk_handoff.json` 必须原样保持相同的主状态与等待原因，禁止写入 `WAIT_*` 作为主状态。
 
 ## 5. Coverage
 
@@ -72,7 +73,8 @@ price_range_coverage = COMPLETE
 
 ```text
 all READY + WAIT
-都具有：
+必须先满足：status 只可能是 READY 或 WAIT；WAIT 的 wait_reason 属于合法枚举；READY 的 wait_reason 为 null。
+然后都具有：
 current_price
 reasonable_price_range
 low_risk_buy_range
@@ -94,7 +96,7 @@ price_range_coverage = COMPLETE
 publication_ready = true
 ```
 
-才允许覆盖 `research/latest_formal_result.json`。
+才允许覆盖 `research/latest_formal_result.json`。发布前校验 `ready`、`wait` 两个数组中的每个条目均满足上述状态契约；生成低风险 handoff 时逐项复制其 `status` 与 `wait_reason`，核对公司代码、rank 和条目数量完全一致，不得静默丢弃不认识的状态。
 
 ## 6. 用户可见榜单
 
