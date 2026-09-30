@@ -53,6 +53,24 @@ jobs:
                       captured = captured.replace(tzinfo=ZoneInfo("Asia/Shanghai"))
 
                   validation = payload.get("validation") or {}
+                  handoff = json.loads(Path("research/low_risk_handoff.json").read_text(encoding="utf-8"))
+                  handoff_items = handoff.get("items") or []
+                  stocks = payload.get("low_risk_stocks") or {}
+                  expected = {str(item.get("code") or "").zfill(6): item for item in handoff_items}
+                  handoff_matches = (
+                      handoff.get("status") == "COMPLETE"
+                      and isinstance(handoff.get("items"), list)
+                      and len(expected) == len(handoff_items)
+                      and set(stocks) == set(expected)
+                      and payload.get("source_low_risk_handoff_run_id") == handoff.get("source_run_id")
+                      and payload.get("source_low_risk_handoff_schema_version") == handoff.get("schema_version")
+                      and validation.get("low_risk_stock_coverage_passed") is True
+                      and all(
+                          stocks[code].get("formal_status") == item.get("status")
+                          and stocks[code].get("wait_reason") == item.get("wait_reason")
+                          for code, item in expected.items()
+                      )
+                  )
                   age_seconds = (now - captured).total_seconds() if captured else None
 
                   fresh = (
@@ -60,6 +78,7 @@ jobs:
                       and age_seconds is not None
                       and 0 <= age_seconds <= 8 * 60
                       and validation.get("status") == "passed"
+                      and handoff_matches
                       and validation.get("quote_coverage", 0) >= 0.90
                       and not validation.get("manifest_errors")
                   )
@@ -112,6 +131,26 @@ jobs:
           assert validation.get("source_handoff_dates_present") is True
           assert validation.get("source_handoff_trade_date_consistent") is True
           assert validation.get("formal_prev_close_alignment_passed") is True
+          assert validation.get("low_risk_stock_coverage_passed") is True
+          handoff = json.loads(Path("research/low_risk_handoff.json").read_text(encoding="utf-8"))
+          assert handoff.get("status") == "COMPLETE"
+          items = handoff.get("items")
+          assert isinstance(items, list)
+          expected = {str(item.get("code") or "").zfill(6): item for item in items}
+          assert len(expected) == len(items), "duplicate low-risk handoff codes"
+          stocks = payload.get("low_risk_stocks")
+          assert isinstance(stocks, dict)
+          assert set(stocks) == set(expected), "low-risk handoff stocks lost in snapshot"
+          assert validation.get("low_risk_handoff_item_count") == len(items)
+          assert validation.get("low_risk_stock_count") == len(stocks)
+          assert payload.get("source_low_risk_handoff_run_id") == handoff.get("source_run_id")
+          assert payload.get("source_low_risk_handoff_schema_version") == handoff.get("schema_version")
+          valid_reasons = {"WAIT_PRICE", "WAIT_MARGIN", "WAIT_EXPECTATION", "WAIT_CATALYST"}
+          for code, item in expected.items():
+              assert item.get("status") in {"READY", "WAIT"}
+              assert item.get("wait_reason") in valid_reasons if item.get("status") == "WAIT" else item.get("wait_reason") is None
+              assert stocks[code].get("formal_status") == item.get("status")
+              assert stocks[code].get("wait_reason") == item.get("wait_reason")
           assert validation.get("quote_coverage", 0) >= 0.90
           assert not validation.get("manifest_errors")
           assert payload.get("trends")
