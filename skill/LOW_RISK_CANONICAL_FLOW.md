@@ -200,7 +200,13 @@ reasonable_price_range
 
 “没有完整 DCF”本身不得作为 UNCERTAIN 理由。
 
-## 9. I/O 规则
+## 9. 唯一最终状态与交接契约
+
+公司研究最终 `status` 仅允许 `READY / WAIT / UNCERTAIN / DROP` 四种主状态；`WAIT_PRICE / WAIT_MARGIN / WAIT_EXPECTATION / WAIT_CATALYST` 只是 `wait_reason` 的合法枚举，不是新增主状态。WAIT 必须具备合法的 `wait_reason`，READY 的 `wait_reason` 为 null。原有自然语言 `wait_reason` 描述另存为 `wait_reason_detail`，不得混用分类字段。分类语义及价格区间 Gate 由 `SKILL.md` 和 `PRICE_RANGE_OUTPUT_OVERRIDE.md` 负责。
+
+正式结果 `ready` / `wait` 数组，以及用于后续盘中监控的 `research/low_risk_handoff.json.items` 必须使用完全相同的 `status` 和 `wait_reason`；handoff 逐项复制正式结果中全部 READY/WAIT 的公司、原排序、交易日期、买入区间和触发条件。写入前与写入回读后校验公司代码集合、数量、rank、status 与 wait_reason 精确一致。不认识的主状态和不合法/缺失的 WAIT 原因必须阻断发布，绝不静默过滤成空榜。07:00 增量版沿用同一状态契约，不自行改写正式 handoff。
+
+## 10. I/O 规则
 
 一轮正式执行应近似：
 
@@ -227,7 +233,7 @@ working set freeze
 
 旧 snapshot/runtime/screening_groups/industry_state 及 legacy 单行业大文件可暂时保留，但已退出活动生产链。
 
-## 10. 执行审计
+## 11. 执行审计
 
 正式结果保存：
 
@@ -266,6 +272,6 @@ working set freeze
 
 否则不得把执行路径描述为 canonical complete。
 
-## 11. 一句话版本
+## 12. 一句话版本
 
 > GitHub Actions 把 company_industry_index + shards 确定性物化成“行业 manifest + 有界、pretty-print 的多行 part”；低风险榜按 Trend Handoff 对每个 part 优先一次完整读取到 EOF，只有明确截断时才连续分页，完整解析后证明 Universe 无遗漏再 Freeze，从根源规避单行大 JSON 无法分页导致的截断。
