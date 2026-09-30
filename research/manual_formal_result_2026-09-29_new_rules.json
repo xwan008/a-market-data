@@ -4,7 +4,7 @@
   "status": "COMPLETE",
   "trade_date": "2026-09-29",
   "run_id": "low-risk-20260929-new-rules-manual-20260930",
-  "generated_at": "2026-09-30",
+  "generated_at": "2026-09-30T02:56:05.093Z",
   "mode": "MANUAL_FORMAL_FRESH",
   "repository": "xwan008/a-market-data",
   "branch": "main",
@@ -984,6 +984,55 @@
       "frozen_close_date": "2026-09-29"
     },
     {
+      "rank": 2,
+      "code": "002460",
+      "company_name": "赣锋锂业",
+      "trend_name": "固态电池",
+      "industry_code": "S240603",
+      "industry_name": "锂",
+      "status": "WAIT",
+      "current_price": 43.38,
+      "reasonable_price_range": [
+        36,
+        38.5
+      ],
+      "low_risk_buy_range": [
+        29.8,
+        33.5
+      ],
+      "wait_reason": "WAIT_PRICE",
+      "wait_reason_detail": "收盘价高于保守合理买入区",
+      "expectation_phase": "EARLY",
+      "valuation_archetype": "Cyclical/Materials",
+      "valuation_method": "PB_AND_NORMALIZED_PE",
+      "primary_valuation_metric": "PB_WITH_PE_CROSSCHECK",
+      "peer_median_dynamic_pe": 11.51,
+      "peer_dynamic_pe_p25": 10.005,
+      "peer_dynamic_pe_p75": 15.07,
+      "peer_median_pb": 2.2,
+      "target_dynamic_pe": null,
+      "target_pb": 1.65,
+      "fundamental_anchor_price": 38.553,
+      "structure_anchor_center": 41.67,
+      "price_range_basis": "2026-09-29冻结数据；同三级行业动态PE中位数11.51、PB中位数2.2，按PB_AND_NORMALIZED_PE保守修正得到基本面估值约束锚38.553元；另结合MA60、支撑、成交密集区、60日波动对实际买点进行严格结构约束和安全边际折价。",
+      "reentry_trigger": "回到36–38.5元合理区，低风险29.8–33.5元；新固态分部订单确认后重算",
+      "invalidation": "固态项目交付或锂资源正常化盈利低于假设",
+      "transmission_evidence": "2026半年报披露高比能电池小批量量产及无人机相关锂金属电池批量应用；不能把整个锂资源收入视为固态业务",
+      "evidence_sources": [
+        {
+          "url": "https://disc.static.szse.cn/disc/disk03/finalpage/2026-08-29/213b0118-53cd-4d66-bcf8-6173dea8af66.PDF",
+          "freshness": "AS_OF_2026_09_29"
+        }
+      ],
+      "valuation_confidence": "LOW_TO_MEDIUM",
+      "valuation_data_warnings": [
+        "valuation_stale_fallback",
+        "full_refresh_older_than_10d"
+      ],
+      "volatility_proxy": 0.442,
+      "frozen_close_date": "2026-09-29"
+    },
+    {
       "rank": 3,
       "code": "002812",
       "company_name": "恩捷股份",
@@ -1079,55 +1128,6 @@
         "full_refresh_older_than_10d"
       ],
       "volatility_proxy": 0.311,
-      "frozen_close_date": "2026-09-29"
-    },
-    {
-      "rank": 2,
-      "code": "002460",
-      "company_name": "赣锋锂业",
-      "trend_name": "固态电池",
-      "industry_code": "S240603",
-      "industry_name": "锂",
-      "status": "WAIT",
-      "current_price": 43.38,
-      "reasonable_price_range": [
-        36,
-        38.5
-      ],
-      "low_risk_buy_range": [
-        29.8,
-        33.5
-      ],
-      "wait_reason": "WAIT_PRICE",
-      "wait_reason_detail": "收盘价高于保守合理买入区",
-      "expectation_phase": "EARLY",
-      "valuation_archetype": "Cyclical/Materials",
-      "valuation_method": "PB_AND_NORMALIZED_PE",
-      "primary_valuation_metric": "PB_WITH_PE_CROSSCHECK",
-      "peer_median_dynamic_pe": 11.51,
-      "peer_dynamic_pe_p25": 10.005,
-      "peer_dynamic_pe_p75": 15.07,
-      "peer_median_pb": 2.2,
-      "target_dynamic_pe": null,
-      "target_pb": 1.65,
-      "fundamental_anchor_price": 38.553,
-      "structure_anchor_center": 41.67,
-      "price_range_basis": "2026-09-29冻结数据；同三级行业动态PE中位数11.51、PB中位数2.2，按PB_AND_NORMALIZED_PE保守修正得到基本面估值约束锚38.553元；另结合MA60、支撑、成交密集区、60日波动对实际买点进行严格结构约束和安全边际折价。",
-      "reentry_trigger": "回到36–38.5元合理区，低风险29.8–33.5元；新固态分部订单确认后重算",
-      "invalidation": "固态项目交付或锂资源正常化盈利低于假设",
-      "transmission_evidence": "2026半年报披露高比能电池小批量量产及无人机相关锂金属电池批量应用；不能把整个锂资源收入视为固态业务",
-      "evidence_sources": [
-        {
-          "url": "https://disc.static.szse.cn/disc/disk03/finalpage/2026-08-29/213b0118-53cd-4d66-bcf8-6173dea8af66.PDF",
-          "freshness": "AS_OF_2026_09_29"
-        }
-      ],
-      "valuation_confidence": "LOW_TO_MEDIUM",
-      "valuation_data_warnings": [
-        "valuation_stale_fallback",
-        "full_refresh_older_than_10d"
-      ],
-      "volatility_proxy": 0.442,
       "frozen_close_date": "2026-09-29"
     },
     {
@@ -2967,11 +2967,14 @@
   },
   "publication_gate": {
     "status": "PASSED",
-    "errors": []
+    "errors": [],
+    "readiness_confirmed": true,
+    "old_formal_run_id": "low-risk-20260929T214933+0800"
   },
   "valuation_notes": [
     "股价取自2026-09-29的冻结收盘数据；部分基本面估值仍有valuation_stale_fallback(2026-09-18)及价格历史full_refresh_older_than_10d，相关价格区间按保守倍数与结构折价估算，不是未来目标价或投资保证。",
     "SUPPORTED与可执行买点分开判断；固态早期材料技术保留独立观察池，行业常规订单不得冒充固态趋势订单。",
     "2026-09-29收盘后公开信息如晚于收盘发布，严格以2026-09-29及以前来源核查。本结果按新规则手动补研。"
-  ]
+  ],
+  "published_at": "2026-09-30T02:56:05.093Z"
 }
