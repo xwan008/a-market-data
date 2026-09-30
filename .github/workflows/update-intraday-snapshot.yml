@@ -107,6 +107,10 @@ jobs:
         if: steps.freshness.outputs.skip != 'true'
         run: pip install -r requirements.txt
 
+      - name: Test low-risk handoff contract
+        if: steps.freshness.outputs.skip != 'true'
+        run: python -m unittest discover -s tests -p 'test_low_risk_handoff_contract.py'
+
       - name: Build intraday snapshot
         if: steps.freshness.outputs.skip != 'true'
         run: python scripts/build_intraday_snapshot.py
@@ -148,7 +152,10 @@ jobs:
           valid_reasons = {"WAIT_PRICE", "WAIT_MARGIN", "WAIT_EXPECTATION", "WAIT_CATALYST"}
           for code, item in expected.items():
               assert item.get("status") in {"READY", "WAIT"}
-              assert item.get("wait_reason") in valid_reasons if item.get("status") == "WAIT" else item.get("wait_reason") is None
+              if item.get("status") == "WAIT":
+                  assert item.get("wait_reason") in valid_reasons
+              else:
+                  assert item.get("wait_reason") is None
               assert stocks[code].get("formal_status") == item.get("status")
               assert stocks[code].get("wait_reason") == item.get("wait_reason")
           assert validation.get("quote_coverage", 0) >= 0.90
