@@ -1,5 +1,5 @@
 {
-  "schema_version": "low_risk_formal_result_v3",
+  "schema_version": "low_risk_formal_result_v4",
   "result_kind": "a_share_low_risk_formal_result",
   "status": "COMPLETE",
   "trade_date": "2026-09-29",
@@ -1185,7 +1185,7 @@
       "trend_name": "固态电池",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "status": "WAIT_PRICE",
+      "status": "WAIT",
       "current_price": 28.68,
       "reasonable_price_range": [
         26,
@@ -1203,8 +1203,9 @@
       "price_range_basis": "17.11倍动态PE低于同业中位数，但扣非基础偏低且价格处60日高位；合理区围绕MA60与26.72元支撑，低风险区覆盖24.53元支撑并增加安全边际。",
       "expectation_phase": "CONFIRMING",
       "reentry_trigger": "股价回到26–28元合理区；优先等待22.5–24.5元低风险区，且量产交付未出现延期。",
-      "wait_reason": "现价高于合理区上沿并接近60日高位。",
-      "invalidation": "固液混合交付或全固态装车节点明显延期。"
+      "wait_reason": "WAIT_PRICE",
+      "invalidation": "固液混合交付或全固态装车节点明显延期。",
+      "wait_reason_detail": "现价高于合理区上沿并接近60日高位。"
     },
     {
       "rank": 2,
@@ -1213,7 +1214,7 @@
       "trend_name": "PCB/CCL",
       "industry_code": "S270202",
       "industry_name": "印制电路板",
-      "status": "WAIT_MARGIN",
+      "status": "WAIT",
       "current_price": 119.07,
       "reasonable_price_range": [
         114.5,
@@ -1231,8 +1232,9 @@
       "price_range_basis": "40.65倍动态PE低于行业中位数且业绩增长可验证；合理区围绕MA60和118.86元支撑，低风险区采用额外折价覆盖94.73元低点至104.20元支撑。",
       "expectation_phase": "CONFIRMING",
       "reentry_trigger": "股价回落至104.5元或以下；或新季度确认高端PCB订单与产能兑现后重算仍具安全边际。",
-      "wait_reason": "现价处合理区但距离低风险区较远。",
-      "invalidation": "高端PCB产能爬坡或订单兑现明显低于预期。"
+      "wait_reason": "WAIT_MARGIN",
+      "invalidation": "高端PCB产能爬坡或订单兑现明显低于预期。",
+      "wait_reason_detail": "现价处合理区但距离低风险区较远。"
     },
     {
       "rank": 3,
@@ -1241,7 +1243,7 @@
       "trend_name": "PCB/CCL",
       "industry_code": "S270202",
       "industry_name": "印制电路板",
-      "status": "WAIT_MARGIN",
+      "status": "WAIT",
       "current_price": 171.21,
       "reasonable_price_range": [
         160,
@@ -1259,8 +1261,9 @@
       "price_range_basis": "60.75倍动态PE接近行业中位数，虽有高增长但估值不便宜；合理区以基本面锚和161.80元支撑确定，低风险区在60日低位下方/附近加入高波动安全边际。",
       "expectation_phase": "CONFIRMING",
       "reentry_trigger": "股价进入148元以下低风险区，或后续季度披露AI PCB订单与利润贡献显著上修并重算估值。",
-      "wait_reason": "当前仅处合理区上沿附近，安全边际不足。",
-      "invalidation": "AI PCB/光模块量产未能转化为利润，或跌破关键结构后增长预期同步下修。"
+      "wait_reason": "WAIT_MARGIN",
+      "invalidation": "AI PCB/光模块量产未能转化为利润，或跌破关键结构后增长预期同步下修。",
+      "wait_reason_detail": "当前仅处合理区上沿附近，安全边际不足。"
     },
     {
       "rank": 4,
@@ -1269,7 +1272,7 @@
       "trend_name": "PCB/CCL",
       "industry_code": "S270202",
       "industry_name": "印制电路板",
-      "status": "WAIT_PRICE",
+      "status": "WAIT",
       "current_price": 191.84,
       "reasonable_price_range": [
         165,
@@ -1287,8 +1290,9 @@
       "price_range_basis": "41.81倍动态PE低于行业中位数且增长强，但股价位于60日80.81%分位；合理区围绕MA60和165.72元支撑，低风险区覆盖148.65元次级支撑并加入波动折价。",
       "expectation_phase": "CONFIRMING",
       "reentry_trigger": "股价回到165–180元合理区；优先等待140–152元低风险区，或Q4新增产能盈利兑现后重算。",
-      "wait_reason": "现价明显高于合理区且接近阶段高位。",
-      "invalidation": "泰国工厂Q4扩产延期或服务器客户认证未转化为量产订单。"
+      "wait_reason": "WAIT_PRICE",
+      "invalidation": "泰国工厂Q4扩产延期或服务器客户认证未转化为量产订单。",
+      "wait_reason_detail": "现价明显高于合理区且接近阶段高位。"
     }
   ],
   "uncertain": [
@@ -2907,5 +2911,9 @@
     "all_required_research_complete": true,
     "zero_forbidden_reads": true,
     "ready_wait_price_fields_valid": true
+  },
+  "contract_migration": {
+    "kind": "status_reason_normalization",
+    "research_unchanged": true
   }
 }
