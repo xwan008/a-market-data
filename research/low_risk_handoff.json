@@ -1,5 +1,5 @@
 {
-  "schema_version": "low_risk_handoff_v2",
+  "schema_version": "low_risk_handoff_v3",
   "status": "COMPLETE",
   "trade_date": "2026-09-29",
   "generated_at": "2026-09-29T21:49:33+08:00",
@@ -12,7 +12,7 @@
       "trend_name": "固态电池",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "status": "WAIT_PRICE",
+      "status": "WAIT",
       "current_price": 28.68,
       "reasonable_buy_range": [
         26,
@@ -23,7 +23,8 @@
         24.5
       ],
       "wait_or_trigger_condition": "股价回到26–28元合理区；优先等待22.5–24.5元低风险区，且量产交付未出现延期。",
-      "invalidation": "固液混合交付或全固态装车节点明显延期。"
+      "invalidation": "固液混合交付或全固态装车节点明显延期。",
+      "wait_reason": "WAIT_PRICE"
     },
     {
       "rank": 2,
@@ -32,7 +33,7 @@
       "trend_name": "PCB/CCL",
       "industry_code": "S270202",
       "industry_name": "印制电路板",
-      "status": "WAIT_MARGIN",
+      "status": "WAIT",
       "current_price": 119.07,
       "reasonable_buy_range": [
         114.5,
@@ -43,7 +44,8 @@
         104.5
       ],
       "wait_or_trigger_condition": "股价回落至104.5元或以下；或新季度确认高端PCB订单与产能兑现后重算仍具安全边际。",
-      "invalidation": "高端PCB产能爬坡或订单兑现明显低于预期。"
+      "invalidation": "高端PCB产能爬坡或订单兑现明显低于预期。",
+      "wait_reason": "WAIT_MARGIN"
     },
     {
       "rank": 3,
@@ -52,7 +54,7 @@
       "trend_name": "PCB/CCL",
       "industry_code": "S270202",
       "industry_name": "印制电路板",
-      "status": "WAIT_MARGIN",
+      "status": "WAIT",
       "current_price": 171.21,
       "reasonable_buy_range": [
         160,
@@ -63,7 +65,8 @@
         148
       ],
       "wait_or_trigger_condition": "股价进入148元以下低风险区，或后续季度披露AI PCB订单与利润贡献显著上修并重算估值。",
-      "invalidation": "AI PCB/光模块量产未能转化为利润，或跌破关键结构后增长预期同步下修。"
+      "invalidation": "AI PCB/光模块量产未能转化为利润，或跌破关键结构后增长预期同步下修。",
+      "wait_reason": "WAIT_MARGIN"
     },
     {
       "rank": 4,
@@ -72,7 +75,7 @@
       "trend_name": "PCB/CCL",
       "industry_code": "S270202",
       "industry_name": "印制电路板",
-      "status": "WAIT_PRICE",
+      "status": "WAIT",
       "current_price": 191.84,
       "reasonable_buy_range": [
         165,
@@ -83,7 +86,12 @@
         152
       ],
       "wait_or_trigger_condition": "股价回到165–180元合理区；优先等待140–152元低风险区，或Q4新增产能盈利兑现后重算。",
-      "invalidation": "泰国工厂Q4扩产延期或服务器客户认证未转化为量产订单。"
+      "invalidation": "泰国工厂Q4扩产延期或服务器客户认证未转化为量产订单。",
+      "wait_reason": "WAIT_PRICE"
     }
-  ]
+  ],
+  "contract_migration": {
+    "kind": "status_reason_normalization",
+    "research_unchanged": true
+  }
 }
