@@ -14,10 +14,38 @@ LOW_RISK_PATH = RESEARCH_DIR / "low_risk_handoff.json"
 SNAPSHOT_PATH = RESEARCH_DIR / "intraday_market_snapshot.json"
 MANIFEST_ROOT = ROOT / "data" / "low_risk" / "by_industry"
 HISTORY_CONTEXT_RUNTIME_FORMAT = "low_risk_industry_working_set_chunk"
+VALID_WAIT_REASONS = {"WAIT_PRICE", "WAIT_MARGIN", "WAIT_EXPECTATION", "WAIT_CATALYST"}
 
 
 def read_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def validate_low_risk_handoff_items(handoff: dict) -> list[dict]:
+    """Validate the full READY/WAIT handoff; never silently discard unknown statuses."""
+    if handoff.get("status") != "COMPLETE":
+        raise ValueError("low_risk_handoff_status_not_complete")
+    items = handoff.get("items")
+    if not isinstance(items, list):
+        raise ValueError("low_risk_handoff_items_not_a_list")
+
+    seen_codes: set[str] = set()
+    for index, item in enumerate(items):
+        if not isinstance(item, dict):
+            raise ValueError(f"low_risk_handoff_item_invalid:{index}")
+        status = item.get("status")
+        reason = item.get("wait_reason")
+        if status not in {"READY", "WAIT"}:
+            raise ValueError(f"low_risk_handoff_unknown_status:{index}:{status}")
+        if status == "WAIT" and reason not in VALID_WAIT_REASONS:
+            raise ValueError(f"low_risk_handoff_invalid_wait_reason:{index}:{reason}")
+        if status == "READY" and reason is not None:
+            raise ValueError(f"low_risk_handoff_ready_has_wait_reason:{index}:{reason}")
+        code = str(item.get("code") or "").zfill(6)
+        if len(code) != 6 or not code.isdigit() or code in seen_codes:
+            raise ValueError(f"low_risk_handoff_invalid_or_duplicate_code:{index}:{code}")
+        seen_codes.add(code)
+    return items
 
 
 def round_or_none(value, digits: int = 4):
@@ -231,6 +259,11 @@ def main() -> int:
     now = datetime.now(market.TZ)
     trend = read_json(TREND_PATH)
     low_risk = read_json(LOW_RISK_PATH)
+    try:
+        low_risk_items = validate_low_risk_handoff_items(low_risk)
+    except ValueError as exc:
+        print(json.dumps({"error": "invalid_low_risk_handoff", "detail": str(exc)}, ensure_ascii=False))
+        return 2
     source_trend_trade_date = trend.get("trade_date")
     source_low_risk_trade_date = low_risk.get("trade_date")
     source_handoff_trade_date_consistent = bool(
@@ -301,11 +334,6 @@ def main() -> int:
             "company_codes": sorted(set(grouped_codes)),
         }
 
-    low_risk_items = [
-        item
-        for item in (low_risk.get("items") or [])
-        if item.get("status") in {"READY", "WAIT"}
-    ]
     low_risk_only_attempted: set[str] = set()
     for item in low_risk_items:
         target_codes.add(str(item.get("code") or "").zfill(6))
@@ -441,11 +469,12 @@ def main() -> int:
             "industry_code": item.get("industry_code"),
             "industry_name": item.get("industry_name"),
             "formal_status": item.get("status"),
+            "wait_reason": item.get("wait_reason"),
             "formal_current_price": item.get("current_price"),
             "reasonable_buy_range": item.get("reasonable_buy_range"),
             "low_risk_buy_range": item.get("low_risk_buy_range"),
             "wait_or_trigger_condition": item.get("wait_or_trigger_condition"),
-            "invalidation_condition": item.get("invalidation_condition"),
+            "invalidation_condition": item.get("invalidation_condition") or item.get("invalidation"),
             "reentry_trigger": item.get("reentry_trigger"),
             "price": quote.get("price"),
             "prev_close": quote.get("prev_close"),
@@ -460,6 +489,17 @@ def main() -> int:
             "history_context_status": "available" if code in history_contexts else "unavailable",
             "history_context": history_contexts.get(code),
         }
+
+    expected_low_risk_codes = {str(item["code"]).zfill(6) for item in low_risk_items}
+    low_risk_stock_coverage_passed = (
+        len(low_risk_stocks) == len(low_risk_items)
+        and set(low_risk_stocks) == expected_low_risk_codes
+        and all(
+            low_risk_stocks[str(item["code"]).zfill(6)]["formal_status"] == item["status"]
+            and low_risk_stocks[str(item["code"]).zfill(6)]["wait_reason"] == item.get("wait_reason")
+            for item in low_risk_items
+        )
+    )
 
     usable_quotes = sum(
         1
@@ -479,6 +519,8 @@ def main() -> int:
         "market_status": market.clock_market_status(now),
         "source_trend_trade_date": source_trend_trade_date,
         "source_low_risk_trade_date": source_low_risk_trade_date,
+        "source_low_risk_handoff_run_id": low_risk.get("source_run_id"),
+        "source_low_risk_handoff_schema_version": low_risk.get("schema_version"),
         "source_status": {
             "sina": "ok" if sina else "failed",
             "tencent": "ok" if tencent else "failed",
@@ -489,6 +531,7 @@ def main() -> int:
                 "passed"
                 if trade_date == now.date().isoformat()
                 and source_handoff_trade_date_consistent
+                and low_risk_stock_coverage_passed
                 and formal_prev_close_alignment_passed
                 and quote_coverage >= 0.90
                 and not manifest_errors
@@ -498,6 +541,9 @@ def main() -> int:
                 source_trend_trade_date and source_low_risk_trade_date
             ),
             "source_handoff_trade_date_consistent": source_handoff_trade_date_consistent,
+            "low_risk_handoff_item_count": len(low_risk_items),
+            "low_risk_stock_count": len(low_risk_stocks),
+            "low_risk_stock_coverage_passed": low_risk_stock_coverage_passed,
             "formal_prev_close_comparable_count": formal_prev_close_comparable_count,
             "formal_prev_close_matched_count": formal_prev_close_matched_count,
             "formal_prev_close_alignment_ratio": round(formal_prev_close_alignment_ratio, 4),
