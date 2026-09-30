@@ -51,6 +51,16 @@ function exactUtf8ByteLength(s) {
   }
   return n;
 }
+const cases = [["ASCII", 5], ["中", 3], ["😀", 4], ["A中😀\n", 9]];
+for (const [value, expected] of cases) {
+  if (exactUtf8ByteLength(value) !== expected) throw new Error("UTF8_PREFLIGHT_FAILED");
+}
+for (const invalid of ["\uD800", "\uDC00"]) {
+  let rejected = false;
+  try { exactUtf8ByteLength(invalid); }
+  catch (e) { rejected = e.message === "INVALID_UTF16"; }
+  if (!rejected) throw new Error("UTF8_PREFLIGHT_FAILED");
+}
 ```
 
 自检必须在同一执行环境实际执行并断言：ASCII 为 5 字节、中文“中”为 3 字节、表情“😀”为 4 字节、字符串 `A中😀` 加一个实际 LF 换行共 9 字节；不完整 UTF-16 代理项必须抛错。Python 替代实现也要进行对应严格编码测试。自检未执行、无法执行或不通过时，报 RUNTIME_BYTE_VALIDATOR_UNAVAILABLE，停止本轮 Working Set 文件读取及后续研究/写入，绝不跳过 byte_size Gate。
