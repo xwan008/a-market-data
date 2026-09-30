@@ -169,11 +169,14 @@ jobs:
           assert validation.get("board_history_target_count") in (0, len(payload["trends"]))
           if validation.get("board_history_target_count") == 0:
               assert validation.get("crossday_history_errors"), "unexpectedly missing board history"
+          assert "board_history_20d_available_count" not in validation
           for trend in payload["trends"].values():
               assert trend.get("history_context_status") in {"available", "partial", "unavailable"}
               context = trend.get("history_context")
               if context is not None:
                   assert context.get("baseline_trade_date") == handoff.get("trade_date")
+                  assert "five_day" in context and context["five_day"]["window_sessions"] == 5
+                  assert "twenty_day" not in context
           print(json.dumps({
               "trade_date": payload.get("trade_date"),
               "captured_at": payload.get("captured_at"),

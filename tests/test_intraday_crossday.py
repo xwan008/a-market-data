@@ -57,7 +57,10 @@ class CrossDayTest(unittest.TestCase):
                     {"风电设备": {"industry_codes": ["S2"], "company_codes": ["002487"]}}, dates[-1], archive)
             ctx = result["风电设备"]
             self.assertEqual(ctx["five_day"]["status"], "available")
-            self.assertEqual(ctx["twenty_day"]["sample_count"], 1)
+            self.assertEqual(ctx["five_day"]["window_sessions"], 5)
+            self.assertEqual(ctx["five_day"]["sample_count"], 1)
+            self.assertNotIn("twenty_day", ctx)
+            self.assertNotIn("board_history_20d_available_count", audit)
             self.assertFalse(ctx["previous_trade_day"]["same_industry_codes"])
             self.assertEqual(audit["board_previous_day_available_count"], 1)
 

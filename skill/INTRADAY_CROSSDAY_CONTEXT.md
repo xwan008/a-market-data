@@ -4,10 +4,12 @@ The GitHub Actions snapshot builder materializes **optional** historical referen
 directly into research/intraday_market_snapshot.json, the only live input used by
 the ChatGPT intraday monitor aside from research/intraday_monitor_state.json.
 
-- trends[*].history_context.five_day / twenty_day: median current-constituent
-  returns and positive-constituent ratio, using **completed** 5/20-session OHLC
-  history through source_low_risk_trade_date. Coverage and sample sizes must
-  accompany any conclusion. These are *not* benchmark-relative returns.
+- trends[*].history_context.five_day: median current-constituent returns and
+  positive-constituent ratio using **five completed sessions** through
+  source_low_risk_trade_date (six valid closing observations). Coverage and
+  sample sizes must accompany any conclusion. These are *not* benchmark-relative
+  returns. No board twenty_day metric is produced; longer stock K-line history
+  remains available for separate stock analysis.
 - trends[*].history_context.previous_trade_day: last successfully persisted
   intraday board scan from that **exact** preceding handoff trade date. It is
   **not** the official close, and same_industry_codes must be true before direct

@@ -455,7 +455,6 @@ def main() -> int:
     board_history_audit = {
         "board_history_target_count": 0,
         "board_history_5d_available_count": 0,
-        "board_history_20d_available_count": 0,
         "board_previous_day_available_count": 0,
         "board_history_shard_read_count": 0,
         "board_history_errors": [],
@@ -479,10 +478,10 @@ def main() -> int:
             for name, context in contexts.items():
                 trend_item = trends[name]
                 trend_item["history_context"] = context
-                statuses = (context["five_day"]["status"], context["twenty_day"]["status"])
+                five_day_status = context["five_day"]["status"]
                 trend_item["history_context_status"] = (
-                    "available" if "available" in statuses or context["previous_trade_day"]
-                    else "partial" if "partial" in statuses else "unavailable"
+                    "available" if five_day_status == "available" or context["previous_trade_day"]
+                    else "partial" if five_day_status == "partial" else "unavailable"
                 )
             previous_day = next(
                 (d for d in merged_archive["days"] if d["trade_date"] == source_low_risk_trade_date),

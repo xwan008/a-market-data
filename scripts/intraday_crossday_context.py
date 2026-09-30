@@ -163,7 +163,6 @@ def build_board_context(trends: dict, baseline_date: str, archive: dict) -> tupl
             "baseline_trade_date": baseline_date,
             "constituent_basis": "current_frozen_universe_completed_sessions",
             "five_day": return_summary(codes, histories, 5),
-            "twenty_day": return_summary(codes, histories, 20),
             "previous_trade_day": ({
                 "trade_date": baseline_date,
                 "basis": "last_persisted_intraday_scan_not_official_close",
@@ -174,7 +173,6 @@ def build_board_context(trends: dict, baseline_date: str, archive: dict) -> tupl
     return contexts, {
         "board_history_target_count": len(contexts),
         "board_history_5d_available_count": sum(v["five_day"]["status"] == "available" for v in contexts.values()),
-        "board_history_20d_available_count": sum(v["twenty_day"]["status"] == "available" for v in contexts.values()),
         "board_previous_day_available_count": sum(v["previous_trade_day"] is not None for v in contexts.values()),
         "board_history_shard_read_count": count,
         "board_history_errors": errors,
