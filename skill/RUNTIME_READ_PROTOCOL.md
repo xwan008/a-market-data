@@ -127,7 +127,7 @@ FAILED / INCOMPLETE / UNVERIFIED 不得覆盖上一份 COMPLETE。
 - `hard_filtered_out`
 - `pre_screen_selected`
 - `pre_screened_out`
-- `ready / wait / early_evidence / uncertain / drop`
+- `ready / wait / early_evidence / uncertain / drop`（其中 ready[*].status 必须为 READY；wait[*].status 必须为 WAIT、wait[*].wait_reason 必须属于 WAIT_PRICE / WAIT_MARGIN / WAIT_EXPECTATION / WAIT_CATALYST；READY 的 wait_reason 为 null）
 - `coverage`
 - `data_access_audit`
 - `execution_audit`
@@ -165,7 +165,9 @@ READY / WAIT 的价格字段完整性由：
 
 本协议不允许任何规则绕过价格区间 Gate。
 
-正式榜中的 WAIT 不得因为旧协议而允许 `N/A` 区间；无法形成可辩护区间时按价格规则进入 UNCERTAIN。
+正式榜中的 WAIT 不得因为旧协议而允许 `N/A` 区间；无法形成可辩护区间时按价格规则进入 UNCERTAIN。`WAIT_*` 仅能出现在 `wait_reason`，不能作为 `status`。自然语言等待说明使用 `wait_reason_detail`。
+
+19:00 自动正式版写入 `research/low_risk_handoff.json` 时，必须从本轮已持久化且回读验证成功的正式榜逐条映射所有 `ready + wait`，保留 rank、code、status、wait_reason、价格区间和条件，并强制校验 handoff 数量与公司身份完全一致。写入及回读任一阶段失败，不能报告 HANDOFF_PERSISTED。盘中快照也必须校验输入 handoff 每条状态/原因合法，输出 low_risk_stocks 身份与 handoff 完全一致；不能因为零条通过过滤而默认校验成功。
 
 ---
 
