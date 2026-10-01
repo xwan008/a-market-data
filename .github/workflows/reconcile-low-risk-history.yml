@@ -1,0 +1,50 @@
+name: Reconcile Low-Risk Signal History
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - research/low_risk_handoff.json
+      - scripts/update_low_risk_history.py
+      - tests/test_low_risk_history.py
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: low-risk-history-main
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Test isolated history rules
+        run: python -m unittest discover -s tests -p test_low_risk_history.py -v
+
+      - name: Reconcile only after same-run formal and handoff verification
+        run: python scripts/update_low_risk_history.py
+
+      - name: Commit only history outputs
+        shell: bash
+        run: |
+          git add -A research/low_risk_signal_registry.json research/low_risk_history/
+          if git diff --cached --quiet; then
+            echo "History already matches verified publication."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "research: reconcile low-risk signal history"
+          git push origin HEAD:main
