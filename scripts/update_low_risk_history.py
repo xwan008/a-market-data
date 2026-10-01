@@ -63,6 +63,11 @@ def validate(formal: dict, handoff: dict, formal_sha: str) -> list[dict]:
                      ("low_risk_buy_range", "low_risk_buy_range")):
             if a.get(x) != b.get(y):
                 raise ValueError("HANDOFF_PRICE_MISMATCH:" + x)
+        for x, y in (("current_price", "current_price"),
+                     ("wait_or_trigger_condition", "reentry_trigger"),
+                     ("invalidation", "invalidation"), ("industry_name", "industry_name")):
+            if a.get(x) != b.get(y):
+                raise ValueError("HANDOFF_FIELD_MISMATCH:" + x)
     return actual
 
 
@@ -105,7 +110,7 @@ def observation(record: dict, trade_date: str, history_dir: Path | None,
     except (TypeError, ValueError, KeyError):
         return result
     result.update(status="AVAILABLE", close=last_close, history_basis=stock.get("history_basis"))
-    if start and start.get("confidence") in ("high", "medium"):
+    if str(stock.get("history_basis") or "").startswith("tencent_qfq") and start and start.get("confidence") in ("high", "medium"):
         try:
             baseline = float(start["close"])
             if baseline > 0:
