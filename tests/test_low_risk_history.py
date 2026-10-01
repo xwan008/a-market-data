@@ -17,7 +17,7 @@ def pair(date="2026-09-30", run="r1", rows=None, trends=None):
          "wait_reason": "WAIT_PRICE", "current_price": 10,
          "reasonable_buy_range": [8, 9], "low_risk_buy_range": [7, 8],
          "wait_or_trigger_condition": "价格", "invalidation": "结构"}]
-    formal_rows = [{**item, "reasonable_price_range": item["reasonable_buy_range"]} for item in rows]
+    formal_rows = [{**item, "reasonable_price_range": item["reasonable_buy_range"], "reentry_trigger": item["wait_or_trigger_condition"]} for item in rows]
     formal = {"result_kind": "a_share_low_risk_formal_result", "status": "COMPLETE",
               "trade_date": date, "run_id": run,
               "ready": [r for r in formal_rows if r["status"] == "READY"],
