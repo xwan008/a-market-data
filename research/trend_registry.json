@@ -2,25 +2,52 @@
   "schema_version": 1,
   "result_kind": "a_share_trend_registry",
   "trade_date": "2026-09-30",
-  "generated_at": "2026-09-30T18:40:44+08:00",
+  "generated_at": "2026-10-08T06:37:38+08:00",
   "timezone": "Asia/Shanghai",
   "status": "COMPLETE",
   "scan_audit": {
-    "mode": "full_close",
-    "full_market_scan_completed": true,
-    "previous_registry_trade_date": "2026-09-29",
-    "previous_trend_count": 8,
-    "previous_trend_rechecked_count": 8,
+    "mode": "early_incremental",
+    "full_market_scan_completed": false,
+    "previous_registry_trade_date": "2026-09-30",
+    "previous_trend_count": 10,
+    "previous_trend_rechecked_count": 10,
     "recheck_queue_rechecked_count": 1,
-    "new_trend_count": 2,
+    "new_trend_count": 0,
     "pending_revalidation_count": 2,
     "invalidated_count": 0,
     "new_position_count": 3,
     "evidence_cutoff_trade_date": "2026-09-30",
     "market_data_trade_date": "2026-09-30",
     "market_data_completed": true,
-    "scan_scope": "申万行业及主要概念板块；复核全部bootstrap趋势与recheck_queue，并扫描当日新增异动",
-    "market_summary": "沪指+0.31%、深成指-0.11%、创业板指-0.23%、科创50-2.51%；两市成交约1.44万亿元；医药/CRO领涨，PCB、半导体、元件领跌。"
+    "baseline_status": "COMPLETE",
+    "baseline_generated_at": "2026-09-30T18:40:44+08:00",
+    "baseline_full_close_audit": {
+      "mode": "full_close",
+      "full_market_scan_completed": true,
+      "previous_registry_trade_date": "2026-09-29",
+      "previous_trend_count": 8,
+      "previous_trend_rechecked_count": 8,
+      "recheck_queue_rechecked_count": 1,
+      "new_trend_count": 2,
+      "pending_revalidation_count": 2,
+      "invalidated_count": 0,
+      "new_position_count": 3,
+      "evidence_cutoff_trade_date": "2026-09-30",
+      "market_data_trade_date": "2026-09-30",
+      "market_data_completed": true,
+      "scan_scope": "申万行业及主要概念板块；复核全部bootstrap趋势与recheck_queue，并扫描当日新增异动",
+      "market_summary": "沪指+0.31%、深成指-0.11%、创业板指-0.23%、科创50-2.51%；两市成交约1.44万亿元；医药/CRO领涨，PCB、半导体、元件领跌。"
+    },
+    "scan_scope": "06:40隔夜增量：复核全部既有趋势；仅使用2026-09-30正式收盘基线及国庆假期间至2026-10-08早间的商品、海外市场风险和新增产业证据；未进行当日收盘全市场扫描",
+    "overnight_evidence": [
+      {
+        "description": "10月7日美股从高位回落、长端美债收益率上升，布伦特原油一度站上100美元后因IEA释放储备消息回落；属于开盘前风险偏好压制，不构成任何A股板块状态的独立确认或失效证据。",
+        "source": "https://www.reuters.com/business/wall-st-futures-slip-yields-oil-rebound-fed-minutes-focus-2026-10-07/",
+        "evidence_date": "2026-10-07",
+        "role": "macro_risk_adjustment_only"
+      }
+    ],
+    "incremental_result": "无状态迁移；所有产业状态、市场状态、生命周期、last_verified_trade_date与优先顺序保持2026-09-30正式收盘基线"
   },
   "trends": [
     {
