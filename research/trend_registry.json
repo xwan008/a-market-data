@@ -2,26 +2,65 @@
   "schema_version": 1,
   "result_kind": "a_share_trend_registry",
   "trade_date": "2026-10-08",
-  "generated_at": "2026-10-08T18:38:47+08:00",
+  "generated_at": "2026-10-09T06:42:02+08:00",
   "timezone": "Asia/Shanghai",
   "status": "COMPLETE",
   "scan_audit": {
-    "mode": "full_close",
-    "full_market_scan_completed": true,
-    "previous_registry_trade_date": "2026-09-30",
-    "previous_trend_count": 10,
-    "previous_trend_rechecked_count": 10,
-    "recheck_queue_rechecked_count": 1,
-    "new_trend_count": 2,
+    "mode": "early_incremental",
+    "full_market_scan_completed": false,
+    "previous_registry_trade_date": "2026-10-08",
+    "previous_trend_count": 12,
+    "previous_trend_rechecked_count": 12,
+    "recheck_queue_rechecked_count": 0,
+    "new_trend_count": 0,
     "pending_revalidation_count": 2,
     "invalidated_count": 0,
     "new_position_count": 2,
     "evidence_cutoff_trade_date": "2026-10-08",
     "market_data_trade_date": "2026-10-08",
     "market_data_completed": true,
-    "scan_scope": "申万全行业与主要概念板块全量扫描；逐一复核上一registry全部10个趋势和1项recheck_queue，并验证资源品第一锚与新增异动",
-    "market_summary": "沪指-0.79%、深成指-2.07%、创业板指-3.15%、科创50-4.82%；两市成交约1.68万亿元；1672股上涨、3698股下跌。油气、电池、煤炭、航运逆势走强，半导体、电子化学品、通信设备、医疗服务显著回撤。",
-    "coverage_note": "完成全行业涨跌与主要概念扫描；铜和风电缺少可交叉的当日第一锚/板块同口径数据，依协议保留原日期并标记待复核。"
+    "baseline_status": "COMPLETE",
+    "baseline_generated_at": "2026-10-08T18:38:47+08:00",
+    "baseline_full_close_audit": {
+      "mode": "full_close",
+      "full_market_scan_completed": true,
+      "previous_registry_trade_date": "2026-09-30",
+      "previous_trend_count": 10,
+      "previous_trend_rechecked_count": 10,
+      "recheck_queue_rechecked_count": 1,
+      "new_trend_count": 2,
+      "pending_revalidation_count": 2,
+      "invalidated_count": 0,
+      "new_position_count": 2,
+      "evidence_cutoff_trade_date": "2026-10-08",
+      "market_data_trade_date": "2026-10-08",
+      "market_data_completed": true,
+      "scan_scope": "申万全行业与主要概念板块全量扫描；逐一复核上一registry全部10个趋势和1项recheck_queue，并验证资源品第一锚与新增异动",
+      "market_summary": "沪指-0.79%、深成指-2.07%、创业板指-3.15%、科创50-4.82%；两市成交约1.68万亿元；1672股上涨、3698股下跌。油气、电池、煤炭、航运逆势走强，半导体、电子化学品、通信设备、医疗服务显著回撤。",
+      "coverage_note": "完成全行业涨跌与主要概念扫描；铜和风电缺少可交叉的当日第一锚/板块同口径数据，依协议保留原日期并标记待复核。"
+    },
+    "scan_scope": "06:40隔夜增量：复核全部12个既有趋势；仅使用2026-10-08正式收盘基线及其后至2026-10-09 06:42的商品、海外市场风险和新增产业证据；未进行10月9日收盘全市场扫描",
+    "overnight_evidence": [
+      {
+        "description": "10月8日布伦特原油收于104.28美元/桶、单日上涨约4%，中东运输风险与美国湾区飓风导致供给扰动；强化油气产业T1的商品第一锚，但A股尚未开盘，不能将市场状态由候选趋势升级。",
+        "source": "https://www.reuters.com/business/energy/oil-rises-middle-east-supply-concerns-persist-amid-shipping-attacks-2026-10-08/",
+        "evidence_date": "2026-10-08",
+        "role": "commodity_anchor_positive_no_a_share_state_change"
+      },
+      {
+        "description": "10月8日纳斯达克下跌约1.3%，芯片及AI相关股票承压，高油价与高利率共同压制风险偏好；仅作为10月9日A股开盘前宏观风险修正，不构成半导体、CPO或PCB的独立失效证据。",
+        "source": "https://www.reuters.com/world/china/global-markets-global-markets-2026-10-08/",
+        "evidence_date": "2026-10-08",
+        "role": "macro_risk_adjustment_only"
+      },
+      {
+        "description": "IEA加快释放库存及中东出口恢复仍是高油价的反向证据，油气事件溢价可能快速回落；因此油气维持T1/候选趋势，不升级趋势确认。",
+        "source": "https://www.reuters.com/commentary/reuters-open-interest/energy-watch-war-within-war-2026-10-08/",
+        "evidence_date": "2026-10-08",
+        "role": "commodity_contrary_evidence"
+      }
+    ],
+    "incremental_result": "无状态迁移；油气商品第一锚增强但A股结构尚未获得新交易日验证，其他趋势亦无达到确认或失效门槛的隔夜证据。所有产业状态、市场状态、生命周期、last_verified_trade_date与新仓排序保持2026-10-08正式收盘基线。"
   },
   "trends": [
     {
