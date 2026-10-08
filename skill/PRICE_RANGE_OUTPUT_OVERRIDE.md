@@ -112,6 +112,10 @@ publication_ready = true
 3. 如无 READY，明确写“本轮无 READY”，但仍完整展示 WAIT 榜单；
 4. UNCERTAIN / DROP / PRE_SCREENED_OUT 只做简短附表或数量摘要，不得喧宾夺主。
 
+**分板块可见性（零 READY/WAIT 也必须输出）**：主榜单之后，按本轮 trend_handoff.signals 原顺序展示**每个输入趋势/板块**的研究去向，哪怕该板块最终 READY=0、WAIT=0。每个板块至少写明路由覆盖公司数、硬过滤后数量、进入深度研究数量、READY/WAIT 数量、EARLY_EVIDENCE 及 UNCERTAIN/DROP 的数量和主要原因；对有直接关联但未入主榜的公司，用精简附表列代表性公司、当前 Transmission/最终阶段、关键核实证据或缺口、下一次可改变分类的条件。明确“未入可执行买点榜 ≠ 未被研究 ≠ 趋势失效”。报告不得把 EARLY_EVIDENCE/UNCERTAIN 偷换成 WAIT，不给未通过估值 Gate 的公司编造价格区间，不扩大正式 handoff 的 READY/WAIT 集合；数量应能从本轮 frozen universe、pre-screen、transmission、formal arrays 去重重算，按行业与主题归属避免双计。
+
+**发送正文与持久化分开核验**：19:00 正式版成功发布后，必须在当轮面向用户的最终正文实际呈现完整 READY/WAIT 主榜（为零时明确写零）、上述全部板块摘要及持久化状态，不能仅说“已保存 GitHub”、只给链接或只输出 machine status。GitHub COMPLETE 代表文件结果已发布，不单独证明聊天报告正文已显示；若无法确认用户可见传递，不得声称通知或正文已成功送达。此要求不改动 JSON schema、研究筛选、价格规则、持久化 Gate 或通知开关。
+
 主榜单不得省略价格区间。正式结果即使内部 COMPLETE，但若用户可见输出没有主榜单，也视为输出不完整。
 
 ## 7. 研究纪律
