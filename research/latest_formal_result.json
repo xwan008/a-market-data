@@ -1,17 +1,16 @@
 {
-  "schema_version": "low_risk_formal_result_v5",
+  "schema_version": "2.0",
   "result_kind": "a_share_low_risk_formal_result",
   "status": "COMPLETE",
-  "trade_date": "2026-09-30",
-  "run_id": "low-risk-20260930-manual-formal-utf8fix",
-  "generated_at": "2026-09-30T11:41:04.802Z",
-  "published_at": "2026-09-30T11:41:04.802Z",
-  "mode": "MANUAL_FORMAL_FRESH",
-  "repository": "xwan008/a-market-data",
-  "branch": "main",
+  "trade_date": "2026-10-08",
+  "run_id": "low-risk-20261008-formal-192752",
+  "published_at": "2026-10-08T19:27:52+08:00",
+  "mode": "FORMAL_CLOSE",
   "provenance": {
-    "rule_shas": {
-      "skill/LOW_RISK_CANONICAL_FLOW.md": "c4654ec21268043b2a2759d1626f04d1407b42e0",
+    "repository": "xwan008/a-market-data",
+    "branch": "main",
+    "canonical_shas": {
+      "skill/LOW_RISK_CANONICAL_FLOW.md": "7d92535eef594671596a33e2a85e4b17d907134b",
       "skill/TREND_HANDOFF_ROUTING_OVERRIDE.md": "1d6716d3302fcece1366b21b1ef42817f93660fb",
       "skill/PRE_SCREEN_RESEARCH_SCOPE_OVERRIDE.md": "b8da41bfb2f97e87909e87f1c0cc7aaffe71331c",
       "skill/SKILL.md": "7a0ee7181b4acf69733a941cc128157546bbf52e",
@@ -20,16 +19,18 @@
       "skill/EXECUTION_EFFICIENCY_OVERRIDE.md": "cb325406b753e0b6be3e5163dd2dc97031f167ec",
       "skill/RUNTIME_READ_PROTOCOL.md": "0d057d56d24643fec6d23b8515e169f82585f760"
     },
-    "trend_handoff_sha": "243da5587ccbfb22339c097951d2eb0e579a4037",
-    "materialized_index_sha": "d8a8d91fe2797201fffd41e99a25288cf0427f9b",
-    "runtime_byte_validator": "PASSED",
-    "working_set_freeze": "PASSED",
-    "note": "Fresh Run after UTF-8 validator fix; all 7 manifests and 14 parts byte/schema/coverage-verified before Freeze."
+    "trend_handoff_sha": "0bc189881dbb0ef5420081d7713a72b73bcaa61a",
+    "index_sha": "853d5823b8bf9c90e0212bef8a204334bd4e13d0"
   },
   "trend_handoff": {
-    "sha": "243da5587ccbfb22339c097951d2eb0e579a4037",
-    "trade_date": "2026-09-30",
+    "schema_version": 1,
     "result_kind": "a_share_trend_handoff",
+    "trade_date": "2026-10-08",
+    "generated_at": "2026-10-08T18:38:47+08:00",
+    "source": {
+      "task": "A股板块趋势榜",
+      "logic_unchanged": true
+    },
     "signals": [
       {
         "rank": 1,
@@ -54,993 +55,1404 @@
       },
       {
         "rank": 2,
-        "trend_name": "CRO/医疗研发外包",
-        "trend_state": "T2",
-        "market_state": "趋势确认",
-        "industry_codes": [
-          "S370603"
-        ],
-        "industry_names": [
-          "医疗研发外包"
-        ],
-        "mapping_status": "resolved"
-      },
-      {
-        "rank": 3,
-        "trend_name": "风电设备",
+        "trend_name": "油气/石油",
         "trend_state": "T1",
         "market_state": "候选趋势",
         "industry_codes": [
-          "S630602"
+          "S750101",
+          "S750201"
         ],
         "industry_names": [
-          "风电零部件"
+          "油气开采Ⅲ",
+          "油田服务"
         ],
         "mapping_status": "resolved"
       }
     ]
   },
-  "routing_gaps": [],
   "routed_industries": [
     {
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "trend_name": "固态电池",
-      "company_count": 9,
+      "trend_contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ],
+      "universe_company_count": 9,
+      "manifest_sha": "9daefd052e5255d4c69af66e6ba96cd6a5d50be4",
       "part_count": 2
     },
     {
       "industry_code": "S630702",
       "industry_name": "电池化学品",
-      "trend_name": "固态电池",
-      "company_count": 14,
+      "trend_contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ],
+      "universe_company_count": 14,
+      "manifest_sha": "80eb5b57a2619b52e6dac52f0fd1ac9d3b93aac1",
       "part_count": 3
     },
     {
       "industry_code": "S630703",
       "industry_name": "锂电专用设备",
-      "trend_name": "固态电池",
-      "company_count": 1,
+      "trend_contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ],
+      "universe_company_count": 1,
+      "manifest_sha": "a0541963b42e7a5cb1f4000749eb8ae6c287702c",
       "part_count": 1
     },
     {
       "industry_code": "S240603",
       "industry_name": "锂",
-      "trend_name": "固态电池",
-      "company_count": 7,
+      "trend_contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ],
+      "universe_company_count": 7,
+      "manifest_sha": "91b46af1a214f5c8bab9f6998f23b7be0d5ec9da",
       "part_count": 2
     },
     {
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "trend_name": "固态电池",
-      "company_count": 12,
+      "trend_contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ],
+      "universe_company_count": 12,
+      "manifest_sha": "759764f6848bd279063a1a6b3035f02027832e73",
       "part_count": 3
     },
     {
-      "industry_code": "S370603",
-      "industry_name": "医疗研发外包",
-      "trend_name": "CRO/医疗研发外包",
-      "company_count": 5,
+      "industry_code": "S750101",
+      "industry_name": "油气开采Ⅲ",
+      "trend_contexts": [
+        {
+          "trend_name": "油气/石油",
+          "trend_state": "T1",
+          "market_state": "候选趋势",
+          "signal_rank": 2
+        }
+      ],
+      "universe_company_count": 4,
+      "manifest_sha": "be89a0f59fdd4624727c96e34acda310e0e1ef88",
       "part_count": 1
     },
     {
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "trend_name": "风电设备",
-      "company_count": 9,
+      "industry_code": "S750201",
+      "industry_name": "油田服务",
+      "trend_contexts": [
+        {
+          "trend_name": "油气/石油",
+          "trend_state": "T1",
+          "market_state": "候选趋势",
+          "signal_rank": 2
+        }
+      ],
+      "universe_company_count": 7,
+      "manifest_sha": "b9422f2511751afe9000acbdb5174e321530c3a4",
       "part_count": 2
     }
   ],
+  "routing_gaps": [],
+  "no_universe_member": [],
   "hard_filtered_out": [
     {
       "code": "002759",
-      "company_name": "ST天际",
+      "name": "ST天际",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
-      "reason": "ST"
-    }
-  ],
-  "pre_screen_scores": [
-    {
-      "industry_code": "S630701",
-      "industry_name": "锂电池",
-      "code": "002850",
-      "company_name": "科达利",
-      "pre_screen_score": 0.775
+      "reasons": [
+        "ST"
+      ]
     },
     {
-      "industry_code": "S630701",
-      "industry_name": "锂电池",
-      "code": "000049",
-      "company_name": "德赛电池",
-      "pre_screen_score": 0.6625
+      "code": "600759",
+      "name": "ST洲际",
+      "industry_code": "S750101",
+      "industry_name": "油气开采Ⅲ",
+      "reasons": [
+        "ST"
+      ]
     },
     {
-      "industry_code": "S630701",
-      "industry_name": "锂电池",
-      "code": "002074",
-      "company_name": "国轩高科",
-      "pre_screen_score": 0.61875
+      "code": "600777",
+      "name": "新潮能源",
+      "industry_code": "S750101",
+      "industry_name": "油气开采Ⅲ",
+      "reasons": [
+        "REVENUE_AND_PROFIT_COLLAPSE"
+      ]
     },
     {
-      "industry_code": "S630701",
-      "industry_name": "锂电池",
-      "code": "002245",
-      "company_name": "蔚蓝锂芯",
-      "pre_screen_score": 0.53125
+      "code": "002207",
+      "name": "*ST准油",
+      "industry_code": "S750201",
+      "industry_name": "油田服务",
+      "reasons": [
+        "ST"
+      ]
     },
     {
-      "industry_code": "S630701",
-      "industry_name": "锂电池",
-      "code": "600152",
-      "company_name": "维科技术",
-      "pre_screen_score": 0.4875
-    },
-    {
-      "industry_code": "S630701",
-      "industry_name": "锂电池",
-      "code": "600110",
-      "company_name": "诺德股份",
-      "pre_screen_score": 0.475
-    },
-    {
-      "industry_code": "S630701",
-      "industry_name": "锂电池",
-      "code": "600478",
-      "company_name": "科力远",
-      "pre_screen_score": 0.44375
-    },
-    {
-      "industry_code": "S630701",
-      "industry_name": "锂电池",
-      "code": "600241",
-      "company_name": "时代万恒",
-      "pre_screen_score": 0.325
-    },
-    {
-      "industry_code": "S630701",
-      "industry_name": "锂电池",
-      "code": "001283",
-      "company_name": "豪鹏科技",
-      "pre_screen_score": 0.30625
-    },
-    {
-      "industry_code": "S630702",
-      "industry_name": "电池化学品",
-      "code": "002709",
-      "company_name": "天赐材料",
-      "pre_screen_score": 0.904167
-    },
-    {
-      "industry_code": "S630702",
-      "industry_name": "电池化学品",
-      "code": "002812",
-      "company_name": "恩捷股份",
-      "pre_screen_score": 0.716667
-    },
-    {
-      "industry_code": "S630702",
-      "industry_name": "电池化学品",
-      "code": "603659",
-      "company_name": "璞泰来",
-      "pre_screen_score": 0.65
-    },
-    {
-      "industry_code": "S630702",
-      "industry_name": "电池化学品",
-      "code": "603026",
-      "company_name": "石大胜华",
-      "pre_screen_score": 0.5875
-    },
-    {
-      "industry_code": "S630702",
-      "industry_name": "电池化学品",
-      "code": "002805",
-      "company_name": "丰元股份",
-      "pre_screen_score": 0.570833
-    },
-    {
-      "industry_code": "S630702",
-      "industry_name": "电池化学品",
-      "code": "600884",
-      "company_name": "杉杉股份",
-      "pre_screen_score": 0.566667
-    },
-    {
-      "industry_code": "S630702",
-      "industry_name": "电池化学品",
-      "code": "000695",
-      "company_name": "滨海能源",
-      "pre_screen_score": 0.5625
-    },
-    {
-      "industry_code": "S630702",
-      "industry_name": "电池化学品",
-      "code": "603906",
-      "company_name": "龙蟠科技",
-      "pre_screen_score": 0.5375
-    },
-    {
-      "industry_code": "S630702",
-      "industry_name": "电池化学品",
-      "code": "002125",
-      "company_name": "湘潭电化",
-      "pre_screen_score": 0.475
-    },
-    {
-      "industry_code": "S630702",
-      "industry_name": "电池化学品",
-      "code": "001301",
-      "company_name": "尚太科技",
-      "pre_screen_score": 0.46667
-    },
-    {
-      "industry_code": "S630702",
-      "industry_name": "电池化学品",
-      "code": "002340",
-      "company_name": "格林美",
-      "pre_screen_score": 0.41667
-    },
-    {
-      "industry_code": "S630702",
-      "industry_name": "电池化学品",
-      "code": "000009",
-      "company_name": "中国宝安",
-      "pre_screen_score": 0.40417
-    },
-    {
-      "industry_code": "S630702",
-      "industry_name": "电池化学品",
-      "code": "002058",
-      "company_name": "紫竹高科",
-      "pre_screen_score": 0.26667
-    },
-    {
-      "industry_code": "S630703",
-      "industry_name": "锂电专用设备",
-      "code": "603032",
-      "company_name": "德新科技",
-      "pre_screen_score": 0.625
-    },
-    {
-      "industry_code": "S240603",
-      "industry_name": "锂",
-      "code": "002192",
-      "company_name": "融捷股份",
-      "pre_screen_score": 0.916667
-    },
-    {
-      "industry_code": "S240603",
-      "industry_name": "锂",
-      "code": "002466",
-      "company_name": "天齐锂业",
-      "pre_screen_score": 0.775
-    },
-    {
-      "industry_code": "S240603",
-      "industry_name": "锂",
-      "code": "002460",
-      "company_name": "赣锋锂业",
-      "pre_screen_score": 0.7
-    },
-    {
-      "industry_code": "S240603",
-      "industry_name": "锂",
-      "code": "000762",
-      "company_name": "西藏矿业",
-      "pre_screen_score": 0.541667
-    },
-    {
-      "industry_code": "S240603",
-      "industry_name": "锂",
-      "code": "002756",
-      "company_name": "永兴材料",
-      "pre_screen_score": 0.425
-    },
-    {
-      "industry_code": "S240603",
-      "industry_name": "锂",
-      "code": "002240",
-      "company_name": "盛新锂能",
-      "pre_screen_score": 0.416667
-    },
-    {
-      "industry_code": "S240603",
-      "industry_name": "锂",
-      "code": "603399",
-      "company_name": "永杉锂业",
-      "pre_screen_score": 0.1
-    },
-    {
-      "industry_code": "S240504",
-      "industry_name": "其他小金属",
-      "code": "002738",
-      "company_name": "中矿资源",
-      "pre_screen_score": 0.752273
-    },
-    {
-      "industry_code": "S240504",
-      "industry_name": "其他小金属",
-      "code": "002167",
-      "company_name": "东方锆业",
-      "pre_screen_score": 0.686364
-    },
-    {
-      "industry_code": "S240504",
-      "industry_name": "其他小金属",
-      "code": "000960",
-      "company_name": "锡业股份",
-      "pre_screen_score": 0.665909
-    },
-    {
-      "industry_code": "S240504",
-      "industry_name": "其他小金属",
-      "code": "002978",
-      "company_name": "安宁股份",
-      "pre_screen_score": 0.595455
-    },
-    {
-      "industry_code": "S240504",
-      "industry_name": "其他小金属",
-      "code": "600301",
-      "company_name": "华锡有色",
-      "pre_screen_score": 0.595455
-    },
-    {
-      "industry_code": "S240504",
-      "industry_name": "其他小金属",
-      "code": "600459",
-      "company_name": "贵研铂业",
-      "pre_screen_score": 0.568182
-    },
-    {
-      "industry_code": "S240504",
-      "industry_name": "其他小金属",
-      "code": "002182",
-      "company_name": "宝武镁业",
-      "pre_screen_score": 0.52045
-    },
-    {
-      "industry_code": "S240504",
-      "industry_name": "其他小金属",
-      "code": "002428",
-      "company_name": "云南锗业",
-      "pre_screen_score": 0.49773
-    },
-    {
-      "industry_code": "S240504",
-      "industry_name": "其他小金属",
-      "code": "600456",
-      "company_name": "宝钛股份",
-      "pre_screen_score": 0.475
-    },
-    {
-      "industry_code": "S240504",
-      "industry_name": "其他小金属",
-      "code": "000962",
-      "company_name": "东方钽业",
-      "pre_screen_score": 0.45682
-    },
-    {
-      "industry_code": "S240504",
-      "industry_name": "其他小金属",
-      "code": "600281",
-      "company_name": "华阳新材",
-      "pre_screen_score": 0.25
-    },
-    {
-      "industry_code": "S240504",
-      "industry_name": "其他小金属",
-      "code": "002149",
-      "company_name": "西部材料",
-      "pre_screen_score": 0.18636
-    },
-    {
-      "industry_code": "S370603",
-      "industry_name": "医疗研发外包",
-      "code": "603127",
-      "company_name": "昭衍新药",
-      "pre_screen_score": 0.8
-    },
-    {
-      "industry_code": "S370603",
-      "industry_name": "医疗研发外包",
-      "code": "603259",
-      "company_name": "药明康德",
-      "pre_screen_score": 0.8
-    },
-    {
-      "industry_code": "S370603",
-      "industry_name": "医疗研发外包",
-      "code": "002821",
-      "company_name": "凯莱英",
-      "pre_screen_score": 0.5875
-    },
-    {
-      "industry_code": "S370603",
-      "industry_name": "医疗研发外包",
-      "code": "603456",
-      "company_name": "九洲药业",
-      "pre_screen_score": 0.575
-    },
-    {
-      "industry_code": "S370603",
-      "industry_name": "医疗研发外包",
-      "code": "600721",
-      "company_name": "百花医药",
-      "pre_screen_score": 0.2375
-    },
-    {
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "code": "000809",
-      "company_name": "和展能源",
-      "pre_screen_score": 0.74375
-    },
-    {
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "code": "002487",
-      "company_name": "大金重工",
-      "pre_screen_score": 0.63125
-    },
-    {
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "code": "603507",
-      "company_name": "振江股份",
-      "pre_screen_score": 0.61875
-    },
-    {
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "code": "600072",
-      "company_name": "中船科技",
-      "pre_screen_score": 0.575
-    },
-    {
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "code": "603063",
-      "company_name": "禾望电气",
-      "pre_screen_score": 0.575
-    },
-    {
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "code": "603218",
-      "company_name": "日月股份",
-      "pre_screen_score": 0.5625
-    },
-    {
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "code": "601218",
-      "company_name": "吉鑫科技",
-      "pre_screen_score": 0.4875
-    },
-    {
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "code": "603985",
-      "company_name": "恒润股份",
-      "pre_screen_score": 0.48125
-    },
-    {
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "code": "002531",
-      "company_name": "天顺风能",
-      "pre_screen_score": 0.2
+      "code": "002828",
+      "name": "贝肯能源",
+      "industry_code": "S750201",
+      "industry_name": "油田服务",
+      "reasons": [
+        "REVENUE_AND_PROFIT_COLLAPSE"
+      ]
     }
   ],
   "pre_screen_selected": [
     {
       "code": "002850",
-      "company_name": "科达利",
+      "name": "科达利",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "trend_name": "固态电池",
       "pre_screen_score": 0.775,
-      "transmission_status": "NOT_SUPPORTED"
+      "metrics": {
+        "revenue_growth_pct": 0.75,
+        "core_profit_growth_pct": 0.625,
+        "valuation_attractiveness": 0.5,
+        "price_crowding_attractiveness": 1,
+        "quality": 1,
+        "transmission_proxy": 0.6875,
+        "core_profit_yoy": 26.23574144486691,
+        "non_core_eps_share_pct": 2.639296187683293
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "000049",
-      "company_name": "德赛电池",
+      "name": "德赛电池",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.6625,
-      "transmission_status": "NOT_SUPPORTED"
+      "pre_screen_score": 0.68125,
+      "metrics": {
+        "revenue_growth_pct": 0,
+        "core_profit_growth_pct": 0.875,
+        "valuation_attractiveness": 0.625,
+        "price_crowding_attractiveness": 0.875,
+        "quality": 1,
+        "transmission_proxy": 0.4375,
+        "core_profit_yoy": 157.24217844727693,
+        "non_core_eps_share_pct": 16.80719505340078
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "002074",
-      "company_name": "国轩高科",
+      "name": "国轩高科",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.61875,
-      "transmission_status": "EARLY_EVIDENCE"
+      "pre_screen_score": 0.6375,
+      "metrics": {
+        "revenue_growth_pct": 0.875,
+        "core_profit_growth_pct": 0.75,
+        "valuation_attractiveness": 0.75,
+        "price_crowding_attractiveness": 0.25,
+        "quality": 0.5,
+        "transmission_proxy": 0.8125,
+        "core_profit_yoy": 50,
+        "non_core_eps_share_pct": 92.10526315789474
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "002245",
-      "company_name": "蔚蓝锂芯",
+      "name": "蔚蓝锂芯",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.53125,
-      "transmission_status": "EARLY_EVIDENCE"
-    },
-    {
-      "code": "600152",
-      "company_name": "维科技术",
-      "industry_code": "S630701",
-      "industry_name": "锂电池",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.4875,
-      "transmission_status": "NOT_SUPPORTED"
+      "pre_screen_score": 0.5125,
+      "metrics": {
+        "revenue_growth_pct": 0.25,
+        "core_profit_growth_pct": 0.25,
+        "valuation_attractiveness": 0.25,
+        "price_crowding_attractiveness": 0.75,
+        "quality": 1,
+        "transmission_proxy": 0.25,
+        "core_profit_yoy": -4.726448688896079,
+        "non_core_eps_share_pct": 1.6377005347593634
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "600110",
-      "company_name": "诺德股份",
+      "name": "诺德股份",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "trend_name": "固态电池",
       "pre_screen_score": 0.475,
-      "transmission_status": "SUPPORTED"
+      "metrics": {
+        "revenue_growth_pct": 1,
+        "core_profit_growth_pct": 1,
+        "valuation_attractiveness": 0,
+        "price_crowding_attractiveness": 0.5,
+        "quality": 0,
+        "transmission_proxy": 1,
+        "core_profit_yoy": 242.07,
+        "non_core_eps_share_pct": 51.00334448160535
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
+    },
+    {
+      "code": "600152",
+      "name": "维科技术",
+      "industry_code": "S630701",
+      "industry_name": "锂电池",
+      "pre_screen_score": 0.46875,
+      "metrics": {
+        "revenue_growth_pct": 0.375,
+        "core_profit_growth_pct": 0.375,
+        "valuation_attractiveness": 0.875,
+        "price_crowding_attractiveness": 0.125,
+        "quality": 0.5,
+        "transmission_proxy": 0.375,
+        "core_profit_yoy": 4.7777802595,
+        "non_core_eps_share_pct": 0.7092198581560094
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "002709",
-      "company_name": "天赐材料",
+      "name": "天赐材料",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.904167,
-      "transmission_status": "EARLY_EVIDENCE"
+      "pre_screen_score": 0.891667,
+      "metrics": {
+        "revenue_growth_pct": 0.9166666666666666,
+        "core_profit_growth_pct": 1,
+        "valuation_attractiveness": 0.6666666666666667,
+        "price_crowding_attractiveness": 0.8333333333333334,
+        "quality": 1,
+        "transmission_proxy": 0.9583333333333333,
+        "core_profit_yoy": 1050,
+        "non_core_eps_share_pct": 2.1276595744680873
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "002812",
-      "company_name": "恩捷股份",
+      "name": "恩捷股份",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.716667,
-      "transmission_status": "SUPPORTED"
+      "pre_screen_score": 0.704167,
+      "metrics": {
+        "revenue_growth_pct": 0.5833333333333334,
+        "core_profit_growth_pct": 0.9166666666666666,
+        "valuation_attractiveness": 0.08333333333333337,
+        "price_crowding_attractiveness": 0.9166666666666666,
+        "quality": 1,
+        "transmission_proxy": 0.75,
+        "core_profit_yoy": 980.99,
+        "non_core_eps_share_pct": 3.5320881226053604
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "603659",
-      "company_name": "璞泰来",
+      "name": "璞泰来",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.65,
-      "transmission_status": "SUPPORTED"
+      "pre_screen_score": 0.6625,
+      "metrics": {
+        "revenue_growth_pct": 0.5,
+        "core_profit_growth_pct": 0.4166666666666667,
+        "valuation_attractiveness": 0.5833333333333333,
+        "price_crowding_attractiveness": 0.75,
+        "quality": 1,
+        "transmission_proxy": 0.45833333333333337,
+        "core_profit_yoy": 34.78260869565217,
+        "non_core_eps_share_pct": 10.144927536231878
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
+    },
+    {
+      "code": "000695",
+      "name": "滨海能源",
+      "industry_code": "S630702",
+      "industry_name": "电池化学品",
+      "pre_screen_score": 0.5875,
+      "metrics": {
+        "revenue_growth_pct": 0.75,
+        "core_profit_growth_pct": 0.3333333333333333,
+        "valuation_attractiveness": 0.9166666666666666,
+        "price_crowding_attractiveness": 0.41666666666666663,
+        "quality": 0.5,
+        "transmission_proxy": 0.5416666666666666,
+        "core_profit_yoy": 27.82,
+        "non_core_eps_share_pct": 0.47169811320756067
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "603026",
-      "company_name": "石大胜华",
+      "name": "石大胜华",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.5875,
-      "transmission_status": "NOT_SUPPORTED"
+      "pre_screen_score": 0.575,
+      "metrics": {
+        "revenue_growth_pct": 0.6666666666666666,
+        "core_profit_growth_pct": 0.8333333333333334,
+        "valuation_attractiveness": 0.25,
+        "price_crowding_attractiveness": 0.6666666666666667,
+        "quality": 0.5,
+        "transmission_proxy": 0.75,
+        "core_profit_yoy": 898.2674509701,
+        "non_core_eps_share_pct": 1.0362694300518145
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "002805",
-      "company_name": "丰元股份",
+      "name": "丰元股份",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.570833,
-      "transmission_status": "EARLY_EVIDENCE"
-    },
-    {
-      "code": "600884",
-      "company_name": "杉杉股份",
-      "industry_code": "S630702",
-      "industry_name": "电池化学品",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.566667,
-      "transmission_status": "EARLY_EVIDENCE"
+      "pre_screen_score": 0.558333,
+      "metrics": {
+        "revenue_growth_pct": 1,
+        "core_profit_growth_pct": 0.5833333333333334,
+        "valuation_attractiveness": 0.8333333333333334,
+        "price_crowding_attractiveness": 0.5,
+        "quality": 0,
+        "transmission_proxy": 0.7916666666666667,
+        "core_profit_yoy": 159.99,
+        "non_core_eps_share_pct": 32.6923076923077
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "603032",
-      "company_name": "德新科技",
+      "name": "德新科技",
       "industry_code": "S630703",
       "industry_name": "锂电专用设备",
-      "trend_name": "固态电池",
       "pre_screen_score": 0.625,
-      "transmission_status": "NOT_SUPPORTED"
+      "metrics": {
+        "revenue_growth_pct": 0.5,
+        "core_profit_growth_pct": 0.5,
+        "valuation_attractiveness": 0.5,
+        "price_crowding_attractiveness": 0.5,
+        "quality": 1,
+        "transmission_proxy": 0.5,
+        "core_profit_yoy": 187.5,
+        "non_core_eps_share_pct": 0
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "002192",
-      "company_name": "融捷股份",
+      "name": "融捷股份",
       "industry_code": "S240603",
       "industry_name": "锂",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.916667,
-      "transmission_status": "NOT_SUPPORTED"
+      "pre_screen_score": 0.891667,
+      "metrics": {
+        "revenue_growth_pct": 1,
+        "core_profit_growth_pct": 0.8333333333333334,
+        "valuation_attractiveness": 1,
+        "price_crowding_attractiveness": 0.5,
+        "quality": 1,
+        "transmission_proxy": 0.9166666666666667,
+        "core_profit_yoy": 1264.9964714184898,
+        "non_core_eps_share_pct": 0.285166174106903
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "002466",
-      "company_name": "天齐锂业",
+      "name": "天齐锂业",
       "industry_code": "S240603",
       "industry_name": "锂",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.775,
-      "transmission_status": "EARLY_EVIDENCE"
+      "pre_screen_score": 0.75,
+      "metrics": {
+        "revenue_growth_pct": 0.3333333333333333,
+        "core_profit_growth_pct": 1,
+        "valuation_attractiveness": 0.6666666666666667,
+        "price_crowding_attractiveness": 0.6666666666666667,
+        "quality": 1,
+        "transmission_proxy": 0.6666666666666666,
+        "core_profit_yoy": 4925.46,
+        "non_core_eps_share_pct": 1.1952191235059684
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "002460",
-      "company_name": "赣锋锂业",
+      "name": "赣锋锂业",
       "industry_code": "S240603",
       "industry_name": "锂",
-      "trend_name": "固态电池",
       "pre_screen_score": 0.7,
-      "transmission_status": "SUPPORTED"
+      "metrics": {
+        "revenue_growth_pct": 0.5,
+        "core_profit_growth_pct": 0.6666666666666666,
+        "valuation_attractiveness": 0.8333333333333334,
+        "price_crowding_attractiveness": 0.33333333333333337,
+        "quality": 1,
+        "transmission_proxy": 0.5833333333333333,
+        "core_profit_yoy": 901.36,
+        "non_core_eps_share_pct": 9.803921568627448
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "000762",
-      "company_name": "西藏矿业",
+      "name": "西藏矿业",
       "industry_code": "S240603",
       "industry_name": "锂",
-      "trend_name": "固态电池",
       "pre_screen_score": 0.541667,
-      "transmission_status": "NOT_SUPPORTED"
+      "metrics": {
+        "revenue_growth_pct": 0.6666666666666666,
+        "core_profit_growth_pct": 0.5,
+        "valuation_attractiveness": 0.16666666666666663,
+        "price_crowding_attractiveness": 0.16666666666666663,
+        "quality": 1,
+        "transmission_proxy": 0.5833333333333333,
+        "core_profit_yoy": 492.46,
+        "non_core_eps_share_pct": 2.6086956521739153
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "002756",
-      "company_name": "永兴材料",
+      "name": "永兴材料",
       "industry_code": "S240603",
       "industry_name": "锂",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.425,
-      "transmission_status": "NOT_SUPPORTED"
-    },
-    {
-      "code": "002240",
-      "company_name": "盛新锂能",
-      "industry_code": "S240603",
-      "industry_name": "锂",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.416667,
-      "transmission_status": "EARLY_EVIDENCE"
+      "pre_screen_score": 0.475,
+      "metrics": {
+        "revenue_growth_pct": 0,
+        "core_profit_growth_pct": 0,
+        "valuation_attractiveness": 0.5,
+        "price_crowding_attractiveness": 0.8333333333333334,
+        "quality": 1,
+        "transmission_proxy": 0,
+        "core_profit_yoy": 177.41935483870967,
+        "non_core_eps_share_pct": 4.9723756906077385
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "002738",
-      "company_name": "中矿资源",
+      "name": "中矿资源",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "trend_name": "固态电池",
       "pre_screen_score": 0.752273,
-      "transmission_status": "NOT_SUPPORTED"
+      "metrics": {
+        "revenue_growth_pct": 0.6363636363636364,
+        "core_profit_growth_pct": 1,
+        "valuation_attractiveness": 0.8181818181818181,
+        "price_crowding_attractiveness": 0.9090909090909091,
+        "quality": 0.5,
+        "transmission_proxy": 0.8181818181818181,
+        "core_profit_yoy": 14338.461538461539,
+        "non_core_eps_share_pct": 2.5061680301259557
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "002167",
-      "company_name": "东方锆业",
+      "name": "东方锆业",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.686364,
-      "transmission_status": "EARLY_EVIDENCE"
+      "pre_screen_score": 0.7,
+      "metrics": {
+        "revenue_growth_pct": 0.45454545454545453,
+        "core_profit_growth_pct": 0.8181818181818182,
+        "valuation_attractiveness": 0.36363636363636365,
+        "price_crowding_attractiveness": 0.8181818181818181,
+        "quality": 1,
+        "transmission_proxy": 0.6363636363636364,
+        "core_profit_yoy": 173.67021276595747,
+        "non_core_eps_share_pct": 0.6756756756756682
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "000960",
-      "company_name": "锡业股份",
+      "name": "锡业股份",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.665909,
-      "transmission_status": "NOT_SUPPORTED"
+      "pre_screen_score": 0.693182,
+      "metrics": {
+        "revenue_growth_pct": 0.9090909090909091,
+        "core_profit_growth_pct": 0.7272727272727273,
+        "valuation_attractiveness": 0.7272727272727273,
+        "price_crowding_attractiveness": 0.6363636363636364,
+        "quality": 0.5,
+        "transmission_proxy": 0.8181818181818181,
+        "core_profit_yoy": 51.12577639751552,
+        "non_core_eps_share_pct": 29.896563229896557
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "002978",
-      "company_name": "安宁股份",
+      "name": "安宁股份",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "trend_name": "固态电池",
       "pre_screen_score": 0.595455,
-      "transmission_status": "NOT_SUPPORTED"
+      "metrics": {
+        "revenue_growth_pct": 0.18181818181818182,
+        "core_profit_growth_pct": 0.36363636363636365,
+        "valuation_attractiveness": 0.9090909090909091,
+        "price_crowding_attractiveness": 0.36363636363636365,
+        "quality": 1,
+        "transmission_proxy": 0.2727272727272727,
+        "core_profit_yoy": -23.89361702127659,
+        "non_core_eps_share_pct": 0.9689922480620163
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "600301",
-      "company_name": "华锡有色",
+      "name": "华锡有色",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "trend_name": "固态电池",
       "pre_screen_score": 0.595455,
-      "transmission_status": "NOT_SUPPORTED"
+      "metrics": {
+        "revenue_growth_pct": 0.5454545454545454,
+        "core_profit_growth_pct": 0.6363636363636364,
+        "valuation_attractiveness": 0.5454545454545454,
+        "price_crowding_attractiveness": 0,
+        "quality": 1,
+        "transmission_proxy": 0.5909090909090908,
+        "core_profit_yoy": 38.98305084745763,
+        "non_core_eps_share_pct": 2.8436018957346
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "600459",
-      "company_name": "贵研铂业",
+      "name": "贵研铂业",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.568182,
-      "transmission_status": "NOT_SUPPORTED"
+      "pre_screen_score": 0.595455,
+      "metrics": {
+        "revenue_growth_pct": 0,
+        "core_profit_growth_pct": 0.5454545454545454,
+        "valuation_attractiveness": 0.6363636363636364,
+        "price_crowding_attractiveness": 0.7272727272727273,
+        "quality": 1,
+        "transmission_proxy": 0.2727272727272727,
+        "core_profit_yoy": 10.526315789473673,
+        "non_core_eps_share_pct": 6.666666666666672
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
-      "code": "603127",
-      "company_name": "昭衍新药",
-      "industry_code": "S370603",
-      "industry_name": "医疗研发外包",
-      "trend_name": "CRO/医疗研发外包",
-      "pre_screen_score": 0.8,
-      "transmission_status": "SUPPORTED"
+      "code": "600938",
+      "name": "中国海油",
+      "industry_code": "S750101",
+      "industry_name": "油气开采Ⅲ",
+      "pre_screen_score": 0.85,
+      "metrics": {
+        "revenue_growth_pct": 1,
+        "core_profit_growth_pct": 1,
+        "valuation_attractiveness": 1,
+        "price_crowding_attractiveness": 0,
+        "quality": 1,
+        "transmission_proxy": 1,
+        "core_profit_yoy": 23.28767123287672,
+        "non_core_eps_share_pct": 0.5524861878453043
+      },
+      "contexts": [
+        {
+          "trend_name": "油气/石油",
+          "trend_state": "T1",
+          "market_state": "候选趋势",
+          "signal_rank": 2
+        }
+      ]
     },
     {
-      "code": "603259",
-      "company_name": "药明康德",
-      "industry_code": "S370603",
-      "industry_name": "医疗研发外包",
-      "trend_name": "CRO/医疗研发外包",
-      "pre_screen_score": 0.8,
-      "transmission_status": "SUPPORTED"
+      "code": "000968",
+      "name": "蓝焰控股",
+      "industry_code": "S750101",
+      "industry_name": "油气开采Ⅲ",
+      "pre_screen_score": 0.4,
+      "metrics": {
+        "revenue_growth_pct": 0,
+        "core_profit_growth_pct": 0,
+        "valuation_attractiveness": 0,
+        "price_crowding_attractiveness": 1,
+        "quality": 1,
+        "transmission_proxy": 0,
+        "core_profit_yoy": -16.666666666666664,
+        "non_core_eps_share_pct": 0
+      },
+      "contexts": [
+        {
+          "trend_name": "油气/石油",
+          "trend_state": "T1",
+          "market_state": "候选趋势",
+          "signal_rank": 2
+        }
+      ]
     },
     {
-      "code": "002821",
-      "company_name": "凯莱英",
-      "industry_code": "S370603",
-      "industry_name": "医疗研发外包",
-      "trend_name": "CRO/医疗研发外包",
-      "pre_screen_score": 0.5875,
-      "transmission_status": "SUPPORTED"
+      "code": "600871",
+      "name": "石化油服",
+      "industry_code": "S750201",
+      "industry_name": "油田服务",
+      "pre_screen_score": 0.7,
+      "metrics": {
+        "revenue_growth_pct": 0.25,
+        "core_profit_growth_pct": 1,
+        "valuation_attractiveness": 0.25,
+        "price_crowding_attractiveness": 1,
+        "quality": 1,
+        "transmission_proxy": 0.625,
+        "core_profit_yoy": 13.636363636363647,
+        "non_core_eps_share_pct": 7.407407407407401
+      },
+      "contexts": [
+        {
+          "trend_name": "油气/石油",
+          "trend_state": "T1",
+          "market_state": "候选趋势",
+          "signal_rank": 2
+        }
+      ]
     },
     {
-      "code": "603456",
-      "company_name": "九洲药业",
-      "industry_code": "S370603",
-      "industry_name": "医疗研发外包",
-      "trend_name": "CRO/医疗研发外包",
+      "code": "002629",
+      "name": "仁智股份",
+      "industry_code": "S750201",
+      "industry_name": "油田服务",
+      "pre_screen_score": 0.675,
+      "metrics": {
+        "revenue_growth_pct": 1,
+        "core_profit_growth_pct": 0.75,
+        "valuation_attractiveness": 0,
+        "price_crowding_attractiveness": 0.5,
+        "quality": 1,
+        "transmission_proxy": 0.875,
+        "core_profit_yoy": -2.35,
+        "non_core_eps_share_pct": 3.5714285714285747
+      },
+      "contexts": [
+        {
+          "trend_name": "油气/石油",
+          "trend_state": "T1",
+          "market_state": "候选趋势",
+          "signal_rank": 2
+        }
+      ]
+    },
+    {
+      "code": "600968",
+      "name": "海油发展",
+      "industry_code": "S750201",
+      "industry_name": "油田服务",
       "pre_screen_score": 0.575,
-      "transmission_status": "SUPPORTED"
+      "metrics": {
+        "revenue_growth_pct": 0.75,
+        "core_profit_growth_pct": 0.5,
+        "valuation_attractiveness": 1,
+        "price_crowding_attractiveness": 0,
+        "quality": 0.5,
+        "transmission_proxy": 0.625,
+        "core_profit_yoy": -5.09977827050998,
+        "non_core_eps_share_pct": 6.855277475516866
+      },
+      "contexts": [
+        {
+          "trend_name": "油气/石油",
+          "trend_state": "T1",
+          "market_state": "候选趋势",
+          "signal_rank": 2
+        }
+      ]
     },
     {
-      "code": "600721",
-      "company_name": "百花医药",
-      "industry_code": "S370603",
-      "industry_name": "医疗研发外包",
-      "trend_name": "CRO/医疗研发外包",
-      "pre_screen_score": 0.2375,
-      "transmission_status": "SUPPORTED"
+      "code": "601808",
+      "name": "中海油服",
+      "industry_code": "S750201",
+      "industry_name": "油田服务",
+      "pre_screen_score": 0.4625,
+      "metrics": {
+        "revenue_growth_pct": 0.5,
+        "core_profit_growth_pct": 0.25,
+        "valuation_attractiveness": 0.75,
+        "price_crowding_attractiveness": 0.25,
+        "quality": 0.5,
+        "transmission_proxy": 0.375,
+        "core_profit_yoy": -7.317073170731703,
+        "non_core_eps_share_pct": 9.523809523809518
+      },
+      "contexts": [
+        {
+          "trend_name": "油气/石油",
+          "trend_state": "T1",
+          "market_state": "候选趋势",
+          "signal_rank": 2
+        }
+      ]
     },
     {
-      "code": "000809",
-      "company_name": "和展能源",
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "trend_name": "风电设备",
-      "pre_screen_score": 0.74375,
-      "transmission_status": "SUPPORTED"
-    },
-    {
-      "code": "002487",
-      "company_name": "大金重工",
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "trend_name": "风电设备",
-      "pre_screen_score": 0.63125,
-      "transmission_status": "SUPPORTED"
-    },
-    {
-      "code": "603507",
-      "company_name": "振江股份",
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "trend_name": "风电设备",
-      "pre_screen_score": 0.61875,
-      "transmission_status": "SUPPORTED"
-    },
-    {
-      "code": "600072",
-      "company_name": "中船科技",
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "trend_name": "风电设备",
-      "pre_screen_score": 0.575,
-      "transmission_status": "SUPPORTED"
-    },
-    {
-      "code": "603063",
-      "company_name": "禾望电气",
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "trend_name": "风电设备",
-      "pre_screen_score": 0.575,
-      "transmission_status": "SUPPORTED"
-    },
-    {
-      "code": "603218",
-      "company_name": "日月股份",
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "trend_name": "风电设备",
-      "pre_screen_score": 0.5625,
-      "transmission_status": "SUPPORTED"
+      "code": "603619",
+      "name": "中曼石油",
+      "industry_code": "S750201",
+      "industry_name": "油田服务",
+      "pre_screen_score": 0.4625,
+      "metrics": {
+        "revenue_growth_pct": 0,
+        "core_profit_growth_pct": 0,
+        "valuation_attractiveness": 0.5,
+        "price_crowding_attractiveness": 0.75,
+        "quality": 1,
+        "transmission_proxy": 0,
+        "core_profit_yoy": -71.62162162162163,
+        "non_core_eps_share_pct": 0
+      },
+      "contexts": [
+        {
+          "trend_name": "油气/石油",
+          "trend_state": "T1",
+          "market_state": "候选趋势",
+          "signal_rank": 2
+        }
+      ]
     }
   ],
   "pre_screened_out": [
     {
       "code": "600478",
-      "company_name": "科力远",
+      "name": "科力远",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "trend_name": "固态电池",
       "pre_screen_score": 0.44375,
-      "status": "PRE_SCREENED_OUT"
+      "metrics": {
+        "revenue_growth_pct": 0.5,
+        "core_profit_growth_pct": 0.5,
+        "valuation_attractiveness": 0.125,
+        "price_crowding_attractiveness": 0.625,
+        "quality": 0.5,
+        "transmission_proxy": 0.5,
+        "core_profit_yoy": 4.929577464788726,
+        "non_core_eps_share_pct": 12.352941176470594
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "600241",
-      "company_name": "时代万恒",
+      "name": "时代万恒",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "trend_name": "固态电池",
       "pre_screen_score": 0.325,
-      "status": "PRE_SCREENED_OUT"
+      "metrics": {
+        "revenue_growth_pct": 0.625,
+        "core_profit_growth_pct": 0,
+        "valuation_attractiveness": 1,
+        "price_crowding_attractiveness": 0,
+        "quality": 0,
+        "transmission_proxy": 0.3125,
+        "core_profit_yoy": -600,
+        "non_core_eps_share_pct": 25.000000000000007
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "001283",
-      "company_name": "豪鹏科技",
+      "name": "豪鹏科技",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "trend_name": "固态电池",
       "pre_screen_score": 0.30625,
-      "status": "PRE_SCREENED_OUT"
+      "metrics": {
+        "revenue_growth_pct": 0.125,
+        "core_profit_growth_pct": 0.125,
+        "valuation_attractiveness": 0.375,
+        "price_crowding_attractiveness": 0.375,
+        "quality": 0.5,
+        "transmission_proxy": 0.125,
+        "core_profit_yoy": -27.35849056603774,
+        "non_core_eps_share_pct": 18.947368421052627
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
-      "code": "000695",
-      "company_name": "滨海能源",
+      "code": "600884",
+      "name": "杉杉股份",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.5625,
-      "status": "PRE_SCREENED_OUT"
+      "pre_screen_score": 0.554167,
+      "metrics": {
+        "revenue_growth_pct": 0.25,
+        "core_profit_growth_pct": 0.6666666666666666,
+        "valuation_attractiveness": 0.41666666666666663,
+        "price_crowding_attractiveness": 0.25,
+        "quality": 1,
+        "transmission_proxy": 0.4583333333333333,
+        "core_profit_yoy": 369.2307692307692,
+        "non_core_eps_share_pct": 5.1813471502590716
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "603906",
-      "company_name": "龙蟠科技",
+      "name": "龙蟠科技",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.5375,
-      "status": "PRE_SCREENED_OUT"
-    },
-    {
-      "code": "002125",
-      "company_name": "湘潭电化",
-      "industry_code": "S630702",
-      "industry_name": "电池化学品",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.475,
-      "status": "PRE_SCREENED_OUT"
+      "pre_screen_score": 0.5,
+      "metrics": {
+        "revenue_growth_pct": 0.8333333333333334,
+        "core_profit_growth_pct": 0.75,
+        "valuation_attractiveness": 0.16666666666666663,
+        "price_crowding_attractiveness": 0.16666666666666663,
+        "quality": 0.5,
+        "transmission_proxy": 0.7916666666666667,
+        "core_profit_yoy": 593.8150342423,
+        "non_core_eps_share_pct": 0
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "001301",
-      "company_name": "尚太科技",
+      "name": "尚太科技",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.46667,
-      "status": "PRE_SCREENED_OUT"
+      "pre_screen_score": 0.491667,
+      "metrics": {
+        "revenue_growth_pct": 0.4166666666666667,
+        "core_profit_growth_pct": 0.16666666666666666,
+        "valuation_attractiveness": 0.5,
+        "price_crowding_attractiveness": 1,
+        "quality": 0.5,
+        "transmission_proxy": 0.2916666666666667,
+        "core_profit_yoy": -39.682539682539684,
+        "non_core_eps_share_pct": 3.636363636363619
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
-      "code": "002340",
-      "company_name": "格林美",
+      "code": "002125",
+      "name": "湘潭电化",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.41667,
-      "status": "PRE_SCREENED_OUT"
+      "pre_screen_score": 0.4625,
+      "metrics": {
+        "revenue_growth_pct": 0.16666666666666666,
+        "core_profit_growth_pct": 0.5,
+        "valuation_attractiveness": 0.33333333333333337,
+        "price_crowding_attractiveness": 0.08333333333333337,
+        "quality": 1,
+        "transmission_proxy": 0.3333333333333333,
+        "core_profit_yoy": 94.44444444444444,
+        "non_core_eps_share_pct": 2.7777777777777803
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "000009",
-      "company_name": "中国宝安",
+      "name": "中国宝安",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.40417,
-      "status": "PRE_SCREENED_OUT"
+      "pre_screen_score": 0.441667,
+      "metrics": {
+        "revenue_growth_pct": 0.3333333333333333,
+        "core_profit_growth_pct": 0,
+        "valuation_attractiveness": 1,
+        "price_crowding_attractiveness": 0.33333333333333337,
+        "quality": 0.5,
+        "transmission_proxy": 0.16666666666666666,
+        "core_profit_yoy": -140.73319755600815,
+        "non_core_eps_share_pct": 73.91304347826087
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
+    },
+    {
+      "code": "002340",
+      "name": "格林美",
+      "industry_code": "S630702",
+      "industry_name": "电池化学品",
+      "pre_screen_score": 0.429167,
+      "metrics": {
+        "revenue_growth_pct": 0.08333333333333333,
+        "core_profit_growth_pct": 0.25,
+        "valuation_attractiveness": 0.75,
+        "price_crowding_attractiveness": 0.5833333333333333,
+        "quality": 0.5,
+        "transmission_proxy": 0.16666666666666666,
+        "core_profit_yoy": -35.71428571428572,
+        "non_core_eps_share_pct": 57.14285714285714
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "002058",
-      "company_name": "紫竹高科",
+      "name": "紫竹高科",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.26667,
-      "status": "PRE_SCREENED_OUT"
+      "pre_screen_score": 0.266667,
+      "metrics": {
+        "revenue_growth_pct": 0,
+        "core_profit_growth_pct": 0.08333333333333333,
+        "valuation_attractiveness": 0,
+        "price_crowding_attractiveness": 0,
+        "quality": 1,
+        "transmission_proxy": 0.041666666666666664,
+        "core_profit_yoy": -91.01,
+        "non_core_eps_share_pct": 8.33333333333333
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
+    },
+    {
+      "code": "002240",
+      "name": "盛新锂能",
+      "industry_code": "S240603",
+      "industry_name": "锂",
+      "pre_screen_score": 0.416667,
+      "metrics": {
+        "revenue_growth_pct": 0.8333333333333334,
+        "core_profit_growth_pct": 0.16666666666666666,
+        "valuation_attractiveness": 0.33333333333333337,
+        "price_crowding_attractiveness": 1,
+        "quality": 0,
+        "transmission_proxy": 0.5,
+        "core_profit_yoy": 220.3,
+        "non_core_eps_share_pct": 31.531531531531513
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "603399",
-      "company_name": "永杉锂业",
+      "name": "永杉锂业",
       "industry_code": "S240603",
       "industry_name": "锂",
-      "trend_name": "固态电池",
       "pre_screen_score": 0.1,
-      "status": "PRE_SCREENED_OUT"
-    },
-    {
-      "code": "002182",
-      "company_name": "宝武镁业",
-      "industry_code": "S240504",
-      "industry_name": "其他小金属",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.52045,
-      "status": "PRE_SCREENED_OUT"
+      "metrics": {
+        "revenue_growth_pct": 0.16666666666666666,
+        "core_profit_growth_pct": 0.3333333333333333,
+        "valuation_attractiveness": 0,
+        "price_crowding_attractiveness": 0,
+        "quality": 0,
+        "transmission_proxy": 0.25,
+        "core_profit_yoy": 237.2906984973,
+        "non_core_eps_share_pct": 46.15384615384613
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "002428",
-      "company_name": "云南锗业",
+      "name": "云南锗业",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.49773,
-      "status": "PRE_SCREENED_OUT"
+      "pre_screen_score": 0.511364,
+      "metrics": {
+        "revenue_growth_pct": 0.8181818181818182,
+        "core_profit_growth_pct": 0.9090909090909091,
+        "valuation_attractiveness": 0,
+        "price_crowding_attractiveness": 0.2727272727272727,
+        "quality": 0.5,
+        "transmission_proxy": 0.8636363636363636,
+        "core_profit_yoy": 733.3333333333334,
+        "non_core_eps_share_pct": 9.090909090909086
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "600456",
-      "company_name": "宝钛股份",
+      "name": "宝钛股份",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "trend_name": "固态电池",
       "pre_screen_score": 0.475,
-      "status": "PRE_SCREENED_OUT"
+      "metrics": {
+        "revenue_growth_pct": 0.2727272727272727,
+        "core_profit_growth_pct": 0.2727272727272727,
+        "valuation_attractiveness": 0.4545454545454546,
+        "price_crowding_attractiveness": 1,
+        "quality": 0.5,
+        "transmission_proxy": 0.2727272727272727,
+        "core_profit_yoy": -29.24397673774577,
+        "non_core_eps_share_pct": 16.20203345359134
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
+    },
+    {
+      "code": "002182",
+      "name": "宝武镁业",
+      "industry_code": "S240504",
+      "industry_name": "其他小金属",
+      "pre_screen_score": 0.465909,
+      "metrics": {
+        "revenue_growth_pct": 0.36363636363636365,
+        "core_profit_growth_pct": 0,
+        "valuation_attractiveness": 1,
+        "price_crowding_attractiveness": 0.4545454545454546,
+        "quality": 0.5,
+        "transmission_proxy": 0.18181818181818182,
+        "core_profit_yoy": -151.49812734082397,
+        "non_core_eps_share_pct": 48.64864864864866
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "000962",
-      "company_name": "东方钽业",
+      "name": "东方钽业",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.45682,
-      "status": "PRE_SCREENED_OUT"
+      "pre_screen_score": 0.443182,
+      "metrics": {
+        "revenue_growth_pct": 0.7272727272727273,
+        "core_profit_growth_pct": 0.45454545454545453,
+        "valuation_attractiveness": 0.2727272727272727,
+        "price_crowding_attractiveness": 0.18181818181818177,
+        "quality": 0.5,
+        "transmission_proxy": 0.5909090909090909,
+        "core_profit_yoy": -14.540816326530614,
+        "non_core_eps_share_pct": 1.6359060402684624
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "600281",
-      "company_name": "华阳新材",
+      "name": "华阳新材",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "trend_name": "固态电池",
       "pre_screen_score": 0.25,
-      "status": "PRE_SCREENED_OUT"
+      "metrics": {
+        "revenue_growth_pct": 1,
+        "core_profit_growth_pct": 0.09090909090909091,
+        "valuation_attractiveness": 0.09090909090909094,
+        "price_crowding_attractiveness": 0.09090909090909094,
+        "quality": 0,
+        "transmission_proxy": 0.5454545454545454,
+        "core_profit_yoy": -97.11,
+        "non_core_eps_share_pct": 564
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     },
     {
       "code": "002149",
-      "company_name": "西部材料",
+      "name": "西部材料",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.18636,
-      "status": "PRE_SCREENED_OUT"
-    },
-    {
-      "code": "601218",
-      "company_name": "吉鑫科技",
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "trend_name": "风电设备",
-      "pre_screen_score": 0.4875,
-      "status": "PRE_SCREENED_OUT"
-    },
-    {
-      "code": "603985",
-      "company_name": "恒润股份",
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "trend_name": "风电设备",
-      "pre_screen_score": 0.48125,
-      "status": "PRE_SCREENED_OUT"
-    },
-    {
-      "code": "002531",
-      "company_name": "天顺风能",
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "trend_name": "风电设备",
-      "pre_screen_score": 0.2,
-      "status": "PRE_SCREENED_OUT"
+      "pre_screen_score": 0.172727,
+      "metrics": {
+        "revenue_growth_pct": 0.09090909090909091,
+        "core_profit_growth_pct": 0.18181818181818182,
+        "valuation_attractiveness": 0.18181818181818177,
+        "price_crowding_attractiveness": 0.5454545454545454,
+        "quality": 0,
+        "transmission_proxy": 0.13636363636363635,
+        "core_profit_yoy": -39.5112016293279,
+        "non_core_eps_share_pct": 35.223555070883314
+      },
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
     }
   ],
   "transmission_research": [
@@ -1050,15 +1462,21 @@
       "industry_code": "S630701",
       "industry_name": "锂电池",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.775,
-      "transmission_status": "NOT_SUPPORTED",
-      "status": "NOT_SUPPORTED",
-      "evidence_summary": "检索到电池结构件扩产/客户业务，但未核实与本轮固态电池趋势直接相关的商业订单或交付。",
-      "sources": [],
-      "gap_check": "行业批量检索后已执行公司级遗漏/冲突检查；未发现会推翻本判断的一手商业证据。",
-      "followup_required": true,
-      "followup_result": "completed",
-      "falsifier": "出现与本轮趋势直接相关的客户认证、商业订单或实际交付。"
+      "batch_id": "BATCH_S630701",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "未取得可归属科达利且与本轮固态电池趋势直接相关的客户认证、订单或交付证据。",
+      "evidence": [],
+      "evidence_freshness": "NO_PRIMARY_RESULT",
+      "gap_check": "存在潜在关联，但关键商业事实未闭合",
+      "followup": {
+        "required": false,
+        "executed": false,
+        "result": "无可核查直接关联或补查不会改变当前判断，未机械追加"
+      },
+      "transmission": "UNCERTAIN",
+      "transmission_summary": "未取得可归属科达利且与本轮固态电池趋势直接相关的客户认证、订单或交付证据。",
+      "future_window": "若出现与本轮趋势直接相关的订单、认证或交付，再重新评估",
+      "falsifier": "出现可核验的直接客户认证、商业订单或实际交付"
     },
     {
       "code": "000049",
@@ -1066,15 +1484,21 @@
       "industry_code": "S630701",
       "industry_name": "锂电池",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.6625,
-      "transmission_status": "NOT_SUPPORTED",
-      "status": "NOT_SUPPORTED",
-      "evidence_summary": "未来增长重点仍集中储能、消费电池及SIP，本轮未核实固态趋势直接商业传导。",
-      "sources": [],
-      "gap_check": "行业批量检索后已执行公司级遗漏/冲突检查；未发现会推翻本判断的一手商业证据。",
-      "followup_required": true,
-      "followup_result": "completed",
-      "falsifier": "出现与本轮趋势直接相关的客户认证、商业订单或实际交付。"
+      "batch_id": "BATCH_S630701",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "公司主营消费类电池系统，本轮批量检索未取得固态电池商业传导证据。",
+      "evidence": [],
+      "evidence_freshness": "NO_PRIMARY_RESULT",
+      "gap_check": "未取得可归属本轮趋势的直接商业传导，已检查已取得材料无相反证据",
+      "followup": {
+        "required": false,
+        "executed": false,
+        "result": "无可核查直接关联或补查不会改变当前判断，未机械追加"
+      },
+      "transmission": "NOT_SUPPORTED",
+      "transmission_summary": "公司主营消费类电池系统，本轮批量检索未取得固态电池商业传导证据。",
+      "future_window": "若出现与本轮趋势直接相关的订单、认证或交付，再重新评估",
+      "falsifier": "出现可核验的直接客户认证、商业订单或实际交付"
     },
     {
       "code": "002074",
@@ -1082,15 +1506,21 @@
       "industry_code": "S630701",
       "industry_name": "锂电池",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.61875,
-      "transmission_status": "EARLY_EVIDENCE",
-      "status": "EARLY_EVIDENCE",
-      "evidence_summary": "固态电池研发与产业化进展明确，但本轮未核实趋势特定商业订单或交付规模。",
-      "sources": [],
-      "gap_check": "已核实直接技术/业务关联，但未找到足以证明趋势商业化传导的有效订单/交付。",
-      "followup_required": true,
-      "followup_result": "completed; commercial evidence still insufficient",
-      "next_validation_trigger": "出现明确客户认证、量产订单、批量交付或趋势相关收入披露。"
+      "batch_id": "BATCH_S630701",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "潜在业务关联较强，但公司定向检索未取得截至本轮可核验的固态电池商业订单、客户认证或交付证据。",
+      "evidence": [],
+      "evidence_freshness": "NO_PRIMARY_RESULT",
+      "gap_check": "存在潜在关联，但关键商业事实未闭合",
+      "followup": {
+        "required": true,
+        "executed": true,
+        "result": "完成定向检索；仍未取得足以升级为SUPPORTED的商业证据"
+      },
+      "transmission": "UNCERTAIN",
+      "transmission_summary": "潜在业务关联较强，但公司定向检索未取得截至本轮可核验的固态电池商业订单、客户认证或交付证据。",
+      "future_window": "若出现与本轮趋势直接相关的订单、认证或交付，再重新评估",
+      "falsifier": "出现可核验的直接客户认证、商业订单或实际交付"
     },
     {
       "code": "002245",
@@ -1098,15 +1528,43 @@
       "industry_code": "S630701",
       "industry_name": "锂电池",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.53125,
-      "transmission_status": "EARLY_EVIDENCE",
-      "status": "EARLY_EVIDENCE",
-      "evidence_summary": "公司明确固态/半固态仍处技术储备阶段，直接业务关联成立但未形成可靠商业验证。",
-      "sources": [],
-      "gap_check": "已核实直接技术/业务关联，但未找到足以证明趋势商业化传导的有效订单/交付。",
-      "followup_required": true,
-      "followup_result": "completed; commercial evidence still insufficient",
-      "next_validation_trigger": "出现明确客户认证、量产订单、批量交付或趋势相关收入披露。"
+      "batch_id": "BATCH_S630701",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "本轮材料显示业务以小动力及消费电池为主，未核实固态电池直接商业传导。",
+      "evidence": [],
+      "evidence_freshness": "NO_PRIMARY_RESULT",
+      "gap_check": "未取得可归属本轮趋势的直接商业传导，已检查已取得材料无相反证据",
+      "followup": {
+        "required": false,
+        "executed": false,
+        "result": "无可核查直接关联或补查不会改变当前判断，未机械追加"
+      },
+      "transmission": "NOT_SUPPORTED",
+      "transmission_summary": "本轮材料显示业务以小动力及消费电池为主，未核实固态电池直接商业传导。",
+      "future_window": "若出现与本轮趋势直接相关的订单、认证或交付，再重新评估",
+      "falsifier": "出现可核验的直接客户认证、商业订单或实际交付"
+    },
+    {
+      "code": "600110",
+      "company_name": "诺德股份",
+      "industry_code": "S630701",
+      "industry_name": "锂电池",
+      "trend_name": "固态电池",
+      "batch_id": "BATCH_S630701",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "铜箔可能具备材料关联，但未核实固态电池专用订单、客户认证或交付。",
+      "evidence": [],
+      "evidence_freshness": "NO_PRIMARY_RESULT",
+      "gap_check": "存在潜在关联，但关键商业事实未闭合",
+      "followup": {
+        "required": false,
+        "executed": false,
+        "result": "无可核查直接关联或补查不会改变当前判断，未机械追加"
+      },
+      "transmission": "UNCERTAIN",
+      "transmission_summary": "铜箔可能具备材料关联，但未核实固态电池专用订单、客户认证或交付。",
+      "future_window": "若出现与本轮趋势直接相关的订单、认证或交付，再重新评估",
+      "falsifier": "出现可核验的直接客户认证、商业订单或实际交付"
     },
     {
       "code": "600152",
@@ -1114,33 +1572,27 @@
       "industry_code": "S630701",
       "industry_name": "锂电池",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.4875,
-      "transmission_status": "NOT_SUPPORTED",
-      "status": "NOT_SUPPORTED",
-      "evidence_summary": "完成公司公告/半年报及固态关键词缺口检查，未取得趋势特定商业验证。",
-      "sources": [],
-      "gap_check": "行业批量检索后已执行公司级遗漏/冲突检查；未发现会推翻本判断的一手商业证据。",
-      "followup_required": true,
-      "followup_result": "completed",
-      "falsifier": "出现与本轮趋势直接相关的客户认证、商业订单或实际交付。"
-    },
-    {
-      "code": "600110",
-      "company_name": "诺德股份",
-      "industry_code": "S630701",
-      "industry_name": "锂电池",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.475,
-      "transmission_status": "SUPPORTED",
-      "status": "SUPPORTED",
-      "evidence_summary": "2026H1披露固态电池用镀镍合金箔已小批量供货，形成直接商业传导。",
-      "sources": [
-        "https://www.ndgf.net/news/info?id=284&menu_id=30&top_id=1"
+      "batch_id": "BATCH_S630701",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "公司官方资料聚焦3C锂电与钠电，未见固态电池直接商业化证据。",
+      "evidence": [
+        {
+          "date": "2026-10-08",
+          "url": "https://veken-tech.cn/",
+          "kind": "公司官网"
+        }
       ],
-      "gap_check": "已核验产品与固态电池直接关联；后续量产规模仍需跟踪。",
-      "followup_required": true,
-      "followup_result": "completed",
-      "falsifier": "后续公告/财报显示订单取消、交付中断或趋势相关业务无法向收入/利润传导。"
+      "evidence_freshness": "2026-10-08",
+      "gap_check": "未取得可归属本轮趋势的直接商业传导，已检查已取得材料无相反证据",
+      "followup": {
+        "required": false,
+        "executed": false,
+        "result": "无可核查直接关联或补查不会改变当前判断，未机械追加"
+      },
+      "transmission": "NOT_SUPPORTED",
+      "transmission_summary": "公司官方资料聚焦3C锂电与钠电，未见固态电池直接商业化证据。",
+      "future_window": "若出现与本轮趋势直接相关的订单、认证或交付，再重新评估",
+      "falsifier": "出现可核验的直接客户认证、商业订单或实际交付"
     },
     {
       "code": "002709",
@@ -1148,15 +1600,27 @@
       "industry_code": "S630702",
       "industry_name": "电池化学品",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.904167,
-      "transmission_status": "EARLY_EVIDENCE",
-      "status": "EARLY_EVIDENCE",
-      "evidence_summary": "固态电解质/相关材料处研发和产品推进阶段，未核实足以支持本轮商业传导的固态专属订单。",
-      "sources": [],
-      "gap_check": "已核实直接技术/业务关联，但未找到足以证明趋势商业化传导的有效订单/交付。",
-      "followup_required": true,
-      "followup_result": "completed; commercial evidence still insufficient",
-      "next_validation_trigger": "出现明确客户认证、量产订单、批量交付或趋势相关收入披露。"
+      "batch_id": "BATCH_S630702",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "公司官方产品体系包含固态电解质，但未取得客户认证、订单或量产交付的可靠商业验证。",
+      "evidence": [
+        {
+          "date": "2026-10-08",
+          "url": "https://cn.tinci.com/",
+          "kind": "公司官网产品页"
+        }
+      ],
+      "evidence_freshness": "2026-10-08",
+      "gap_check": "已核实直接业务关联，但缺少可靠商业验证",
+      "followup": {
+        "required": true,
+        "executed": true,
+        "result": "完成定向检索；仍未取得足以升级为SUPPORTED的商业证据"
+      },
+      "transmission": "EARLY_EVIDENCE",
+      "transmission_summary": "公司官方产品体系包含固态电解质，但未取得客户认证、订单或量产交付的可靠商业验证。",
+      "future_window": "后续以客户认证、量产线投产或商业订单为升级触发",
+      "falsifier": "出现可核验的直接客户认证、商业订单或实际交付"
     },
     {
       "code": "002812",
@@ -1164,17 +1628,21 @@
       "industry_code": "S630702",
       "industry_name": "电池化学品",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.716667,
-      "transmission_status": "SUPPORTED",
-      "status": "SUPPORTED",
-      "evidence_summary": "投资者关系记录披露半固态/全固态相关隔膜、电解质膜布局，并存在客户合作/验证，具备商业化传导证据。",
-      "sources": [
-        "https://vip.stock.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12536770&stockid=002812"
-      ],
-      "gap_check": "需继续观察固态专用品类收入占比和量产节奏。",
-      "followup_required": true,
-      "followup_result": "completed",
-      "falsifier": "后续公告/财报显示订单取消、交付中断或趋势相关业务无法向收入/利润传导。"
+      "batch_id": "BATCH_S630702",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "隔膜业务存在潜在适配空间，但定向检索未取得固态电池客户认证或商业交付证据。",
+      "evidence": [],
+      "evidence_freshness": "NO_PRIMARY_RESULT",
+      "gap_check": "存在潜在关联，但关键商业事实未闭合",
+      "followup": {
+        "required": true,
+        "executed": true,
+        "result": "完成定向检索；仍未取得足以升级为SUPPORTED的商业证据"
+      },
+      "transmission": "UNCERTAIN",
+      "transmission_summary": "隔膜业务存在潜在适配空间，但定向检索未取得固态电池客户认证或商业交付证据。",
+      "future_window": "若出现与本轮趋势直接相关的订单、认证或交付，再重新评估",
+      "falsifier": "出现可核验的直接客户认证、商业订单或实际交付"
     },
     {
       "code": "603659",
@@ -1182,17 +1650,49 @@
       "industry_code": "S630702",
       "industry_name": "电池化学品",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.65,
-      "transmission_status": "SUPPORTED",
-      "status": "SUPPORTED",
-      "evidence_summary": "2026H1报告/公开披露显示干法电极及固态相关设备已向头部客户交付并验收，属于直接商业项目。",
-      "sources": [
-        "https://static.cninfo.com.cn/finalpage/2026-08-20/1225482316.PDF"
+      "batch_id": "BATCH_S630702",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "材料业务可能受益，但未核实与本轮固态电池趋势直接相关的订单、客户认证或交付。",
+      "evidence": [],
+      "evidence_freshness": "NO_PRIMARY_RESULT",
+      "gap_check": "存在潜在关联，但关键商业事实未闭合",
+      "followup": {
+        "required": false,
+        "executed": false,
+        "result": "无可核查直接关联或补查不会改变当前判断，未机械追加"
+      },
+      "transmission": "UNCERTAIN",
+      "transmission_summary": "材料业务可能受益，但未核实与本轮固态电池趋势直接相关的订单、客户认证或交付。",
+      "future_window": "若出现与本轮趋势直接相关的订单、认证或交付，再重新评估",
+      "falsifier": "出现可核验的直接客户认证、商业订单或实际交付"
+    },
+    {
+      "code": "000695",
+      "company_name": "滨海能源",
+      "industry_code": "S630702",
+      "industry_name": "电池化学品",
+      "trend_name": "固态电池",
+      "batch_id": "BATCH_S630702",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "2026-09-03投资者关系记录显示正建设2000吨/年硅碳负极及1000吨/年多孔碳项目，仍处建设/研发阶段，未见商业订单验证。",
+      "evidence": [
+        {
+          "date": "2026-09-03",
+          "url": "https://data.eastmoney.com/notices/detail/000695/AN202609031828964816.html",
+          "kind": "投资者关系记录"
+        }
       ],
-      "gap_check": "需继续跟踪订单复购及设备收入确认节奏。",
-      "followup_required": true,
-      "followup_result": "completed",
-      "falsifier": "后续公告/财报显示订单取消、交付中断或趋势相关业务无法向收入/利润传导。"
+      "evidence_freshness": "2026-09-03",
+      "gap_check": "已核实直接业务关联，但缺少可靠商业验证",
+      "followup": {
+        "required": false,
+        "executed": false,
+        "result": "无可核查直接关联或补查不会改变当前判断，未机械追加"
+      },
+      "transmission": "EARLY_EVIDENCE",
+      "transmission_summary": "2026-09-03投资者关系记录显示正建设2000吨/年硅碳负极及1000吨/年多孔碳项目，仍处建设/研发阶段，未见商业订单验证。",
+      "future_window": "后续以客户认证、量产线投产或商业订单为升级触发",
+      "falsifier": "出现可核验的直接客户认证、商业订单或实际交付"
     },
     {
       "code": "603026",
@@ -1200,15 +1700,27 @@
       "industry_code": "S630702",
       "industry_name": "电池化学品",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.5875,
-      "transmission_status": "NOT_SUPPORTED",
-      "status": "NOT_SUPPORTED",
-      "evidence_summary": "主要项目仍偏液态锂盐/传统电池化学品，本轮未取得固态直接商业验证。",
-      "sources": [],
-      "gap_check": "行业批量检索后已执行公司级遗漏/冲突检查；未发现会推翻本判断的一手商业证据。",
-      "followup_required": true,
-      "followup_result": "completed",
-      "falsifier": "出现与本轮趋势直接相关的客户认证、商业订单或实际交付。"
+      "batch_id": "BATCH_S630702",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "2026年披露的扩产集中于常规电解液、液态锂盐和添加剂，未核实固态电池直接商业传导。",
+      "evidence": [
+        {
+          "date": "2026-09-04",
+          "url": "https://www.lixinger.com/equity/company/detail/sh/603026/603026/announcement",
+          "kind": "上交所公告索引"
+        }
+      ],
+      "evidence_freshness": "2026-09-04",
+      "gap_check": "未取得可归属本轮趋势的直接商业传导，已检查已取得材料无相反证据",
+      "followup": {
+        "required": false,
+        "executed": false,
+        "result": "无可核查直接关联或补查不会改变当前判断，未机械追加"
+      },
+      "transmission": "NOT_SUPPORTED",
+      "transmission_summary": "2026年披露的扩产集中于常规电解液、液态锂盐和添加剂，未核实固态电池直接商业传导。",
+      "future_window": "若出现与本轮趋势直接相关的订单、认证或交付，再重新评估",
+      "falsifier": "出现可核验的直接客户认证、商业订单或实际交付"
     },
     {
       "code": "002805",
@@ -1216,31 +1728,21 @@
       "industry_code": "S630702",
       "industry_name": "电池化学品",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.570833,
-      "transmission_status": "EARLY_EVIDENCE",
-      "status": "EARLY_EVIDENCE",
-      "evidence_summary": "存在固态正极材料联合研发/产业化探索，商业验证不足。",
-      "sources": [],
-      "gap_check": "已核实直接技术/业务关联，但未找到足以证明趋势商业化传导的有效订单/交付。",
-      "followup_required": true,
-      "followup_result": "completed; commercial evidence still insufficient",
-      "next_validation_trigger": "出现明确客户认证、量产订单、批量交付或趋势相关收入披露。"
-    },
-    {
-      "code": "600884",
-      "company_name": "杉杉股份",
-      "industry_code": "S630702",
-      "industry_name": "电池化学品",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.566667,
-      "transmission_status": "EARLY_EVIDENCE",
-      "status": "EARLY_EVIDENCE",
-      "evidence_summary": "硅碳等产品可用于半/全固态并有量产交付，但未核实终端订单是否由本轮固态趋势直接驱动。",
-      "sources": [],
-      "gap_check": "已核实直接技术/业务关联，但未找到足以证明趋势商业化传导的有效订单/交付。",
-      "followup_required": true,
-      "followup_result": "completed; commercial evidence still insufficient",
-      "next_validation_trigger": "出现明确客户认证、量产订单、批量交付或趋势相关收入披露。"
+      "batch_id": "BATCH_S630702",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "未取得丰元股份与固态电池直接相关的客户认证、订单或交付证据。",
+      "evidence": [],
+      "evidence_freshness": "NO_PRIMARY_RESULT",
+      "gap_check": "存在潜在关联，但关键商业事实未闭合",
+      "followup": {
+        "required": false,
+        "executed": false,
+        "result": "无可核查直接关联或补查不会改变当前判断，未机械追加"
+      },
+      "transmission": "UNCERTAIN",
+      "transmission_summary": "未取得丰元股份与固态电池直接相关的客户认证、订单或交付证据。",
+      "future_window": "若出现与本轮趋势直接相关的订单、认证或交付，再重新评估",
+      "falsifier": "出现可核验的直接客户认证、商业订单或实际交付"
     },
     {
       "code": "603032",
@@ -1248,15 +1750,27 @@
       "industry_code": "S630703",
       "industry_name": "锂电专用设备",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.625,
-      "transmission_status": "NOT_SUPPORTED",
-      "status": "NOT_SUPPORTED",
-      "evidence_summary": "完成公司业务与固态关键词定向检查，未取得直接商业订单/项目证据。",
-      "sources": [],
-      "gap_check": "行业批量检索后已执行公司级遗漏/冲突检查；未发现会推翻本判断的一手商业证据。",
-      "followup_required": true,
-      "followup_result": "completed",
-      "falsifier": "出现与本轮趋势直接相关的客户认证、商业订单或实际交付。"
+      "batch_id": "BATCH_S630703",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "公司2026-04-28回复确认相关模具可用于固态电池，且2025年度已有相关产品销售；金额极小但构成已发生商业验证。",
+      "evidence": [
+        {
+          "date": "2026-04-28",
+          "url": "https://xiaojingji.com/stock/one/notice?code=603032&type=5",
+          "kind": "公司互动回复转载"
+        }
+      ],
+      "evidence_freshness": "2026-04-28",
+      "gap_check": "已取得直接商业验证；后续仍需观察兑现规模与节奏",
+      "followup": {
+        "required": false,
+        "executed": false,
+        "result": "无可核查直接关联或补查不会改变当前判断，未机械追加"
+      },
+      "transmission": "SUPPORTED",
+      "transmission_summary": "公司2026-04-28回复确认相关模具可用于固态电池，且2025年度已有相关产品销售；金额极小但构成已发生商业验证。",
+      "future_window": "未来1–2季度跟踪产量/订单/项目交付与利润传导",
+      "falsifier": "产量/项目/订单未兑现，或价格与利润传导显著弱于当前证据"
     },
     {
       "code": "002192",
@@ -1264,15 +1778,27 @@
       "industry_code": "S240603",
       "industry_name": "锂",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.916667,
-      "transmission_status": "NOT_SUPPORTED",
-      "status": "NOT_SUPPORTED",
-      "evidence_summary": "公司公开回复明确当前不涉及固态电池相关业务，直接反证本轮趋势传导。",
-      "sources": [],
-      "gap_check": "行业批量检索后已执行公司级遗漏/冲突检查；未发现会推翻本判断的一手商业证据。",
-      "followup_required": true,
-      "followup_result": "completed",
-      "falsifier": "出现与本轮趋势直接相关的客户认证、商业订单或实际交付。"
+      "batch_id": "BATCH_S240603",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "锂资源/锂盐属于通用上游，未核实本轮固态电池趋势带来的专属订单或增量交付。",
+      "evidence": [
+        {
+          "date": "2026-10-08",
+          "url": "https://www.younergy.cn/product.html",
+          "kind": "公司官网产品页"
+        }
+      ],
+      "evidence_freshness": "2026-10-08",
+      "gap_check": "未取得可归属本轮趋势的直接商业传导，已检查已取得材料无相反证据",
+      "followup": {
+        "required": false,
+        "executed": false,
+        "result": "无可核查直接关联或补查不会改变当前判断，未机械追加"
+      },
+      "transmission": "NOT_SUPPORTED",
+      "transmission_summary": "锂资源/锂盐属于通用上游，未核实本轮固态电池趋势带来的专属订单或增量交付。",
+      "future_window": "若出现与本轮趋势直接相关的订单、认证或交付，再重新评估",
+      "falsifier": "出现可核验的直接客户认证、商业订单或实际交付"
     },
     {
       "code": "002466",
@@ -1280,15 +1806,21 @@
       "industry_code": "S240603",
       "industry_name": "锂",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.775,
-      "transmission_status": "EARLY_EVIDENCE",
-      "status": "EARLY_EVIDENCE",
-      "evidence_summary": "通过投资/合作切入固态产业链，直接关联存在，但未核实公司自身固态业务商业订单。",
-      "sources": [],
-      "gap_check": "已核实直接技术/业务关联，但未找到足以证明趋势商业化传导的有效订单/交付。",
-      "followup_required": true,
-      "followup_result": "completed; commercial evidence still insufficient",
-      "next_validation_trigger": "出现明确客户认证、量产订单、批量交付或趋势相关收入披露。"
+      "batch_id": "BATCH_S240603",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "锂资源/锂盐属于通用上游，未核实本轮固态电池趋势的专属商业传导。",
+      "evidence": [],
+      "evidence_freshness": "NO_PRIMARY_RESULT",
+      "gap_check": "未取得可归属本轮趋势的直接商业传导，已检查已取得材料无相反证据",
+      "followup": {
+        "required": false,
+        "executed": false,
+        "result": "无可核查直接关联或补查不会改变当前判断，未机械追加"
+      },
+      "transmission": "NOT_SUPPORTED",
+      "transmission_summary": "锂资源/锂盐属于通用上游，未核实本轮固态电池趋势的专属商业传导。",
+      "future_window": "若出现与本轮趋势直接相关的订单、认证或交付，再重新评估",
+      "falsifier": "出现可核验的直接客户认证、商业订单或实际交付"
     },
     {
       "code": "002460",
@@ -1296,17 +1828,27 @@
       "industry_code": "S240603",
       "industry_name": "锂",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.7,
-      "transmission_status": "SUPPORTED",
-      "status": "SUPPORTED",
-      "evidence_summary": "2026H1报告披露固态电池一体化布局，500Wh/kg 10Ah产品进入小批量量产并出现面向低空/机器人等商业订单线索。",
-      "sources": [
-        "https://stock.stockstar.com/notice/SN2026082800049862.shtml"
+      "batch_id": "BATCH_S240603",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "公司具备锂全产业链与电池业务，但定向检索未闭合固态电池商业订单、认证或交付。",
+      "evidence": [
+        {
+          "date": "2026-10-08",
+          "url": "https://www.ganfenglithium.com/",
+          "kind": "公司官网"
+        }
       ],
-      "gap_check": "商业规模仍处早期，量产放大速度需持续验证。",
-      "followup_required": true,
-      "followup_result": "completed",
-      "falsifier": "后续公告/财报显示订单取消、交付中断或趋势相关业务无法向收入/利润传导。"
+      "evidence_freshness": "2026-10-08",
+      "gap_check": "存在潜在关联，但关键商业事实未闭合",
+      "followup": {
+        "required": true,
+        "executed": true,
+        "result": "完成定向检索；仍未取得足以升级为SUPPORTED的商业证据"
+      },
+      "transmission": "UNCERTAIN",
+      "transmission_summary": "公司具备锂全产业链与电池业务，但定向检索未闭合固态电池商业订单、认证或交付。",
+      "future_window": "若出现与本轮趋势直接相关的订单、认证或交付，再重新评估",
+      "falsifier": "出现可核验的直接客户认证、商业订单或实际交付"
     },
     {
       "code": "000762",
@@ -1314,15 +1856,21 @@
       "industry_code": "S240603",
       "industry_name": "锂",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.541667,
-      "transmission_status": "NOT_SUPPORTED",
-      "status": "NOT_SUPPORTED",
-      "evidence_summary": "锂资源业务与固态终端存在上游关联，但未核实趋势特定增量订单或商业传导。",
-      "sources": [],
-      "gap_check": "行业批量检索后已执行公司级遗漏/冲突检查；未发现会推翻本判断的一手商业证据。",
-      "followup_required": true,
-      "followup_result": "completed",
-      "falsifier": "出现与本轮趋势直接相关的客户认证、商业订单或实际交付。"
+      "batch_id": "BATCH_S240603",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "锂资源业务与固态电池仅属通用上游关联，未核实直接增量商业证据。",
+      "evidence": [],
+      "evidence_freshness": "NO_PRIMARY_RESULT",
+      "gap_check": "未取得可归属本轮趋势的直接商业传导，已检查已取得材料无相反证据",
+      "followup": {
+        "required": false,
+        "executed": false,
+        "result": "无可核查直接关联或补查不会改变当前判断，未机械追加"
+      },
+      "transmission": "NOT_SUPPORTED",
+      "transmission_summary": "锂资源业务与固态电池仅属通用上游关联，未核实直接增量商业证据。",
+      "future_window": "若出现与本轮趋势直接相关的订单、认证或交付，再重新评估",
+      "falsifier": "出现可核验的直接客户认证、商业订单或实际交付"
     },
     {
       "code": "002756",
@@ -1330,31 +1878,21 @@
       "industry_code": "S240603",
       "industry_name": "锂",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.425,
-      "transmission_status": "NOT_SUPPORTED",
-      "status": "NOT_SUPPORTED",
-      "evidence_summary": "锂盐业务可受行业需求影响，但本轮未核实固态趋势直接订单/交付。",
-      "sources": [],
-      "gap_check": "行业批量检索后已执行公司级遗漏/冲突检查；未发现会推翻本判断的一手商业证据。",
-      "followup_required": true,
-      "followup_result": "completed",
-      "falsifier": "出现与本轮趋势直接相关的客户认证、商业订单或实际交付。"
-    },
-    {
-      "code": "002240",
-      "company_name": "盛新锂能",
-      "industry_code": "S240603",
-      "industry_name": "锂",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.416667,
-      "transmission_status": "EARLY_EVIDENCE",
-      "status": "EARLY_EVIDENCE",
-      "evidence_summary": "金属锂产能规划并与固态客户沟通，尚缺固态客户量产订单/交付验证。",
-      "sources": [],
-      "gap_check": "已核实直接技术/业务关联，但未找到足以证明趋势商业化传导的有效订单/交付。",
-      "followup_required": true,
-      "followup_result": "completed; commercial evidence still insufficient",
-      "next_validation_trigger": "出现明确客户认证、量产订单、批量交付或趋势相关收入披露。"
+      "batch_id": "BATCH_S240603",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "锂盐业务与固态电池仅属通用上游关联，未核实直接增量商业证据。",
+      "evidence": [],
+      "evidence_freshness": "NO_PRIMARY_RESULT",
+      "gap_check": "未取得可归属本轮趋势的直接商业传导，已检查已取得材料无相反证据",
+      "followup": {
+        "required": false,
+        "executed": false,
+        "result": "无可核查直接关联或补查不会改变当前判断，未机械追加"
+      },
+      "transmission": "NOT_SUPPORTED",
+      "transmission_summary": "锂盐业务与固态电池仅属通用上游关联，未核实直接增量商业证据。",
+      "future_window": "若出现与本轮趋势直接相关的订单、认证或交付，再重新评估",
+      "falsifier": "出现可核验的直接客户认证、商业订单或实际交付"
     },
     {
       "code": "002738",
@@ -1362,15 +1900,27 @@
       "industry_code": "S240504",
       "industry_name": "其他小金属",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.752273,
-      "transmission_status": "NOT_SUPPORTED",
-      "status": "NOT_SUPPORTED",
-      "evidence_summary": "资源业务缺少固态趋势特定增量订单/客户验证，本轮不支持直接传导。",
-      "sources": [],
-      "gap_check": "行业批量检索后已执行公司级遗漏/冲突检查；未发现会推翻本判断的一手商业证据。",
-      "followup_required": true,
-      "followup_result": "completed",
-      "falsifier": "出现与本轮趋势直接相关的客户认证、商业订单或实际交付。"
+      "batch_id": "BATCH_S240504",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "锂盐及氟化锂为通用电池原料，未核实固态电池专属订单或交付。",
+      "evidence": [
+        {
+          "date": "2026-10-08",
+          "url": "https://www.sinomine.com/",
+          "kind": "公司官网"
+        }
+      ],
+      "evidence_freshness": "2026-10-08",
+      "gap_check": "未取得可归属本轮趋势的直接商业传导，已检查已取得材料无相反证据",
+      "followup": {
+        "required": false,
+        "executed": false,
+        "result": "无可核查直接关联或补查不会改变当前判断，未机械追加"
+      },
+      "transmission": "NOT_SUPPORTED",
+      "transmission_summary": "锂盐及氟化锂为通用电池原料，未核实固态电池专属订单或交付。",
+      "future_window": "若出现与本轮趋势直接相关的订单、认证或交付，再重新评估",
+      "falsifier": "出现可核验的直接客户认证、商业订单或实际交付"
     },
     {
       "code": "002167",
@@ -1378,15 +1928,27 @@
       "industry_code": "S240504",
       "industry_name": "其他小金属",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.686364,
-      "transmission_status": "EARLY_EVIDENCE",
-      "status": "EARLY_EVIDENCE",
-      "evidence_summary": "锆产品可用于固态电解质且处客户验证，认证周期长，尚未形成可靠商业验证。",
-      "sources": [],
-      "gap_check": "已核实直接技术/业务关联，但未找到足以证明趋势商业化传导的有效订单/交付。",
-      "followup_required": true,
-      "followup_result": "completed; commercial evidence still insufficient",
-      "next_validation_trigger": "出现明确客户认证、量产订单、批量交付或趋势相关收入披露。"
+      "batch_id": "BATCH_S240504",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "2026-09-15投资者关系记录确认锆产品可用于固态电解质并在配合下游送样测试，但客户认证尚未通过、行业仍处研发中试。",
+      "evidence": [
+        {
+          "date": "2026-09-15",
+          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12604447&stockid=002167",
+          "kind": "投资者关系记录转载"
+        }
+      ],
+      "evidence_freshness": "2026-09-15",
+      "gap_check": "已核实直接业务关联，但缺少可靠商业验证",
+      "followup": {
+        "required": false,
+        "executed": false,
+        "result": "无可核查直接关联或补查不会改变当前判断，未机械追加"
+      },
+      "transmission": "EARLY_EVIDENCE",
+      "transmission_summary": "2026-09-15投资者关系记录确认锆产品可用于固态电解质并在配合下游送样测试，但客户认证尚未通过、行业仍处研发中试。",
+      "future_window": "后续以客户认证、量产线投产或商业订单为升级触发",
+      "falsifier": "出现可核验的直接客户认证、商业订单或实际交付"
     },
     {
       "code": "000960",
@@ -1394,15 +1956,21 @@
       "industry_code": "S240504",
       "industry_name": "其他小金属",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.665909,
-      "transmission_status": "NOT_SUPPORTED",
-      "status": "NOT_SUPPORTED",
-      "evidence_summary": "锡业务与本轮固态主题缺乏可核验直接业务关联。",
-      "sources": [],
-      "gap_check": "行业批量检索后已执行公司级遗漏/冲突检查；未发现会推翻本判断的一手商业证据。",
-      "followup_required": true,
-      "followup_result": "completed",
-      "falsifier": "出现与本轮趋势直接相关的客户认证、商业订单或实际交付。"
+      "batch_id": "BATCH_S240504",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "锡业主营与本轮固态电池趋势的直接业务传导未获核实。",
+      "evidence": [],
+      "evidence_freshness": "NO_PRIMARY_RESULT",
+      "gap_check": "未取得可归属本轮趋势的直接商业传导，已检查已取得材料无相反证据",
+      "followup": {
+        "required": false,
+        "executed": false,
+        "result": "无可核查直接关联或补查不会改变当前判断，未机械追加"
+      },
+      "transmission": "NOT_SUPPORTED",
+      "transmission_summary": "锡业主营与本轮固态电池趋势的直接业务传导未获核实。",
+      "future_window": "若出现与本轮趋势直接相关的订单、认证或交付，再重新评估",
+      "falsifier": "出现可核验的直接客户认证、商业订单或实际交付"
     },
     {
       "code": "002978",
@@ -1410,15 +1978,21 @@
       "industry_code": "S240504",
       "industry_name": "其他小金属",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.595455,
-      "transmission_status": "NOT_SUPPORTED",
-      "status": "NOT_SUPPORTED",
-      "evidence_summary": "钛业务与本轮固态主题缺乏可核验直接商业传导。",
-      "sources": [],
-      "gap_check": "行业批量检索后已执行公司级遗漏/冲突检查；未发现会推翻本判断的一手商业证据。",
-      "followup_required": true,
-      "followup_result": "completed",
-      "falsifier": "出现与本轮趋势直接相关的客户认证、商业订单或实际交付。"
+      "batch_id": "BATCH_S240504",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "钛矿业务未取得与固态电池趋势直接相关的订单、认证或交付证据。",
+      "evidence": [],
+      "evidence_freshness": "NO_PRIMARY_RESULT",
+      "gap_check": "未取得可归属本轮趋势的直接商业传导，已检查已取得材料无相反证据",
+      "followup": {
+        "required": false,
+        "executed": false,
+        "result": "无可核查直接关联或补查不会改变当前判断，未机械追加"
+      },
+      "transmission": "NOT_SUPPORTED",
+      "transmission_summary": "钛矿业务未取得与固态电池趋势直接相关的订单、认证或交付证据。",
+      "future_window": "若出现与本轮趋势直接相关的订单、认证或交付，再重新评估",
+      "falsifier": "出现可核验的直接客户认证、商业订单或实际交付"
     },
     {
       "code": "600301",
@@ -1426,15 +2000,21 @@
       "industry_code": "S240504",
       "industry_name": "其他小金属",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.595455,
-      "transmission_status": "NOT_SUPPORTED",
-      "status": "NOT_SUPPORTED",
-      "evidence_summary": "锡锑等有色业务未核实与本轮固态主题直接商业传导。",
-      "sources": [],
-      "gap_check": "行业批量检索后已执行公司级遗漏/冲突检查；未发现会推翻本判断的一手商业证据。",
-      "followup_required": true,
-      "followup_result": "completed",
-      "falsifier": "出现与本轮趋势直接相关的客户认证、商业订单或实际交付。"
+      "batch_id": "BATCH_S240504",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "有色金属主营未取得与固态电池趋势直接相关的订单、认证或交付证据。",
+      "evidence": [],
+      "evidence_freshness": "NO_PRIMARY_RESULT",
+      "gap_check": "未取得可归属本轮趋势的直接商业传导，已检查已取得材料无相反证据",
+      "followup": {
+        "required": false,
+        "executed": false,
+        "result": "无可核查直接关联或补查不会改变当前判断，未机械追加"
+      },
+      "transmission": "NOT_SUPPORTED",
+      "transmission_summary": "有色金属主营未取得与固态电池趋势直接相关的订单、认证或交付证据。",
+      "future_window": "若出现与本轮趋势直接相关的订单、认证或交付，再重新评估",
+      "falsifier": "出现可核验的直接客户认证、商业订单或实际交付"
     },
     {
       "code": "600459",
@@ -1442,799 +2022,316 @@
       "industry_code": "S240504",
       "industry_name": "其他小金属",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.568182,
-      "transmission_status": "NOT_SUPPORTED",
-      "status": "NOT_SUPPORTED",
-      "evidence_summary": "贵金属材料业务未核实与本轮固态主题直接商业传导。",
-      "sources": [],
-      "gap_check": "行业批量检索后已执行公司级遗漏/冲突检查；未发现会推翻本判断的一手商业证据。",
-      "followup_required": true,
-      "followup_result": "completed",
-      "falsifier": "出现与本轮趋势直接相关的客户认证、商业订单或实际交付。"
+      "batch_id": "BATCH_S240504",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "贵金属材料主营未取得与固态电池趋势直接相关的订单、认证或交付证据。",
+      "evidence": [],
+      "evidence_freshness": "NO_PRIMARY_RESULT",
+      "gap_check": "未取得可归属本轮趋势的直接商业传导，已检查已取得材料无相反证据",
+      "followup": {
+        "required": false,
+        "executed": false,
+        "result": "无可核查直接关联或补查不会改变当前判断，未机械追加"
+      },
+      "transmission": "NOT_SUPPORTED",
+      "transmission_summary": "贵金属材料主营未取得与固态电池趋势直接相关的订单、认证或交付证据。",
+      "future_window": "若出现与本轮趋势直接相关的订单、认证或交付，再重新评估",
+      "falsifier": "出现可核验的直接客户认证、商业订单或实际交付"
     },
     {
-      "code": "603127",
-      "company_name": "昭衍新药",
-      "industry_code": "S370603",
-      "industry_name": "医疗研发外包",
-      "trend_name": "CRO/医疗研发外包",
-      "pre_screen_score": 0.8,
-      "transmission_status": "SUPPORTED",
-      "status": "SUPPORTED",
-      "evidence_summary": "2026H1新签订单约20.2亿元同比+98%，期末在手订单约37亿元同比+60.9%，CRO需求传导明确。",
-      "sources": [
-        "https://data.cfi.cn/ybdata.aspx?id=20260907000202"
+      "code": "600938",
+      "company_name": "中国海油",
+      "industry_code": "S750101",
+      "industry_name": "油气开采Ⅲ",
+      "trend_name": "油气/石油",
+      "batch_id": "BATCH_S750101",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "2026年半年报披露油气净产量398.7百万桶油当量、同比增长3.7%，油气销售与利润同步增长，油气趋势已直接传导至产销量与财务。",
+      "evidence": [
+        {
+          "date": "2026-08-26",
+          "url": "https://www.stcn.com/article/detail/4132565.html",
+          "kind": "2026年半年报摘要报道"
+        }
       ],
-      "gap_check": "归母利润大幅增长主要受生物资产公允价值变动，实验室服务仍亏损，估值需剔除一次性影响。",
-      "followup_required": true,
-      "followup_result": "completed",
-      "falsifier": "后续公告/财报显示订单取消、交付中断或趋势相关业务无法向收入/利润传导。"
+      "evidence_freshness": "2026-08-26",
+      "gap_check": "已取得直接商业验证；后续仍需观察兑现规模与节奏",
+      "followup": {
+        "required": false,
+        "executed": false,
+        "result": "无可核查直接关联或补查不会改变当前判断，未机械追加"
+      },
+      "transmission": "SUPPORTED",
+      "transmission_summary": "2026年半年报披露油气净产量398.7百万桶油当量、同比增长3.7%，油气销售与利润同步增长，油气趋势已直接传导至产销量与财务。",
+      "future_window": "未来1–2季度跟踪产量/订单/项目交付与利润传导",
+      "falsifier": "产量/项目/订单未兑现，或价格与利润传导显著弱于当前证据"
     },
     {
-      "code": "603259",
-      "company_name": "药明康德",
-      "industry_code": "S370603",
-      "industry_name": "医疗研发外包",
-      "trend_name": "CRO/医疗研发外包",
-      "pre_screen_score": 0.8,
-      "transmission_status": "SUPPORTED",
-      "status": "SUPPORTED",
-      "evidence_summary": "公司2026H1持续经营业务在手订单约664.3亿元同比+25.2%，CRDMO需求与交付延续。",
-      "sources": [
-        "https://www.wuxiapptec.cn/news/wuxi-news/m4tt0j39a735o3vj5qsrfzdi"
+      "code": "000968",
+      "company_name": "蓝焰控股",
+      "industry_code": "S750101",
+      "industry_name": "油气开采Ⅲ",
+      "trend_name": "油气/石油",
+      "batch_id": "BATCH_S750101",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "2026年半年报披露煤层气勘探开发项目持续投入，武乡南与和顺横岭项目进度分别44.63%和30.90%，构成油气业务的持续商业投入与兑现窗口。",
+      "evidence": [
+        {
+          "date": "2026-08-26",
+          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12538185&stockid=000968",
+          "kind": "2026年半年报转载"
+        }
       ],
-      "gap_check": "订单强，但股价和估值已显著重估，新增预期空间需等待重置。",
-      "followup_required": true,
-      "followup_result": "completed",
-      "falsifier": "后续公告/财报显示订单取消、交付中断或趋势相关业务无法向收入/利润传导。"
+      "evidence_freshness": "2026-08-26",
+      "gap_check": "已取得直接商业验证；后续仍需观察兑现规模与节奏",
+      "followup": {
+        "required": false,
+        "executed": false,
+        "result": "无可核查直接关联或补查不会改变当前判断，未机械追加"
+      },
+      "transmission": "SUPPORTED",
+      "transmission_summary": "2026年半年报披露煤层气勘探开发项目持续投入，武乡南与和顺横岭项目进度分别44.63%和30.90%，构成油气业务的持续商业投入与兑现窗口。",
+      "future_window": "未来1–2季度跟踪产量/订单/项目交付与利润传导",
+      "falsifier": "产量/项目/订单未兑现，或价格与利润传导显著弱于当前证据"
     },
     {
-      "code": "002821",
-      "company_name": "凯莱英",
-      "industry_code": "S370603",
-      "industry_name": "医疗研发外包",
-      "trend_name": "CRO/医疗研发外包",
-      "pre_screen_score": 0.5875,
-      "transmission_status": "SUPPORTED",
-      "status": "SUPPORTED",
-      "evidence_summary": "2026H1在手订单约16.73亿美元同比+53.77%，新签订单增长明显，多个商业化/PPQ项目推进。",
-      "sources": [
-        "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12526824&stockid=002821"
-      ],
-      "gap_check": "收入恢复但盈利尚处调整，估值锚分歧较大。",
-      "followup_required": true,
-      "followup_result": "completed",
-      "falsifier": "后续公告/财报显示订单取消、交付中断或趋势相关业务无法向收入/利润传导。"
+      "code": "600871",
+      "company_name": "石化油服",
+      "industry_code": "S750201",
+      "industry_name": "油田服务",
+      "trend_name": "油气/石油",
+      "batch_id": "BATCH_S750201",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "油服业务与趋势直接相关，但本轮未取得可核验的未来1–2季度新增订单或交付证据。",
+      "evidence": [],
+      "evidence_freshness": "NO_PRIMARY_RESULT",
+      "gap_check": "存在潜在关联，但关键商业事实未闭合",
+      "followup": {
+        "required": false,
+        "executed": false,
+        "result": "无可核查直接关联或补查不会改变当前判断，未机械追加"
+      },
+      "transmission": "UNCERTAIN",
+      "transmission_summary": "油服业务与趋势直接相关，但本轮未取得可核验的未来1–2季度新增订单或交付证据。",
+      "future_window": "若出现与本轮趋势直接相关的订单、认证或交付，再重新评估",
+      "falsifier": "出现可核验的直接客户认证、商业订单或实际交付"
     },
     {
-      "code": "603456",
-      "company_name": "九洲药业",
-      "industry_code": "S370603",
-      "industry_name": "医疗研发外包",
-      "trend_name": "CRO/医疗研发外包",
-      "pre_screen_score": 0.575,
-      "transmission_status": "SUPPORTED",
-      "status": "SUPPORTED",
-      "evidence_summary": "2026H1新增客户29家、新增项目48个、新增订单107个，含商业化订单；海外交付和TIDES订单增长。",
-      "sources": [
-        "https://stock.stockstar.com/notice/SN2026080300025488.shtml"
-      ],
-      "gap_check": "财务同比仍偏弱，订单向利润兑现需要后续季度确认。",
-      "followup_required": true,
-      "followup_result": "completed",
-      "falsifier": "后续公告/财报显示订单取消、交付中断或趋势相关业务无法向收入/利润传导。"
+      "code": "002629",
+      "company_name": "仁智股份",
+      "industry_code": "S750201",
+      "industry_name": "油田服务",
+      "trend_name": "油气/石油",
+      "batch_id": "BATCH_S750201",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "本轮未核实仁智股份的有效油服订单、客户认证或交付，且无可归属的趋势商业证据。",
+      "evidence": [],
+      "evidence_freshness": "NO_PRIMARY_RESULT",
+      "gap_check": "未取得可归属本轮趋势的直接商业传导，已检查已取得材料无相反证据",
+      "followup": {
+        "required": false,
+        "executed": false,
+        "result": "无可核查直接关联或补查不会改变当前判断，未机械追加"
+      },
+      "transmission": "NOT_SUPPORTED",
+      "transmission_summary": "本轮未核实仁智股份的有效油服订单、客户认证或交付，且无可归属的趋势商业证据。",
+      "future_window": "若出现与本轮趋势直接相关的订单、认证或交付，再重新评估",
+      "falsifier": "出现可核验的直接客户认证、商业订单或实际交付"
     },
     {
-      "code": "600721",
-      "company_name": "百花医药",
-      "industry_code": "S370603",
-      "industry_name": "医疗研发外包",
-      "trend_name": "CRO/医疗研发外包",
-      "pre_screen_score": 0.2375,
-      "transmission_status": "SUPPORTED",
-      "status": "SUPPORTED",
-      "evidence_summary": "2026H1 CRO业务新签订单约1.8亿元同比增长，说明需求存在商业传导。",
-      "sources": [
-        "https://vip.stock.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12528100&stockid=600721"
-      ],
-      "gap_check": "当前盈利规模偏小且估值/结构锚冲突很大。",
-      "followup_required": true,
-      "followup_result": "completed",
-      "falsifier": "后续公告/财报显示订单取消、交付中断或趋势相关业务无法向收入/利润传导。"
+      "code": "600968",
+      "company_name": "海油发展",
+      "industry_code": "S750201",
+      "industry_name": "油田服务",
+      "trend_name": "油气/石油",
+      "batch_id": "BATCH_S750201",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "海油发展业务与油气产业链相关，但本轮未闭合未来1–2季度新增订单/交付的公司级证据。",
+      "evidence": [],
+      "evidence_freshness": "NO_PRIMARY_RESULT",
+      "gap_check": "存在潜在关联，但关键商业事实未闭合",
+      "followup": {
+        "required": false,
+        "executed": false,
+        "result": "无可核查直接关联或补查不会改变当前判断，未机械追加"
+      },
+      "transmission": "UNCERTAIN",
+      "transmission_summary": "海油发展业务与油气产业链相关，但本轮未闭合未来1–2季度新增订单/交付的公司级证据。",
+      "future_window": "若出现与本轮趋势直接相关的订单、认证或交付，再重新评估",
+      "falsifier": "出现可核验的直接客户认证、商业订单或实际交付"
     },
     {
-      "code": "000809",
-      "company_name": "和展能源",
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "trend_name": "风电设备",
-      "pre_screen_score": 0.74375,
-      "transmission_status": "SUPPORTED",
-      "status": "SUPPORTED",
-      "evidence_summary": "2026H1混塔等风电业务形成新订单并已有批量生产/交付，风电景气向公司订单传导成立。",
-      "sources": [
-        "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12509670&stockid=000809"
-      ],
-      "gap_check": "盈利基数仍低，订单利润率与持续性需验证。",
-      "followup_required": true,
-      "followup_result": "completed",
-      "falsifier": "后续公告/财报显示订单取消、交付中断或趋势相关业务无法向收入/利润传导。"
+      "code": "601808",
+      "company_name": "中海油服",
+      "industry_code": "S750201",
+      "industry_name": "油田服务",
+      "trend_name": "油气/石油",
+      "batch_id": "BATCH_S750201",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "中海油服业务与趋势直接相关，但本轮未取得可核验的新增订单、合同或交付窗口证据。",
+      "evidence": [],
+      "evidence_freshness": "NO_PRIMARY_RESULT",
+      "gap_check": "存在潜在关联，但关键商业事实未闭合",
+      "followup": {
+        "required": false,
+        "executed": false,
+        "result": "无可核查直接关联或补查不会改变当前判断，未机械追加"
+      },
+      "transmission": "UNCERTAIN",
+      "transmission_summary": "中海油服业务与趋势直接相关，但本轮未取得可核验的新增订单、合同或交付窗口证据。",
+      "future_window": "若出现与本轮趋势直接相关的订单、认证或交付，再重新评估",
+      "falsifier": "出现可核验的直接客户认证、商业订单或实际交付"
     },
     {
-      "code": "002487",
-      "company_name": "大金重工",
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "trend_name": "风电设备",
-      "pre_screen_score": 0.63125,
-      "transmission_status": "SUPPORTED",
-      "status": "SUPPORTED",
-      "evidence_summary": "2026H1海上风电核心装备持续出口交付，海外订单储备较充足，商业传导明确。",
-      "sources": [
-        "https://disc.static.szse.cn/disc/disk03/finalpage/2026-08-22/08a94767-a95b-4ec6-a74b-079f1ad51211.PDF"
-      ],
-      "gap_check": "股价已处60日高位，安全边际不足。",
-      "followup_required": true,
-      "followup_result": "completed",
-      "falsifier": "后续公告/财报显示订单取消、交付中断或趋势相关业务无法向收入/利润传导。"
-    },
-    {
-      "code": "603507",
-      "company_name": "振江股份",
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "trend_name": "风电设备",
-      "pre_screen_score": 0.61875,
-      "transmission_status": "SUPPORTED",
-      "status": "SUPPORTED",
-      "evidence_summary": "2026H1在手订单规模较大，其中风电订单占主要部分，并有长期框架订单，传导明确。",
-      "sources": [
-        "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12538584&stockid=603507"
-      ],
-      "gap_check": "当前股价接近60日高位，需等待预期或价格重置。",
-      "followup_required": true,
-      "followup_result": "completed",
-      "falsifier": "后续公告/财报显示订单取消、交付中断或趋势相关业务无法向收入/利润传导。"
-    },
-    {
-      "code": "600072",
-      "company_name": "中船科技",
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "trend_name": "风电设备",
-      "pre_screen_score": 0.575,
-      "transmission_status": "SUPPORTED",
-      "status": "SUPPORTED",
-      "evidence_summary": "风电主机新签订单和在手订单明显增长，交付增加，行业需求已进入公司订单端。",
-      "sources": [
-        "https://paper.cnstock.com/html/2026-07/25/content_2248492.htm"
-      ],
-      "gap_check": "利润仍为负，估值只能用低置信PB代理。",
-      "followup_required": true,
-      "followup_result": "completed",
-      "falsifier": "后续公告/财报显示订单取消、交付中断或趋势相关业务无法向收入/利润传导。"
-    },
-    {
-      "code": "603063",
-      "company_name": "禾望电气",
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "trend_name": "风电设备",
-      "pre_screen_score": 0.575,
-      "transmission_status": "SUPPORTED",
-      "status": "SUPPORTED",
-      "evidence_summary": "风电变流器具备长期客户并保持批量交付，商业传导存在。",
-      "sources": [
-        "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12477626&stockid=603063"
-      ],
-      "gap_check": "2026H1收入与利润同比收缩，与订单/交付证据存在时间链冲突。",
-      "followup_required": true,
-      "followup_result": "completed",
-      "falsifier": "后续公告/财报显示订单取消、交付中断或趋势相关业务无法向收入/利润传导。"
-    },
-    {
-      "code": "603218",
-      "company_name": "日月股份",
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "trend_name": "风电设备",
-      "pre_screen_score": 0.5625,
-      "transmission_status": "SUPPORTED",
-      "status": "SUPPORTED",
-      "evidence_summary": "风电大型铸件持续批量出货，对Vestas稳定供货且Nordex机型进入量产，商业传导成立。",
-      "sources": [
-        "https://vip.stock.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?CompanyCode=80414704&gather=1&id=12560257"
-      ],
-      "gap_check": "财务仍同比下滑，需要后续订单向利润传导确认。",
-      "followup_required": true,
-      "followup_result": "completed",
-      "falsifier": "后续公告/财报显示订单取消、交付中断或趋势相关业务无法向收入/利润传导。"
-    }
-  ],
-  "expectation": [
-    {
-      "code": "600072",
-      "company_name": "中船科技",
-      "status": "PRICED_IN"
-    },
-    {
-      "code": "600110",
-      "company_name": "诺德股份",
-      "status": "CONFIRMING"
-    },
-    {
-      "code": "600721",
-      "company_name": "百花医药",
-      "status": "PRICED_IN"
-    },
-    {
-      "code": "603063",
-      "company_name": "禾望电气",
-      "status": "UNCERTAIN"
-    },
-    {
-      "code": "603127",
-      "company_name": "昭衍新药",
-      "status": "CONFIRMING"
-    },
-    {
-      "code": "603218",
-      "company_name": "日月股份",
-      "status": "EARLY"
-    },
-    {
-      "code": "603259",
-      "company_name": "药明康德",
-      "status": "PRICED_IN"
-    },
-    {
-      "code": "603456",
-      "company_name": "九洲药业",
-      "status": "CONFIRMING"
-    },
-    {
-      "code": "603507",
-      "company_name": "振江股份",
-      "status": "PRICED_IN"
-    },
-    {
-      "code": "603659",
-      "company_name": "璞泰来",
-      "status": "CONFIRMING"
-    },
-    {
-      "code": "002812",
-      "company_name": "恩捷股份",
-      "status": "CONFIRMING"
-    },
-    {
-      "code": "002460",
-      "company_name": "赣锋锂业",
-      "status": "CONFIRMING"
-    },
-    {
-      "code": "002821",
-      "company_name": "凯莱英",
-      "status": "PRICED_IN"
-    },
-    {
-      "code": "000809",
-      "company_name": "和展能源",
-      "status": "CONFIRMING"
-    },
-    {
-      "code": "002487",
-      "company_name": "大金重工",
-      "status": "CONFIRMING"
+      "code": "603619",
+      "company_name": "中曼石油",
+      "industry_code": "S750201",
+      "industry_name": "油田服务",
+      "trend_name": "油气/石油",
+      "batch_id": "BATCH_S750201",
+      "batch_query": "按产业环节核查公司公告、财报、交易所披露及投资者关系材料中的产品、订单、客户认证、产能与交付",
+      "business_link_check": "中曼石油业务与趋势直接相关，但本轮未取得可核验的新增订单、合同或交付窗口证据。",
+      "evidence": [],
+      "evidence_freshness": "NO_PRIMARY_RESULT",
+      "gap_check": "存在潜在关联，但关键商业事实未闭合",
+      "followup": {
+        "required": false,
+        "executed": false,
+        "result": "无可核查直接关联或补查不会改变当前判断，未机械追加"
+      },
+      "transmission": "UNCERTAIN",
+      "transmission_summary": "中曼石油业务与趋势直接相关，但本轮未取得可核验的新增订单、合同或交付窗口证据。",
+      "future_window": "若出现与本轮趋势直接相关的订单、认证或交付，再重新评估",
+      "falsifier": "出现可核验的直接客户认证、商业订单或实际交付"
     }
   ],
   "ready": [],
   "wait": [
     {
       "rank": 1,
-      "code": "600110",
-      "company_name": "诺德股份",
-      "trend_name": "固态电池",
-      "industry_code": "S630701",
-      "industry_name": "锂电池",
+      "code": "600938",
+      "company_name": "中国海油",
+      "trend_name": "油气/石油",
+      "industry_code": "S750101",
+      "industry_name": "油气开采Ⅲ",
       "status": "WAIT",
-      "wait_reason": "WAIT_PRICE",
-      "wait_reason_detail": "固态电池用镀镍合金箔已出现小批量供货，但当前价格显著高于保守PB/ROE估值锚。",
-      "current_price": 10.87,
-      "expectation": "CONFIRMING",
-      "valuation_archetype": "Industrial/Growth mixed",
-      "primary_valuation_metric": "PB/ROE conservative",
-      "peer_median_multiple": 2.56,
-      "target_multiple_or_pb": 2.05,
-      "fundamental_anchor_price": 6.28,
-      "structure_anchor_center": 10.86,
+      "wait_reason": "WAIT_MARGIN",
+      "wait_reason_detail": "油气产量与利润已验证，但当前价高于保守PB-ROE/正常化盈利锚，安全边际不足。",
+      "current_price": 34.17,
+      "valuation_archetype": "Cyclical",
+      "primary_valuation_metric": "normalized earnings + PB-ROE",
+      "peer_median_multiple": 1.42,
+      "target_multiple_or_pb": 1.6,
+      "fundamental_anchor_price": 30.55,
+      "valuation_confidence": "medium",
+      "structure_anchor_center": 32.26,
       "reasonable_price_range": [
-        5.8,
-        6.4
+        29.8,
+        31.2
+      ],
+      "reasonable_buy_range": [
+        29.8,
+        31.2
       ],
       "low_risk_buy_range": [
-        4.9,
-        5.4
+        25.8,
+        27.2
       ],
-      "price_range_basis": "PB/ROE折价锚；技术结构高于基本面锚，不抬高价值上限。",
-      "reentry_trigger": "价格回到<=6.40；4.90-5.40为优先低风险区，并继续验证固态合金箔订单放量。",
-      "invalidation": "固态相关供货停止/无法形成持续订单，或盈利质量进一步恶化。",
-      "transmission_evidence": "2026H1披露固态电池用镀镍合金箔已小批量供货，形成直接商业传导。",
-      "capital_flow_observation": {
-        "status": "UNVERIFIED",
-        "reason": "未取得同口径、同交易日可溯源资金流数据；按规则不影响主状态与价格区间。"
-      }
+      "price_range_basis": "周期行业采用正常化盈利与PB-ROE双锚；以同业PB中位数和公司较高ROE作保守修正，技术支撑不抬高基本面上限，低风险区加入周期波动折价。",
+      "reentry_trigger": "价格回到31.20元以下进入合理区；回到27.20元以下进入低风险区，并维持油气产量增长与成本纪律。",
+      "transmission": "SUPPORTED",
+      "transmission_evidence": "2026年半年报披露油气净产量398.7百万桶油当量、同比增长3.7%，油气销售与利润同步增长，油气趋势已直接传导至产销量与财务。",
+      "expectation": "CONFIRMING",
+      "invalidation": "净产量增速转负、成本显著上升或油价/利润传导持续弱于半年报趋势。",
+      "research_evidence": [
+        {
+          "date": "2026-08-26",
+          "url": "https://www.stcn.com/article/detail/4132565.html",
+          "kind": "2026年半年报摘要报道"
+        }
+      ]
     },
     {
       "rank": 2,
-      "code": "002812",
-      "company_name": "恩捷股份",
-      "trend_name": "固态电池",
-      "industry_code": "S630702",
-      "industry_name": "电池化学品",
-      "status": "WAIT",
-      "wait_reason": "WAIT_PRICE",
-      "wait_reason_detail": "固态相关材料商业关联成立，但估值与结构锚仍高于低风险区。",
-      "current_price": 45.51,
-      "expectation": "CONFIRMING",
-      "valuation_archetype": "Growth/Materials",
-      "primary_valuation_metric": "PE+PB conservative median",
-      "peer_median_multiple": 16.44,
-      "target_multiple_or_pb": 18.1,
-      "fundamental_anchor_price": 40.29,
-      "structure_anchor_center": 45.57,
-      "reasonable_price_range": [
-        38,
-        40.5
-      ],
-      "low_risk_buy_range": [
-        32.5,
-        35
-      ],
-      "price_range_basis": "dynamic PE与PB双锚保守组合；结构锚高于基本面锚。",
-      "reentry_trigger": "价格回到38.0-40.5，优先32.5-35.0；同时观察固态专用品类量产节奏。",
-      "invalidation": "固态客户验证/合作不能转化为持续商业化。",
-      "transmission_evidence": "投资者关系记录披露半固态/全固态相关隔膜、电解质膜布局，并存在客户合作/验证，具备商业化传导证据。",
-      "capital_flow_observation": {
-        "status": "UNVERIFIED",
-        "reason": "未取得同口径、同交易日可溯源资金流数据；按规则不影响主状态与价格区间。"
-      }
-    },
-    {
-      "rank": 3,
-      "code": "603659",
-      "company_name": "璞泰来",
-      "trend_name": "固态电池",
-      "industry_code": "S630702",
-      "industry_name": "电池化学品",
-      "status": "WAIT",
-      "wait_reason": "WAIT_MARGIN",
-      "wait_reason_detail": "干法电极/固态相关设备已有交付，但当前价仅接近合理区，低风险安全边际不足。",
-      "current_price": 21.45,
-      "expectation": "CONFIRMING",
-      "valuation_archetype": "Growth/Equipment-Materials",
-      "primary_valuation_metric": "PE+PB",
-      "peer_median_multiple": 16.44,
-      "target_multiple_or_pb": 17.3,
-      "fundamental_anchor_price": 23.79,
-      "structure_anchor_center": 21.56,
-      "reasonable_price_range": [
-        20.5,
-        22.3
-      ],
-      "low_risk_buy_range": [
-        17.5,
-        19
-      ],
-      "price_range_basis": "PE与PB锚均有效，结构区低于基本面锚，采用结构区作为执行区。",
-      "reentry_trigger": "优先等待17.5-19.0；若20.5-22.3内出现订单/验收继续强化也可复核。",
-      "invalidation": "客户验收后无后续订单或固态设备收入兑现不及预期。",
-      "transmission_evidence": "2026H1报告/公开披露显示干法电极及固态相关设备已向头部客户交付并验收，属于直接商业项目。",
-      "capital_flow_observation": {
-        "status": "UNVERIFIED",
-        "reason": "未取得同口径、同交易日可溯源资金流数据；按规则不影响主状态与价格区间。"
-      }
-    },
-    {
-      "rank": 4,
-      "code": "002460",
-      "company_name": "赣锋锂业",
-      "trend_name": "固态电池",
-      "industry_code": "S240603",
-      "industry_name": "锂",
-      "status": "WAIT",
-      "wait_reason": "WAIT_MARGIN",
-      "wait_reason_detail": "固态电池小批量量产/订单线索成立，但周期属性要求更高安全边际。",
-      "current_price": 43.43,
-      "expectation": "CONFIRMING",
-      "valuation_archetype": "Cyclical/Commodity + new-tech option",
-      "primary_valuation_metric": "normalized PE + PB",
-      "peer_median_multiple": 11.51,
-      "target_multiple_or_pb": 11.5,
-      "fundamental_anchor_price": 45.17,
-      "structure_anchor_center": 41.67,
-      "reasonable_price_range": [
-        40.5,
-        44.5
-      ],
-      "low_risk_buy_range": [
-        33.5,
-        37.5
-      ],
-      "price_range_basis": "周期行业采用PE/PB保守组合并以更低结构锚执行。",
-      "reentry_trigger": "优先33.5-37.5；40.5-44.5内需继续验证固态商业订单扩大。",
-      "invalidation": "固态量产/订单无法扩张或锂周期下行显著压低正常化盈利。",
-      "transmission_evidence": "2026H1报告披露固态电池一体化布局，500Wh/kg 10Ah产品进入小批量量产并出现面向低空/机器人等商业订单线索。",
-      "capital_flow_observation": {
-        "status": "UNVERIFIED",
-        "reason": "未取得同口径、同交易日可溯源资金流数据；按规则不影响主状态与价格区间。"
-      }
-    },
-    {
-      "rank": 5,
-      "code": "603259",
-      "company_name": "药明康德",
-      "trend_name": "CRO/医疗研发外包",
-      "industry_code": "S370603",
-      "industry_name": "医疗研发外包",
-      "status": "WAIT",
-      "wait_reason": "WAIT_EXPECTATION",
-      "wait_reason_detail": "订单与经营表现强，但股价已处60日高位附近，主要催化已被明显交易。",
-      "current_price": 167.34,
-      "expectation": "PRICED_IN",
-      "valuation_archetype": "Growth/R&D-intensive",
-      "primary_valuation_metric": "dynamic PE + PB",
-      "peer_median_multiple": 22.94,
-      "target_multiple_or_pb": 25.2,
-      "fundamental_anchor_price": 167.06,
-      "structure_anchor_center": 160.91,
-      "reasonable_price_range": [
-        148,
-        160
-      ],
-      "low_risk_buy_range": [
-        128,
-        140
-      ],
-      "price_range_basis": "盈利质量和ROE优于同业，允许接近/略高于同业PE；低风险区仍需明显折价。",
-      "reentry_trigger": "价格回到148-160并出现预期重置；128-140为优先低风险区。",
-      "invalidation": "在手订单增长明显放缓或持续经营业务利润率恶化。",
-      "transmission_evidence": "公司2026H1持续经营业务在手订单约664.3亿元同比+25.2%，CRDMO需求与交付延续。",
-      "capital_flow_observation": {
-        "status": "UNVERIFIED",
-        "reason": "未取得同口径、同交易日可溯源资金流数据；按规则不影响主状态与价格区间。"
-      }
-    },
-    {
-      "rank": 6,
-      "code": "603456",
-      "company_name": "九洲药业",
-      "trend_name": "CRO/医疗研发外包",
-      "industry_code": "S370603",
-      "industry_name": "医疗研发外包",
+      "code": "000968",
+      "company_name": "蓝焰控股",
+      "trend_name": "油气/石油",
+      "industry_code": "S750101",
+      "industry_name": "油气开采Ⅲ",
       "status": "WAIT",
       "wait_reason": "WAIT_CATALYST",
-      "wait_reason_detail": "订单/项目增长已有验证，但当前财务仍偏弱，等待订单向利润兑现。",
-      "current_price": 16.75,
-      "expectation": "CONFIRMING",
-      "valuation_archetype": "Growth/R&D-intensive",
-      "primary_valuation_metric": "dynamic PE",
-      "peer_median_multiple": 22.94,
-      "target_multiple_or_pb": 18.35,
-      "fundamental_anchor_price": 17.4,
-      "structure_anchor_center": 16.56,
+      "wait_reason_detail": "煤层气项目持续推进，但收入与利润同比仍下降，需等待项目进度转化为产量和盈利确认。",
+      "current_price": 7.16,
+      "valuation_archetype": "Cyclical",
+      "primary_valuation_metric": "PB-ROE + normalized earnings",
+      "peer_median_multiple": 1.42,
+      "target_multiple_or_pb": 1.14,
+      "fundamental_anchor_price": 7.77,
+      "valuation_confidence": "medium-low",
+      "structure_anchor_center": 6.77,
       "reasonable_price_range": [
-        15.5,
-        17.2
+        6.65,
+        7
+      ],
+      "reasonable_buy_range": [
+        6.65,
+        7
       ],
       "low_risk_buy_range": [
-        13.5,
-        14.7
+        5.98,
+        6.35
       ],
-      "price_range_basis": "增长低于同业时对PE中位数折价，结构锚与基本面锚接近。",
-      "reentry_trigger": "观察新订单向收入/利润兑现；13.5-14.7为优先低风险区。",
-      "invalidation": "订单转化率/海外交付持续走弱。",
-      "transmission_evidence": "2026H1新增客户29家、新增项目48个、新增订单107个，含商业化订单；海外交付和TIDES订单增长。",
-      "capital_flow_observation": {
-        "status": "UNVERIFIED",
-        "reason": "未取得同口径、同交易日可溯源资金流数据；按规则不影响主状态与价格区间。"
-      }
-    },
-    {
-      "rank": 7,
-      "code": "600721",
-      "company_name": "百花医药",
-      "trend_name": "CRO/医疗研发外包",
-      "industry_code": "S370603",
-      "industry_name": "医疗研发外包",
-      "status": "WAIT",
-      "wait_reason": "WAIT_EXPECTATION",
-      "wait_reason_detail": "订单增量存在，但当前盈利能力与估值严重透支，需等待大幅估值重置。",
-      "current_price": 13.11,
-      "expectation": "PRICED_IN",
-      "valuation_archetype": "Growth/R&D-intensive",
-      "primary_valuation_metric": "PE conservative",
-      "peer_median_multiple": 22.94,
-      "target_multiple_or_pb": 16.06,
-      "fundamental_anchor_price": 2.6,
-      "structure_anchor_center": 13.03,
-      "reasonable_price_range": [
-        2.2,
-        3
-      ],
-      "low_risk_buy_range": [
-        1.8,
-        2.1
-      ],
-      "price_range_basis": "核心盈利下降，PE锚大幅折价；结构锚远高于基本面锚，不能抬高价值区。",
-      "reentry_trigger": "需要盈利显著改善或估值重置至2.2-3.0区间后重新评估。",
-      "invalidation": "订单增长无法带来利润改善，或持续亏损/现金流恶化。",
-      "transmission_evidence": "2026H1 CRO业务新签订单约1.8亿元同比增长，说明需求存在商业传导。",
-      "capital_flow_observation": {
-        "status": "UNVERIFIED",
-        "reason": "未取得同口径、同交易日可溯源资金流数据；按规则不影响主状态与价格区间。"
-      }
-    },
-    {
-      "rank": 8,
-      "code": "000809",
-      "company_name": "和展能源",
-      "trend_name": "风电设备",
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "status": "WAIT",
-      "wait_reason": "WAIT_CATALYST",
-      "wait_reason_detail": "风电订单和生产交付已验证，但盈利基数低，等待订单转化质量确认。",
-      "current_price": 3.42,
-      "expectation": "CONFIRMING",
-      "valuation_archetype": "Industrial",
-      "primary_valuation_metric": "PB/ROE",
-      "peer_median_multiple": 1.84,
-      "target_multiple_or_pb": 1.25,
-      "fundamental_anchor_price": 3.85,
-      "structure_anchor_center": 3.45,
-      "reasonable_price_range": [
-        3.25,
-        3.55
-      ],
-      "low_risk_buy_range": [
-        2.85,
-        3.05
-      ],
-      "price_range_basis": "低ROE下对行业PB中位数显著折价，结构锚与合理区接近。",
-      "reentry_trigger": "订单利润率改善得到财报确认；2.85-3.05为低风险区。",
-      "invalidation": "新增订单无法转化为收入利润或项目执行延迟。",
-      "transmission_evidence": "2026H1混塔等风电业务形成新订单并已有批量生产/交付，风电景气向公司订单传导成立。",
-      "capital_flow_observation": {
-        "status": "UNVERIFIED",
-        "reason": "未取得同口径、同交易日可溯源资金流数据；按规则不影响主状态与价格区间。"
-      }
-    },
-    {
-      "rank": 9,
-      "code": "002487",
-      "company_name": "大金重工",
-      "trend_name": "风电设备",
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "status": "WAIT",
-      "wait_reason": "WAIT_PRICE",
-      "wait_reason_detail": "海外/海风订单强，但当前价已处60日高位，等待价格回到结构与估值共同区。",
-      "current_price": 46.29,
-      "expectation": "CONFIRMING",
-      "valuation_archetype": "Industrial",
-      "primary_valuation_metric": "PE+PB",
-      "peer_median_multiple": 37.7,
-      "target_multiple_or_pb": 31,
-      "fundamental_anchor_price": 54.37,
-      "structure_anchor_center": 41.93,
-      "reasonable_price_range": [
-        40,
-        44.5
-      ],
-      "low_risk_buy_range": [
-        33.5,
-        37.5
-      ],
-      "price_range_basis": "盈利质量较好但股价拥挤，结构锚低于基本面锚，采用结构区执行。",
-      "reentry_trigger": "价格回到40.0-44.5，优先33.5-37.5。",
-      "invalidation": "海外订单取消/延迟或交付利润率显著下滑。",
-      "transmission_evidence": "2026H1海上风电核心装备持续出口交付，海外订单储备较充足，商业传导明确。",
-      "capital_flow_observation": {
-        "status": "UNVERIFIED",
-        "reason": "未取得同口径、同交易日可溯源资金流数据；按规则不影响主状态与价格区间。"
-      }
-    },
-    {
-      "rank": 10,
-      "code": "603507",
-      "company_name": "振江股份",
-      "trend_name": "风电设备",
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "status": "WAIT",
-      "wait_reason": "WAIT_EXPECTATION",
-      "wait_reason_detail": "订单储备强但股价接近60日高位，预期交易较充分。",
-      "current_price": 27.71,
-      "expectation": "PRICED_IN",
-      "valuation_archetype": "Industrial",
-      "primary_valuation_metric": "PB/ROE conservative",
-      "peer_median_multiple": 1.84,
-      "target_multiple_or_pb": 2.2,
-      "fundamental_anchor_price": 27.46,
-      "structure_anchor_center": 26.58,
-      "reasonable_price_range": [
-        23,
-        26.5
-      ],
-      "low_risk_buy_range": [
-        19,
-        21.5
-      ],
-      "price_range_basis": "PE隐含上限过高，采用PB/ROE保守锚并由结构位约束。",
-      "reentry_trigger": "等待价格回到23.0-26.5并观察订单兑现；19.0-21.5为低风险区。",
-      "invalidation": "框架订单转化率下降或利润率恶化。",
-      "transmission_evidence": "2026H1在手订单规模较大，其中风电订单占主要部分，并有长期框架订单，传导明确。",
-      "capital_flow_observation": {
-        "status": "UNVERIFIED",
-        "reason": "未取得同口径、同交易日可溯源资金流数据；按规则不影响主状态与价格区间。"
-      }
-    },
-    {
-      "rank": 11,
-      "code": "600072",
-      "company_name": "中船科技",
-      "trend_name": "风电设备",
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "status": "WAIT",
-      "wait_reason": "WAIT_EXPECTATION",
-      "wait_reason_detail": "风电订单增长明确，但仍处亏损，当前价格远高于低置信PB锚。",
-      "current_price": 9.7,
-      "expectation": "PRICED_IN",
-      "valuation_archetype": "Industrial/turnaround",
-      "primary_valuation_metric": "PB/ROE low-confidence",
-      "peer_median_multiple": 1.84,
-      "target_multiple_or_pb": 1,
-      "fundamental_anchor_price": 5.27,
-      "structure_anchor_center": 8.94,
-      "reasonable_price_range": [
-        4.9,
-        5.5
-      ],
-      "low_risk_buy_range": [
-        4.2,
-        4.6
-      ],
-      "price_range_basis": "负利润下PE失效，使用显著折价PB代理；结构位不抬高估值。",
-      "reentry_trigger": "盈利转正并验证订单利润率，或价格回到4.9-5.5。",
-      "invalidation": "亏损扩大或风电订单/交付显著下滑。",
-      "transmission_evidence": "风电主机新签订单和在手订单明显增长，交付增加，行业需求已进入公司订单端。",
-      "capital_flow_observation": {
-        "status": "UNVERIFIED",
-        "reason": "未取得同口径、同交易日可溯源资金流数据；按规则不影响主状态与价格区间。"
-      }
-    },
-    {
-      "rank": 12,
-      "code": "603218",
-      "company_name": "日月股份",
-      "trend_name": "风电设备",
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "status": "WAIT",
-      "wait_reason": "WAIT_CATALYST",
-      "wait_reason_detail": "批量供货成立，但财务仍同比下滑，等待订单向利润传导。",
-      "current_price": 9.56,
+      "price_range_basis": "周期型煤层气按同业PB-ROE折价并结合项目进度；由于增长与ROE弱于同业，以结构支撑约束合理区，低风险区加入约10%–15%项目兑现折价。",
+      "reentry_trigger": "后续公告确认武乡南/和顺横岭项目进度转化为新增产量或利润，同时价格回到7.00元以下；6.35元以下进入低风险区。",
+      "transmission": "SUPPORTED",
+      "transmission_evidence": "2026年半年报披露煤层气勘探开发项目持续投入，武乡南与和顺横岭项目进度分别44.63%和30.90%，构成油气业务的持续商业投入与兑现窗口。",
       "expectation": "EARLY",
-      "valuation_archetype": "Industrial",
-      "primary_valuation_metric": "PE+PB",
-      "peer_median_multiple": 37.7,
-      "target_multiple_or_pb": 30.2,
-      "fundamental_anchor_price": 11.09,
-      "structure_anchor_center": 9.6,
-      "reasonable_price_range": [
-        9,
-        9.8
-      ],
-      "low_risk_buy_range": [
-        7.8,
-        8.5
-      ],
-      "price_range_basis": "盈利下滑对行业倍数折价；结构锚与合理区重合。",
-      "reentry_trigger": "财务确认利润改善；7.8-8.5为低风险区。",
-      "invalidation": "客户供货减少或利润继续恶化。",
-      "transmission_evidence": "风电大型铸件持续批量出货，对Vestas稳定供货且Nordex机型进入量产，商业传导成立。",
-      "capital_flow_observation": {
-        "status": "UNVERIFIED",
-        "reason": "未取得同口径、同交易日可溯源资金流数据；按规则不影响主状态与价格区间。"
-      }
+      "invalidation": "项目进度停滞、产量未兑现，或营收与核心利润降幅继续扩大。",
+      "research_evidence": [
+        {
+          "date": "2026-08-26",
+          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12538185&stockid=000968",
+          "kind": "2026年半年报转载"
+        }
+      ]
     }
   ],
   "early_evidence": [
-    {
-      "code": "600884",
-      "company_name": "杉杉股份",
-      "industry_code": "S630702",
-      "industry_name": "电池化学品",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.566667,
-      "transmission_status": "EARLY_EVIDENCE",
-      "status": "EARLY_EVIDENCE",
-      "reason": "硅碳等产品可用于半/全固态并有量产交付，但未核实终端订单是否由本轮固态趋势直接驱动。",
-      "next_validation_trigger": "明确客户认证、量产订单、批量交付或趋势相关收入披露。"
-    },
-    {
-      "code": "002074",
-      "company_name": "国轩高科",
-      "industry_code": "S630701",
-      "industry_name": "锂电池",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.61875,
-      "transmission_status": "EARLY_EVIDENCE",
-      "status": "EARLY_EVIDENCE",
-      "reason": "固态电池研发与产业化进展明确，但本轮未核实趋势特定商业订单或交付规模。",
-      "next_validation_trigger": "明确客户认证、量产订单、批量交付或趋势相关收入披露。"
-    },
-    {
-      "code": "002245",
-      "company_name": "蔚蓝锂芯",
-      "industry_code": "S630701",
-      "industry_name": "锂电池",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.53125,
-      "transmission_status": "EARLY_EVIDENCE",
-      "status": "EARLY_EVIDENCE",
-      "reason": "公司明确固态/半固态仍处技术储备阶段，直接业务关联成立但未形成可靠商业验证。",
-      "next_validation_trigger": "明确客户认证、量产订单、批量交付或趋势相关收入披露。"
-    },
     {
       "code": "002709",
       "company_name": "天赐材料",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.904167,
-      "transmission_status": "EARLY_EVIDENCE",
-      "status": "EARLY_EVIDENCE",
-      "reason": "固态电解质/相关材料处研发和产品推进阶段，未核实足以支持本轮商业传导的固态专属订单。",
-      "next_validation_trigger": "明确客户认证、量产订单、批量交付或趋势相关收入披露。"
+      "transmission": "EARLY_EVIDENCE",
+      "evidence": "公司官方产品体系包含固态电解质，但未取得客户认证、订单或量产交付的可靠商业验证。",
+      "commercialization_gap": "已核实直接业务关联，但缺少可靠商业验证",
+      "next_trigger": "后续以客户认证、量产线投产或商业订单为升级触发",
+      "sources": [
+        {
+          "date": "2026-10-08",
+          "url": "https://cn.tinci.com/",
+          "kind": "公司官网产品页"
+        }
+      ]
     },
     {
-      "code": "002805",
-      "company_name": "丰元股份",
+      "code": "000695",
+      "company_name": "滨海能源",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.570833,
-      "transmission_status": "EARLY_EVIDENCE",
-      "status": "EARLY_EVIDENCE",
-      "reason": "存在固态正极材料联合研发/产业化探索，商业验证不足。",
-      "next_validation_trigger": "明确客户认证、量产订单、批量交付或趋势相关收入披露。"
-    },
-    {
-      "code": "002466",
-      "company_name": "天齐锂业",
-      "industry_code": "S240603",
-      "industry_name": "锂",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.775,
-      "transmission_status": "EARLY_EVIDENCE",
-      "status": "EARLY_EVIDENCE",
-      "reason": "通过投资/合作切入固态产业链，直接关联存在，但未核实公司自身固态业务商业订单。",
-      "next_validation_trigger": "明确客户认证、量产订单、批量交付或趋势相关收入披露。"
-    },
-    {
-      "code": "002240",
-      "company_name": "盛新锂能",
-      "industry_code": "S240603",
-      "industry_name": "锂",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.416667,
-      "transmission_status": "EARLY_EVIDENCE",
-      "status": "EARLY_EVIDENCE",
-      "reason": "金属锂产能规划并与固态客户沟通，尚缺固态客户量产订单/交付验证。",
-      "next_validation_trigger": "明确客户认证、量产订单、批量交付或趋势相关收入披露。"
+      "transmission": "EARLY_EVIDENCE",
+      "evidence": "2026-09-03投资者关系记录显示正建设2000吨/年硅碳负极及1000吨/年多孔碳项目，仍处建设/研发阶段，未见商业订单验证。",
+      "commercialization_gap": "已核实直接业务关联，但缺少可靠商业验证",
+      "next_trigger": "后续以客户认证、量产线投产或商业订单为升级触发",
+      "sources": [
+        {
+          "date": "2026-09-03",
+          "url": "https://data.eastmoney.com/notices/detail/000695/AN202609031828964816.html",
+          "kind": "投资者关系记录"
+        }
+      ]
     },
     {
       "code": "002167",
@@ -2242,104 +2339,157 @@
       "industry_code": "S240504",
       "industry_name": "其他小金属",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.686364,
-      "transmission_status": "EARLY_EVIDENCE",
-      "status": "EARLY_EVIDENCE",
-      "reason": "锆产品可用于固态电解质且处客户验证，认证周期长，尚未形成可靠商业验证。",
-      "next_validation_trigger": "明确客户认证、量产订单、批量交付或趋势相关收入披露。"
+      "transmission": "EARLY_EVIDENCE",
+      "evidence": "2026-09-15投资者关系记录确认锆产品可用于固态电解质并在配合下游送样测试，但客户认证尚未通过、行业仍处研发中试。",
+      "commercialization_gap": "已核实直接业务关联，但缺少可靠商业验证",
+      "next_trigger": "后续以客户认证、量产线投产或商业订单为升级触发",
+      "sources": [
+        {
+          "date": "2026-09-15",
+          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12604447&stockid=002167",
+          "kind": "投资者关系记录转载"
+        }
+      ]
     }
   ],
   "uncertain": [
     {
-      "code": "603127",
-      "company_name": "昭衍新药",
-      "trend_name": "CRO/医疗研发外包",
-      "industry_code": "S370603",
-      "industry_name": "医疗研发外包",
-      "status": "UNCERTAIN",
-      "uncertain_stage": "RISK_REWARD",
-      "reason": "订单传导明确，但2026H1归母利润大幅受生物资产公允价值变动影响，实验室服务仍亏损；核心盈利锚难以与表观PE可靠对应，暂不构造正式价格区间。",
-      "transmission_status": "SUPPORTED",
-      "expectation": "CONFIRMING",
-      "source": [
-        "https://data.cfi.cn/ybdata.aspx?id=20260907000202"
-      ]
-    },
-    {
-      "code": "002821",
-      "company_name": "凯莱英",
-      "trend_name": "CRO/医疗研发外包",
-      "industry_code": "S370603",
-      "industry_name": "医疗研发外包",
-      "status": "UNCERTAIN",
-      "uncertain_stage": "RISK_REWARD",
-      "reason": "订单传导明确，但盈利仍在调整，PE锚与PB/结构锚分歧过大，无法形成足够稳健的统一估值锚。",
-      "transmission_status": "SUPPORTED",
-      "expectation": "PRICED_IN",
-      "source": [
-        "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12526824&stockid=002821"
-      ]
-    },
-    {
-      "code": "603063",
-      "company_name": "禾望电气",
-      "trend_name": "风电设备",
-      "industry_code": "S630602",
-      "industry_name": "风电零部件",
-      "status": "UNCERTAIN",
-      "uncertain_stage": "EXPECTATION_RISK_REWARD",
-      "reason": "风电变流器批量交付证据存在，但2026H1收入/利润收缩，基本面估值锚与当前结构区冲突，无法闭合事件—财务—价格时间链。",
-      "transmission_status": "SUPPORTED",
-      "expectation": "UNCERTAIN",
-      "source": [
-        "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12477626&stockid=603063"
-      ]
-    }
-  ],
-  "drop": [
-    {
-      "code": "600152",
-      "company_name": "维科技术",
+      "code": "002850",
+      "company_name": "科达利",
       "industry_code": "S630701",
       "industry_name": "锂电池",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.4875,
-      "transmission_status": "NOT_SUPPORTED",
-      "status": "DROP",
-      "reason": "完成公司公告/半年报及固态关键词缺口检查，未取得趋势特定商业验证。"
+      "status": "UNCERTAIN",
+      "uncertain_stage": "TRANSMISSION",
+      "reason": "未取得可归属科达利且与本轮固态电池趋势直接相关的客户认证、订单或交付证据。",
+      "evidence": [],
+      "gap_check": "存在潜在关联，但关键商业事实未闭合"
     },
     {
-      "code": "600301",
-      "company_name": "华锡有色",
-      "industry_code": "S240504",
-      "industry_name": "其他小金属",
+      "code": "002074",
+      "company_name": "国轩高科",
+      "industry_code": "S630701",
+      "industry_name": "锂电池",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.595455,
-      "transmission_status": "NOT_SUPPORTED",
-      "status": "DROP",
-      "reason": "锡锑等有色业务未核实与本轮固态主题直接商业传导。"
+      "status": "UNCERTAIN",
+      "uncertain_stage": "TRANSMISSION",
+      "reason": "潜在业务关联较强，但公司定向检索未取得截至本轮可核验的固态电池商业订单、客户认证或交付证据。",
+      "evidence": [],
+      "gap_check": "存在潜在关联，但关键商业事实未闭合"
     },
     {
-      "code": "600459",
-      "company_name": "贵研铂业",
-      "industry_code": "S240504",
-      "industry_name": "其他小金属",
+      "code": "600110",
+      "company_name": "诺德股份",
+      "industry_code": "S630701",
+      "industry_name": "锂电池",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.568182,
-      "transmission_status": "NOT_SUPPORTED",
-      "status": "DROP",
-      "reason": "贵金属材料业务未核实与本轮固态主题直接商业传导。"
+      "status": "UNCERTAIN",
+      "uncertain_stage": "TRANSMISSION",
+      "reason": "铜箔可能具备材料关联，但未核实固态电池专用订单、客户认证或交付。",
+      "evidence": [],
+      "gap_check": "存在潜在关联，但关键商业事实未闭合"
     },
     {
-      "code": "603026",
-      "company_name": "石大胜华",
+      "code": "002812",
+      "company_name": "恩捷股份",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.5875,
-      "transmission_status": "NOT_SUPPORTED",
-      "status": "DROP",
-      "reason": "主要项目仍偏液态锂盐/传统电池化学品，本轮未取得固态直接商业验证。"
+      "status": "UNCERTAIN",
+      "uncertain_stage": "TRANSMISSION",
+      "reason": "隔膜业务存在潜在适配空间，但定向检索未取得固态电池客户认证或商业交付证据。",
+      "evidence": [],
+      "gap_check": "存在潜在关联，但关键商业事实未闭合"
+    },
+    {
+      "code": "603659",
+      "company_name": "璞泰来",
+      "industry_code": "S630702",
+      "industry_name": "电池化学品",
+      "trend_name": "固态电池",
+      "status": "UNCERTAIN",
+      "uncertain_stage": "TRANSMISSION",
+      "reason": "材料业务可能受益，但未核实与本轮固态电池趋势直接相关的订单、客户认证或交付。",
+      "evidence": [],
+      "gap_check": "存在潜在关联，但关键商业事实未闭合"
+    },
+    {
+      "code": "002805",
+      "company_name": "丰元股份",
+      "industry_code": "S630702",
+      "industry_name": "电池化学品",
+      "trend_name": "固态电池",
+      "status": "UNCERTAIN",
+      "uncertain_stage": "TRANSMISSION",
+      "reason": "未取得丰元股份与固态电池直接相关的客户认证、订单或交付证据。",
+      "evidence": [],
+      "gap_check": "存在潜在关联，但关键商业事实未闭合"
+    },
+    {
+      "code": "002460",
+      "company_name": "赣锋锂业",
+      "industry_code": "S240603",
+      "industry_name": "锂",
+      "trend_name": "固态电池",
+      "status": "UNCERTAIN",
+      "uncertain_stage": "TRANSMISSION",
+      "reason": "公司具备锂全产业链与电池业务，但定向检索未闭合固态电池商业订单、认证或交付。",
+      "evidence": [
+        {
+          "date": "2026-10-08",
+          "url": "https://www.ganfenglithium.com/",
+          "kind": "公司官网"
+        }
+      ],
+      "gap_check": "存在潜在关联，但关键商业事实未闭合"
+    },
+    {
+      "code": "600871",
+      "company_name": "石化油服",
+      "industry_code": "S750201",
+      "industry_name": "油田服务",
+      "trend_name": "油气/石油",
+      "status": "UNCERTAIN",
+      "uncertain_stage": "TRANSMISSION",
+      "reason": "油服业务与趋势直接相关，但本轮未取得可核验的未来1–2季度新增订单或交付证据。",
+      "evidence": [],
+      "gap_check": "存在潜在关联，但关键商业事实未闭合"
+    },
+    {
+      "code": "600968",
+      "company_name": "海油发展",
+      "industry_code": "S750201",
+      "industry_name": "油田服务",
+      "trend_name": "油气/石油",
+      "status": "UNCERTAIN",
+      "uncertain_stage": "TRANSMISSION",
+      "reason": "海油发展业务与油气产业链相关，但本轮未闭合未来1–2季度新增订单/交付的公司级证据。",
+      "evidence": [],
+      "gap_check": "存在潜在关联，但关键商业事实未闭合"
+    },
+    {
+      "code": "601808",
+      "company_name": "中海油服",
+      "industry_code": "S750201",
+      "industry_name": "油田服务",
+      "trend_name": "油气/石油",
+      "status": "UNCERTAIN",
+      "uncertain_stage": "TRANSMISSION",
+      "reason": "中海油服业务与趋势直接相关，但本轮未取得可核验的新增订单、合同或交付窗口证据。",
+      "evidence": [],
+      "gap_check": "存在潜在关联，但关键商业事实未闭合"
+    },
+    {
+      "code": "603619",
+      "company_name": "中曼石油",
+      "industry_code": "S750201",
+      "industry_name": "油田服务",
+      "trend_name": "油气/石油",
+      "status": "UNCERTAIN",
+      "uncertain_stage": "TRANSMISSION",
+      "reason": "中曼石油业务与趋势直接相关，但本轮未取得可核验的新增订单、合同或交付窗口证据。",
+      "evidence": [],
+      "gap_check": "存在潜在关联，但关键商业事实未闭合"
     },
     {
       "code": "603032",
@@ -2347,32 +2497,76 @@
       "industry_code": "S630703",
       "industry_name": "锂电专用设备",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.625,
-      "transmission_status": "NOT_SUPPORTED",
-      "status": "DROP",
-      "reason": "完成公司业务与固态关键词定向检查，未取得直接商业订单/项目证据。"
-    },
-    {
-      "code": "002850",
-      "company_name": "科达利",
-      "industry_code": "S630701",
-      "industry_name": "锂电池",
-      "trend_name": "固态电池",
-      "pre_screen_score": 0.775,
-      "transmission_status": "NOT_SUPPORTED",
-      "status": "DROP",
-      "reason": "检索到电池结构件扩产/客户业务，但未核实与本轮固态电池趋势直接相关的商业订单或交付。"
-    },
+      "status": "UNCERTAIN",
+      "uncertain_stage": "RISK_REWARD",
+      "reason": "虽有极小规模固态电池相关产品销售，但行业内仅1家hard-eligible样本，无法按规则形成可靠上级行业估值回退；当前PE与结构锚不足以独立建立可辩护价格区间。",
+      "transmission": "SUPPORTED",
+      "expectation": "EARLY",
+      "evidence": [
+        {
+          "date": "2026-04-28",
+          "url": "https://xiaojingji.com/stock/one/notice?code=603032&type=5",
+          "kind": "公司互动回复转载"
+        }
+      ]
+    }
+  ],
+  "drop": [
     {
       "code": "000049",
       "company_name": "德赛电池",
       "industry_code": "S630701",
       "industry_name": "锂电池",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.6625,
-      "transmission_status": "NOT_SUPPORTED",
       "status": "DROP",
-      "reason": "未来增长重点仍集中储能、消费电池及SIP，本轮未核实固态趋势直接商业传导。"
+      "drop_stage": "TRANSMISSION",
+      "reason": "公司主营消费类电池系统，本轮批量检索未取得固态电池商业传导证据。",
+      "evidence": []
+    },
+    {
+      "code": "002245",
+      "company_name": "蔚蓝锂芯",
+      "industry_code": "S630701",
+      "industry_name": "锂电池",
+      "trend_name": "固态电池",
+      "status": "DROP",
+      "drop_stage": "TRANSMISSION",
+      "reason": "本轮材料显示业务以小动力及消费电池为主，未核实固态电池直接商业传导。",
+      "evidence": []
+    },
+    {
+      "code": "600152",
+      "company_name": "维科技术",
+      "industry_code": "S630701",
+      "industry_name": "锂电池",
+      "trend_name": "固态电池",
+      "status": "DROP",
+      "drop_stage": "TRANSMISSION",
+      "reason": "公司官方资料聚焦3C锂电与钠电，未见固态电池直接商业化证据。",
+      "evidence": [
+        {
+          "date": "2026-10-08",
+          "url": "https://veken-tech.cn/",
+          "kind": "公司官网"
+        }
+      ]
+    },
+    {
+      "code": "603026",
+      "company_name": "石大胜华",
+      "industry_code": "S630702",
+      "industry_name": "电池化学品",
+      "trend_name": "固态电池",
+      "status": "DROP",
+      "drop_stage": "TRANSMISSION",
+      "reason": "2026年披露的扩产集中于常规电解液、液态锂盐和添加剂，未核实固态电池直接商业传导。",
+      "evidence": [
+        {
+          "date": "2026-09-04",
+          "url": "https://www.lixinger.com/equity/company/detail/sh/603026/603026/announcement",
+          "kind": "上交所公告索引"
+        }
+      ]
     },
     {
       "code": "002192",
@@ -2380,10 +2574,27 @@
       "industry_code": "S240603",
       "industry_name": "锂",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.916667,
-      "transmission_status": "NOT_SUPPORTED",
       "status": "DROP",
-      "reason": "公司公开回复明确当前不涉及固态电池相关业务，直接反证本轮趋势传导。"
+      "drop_stage": "TRANSMISSION",
+      "reason": "锂资源/锂盐属于通用上游，未核实本轮固态电池趋势带来的专属订单或增量交付。",
+      "evidence": [
+        {
+          "date": "2026-10-08",
+          "url": "https://www.younergy.cn/product.html",
+          "kind": "公司官网产品页"
+        }
+      ]
+    },
+    {
+      "code": "002466",
+      "company_name": "天齐锂业",
+      "industry_code": "S240603",
+      "industry_name": "锂",
+      "trend_name": "固态电池",
+      "status": "DROP",
+      "drop_stage": "TRANSMISSION",
+      "reason": "锂资源/锂盐属于通用上游，未核实本轮固态电池趋势的专属商业传导。",
+      "evidence": []
     },
     {
       "code": "000762",
@@ -2391,10 +2602,10 @@
       "industry_code": "S240603",
       "industry_name": "锂",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.541667,
-      "transmission_status": "NOT_SUPPORTED",
       "status": "DROP",
-      "reason": "锂资源业务与固态终端存在上游关联，但未核实趋势特定增量订单或商业传导。"
+      "drop_stage": "TRANSMISSION",
+      "reason": "锂资源业务与固态电池仅属通用上游关联，未核实直接增量商业证据。",
+      "evidence": []
     },
     {
       "code": "002756",
@@ -2402,10 +2613,10 @@
       "industry_code": "S240603",
       "industry_name": "锂",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.425,
-      "transmission_status": "NOT_SUPPORTED",
       "status": "DROP",
-      "reason": "锂盐业务可受行业需求影响，但本轮未核实固态趋势直接订单/交付。"
+      "drop_stage": "TRANSMISSION",
+      "reason": "锂盐业务与固态电池仅属通用上游关联，未核实直接增量商业证据。",
+      "evidence": []
     },
     {
       "code": "002738",
@@ -2413,10 +2624,16 @@
       "industry_code": "S240504",
       "industry_name": "其他小金属",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.752273,
-      "transmission_status": "NOT_SUPPORTED",
       "status": "DROP",
-      "reason": "资源业务缺少固态趋势特定增量订单/客户验证，本轮不支持直接传导。"
+      "drop_stage": "TRANSMISSION",
+      "reason": "锂盐及氟化锂为通用电池原料，未核实固态电池专属订单或交付。",
+      "evidence": [
+        {
+          "date": "2026-10-08",
+          "url": "https://www.sinomine.com/",
+          "kind": "公司官网"
+        }
+      ]
     },
     {
       "code": "000960",
@@ -2424,10 +2641,10 @@
       "industry_code": "S240504",
       "industry_name": "其他小金属",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.665909,
-      "transmission_status": "NOT_SUPPORTED",
       "status": "DROP",
-      "reason": "锡业务与本轮固态主题缺乏可核验直接业务关联。"
+      "drop_stage": "TRANSMISSION",
+      "reason": "锡业主营与本轮固态电池趋势的直接业务传导未获核实。",
+      "evidence": []
     },
     {
       "code": "002978",
@@ -2435,10 +2652,43 @@
       "industry_code": "S240504",
       "industry_name": "其他小金属",
       "trend_name": "固态电池",
-      "pre_screen_score": 0.595455,
-      "transmission_status": "NOT_SUPPORTED",
       "status": "DROP",
-      "reason": "钛业务与本轮固态主题缺乏可核验直接商业传导。"
+      "drop_stage": "TRANSMISSION",
+      "reason": "钛矿业务未取得与固态电池趋势直接相关的订单、认证或交付证据。",
+      "evidence": []
+    },
+    {
+      "code": "600301",
+      "company_name": "华锡有色",
+      "industry_code": "S240504",
+      "industry_name": "其他小金属",
+      "trend_name": "固态电池",
+      "status": "DROP",
+      "drop_stage": "TRANSMISSION",
+      "reason": "有色金属主营未取得与固态电池趋势直接相关的订单、认证或交付证据。",
+      "evidence": []
+    },
+    {
+      "code": "600459",
+      "company_name": "贵研铂业",
+      "industry_code": "S240504",
+      "industry_name": "其他小金属",
+      "trend_name": "固态电池",
+      "status": "DROP",
+      "drop_stage": "TRANSMISSION",
+      "reason": "贵金属材料主营未取得与固态电池趋势直接相关的订单、认证或交付证据。",
+      "evidence": []
+    },
+    {
+      "code": "002629",
+      "company_name": "仁智股份",
+      "industry_code": "S750201",
+      "industry_name": "油田服务",
+      "trend_name": "油气/石油",
+      "status": "DROP",
+      "drop_stage": "TRANSMISSION",
+      "reason": "本轮未核实仁智股份的有效油服订单、客户认证或交付，且无可归属的趋势商业证据。",
+      "evidence": []
     }
   ],
   "coverage": {
@@ -2458,10 +2708,10 @@
     "routed_industry_count": 7,
     "routed_industry_with_universe_count": 7,
     "no_universe_industry_count": 0,
-    "universe_company_count": 57,
+    "universe_company_count": 54,
     "working_set_count": 7,
-    "working_set_company_count": 57,
-    "materialized_index_read_count": 2,
+    "working_set_company_count": 54,
+    "materialized_index_read_count": 1,
     "materialized_manifest_read_count": 7,
     "materialized_part_read_count": 14,
     "materialized_part_segment_fetch_count": 14,
@@ -2472,34 +2722,29 @@
     "post_freeze_materialized_read_count": 0
   },
   "execution_audit": {
-    "deep_research_company_count": 36,
+    "deep_research_company_count": 31,
     "industry_batch_count": 7,
-    "single_company_followup_count": 12
+    "single_company_followup_count": 4
   },
   "funnel": {
-    "universe_company_count": 57,
-    "hard_filtered_out": 1,
-    "hard_eligible": 56,
-    "pre_screen_selected": 36,
-    "pre_screened_out": 20,
-    "deep_research_company_count": 36,
-    "transmission_supported": 15,
-    "transmission_early_evidence": 8,
-    "transmission_uncertain": 0,
-    "transmission_not_supported": 13,
-    "expectation_early": 1,
-    "expectation_confirming": 8,
-    "expectation_priced_in": 5,
-    "expectation_exhausted": 0,
-    "expectation_uncertain": 1,
+    "routed_industries": 7,
+    "universe_companies": 54,
+    "hard_filtered_out": 5,
+    "hard_eligible": 49,
+    "pre_screen_selected": 31,
+    "pre_screened_out": 18,
+    "transmission_supported": 3,
+    "transmission_early_evidence": 3,
+    "transmission_uncertain": 11,
+    "transmission_not_supported": 14,
+    "expectation_assessed": 3,
     "ready": 0,
-    "wait": 12,
-    "uncertain": 3,
-    "drop": 13
+    "wait": 2,
+    "uncertain": 12,
+    "drop": 14
   },
-  "publication_notes": [
-    "本轮无 READY；正式主榜由 12 个 WAIT 构成。",
-    "资金流向辅助观察未验证，不作为 Gate，不改变任何 READY/WAIT/价格区间。",
-    "手动正式版仅持久化 latest_formal_result.json；因用户未明确要求为后续盘中监控更新 handoff，本轮不改写 research/low_risk_handoff.json。"
+  "notes": [
+    "本轮无READY。",
+    "资金流向观察未取得同口径可核验数据，未用于任何状态、排序或价格区间判断。"
   ]
 }
