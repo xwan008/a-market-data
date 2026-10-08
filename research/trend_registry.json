@@ -1,53 +1,27 @@
 {
   "schema_version": 1,
   "result_kind": "a_share_trend_registry",
-  "trade_date": "2026-09-30",
-  "generated_at": "2026-10-08T06:37:38+08:00",
+  "trade_date": "2026-10-08",
+  "generated_at": "2026-10-08T18:38:47+08:00",
   "timezone": "Asia/Shanghai",
   "status": "COMPLETE",
   "scan_audit": {
-    "mode": "early_incremental",
-    "full_market_scan_completed": false,
+    "mode": "full_close",
+    "full_market_scan_completed": true,
     "previous_registry_trade_date": "2026-09-30",
     "previous_trend_count": 10,
     "previous_trend_rechecked_count": 10,
     "recheck_queue_rechecked_count": 1,
-    "new_trend_count": 0,
+    "new_trend_count": 2,
     "pending_revalidation_count": 2,
     "invalidated_count": 0,
-    "new_position_count": 3,
-    "evidence_cutoff_trade_date": "2026-09-30",
-    "market_data_trade_date": "2026-09-30",
+    "new_position_count": 2,
+    "evidence_cutoff_trade_date": "2026-10-08",
+    "market_data_trade_date": "2026-10-08",
     "market_data_completed": true,
-    "baseline_status": "COMPLETE",
-    "baseline_generated_at": "2026-09-30T18:40:44+08:00",
-    "baseline_full_close_audit": {
-      "mode": "full_close",
-      "full_market_scan_completed": true,
-      "previous_registry_trade_date": "2026-09-29",
-      "previous_trend_count": 8,
-      "previous_trend_rechecked_count": 8,
-      "recheck_queue_rechecked_count": 1,
-      "new_trend_count": 2,
-      "pending_revalidation_count": 2,
-      "invalidated_count": 0,
-      "new_position_count": 3,
-      "evidence_cutoff_trade_date": "2026-09-30",
-      "market_data_trade_date": "2026-09-30",
-      "market_data_completed": true,
-      "scan_scope": "申万行业及主要概念板块；复核全部bootstrap趋势与recheck_queue，并扫描当日新增异动",
-      "market_summary": "沪指+0.31%、深成指-0.11%、创业板指-0.23%、科创50-2.51%；两市成交约1.44万亿元；医药/CRO领涨，PCB、半导体、元件领跌。"
-    },
-    "scan_scope": "06:40隔夜增量：复核全部既有趋势；仅使用2026-09-30正式收盘基线及国庆假期间至2026-10-08早间的商品、海外市场风险和新增产业证据；未进行当日收盘全市场扫描",
-    "overnight_evidence": [
-      {
-        "description": "10月7日美股从高位回落、长端美债收益率上升，布伦特原油一度站上100美元后因IEA释放储备消息回落；属于开盘前风险偏好压制，不构成任何A股板块状态的独立确认或失效证据。",
-        "source": "https://www.reuters.com/business/wall-st-futures-slip-yields-oil-rebound-fed-minutes-focus-2026-10-07/",
-        "evidence_date": "2026-10-07",
-        "role": "macro_risk_adjustment_only"
-      }
-    ],
-    "incremental_result": "无状态迁移；所有产业状态、市场状态、生命周期、last_verified_trade_date与优先顺序保持2026-09-30正式收盘基线"
+    "scan_scope": "申万全行业与主要概念板块全量扫描；逐一复核上一registry全部10个趋势和1项recheck_queue，并验证资源品第一锚与新增异动",
+    "market_summary": "沪指-0.79%、深成指-2.07%、创业板指-3.15%、科创50-4.82%；两市成交约1.68万亿元；1672股上涨、3698股下跌。油气、电池、煤炭、航运逆势走强，半导体、电子化学品、通信设备、医疗服务显著回撤。",
+    "coverage_note": "完成全行业涨跌与主要概念扫描；铜和风电缺少可交叉的当日第一锚/板块同口径数据，依协议保留原日期并标记待复核。"
   },
   "trends": [
     {
@@ -56,7 +30,7 @@
       "market_state": "趋势确认",
       "lifecycle_status": "有效",
       "first_seen_trade_date": "2026-09-29",
-      "last_verified_trade_date": "2026-09-30",
+      "last_verified_trade_date": "2026-10-08",
       "industry_codes": [
         "S630701",
         "S630702",
@@ -83,6 +57,11 @@
           "description": "9月30日多只固态电池标的延续二连板，电池行业有3只涨停，市场承接仍在。",
           "source": "https://www.nbd.com.cn/articles/2026-09-30/4595633.html",
           "trade_date": "2026-09-30"
+        },
+        {
+          "description": "10月8日电池行业逆市上涨3.44%，固态电池概念多股涨停，在全市场超3700只个股下跌的背景下仍有板块广度与承接。",
+          "source": "https://fund.eastmoney.com/a/202610083889577351.html",
+          "trade_date": "2026-10-08"
         }
       ],
       "contrary_evidence": [
@@ -90,10 +69,15 @@
           "description": "规划目标与板块连板尚不能证明未来两个季度已形成规模利润，且节前市场总体主力净流出。",
           "source": "https://stock.cngold.org/c/2026-09-30/c10790908.html",
           "trade_date": "2026-09-30"
+        },
+        {
+          "description": "板块强度仍受政策和事件催化影响；当前证据尚不足以把全固态电池由T1上调为未来1—2季度规模利润已确认的T2。",
+          "source": "https://news.10jqka.com.cn/20261008/c680472345.shtml",
+          "trade_date": "2026-10-08"
         }
       ],
       "invalidation_condition": "政策催化后板块广度持续收缩、核心与中票同步破位，且排产或价格传导证据转弱。",
-      "change_reason": "完成bootstrap复核；产业T1不变，连续两个交易日存在板块扩散与承接，市场维持趋势确认。",
+      "change_reason": "产业T1未变；10月8日电池行业逆市上涨3.44%、固态电池多股涨停，龙头与中票扩散及分歧承接通过复核，维持趋势确认。",
       "state_history": [
         {
           "trade_date": "2026-09-29",
@@ -108,24 +92,30 @@
           "to": "趋势确认",
           "event": "verified_maintained",
           "reason": "政策产业证据与市场连续性同时通过复核"
+        },
+        {
+          "trade_date": "2026-10-08",
+          "from": "趋势确认",
+          "to": "趋势确认",
+          "event": "verified_maintained",
+          "reason": "产业T1未变；10月8日电池行业逆市上涨3.44%、固态电池多股涨停，龙头与中票扩散及分歧承接通过复核，维持趋势确认。"
         }
       ]
     },
     {
       "trend_name": "CRO/医疗研发外包",
       "trend_state": "T2",
-      "market_state": "趋势确认",
+      "market_state": "观察",
       "lifecycle_status": "有效",
       "first_seen_trade_date": "2026-09-17",
-      "last_verified_trade_date": "2026-09-30",
+      "last_verified_trade_date": "2026-10-08",
       "industry_codes": [
         "S370603"
       ],
       "industry_names": [
         "医疗研发外包"
       ],
-      "in_new_position_priority": true,
-      "priority_rank": 2,
+      "in_new_position_priority": false,
       "supporting_evidence": [
         {
           "description": "中国创新药BD出海、商业化与订单增长逻辑延续，行业判断由估值驱动向业绩和全球化兑现转变。",
@@ -136,6 +126,11 @@
           "description": "9月30日CRO与医疗服务领涨，多只核心及中票涨停或大涨，板块广度重新扩张。",
           "source": "https://stock.jrj.com.cn/2026/09/30151358593422.shtml",
           "trade_date": "2026-09-30"
+        },
+        {
+          "description": "创新药BD与研发外包长期产业逻辑仍保留，未见当日新增订单或盈利证据足以改变T2判断。",
+          "source": "https://stock.jrj.com.cn/2026/10/08150558631949.shtml",
+          "trade_date": "2026-10-08"
         }
       ],
       "contrary_evidence": [
@@ -143,10 +138,15 @@
           "description": "9月29日盘中归档曾出现衰退预警；单日强修复仍需节后成交与订单兑现验证。",
           "source": "https://github.com/xwan008/a-market-data/blob/main/research/intraday_crossday_archive.json",
           "trade_date": "2026-09-29"
+        },
+        {
+          "description": "10月8日医疗服务与生物制品分别位于跌幅前列，市场相对强度和广度显著转弱。",
+          "source": "https://fund.eastmoney.com/a/202610083889577351.html",
+          "trade_date": "2026-10-08"
         }
       ],
       "invalidation_condition": "节后CRO广度快速回落且订单、BD或盈利兑现不及预期，市场相对强度重新转弱。",
-      "change_reason": "bootstrap待复核项完成重新验证；产业T2保留，市场由历史待复核重新确认为趋势确认。",
+      "change_reason": "产业T2的订单与BD逻辑未被单日行情证伪，但10月8日医疗服务跌3.10%、生物制品跌3.96%，此前市场确认被破坏，降为观察并退出新仓榜。",
       "state_history": [
         {
           "trade_date": "2026-09-28",
@@ -161,6 +161,13 @@
           "to": "趋势确认",
           "event": "revalidated",
           "reason": "产业兑现线索与当日板块广度共振"
+        },
+        {
+          "trade_date": "2026-10-08",
+          "from": "趋势确认",
+          "to": "观察",
+          "event": "market_state_change",
+          "reason": "产业T2的订单与BD逻辑未被单日行情证伪，但10月8日医疗服务跌3.10%、生物制品跌3.96%，此前市场确认被破坏，降为观察并退出新仓榜。"
         }
       ]
     },
@@ -168,7 +175,7 @@
       "trend_name": "风电设备",
       "trend_state": "T1",
       "market_state": "候选趋势",
-      "lifecycle_status": "有效",
+      "lifecycle_status": "待复核",
       "first_seen_trade_date": "2026-09-17",
       "last_verified_trade_date": "2026-09-30",
       "industry_codes": [
@@ -177,8 +184,7 @@
       "industry_names": [
         "风电零部件"
       ],
-      "in_new_position_priority": true,
-      "priority_rank": 3,
+      "in_new_position_priority": false,
       "supporting_evidence": [
         {
           "description": "2026年1—8月国内风电项目招标71.1GW、同比增长15.9%，6—7月新增装机同比高增。",
@@ -196,10 +202,15 @@
           "description": "9月30日开盘阶段风电设备位于跌幅居前方向，未形成全板块持续扩散。",
           "source": "https://www.jwview.com/jingwei/html/09-30/690961.shtml",
           "trade_date": "2026-09-30"
+        },
+        {
+          "description": "10月8日市场风险偏好明显回落，装备成长方向整体承压；缺少风电专属同口径数据，不能据此判定失效。",
+          "source": "https://news.10jqka.com.cn/20261008/c680472345.shtml",
+          "trade_date": "2026-10-08"
         }
       ],
       "invalidation_condition": "招标或装机兑现转弱，同时板块相对强度与广度连续退出候选区。",
-      "change_reason": "产业T1继续成立；市场未延续昨日广度，趋势确认降为候选趋势，但尚未失效。",
+      "change_reason": "完成全市场扫描，但未取得10月8日风电设备同口径板块广度、成交与订单新增证据；保留9月30日原状态与日期，标记待复核，不机械继承且退出新仓榜。",
       "state_history": [
         {
           "trade_date": "2026-09-29",
@@ -214,16 +225,26 @@
           "to": "候选趋势",
           "event": "market_downgrade",
           "reason": "产业证据保留但当日板块广度不足"
+        },
+        {
+          "trade_date": "2026-10-08",
+          "from": "候选趋势",
+          "to": "候选趋势",
+          "event": "verified_maintained",
+          "reason": "完成全市场扫描，但未取得10月8日风电设备同口径板块广度、成交与订单新增证据；保留9月30日原状态与日期，标记待复核，不机械继承且退出新仓榜。"
         }
-      ]
+      ],
+      "last_known_trend_state": "T1",
+      "last_known_market_state": "候选趋势",
+      "last_known_trade_date": "2026-09-30"
     },
     {
       "trend_name": "PCB/CCL",
       "trend_state": "T1",
-      "market_state": "观察",
+      "market_state": "高潮/衰退",
       "lifecycle_status": "有效",
       "first_seen_trade_date": "2026-09-17",
-      "last_verified_trade_date": "2026-09-30",
+      "last_verified_trade_date": "2026-10-08",
       "industry_codes": [
         "S270202"
       ],
@@ -236,6 +257,11 @@
           "description": "AI算力带动PCB与光通信需求，CPO设备订单能见度延至次年二季度，产业景气逻辑仍在。",
           "source": "https://m.nbd.com.cn/articles/2026-09-29/4594433.html",
           "trade_date": "2026-09-29"
+        },
+        {
+          "description": "AI-PCB订单强劲、满产扩产与覆铜板供给偏紧的产业线索仍在，T1暂未被推翻。",
+          "source": "https://stock.jrj.com.cn/2026/10/08150558631949.shtml",
+          "trade_date": "2026-10-08"
         }
       ],
       "contrary_evidence": [
@@ -248,10 +274,15 @@
           "description": "资金与量价观察：科技硬件普遍走弱且全市场主力净流出136.28亿元；缺少同口径PCB多窗口资金数据，标记不可比。",
           "source": "https://stock.cngold.org/c/2026-09-30/c10790908.html",
           "trade_date": "2026-09-30"
+        },
+        {
+          "description": "10月8日半导体、通信设备、电子化学品等硬件链显著下跌，PCB相关标的亦出现跌停，前期扩散继续收缩。",
+          "source": "https://stock.jrj.com.cn/2026/10/08150558631949.shtml",
+          "trade_date": "2026-10-08"
         }
       ],
       "invalidation_condition": "PCB相对强度与广度连续无法修复，同时CCL提价或下游订单传导被证伪。",
-      "change_reason": "产业T1未被推翻，但市场广度和价格结构单日显著破坏，退出新仓榜并降至观察。",
+      "change_reason": "产业T1订单逻辑尚存，但继9月30日广度破坏后，10月8日科技硬件继续大幅回撤，PCB相关链条未修复，市场进入高潮/衰退，不列新仓。",
       "state_history": [
         {
           "trade_date": "2026-09-29",
@@ -266,16 +297,23 @@
           "to": "观察",
           "event": "market_downgrade",
           "reason": "板块-4.56%且45/48成分下跌"
+        },
+        {
+          "trade_date": "2026-10-08",
+          "from": "观察",
+          "to": "高潮/衰退",
+          "event": "market_state_change",
+          "reason": "产业T1订单逻辑尚存，但继9月30日广度破坏后，10月8日科技硬件继续大幅回撤，PCB相关链条未修复，市场进入高潮/衰退，不列新仓。"
         }
       ]
     },
     {
       "trend_name": "半导体设备/材料",
       "trend_state": "T1",
-      "market_state": "观察",
+      "market_state": "高潮/衰退",
       "lifecycle_status": "有效",
       "first_seen_trade_date": "2026-09-17",
-      "last_verified_trade_date": "2026-09-30",
+      "last_verified_trade_date": "2026-10-08",
       "industry_codes": [
         "S270108",
         "S270103"
@@ -297,10 +335,15 @@
           "description": "9月30日半导体、电子化学品位于跌幅前列，科创50下跌2.51%，市场结构未确认。",
           "source": "https://news.10jqka.com.cn/20260930/bd752510738616808dc.shtml",
           "trade_date": "2026-09-30"
+        },
+        {
+          "description": "10月8日半导体与电子化学品位列行业跌幅前列，半导体板块出现大额净流出，广度和成交结构均恶化。",
+          "source": "https://fund.eastmoney.com/a/202610083889577351.html",
+          "trade_date": "2026-10-08"
         }
       ],
       "invalidation_condition": "设备订单交付或晶圆厂扩产明显下修，且市场相对强度持续弱于大盘。",
-      "change_reason": "bootstrap复核完成；产业T1保留，但当日权益广度弱，市场状态降为观察，不进入新仓榜。",
+      "change_reason": "设备交付与国产替代产业T1保留；10月8日半导体跌4.98%、电子化学品跌3.68%，且半导体资金净流出159.8亿元，市场由观察降为高潮/衰退。",
       "state_history": [
         {
           "trade_date": "2026-09-24",
@@ -315,6 +358,13 @@
           "to": "观察",
           "event": "revalidated_market_weak",
           "reason": "产业订单有效但市场结构走弱"
+        },
+        {
+          "trade_date": "2026-10-08",
+          "from": "观察",
+          "to": "高潮/衰退",
+          "event": "market_state_change",
+          "reason": "设备交付与国产替代产业T1保留；10月8日半导体跌4.98%、电子化学品跌3.68%，且半导体资金净流出159.8亿元，市场由观察降为高潮/衰退。"
         }
       ]
     },
@@ -324,7 +374,7 @@
       "market_state": "高潮/衰退",
       "lifecycle_status": "有效",
       "first_seen_trade_date": "2026-09-17",
-      "last_verified_trade_date": "2026-09-30",
+      "last_verified_trade_date": "2026-10-08",
       "industry_codes": [
         "S730204"
       ],
@@ -337,6 +387,11 @@
           "description": "CPO及上游设备订单能见度达2027年二季度，多家供应商扩产，产业T2证据仍强。",
           "source": "https://m.nbd.com.cn/articles/2026-09-29/4594433.html",
           "trade_date": "2026-09-29"
+        },
+        {
+          "description": "头部云厂商资本开支与1.6T光模块订单能见度仍延续至2027年以后，产业T2未失效。",
+          "source": "https://finance.eastmoney.com/a/202610083889412044.html",
+          "trade_date": "2026-10-08"
         }
       ],
       "contrary_evidence": [
@@ -344,10 +399,15 @@
           "description": "9月28日CPO概念下跌6.56%并出现大额资金净流出；9月30日通信服务继续处于弱势方向。",
           "source": "https://stcn.com/article/detail/4201014.html",
           "trade_date": "2026-09-28"
+        },
+        {
+          "description": "10月8日CPO板块个股普跌并出现多股跌停，通信设备板块跌3.03%，市场退潮进一步确认。",
+          "source": "https://finance.eastmoney.com/a/202610083889412044.html",
+          "trade_date": "2026-10-08"
         }
       ],
       "invalidation_condition": "订单能见度或扩产兑现下修，且板块反弹不能恢复广度并继续破位。",
-      "change_reason": "产业景气仍可核验，但市场处于高位退潮阶段；保留趋势审计，不列入新仓。",
+      "change_reason": "订单能见度仍支持产业T2，但10月8日CPO普跌且多股跌停，高潮/衰退状态继续得到验证，禁止新仓优先。",
       "state_history": [
         {
           "trade_date": "2026-09-17",
@@ -362,16 +422,23 @@
           "to": "高潮/衰退",
           "event": "revalidated_maintained",
           "reason": "产业强、市场退潮的背离仍在"
+        },
+        {
+          "trade_date": "2026-10-08",
+          "from": "高潮/衰退",
+          "to": "高潮/衰退",
+          "event": "verified_maintained",
+          "reason": "订单能见度仍支持产业T2，但10月8日CPO普跌且多股跌停，高潮/衰退状态继续得到验证，禁止新仓优先。"
         }
       ]
     },
     {
       "trend_name": "煤炭",
       "trend_state": "T2",
-      "market_state": "高潮/衰退",
+      "market_state": "观察",
       "lifecycle_status": "有效",
       "first_seen_trade_date": "2026-09-17",
-      "last_verified_trade_date": "2026-09-30",
+      "last_verified_trade_date": "2026-10-08",
       "industry_codes": [
         "S740101",
         "S740102"
@@ -386,6 +453,11 @@
           "description": "焦煤短期供应仍偏紧、样本总库存周环比下降，现货升水对价格仍有支撑。",
           "source": "https://reportify.cn/reports/1302640288329764864",
           "trade_date": "2026-09-30"
+        },
+        {
+          "description": "10月8日煤炭开采上涨约2.14%，焦煤主力日内涨超3%，商品第一锚与A股方向重新同向。",
+          "source": "https://quote.eastmoney.com/center/newslist.html#futures",
+          "trade_date": "2026-10-08"
         }
       ],
       "contrary_evidence": [
@@ -398,10 +470,15 @@
           "description": "9月30日早盘煤炭开采加工位于跌幅居前方向。",
           "source": "https://www.jwview.com/jingwei/html/09-30/690961.shtml",
           "trade_date": "2026-09-30"
+        },
+        {
+          "description": "单日反弹尚不能推翻此前焦炭提降、铁水回落和供需边际宽松证据，仍需库存与现货价差连续验证。",
+          "source": "https://news.10jqka.com.cn/20261008/c680472345.shtml",
+          "trade_date": "2026-10-08"
         }
       ],
       "invalidation_condition": "煤价与价差持续下行、库存累积，且A股煤炭相对强度无法修复。",
-      "change_reason": "第一锚显示供给支撑尚在但边际走弱，市场亦缺乏扩散；维持高潮/衰退，不作为新仓。",
+      "change_reason": "焦煤期价与A股煤炭10月8日同步反弹，市场从高潮/衰退修复到观察；但仅一个交易日且需求端未获新增确认，不升级为候选、不列新仓。",
       "state_history": [
         {
           "trade_date": "2026-09-17",
@@ -416,6 +493,13 @@
           "to": "高潮/衰退",
           "event": "revalidated_maintained",
           "reason": "商品与权益共同偏弱但尚未满足完全失效条件"
+        },
+        {
+          "trade_date": "2026-10-08",
+          "from": "高潮/衰退",
+          "to": "观察",
+          "event": "market_state_change",
+          "reason": "焦煤期价与A股煤炭10月8日同步反弹，市场从高潮/衰退修复到观察；但仅一个交易日且需求端未获新增确认，不升级为候选、不列新仓。"
         }
       ]
     },
@@ -448,10 +532,15 @@
           "description": "铜价从高位回落，强美元、宏观担忧及节前补库结束压制现货需求；当日A股广度缺少可靠同口径数据。",
           "source": "https://www.brecorder.com/news/amp/40441761",
           "trade_date": "2026-09-29"
+        },
+        {
+          "description": "10月8日稀土等有色子方向位于跌幅前列，但不能替代铜价、铜库存及铜板块本身的验证。",
+          "source": "https://fund.eastmoney.com/a/202610083889577351.html",
+          "trade_date": "2026-10-08"
         }
       ],
       "invalidation_condition": "铜价跌破中期供需支撑、库存持续累积，并伴随A股有色结构确认失效。",
-      "change_reason": "完成商品第一锚复核，但缺少9月30日A股铜板块完整广度数据；保留原日期并待复核，不冒充今日确认。",
+      "change_reason": "完成全行业扫描但未取得10月8日铜价、库存与A股铜板块同口径交叉数据；保留9月17日历史状态与日期，继续待复核。",
       "state_history": [
         {
           "trade_date": "2026-09-17",
@@ -466,6 +555,13 @@
           "to": "待复核",
           "event": "evidence_incomplete",
           "reason": "商品端已复核，权益市场端证据不足"
+        },
+        {
+          "trade_date": "2026-10-08",
+          "from": "高潮/衰退",
+          "to": "高潮/衰退",
+          "event": "verified_maintained",
+          "reason": "完成全行业扫描但未取得10月8日铜价、库存与A股铜板块同口径交叉数据；保留9月17日历史状态与日期，继续待复核。"
         }
       ]
     },
@@ -475,7 +571,7 @@
       "market_state": "候选趋势",
       "lifecycle_status": "有效",
       "first_seen_trade_date": "2026-09-29",
-      "last_verified_trade_date": "2026-09-30",
+      "last_verified_trade_date": "2026-10-08",
       "industry_codes": [
         "S430101",
         "S430102",
@@ -501,6 +597,11 @@
           "description": "9月30日地产板块早盘大跌后明显回升，部分核心股从跌停打开并翻红，显示分歧承接。",
           "source": "https://www.nbd.com.cn/articles/2026-09-30/4595601.html",
           "trade_date": "2026-09-30"
+        },
+        {
+          "description": "居民购房贷款贴息政策10月起实施，10月8日地产板块低开高走并出现多股涨停，具备事件驱动下的初步扩散。",
+          "source": "https://www.nbd.com.cn/articles/2026-10-08/4598073.html",
+          "trade_date": "2026-10-08"
         }
       ],
       "contrary_evidence": [
@@ -508,10 +609,15 @@
           "description": "早盘多只地产股触及跌停，且产业盈利与销售持续改善尚未得到未来两个季度数据验证。",
           "source": "https://stock.jrj.com.cn/2026/09/30104258589502.shtml",
           "trade_date": "2026-09-30"
+        },
+        {
+          "description": "龙头房企涨跌分化，且当日行情不能证明销售、融资和利润已持续改善，产业仍停留T0。",
+          "source": "https://www.nbd.com.cn/articles/2026-10-08/4598073.html",
+          "trade_date": "2026-10-08"
         }
       ],
       "invalidation_condition": "政策落地后销售与融资数据未改善，且板块分歧承接失败、相对强度回落。",
-      "change_reason": "从昨日观察项正式纳入registry；政策与连续两日市场承接支持候选趋势，但产业仅T0，不进入新仓。",
+      "change_reason": "购房贷款贴息政策提供T0催化，10月8日地产板块盘中出现多股涨停并有中票参与；但涨跌分化且销售/融资数据尚未形成T1，维持候选趋势。",
       "state_history": [
         {
           "trade_date": "2026-09-30",
@@ -519,16 +625,23 @@
           "to": "候选趋势",
           "event": "new_trend_added",
           "reason": "政策催化与市场分歧承接形成早期信号"
+        },
+        {
+          "trade_date": "2026-10-08",
+          "from": "候选趋势",
+          "to": "候选趋势",
+          "event": "verified_maintained",
+          "reason": "购房贷款贴息政策提供T0催化，10月8日地产板块盘中出现多股涨停并有中票参与；但涨跌分化且销售/融资数据尚未形成T1，维持候选趋势。"
         }
       ]
     },
     {
       "trend_name": "机器人",
       "trend_state": "T0",
-      "market_state": "新异动",
+      "market_state": "观察",
       "lifecycle_status": "有效",
       "first_seen_trade_date": "2026-09-30",
-      "last_verified_trade_date": "2026-09-30",
+      "last_verified_trade_date": "2026-10-08",
       "industry_codes": [
         "S640701"
       ],
@@ -541,6 +654,11 @@
           "description": "9月30日机器人方向出现四连板与多只涨停，新增异动具有一定板块扩散。",
           "source": "https://www.nbd.com.cn/articles/2026-09-30/4595633.html",
           "trade_date": "2026-09-30"
+        },
+        {
+          "description": "机器人量产与产线资本开支线索仍存在，但当日没有新增订单或盈利证据支持上调T1。",
+          "source": "https://www.bluebookmax.cn/mc-20261008.html",
+          "trade_date": "2026-10-08"
         }
       ],
       "contrary_evidence": [
@@ -548,10 +666,15 @@
           "description": "尚缺少可验证的订单、产能利用率与利润改善证据，不能由涨停结构直接升级产业状态。",
           "source": "https://www.nbd.com.cn/articles/2026-09-30/4595633.html",
           "trade_date": "2026-09-30"
+        },
+        {
+          "description": "10月8日机器人板块位于跌幅前列，自动化设备跌约3.08%，市场扩散失败。",
+          "source": "https://fund.eastmoney.com/a/202610083889577351.html",
+          "trade_date": "2026-10-08"
         }
       ],
       "invalidation_condition": "后续无中票扩散或产业订单验证，且龙头断板后板块快速回吐。",
-      "change_reason": "全市场扫描识别的新异动；仅记T0和新异动，不进入新仓。",
+      "change_reason": "产业仍是T0，10月8日机器人和自动化设备位于跌幅前列，9月30日新异动未形成持续扩散，降为观察。",
       "state_history": [
         {
           "trade_date": "2026-09-30",
@@ -559,34 +682,107 @@
           "to": "新异动",
           "event": "new_trend_added",
           "reason": "当日板块扩散但产业证据不足"
+        },
+        {
+          "trade_date": "2026-10-08",
+          "from": "新异动",
+          "to": "观察",
+          "event": "market_state_change",
+          "reason": "产业仍是T0，10月8日机器人和自动化设备位于跌幅前列，9月30日新异动未形成持续扩散，降为观察。"
+        }
+      ]
+    },
+    {
+      "trend_name": "油气/石油",
+      "trend_state": "T1",
+      "market_state": "候选趋势",
+      "lifecycle_status": "有效",
+      "first_seen_trade_date": "2026-10-08",
+      "last_verified_trade_date": "2026-10-08",
+      "industry_codes": [
+        "S750101",
+        "S750201"
+      ],
+      "industry_names": [
+        "油气开采Ⅲ",
+        "油田服务"
+      ],
+      "in_new_position_priority": true,
+      "priority_rank": 2,
+      "supporting_evidence": [
+        {
+          "description": "10月7日布伦特原油收于100.20美元/桶，美国原油库存减少320万桶；中东供应扰动与美国湾区风暴维持高油价和上游利润弹性。",
+          "source": "https://www.reuters.com/business/energy/oil-prices-rise-storms-air-strikes-threaten-supply-2026-10-07/",
+          "trade_date": "2026-10-07"
+        },
+        {
+          "description": "10月8日A股油气开采及服务上涨约3.60%，石油石化链条多点走强，市场从历史待核验升级为候选趋势。",
+          "source": "https://news.10jqka.com.cn/20261008/c680472345.shtml",
+          "trade_date": "2026-10-08"
+        }
+      ],
+      "contrary_evidence": [
+        {
+          "description": "IEA正加快释放约1亿桶既有应急库存，中东出口亦有恢复，油价三天内多次回落；事件溢价可能快速反转。",
+          "source": "https://www.reuters.com/business/energy/oil-prices-rise-storms-air-strikes-threaten-supply-2026-10-07/",
+          "trade_date": "2026-10-07"
+        }
+      ],
+      "invalidation_condition": "布伦特持续跌回供给冲击前区间、库存转为连续累积，且A股油气广度与中票承接同步消失。",
+      "change_reason": "recheck_queue完成核验：商品第一锚、库存与A股结构形成交叉确认，产业定为T1、市场定为候选趋势；单日行情不足以确认趋势。",
+      "state_history": [
+        {
+          "trade_date": "2026-10-08",
+          "from": "待核验",
+          "to": "候选趋势",
+          "event": "recheck_queue_resolved",
+          "reason": "商品、库存与A股广度交叉通过，转入完整趋势池"
+        }
+      ]
+    },
+    {
+      "trend_name": "航运/港口",
+      "trend_state": "T0",
+      "market_state": "新异动",
+      "lifecycle_status": "有效",
+      "first_seen_trade_date": "2026-10-08",
+      "last_verified_trade_date": "2026-10-08",
+      "industry_codes": [
+        "S421101",
+        "S421102"
+      ],
+      "industry_names": [
+        "航运",
+        "港口"
+      ],
+      "in_new_position_priority": false,
+      "supporting_evidence": [
+        {
+          "description": "10月8日港口航运上涨约2.04%，多只航运股涨停；中东冲突与运输风险推动附加费上调，形成新的价格催化。",
+          "source": "https://www.cls.cn/detail/2499476",
+          "trade_date": "2026-10-08"
+        }
+      ],
+      "contrary_evidence": [
+        {
+          "description": "燃油成本上涨同时抬升航运成本，运价和附加费能否转化为未来1—2季度利润尚未得到订单与价差连续验证。",
+          "source": "https://www.cls.cn/detail/2499476",
+          "trade_date": "2026-10-08"
+        }
+      ],
+      "invalidation_condition": "运价与附加费未能持续、航运板块次日后迅速失去广度，且燃油成本侵蚀利润。",
+      "change_reason": "全市场扫描发现的新异动；产业仅T0、市场仅新异动，不进入新仓优先。",
+      "state_history": [
+        {
+          "trade_date": "2026-10-08",
+          "from": null,
+          "to": "新异动",
+          "event": "new_trend_detected",
+          "reason": "航运价格催化与A股广度同时出现"
         }
       ]
     }
   ],
   "invalidated_history": [],
-  "recheck_queue": [
-    {
-      "trend_name": "油气/石油",
-      "provenance": "用户提及旧榜曾追踪，bootstrap未恢复可靠历史状态",
-      "last_known_trade_date": null,
-      "trend_state": "待核验",
-      "market_state": "待核验",
-      "last_checked_trade_date": "2026-09-30",
-      "supporting_evidence": [
-        {
-          "description": "布伦特原油仍处高位，地缘供应风险支撑油气利润预期。",
-          "source": "https://www.reuters.com/business/energy/oil-climbs-after-trump-denies-he-is-willing-ease-sanctions-iran-2026-09-30/",
-          "trade_date": "2026-09-30"
-        }
-      ],
-      "contrary_evidence": [
-        {
-          "description": "中东出口恢复与OPEC+维持产量目标可能缓解供应压力；缺少9月30日A股油气板块完整结构证据。",
-          "source": "https://www.reuters.com/business/energy/oil-prices-rise-second-session-continued-middle-east-supply-concern-2026-09-29/",
-          "trade_date": "2026-09-29"
-        }
-      ],
-      "reason": "商品端已核验，但历史身份和当日A股市场状态仍不能可靠恢复；继续待复核，不占新仓名额"
-    }
-  ]
+  "recheck_queue": []
 }
