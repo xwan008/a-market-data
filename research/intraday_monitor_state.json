@@ -4,8 +4,8 @@
   "execution_schema_version": 2,
   "trade_date": "2026-10-09",
   "monitor_date": "2026-10-09",
-  "last_scan_at": "2026-10-09T09:45:10.000+08:00",
-  "snapshot_at": "2026-10-09T09:38:24.062459+08:00",
+  "last_scan_at": "2026-10-09T10:44:40.000+08:00",
+  "snapshot_at": "2026-10-09T10:38:22.999195+08:00",
   "frozen_trend_trade_date": "2026-10-08",
   "frozen_low_risk_trade_date": "2026-10-08",
   "frozen_low_risk_handoff_run_id": "low-risk-20261008-manual-fresh-204312",
@@ -117,6 +117,42 @@
         "holding_action": "继续持有",
         "reason": "当日首轮，43/43有报价（100%），22涨21跌，上涨比例51.16%，涨幅中位数+0.1632%，横截面仍略偏正但强度有限；较前交易日可比盘中截面67.44%/+0.7801%双双走弱，尚未满足当前上涨比例低于50%、中位数转负及同日进一步恶化的衰退预警路径B。上游T1/趋势确认有效，七日中位数-2.8388%、正收益占比27.91%仅作背景，空仓关注回踩、持仓继续持有。",
         "data_quality": "READY"
+      },
+      {
+        "scan_at": "2026-10-09T10:44:40.000+08:00",
+        "trend_name": "固态电池",
+        "trend_state": "T1",
+        "market_state": "趋势确认",
+        "previous_state": "正常",
+        "current_state": "衰退预警",
+        "previous_structure_momentum": "稳定",
+        "structure_momentum": "减弱",
+        "up_ratio": 0.3023,
+        "median_change_pct": -1.3119,
+        "max_change_pct": 10.017,
+        "min_change_pct": -8.9639,
+        "up_count": 13,
+        "down_count": 30,
+        "flat_count": 0,
+        "quoted_count": 43,
+        "coverage_ratio": 1,
+        "seven_day": {
+          "window_sessions": 7,
+          "status": "available",
+          "sample_count": 43,
+          "target_count": 43,
+          "coverage_ratio": 1,
+          "median_constituent_return_pct": -2.8388,
+          "positive_constituent_ratio": 0.2791,
+          "source_trade_date": "2026-10-08",
+          "baseline_trade_date": "2026-10-08"
+        },
+        "previous_entry_action": "关注回踩",
+        "entry_action": "暂停买入",
+        "previous_holding_action": "继续持有",
+        "holding_action": "减仓观察",
+        "reason": "较09:45上涨比例51.16%→30.23%、中位数+0.1632%→-1.3119%、上涨数22→13、下跌数21→30，广度与中位数等多类指标同步实质恶化，动量减弱；相对前交易日可比盘中截面67.44%/+0.7801%亦双双更弱，当前上涨比例低于50%、中位数为负，且今日出现进一步两类恶化，满足衰退预警路径B。上游仍为T1/趋势确认，预警不等同趋势失效；空仓暂停买入，持仓减仓观察而非直接减仓。",
+        "data_quality": "READY"
       }
     ],
     "油气/石油": [
@@ -154,6 +190,42 @@
         "previous_holding_action": null,
         "holding_action": "持有观察",
         "reason": "当日首轮，10/11有报价（90.91%），3涨7跌，上涨比例30.00%，涨幅中位数-0.6658%，广度与中位数同步偏弱，判为分歧；上游T1/候选趋势尚未失效。前交易日可比盘中截面缺失，七日中位数0.0000%、正收益占比45.45%不满足路径C的七日中位数为负条件，且无同日多轮继续恶化，未升级衰退预警。空仓等待，持仓观察。",
+        "data_quality": "READY"
+      },
+      {
+        "scan_at": "2026-10-09T10:44:40.000+08:00",
+        "trend_name": "油气/石油",
+        "trend_state": "T1",
+        "market_state": "候选趋势",
+        "previous_state": "分歧",
+        "current_state": "分歧",
+        "previous_structure_momentum": "稳定",
+        "structure_momentum": "稳定",
+        "up_ratio": 0.4545,
+        "median_change_pct": -1.257,
+        "max_change_pct": 2.716,
+        "min_change_pct": -4.0293,
+        "up_count": 5,
+        "down_count": 6,
+        "flat_count": 0,
+        "quoted_count": 11,
+        "coverage_ratio": 1,
+        "seven_day": {
+          "window_sessions": 7,
+          "status": "available",
+          "sample_count": 11,
+          "target_count": 11,
+          "coverage_ratio": 1,
+          "median_constituent_return_pct": 0,
+          "positive_constituent_ratio": 0.4545,
+          "source_trade_date": "2026-10-08",
+          "baseline_trade_date": "2026-10-08"
+        },
+        "previous_entry_action": "等待",
+        "entry_action": "等待",
+        "previous_holding_action": "持有观察",
+        "holding_action": "持有观察",
+        "reason": "较09:45上涨比例30.00%→45.45%、上涨数3→5且覆盖提升至100%，但中位数-0.6658%→-1.2570%、尾部最低-2.9304%→-4.0293%，改善与恶化并存，未达到两类扩散性改善，分歧尚未修复、动量稳定。前交易日可比截面不可用，七日中位数0.0000%不满足路径C，未升级衰退预警；空仓等待、持仓观察。",
         "data_quality": "READY"
       }
     ]
@@ -222,6 +294,69 @@
         "trend_in_current_handoff": true,
         "reason": "历史medium、bullish/intact，七日+1.8784%；今日-0.0585%，较行业+0.1891个百分点，结构未坏。油气板块首轮分歧且现价34.15高于合理区29.80–31.30，新仓不追涨，持仓观察。",
         "data_quality": "READY"
+      },
+      {
+        "scan_at": "2026-10-09T10:44:40.000+08:00",
+        "rank": 3,
+        "code": "600938",
+        "company_name": "中国海油",
+        "trend_name": "油气/石油",
+        "industry_code": "S750101",
+        "industry_name": "油气开采Ⅲ",
+        "formal_status": "WAIT",
+        "wait_reason": "WAIT_MARGIN",
+        "price": 34.24,
+        "change_pct": 0.2049,
+        "industry_median_change_pct": -0.526,
+        "relative_to_industry_pct": 0.7309,
+        "seven_day": {
+          "status": "available",
+          "window_sessions": 7,
+          "observation_count": 8,
+          "source_trade_date": "2026-10-08",
+          "close_change_7d_pct": 1.8784,
+          "basis": "eight_valid_completed_session_closes"
+        },
+        "history_context_status": "available",
+        "history_confidence": "medium",
+        "history_trend_state": "bullish",
+        "history_break_state": "intact",
+        "latest_high": {
+          "date": "2026-09-11",
+          "type": "high",
+          "price": 35.5,
+          "label": "HH"
+        },
+        "latest_low": {
+          "date": "2026-09-07",
+          "type": "low",
+          "price": 32.53,
+          "label": "HL"
+        },
+        "invalidation": {
+          "direction": "below",
+          "price": 32.53
+        },
+        "previous_relative_strength": "稳定",
+        "relative_strength": "增强",
+        "previous_price_behavior": "震荡",
+        "price_behavior": "承接",
+        "previous_entry_action": "不追涨",
+        "entry_action": "不追涨",
+        "previous_holding_action": "持有观察",
+        "holding_action": "继续持有",
+        "reasonable_buy_range": [
+          29.8,
+          31.3
+        ],
+        "low_risk_buy_range": [
+          25.8,
+          27.2
+        ],
+        "buy_range_relation": "above_reasonable_buy_range",
+        "trend_in_current_handoff": true,
+        "reason": "涨幅-0.0585%→+0.2049%，相对行业+0.1891→+0.7309个百分点，油气分歧中相对优势扩大；历史medium、bullish/intact，七日+1.8784%，表现为承接。现价34.24高于合理区29.80–31.30，新仓不追涨；结构健康且未弱化，持仓由观察转继续持有。",
+        "data_quality": "READY"
       }
     ],
     "600968": [
@@ -287,6 +422,69 @@
         "trend_in_current_handoff": true,
         "reason": "历史medium、bearish/bearish_structure_under_threat，七日+0.4988%；今日+0.7444%，较行业+1.7461个百分点并高于4.02历史反向阈值，但首轮不能单凭盘中价确认修复。历史弱化使新仓暂停，持仓观察。",
         "data_quality": "READY"
+      },
+      {
+        "scan_at": "2026-10-09T10:44:40.000+08:00",
+        "rank": 5,
+        "code": "600968",
+        "company_name": "海油发展",
+        "trend_name": "油气/石油",
+        "industry_code": "S750201",
+        "industry_name": "油田服务",
+        "formal_status": "WAIT",
+        "wait_reason": "WAIT_MARGIN",
+        "price": 4.08,
+        "change_pct": 1.2407,
+        "industry_median_change_pct": -1.3857,
+        "relative_to_industry_pct": 2.6264,
+        "seven_day": {
+          "status": "available",
+          "window_sessions": 7,
+          "observation_count": 8,
+          "source_trade_date": "2026-10-08",
+          "close_change_7d_pct": 0.4988,
+          "basis": "eight_valid_completed_session_closes"
+        },
+        "history_context_status": "available",
+        "history_confidence": "medium",
+        "history_trend_state": "bearish",
+        "history_break_state": "bearish_structure_under_threat",
+        "latest_high": {
+          "date": "2026-09-21",
+          "type": "high",
+          "price": 4.02,
+          "label": "LH"
+        },
+        "latest_low": {
+          "date": "2026-09-28",
+          "type": "low",
+          "price": 3.82,
+          "label": "LL"
+        },
+        "invalidation": {
+          "direction": "above",
+          "price": 4.02
+        },
+        "previous_relative_strength": "稳定",
+        "relative_strength": "增强",
+        "previous_price_behavior": "震荡",
+        "price_behavior": "强化",
+        "previous_entry_action": "暂停买入",
+        "entry_action": "暂停买入",
+        "previous_holding_action": "持有观察",
+        "holding_action": "持有观察",
+        "reasonable_buy_range": [
+          3.7,
+          4.15
+        ],
+        "low_risk_buy_range": [
+          3.1,
+          3.5
+        ],
+        "buy_range_relation": "within_reasonable_buy_range",
+        "trend_in_current_handoff": true,
+        "reason": "涨幅+0.7444%→+1.2407%，相对行业+1.7461→+2.6264个百分点，同日涨幅与相对优势同步改善，判为强化；但历史medium、bearish/bearish_structure_under_threat，七日+0.4988%，单次盘中高于4.02不足以确认修复。继续暂停新仓，持仓观察。",
+        "data_quality": "READY"
       }
     ],
     "601808": [
@@ -348,6 +546,66 @@
         "buy_range_relation": "within_reasonable_buy_range",
         "trend_in_current_handoff": true,
         "reason": "历史medium、transition/transition，七日+0.3195%；油气板块分歧中个股今日+0.7166%、较行业+1.7183个百分点，表现为相对承接。因历史仍处过渡且行业偏弱，暂停新仓，持仓观察。",
+        "data_quality": "READY"
+      },
+      {
+        "scan_at": "2026-10-09T10:44:40.000+08:00",
+        "rank": 6,
+        "code": "601808",
+        "company_name": "中海油服",
+        "trend_name": "油气/石油",
+        "industry_code": "S750201",
+        "industry_name": "油田服务",
+        "formal_status": "WAIT",
+        "wait_reason": "WAIT_MARGIN",
+        "price": 12.72,
+        "change_pct": 1.2739,
+        "industry_median_change_pct": -1.3857,
+        "relative_to_industry_pct": 2.6596,
+        "seven_day": {
+          "status": "available",
+          "window_sessions": 7,
+          "observation_count": 8,
+          "source_trade_date": "2026-10-08",
+          "close_change_7d_pct": 0.3195,
+          "basis": "eight_valid_completed_session_closes"
+        },
+        "history_context_status": "available",
+        "history_confidence": "medium",
+        "history_trend_state": "transition",
+        "history_break_state": "transition",
+        "latest_high": {
+          "date": "2026-09-21",
+          "type": "high",
+          "price": 12.57,
+          "label": "LH"
+        },
+        "latest_low": {
+          "date": "2026-09-28",
+          "type": "low",
+          "price": 12,
+          "label": "EL"
+        },
+        "invalidation": null,
+        "previous_relative_strength": "稳定",
+        "relative_strength": "增强",
+        "previous_price_behavior": "承接",
+        "price_behavior": "承接",
+        "previous_entry_action": "暂停买入",
+        "entry_action": "暂停买入",
+        "previous_holding_action": "持有观察",
+        "holding_action": "持有观察",
+        "reasonable_buy_range": [
+          11.75,
+          12.7
+        ],
+        "low_risk_buy_range": [
+          10,
+          10.9
+        ],
+        "buy_range_relation": "above_reasonable_buy_range",
+        "trend_in_current_handoff": true,
+        "reason": "涨幅+0.7166%→+1.2739%，相对行业+1.7183→+2.6596个百分点，在油气分歧中相对优势扩大，维持承接；历史medium、transition/transition，七日+0.3195%，现价12.72略高于合理区上沿12.70。历史仍过渡，暂停买入，持仓观察。",
         "data_quality": "READY"
       }
     ],
@@ -414,6 +672,69 @@
         "trend_in_current_handoff": true,
         "reason": "历史medium、bearish/intact，七日-0.1826%；今日+2.0128%，较行业中位数+0.3613个百分点，未出现结构破坏。现价22.30高于合理区19.30–20.30且仍低于22.91历史修复阈值，新仓不追涨；持仓仅观察，不能以盘中价确认日线失效。",
         "data_quality": "READY"
+      },
+      {
+        "scan_at": "2026-10-09T10:44:40.000+08:00",
+        "rank": 1,
+        "code": "603659",
+        "company_name": "璞泰来",
+        "trend_name": "固态电池",
+        "industry_code": "S630702",
+        "industry_name": "电池化学品",
+        "formal_status": "WAIT",
+        "wait_reason": "WAIT_PRICE",
+        "price": 21.91,
+        "change_pct": 0.2287,
+        "industry_median_change_pct": 0.2765,
+        "relative_to_industry_pct": -0.0478,
+        "seven_day": {
+          "status": "available",
+          "window_sessions": 7,
+          "observation_count": 8,
+          "source_trade_date": "2026-10-08",
+          "close_change_7d_pct": -0.1826,
+          "basis": "eight_valid_completed_session_closes"
+        },
+        "history_context_status": "available",
+        "history_confidence": "medium",
+        "history_trend_state": "bearish",
+        "history_break_state": "intact",
+        "latest_high": {
+          "date": "2026-09-15",
+          "type": "high",
+          "price": 22.91,
+          "label": "LH"
+        },
+        "latest_low": {
+          "date": "2026-09-28",
+          "type": "low",
+          "price": 20.73,
+          "label": "LL"
+        },
+        "invalidation": {
+          "direction": "above",
+          "price": 22.91
+        },
+        "previous_relative_strength": "稳定",
+        "relative_strength": "减弱",
+        "previous_price_behavior": "震荡",
+        "price_behavior": "转弱",
+        "previous_entry_action": "不追涨",
+        "entry_action": "暂停买入",
+        "previous_holding_action": "持有观察",
+        "holding_action": "减仓观察",
+        "reasonable_buy_range": [
+          19.3,
+          20.3
+        ],
+        "low_risk_buy_range": [
+          16.5,
+          18
+        ],
+        "buy_range_relation": "above_reasonable_buy_range",
+        "trend_in_current_handoff": true,
+        "reason": "涨幅+2.0128%→+0.2287%，相对行业+0.3613→-0.0478个百分点，盘中优势收窄并转为略弱；历史medium、bearish/intact，七日-0.1826%，同时固态电池满足路径B升为衰退预警，形成行业与个股转弱共振。现价21.91仍高于20.73历史低点，未确认结构破坏或日线收盘失效；暂停买入，持仓升级为减仓观察而非直接减仓。",
+        "data_quality": "READY"
       }
     ],
     "002709": [
@@ -479,6 +800,69 @@
         "trend_in_current_handoff": true,
         "reason": "历史medium、bearish/intact，七日-2.5052%；今日+3.5485%，较行业+1.8970个百分点，现价33.85在合理区31.20–34.30且盘中站上33.69历史反向阈值，但首轮不足以确认结构修复。空仓等待承接，持仓观察。",
         "data_quality": "READY"
+      },
+      {
+        "scan_at": "2026-10-09T10:44:40.000+08:00",
+        "rank": 2,
+        "code": "002709",
+        "company_name": "天赐材料",
+        "trend_name": "固态电池",
+        "industry_code": "S630702",
+        "industry_name": "电池化学品",
+        "formal_status": "WAIT",
+        "wait_reason": "WAIT_MARGIN",
+        "price": 34.24,
+        "change_pct": 4.7415,
+        "industry_median_change_pct": 0.2765,
+        "relative_to_industry_pct": 4.465,
+        "seven_day": {
+          "status": "available",
+          "window_sessions": 7,
+          "observation_count": 8,
+          "source_trade_date": "2026-10-08",
+          "close_change_7d_pct": -2.5052,
+          "basis": "eight_valid_completed_session_closes"
+        },
+        "history_context_status": "available",
+        "history_confidence": "medium",
+        "history_trend_state": "bearish",
+        "history_break_state": "intact",
+        "latest_high": {
+          "date": "2026-09-22",
+          "type": "high",
+          "price": 33.69,
+          "label": "LH"
+        },
+        "latest_low": {
+          "date": "2026-09-28",
+          "type": "low",
+          "price": 30.34,
+          "label": "LL"
+        },
+        "invalidation": {
+          "direction": "above",
+          "price": 33.69
+        },
+        "previous_relative_strength": "稳定",
+        "relative_strength": "增强",
+        "previous_price_behavior": "震荡",
+        "price_behavior": "加速",
+        "previous_entry_action": "等待",
+        "entry_action": "不追涨",
+        "previous_holding_action": "持有观察",
+        "holding_action": "持有观察",
+        "reasonable_buy_range": [
+          31.2,
+          34.3
+        ],
+        "low_risk_buy_range": [
+          26,
+          28.7
+        ],
+        "buy_range_relation": "within_reasonable_buy_range",
+        "trend_in_current_handoff": true,
+        "reason": "涨幅+3.5485%→+4.7415%，相对行业+1.8970→+4.4650个百分点，短时优势快速扩大，判为加速；历史medium、bearish/intact，七日-2.5052%，现价34.24仍在合理区31.20–34.30但接近上沿。固态电池已升衰退预警，新仓不追涨，持仓观察。",
+        "data_quality": "READY"
       }
     ],
     "000968": [
@@ -543,6 +927,69 @@
         "buy_range_relation": "above_reasonable_buy_range",
         "trend_in_current_handoff": true,
         "reason": "历史medium、bearish/intact，七日0.0000%；今日-0.9777%，弱于行业0.7301个百分点，且油气板块广度与中位数同步偏弱，构成历史弱化背景下的当日转弱；现价7.09仍高于6.70历史低点，结构破坏未确认。暂停新仓，持仓观察。",
+        "data_quality": "READY"
+      },
+      {
+        "scan_at": "2026-10-09T10:44:40.000+08:00",
+        "rank": 4,
+        "code": "000968",
+        "company_name": "蓝焰控股",
+        "trend_name": "油气/石油",
+        "industry_code": "S750101",
+        "industry_name": "油气开采Ⅲ",
+        "formal_status": "WAIT",
+        "wait_reason": "WAIT_CATALYST",
+        "price": 7.07,
+        "change_pct": -1.257,
+        "industry_median_change_pct": -0.526,
+        "relative_to_industry_pct": -0.731,
+        "seven_day": {
+          "status": "available",
+          "window_sessions": 7,
+          "observation_count": 8,
+          "source_trade_date": "2026-10-08",
+          "close_change_7d_pct": 0,
+          "basis": "eight_valid_completed_session_closes"
+        },
+        "history_context_status": "available",
+        "history_confidence": "medium",
+        "history_trend_state": "bearish",
+        "history_break_state": "intact",
+        "latest_high": {
+          "date": "2026-09-21",
+          "type": "high",
+          "price": 7.19,
+          "label": "LH"
+        },
+        "latest_low": {
+          "date": "2026-09-28",
+          "type": "low",
+          "price": 6.7,
+          "label": "LL"
+        },
+        "invalidation": {
+          "direction": "above",
+          "price": 7.19
+        },
+        "previous_relative_strength": "稳定",
+        "relative_strength": "稳定",
+        "previous_price_behavior": "转弱",
+        "price_behavior": "转弱",
+        "previous_entry_action": "暂停买入",
+        "entry_action": "暂停买入",
+        "previous_holding_action": "持有观察",
+        "holding_action": "持有观察",
+        "reasonable_buy_range": [
+          6.5,
+          6.95
+        ],
+        "low_risk_buy_range": [
+          5.75,
+          6.3
+        ],
+        "buy_range_relation": "above_reasonable_buy_range",
+        "trend_in_current_handoff": true,
+        "reason": "涨幅-0.9777%→-1.2570%，相对行业-0.7301→-0.7310个百分点，持续弱于行业但相对差值基本持平；历史medium、bearish/intact，七日0.0000%，维持转弱。现价7.07仍高于6.70历史低点，结构破坏未确认；暂停买入，持仓观察。",
         "data_quality": "READY"
       }
     ]
