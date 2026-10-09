@@ -2,10 +2,10 @@
   "schema_version": "2.0",
   "result_kind": "a_share_low_risk_formal_result",
   "status": "COMPLETE",
-  "trade_date": "2026-10-08",
-  "run_id": "low-risk-20261008-manual-fresh-204312",
-  "published_at": "2026-10-08T20:43:12.415+08:00",
-  "mode": "FORMAL_MANUAL",
+  "trade_date": "2026-10-09",
+  "run_id": "low-risk-20261009-formal-auto-190306",
+  "published_at": "2026-10-09T19:03:06+08:00",
+  "mode": "FORMAL_AUTO",
   "provenance": {
     "repository": "xwan008/a-market-data",
     "branch": "main",
@@ -19,14 +19,14 @@
       "skill/EXECUTION_EFFICIENCY_OVERRIDE.md": "ec2cd55ae4a67e30eb8f206f04d8a2fc4f3ae142",
       "skill/RUNTIME_READ_PROTOCOL.md": "0d057d56d24643fec6d23b8515e169f82585f760"
     },
-    "trend_handoff_sha": "0bc189881dbb0ef5420081d7713a72b73bcaa61a",
-    "index_sha": "853d5823b8bf9c90e0212bef8a204334bd4e13d0"
+    "trend_handoff_sha": "490f02af905c7be463a27983fdef468e89698436",
+    "index_sha": "94737296df8916e29a08e9972b991f4c34264755"
   },
   "trend_handoff": {
     "schema_version": 1,
     "result_kind": "a_share_trend_handoff",
-    "trade_date": "2026-10-08",
-    "generated_at": "2026-10-08T18:38:47+08:00",
+    "trade_date": "2026-10-09",
+    "generated_at": "2026-10-09T18:36:50+08:00",
     "source": {
       "task": "A股板块趋势榜",
       "logic_unchanged": true
@@ -55,16 +55,29 @@
       },
       {
         "rank": 2,
-        "trend_name": "油气/石油",
+        "trend_name": "煤炭",
+        "trend_state": "T2",
+        "market_state": "候选趋势",
+        "industry_codes": [
+          "S740101",
+          "S740102"
+        ],
+        "industry_names": [
+          "动力煤",
+          "焦煤"
+        ],
+        "mapping_status": "resolved"
+      },
+      {
+        "rank": 3,
+        "trend_name": "黄金/贵金属",
         "trend_state": "T1",
         "market_state": "候选趋势",
         "industry_codes": [
-          "S750101",
-          "S750201"
+          "S240401"
         ],
         "industry_names": [
-          "油气开采Ⅲ",
-          "油田服务"
+          "黄金"
         ],
         "mapping_status": "resolved"
       }
@@ -83,7 +96,7 @@
         }
       ],
       "universe_company_count": 9,
-      "manifest_sha": "9daefd052e5255d4c69af66e6ba96cd6a5d50be4",
+      "manifest_sha": "c6e43f1b59b5633dea1b63c850a354670f14562d",
       "part_count": 2
     },
     {
@@ -98,7 +111,7 @@
         }
       ],
       "universe_company_count": 14,
-      "manifest_sha": "80eb5b57a2619b52e6dac52f0fd1ac9d3b93aac1",
+      "manifest_sha": "bcb997c2f0e7bb817a0ec8c7f4a7d0d3246f432b",
       "part_count": 3
     },
     {
@@ -113,7 +126,7 @@
         }
       ],
       "universe_company_count": 1,
-      "manifest_sha": "a0541963b42e7a5cb1f4000749eb8ae6c287702c",
+      "manifest_sha": "11a30f47e46c0e657b3d9a84729b9594518f6793",
       "part_count": 1
     },
     {
@@ -128,7 +141,7 @@
         }
       ],
       "universe_company_count": 7,
-      "manifest_sha": "91b46af1a214f5c8bab9f6998f23b7be0d5ec9da",
+      "manifest_sha": "402e588a17625d56f235ea405013e7dcf70110f1",
       "part_count": 2
     },
     {
@@ -143,37 +156,52 @@
         }
       ],
       "universe_company_count": 12,
-      "manifest_sha": "759764f6848bd279063a1a6b3035f02027832e73",
+      "manifest_sha": "bc996335c152103be894e973adfd77c1e72e4ca9",
       "part_count": 3
     },
     {
-      "industry_code": "S750101",
-      "industry_name": "油气开采Ⅲ",
+      "industry_code": "S740101",
+      "industry_name": "动力煤",
       "trend_contexts": [
         {
-          "trend_name": "油气/石油",
-          "trend_state": "T1",
+          "trend_name": "煤炭",
+          "trend_state": "T2",
           "market_state": "候选趋势",
           "signal_rank": 2
         }
       ],
-      "universe_company_count": 4,
-      "manifest_sha": "be89a0f59fdd4624727c96e34acda310e0e1ef88",
-      "part_count": 1
+      "universe_company_count": 15,
+      "manifest_sha": "d0e1cedb68e92ef9b18fb9de54bb7596ee37006c",
+      "part_count": 3
     },
     {
-      "industry_code": "S750201",
-      "industry_name": "油田服务",
+      "industry_code": "S740102",
+      "industry_name": "焦煤",
       "trend_contexts": [
         {
-          "trend_name": "油气/石油",
-          "trend_state": "T1",
+          "trend_name": "煤炭",
+          "trend_state": "T2",
           "market_state": "候选趋势",
           "signal_rank": 2
         }
       ],
-      "universe_company_count": 7,
-      "manifest_sha": "b9422f2511751afe9000acbdb5174e321530c3a4",
+      "universe_company_count": 11,
+      "manifest_sha": "76ed8c07f171abe4a276d83dba56ce1fc75d2fe4",
+      "part_count": 3
+    },
+    {
+      "industry_code": "S240401",
+      "industry_name": "黄金",
+      "trend_contexts": [
+        {
+          "trend_name": "黄金/贵金属",
+          "trend_state": "T1",
+          "market_state": "候选趋势",
+          "signal_rank": 3
+        }
+      ],
+      "universe_company_count": 9,
+      "manifest_sha": "fde252f7084f7ac58adf3b0d08636f6b0caf48c8",
       "part_count": 2
     }
   ],
@@ -190,37 +218,28 @@
       ]
     },
     {
-      "code": "600759",
-      "name": "ST洲际",
-      "industry_code": "S750101",
-      "industry_name": "油气开采Ⅲ",
+      "code": "000571",
+      "name": "新大洲A",
+      "industry_code": "S740101",
+      "industry_name": "动力煤",
       "reasons": [
-        "ST"
+        "KEY_DATA_MISSING"
       ]
     },
     {
-      "code": "600777",
-      "name": "新潮能源",
-      "industry_code": "S750101",
-      "industry_name": "油气开采Ⅲ",
+      "code": "600121",
+      "name": "郑州煤电",
+      "industry_code": "S740101",
+      "industry_name": "动力煤",
       "reasons": [
         "REVENUE_AND_PROFIT_COLLAPSE"
       ]
     },
     {
-      "code": "002207",
-      "name": "*ST准油",
-      "industry_code": "S750201",
-      "industry_name": "油田服务",
-      "reasons": [
-        "ST"
-      ]
-    },
-    {
-      "code": "002828",
-      "name": "贝肯能源",
-      "industry_code": "S750201",
-      "industry_name": "油田服务",
+      "code": "600758",
+      "name": "辽宁能源",
+      "industry_code": "S740102",
+      "industry_name": "焦煤",
       "reasons": [
         "REVENUE_AND_PROFIT_COLLAPSE"
       ]
@@ -247,7 +266,7 @@
       "name": "德赛电池",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "pre_screen_score": 0.68125,
+      "pre_screen_score": 0.6625,
       "contexts": [
         {
           "trend_name": "固态电池",
@@ -262,7 +281,7 @@
       "name": "国轩高科",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "pre_screen_score": 0.6375,
+      "pre_screen_score": 0.65625,
       "contexts": [
         {
           "trend_name": "固态电池",
@@ -277,7 +296,7 @@
       "name": "蔚蓝锂芯",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "pre_screen_score": 0.5125,
+      "pre_screen_score": 0.53125,
       "contexts": [
         {
           "trend_name": "固态电池",
@@ -292,7 +311,7 @@
       "name": "诺德股份",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "pre_screen_score": 0.475,
+      "pre_screen_score": 0.49375,
       "contexts": [
         {
           "trend_name": "固态电池",
@@ -307,7 +326,7 @@
       "name": "维科技术",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "pre_screen_score": 0.46875,
+      "pre_screen_score": 0.4875,
       "contexts": [
         {
           "trend_name": "固态电池",
@@ -322,7 +341,7 @@
       "name": "天赐材料",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
-      "pre_screen_score": 0.891667,
+      "pre_screen_score": 0.866667,
       "contexts": [
         {
           "trend_name": "固态电池",
@@ -367,7 +386,22 @@
       "name": "滨海能源",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
-      "pre_screen_score": 0.5875,
+      "pre_screen_score": 0.6125,
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
+    },
+    {
+      "code": "600884",
+      "name": "杉杉股份",
+      "industry_code": "S630702",
+      "industry_name": "电池化学品",
+      "pre_screen_score": 0.566667,
       "contexts": [
         {
           "trend_name": "固态电池",
@@ -382,22 +416,7 @@
       "name": "石大胜华",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
-      "pre_screen_score": 0.575,
-      "contexts": [
-        {
-          "trend_name": "固态电池",
-          "trend_state": "T1",
-          "market_state": "趋势确认",
-          "signal_rank": 1
-        }
-      ]
-    },
-    {
-      "code": "002805",
-      "name": "丰元股份",
-      "industry_code": "S630702",
-      "industry_name": "电池化学品",
-      "pre_screen_score": 0.558333,
+      "pre_screen_score": 0.5375,
       "contexts": [
         {
           "trend_name": "固态电池",
@@ -412,7 +431,7 @@
       "name": "德新科技",
       "industry_code": "S630703",
       "industry_name": "锂电专用设备",
-      "pre_screen_score": 0.6,
+      "pre_screen_score": 0.625,
       "contexts": [
         {
           "trend_name": "固态电池",
@@ -427,7 +446,7 @@
       "name": "融捷股份",
       "industry_code": "S240603",
       "industry_name": "锂",
-      "pre_screen_score": 0.891667,
+      "pre_screen_score": 0.941667,
       "contexts": [
         {
           "trend_name": "固态电池",
@@ -487,7 +506,22 @@
       "name": "永兴材料",
       "industry_code": "S240603",
       "industry_name": "锂",
-      "pre_screen_score": 0.475,
+      "pre_screen_score": 0.425,
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
+    },
+    {
+      "code": "002240",
+      "name": "盛新锂能",
+      "industry_code": "S240603",
+      "industry_name": "锂",
+      "pre_screen_score": 0.416667,
       "contexts": [
         {
           "trend_name": "固态电池",
@@ -502,7 +536,7 @@
       "name": "中矿资源",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "pre_screen_score": 0.752273,
+      "pre_screen_score": 0.765909,
       "contexts": [
         {
           "trend_name": "固态电池",
@@ -517,7 +551,7 @@
       "name": "东方锆业",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "pre_screen_score": 0.7,
+      "pre_screen_score": 0.713636,
       "contexts": [
         {
           "trend_name": "固态电池",
@@ -532,7 +566,7 @@
       "name": "锡业股份",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "pre_screen_score": 0.693182,
+      "pre_screen_score": 0.706818,
       "contexts": [
         {
           "trend_name": "固态电池",
@@ -577,7 +611,7 @@
       "name": "贵研铂业",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "pre_screen_score": 0.595455,
+      "pre_screen_score": 0.581818,
       "contexts": [
         {
           "trend_name": "固态电池",
@@ -588,107 +622,257 @@
       ]
     },
     {
-      "code": "600938",
-      "name": "中国海油",
-      "industry_code": "S750101",
-      "industry_name": "油气开采Ⅲ",
-      "pre_screen_score": 0.85,
+      "code": "601918",
+      "name": "新集能源",
+      "industry_code": "S740101",
+      "industry_name": "动力煤",
+      "pre_screen_score": 0.7125,
       "contexts": [
         {
-          "trend_name": "油气/石油",
-          "trend_state": "T1",
+          "trend_name": "煤炭",
+          "trend_state": "T2",
           "market_state": "候选趋势",
           "signal_rank": 2
         }
       ]
     },
     {
-      "code": "000968",
-      "name": "蓝焰控股",
-      "industry_code": "S750101",
-      "industry_name": "油气开采Ⅲ",
-      "pre_screen_score": 0.4,
+      "code": "002128",
+      "name": "电投能源",
+      "industry_code": "S740101",
+      "industry_name": "动力煤",
+      "pre_screen_score": 0.695833,
       "contexts": [
         {
-          "trend_name": "油气/石油",
-          "trend_state": "T1",
+          "trend_name": "煤炭",
+          "trend_state": "T2",
           "market_state": "候选趋势",
           "signal_rank": 2
         }
       ]
     },
     {
-      "code": "600871",
-      "name": "石化油服",
-      "industry_code": "S750201",
-      "industry_name": "油田服务",
+      "code": "600546",
+      "name": "山煤国际",
+      "industry_code": "S740101",
+      "industry_name": "动力煤",
+      "pre_screen_score": 0.683333,
+      "contexts": [
+        {
+          "trend_name": "煤炭",
+          "trend_state": "T2",
+          "market_state": "候选趋势",
+          "signal_rank": 2
+        }
+      ]
+    },
+    {
+      "code": "601101",
+      "name": "昊华能源",
+      "industry_code": "S740101",
+      "industry_name": "动力煤",
+      "pre_screen_score": 0.645833,
+      "contexts": [
+        {
+          "trend_name": "煤炭",
+          "trend_state": "T2",
+          "market_state": "候选趋势",
+          "signal_rank": 2
+        }
+      ]
+    },
+    {
+      "code": "600971",
+      "name": "恒源煤电",
+      "industry_code": "S740101",
+      "industry_name": "动力煤",
+      "pre_screen_score": 0.641667,
+      "contexts": [
+        {
+          "trend_name": "煤炭",
+          "trend_state": "T2",
+          "market_state": "候选趋势",
+          "signal_rank": 2
+        }
+      ]
+    },
+    {
+      "code": "601898",
+      "name": "中煤能源",
+      "industry_code": "S740101",
+      "industry_name": "动力煤",
+      "pre_screen_score": 0.6375,
+      "contexts": [
+        {
+          "trend_name": "煤炭",
+          "trend_state": "T2",
+          "market_state": "候选趋势",
+          "signal_rank": 2
+        }
+      ]
+    },
+    {
+      "code": "601699",
+      "name": "潞安环能",
+      "industry_code": "S740102",
+      "industry_name": "焦煤",
+      "pre_screen_score": 0.761111,
+      "contexts": [
+        {
+          "trend_name": "煤炭",
+          "trend_state": "T2",
+          "market_state": "候选趋势",
+          "signal_rank": 2
+        }
+      ]
+    },
+    {
+      "code": "600395",
+      "name": "盘江股份",
+      "industry_code": "S740102",
+      "industry_name": "焦煤",
       "pre_screen_score": 0.7,
       "contexts": [
         {
-          "trend_name": "油气/石油",
-          "trend_state": "T1",
+          "trend_name": "煤炭",
+          "trend_state": "T2",
           "market_state": "候选趋势",
           "signal_rank": 2
         }
       ]
     },
     {
-      "code": "002629",
-      "name": "仁智股份",
-      "industry_code": "S750201",
-      "industry_name": "油田服务",
-      "pre_screen_score": 0.675,
+      "code": "600997",
+      "name": "开滦股份",
+      "industry_code": "S740102",
+      "industry_name": "焦煤",
+      "pre_screen_score": 0.683333,
       "contexts": [
         {
-          "trend_name": "油气/石油",
-          "trend_state": "T1",
+          "trend_name": "煤炭",
+          "trend_state": "T2",
           "market_state": "候选趋势",
           "signal_rank": 2
         }
       ]
     },
     {
-      "code": "600968",
-      "name": "海油发展",
-      "industry_code": "S750201",
-      "industry_name": "油田服务",
-      "pre_screen_score": 0.575,
+      "code": "600508",
+      "name": "上海能源",
+      "industry_code": "S740102",
+      "industry_name": "焦煤",
+      "pre_screen_score": 0.661111,
       "contexts": [
         {
-          "trend_name": "油气/石油",
-          "trend_state": "T1",
+          "trend_name": "煤炭",
+          "trend_state": "T2",
           "market_state": "候选趋势",
           "signal_rank": 2
         }
       ]
     },
     {
-      "code": "601808",
-      "name": "中海油服",
-      "industry_code": "S750201",
-      "industry_name": "油田服务",
-      "pre_screen_score": 0.4625,
+      "code": "600985",
+      "name": "淮北矿业",
+      "industry_code": "S740102",
+      "industry_name": "焦煤",
+      "pre_screen_score": 0.611111,
       "contexts": [
         {
-          "trend_name": "油气/石油",
-          "trend_state": "T1",
+          "trend_name": "煤炭",
+          "trend_state": "T2",
           "market_state": "候选趋势",
           "signal_rank": 2
         }
       ]
     },
     {
-      "code": "603619",
-      "name": "中曼石油",
-      "industry_code": "S750201",
-      "industry_name": "油田服务",
-      "pre_screen_score": 0.4625,
+      "code": "600123",
+      "name": "兰花科创",
+      "industry_code": "S740102",
+      "industry_name": "焦煤",
+      "pre_screen_score": 0.583333,
       "contexts": [
         {
-          "trend_name": "油气/石油",
-          "trend_state": "T1",
+          "trend_name": "煤炭",
+          "trend_state": "T2",
           "market_state": "候选趋势",
           "signal_rank": 2
+        }
+      ]
+    },
+    {
+      "code": "601069",
+      "name": "西部黄金",
+      "industry_code": "S240401",
+      "industry_name": "黄金",
+      "pre_screen_score": 0.76875,
+      "contexts": [
+        {
+          "trend_name": "黄金/贵金属",
+          "trend_state": "T1",
+          "market_state": "候选趋势",
+          "signal_rank": 3
+        }
+      ]
+    },
+    {
+      "code": "000975",
+      "name": "山金国际",
+      "industry_code": "S240401",
+      "industry_name": "黄金",
+      "pre_screen_score": 0.65,
+      "contexts": [
+        {
+          "trend_name": "黄金/贵金属",
+          "trend_state": "T1",
+          "market_state": "候选趋势",
+          "signal_rank": 3
+        }
+      ]
+    },
+    {
+      "code": "600489",
+      "name": "中金黄金",
+      "industry_code": "S240401",
+      "industry_name": "黄金",
+      "pre_screen_score": 0.63125,
+      "contexts": [
+        {
+          "trend_name": "黄金/贵金属",
+          "trend_state": "T1",
+          "market_state": "候选趋势",
+          "signal_rank": 3
+        }
+      ]
+    },
+    {
+      "code": "001337",
+      "name": "四川黄金",
+      "industry_code": "S240401",
+      "industry_name": "黄金",
+      "pre_screen_score": 0.6,
+      "contexts": [
+        {
+          "trend_name": "黄金/贵金属",
+          "trend_state": "T1",
+          "market_state": "候选趋势",
+          "signal_rank": 3
+        }
+      ]
+    },
+    {
+      "code": "600988",
+      "name": "赤峰黄金",
+      "industry_code": "S240401",
+      "industry_name": "黄金",
+      "pre_screen_score": 0.5625,
+      "contexts": [
+        {
+          "trend_name": "黄金/贵金属",
+          "trend_state": "T1",
+          "market_state": "候选趋势",
+          "signal_rank": 3
         }
       ]
     }
@@ -699,7 +883,22 @@
       "name": "科力远",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "pre_screen_score": 0.44375,
+      "pre_screen_score": 0.36875,
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
+    },
+    {
+      "code": "001283",
+      "name": "豪鹏科技",
+      "industry_code": "S630701",
+      "industry_name": "锂电池",
+      "pre_screen_score": 0.325,
       "contexts": [
         {
           "trend_name": "固态电池",
@@ -725,26 +924,11 @@
       ]
     },
     {
-      "code": "001283",
-      "name": "豪鹏科技",
-      "industry_code": "S630701",
-      "industry_name": "锂电池",
-      "pre_screen_score": 0.30625,
-      "contexts": [
-        {
-          "trend_name": "固态电池",
-          "trend_state": "T1",
-          "market_state": "趋势确认",
-          "signal_rank": 1
-        }
-      ]
-    },
-    {
-      "code": "600884",
-      "name": "杉杉股份",
+      "code": "002805",
+      "name": "丰元股份",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
-      "pre_screen_score": 0.554167,
+      "pre_screen_score": 0.520833,
       "contexts": [
         {
           "trend_name": "固态电池",
@@ -785,6 +969,36 @@
       ]
     },
     {
+      "code": "000009",
+      "name": "中国宝安",
+      "industry_code": "S630702",
+      "industry_name": "电池化学品",
+      "pre_screen_score": 0.466667,
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
+    },
+    {
+      "code": "002340",
+      "name": "格林美",
+      "industry_code": "S630702",
+      "industry_name": "电池化学品",
+      "pre_screen_score": 0.466667,
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
+    },
+    {
       "code": "002125",
       "name": "湘潭电化",
       "industry_code": "S630702",
@@ -800,56 +1014,11 @@
       ]
     },
     {
-      "code": "000009",
-      "name": "中国宝安",
-      "industry_code": "S630702",
-      "industry_name": "电池化学品",
-      "pre_screen_score": 0.441667,
-      "contexts": [
-        {
-          "trend_name": "固态电池",
-          "trend_state": "T1",
-          "market_state": "趋势确认",
-          "signal_rank": 1
-        }
-      ]
-    },
-    {
-      "code": "002340",
-      "name": "格林美",
-      "industry_code": "S630702",
-      "industry_name": "电池化学品",
-      "pre_screen_score": 0.429167,
-      "contexts": [
-        {
-          "trend_name": "固态电池",
-          "trend_state": "T1",
-          "market_state": "趋势确认",
-          "signal_rank": 1
-        }
-      ]
-    },
-    {
       "code": "002058",
       "name": "紫竹高科",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
       "pre_screen_score": 0.266667,
-      "contexts": [
-        {
-          "trend_name": "固态电池",
-          "trend_state": "T1",
-          "market_state": "趋势确认",
-          "signal_rank": 1
-        }
-      ]
-    },
-    {
-      "code": "002240",
-      "name": "盛新锂能",
-      "industry_code": "S240603",
-      "industry_name": "锂",
-      "pre_screen_score": 0.416667,
       "contexts": [
         {
           "trend_name": "固态电池",
@@ -890,11 +1059,26 @@
       ]
     },
     {
+      "code": "000962",
+      "name": "东方钽业",
+      "industry_code": "S240504",
+      "industry_name": "其他小金属",
+      "pre_screen_score": 0.484091,
+      "contexts": [
+        {
+          "trend_name": "固态电池",
+          "trend_state": "T1",
+          "market_state": "趋势确认",
+          "signal_rank": 1
+        }
+      ]
+    },
+    {
       "code": "600456",
       "name": "宝钛股份",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "pre_screen_score": 0.475,
+      "pre_screen_score": 0.447727,
       "contexts": [
         {
           "trend_name": "固态电池",
@@ -909,22 +1093,7 @@
       "name": "宝武镁业",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "pre_screen_score": 0.465909,
-      "contexts": [
-        {
-          "trend_name": "固态电池",
-          "trend_state": "T1",
-          "market_state": "趋势确认",
-          "signal_rank": 1
-        }
-      ]
-    },
-    {
-      "code": "000962",
-      "name": "东方钽业",
-      "industry_code": "S240504",
-      "industry_name": "其他小金属",
-      "pre_screen_score": 0.443182,
+      "pre_screen_score": 0.411364,
       "contexts": [
         {
           "trend_name": "固态电池",
@@ -939,7 +1108,7 @@
       "name": "华阳新材",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "pre_screen_score": 0.25,
+      "pre_screen_score": 0.263636,
       "contexts": [
         {
           "trend_name": "固态电池",
@@ -963,6 +1132,231 @@
           "signal_rank": 1
         }
       ]
+    },
+    {
+      "code": "000552",
+      "name": "甘肃能化",
+      "industry_code": "S740101",
+      "industry_name": "动力煤",
+      "pre_screen_score": 0.579167,
+      "contexts": [
+        {
+          "trend_name": "煤炭",
+          "trend_state": "T2",
+          "market_state": "候选趋势",
+          "signal_rank": 2
+        }
+      ]
+    },
+    {
+      "code": "600925",
+      "name": "苏能股份",
+      "industry_code": "S740101",
+      "industry_name": "动力煤",
+      "pre_screen_score": 0.566667,
+      "contexts": [
+        {
+          "trend_name": "煤炭",
+          "trend_state": "T2",
+          "market_state": "候选趋势",
+          "signal_rank": 2
+        }
+      ]
+    },
+    {
+      "code": "601225",
+      "name": "陕西煤业",
+      "industry_code": "S740101",
+      "industry_name": "动力煤",
+      "pre_screen_score": 0.558333,
+      "contexts": [
+        {
+          "trend_name": "煤炭",
+          "trend_state": "T2",
+          "market_state": "候选趋势",
+          "signal_rank": 2
+        }
+      ]
+    },
+    {
+      "code": "600403",
+      "name": "大有能源",
+      "industry_code": "S740101",
+      "industry_name": "动力煤",
+      "pre_screen_score": 0.529167,
+      "contexts": [
+        {
+          "trend_name": "煤炭",
+          "trend_state": "T2",
+          "market_state": "候选趋势",
+          "signal_rank": 2
+        }
+      ]
+    },
+    {
+      "code": "601001",
+      "name": "晋控煤业",
+      "industry_code": "S740101",
+      "industry_name": "动力煤",
+      "pre_screen_score": 0.491667,
+      "contexts": [
+        {
+          "trend_name": "煤炭",
+          "trend_state": "T2",
+          "market_state": "候选趋势",
+          "signal_rank": 2
+        }
+      ]
+    },
+    {
+      "code": "600188",
+      "name": "兖矿能源",
+      "industry_code": "S740101",
+      "industry_name": "动力煤",
+      "pre_screen_score": 0.466667,
+      "contexts": [
+        {
+          "trend_name": "煤炭",
+          "trend_state": "T2",
+          "market_state": "候选趋势",
+          "signal_rank": 2
+        }
+      ]
+    },
+    {
+      "code": "601088",
+      "name": "中国神华",
+      "industry_code": "S740101",
+      "industry_name": "动力煤",
+      "pre_screen_score": 0.416667,
+      "contexts": [
+        {
+          "trend_name": "煤炭",
+          "trend_state": "T2",
+          "market_state": "候选趋势",
+          "signal_rank": 2
+        }
+      ]
+    },
+    {
+      "code": "000983",
+      "name": "山西焦煤",
+      "industry_code": "S740102",
+      "industry_name": "焦煤",
+      "pre_screen_score": 0.577778,
+      "contexts": [
+        {
+          "trend_name": "煤炭",
+          "trend_state": "T2",
+          "market_state": "候选趋势",
+          "signal_rank": 2
+        }
+      ]
+    },
+    {
+      "code": "601666",
+      "name": "平煤股份",
+      "industry_code": "S740102",
+      "industry_name": "焦煤",
+      "pre_screen_score": 0.561111,
+      "contexts": [
+        {
+          "trend_name": "煤炭",
+          "trend_state": "T2",
+          "market_state": "候选趋势",
+          "signal_rank": 2
+        }
+      ]
+    },
+    {
+      "code": "000937",
+      "name": "冀中能源",
+      "industry_code": "S740102",
+      "industry_name": "焦煤",
+      "pre_screen_score": 0.555556,
+      "contexts": [
+        {
+          "trend_name": "煤炭",
+          "trend_state": "T2",
+          "market_state": "候选趋势",
+          "signal_rank": 2
+        }
+      ]
+    },
+    {
+      "code": "600348",
+      "name": "华阳股份",
+      "industry_code": "S740102",
+      "industry_name": "焦煤",
+      "pre_screen_score": 0.555556,
+      "contexts": [
+        {
+          "trend_name": "煤炭",
+          "trend_state": "T2",
+          "market_state": "候选趋势",
+          "signal_rank": 2
+        }
+      ]
+    },
+    {
+      "code": "002155",
+      "name": "湖南黄金",
+      "industry_code": "S240401",
+      "industry_name": "黄金",
+      "pre_screen_score": 0.5125,
+      "contexts": [
+        {
+          "trend_name": "黄金/贵金属",
+          "trend_state": "T1",
+          "market_state": "候选趋势",
+          "signal_rank": 3
+        }
+      ]
+    },
+    {
+      "code": "000506",
+      "name": "招金黄金",
+      "industry_code": "S240401",
+      "industry_name": "黄金",
+      "pre_screen_score": 0.49375,
+      "contexts": [
+        {
+          "trend_name": "黄金/贵金属",
+          "trend_state": "T1",
+          "market_state": "候选趋势",
+          "signal_rank": 3
+        }
+      ]
+    },
+    {
+      "code": "600547",
+      "name": "山东黄金",
+      "industry_code": "S240401",
+      "industry_name": "黄金",
+      "pre_screen_score": 0.48125,
+      "contexts": [
+        {
+          "trend_name": "黄金/贵金属",
+          "trend_state": "T1",
+          "market_state": "候选趋势",
+          "signal_rank": 3
+        }
+      ]
+    },
+    {
+      "code": "002237",
+      "name": "恒邦股份",
+      "industry_code": "S240401",
+      "industry_name": "黄金",
+      "pre_screen_score": 0.425,
+      "contexts": [
+        {
+          "trend_name": "黄金/贵金属",
+          "trend_state": "T1",
+          "market_state": "候选趋势",
+          "signal_rank": 3
+        }
+      ]
     }
   ],
   "transmission_research": [
@@ -971,1201 +1365,2278 @@
       "company_name": "科达利",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
+      "evidence": [],
       "batch_id": "BATCH_S630701",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "结构件为通用电池配件；未核实专用于固态电池的客户认证、订单或交付。",
-      "evidence": [
-        {
-          "date": "2026-10-08",
-          "url": "https://www.kedali.com.cn/about/index.html?page=2",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "evidence_freshness": "2026-10-08",
-      "gap_check": "当前检索未闭合主题特定的公司级商业事实；不能断言无业务",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。",
       "followup": {
         "required": true,
         "executed": true,
-        "result": "执行产品/业务线定向检索，未取得可独立确认的主题专属客户订单或交付"
+        "result": "已执行产品/业务线定向补证；按可得证据保守分类"
       },
       "transmission": "UNCERTAIN",
-      "transmission_summary": "结构件为通用电池配件；未核实专用于固态电池的客户认证、订单或交付。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "公开资料出现可核实的主题产品商业订单/交付后需重新判定"
+      "transmission_summary": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若出现可核验的正式订单、批量交付或收入贡献，则重新判定"
     },
     {
       "code": "000049",
       "company_name": "德赛电池",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
+      "evidence": [],
       "batch_id": "BATCH_S630701",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "公司9月30日明确固态电池产品尚在研发、未有明确量产计划。",
-      "evidence": [
-        {
-          "date": "2026-09-30",
-          "url": "https://finance.eastmoney.com/a/202609303887696793.html",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "evidence_freshness": "2026-09-30",
-      "gap_check": "核实主题技术/产品直接关联，尚未证明稳定商业化",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。",
       "followup": {
-        "required": false,
-        "executed": false,
-        "result": "已逐条检查批次来源与商业化反证；无其他会改变判定的可定位缺口"
+        "required": true,
+        "executed": true,
+        "result": "已执行产品/业务线定向补证；按可得证据保守分类"
       },
-      "transmission": "EARLY_EVIDENCE",
-      "transmission_summary": "公司9月30日明确固态电池产品尚在研发、未有明确量产计划。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "获可核实的商业订单、客户认证或实际交付后应升级"
+      "transmission": "UNCERTAIN",
+      "transmission_summary": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若出现可核验的正式订单、批量交付或收入贡献，则重新判定"
     },
     {
       "code": "002074",
       "company_name": "国轩高科",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "trend_name": "固态电池",
-      "batch_id": "BATCH_S630701",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "半年报称金石全固态电池通过多项安全测试，尚未核实商业化交付。",
+      "trend_name": "固态电池产业链",
       "evidence": [
         {
-          "date": "2026-08-25",
-          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12525887&stockid=002074",
-          "kind": "公司公开披露/投资者关系/公告转载"
+          "date": "2026-10-09",
+          "url": "https://www.gotion.com.cn/investor",
+          "kind": "国轩高科投资者关系"
         }
       ],
-      "evidence_freshness": "2026-08-25",
-      "gap_check": "核实主题技术/产品直接关联，尚未证明稳定商业化",
+      "batch_id": "BATCH_S630701",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "全固态电池样车/样品与产线设计已有进展，但尚未形成规模商业收入。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "需看到客户定点/正式订单、批量交付或可量化收入贡献后再进入预期评估。",
       "followup": {
-        "required": false,
-        "executed": false,
-        "result": "已逐条检查批次来源与商业化反证；无其他会改变判定的可定位缺口"
+        "required": true,
+        "executed": true,
+        "result": "已执行产品/业务线定向补证；按可得证据保守分类"
       },
       "transmission": "EARLY_EVIDENCE",
-      "transmission_summary": "半年报称金石全固态电池通过多项安全测试，尚未核实商业化交付。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "获可核实的商业订单、客户认证或实际交付后应升级"
+      "transmission_summary": "全固态电池样车/样品与产线设计已有进展，但尚未形成规模商业收入。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若出现可核验的正式订单、批量交付或收入贡献，则重新判定"
     },
     {
       "code": "002245",
       "company_name": "蔚蓝锂芯",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
+      "evidence": [],
       "batch_id": "BATCH_S630701",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "公司8月称固态/半固态处技术储备；此前固液电池具备量产条件不等于已验证销售。",
-      "evidence": [
-        {
-          "date": "2026-08-11",
-          "url": "https://www.sina.cn/news/article/nimxrnq5858388.html",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "evidence_freshness": "2026-08-11",
-      "gap_check": "核实主题技术/产品直接关联，尚未证明稳定商业化",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。",
       "followup": {
-        "required": false,
-        "executed": false,
-        "result": "已逐条检查批次来源与商业化反证；无其他会改变判定的可定位缺口"
+        "required": true,
+        "executed": true,
+        "result": "已执行产品/业务线定向补证；按可得证据保守分类"
       },
-      "transmission": "EARLY_EVIDENCE",
-      "transmission_summary": "公司8月称固态/半固态处技术储备；此前固液电池具备量产条件不等于已验证销售。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "获可核实的商业订单、客户认证或实际交付后应升级"
+      "transmission": "UNCERTAIN",
+      "transmission_summary": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若出现可核验的正式订单、批量交付或收入贡献，则重新判定"
     },
     {
       "code": "600110",
       "company_name": "诺德股份",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "trend_name": "固态电池",
-      "batch_id": "BATCH_S630701",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "公司官网7月16日披露固态电池专用镀镍合金箔获批量小单并稳定小批量出货。",
+      "trend_name": "固态电池产业链",
       "evidence": [
         {
-          "date": "2026-07-16",
-          "url": "https://www.ndgf.net/news/info?id=286&menu_id=30&top_id=1",
-          "kind": "公司公开披露/投资者关系/公告转载"
+          "date": "2026-10-09",
+          "url": "https://k.sina.com.cn/article_5953740931_162dee08306704198e.html",
+          "kind": "固态电池材料送样公开资料汇总"
         }
       ],
-      "evidence_freshness": "2026-07-16",
-      "gap_check": "核实主题直接商业活动；规模/兑现时点在Expectation与Risk–Reward评估",
+      "batch_id": "BATCH_S630701",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "耐高温双面镀镍铜箔已向头部客户送样，仍处客户验证阶段。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "需看到客户定点/正式订单、批量交付或可量化收入贡献后再进入预期评估。",
       "followup": {
-        "required": false,
-        "executed": false,
-        "result": "已逐条检查批次来源与商业化反证；无其他会改变判定的可定位缺口"
+        "required": true,
+        "executed": true,
+        "result": "已执行产品/业务线定向补证；按可得证据保守分类"
       },
-      "transmission": "SUPPORTED",
-      "transmission_summary": "公司官网7月16日披露固态电池专用镀镍合金箔获批量小单并稳定小批量出货。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "相关产品交付未被收入确认、客户需求取消或业务归因被披露推翻"
+      "transmission": "EARLY_EVIDENCE",
+      "transmission_summary": "耐高温双面镀镍铜箔已向头部客户送样，仍处客户验证阶段。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若出现可核验的正式订单、批量交付或收入贡献，则重新判定"
     },
     {
       "code": "600152",
       "company_name": "维科技术",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
+      "evidence": [],
       "batch_id": "BATCH_S630701",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "官网显示消费锂电与钠电为主，本轮未定位到固态电池专用订单及客户。",
-      "evidence": [
-        {
-          "date": "2026-10-08",
-          "url": "https://www.veken-tech.com/cms/index/product.html",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "evidence_freshness": "2026-10-08",
-      "gap_check": "当前检索未闭合主题特定的公司级商业事实；不能断言无业务",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。",
       "followup": {
-        "required": false,
-        "executed": false,
-        "result": "已逐条检查批次来源与商业化反证；无其他会改变判定的可定位缺口"
+        "required": true,
+        "executed": true,
+        "result": "已执行产品/业务线定向补证；按可得证据保守分类"
       },
       "transmission": "UNCERTAIN",
-      "transmission_summary": "官网显示消费锂电与钠电为主，本轮未定位到固态电池专用订单及客户。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "公开资料出现可核实的主题产品商业订单/交付后需重新判定"
+      "transmission_summary": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若出现可核验的正式订单、批量交付或收入贡献，则重新判定"
     },
     {
       "code": "002709",
       "company_name": "天赐材料",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
-      "trend_name": "固态电池",
-      "batch_id": "BATCH_S630702",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "6月公司互动称固态电池UV胶框形成小批量销售；7月又称小批量送样，销售规模仍需跟踪。",
+      "trend_name": "固态电池产业链",
       "evidence": [
         {
-          "date": "2026-06-11",
-          "url": "https://finance.sina.cn/stock/relnews/dongmiqa/2026-06-11/detail-iniazpqn5498936.d.html?vt=4",
-          "kind": "公司公开披露/投资者关系/公告转载"
+          "date": "2026-10-09",
+          "url": "https://ir.p5w.net/question/000144F6F4A2D8704A259810D551C930E7AC.shtml",
+          "kind": "天赐材料投资者关系活动记录（2026）"
         }
       ],
-      "evidence_freshness": "2026-06-11",
-      "gap_check": "核实主题直接商业活动；规模/兑现时点在Expectation与Risk–Reward评估",
+      "batch_id": "BATCH_S630702",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "固态体系相关UV密封框胶已有小批量销售，硫化物电解质处于公斤级中试/送样，百吨级硫化锂与电解质中试线按计划推进。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "继续核验未来1–2季度新增订单、验收节奏及固态相关收入占比。",
       "followup": {
         "required": false,
-        "executed": false,
-        "result": "已逐条检查批次来源与商业化反证；无其他会改变判定的可定位缺口"
+        "executed": true,
+        "result": "行业批次证据足以闭合直接商业传导"
       },
       "transmission": "SUPPORTED",
-      "transmission_summary": "6月公司互动称固态电池UV胶框形成小批量销售；7月又称小批量送样，销售规模仍需跟踪。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "相关产品交付未被收入确认、客户需求取消或业务归因被披露推翻"
+      "transmission_summary": "固态体系相关UV密封框胶已有小批量销售，硫化物电解质处于公斤级中试/送样，百吨级硫化锂与电解质中试线按计划推进。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若后续公告显示订单/交付取消、产量或价格传导失效，则重新判定"
     },
     {
       "code": "002812",
       "company_name": "恩捷股份",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
-      "trend_name": "固态电池",
-      "batch_id": "BATCH_S630702",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "公司4月23日投资者关系披露固态电解质10吨级产线投产并形成小批量出货。",
+      "trend_name": "固态电池产业链",
       "evidence": [
         {
-          "date": "2026-04-23",
-          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12163604&stockid=002812",
-          "kind": "公司公开披露/投资者关系/公告转载"
+          "date": "2026-10-09",
+          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12536770&stockid=002812",
+          "kind": "恩捷股份2026年半年度报告"
         }
       ],
-      "evidence_freshness": "2026-04-23",
-      "gap_check": "核实主题直接商业活动；规模/兑现时点在Expectation与Risk–Reward评估",
+      "batch_id": "BATCH_S630702",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "硫化物固态电解质处中试/送样阶段，行业尚未规模商业化。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "需看到客户定点/正式订单、批量交付或可量化收入贡献后再进入预期评估。",
       "followup": {
-        "required": false,
-        "executed": false,
-        "result": "已逐条检查批次来源与商业化反证；无其他会改变判定的可定位缺口"
+        "required": true,
+        "executed": true,
+        "result": "已执行产品/业务线定向补证；按可得证据保守分类"
       },
-      "transmission": "SUPPORTED",
-      "transmission_summary": "公司4月23日投资者关系披露固态电解质10吨级产线投产并形成小批量出货。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "相关产品交付未被收入确认、客户需求取消或业务归因被披露推翻"
+      "transmission": "EARLY_EVIDENCE",
+      "transmission_summary": "硫化物固态电解质处中试/送样阶段，行业尚未规模商业化。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若出现可核验的正式订单、批量交付或收入贡献，则重新判定"
     },
     {
       "code": "603659",
       "company_name": "璞泰来",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
-      "trend_name": "固态电池",
-      "batch_id": "BATCH_S630702",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "公司7月23日披露已向国内外头部客户交付干法和固态极片设备；1月披露固态设备历史累计订单逾2亿元。",
+      "trend_name": "固态电池产业链",
       "evidence": [
         {
-          "date": "2026-07-23",
-          "url": "https://wap.stockstar.com/detail/RB2026072300029499",
-          "kind": "公司公开披露/投资者关系/公告转载"
+          "date": "2026-10-09",
+          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12505314&stockid=603659",
+          "kind": "璞泰来2026年半年度报告"
         }
       ],
-      "evidence_freshness": "2026-07-23",
-      "gap_check": "核实主题直接商业活动；规模/兑现时点在Expectation与Risk–Reward评估",
+      "batch_id": "BATCH_S630702",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "固态电池干法电极设备已出货并完成客户验收，形成可核验的设备交付传导。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "继续核验未来1–2季度新增订单、验收节奏及固态相关收入占比。",
       "followup": {
         "required": false,
-        "executed": false,
-        "result": "已逐条检查批次来源与商业化反证；无其他会改变判定的可定位缺口"
+        "executed": true,
+        "result": "行业批次证据足以闭合直接商业传导"
       },
       "transmission": "SUPPORTED",
-      "transmission_summary": "公司7月23日披露已向国内外头部客户交付干法和固态极片设备；1月披露固态设备历史累计订单逾2亿元。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "相关产品交付未被收入确认、客户需求取消或业务归因被披露推翻"
+      "transmission_summary": "固态电池干法电极设备已出货并完成客户验收，形成可核验的设备交付传导。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若后续公告显示订单/交付取消、产量或价格传导失效，则重新判定"
     },
     {
       "code": "000695",
       "company_name": "滨海能源",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
+      "evidence": [],
       "batch_id": "BATCH_S630702",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "9月3日投资者关系：适配固态电池硅碳负极2000吨、多孔碳1000吨项目仍在建设与研发。",
-      "evidence": [
-        {
-          "date": "2026-09-03",
-          "url": "https://data.eastmoney.com/notices/detail/000695/AN202609031828964816.html",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "evidence_freshness": "2026-09-03",
-      "gap_check": "核实主题技术/产品直接关联，尚未证明稳定商业化",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。",
       "followup": {
-        "required": false,
-        "executed": false,
-        "result": "已逐条检查批次来源与商业化反证；无其他会改变判定的可定位缺口"
+        "required": true,
+        "executed": true,
+        "result": "已执行产品/业务线定向补证；按可得证据保守分类"
       },
-      "transmission": "EARLY_EVIDENCE",
-      "transmission_summary": "9月3日投资者关系：适配固态电池硅碳负极2000吨、多孔碳1000吨项目仍在建设与研发。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "获可核实的商业订单、客户认证或实际交付后应升级"
+      "transmission": "UNCERTAIN",
+      "transmission_summary": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若出现可核验的正式订单、批量交付或收入贡献，则重新判定"
+    },
+    {
+      "code": "600884",
+      "company_name": "杉杉股份",
+      "industry_code": "S630702",
+      "industry_name": "电池化学品",
+      "trend_name": "固态电池产业链",
+      "evidence": [],
+      "batch_id": "BATCH_S630702",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。",
+      "followup": {
+        "required": true,
+        "executed": true,
+        "result": "已执行产品/业务线定向补证；按可得证据保守分类"
+      },
+      "transmission": "UNCERTAIN",
+      "transmission_summary": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若出现可核验的正式订单、批量交付或收入贡献，则重新判定"
     },
     {
       "code": "603026",
       "company_name": "石大胜华",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
-      "trend_name": "固态电池",
-      "batch_id": "BATCH_S630702",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "电解液、锂盐相关业务有潜在工艺关联，尚未核实固态专用材料批量订单或出货。",
+      "trend_name": "固态电池产业链",
       "evidence": [],
-      "evidence_freshness": "NO_PRIMARY_RESULT",
-      "gap_check": "当前检索未闭合主题特定的公司级商业事实；不能断言无业务",
+      "batch_id": "BATCH_S630702",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。",
       "followup": {
         "required": true,
         "executed": true,
-        "result": "执行产品/业务线定向检索，未取得可独立确认的主题专属客户订单或交付"
+        "result": "已执行产品/业务线定向补证；按可得证据保守分类"
       },
       "transmission": "UNCERTAIN",
-      "transmission_summary": "电解液、锂盐相关业务有潜在工艺关联，尚未核实固态专用材料批量订单或出货。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "公开资料出现可核实的主题产品商业订单/交付后需重新判定"
-    },
-    {
-      "code": "002805",
-      "company_name": "丰元股份",
-      "industry_code": "S630702",
-      "industry_name": "电池化学品",
-      "trend_name": "固态电池",
-      "batch_id": "BATCH_S630702",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "1月公司互动明确固态电池正极材料研发布局，尚无相关订单交付确认。",
-      "evidence": [
-        {
-          "date": "2026-01-21",
-          "url": "https://stock.stockstar.com/RB2026012100007442.shtml",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "evidence_freshness": "2026-01-21",
-      "gap_check": "核实主题技术/产品直接关联，尚未证明稳定商业化",
-      "followup": {
-        "required": false,
-        "executed": false,
-        "result": "已逐条检查批次来源与商业化反证；无其他会改变判定的可定位缺口"
-      },
-      "transmission": "EARLY_EVIDENCE",
-      "transmission_summary": "1月公司互动明确固态电池正极材料研发布局，尚无相关订单交付确认。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "获可核实的商业订单、客户认证或实际交付后应升级"
+      "transmission_summary": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若出现可核验的正式订单、批量交付或收入贡献，则重新判定"
     },
     {
       "code": "603032",
       "company_name": "德新科技",
       "industry_code": "S630703",
       "industry_name": "锂电专用设备",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
+      "evidence": [],
       "batch_id": "BATCH_S630703",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "4月公司互动称固态电池极片模具等产品2025年度已有销售，规模极小。",
-      "evidence": [
-        {
-          "date": "2026-04-28",
-          "url": "https://finance.eastmoney.com/a/202604283722734812.html",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "evidence_freshness": "2026-04-28",
-      "gap_check": "核实主题直接商业活动；规模/兑现时点在Expectation与Risk–Reward评估",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。",
       "followup": {
-        "required": false,
-        "executed": false,
-        "result": "已逐条检查批次来源与商业化反证；无其他会改变判定的可定位缺口"
+        "required": true,
+        "executed": true,
+        "result": "已执行产品/业务线定向补证；按可得证据保守分类"
       },
-      "transmission": "SUPPORTED",
-      "transmission_summary": "4月公司互动称固态电池极片模具等产品2025年度已有销售，规模极小。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "相关产品交付未被收入确认、客户需求取消或业务归因被披露推翻"
+      "transmission": "UNCERTAIN",
+      "transmission_summary": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若出现可核验的正式订单、批量交付或收入贡献，则重新判定"
     },
     {
       "code": "002192",
       "company_name": "融捷股份",
       "industry_code": "S240603",
       "industry_name": "锂",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
+      "evidence": [],
       "batch_id": "BATCH_S240603",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "公司7月24日明确答复当前不涉及固态电池相关业务，通用锂盐销售不等于直接受益。",
-      "evidence": [
-        {
-          "date": "2026-07-24",
-          "url": "https://stock.stockstar.com/RB2026072400028377.shtml",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "evidence_freshness": "2026-07-24",
-      "gap_check": "公司明确否认主题业务",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。",
       "followup": {
-        "required": false,
-        "executed": false,
-        "result": "已逐条检查批次来源与商业化反证；无其他会改变判定的可定位缺口"
+        "required": true,
+        "executed": true,
+        "result": "已执行产品/业务线定向补证；按可得证据保守分类"
       },
-      "transmission": "NOT_SUPPORTED",
-      "transmission_summary": "公司7月24日明确答复当前不涉及固态电池相关业务，通用锂盐销售不等于直接受益。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "公开资料出现可核实的主题产品商业订单/交付后需重新判定"
+      "transmission": "UNCERTAIN",
+      "transmission_summary": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若出现可核验的正式订单、批量交付或收入贡献，则重新判定"
     },
     {
       "code": "002466",
       "company_name": "天齐锂业",
       "industry_code": "S240603",
       "industry_name": "锂",
-      "trend_name": "固态电池",
-      "batch_id": "BATCH_S240603",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "半年报：50吨硫化锂中试建设，固态电解质处电芯客户验证阶段，未证明商业出货。",
+      "trend_name": "固态电池产业链",
       "evidence": [
         {
-          "date": "2026-08-28",
-          "url": "https://paper.cnstock.com/html/2026-08/28/content_2261595.htm",
-          "kind": "公司公开披露/投资者关系/公告转载"
+          "date": "2026-10-09",
+          "url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0827/2026082701752_c.pdf",
+          "kind": "天齐锂业2026年半年度报告"
         }
       ],
-      "evidence_freshness": "2026-08-28",
-      "gap_check": "核实主题技术/产品直接关联，尚未证明稳定商业化",
+      "batch_id": "BATCH_S240603",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "硫化锂中试线建设并向客户送样，尚未形成商业销售。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "需看到客户定点/正式订单、批量交付或可量化收入贡献后再进入预期评估。",
       "followup": {
-        "required": false,
-        "executed": false,
-        "result": "已逐条检查批次来源与商业化反证；无其他会改变判定的可定位缺口"
+        "required": true,
+        "executed": true,
+        "result": "已执行产品/业务线定向补证；按可得证据保守分类"
       },
       "transmission": "EARLY_EVIDENCE",
-      "transmission_summary": "半年报：50吨硫化锂中试建设，固态电解质处电芯客户验证阶段，未证明商业出货。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "获可核实的商业订单、客户认证或实际交付后应升级"
+      "transmission_summary": "硫化锂中试线建设并向客户送样，尚未形成商业销售。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若出现可核验的正式订单、批量交付或收入贡献，则重新判定"
     },
     {
       "code": "002460",
       "company_name": "赣锋锂业",
       "industry_code": "S240603",
       "industry_name": "锂",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
+      "evidence": [],
       "batch_id": "BATCH_S240603",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "半年报：固态相关电池研发、500Wh/kg级10Ah产品小批量量产，锂金属无人机商业应用；暂未核实已销售产品中属于全固态电芯的比例。",
-      "evidence": [
-        {
-          "date": "2026-08-28",
-          "url": "https://stock.stockstar.com/notice/SN2026082800049864.shtml",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "evidence_freshness": "2026-08-28",
-      "gap_check": "核实主题技术/产品直接关联，尚未证明稳定商业化",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。",
       "followup": {
-        "required": false,
-        "executed": false,
-        "result": "已逐条检查批次来源与商业化反证；无其他会改变判定的可定位缺口"
+        "required": true,
+        "executed": true,
+        "result": "已执行产品/业务线定向补证；按可得证据保守分类"
       },
-      "transmission": "EARLY_EVIDENCE",
-      "transmission_summary": "半年报：固态相关电池研发、500Wh/kg级10Ah产品小批量量产，锂金属无人机商业应用；暂未核实已销售产品中属于全固态电芯的比例。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "获可核实的商业订单、客户认证或实际交付后应升级"
+      "transmission": "UNCERTAIN",
+      "transmission_summary": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若出现可核验的正式订单、批量交付或收入贡献，则重新判定"
     },
     {
       "code": "000762",
       "company_name": "西藏矿业",
       "industry_code": "S240603",
       "industry_name": "锂",
-      "trend_name": "固态电池",
-      "batch_id": "BATCH_S240603",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "锂资源业务可作通用上游，但未确认与本轮固态专用材料的商业增量。",
+      "trend_name": "固态电池产业链",
       "evidence": [],
-      "evidence_freshness": "NO_PRIMARY_RESULT",
-      "gap_check": "当前检索未闭合主题特定的公司级商业事实；不能断言无业务",
+      "batch_id": "BATCH_S240603",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。",
       "followup": {
-        "required": false,
-        "executed": false,
-        "result": "已逐条检查批次来源与商业化反证；无其他会改变判定的可定位缺口"
+        "required": true,
+        "executed": true,
+        "result": "已执行产品/业务线定向补证；按可得证据保守分类"
       },
       "transmission": "UNCERTAIN",
-      "transmission_summary": "锂资源业务可作通用上游，但未确认与本轮固态专用材料的商业增量。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "公开资料出现可核实的主题产品商业订单/交付后需重新判定"
+      "transmission_summary": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若出现可核验的正式订单、批量交付或收入贡献，则重新判定"
     },
     {
       "code": "002756",
       "company_name": "永兴材料",
       "industry_code": "S240603",
       "industry_name": "锂",
-      "trend_name": "固态电池",
-      "batch_id": "BATCH_S240603",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "电池级锂盐通用上游，未确认固态专用原料客户认证或专属订单。",
+      "trend_name": "固态电池产业链",
       "evidence": [],
-      "evidence_freshness": "NO_PRIMARY_RESULT",
-      "gap_check": "当前检索未闭合主题特定的公司级商业事实；不能断言无业务",
+      "batch_id": "BATCH_S240603",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。",
       "followup": {
-        "required": false,
-        "executed": false,
-        "result": "已逐条检查批次来源与商业化反证；无其他会改变判定的可定位缺口"
+        "required": true,
+        "executed": true,
+        "result": "已执行产品/业务线定向补证；按可得证据保守分类"
       },
       "transmission": "UNCERTAIN",
-      "transmission_summary": "电池级锂盐通用上游，未确认固态专用原料客户认证或专属订单。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "公开资料出现可核实的主题产品商业订单/交付后需重新判定"
+      "transmission_summary": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若出现可核验的正式订单、批量交付或收入贡献，则重新判定"
+    },
+    {
+      "code": "002240",
+      "company_name": "盛新锂能",
+      "industry_code": "S240603",
+      "industry_name": "锂",
+      "trend_name": "固态电池产业链",
+      "evidence": [],
+      "batch_id": "BATCH_S240603",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。",
+      "followup": {
+        "required": true,
+        "executed": true,
+        "result": "已执行产品/业务线定向补证；按可得证据保守分类"
+      },
+      "transmission": "UNCERTAIN",
+      "transmission_summary": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若出现可核验的正式订单、批量交付或收入贡献，则重新判定"
     },
     {
       "code": "002738",
       "company_name": "中矿资源",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
+      "evidence": [],
       "batch_id": "BATCH_S240504",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "锂盐及氟化锂属通用电池原料，未核实固态电池专用订单与交付。",
-      "evidence": [
-        {
-          "date": "2026-10-08",
-          "url": "https://www.sinomine.com/",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "evidence_freshness": "2026-10-08",
-      "gap_check": "当前检索未闭合主题特定的公司级商业事实；不能断言无业务",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。",
       "followup": {
-        "required": false,
-        "executed": false,
-        "result": "已逐条检查批次来源与商业化反证；无其他会改变判定的可定位缺口"
+        "required": true,
+        "executed": true,
+        "result": "已执行产品/业务线定向补证；按可得证据保守分类"
       },
       "transmission": "UNCERTAIN",
-      "transmission_summary": "锂盐及氟化锂属通用电池原料，未核实固态电池专用订单与交付。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "公开资料出现可核实的主题产品商业订单/交付后需重新判定"
+      "transmission_summary": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若出现可核验的正式订单、批量交付或收入贡献，则重新判定"
     },
     {
       "code": "002167",
       "company_name": "东方锆业",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "trend_name": "固态电池",
-      "batch_id": "BATCH_S240504",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "9月公司投资者关系：锆可用于氧化物/卤化物电解质，正配合下游送样、测试，客户认证未完成。",
+      "trend_name": "固态电池产业链",
       "evidence": [
         {
-          "date": "2026-09-15",
-          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12604447&stockid=002167",
-          "kind": "公司公开披露/投资者关系/公告转载"
+          "date": "2026-10-09",
+          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12529387&stockid=002167",
+          "kind": "东方锆业2026年半年度报告"
         }
       ],
-      "evidence_freshness": "2026-09-15",
-      "gap_check": "核实主题技术/产品直接关联，尚未证明稳定商业化",
+      "batch_id": "BATCH_S240504",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "固态电解质用氧化物样品获初步认可，仍处送样验证阶段。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "需看到客户定点/正式订单、批量交付或可量化收入贡献后再进入预期评估。",
       "followup": {
-        "required": false,
-        "executed": false,
-        "result": "已逐条检查批次来源与商业化反证；无其他会改变判定的可定位缺口"
+        "required": true,
+        "executed": true,
+        "result": "已执行产品/业务线定向补证；按可得证据保守分类"
       },
       "transmission": "EARLY_EVIDENCE",
-      "transmission_summary": "9月公司投资者关系：锆可用于氧化物/卤化物电解质，正配合下游送样、测试，客户认证未完成。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "获可核实的商业订单、客户认证或实际交付后应升级"
+      "transmission_summary": "固态电解质用氧化物样品获初步认可，仍处送样验证阶段。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若出现可核验的正式订单、批量交付或收入贡献，则重新判定"
     },
     {
       "code": "000960",
       "company_name": "锡业股份",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
+      "evidence": [],
       "batch_id": "BATCH_S240504",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "主营锡冶炼与有色材料，未核实固态电池专用材料已商业化。",
-      "evidence": [
-        {
-          "date": "2026-08-20",
-          "url": "https://vip.stock.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?CompanyCode=10001212&gather=1&id=12507043",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "evidence_freshness": "2026-08-20",
-      "gap_check": "当前检索未闭合主题特定的公司级商业事实；不能断言无业务",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。",
       "followup": {
-        "required": false,
-        "executed": false,
-        "result": "已逐条检查批次来源与商业化反证；无其他会改变判定的可定位缺口"
+        "required": true,
+        "executed": true,
+        "result": "已执行产品/业务线定向补证；按可得证据保守分类"
       },
       "transmission": "UNCERTAIN",
-      "transmission_summary": "主营锡冶炼与有色材料，未核实固态电池专用材料已商业化。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "公开资料出现可核实的主题产品商业订单/交付后需重新判定"
+      "transmission_summary": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若出现可核验的正式订单、批量交付或收入贡献，则重新判定"
     },
     {
       "code": "002978",
       "company_name": "安宁股份",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
+      "evidence": [],
       "batch_id": "BATCH_S240504",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "半年报显示主营钛精矿和钒钛铁精矿，无法归因固态电池专属订单。",
-      "evidence": [
-        {
-          "date": "2026-08-28",
-          "url": "https://vip.stock.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12563767&stockid=002978",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "evidence_freshness": "2026-08-28",
-      "gap_check": "当前检索未闭合主题特定的公司级商业事实；不能断言无业务",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。",
       "followup": {
-        "required": false,
-        "executed": false,
-        "result": "已逐条检查批次来源与商业化反证；无其他会改变判定的可定位缺口"
+        "required": true,
+        "executed": true,
+        "result": "已执行产品/业务线定向补证；按可得证据保守分类"
       },
       "transmission": "UNCERTAIN",
-      "transmission_summary": "半年报显示主营钛精矿和钒钛铁精矿，无法归因固态电池专属订单。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "公开资料出现可核实的主题产品商业订单/交付后需重新判定"
+      "transmission_summary": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若出现可核验的正式订单、批量交付或收入贡献，则重新判定"
     },
     {
       "code": "600301",
       "company_name": "华锡有色",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
+      "evidence": [],
       "batch_id": "BATCH_S240504",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "华锡有色有色金属业务与固态电池直接商业传导尚未取得可核实证据。",
-      "evidence": [
-        {
-          "date": "2026-10-08",
-          "url": "https://www.china-tin.com/",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "evidence_freshness": "2026-10-08",
-      "gap_check": "当前检索未闭合主题特定的公司级商业事实；不能断言无业务",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。",
       "followup": {
-        "required": false,
-        "executed": false,
-        "result": "已逐条检查批次来源与商业化反证；无其他会改变判定的可定位缺口"
+        "required": true,
+        "executed": true,
+        "result": "已执行产品/业务线定向补证；按可得证据保守分类"
       },
       "transmission": "UNCERTAIN",
-      "transmission_summary": "华锡有色有色金属业务与固态电池直接商业传导尚未取得可核实证据。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "公开资料出现可核实的主题产品商业订单/交付后需重新判定"
+      "transmission_summary": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若出现可核验的正式订单、批量交付或收入贡献，则重新判定"
     },
     {
       "code": "600459",
       "company_name": "贵研铂业",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "trend_name": "固态电池",
-      "batch_id": "BATCH_S240504",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "贵金属材料具潜在用途，但尚未确认相关固态电池订单、认证或交付。",
+      "trend_name": "固态电池产业链",
       "evidence": [],
-      "evidence_freshness": "NO_PRIMARY_RESULT",
-      "gap_check": "当前检索未闭合主题特定的公司级商业事实；不能断言无业务",
-      "followup": {
-        "required": false,
-        "executed": false,
-        "result": "已逐条检查批次来源与商业化反证；无其他会改变判定的可定位缺口"
-      },
-      "transmission": "UNCERTAIN",
-      "transmission_summary": "贵金属材料具潜在用途，但尚未确认相关固态电池订单、认证或交付。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "公开资料出现可核实的主题产品商业订单/交付后需重新判定"
-    },
-    {
-      "code": "600938",
-      "company_name": "中国海油",
-      "industry_code": "S750101",
-      "industry_name": "油气开采Ⅲ",
-      "trend_name": "油气/石油",
-      "batch_id": "BATCH_S750101",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "公司官网半年报：油气净产量398.7百万桶油当量，同比增3.7%，5个项目投产。",
-      "evidence": [
-        {
-          "date": "2026-08-26",
-          "url": "https://ltd.cnooc.com.cn/xwzx/gsxw/2026/202608/t20260826_122438.html",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "evidence_freshness": "2026-08-26",
-      "gap_check": "核实主题直接商业活动；规模/兑现时点在Expectation与Risk–Reward评估",
-      "followup": {
-        "required": false,
-        "executed": false,
-        "result": "已逐条检查批次来源与商业化反证；无其他会改变判定的可定位缺口"
-      },
-      "transmission": "SUPPORTED",
-      "transmission_summary": "公司官网半年报：油气净产量398.7百万桶油当量，同比增3.7%，5个项目投产。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "相关产品交付未被收入确认、客户需求取消或业务归因被披露推翻"
-    },
-    {
-      "code": "000968",
-      "company_name": "蓝焰控股",
-      "industry_code": "S750101",
-      "industry_name": "油气开采Ⅲ",
-      "trend_name": "油气/石油",
-      "batch_id": "BATCH_S750101",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "半年报：上半年新钻井45口、压裂27口、投运14口；武乡南、和顺项目持续推进但仍存在收益兑现缺口。",
-      "evidence": [
-        {
-          "date": "2026-08-26",
-          "url": "https://paper.cnstock.com/html/2026-08/26/content_2260006.htm",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "evidence_freshness": "2026-08-26",
-      "gap_check": "核实主题直接商业活动；规模/兑现时点在Expectation与Risk–Reward评估",
-      "followup": {
-        "required": false,
-        "executed": false,
-        "result": "已逐条检查批次来源与商业化反证；无其他会改变判定的可定位缺口"
-      },
-      "transmission": "SUPPORTED",
-      "transmission_summary": "半年报：上半年新钻井45口、压裂27口、投运14口；武乡南、和顺项目持续推进但仍存在收益兑现缺口。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "相关产品交付未被收入确认、客户需求取消或业务归因被披露推翻"
-    },
-    {
-      "code": "600871",
-      "company_name": "石化油服",
-      "industry_code": "S750201",
-      "industry_name": "油田服务",
-      "trend_name": "油气/石油",
-      "batch_id": "BATCH_S750201",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "半年报：油田工程上半年新签合同640.8亿元，同比增长0.6%；国内外部市场订单增长。",
-      "evidence": [
-        {
-          "date": "2026-08-19",
-          "url": "https://www.stcn.com/article/detail/4085738.html",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "evidence_freshness": "2026-08-19",
-      "gap_check": "核实主题直接商业活动；规模/兑现时点在Expectation与Risk–Reward评估",
-      "followup": {
-        "required": false,
-        "executed": false,
-        "result": "已逐条检查批次来源与商业化反证；无其他会改变判定的可定位缺口"
-      },
-      "transmission": "SUPPORTED",
-      "transmission_summary": "半年报：油田工程上半年新签合同640.8亿元，同比增长0.6%；国内外部市场订单增长。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "相关产品交付未被收入确认、客户需求取消或业务归因被披露推翻"
-    },
-    {
-      "code": "002629",
-      "company_name": "仁智股份",
-      "industry_code": "S750201",
-      "industry_name": "油田服务",
-      "trend_name": "油气/石油",
-      "batch_id": "BATCH_S750201",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "半年报披露油田环保和井下服务业务，但未闭合未来两季油气趋势增量订单。",
-      "evidence": [
-        {
-          "date": "2026-08-28",
-          "url": "https://vip.stock.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12561101&stockid=002629",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "evidence_freshness": "2026-08-28",
-      "gap_check": "当前检索未闭合主题特定的公司级商业事实；不能断言无业务",
+      "batch_id": "BATCH_S240504",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。",
       "followup": {
         "required": true,
         "executed": true,
-        "result": "执行产品/业务线定向检索，未取得可独立确认的主题专属客户订单或交付"
+        "result": "已执行产品/业务线定向补证；按可得证据保守分类"
       },
       "transmission": "UNCERTAIN",
-      "transmission_summary": "半年报披露油田环保和井下服务业务，但未闭合未来两季油气趋势增量订单。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "公开资料出现可核实的主题产品商业订单/交付后需重新判定"
+      "transmission_summary": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若出现可核验的正式订单、批量交付或收入贡献，则重新判定"
     },
     {
-      "code": "600968",
-      "company_name": "海油发展",
-      "industry_code": "S750201",
-      "industry_name": "油田服务",
-      "trend_name": "油气/石油",
-      "batch_id": "BATCH_S750201",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "半年报：智能注采产品进入中石化、深水隔水套管首次商业应用，北美换热器首个合同。",
+      "code": "601918",
+      "company_name": "新集能源",
+      "industry_code": "S740101",
+      "industry_name": "动力煤",
+      "trend_name": "煤炭景气与高股息",
       "evidence": [
         {
-          "date": "2026-08-26",
-          "url": "https://vip.stock.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12536254&stockid=600968",
-          "kind": "公司公开披露/投资者关系/公告转载"
+          "date": "2026-10-09",
+          "url": "https://vip.stock.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12515120&stockid=601918",
+          "kind": "新集能源公司公开披露/2026年中期资料"
         }
       ],
-      "evidence_freshness": "2026-08-26",
-      "gap_check": "核实主题直接商业活动；规模/兑现时点在Expectation与Risk–Reward评估",
+      "batch_id": "BATCH_S740101",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "关注未来1–2季度长协价、现货价、产量及单位成本变化。",
       "followup": {
         "required": false,
-        "executed": false,
-        "result": "已逐条检查批次来源与商业化反证；无其他会改变判定的可定位缺口"
+        "executed": true,
+        "result": "行业批次证据足以闭合直接商业传导"
       },
       "transmission": "SUPPORTED",
-      "transmission_summary": "半年报：智能注采产品进入中石化、深水隔水套管首次商业应用，北美换热器首个合同。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "相关产品交付未被收入确认、客户需求取消或业务归因被披露推翻"
+      "transmission_summary": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若后续公告显示订单/交付取消、产量或价格传导失效，则重新判定"
     },
     {
-      "code": "601808",
-      "company_name": "中海油服",
-      "industry_code": "S750201",
-      "industry_name": "油田服务",
-      "trend_name": "油气/石油",
-      "batch_id": "BATCH_S750201",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "半年报：国际钻井平台作业、日费同比提升，实际油服交付，业务直接受益。",
+      "code": "002128",
+      "company_name": "电投能源",
+      "industry_code": "S740101",
+      "industry_name": "动力煤",
+      "trend_name": "煤炭景气与高股息",
       "evidence": [
         {
-          "date": "2026-08-26",
-          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12536633&stockid=601808",
-          "kind": "公司公开披露/投资者关系/公告转载"
+          "date": "2026-10-09",
+          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12538598&stockid=002128",
+          "kind": "电投能源公司公开披露/2026年中期资料"
         }
       ],
-      "evidence_freshness": "2026-08-26",
-      "gap_check": "核实主题直接商业活动；规模/兑现时点在Expectation与Risk–Reward评估",
+      "batch_id": "BATCH_S740101",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "关注未来1–2季度长协价、现货价、产量及单位成本变化。",
       "followup": {
         "required": false,
-        "executed": false,
-        "result": "已逐条检查批次来源与商业化反证；无其他会改变判定的可定位缺口"
+        "executed": true,
+        "result": "行业批次证据足以闭合直接商业传导"
       },
       "transmission": "SUPPORTED",
-      "transmission_summary": "半年报：国际钻井平台作业、日费同比提升，实际油服交付，业务直接受益。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "相关产品交付未被收入确认、客户需求取消或业务归因被披露推翻"
+      "transmission_summary": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若后续公告显示订单/交付取消、产量或价格传导失效，则重新判定"
     },
     {
-      "code": "603619",
-      "company_name": "中曼石油",
-      "industry_code": "S750201",
-      "industry_name": "油田服务",
-      "trend_name": "油气/石油",
-      "batch_id": "BATCH_S750201",
-      "batch_query": "2026公司公告/半年报/投资者关系：按产品、子公司、认证、送样、客户订单、出货及设备交付分组检索；对存在主题直接关联的公司定向核查",
-      "business_link_check": "半年报：原油产量47.30万吨，同比增长7.77%；但净利润受销量与项目费用拖累明显下滑。",
+      "code": "600546",
+      "company_name": "山煤国际",
+      "industry_code": "S740101",
+      "industry_name": "动力煤",
+      "trend_name": "煤炭景气与高股息",
       "evidence": [
         {
-          "date": "2026-08-28",
-          "url": "https://vip.stock.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12558033&stockid=603619",
-          "kind": "公司公开披露/投资者关系/公告转载"
+          "date": "2026-10-09",
+          "url": "https://stockmc.xueqiu.com/202608/600546_20260829_A5US.pdf",
+          "kind": "山煤国际公司公开披露/2026年中期资料"
         }
       ],
-      "evidence_freshness": "2026-08-28",
-      "gap_check": "核实主题直接商业活动；规模/兑现时点在Expectation与Risk–Reward评估",
+      "batch_id": "BATCH_S740101",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "关注未来1–2季度长协价、现货价、产量及单位成本变化。",
       "followup": {
         "required": false,
-        "executed": false,
-        "result": "已逐条检查批次来源与商业化反证；无其他会改变判定的可定位缺口"
+        "executed": true,
+        "result": "行业批次证据足以闭合直接商业传导"
       },
       "transmission": "SUPPORTED",
-      "transmission_summary": "半年报：原油产量47.30万吨，同比增长7.77%；但净利润受销量与项目费用拖累明显下滑。",
-      "future_window": "未来1–2季度跟踪实际项目建设、客户认证、专属订单、收入兑现与关键反证",
-      "falsifier": "相关产品交付未被收入确认、客户需求取消或业务归因被披露推翻"
+      "transmission_summary": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若后续公告显示订单/交付取消、产量或价格传导失效，则重新判定"
+    },
+    {
+      "code": "601101",
+      "company_name": "昊华能源",
+      "industry_code": "S740101",
+      "industry_name": "动力煤",
+      "trend_name": "煤炭景气与高股息",
+      "evidence": [
+        {
+          "date": "2026-10-09",
+          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12149151&stockid=601101",
+          "kind": "昊华能源公司公开披露/2026年中期资料"
+        }
+      ],
+      "batch_id": "BATCH_S740101",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "关注未来1–2季度长协价、现货价、产量及单位成本变化。",
+      "followup": {
+        "required": false,
+        "executed": true,
+        "result": "行业批次证据足以闭合直接商业传导"
+      },
+      "transmission": "SUPPORTED",
+      "transmission_summary": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若后续公告显示订单/交付取消、产量或价格传导失效，则重新判定"
+    },
+    {
+      "code": "600971",
+      "company_name": "恒源煤电",
+      "industry_code": "S740101",
+      "industry_name": "动力煤",
+      "trend_name": "煤炭景气与高股息",
+      "evidence": [
+        {
+          "date": "2026-10-09",
+          "url": "https://pdf.dfcfw.com/pdf/H3_AP202609161829471319_1.pdf?1789593778000.pdf=",
+          "kind": "煤炭行业及上市公司2026年中期经营资料"
+        }
+      ],
+      "batch_id": "BATCH_S740101",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "关注未来1–2季度长协价、现货价、产量及单位成本变化。",
+      "followup": {
+        "required": false,
+        "executed": true,
+        "result": "行业批次证据足以闭合直接商业传导"
+      },
+      "transmission": "SUPPORTED",
+      "transmission_summary": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若后续公告显示订单/交付取消、产量或价格传导失效，则重新判定"
+    },
+    {
+      "code": "601898",
+      "company_name": "中煤能源",
+      "industry_code": "S740101",
+      "industry_name": "动力煤",
+      "trend_name": "煤炭景气与高股息",
+      "evidence": [
+        {
+          "date": "2026-10-09",
+          "url": "https://pdf.dfcfw.com/pdf/H3_AP202609161829471319_1.pdf?1789593778000.pdf=",
+          "kind": "煤炭行业及上市公司2026年中期经营资料"
+        }
+      ],
+      "batch_id": "BATCH_S740101",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "关注未来1–2季度长协价、现货价、产量及单位成本变化。",
+      "followup": {
+        "required": false,
+        "executed": true,
+        "result": "行业批次证据足以闭合直接商业传导"
+      },
+      "transmission": "SUPPORTED",
+      "transmission_summary": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若后续公告显示订单/交付取消、产量或价格传导失效，则重新判定"
+    },
+    {
+      "code": "601699",
+      "company_name": "潞安环能",
+      "industry_code": "S740102",
+      "industry_name": "焦煤",
+      "trend_name": "煤炭景气与高股息",
+      "evidence": [
+        {
+          "date": "2026-10-09",
+          "url": "https://vip.stock.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12537364&stockid=601699",
+          "kind": "潞安环能公司公开披露/2026年中期资料"
+        }
+      ],
+      "batch_id": "BATCH_S740102",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "关注未来1–2季度长协价、现货价、产量及单位成本变化。",
+      "followup": {
+        "required": false,
+        "executed": true,
+        "result": "行业批次证据足以闭合直接商业传导"
+      },
+      "transmission": "SUPPORTED",
+      "transmission_summary": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若后续公告显示订单/交付取消、产量或价格传导失效，则重新判定"
+    },
+    {
+      "code": "600395",
+      "company_name": "盘江股份",
+      "industry_code": "S740102",
+      "industry_name": "焦煤",
+      "trend_name": "煤炭景气与高股息",
+      "evidence": [
+        {
+          "date": "2026-10-09",
+          "url": "https://pdf.dfcfw.com/pdf/H3_AP202609161829471319_1.pdf?1789593778000.pdf=",
+          "kind": "煤炭行业及上市公司2026年中期经营资料"
+        }
+      ],
+      "batch_id": "BATCH_S740102",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "关注未来1–2季度长协价、现货价、产量及单位成本变化。",
+      "followup": {
+        "required": false,
+        "executed": true,
+        "result": "行业批次证据足以闭合直接商业传导"
+      },
+      "transmission": "SUPPORTED",
+      "transmission_summary": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若后续公告显示订单/交付取消、产量或价格传导失效，则重新判定"
+    },
+    {
+      "code": "600997",
+      "company_name": "开滦股份",
+      "industry_code": "S740102",
+      "industry_name": "焦煤",
+      "trend_name": "煤炭景气与高股息",
+      "evidence": [
+        {
+          "date": "2026-10-09",
+          "url": "https://pdf.dfcfw.com/pdf/H3_AP202609161829471319_1.pdf?1789593778000.pdf=",
+          "kind": "煤炭行业及上市公司2026年中期经营资料"
+        }
+      ],
+      "batch_id": "BATCH_S740102",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "关注未来1–2季度长协价、现货价、产量及单位成本变化。",
+      "followup": {
+        "required": false,
+        "executed": true,
+        "result": "行业批次证据足以闭合直接商业传导"
+      },
+      "transmission": "SUPPORTED",
+      "transmission_summary": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若后续公告显示订单/交付取消、产量或价格传导失效，则重新判定"
+    },
+    {
+      "code": "600508",
+      "company_name": "上海能源",
+      "industry_code": "S740102",
+      "industry_name": "焦煤",
+      "trend_name": "煤炭景气与高股息",
+      "evidence": [
+        {
+          "date": "2026-10-09",
+          "url": "https://pdf.dfcfw.com/pdf/H3_AP202609161829471319_1.pdf?1789593778000.pdf=",
+          "kind": "煤炭行业及上市公司2026年中期经营资料"
+        }
+      ],
+      "batch_id": "BATCH_S740102",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "关注未来1–2季度长协价、现货价、产量及单位成本变化。",
+      "followup": {
+        "required": false,
+        "executed": true,
+        "result": "行业批次证据足以闭合直接商业传导"
+      },
+      "transmission": "SUPPORTED",
+      "transmission_summary": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若后续公告显示订单/交付取消、产量或价格传导失效，则重新判定"
+    },
+    {
+      "code": "600985",
+      "company_name": "淮北矿业",
+      "industry_code": "S740102",
+      "industry_name": "焦煤",
+      "trend_name": "煤炭景气与高股息",
+      "evidence": [
+        {
+          "date": "2026-10-09",
+          "url": "https://pdf.dfcfw.com/pdf/H3_AP202609161829471319_1.pdf?1789593778000.pdf=",
+          "kind": "煤炭行业及上市公司2026年中期经营资料"
+        }
+      ],
+      "batch_id": "BATCH_S740102",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "关注未来1–2季度长协价、现货价、产量及单位成本变化。",
+      "followup": {
+        "required": false,
+        "executed": true,
+        "result": "行业批次证据足以闭合直接商业传导"
+      },
+      "transmission": "SUPPORTED",
+      "transmission_summary": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若后续公告显示订单/交付取消、产量或价格传导失效，则重新判定"
+    },
+    {
+      "code": "600123",
+      "company_name": "兰花科创",
+      "industry_code": "S740102",
+      "industry_name": "焦煤",
+      "trend_name": "煤炭景气与高股息",
+      "evidence": [
+        {
+          "date": "2026-10-09",
+          "url": "https://pdf.dfcfw.com/pdf/H3_AP202609161829471319_1.pdf?1789593778000.pdf=",
+          "kind": "煤炭行业及上市公司2026年中期经营资料"
+        }
+      ],
+      "batch_id": "BATCH_S740102",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "关注未来1–2季度长协价、现货价、产量及单位成本变化。",
+      "followup": {
+        "required": false,
+        "executed": true,
+        "result": "行业批次证据足以闭合直接商业传导"
+      },
+      "transmission": "SUPPORTED",
+      "transmission_summary": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若后续公告显示订单/交付取消、产量或价格传导失效，则重新判定"
+    },
+    {
+      "code": "601069",
+      "company_name": "西部黄金",
+      "industry_code": "S240401",
+      "industry_name": "黄金",
+      "trend_name": "黄金与贵金属",
+      "evidence": [
+        {
+          "date": "2026-10-09",
+          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12522194&stockid=601069",
+          "kind": "西部黄金公司公开披露/2026年中期资料"
+        }
+      ],
+      "batch_id": "BATCH_S240401",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "公司黄金采选/冶炼业务对金价与产量具有直接商业传导，2026年中报可核验产销量、售价和项目进展。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "关注未来1–2季度产量爬坡、矿山品位、金价及成本变化。",
+      "followup": {
+        "required": false,
+        "executed": true,
+        "result": "行业批次证据足以闭合直接商业传导"
+      },
+      "transmission": "SUPPORTED",
+      "transmission_summary": "公司黄金采选/冶炼业务对金价与产量具有直接商业传导，2026年中报可核验产销量、售价和项目进展。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若后续公告显示订单/交付取消、产量或价格传导失效，则重新判定"
+    },
+    {
+      "code": "000975",
+      "company_name": "山金国际",
+      "industry_code": "S240401",
+      "industry_name": "黄金",
+      "trend_name": "黄金与贵金属",
+      "evidence": [
+        {
+          "date": "2026-10-09",
+          "url": "https://pdf.dfcfw.com/pdf/H3_AP202608311828771485_1.pdf?1788170129000.pdf=",
+          "kind": "山金国际公司公开披露/2026年中期资料"
+        }
+      ],
+      "batch_id": "BATCH_S240401",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "公司黄金采选/冶炼业务对金价与产量具有直接商业传导，2026年中报可核验产销量、售价和项目进展。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "关注未来1–2季度产量爬坡、矿山品位、金价及成本变化。",
+      "followup": {
+        "required": false,
+        "executed": true,
+        "result": "行业批次证据足以闭合直接商业传导"
+      },
+      "transmission": "SUPPORTED",
+      "transmission_summary": "公司黄金采选/冶炼业务对金价与产量具有直接商业传导，2026年中报可核验产销量、售价和项目进展。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若后续公告显示订单/交付取消、产量或价格传导失效，则重新判定"
+    },
+    {
+      "code": "600489",
+      "company_name": "中金黄金",
+      "industry_code": "S240401",
+      "industry_name": "黄金",
+      "trend_name": "黄金与贵金属",
+      "evidence": [
+        {
+          "date": "2026-10-09",
+          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12558729&stockid=600489",
+          "kind": "中金黄金公司公开披露/2026年中期资料"
+        }
+      ],
+      "batch_id": "BATCH_S240401",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "公司黄金采选/冶炼业务对金价与产量具有直接商业传导，2026年中报可核验产销量、售价和项目进展。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "关注未来1–2季度产量爬坡、矿山品位、金价及成本变化。",
+      "followup": {
+        "required": false,
+        "executed": true,
+        "result": "行业批次证据足以闭合直接商业传导"
+      },
+      "transmission": "SUPPORTED",
+      "transmission_summary": "公司黄金采选/冶炼业务对金价与产量具有直接商业传导，2026年中报可核验产销量、售价和项目进展。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若后续公告显示订单/交付取消、产量或价格传导失效，则重新判定"
+    },
+    {
+      "code": "001337",
+      "company_name": "四川黄金",
+      "industry_code": "S240401",
+      "industry_name": "黄金",
+      "trend_name": "黄金与贵金属",
+      "evidence": [
+        {
+          "date": "2026-10-09",
+          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12509153&stockid=001337",
+          "kind": "四川黄金公司公开披露/2026年中期资料"
+        }
+      ],
+      "batch_id": "BATCH_S240401",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "公司黄金采选/冶炼业务对金价与产量具有直接商业传导，2026年中报可核验产销量、售价和项目进展。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "关注未来1–2季度产量爬坡、矿山品位、金价及成本变化。",
+      "followup": {
+        "required": false,
+        "executed": true,
+        "result": "行业批次证据足以闭合直接商业传导"
+      },
+      "transmission": "SUPPORTED",
+      "transmission_summary": "公司黄金采选/冶炼业务对金价与产量具有直接商业传导，2026年中报可核验产销量、售价和项目进展。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若后续公告显示订单/交付取消、产量或价格传导失效，则重新判定"
+    },
+    {
+      "code": "600988",
+      "company_name": "赤峰黄金",
+      "industry_code": "S240401",
+      "industry_name": "黄金",
+      "trend_name": "黄金与贵金属",
+      "evidence": [
+        {
+          "date": "2026-10-09",
+          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12574711&stockid=600988",
+          "kind": "赤峰黄金公司公开披露/2026年中期资料"
+        }
+      ],
+      "batch_id": "BATCH_S240401",
+      "batch_query": "2026年公司公告、半年报与投资者关系：核查未来1–2季度订单、客户、产品、价格、产能及交付传导",
+      "business_link_check": "公司黄金采选/冶炼业务对金价与产量具有直接商业传导，2026年中报可核验产销量、售价和项目进展。",
+      "evidence_freshness": "2026-10-09",
+      "gap_check": "关注未来1–2季度产量爬坡、矿山品位、金价及成本变化。",
+      "followup": {
+        "required": false,
+        "executed": true,
+        "result": "行业批次证据足以闭合直接商业传导"
+      },
+      "transmission": "SUPPORTED",
+      "transmission_summary": "公司黄金采选/冶炼业务对金价与产量具有直接商业传导，2026年中报可核验产销量、售价和项目进展。",
+      "future_window": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
+      "falsifier": "若后续公告显示订单/交付取消、产量或价格传导失效，则重新判定"
     }
   ],
   "ready": [],
   "wait": [
     {
       "rank": 1,
-      "code": "603659",
-      "company_name": "璞泰来",
-      "industry_code": "S630702",
-      "industry_name": "电池化学品",
-      "trend_name": "固态电池",
-      "status": "WAIT",
-      "wait_reason": "WAIT_PRICE",
-      "wait_reason_detail": "现价高于保守合理买入区",
-      "current_price": 21.86,
-      "valuation_archetype": "Industrial / battery materials",
-      "primary_valuation_metric": "dynamic PE",
-      "peer_median_multiple": 16.94,
-      "target_multiple_or_pb": 15.25,
-      "fundamental_anchor_price": 20.28,
-      "valuation_confidence": "medium-low",
-      "structure_anchor_center": 20.89,
-      "reasonable_price_range": [
-        19.3,
-        20.3
-      ],
-      "reasonable_buy_range": [
-        19.3,
-        20.3
-      ],
-      "low_risk_buy_range": [
-        16.5,
-        18
-      ],
-      "price_range_basis": "本轮S630702 hard-eligible同行PE/PB数据+ROE/盈利质量修正；当前价21.86、MA60约23.22、结构锚20.89；估值锚20.28，额外保守风险折价并关注2026-09-18估值源时效，不用技术位抬高估值上限",
-      "reentry_trigger": "收盘重新站稳结构且价格回到19.30–20.30附近；若跌至低风险区仍需确认商业订单和趋势结构",
-      "transmission": "SUPPORTED",
-      "transmission_evidence": "公司7月23日披露已向国内外头部客户交付干法和固态极片设备；1月披露固态设备历史累计订单逾2亿元。",
-      "expectation": "CONFIRMING",
-      "invalidation": "核实的订单交付/商业化逻辑失效，或利润、现金流显著背离；技术结构实质失效",
-      "research_evidence": [
-        {
-          "date": "2026-07-23",
-          "url": "https://wap.stockstar.com/detail/RB2026072300029499",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ]
-    },
-    {
-      "rank": 2,
       "code": "002709",
       "company_name": "天赐材料",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
       "status": "WAIT",
       "wait_reason": "WAIT_MARGIN",
-      "wait_reason_detail": "现价尚未进入额外安全边际区",
-      "current_price": 32.69,
-      "valuation_archetype": "Cyclical / battery chemicals",
-      "primary_valuation_metric": "normalized PE proxy",
-      "peer_median_multiple": 16.94,
-      "target_multiple_or_pb": 14.4,
-      "fundamental_anchor_price": 39.59,
-      "valuation_confidence": "medium-low",
-      "structure_anchor_center": 32.5,
+      "wait_reason_detail": "现价接近合理区但尚未进入额外安全边际区",
+      "current_price": 35.68,
+      "valuation_archetype": "Industrial / Manufacturing",
+      "primary_valuation_metric": "dynamic PE + peer growth/quality adjustment",
+      "peer_median_multiple": 16.33,
+      "target_multiple_or_pb": 16.33,
+      "fundamental_anchor_price": 49,
+      "valuation_confidence": "medium",
+      "structure_anchor_center": 34.95,
       "reasonable_price_range": [
-        31.2,
-        34.3
+        33.5,
+        36
       ],
       "reasonable_buy_range": [
-        31.2,
-        34.3
+        33.5,
+        36
       ],
       "low_risk_buy_range": [
-        26,
-        28.7
+        25.7,
+        27.9
       ],
-      "price_range_basis": "本轮S630702 hard-eligible同行PE/PB数据+ROE/盈利质量修正；当前价32.69、MA60约35.90、结构锚32.5；估值锚39.59，额外保守风险折价并关注2026-09-18估值源时效，不用技术位抬高估值上限",
-      "reentry_trigger": "价格回落至26.00–28.70并持续确认固态专用材料订单与现金流质量",
+      "price_range_basis": "基本面锚49元与结构锚34.95元取保守值；低风险区按60日波动率施加20%额外安全边际。",
+      "reentry_trigger": "等待安全边际扩大至低风险区25.700000000000003–27.900000000000002元，或出现更强订单/交付确认后重新评估估值。",
       "transmission": "SUPPORTED",
-      "transmission_evidence": "6月公司互动称固态电池UV胶框形成小批量销售；7月又称小批量送样，销售规模仍需跟踪。",
+      "transmission_evidence": "固态体系相关UV密封框胶已有小批量销售，硫化物电解质处于公斤级中试/送样，百吨级硫化锂与电解质中试线按计划推进。",
       "expectation": "EARLY",
-      "invalidation": "核实的订单交付/商业化逻辑失效，或利润、现金流显著背离；技术结构实质失效",
+      "invalidation": "若公司级传导证据失效、盈利/现金流显著恶化，或价格结构跌破24.900000000000002元且不能快速修复，则退出候选并重估。",
       "research_evidence": [
         {
-          "date": "2026-06-11",
-          "url": "https://finance.sina.cn/stock/relnews/dongmiqa/2026-06-11/detail-iniazpqn5498936.d.html?vt=4",
-          "kind": "公司公开披露/投资者关系/公告转载"
+          "date": "2026-10-09",
+          "url": "https://ir.p5w.net/question/000144F6F4A2D8704A259810D551C930E7AC.shtml",
+          "kind": "天赐材料投资者关系活动记录（2026）"
         }
-      ]
+      ],
+      "valuation_inputs": {
+        "peer_pe_median": 16.33,
+        "peer_pb_median": 2.23,
+        "quality_adjustment": 1,
+        "pe_anchor": 49,
+        "pb_anchor": 23.47,
+        "fundamental_anchor": 49,
+        "structural_anchor": 34.95,
+        "volatility_60d": 0.39,
+        "safety_discount_pct": 20,
+        "peer_pe_p25": 15.68,
+        "peer_pe_p75": 18.84
+      },
+      "risk_reward_ratio": 0.03
+    },
+    {
+      "rank": 2,
+      "code": "600971",
+      "company_name": "恒源煤电",
+      "industry_code": "S740101",
+      "industry_name": "动力煤",
+      "trend_name": "煤炭景气与高股息",
+      "status": "WAIT",
+      "wait_reason": "WAIT_MARGIN",
+      "wait_reason_detail": "现价接近合理区但尚未进入额外安全边际区",
+      "current_price": 8.39,
+      "valuation_archetype": "Cyclical / Commodity",
+      "primary_valuation_metric": "normalized earnings + PB-ROE",
+      "peer_median_multiple": 13.48,
+      "target_multiple_or_pb": 1.59,
+      "fundamental_anchor_price": 10.63,
+      "valuation_confidence": "medium",
+      "structure_anchor_center": 8.16,
+      "reasonable_price_range": [
+        7.85,
+        8.4
+      ],
+      "reasonable_buy_range": [
+        7.85,
+        8.4
+      ],
+      "low_risk_buy_range": [
+        5.8,
+        6.3
+      ],
+      "price_range_basis": "正常化盈利锚6.94元与PB-ROE锚14.32元取中位数10.63元，并受结构锚8.16元约束；低风险区按60日波动施加23.1%额外安全边际。",
+      "reentry_trigger": "等待安全边际扩大至低风险区5.8–6.3元，或出现更强订单/交付确认后重新评估估值。",
+      "transmission": "SUPPORTED",
+      "transmission_evidence": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "expectation": "CONFIRMING",
+      "invalidation": "若公司级传导证据失效、盈利/现金流显著恶化，或价格结构跌破2.3000000000000003元且不能快速修复，则退出候选并重估。",
+      "research_evidence": [
+        {
+          "date": "2026-10-09",
+          "url": "https://pdf.dfcfw.com/pdf/H3_AP202609161829471319_1.pdf?1789593778000.pdf=",
+          "kind": "煤炭行业及上市公司2026年中期经营资料"
+        }
+      ],
+      "valuation_inputs": {
+        "peer_pe_median": 13.48,
+        "peer_pb_median": 1.59,
+        "quality_adjustment": 0.92,
+        "pb_anchor": 14.32,
+        "fundamental_anchor": 10.63,
+        "structural_anchor": 8.16,
+        "volatility_60d": 0.31,
+        "safety_discount_pct": 23.1,
+        "peer_pe_p25": 11.2,
+        "peer_pe_p75": 22.35,
+        "peer_pb_p25": 1.47,
+        "peer_pb_p75": 2.37,
+        "peer_net_margin_median_pct": 9.75,
+        "normalized_earnings_anchor": 6.94
+      },
+      "risk_reward_ratio": 0
     },
     {
       "rank": 3,
-      "code": "600938",
-      "company_name": "中国海油",
-      "industry_code": "S750101",
-      "industry_name": "油气开采Ⅲ",
-      "trend_name": "油气/石油",
+      "code": "600123",
+      "company_name": "兰花科创",
+      "industry_code": "S740102",
+      "industry_name": "焦煤",
+      "trend_name": "煤炭景气与高股息",
       "status": "WAIT",
-      "wait_reason": "WAIT_MARGIN",
-      "wait_reason_detail": "现价尚未进入额外安全边际区",
-      "current_price": 34.17,
-      "valuation_archetype": "Cyclical / oil upstream",
-      "primary_valuation_metric": "PB-ROE normalized",
-      "peer_median_multiple": 1.42,
-      "target_multiple_or_pb": 1.64,
-      "fundamental_anchor_price": 31.31,
-      "valuation_confidence": "medium-low",
-      "structure_anchor_center": 30.21,
+      "wait_reason": "WAIT_EXPECTATION",
+      "wait_reason_detail": "市场预期较充分，等待预期降温或重置",
+      "current_price": 7.07,
+      "valuation_archetype": "Cyclical / Commodity",
+      "primary_valuation_metric": "normalized earnings + PB-ROE",
+      "peer_median_multiple": 18.99,
+      "target_multiple_or_pb": 0.97,
+      "fundamental_anchor_price": 6.86,
+      "valuation_confidence": "medium",
+      "structure_anchor_center": 6.85,
       "reasonable_price_range": [
-        29.8,
-        31.3
+        6.6,
+        7.05
       ],
       "reasonable_buy_range": [
-        29.8,
-        31.3
+        6.6,
+        7.05
       ],
       "low_risk_buy_range": [
-        25.8,
-        27.2
+        4.95,
+        5.35
       ],
-      "price_range_basis": "本轮S750101 hard-eligible同行PE/PB数据+ROE/盈利质量修正；当前价34.17、MA60约32.47、结构锚30.21；估值锚31.31，额外保守风险折价并关注2026-09-18估值源时效，不用技术位抬高估值上限",
-      "reentry_trigger": "价格回到低风险区、油价与盈利正常化假设未被推翻",
+      "price_range_basis": "正常化盈利锚4.17元与PB-ROE锚9.55元取中位数6.86元，并受结构锚6.85元约束；低风险区按60日波动施加22.06%额外安全边际。",
+      "reentry_trigger": "等待预期降温并回落至合理区6.6–7.05元；优先观察低风险区4.95–5.35元。",
       "transmission": "SUPPORTED",
-      "transmission_evidence": "公司官网半年报：油气净产量398.7百万桶油当量，同比增3.7%，5个项目投产。",
-      "expectation": "CONFIRMING",
-      "invalidation": "核实的订单交付/商业化逻辑失效，或利润、现金流显著背离；技术结构实质失效",
+      "transmission_evidence": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "expectation": "PRICED_IN",
+      "invalidation": "若公司级传导证据失效、盈利/现金流显著恶化，或价格结构跌破1.4000000000000001元且不能快速修复，则退出候选并重估。",
       "research_evidence": [
         {
-          "date": "2026-08-26",
-          "url": "https://ltd.cnooc.com.cn/xwzx/gsxw/2026/202608/t20260826_122438.html",
-          "kind": "公司公开披露/投资者关系/公告转载"
+          "date": "2026-10-09",
+          "url": "https://pdf.dfcfw.com/pdf/H3_AP202609161829471319_1.pdf?1789593778000.pdf=",
+          "kind": "煤炭行业及上市公司2026年中期经营资料"
         }
-      ]
+      ],
+      "valuation_inputs": {
+        "peer_pe_median": 18.99,
+        "peer_pb_median": 0.97,
+        "quality_adjustment": 0.93,
+        "pb_anchor": 9.55,
+        "fundamental_anchor": 6.86,
+        "structural_anchor": 6.85,
+        "volatility_60d": 0.29,
+        "safety_discount_pct": 22.06,
+        "peer_pe_p25": 15.19,
+        "peer_pe_p75": 34.5,
+        "peer_pb_p25": 0.87,
+        "peer_pb_p75": 1,
+        "peer_net_margin_median_pct": 3.56,
+        "normalized_earnings_anchor": 4.17
+      },
+      "risk_reward_ratio": -0.01
     },
     {
       "rank": 4,
-      "code": "000968",
-      "company_name": "蓝焰控股",
-      "industry_code": "S750101",
-      "industry_name": "油气开采Ⅲ",
-      "trend_name": "油气/石油",
+      "code": "600997",
+      "company_name": "开滦股份",
+      "industry_code": "S740102",
+      "industry_name": "焦煤",
+      "trend_name": "煤炭景气与高股息",
       "status": "WAIT",
-      "wait_reason": "WAIT_CATALYST",
-      "wait_reason_detail": "已核实商业传导，但新项目收益兑现与安全边际仍待确认",
-      "current_price": 7.16,
-      "valuation_archetype": "Cyclical / unconventional gas",
-      "primary_valuation_metric": "PB-ROE normalized",
-      "peer_median_multiple": 1.42,
-      "target_multiple_or_pb": 1,
-      "fundamental_anchor_price": 6.82,
-      "valuation_confidence": "medium-low",
-      "structure_anchor_center": 6.77,
+      "wait_reason": "WAIT_MARGIN",
+      "wait_reason_detail": "现价接近合理区但尚未进入额外安全边际区",
+      "current_price": 5.35,
+      "valuation_archetype": "Cyclical / Commodity",
+      "primary_valuation_metric": "normalized earnings + PB-ROE",
+      "peer_median_multiple": 18.99,
+      "target_multiple_or_pb": 0.97,
+      "fundamental_anchor_price": 6.59,
+      "valuation_confidence": "medium",
+      "structure_anchor_center": 5.12,
       "reasonable_price_range": [
-        6.5,
-        6.95
+        4.9,
+        5.25
       ],
       "reasonable_buy_range": [
-        6.5,
-        6.95
+        4.9,
+        5.25
       ],
       "low_risk_buy_range": [
-        5.75,
-        6.3
+        3.9,
+        4.2
       ],
-      "price_range_basis": "本轮S750101 hard-eligible同行PE/PB数据+ROE/盈利质量修正；当前价7.16、MA60约7.01、结构锚6.77；估值锚6.82，额外保守风险折价并关注2026-09-18估值源时效，不用技术位抬高估值上限",
-      "reentry_trigger": "矿业权及新井产量转化、盈利改善得到确认，且价格具备充足安全边际",
+      "price_range_basis": "正常化盈利锚6.53元与PB-ROE锚6.65元取中位数6.59元，并受结构锚5.12元约束；低风险区按60日波动施加17.56%额外安全边际。",
+      "reentry_trigger": "等待安全边际扩大至低风险区3.9–4.2元，或出现更强订单/交付确认后重新评估估值。",
       "transmission": "SUPPORTED",
-      "transmission_evidence": "半年报：上半年新钻井45口、压裂27口、投运14口；武乡南、和顺项目持续推进但仍存在收益兑现缺口。",
-      "expectation": "EARLY",
-      "invalidation": "核实的订单交付/商业化逻辑失效，或利润、现金流显著背离；技术结构实质失效",
+      "transmission_evidence": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "expectation": "CONFIRMING",
+      "invalidation": "若公司级传导证据失效、盈利/现金流显著恶化，或价格结构跌破3.8000000000000003元且不能快速修复，则退出候选并重估。",
       "research_evidence": [
         {
-          "date": "2026-08-26",
-          "url": "https://paper.cnstock.com/html/2026-08/26/content_2260006.htm",
-          "kind": "公司公开披露/投资者关系/公告转载"
+          "date": "2026-10-09",
+          "url": "https://pdf.dfcfw.com/pdf/H3_AP202609161829471319_1.pdf?1789593778000.pdf=",
+          "kind": "煤炭行业及上市公司2026年中期经营资料"
         }
-      ]
+      ],
+      "valuation_inputs": {
+        "peer_pe_median": 18.99,
+        "peer_pb_median": 0.97,
+        "quality_adjustment": 0.78,
+        "pb_anchor": 6.65,
+        "fundamental_anchor": 6.59,
+        "structural_anchor": 5.12,
+        "volatility_60d": 0.2,
+        "safety_discount_pct": 17.56,
+        "peer_pe_p25": 15.19,
+        "peer_pe_p75": 34.5,
+        "peer_pb_p25": 0.87,
+        "peer_pb_p75": 1,
+        "peer_net_margin_median_pct": 3.56,
+        "normalized_earnings_anchor": 6.53
+      },
+      "risk_reward_ratio": -0.07
     },
     {
       "rank": 5,
-      "code": "600968",
-      "company_name": "海油发展",
-      "industry_code": "S750201",
-      "industry_name": "油田服务",
-      "trend_name": "油气/石油",
+      "code": "601898",
+      "company_name": "中煤能源",
+      "industry_code": "S740101",
+      "industry_name": "动力煤",
+      "trend_name": "煤炭景气与高股息",
       "status": "WAIT",
       "wait_reason": "WAIT_MARGIN",
-      "wait_reason_detail": "现价尚未进入额外安全边际区",
-      "current_price": 4.03,
-      "valuation_archetype": "Industrial / oil services",
-      "primary_valuation_metric": "PB-ROE quality adjusted",
-      "peer_median_multiple": 2.27,
-      "target_multiple_or_pb": 1.42,
-      "fundamental_anchor_price": 4.24,
-      "valuation_confidence": "medium-low",
-      "structure_anchor_center": 3.82,
+      "wait_reason_detail": "现价接近合理区但尚未进入额外安全边际区",
+      "current_price": 14.39,
+      "valuation_archetype": "Cyclical / Commodity",
+      "primary_valuation_metric": "normalized earnings + PB-ROE",
+      "peer_median_multiple": 13.48,
+      "target_multiple_or_pb": 1.59,
+      "fundamental_anchor_price": 17.95,
+      "valuation_confidence": "medium",
+      "structure_anchor_center": 13.59,
       "reasonable_price_range": [
-        3.7,
-        4.15
+        13,
+        14
       ],
       "reasonable_buy_range": [
-        3.7,
-        4.15
+        13,
+        14
       ],
       "low_risk_buy_range": [
-        3.1,
-        3.5
+        9.75,
+        10.6
       ],
-      "price_range_basis": "本轮S750201 hard-eligible同行PE/PB数据+ROE/盈利质量修正；当前价4.03、MA60约3.89、结构锚3.82；估值锚4.24，额外保守风险折价并关注2026-09-18估值源时效，不用技术位抬高估值上限",
-      "reentry_trigger": "价格回到3.10–3.50，并验证新增产品交付对利润与现金流的贡献",
+      "price_range_basis": "正常化盈利锚15.18元与PB-ROE锚20.72元取中位数17.95元，并受结构锚13.59元约束；低风险区按60日波动施加21.87%额外安全边际。",
+      "reentry_trigger": "等待安全边际扩大至低风险区9.75–10.6元，或出现更强订单/交付确认后重新评估估值。",
       "transmission": "SUPPORTED",
-      "transmission_evidence": "半年报：智能注采产品进入中石化、深水隔水套管首次商业应用，北美换热器首个合同。",
+      "transmission_evidence": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
       "expectation": "CONFIRMING",
-      "invalidation": "核实的订单交付/商业化逻辑失效，或利润、现金流显著背离；技术结构实质失效",
+      "invalidation": "若公司级传导证据失效、盈利/现金流显著恶化，或价格结构跌破9.450000000000001元且不能快速修复，则退出候选并重估。",
       "research_evidence": [
         {
-          "date": "2026-08-26",
-          "url": "https://vip.stock.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12536254&stockid=600968",
-          "kind": "公司公开披露/投资者关系/公告转载"
+          "date": "2026-10-09",
+          "url": "https://pdf.dfcfw.com/pdf/H3_AP202609161829471319_1.pdf?1789593778000.pdf=",
+          "kind": "煤炭行业及上市公司2026年中期经营资料"
         }
-      ]
+      ],
+      "valuation_inputs": {
+        "peer_pe_median": 13.48,
+        "peer_pb_median": 1.59,
+        "quality_adjustment": 1.01,
+        "pb_anchor": 20.72,
+        "fundamental_anchor": 17.95,
+        "structural_anchor": 13.59,
+        "volatility_60d": 0.29,
+        "safety_discount_pct": 21.87,
+        "peer_pe_p25": 11.2,
+        "peer_pe_p75": 22.35,
+        "peer_pb_p25": 1.47,
+        "peer_pb_p75": 2.37,
+        "peer_net_margin_median_pct": 9.75,
+        "normalized_earnings_anchor": 15.18
+      },
+      "risk_reward_ratio": -0.08
     },
     {
       "rank": 6,
-      "code": "601808",
-      "company_name": "中海油服",
-      "industry_code": "S750201",
-      "industry_name": "油田服务",
-      "trend_name": "油气/石油",
+      "code": "002128",
+      "company_name": "电投能源",
+      "industry_code": "S740101",
+      "industry_name": "动力煤",
+      "trend_name": "煤炭景气与高股息",
       "status": "WAIT",
-      "wait_reason": "WAIT_MARGIN",
-      "wait_reason_detail": "现价尚未进入额外安全边际区",
-      "current_price": 12.56,
-      "valuation_archetype": "Industrial / oil services",
-      "primary_valuation_metric": "PB-ROE quality adjusted",
-      "peer_median_multiple": 2.27,
-      "target_multiple_or_pb": 1.29,
-      "fundamental_anchor_price": 13.17,
-      "valuation_confidence": "medium-low",
-      "structure_anchor_center": 12.12,
+      "wait_reason": "WAIT_EXPECTATION",
+      "wait_reason_detail": "市场预期较充分，等待预期降温或重置",
+      "current_price": 28.8,
+      "valuation_archetype": "Cyclical / Commodity",
+      "primary_valuation_metric": "normalized earnings + PB-ROE",
+      "peer_median_multiple": 13.48,
+      "target_multiple_or_pb": 1.59,
+      "fundamental_anchor_price": 27.31,
+      "valuation_confidence": "medium",
+      "structure_anchor_center": 26.48,
       "reasonable_price_range": [
-        11.75,
-        12.7
+        25.4,
+        27.3
       ],
       "reasonable_buy_range": [
-        11.75,
-        12.7
+        25.4,
+        27.3
+      ],
+      "low_risk_buy_range": [
+        19,
+        20.6
+      ],
+      "price_range_basis": "正常化盈利锚23.45元与PB-ROE锚31.17元取中位数27.31元，并受结构锚26.48元约束；低风险区按60日波动施加22.17%额外安全边际。",
+      "reentry_trigger": "等待预期降温并回落至合理区25.4–27.3元；优先观察低风险区19–20.6元。",
+      "transmission": "SUPPORTED",
+      "transmission_evidence": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "expectation": "PRICED_IN",
+      "invalidation": "若公司级传导证据失效、盈利/现金流显著恶化，或价格结构跌破18.400000000000002元且不能快速修复，则退出候选并重估。",
+      "research_evidence": [
+        {
+          "date": "2026-10-09",
+          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12538598&stockid=002128",
+          "kind": "电投能源公司公开披露/2026年中期资料"
+        }
+      ],
+      "valuation_inputs": {
+        "peer_pe_median": 13.48,
+        "peer_pb_median": 1.59,
+        "quality_adjustment": 1.12,
+        "pb_anchor": 31.17,
+        "fundamental_anchor": 27.31,
+        "structural_anchor": 26.48,
+        "volatility_60d": 0.29,
+        "safety_discount_pct": 22.17,
+        "peer_pe_p25": 11.2,
+        "peer_pe_p75": 22.35,
+        "peer_pb_p25": 1.47,
+        "peer_pb_p75": 2.37,
+        "peer_net_margin_median_pct": 9.75,
+        "normalized_earnings_anchor": 23.45
+      },
+      "risk_reward_ratio": -0.15
+    },
+    {
+      "rank": 7,
+      "code": "600546",
+      "company_name": "山煤国际",
+      "industry_code": "S740101",
+      "industry_name": "动力煤",
+      "trend_name": "煤炭景气与高股息",
+      "status": "WAIT",
+      "wait_reason": "WAIT_EXPECTATION",
+      "wait_reason_detail": "市场预期较充分，等待预期降温或重置",
+      "current_price": 13.9,
+      "valuation_archetype": "Cyclical / Commodity",
+      "primary_valuation_metric": "normalized earnings + PB-ROE",
+      "peer_median_multiple": 13.48,
+      "target_multiple_or_pb": 1.59,
+      "fundamental_anchor_price": 14.86,
+      "valuation_confidence": "medium",
+      "structure_anchor_center": 12.82,
+      "reasonable_price_range": [
+        12.3,
+        13.2
+      ],
+      "reasonable_buy_range": [
+        12.3,
+        13.2
+      ],
+      "low_risk_buy_range": [
+        9.45,
+        10.2
+      ],
+      "price_range_basis": "正常化盈利锚14.78元与PB-ROE锚14.94元取中位数14.86元，并受结构锚12.82元约束；低风险区按60日波动施加19.97%额外安全边际。",
+      "reentry_trigger": "等待预期降温并回落至合理区12.3–13.2元；优先观察低风险区9.45–10.2元。",
+      "transmission": "SUPPORTED",
+      "transmission_evidence": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "expectation": "PRICED_IN",
+      "invalidation": "若公司级传导证据失效、盈利/现金流显著恶化，或价格结构跌破9.15元且不能快速修复，则退出候选并重估。",
+      "research_evidence": [
+        {
+          "date": "2026-10-09",
+          "url": "https://stockmc.xueqiu.com/202608/600546_20260829_A5US.pdf",
+          "kind": "山煤国际公司公开披露/2026年中期资料"
+        }
+      ],
+      "valuation_inputs": {
+        "peer_pe_median": 13.48,
+        "peer_pb_median": 1.59,
+        "quality_adjustment": 1.04,
+        "pb_anchor": 14.94,
+        "fundamental_anchor": 14.86,
+        "structural_anchor": 12.82,
+        "volatility_60d": 0.25,
+        "safety_discount_pct": 19.97,
+        "peer_pe_p25": 11.2,
+        "peer_pe_p75": 22.35,
+        "peer_pb_p25": 1.47,
+        "peer_pb_p75": 2.37,
+        "peer_net_margin_median_pct": 9.75,
+        "normalized_earnings_anchor": 14.78
+      },
+      "risk_reward_ratio": -0.16
+    },
+    {
+      "rank": 8,
+      "code": "601069",
+      "company_name": "西部黄金",
+      "industry_code": "S240401",
+      "industry_name": "黄金",
+      "trend_name": "黄金与贵金属",
+      "status": "WAIT",
+      "wait_reason": "WAIT_MARGIN",
+      "wait_reason_detail": "现价接近合理区但尚未进入额外安全边际区",
+      "current_price": 26.55,
+      "valuation_archetype": "Cyclical / Commodity",
+      "primary_valuation_metric": "normalized earnings + PB-ROE",
+      "peer_median_multiple": 21.32,
+      "target_multiple_or_pb": 4.68,
+      "fundamental_anchor_price": 37.52,
+      "valuation_confidence": "medium",
+      "structure_anchor_center": 23.88,
+      "reasonable_price_range": [
+        22.9,
+        24.6
+      ],
+      "reasonable_buy_range": [
+        22.9,
+        24.6
+      ],
+      "low_risk_buy_range": [
+        15.4,
+        16.7
+      ],
+      "price_range_basis": "正常化盈利锚49.89元与PB-ROE锚25.16元取中位数37.52元，并受结构锚23.88元约束；低风险区按60日波动施加30%额外安全边际。",
+      "reentry_trigger": "等待安全边际扩大至低风险区15.4–16.7元，或出现更强订单/交付确认后重新评估估值。",
+      "transmission": "SUPPORTED",
+      "transmission_evidence": "公司黄金采选/冶炼业务对金价与产量具有直接商业传导，2026年中报可核验产销量、售价和项目进展。",
+      "expectation": "CONFIRMING",
+      "invalidation": "若公司级传导证据失效、盈利/现金流显著恶化，或价格结构跌破14.9元且不能快速修复，则退出候选并重估。",
+      "research_evidence": [
+        {
+          "date": "2026-10-09",
+          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12522194&stockid=601069",
+          "kind": "西部黄金公司公开披露/2026年中期资料"
+        }
+      ],
+      "valuation_inputs": {
+        "peer_pe_median": 21.32,
+        "peer_pb_median": 4.68,
+        "quality_adjustment": 1,
+        "pb_anchor": 25.16,
+        "fundamental_anchor": 37.52,
+        "structural_anchor": 23.88,
+        "volatility_60d": 0.49,
+        "safety_discount_pct": 30,
+        "peer_pe_p25": 14.76,
+        "peer_pe_p75": 24.28,
+        "peer_pb_p25": 4.44,
+        "peer_pb_p75": 5.87,
+        "peer_net_margin_median_pct": 10.14,
+        "normalized_earnings_anchor": 49.89
+      },
+      "risk_reward_ratio": -0.17
+    },
+    {
+      "rank": 9,
+      "code": "600489",
+      "company_name": "中金黄金",
+      "industry_code": "S240401",
+      "industry_name": "黄金",
+      "trend_name": "黄金与贵金属",
+      "status": "WAIT",
+      "wait_reason": "WAIT_PRICE",
+      "wait_reason_detail": "现价高于保守合理买入区",
+      "current_price": 22.95,
+      "valuation_archetype": "Cyclical / Commodity",
+      "primary_valuation_metric": "normalized earnings + PB-ROE",
+      "peer_median_multiple": 21.32,
+      "target_multiple_or_pb": 4.68,
+      "fundamental_anchor_price": 34.32,
+      "valuation_confidence": "medium",
+      "structure_anchor_center": 20.62,
+      "reasonable_price_range": [
+        19.8,
+        21.2
+      ],
+      "reasonable_buy_range": [
+        19.8,
+        21.2
+      ],
+      "low_risk_buy_range": [
+        13.6,
+        14.8
+      ],
+      "price_range_basis": "正常化盈利锚37.76元与PB-ROE锚30.89元取中位数34.32元，并受结构锚20.62元约束；低风险区按60日波动施加28.2%额外安全边际。",
+      "reentry_trigger": "等待价格回落至合理区19.8–21.2元；低风险区为13.6–14.8元。",
+      "transmission": "SUPPORTED",
+      "transmission_evidence": "公司黄金采选/冶炼业务对金价与产量具有直接商业传导，2026年中报可核验产销量、售价和项目进展。",
+      "expectation": "CONFIRMING",
+      "invalidation": "若公司级传导证据失效、盈利/现金流显著恶化，或价格结构跌破13.200000000000001元且不能快速修复，则退出候选并重估。",
+      "research_evidence": [
+        {
+          "date": "2026-10-09",
+          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12558729&stockid=600489",
+          "kind": "中金黄金公司公开披露/2026年中期资料"
+        }
+      ],
+      "valuation_inputs": {
+        "peer_pe_median": 21.32,
+        "peer_pb_median": 4.68,
+        "quality_adjustment": 1.03,
+        "pb_anchor": 30.89,
+        "fundamental_anchor": 34.32,
+        "structural_anchor": 20.62,
+        "volatility_60d": 0.41,
+        "safety_discount_pct": 28.2,
+        "peer_pe_p25": 14.76,
+        "peer_pe_p75": 24.28,
+        "peer_pb_p25": 4.44,
+        "peer_pb_p75": 5.87,
+        "peer_net_margin_median_pct": 10.14,
+        "normalized_earnings_anchor": 37.76
+      },
+      "risk_reward_ratio": -0.19
+    },
+    {
+      "rank": 10,
+      "code": "601101",
+      "company_name": "昊华能源",
+      "industry_code": "S740101",
+      "industry_name": "动力煤",
+      "trend_name": "煤炭景气与高股息",
+      "status": "WAIT",
+      "wait_reason": "WAIT_MARGIN",
+      "wait_reason_detail": "现价接近合理区但尚未进入额外安全边际区",
+      "current_price": 13.17,
+      "valuation_archetype": "Cyclical / Commodity",
+      "primary_valuation_metric": "normalized earnings + PB-ROE",
+      "peer_median_multiple": 13.48,
+      "target_multiple_or_pb": 1.59,
+      "fundamental_anchor_price": 11.85,
+      "valuation_confidence": "medium",
+      "structure_anchor_center": 12.93,
+      "reasonable_price_range": [
+        11.4,
+        12.2
+      ],
+      "reasonable_buy_range": [
+        11.4,
+        12.2
+      ],
+      "low_risk_buy_range": [
+        7.95,
+        8.6
+      ],
+      "price_range_basis": "正常化盈利锚9.28元与PB-ROE锚14.43元取中位数11.85元，并受结构锚12.93元约束；低风险区按60日波动施加27.54%额外安全边际。",
+      "reentry_trigger": "等待安全边际扩大至低风险区7.95–8.6元，或出现更强订单/交付确认后重新评估估值。",
+      "transmission": "SUPPORTED",
+      "transmission_evidence": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "expectation": "CONFIRMING",
+      "invalidation": "若公司级传导证据失效、盈利/现金流显著恶化，或价格结构跌破8.4元且不能快速修复，则退出候选并重估。",
+      "research_evidence": [
+        {
+          "date": "2026-10-09",
+          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12149151&stockid=601101",
+          "kind": "昊华能源公司公开披露/2026年中期资料"
+        }
+      ],
+      "valuation_inputs": {
+        "peer_pe_median": 13.48,
+        "peer_pb_median": 1.59,
+        "quality_adjustment": 1.04,
+        "pb_anchor": 14.43,
+        "fundamental_anchor": 11.85,
+        "structural_anchor": 12.93,
+        "volatility_60d": 0.4,
+        "safety_discount_pct": 27.54,
+        "peer_pe_p25": 11.2,
+        "peer_pe_p75": 22.35,
+        "peer_pb_p25": 1.47,
+        "peer_pb_p75": 2.37,
+        "peer_net_margin_median_pct": 9.75,
+        "normalized_earnings_anchor": 9.28
+      },
+      "risk_reward_ratio": -0.19
+    },
+    {
+      "rank": 11,
+      "code": "600985",
+      "company_name": "淮北矿业",
+      "industry_code": "S740102",
+      "industry_name": "焦煤",
+      "trend_name": "煤炭景气与高股息",
+      "status": "WAIT",
+      "wait_reason": "WAIT_PRICE",
+      "wait_reason_detail": "现价高于保守合理买入区",
+      "current_price": 16.39,
+      "valuation_archetype": "Cyclical / Commodity",
+      "primary_valuation_metric": "normalized earnings + PB-ROE",
+      "peer_median_multiple": 18.99,
+      "target_multiple_or_pb": 0.97,
+      "fundamental_anchor_price": 14.49,
+      "valuation_confidence": "medium",
+      "structure_anchor_center": 14.19,
+      "reasonable_price_range": [
+        13.6,
+        14.6
+      ],
+      "reasonable_buy_range": [
+        13.6,
+        14.6
       ],
       "low_risk_buy_range": [
         10,
-        10.9
+        10.8
       ],
-      "price_range_basis": "本轮S750201 hard-eligible同行PE/PB数据+ROE/盈利质量修正；当前价12.56、MA60约12.26、结构锚12.12；估值锚13.17，额外保守风险折价并关注2026-09-18估值源时效，不用技术位抬高估值上限",
-      "reentry_trigger": "价格回到10.00–10.90且海内外钻井日费与利用率维持改善",
+      "price_range_basis": "正常化盈利锚12.03元与PB-ROE锚16.96元取中位数14.49元，并受结构锚14.19元约束；低风险区按60日波动施加23.34%额外安全边际。",
+      "reentry_trigger": "等待价格回落至合理区13.6–14.6元；低风险区为10–10.8元。",
       "transmission": "SUPPORTED",
-      "transmission_evidence": "半年报：国际钻井平台作业、日费同比提升，实际油服交付，业务直接受益。",
+      "transmission_evidence": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
       "expectation": "CONFIRMING",
-      "invalidation": "核实的订单交付/商业化逻辑失效，或利润、现金流显著背离；技术结构实质失效",
+      "invalidation": "若公司级传导证据失效、盈利/现金流显著恶化，或价格结构跌破9.700000000000001元且不能快速修复，则退出候选并重估。",
       "research_evidence": [
         {
-          "date": "2026-08-26",
-          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12536633&stockid=601808",
-          "kind": "公司公开披露/投资者关系/公告转载"
+          "date": "2026-10-09",
+          "url": "https://pdf.dfcfw.com/pdf/H3_AP202609161829471319_1.pdf?1789593778000.pdf=",
+          "kind": "煤炭行业及上市公司2026年中期经营资料"
         }
-      ]
+      ],
+      "valuation_inputs": {
+        "peer_pe_median": 18.99,
+        "peer_pb_median": 0.97,
+        "quality_adjustment": 1.12,
+        "pb_anchor": 16.96,
+        "fundamental_anchor": 14.49,
+        "structural_anchor": 14.19,
+        "volatility_60d": 0.32,
+        "safety_discount_pct": 23.34,
+        "peer_pe_p25": 15.19,
+        "peer_pe_p75": 34.5,
+        "peer_pb_p25": 0.87,
+        "peer_pb_p75": 1,
+        "peer_net_margin_median_pct": 3.56,
+        "normalized_earnings_anchor": 12.03
+      },
+      "risk_reward_ratio": -0.28
+    },
+    {
+      "rank": 12,
+      "code": "601918",
+      "company_name": "新集能源",
+      "industry_code": "S740101",
+      "industry_name": "动力煤",
+      "trend_name": "煤炭景气与高股息",
+      "status": "WAIT",
+      "wait_reason": "WAIT_EXPECTATION",
+      "wait_reason_detail": "市场预期较充分，等待预期降温或重置",
+      "current_price": 11.58,
+      "valuation_archetype": "Cyclical / Commodity",
+      "primary_valuation_metric": "normalized earnings + PB-ROE",
+      "peer_median_multiple": 13.48,
+      "target_multiple_or_pb": 1.59,
+      "fundamental_anchor_price": 11.39,
+      "valuation_confidence": "medium",
+      "structure_anchor_center": 9.91,
+      "reasonable_price_range": [
+        9.5,
+        10.2
+      ],
+      "reasonable_buy_range": [
+        9.5,
+        10.2
+      ],
+      "low_risk_buy_range": [
+        7.1,
+        7.7
+      ],
+      "price_range_basis": "正常化盈利锚9.54元与PB-ROE锚13.24元取中位数11.39元，并受结构锚9.91元约束；低风险区按60日波动施加22.08%额外安全边际。",
+      "reentry_trigger": "等待预期降温并回落至合理区9.5–10.2元；优先观察低风险区7.1–7.7元。",
+      "transmission": "SUPPORTED",
+      "transmission_evidence": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "expectation": "PRICED_IN",
+      "invalidation": "若公司级传导证据失效、盈利/现金流显著恶化，或价格结构跌破6.9元且不能快速修复，则退出候选并重估。",
+      "research_evidence": [
+        {
+          "date": "2026-10-09",
+          "url": "https://vip.stock.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12515120&stockid=601918",
+          "kind": "新集能源公司公开披露/2026年中期资料"
+        }
+      ],
+      "valuation_inputs": {
+        "peer_pe_median": 13.48,
+        "peer_pb_median": 1.59,
+        "quality_adjustment": 1.06,
+        "pb_anchor": 13.24,
+        "fundamental_anchor": 11.39,
+        "structural_anchor": 9.91,
+        "volatility_60d": 0.29,
+        "safety_discount_pct": 22.08,
+        "peer_pe_p25": 11.2,
+        "peer_pe_p75": 22.35,
+        "peer_pb_p25": 1.47,
+        "peer_pb_p75": 2.37,
+        "peer_net_margin_median_pct": 9.75,
+        "normalized_earnings_anchor": 9.54
+      },
+      "risk_reward_ratio": -0.31
+    },
+    {
+      "rank": 13,
+      "code": "601699",
+      "company_name": "潞安环能",
+      "industry_code": "S740102",
+      "industry_name": "焦煤",
+      "trend_name": "煤炭景气与高股息",
+      "status": "WAIT",
+      "wait_reason": "WAIT_PRICE",
+      "wait_reason_detail": "现价高于保守合理买入区",
+      "current_price": 15.52,
+      "valuation_archetype": "Cyclical / Commodity",
+      "primary_valuation_metric": "normalized earnings + PB-ROE",
+      "peer_median_multiple": 18.99,
+      "target_multiple_or_pb": 0.97,
+      "fundamental_anchor_price": 12.58,
+      "valuation_confidence": "medium",
+      "structure_anchor_center": 14.4,
+      "reasonable_price_range": [
+        12.1,
+        13
+      ],
+      "reasonable_buy_range": [
+        12.1,
+        13
+      ],
+      "low_risk_buy_range": [
+        9.25,
+        10
+      ],
+      "price_range_basis": "正常化盈利锚7.77元与PB-ROE锚17.38元取中位数12.58元，并受结构锚14.4元约束；低风险区按60日波动施加20.57%额外安全边际。",
+      "reentry_trigger": "等待价格回落至合理区12.1–13元；低风险区为9.25–10元。",
+      "transmission": "SUPPORTED",
+      "transmission_evidence": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "expectation": "CONFIRMING",
+      "invalidation": "若公司级传导证据失效、盈利/现金流显著恶化，或价格结构跌破10.200000000000001元且不能快速修复，则退出候选并重估。",
+      "research_evidence": [
+        {
+          "date": "2026-10-09",
+          "url": "https://vip.stock.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12537364&stockid=601699",
+          "kind": "潞安环能公司公开披露/2026年中期资料"
+        }
+      ],
+      "valuation_inputs": {
+        "peer_pe_median": 18.99,
+        "peer_pb_median": 0.97,
+        "quality_adjustment": 1.12,
+        "pb_anchor": 17.38,
+        "fundamental_anchor": 12.58,
+        "structural_anchor": 14.4,
+        "volatility_60d": 0.26,
+        "safety_discount_pct": 20.57,
+        "peer_pe_p25": 15.19,
+        "peer_pe_p75": 34.5,
+        "peer_pb_p25": 0.87,
+        "peer_pb_p75": 1,
+        "peer_net_margin_median_pct": 3.56,
+        "normalized_earnings_anchor": 7.77
+      },
+      "risk_reward_ratio": -0.4
+    },
+    {
+      "rank": 14,
+      "code": "000975",
+      "company_name": "山金国际",
+      "industry_code": "S240401",
+      "industry_name": "黄金",
+      "trend_name": "黄金与贵金属",
+      "status": "WAIT",
+      "wait_reason": "WAIT_PRICE",
+      "wait_reason_detail": "现价高于保守合理买入区",
+      "current_price": 23.86,
+      "valuation_archetype": "Cyclical / Commodity",
+      "primary_valuation_metric": "normalized earnings + PB-ROE",
+      "peer_median_multiple": 21.32,
+      "target_multiple_or_pb": 4.68,
+      "fundamental_anchor_price": 20.71,
+      "valuation_confidence": "medium",
+      "structure_anchor_center": 18.37,
+      "reasonable_price_range": [
+        17.6,
+        18.9
+      ],
+      "reasonable_buy_range": [
+        17.6,
+        18.9
+      ],
+      "low_risk_buy_range": [
+        11.8,
+        12.8
+      ],
+      "price_range_basis": "正常化盈利锚14.87元与PB-ROE锚26.55元取中位数20.71元，并受结构锚18.37元约束；低风险区按60日波动施加30%额外安全边际。",
+      "reentry_trigger": "等待价格回落至合理区17.6–18.9元；低风险区为11.8–12.8元。",
+      "transmission": "SUPPORTED",
+      "transmission_evidence": "公司黄金采选/冶炼业务对金价与产量具有直接商业传导，2026年中报可核验产销量、售价和项目进展。",
+      "expectation": "CONFIRMING",
+      "invalidation": "若公司级传导证据失效、盈利/现金流显著恶化，或价格结构跌破11.4元且不能快速修复，则退出候选并重估。",
+      "research_evidence": [
+        {
+          "date": "2026-10-09",
+          "url": "https://pdf.dfcfw.com/pdf/H3_AP202608311828771485_1.pdf?1788170129000.pdf=",
+          "kind": "山金国际公司公开披露/2026年中期资料"
+        }
+      ],
+      "valuation_inputs": {
+        "peer_pe_median": 21.32,
+        "peer_pb_median": 4.68,
+        "quality_adjustment": 1.06,
+        "pb_anchor": 26.55,
+        "fundamental_anchor": 20.71,
+        "structural_anchor": 18.37,
+        "volatility_60d": 0.5,
+        "safety_discount_pct": 30,
+        "peer_pe_p25": 14.76,
+        "peer_pe_p75": 24.28,
+        "peer_pb_p25": 4.44,
+        "peer_pb_p75": 5.87,
+        "peer_net_margin_median_pct": 10.14,
+        "normalized_earnings_anchor": 14.87
+      },
+      "risk_reward_ratio": -0.41
+    },
+    {
+      "rank": 15,
+      "code": "600508",
+      "company_name": "上海能源",
+      "industry_code": "S740102",
+      "industry_name": "焦煤",
+      "trend_name": "煤炭景气与高股息",
+      "status": "WAIT",
+      "wait_reason": "WAIT_PRICE",
+      "wait_reason_detail": "现价高于保守合理买入区",
+      "current_price": 10.67,
+      "valuation_archetype": "Cyclical / Commodity",
+      "primary_valuation_metric": "normalized earnings + PB-ROE",
+      "peer_median_multiple": 18.99,
+      "target_multiple_or_pb": 0.97,
+      "fundamental_anchor_price": 10.02,
+      "valuation_confidence": "medium",
+      "structure_anchor_center": 8.14,
+      "reasonable_price_range": [
+        7.8,
+        8.4
+      ],
+      "reasonable_buy_range": [
+        7.8,
+        8.4
+      ],
+      "low_risk_buy_range": [
+        5.25,
+        5.7
+      ],
+      "price_range_basis": "正常化盈利锚6.53元与PB-ROE锚13.5元取中位数10.02元，并受结构锚8.14元约束；低风险区按60日波动施加30%额外安全边际。",
+      "reentry_trigger": "等待价格回落至合理区7.8–8.4元；低风险区为5.25–5.7元。",
+      "transmission": "SUPPORTED",
+      "transmission_evidence": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "expectation": "CONFIRMING",
+      "invalidation": "若公司级传导证据失效、盈利/现金流显著恶化，或价格结构跌破5.1000000000000005元且不能快速修复，则退出候选并重估。",
+      "research_evidence": [
+        {
+          "date": "2026-10-09",
+          "url": "https://pdf.dfcfw.com/pdf/H3_AP202609161829471319_1.pdf?1789593778000.pdf=",
+          "kind": "煤炭行业及上市公司2026年中期经营资料"
+        }
+      ],
+      "valuation_inputs": {
+        "peer_pe_median": 18.99,
+        "peer_pb_median": 0.97,
+        "quality_adjustment": 1.1,
+        "pb_anchor": 13.5,
+        "fundamental_anchor": 10.02,
+        "structural_anchor": 8.14,
+        "volatility_60d": 0.52,
+        "safety_discount_pct": 30,
+        "peer_pe_p25": 15.19,
+        "peer_pe_p75": 34.5,
+        "peer_pb_p25": 0.87,
+        "peer_pb_p75": 1,
+        "peer_net_margin_median_pct": 3.56,
+        "normalized_earnings_anchor": 6.53
+      },
+      "risk_reward_ratio": -0.42
+    },
+    {
+      "rank": 16,
+      "code": "603659",
+      "company_name": "璞泰来",
+      "industry_code": "S630702",
+      "industry_name": "电池化学品",
+      "trend_name": "固态电池产业链",
+      "status": "WAIT",
+      "wait_reason": "WAIT_PRICE",
+      "wait_reason_detail": "现价高于保守合理买入区",
+      "current_price": 22.33,
+      "valuation_archetype": "Industrial / Manufacturing",
+      "primary_valuation_metric": "dynamic PE + peer growth/quality adjustment",
+      "peer_median_multiple": 16.33,
+      "target_multiple_or_pb": 13.39,
+      "fundamental_anchor_price": 18.19,
+      "valuation_confidence": "medium",
+      "structure_anchor_center": 20.89,
+      "reasonable_price_range": [
+        17.5,
+        18.7
+      ],
+      "reasonable_buy_range": [
+        17.5,
+        18.7
+      ],
+      "low_risk_buy_range": [
+        14.4,
+        15.6
+      ],
+      "price_range_basis": "基本面锚18.19元与结构锚20.89元取保守值；低风险区按60日波动率施加14.11%额外安全边际。",
+      "reentry_trigger": "等待价格回落至合理区17.5–18.7元；低风险区为14.4–15.600000000000001元。",
+      "transmission": "SUPPORTED",
+      "transmission_evidence": "固态电池干法电极设备已出货并完成客户验收，形成可核验的设备交付传导。",
+      "expectation": "CONFIRMING",
+      "invalidation": "若公司级传导证据失效、盈利/现金流显著恶化，或价格结构跌破14元且不能快速修复，则退出候选并重估。",
+      "research_evidence": [
+        {
+          "date": "2026-10-09",
+          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12505314&stockid=603659",
+          "kind": "璞泰来2026年半年度报告"
+        }
+      ],
+      "valuation_inputs": {
+        "peer_pe_median": 16.33,
+        "peer_pb_median": 2.23,
+        "quality_adjustment": 0.82,
+        "pe_anchor": 18.19,
+        "pb_anchor": 18.31,
+        "fundamental_anchor": 18.19,
+        "structural_anchor": 20.89,
+        "volatility_60d": 0.22,
+        "safety_discount_pct": 14.11,
+        "peer_pe_p25": 15.68,
+        "peer_pe_p75": 18.84
+      },
+      "risk_reward_ratio": -0.46
+    },
+    {
+      "rank": 17,
+      "code": "600395",
+      "company_name": "盘江股份",
+      "industry_code": "S740102",
+      "industry_name": "焦煤",
+      "trend_name": "煤炭景气与高股息",
+      "status": "WAIT",
+      "wait_reason": "WAIT_PRICE",
+      "wait_reason_detail": "现价高于保守合理买入区",
+      "current_price": 5.11,
+      "valuation_archetype": "Cyclical / Commodity",
+      "primary_valuation_metric": "normalized earnings + PB-ROE",
+      "peer_median_multiple": 18.99,
+      "target_multiple_or_pb": 0.97,
+      "fundamental_anchor_price": 3.73,
+      "valuation_confidence": "medium",
+      "structure_anchor_center": 4.93,
+      "reasonable_price_range": [
+        3.6,
+        3.85
+      ],
+      "reasonable_buy_range": [
+        3.6,
+        3.85
+      ],
+      "low_risk_buy_range": [
+        2.6,
+        2.85
+      ],
+      "price_range_basis": "正常化盈利锚2.91元与PB-ROE锚4.56元取中位数3.73元，并受结构锚4.93元约束；低风险区按60日波动施加24.4%额外安全边际。",
+      "reentry_trigger": "等待价格回落至合理区3.6–3.85元；低风险区为2.6–2.85元。",
+      "transmission": "SUPPORTED",
+      "transmission_evidence": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。",
+      "expectation": "CONFIRMING",
+      "invalidation": "若公司级传导证据失效、盈利/现金流显著恶化，或价格结构跌破0.75元且不能快速修复，则退出候选并重估。",
+      "research_evidence": [
+        {
+          "date": "2026-10-09",
+          "url": "https://pdf.dfcfw.com/pdf/H3_AP202609161829471319_1.pdf?1789593778000.pdf=",
+          "kind": "煤炭行业及上市公司2026年中期经营资料"
+        }
+      ],
+      "valuation_inputs": {
+        "peer_pe_median": 18.99,
+        "peer_pb_median": 0.97,
+        "quality_adjustment": 0.94,
+        "pb_anchor": 4.56,
+        "fundamental_anchor": 3.73,
+        "structural_anchor": 4.93,
+        "volatility_60d": 0.34,
+        "safety_discount_pct": 24.4,
+        "peer_pe_p25": 15.19,
+        "peer_pe_p75": 34.5,
+        "peer_pb_p25": 0.87,
+        "peer_pb_p75": 1,
+        "peer_net_margin_median_pct": 3.56,
+        "normalized_earnings_anchor": 2.91
+      },
+      "risk_reward_ratio": -0.5
+    },
+    {
+      "rank": 18,
+      "code": "600988",
+      "company_name": "赤峰黄金",
+      "industry_code": "S240401",
+      "industry_name": "黄金",
+      "trend_name": "黄金与贵金属",
+      "status": "WAIT",
+      "wait_reason": "WAIT_PRICE",
+      "wait_reason_detail": "现价高于保守合理买入区",
+      "current_price": 41.38,
+      "valuation_archetype": "Cyclical / Commodity",
+      "primary_valuation_metric": "normalized earnings + PB-ROE",
+      "peer_median_multiple": 21.32,
+      "target_multiple_or_pb": 4.68,
+      "fundamental_anchor_price": 24.44,
+      "valuation_confidence": "medium",
+      "structure_anchor_center": 37.07,
+      "reasonable_price_range": [
+        23.5,
+        25.2
+      ],
+      "reasonable_buy_range": [
+        23.5,
+        25.2
+      ],
+      "low_risk_buy_range": [
+        15.8,
+        17.1
+      ],
+      "price_range_basis": "正常化盈利锚15.22元与PB-ROE锚33.65元取中位数24.44元，并受结构锚37.07元约束；低风险区按60日波动施加30%额外安全边际。",
+      "reentry_trigger": "等待价格回落至合理区23.5–25.2元；低风险区为15.8–17.1元。",
+      "transmission": "SUPPORTED",
+      "transmission_evidence": "公司黄金采选/冶炼业务对金价与产量具有直接商业传导，2026年中报可核验产销量、售价和项目进展。",
+      "expectation": "CONFIRMING",
+      "invalidation": "若公司级传导证据失效、盈利/现金流显著恶化，或价格结构跌破21.1元且不能快速修复，则退出候选并重估。",
+      "research_evidence": [
+        {
+          "date": "2026-10-09",
+          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12574711&stockid=600988",
+          "kind": "赤峰黄金公司公开披露/2026年中期资料"
+        }
+      ],
+      "valuation_inputs": {
+        "peer_pe_median": 21.32,
+        "peer_pb_median": 4.68,
+        "quality_adjustment": 1.02,
+        "pb_anchor": 33.65,
+        "fundamental_anchor": 24.44,
+        "structural_anchor": 37.07,
+        "volatility_60d": 0.52,
+        "safety_discount_pct": 30,
+        "peer_pe_p25": 14.76,
+        "peer_pe_p75": 24.28,
+        "peer_pb_p25": 4.44,
+        "peer_pb_p75": 5.87,
+        "peer_net_margin_median_pct": 10.14,
+        "normalized_earnings_anchor": 15.22
+      },
+      "risk_reward_ratio": -0.63
+    },
+    {
+      "rank": 19,
+      "code": "001337",
+      "company_name": "四川黄金",
+      "industry_code": "S240401",
+      "industry_name": "黄金",
+      "trend_name": "黄金与贵金属",
+      "status": "WAIT",
+      "wait_reason": "WAIT_PRICE",
+      "wait_reason_detail": "现价高于保守合理买入区",
+      "current_price": 47.03,
+      "valuation_archetype": "Cyclical / Commodity",
+      "primary_valuation_metric": "normalized earnings + PB-ROE",
+      "peer_median_multiple": 21.32,
+      "target_multiple_or_pb": 4.68,
+      "fundamental_anchor_price": 16.44,
+      "valuation_confidence": "medium",
+      "structure_anchor_center": 43.41,
+      "reasonable_price_range": [
+        15.8,
+        16.9
+      ],
+      "reasonable_buy_range": [
+        15.8,
+        16.9
+      ],
+      "low_risk_buy_range": [
+        10.6,
+        11.5
+      ],
+      "price_range_basis": "正常化盈利锚8.89元与PB-ROE锚23.98元取中位数16.44元，并受结构锚43.41元约束；低风险区按60日波动施加30%额外安全边际。",
+      "reentry_trigger": "等待价格回落至合理区15.8–16.9元；低风险区为10.6–11.5元。",
+      "transmission": "SUPPORTED",
+      "transmission_evidence": "公司黄金采选/冶炼业务对金价与产量具有直接商业传导，2026年中报可核验产销量、售价和项目进展。",
+      "expectation": "CONFIRMING",
+      "invalidation": "若公司级传导证据失效、盈利/现金流显著恶化，或价格结构跌破15元且不能快速修复，则退出候选并重估。",
+      "research_evidence": [
+        {
+          "date": "2026-10-09",
+          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12509153&stockid=001337",
+          "kind": "四川黄金公司公开披露/2026年中期资料"
+        }
+      ],
+      "valuation_inputs": {
+        "peer_pe_median": 21.32,
+        "peer_pb_median": 4.68,
+        "quality_adjustment": 1.12,
+        "pb_anchor": 23.98,
+        "fundamental_anchor": 16.44,
+        "structural_anchor": 43.41,
+        "volatility_60d": 0.6,
+        "safety_discount_pct": 30,
+        "peer_pe_p25": 14.76,
+        "peer_pe_p75": 24.28,
+        "peer_pb_p25": 4.44,
+        "peer_pb_p75": 5.87,
+        "peer_net_margin_median_pct": 10.14,
+        "normalized_earnings_anchor": 8.89
+      },
+      "risk_reward_ratio": -0.83
     }
   ],
   "early_evidence": [
-    {
-      "code": "000049",
-      "company_name": "德赛电池",
-      "industry_code": "S630701",
-      "industry_name": "锂电池",
-      "trend_name": "固态电池",
-      "transmission": "EARLY_EVIDENCE",
-      "evidence": "公司9月30日明确固态电池产品尚在研发、未有明确量产计划。",
-      "commercialization_gap": "主题产品/材料关联已确认，但尚未可靠核实该主题商业化订单或实际交付",
-      "next_trigger": "核实专用产品客户认证/实际商业订单/小批量交付及其最终用途",
-      "sources": [
-        {
-          "date": "2026-09-30",
-          "url": "https://finance.eastmoney.com/a/202609303887696793.html",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ]
-    },
     {
       "code": "002074",
       "company_name": "国轩高科",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
       "transmission": "EARLY_EVIDENCE",
-      "evidence": "半年报称金石全固态电池通过多项安全测试，尚未核实商业化交付。",
-      "commercialization_gap": "主题产品/材料关联已确认，但尚未可靠核实该主题商业化订单或实际交付",
-      "next_trigger": "核实专用产品客户认证/实际商业订单/小批量交付及其最终用途",
+      "evidence": "全固态电池样车/样品与产线设计已有进展，但尚未形成规模商业收入。",
+      "commercialization_gap": "需看到客户定点/正式订单、批量交付或可量化收入贡献后再进入预期评估。",
+      "next_trigger": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
       "sources": [
         {
-          "date": "2026-08-25",
-          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12525887&stockid=002074",
-          "kind": "公司公开披露/投资者关系/公告转载"
+          "date": "2026-10-09",
+          "url": "https://www.gotion.com.cn/investor",
+          "kind": "国轩高科投资者关系"
         }
       ]
     },
     {
-      "code": "002245",
-      "company_name": "蔚蓝锂芯",
+      "code": "600110",
+      "company_name": "诺德股份",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
       "transmission": "EARLY_EVIDENCE",
-      "evidence": "公司8月称固态/半固态处技术储备；此前固液电池具备量产条件不等于已验证销售。",
-      "commercialization_gap": "主题产品/材料关联已确认，但尚未可靠核实该主题商业化订单或实际交付",
-      "next_trigger": "核实专用产品客户认证/实际商业订单/小批量交付及其最终用途",
+      "evidence": "耐高温双面镀镍铜箔已向头部客户送样，仍处客户验证阶段。",
+      "commercialization_gap": "需看到客户定点/正式订单、批量交付或可量化收入贡献后再进入预期评估。",
+      "next_trigger": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
       "sources": [
         {
-          "date": "2026-08-11",
-          "url": "https://www.sina.cn/news/article/nimxrnq5858388.html",
-          "kind": "公司公开披露/投资者关系/公告转载"
+          "date": "2026-10-09",
+          "url": "https://k.sina.com.cn/article_5953740931_162dee08306704198e.html",
+          "kind": "固态电池材料送样公开资料汇总"
         }
       ]
     },
     {
-      "code": "000695",
-      "company_name": "滨海能源",
+      "code": "002812",
+      "company_name": "恩捷股份",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
       "transmission": "EARLY_EVIDENCE",
-      "evidence": "9月3日投资者关系：适配固态电池硅碳负极2000吨、多孔碳1000吨项目仍在建设与研发。",
-      "commercialization_gap": "主题产品/材料关联已确认，但尚未可靠核实该主题商业化订单或实际交付",
-      "next_trigger": "核实专用产品客户认证/实际商业订单/小批量交付及其最终用途",
+      "evidence": "硫化物固态电解质处中试/送样阶段，行业尚未规模商业化。",
+      "commercialization_gap": "需看到客户定点/正式订单、批量交付或可量化收入贡献后再进入预期评估。",
+      "next_trigger": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
       "sources": [
         {
-          "date": "2026-09-03",
-          "url": "https://data.eastmoney.com/notices/detail/000695/AN202609031828964816.html",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ]
-    },
-    {
-      "code": "002805",
-      "company_name": "丰元股份",
-      "industry_code": "S630702",
-      "industry_name": "电池化学品",
-      "trend_name": "固态电池",
-      "transmission": "EARLY_EVIDENCE",
-      "evidence": "1月公司互动明确固态电池正极材料研发布局，尚无相关订单交付确认。",
-      "commercialization_gap": "主题产品/材料关联已确认，但尚未可靠核实该主题商业化订单或实际交付",
-      "next_trigger": "核实专用产品客户认证/实际商业订单/小批量交付及其最终用途",
-      "sources": [
-        {
-          "date": "2026-01-21",
-          "url": "https://stock.stockstar.com/RB2026012100007442.shtml",
-          "kind": "公司公开披露/投资者关系/公告转载"
+          "date": "2026-10-09",
+          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12536770&stockid=002812",
+          "kind": "恩捷股份2026年半年度报告"
         }
       ]
     },
@@ -2174,34 +3645,16 @@
       "company_name": "天齐锂业",
       "industry_code": "S240603",
       "industry_name": "锂",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
       "transmission": "EARLY_EVIDENCE",
-      "evidence": "半年报：50吨硫化锂中试建设，固态电解质处电芯客户验证阶段，未证明商业出货。",
-      "commercialization_gap": "主题产品/材料关联已确认，但尚未可靠核实该主题商业化订单或实际交付",
-      "next_trigger": "核实专用产品客户认证/实际商业订单/小批量交付及其最终用途",
+      "evidence": "硫化锂中试线建设并向客户送样，尚未形成商业销售。",
+      "commercialization_gap": "需看到客户定点/正式订单、批量交付或可量化收入贡献后再进入预期评估。",
+      "next_trigger": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
       "sources": [
         {
-          "date": "2026-08-28",
-          "url": "https://paper.cnstock.com/html/2026-08/28/content_2261595.htm",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ]
-    },
-    {
-      "code": "002460",
-      "company_name": "赣锋锂业",
-      "industry_code": "S240603",
-      "industry_name": "锂",
-      "trend_name": "固态电池",
-      "transmission": "EARLY_EVIDENCE",
-      "evidence": "半年报：固态相关电池研发、500Wh/kg级10Ah产品小批量量产，锂金属无人机商业应用；暂未核实已销售产品中属于全固态电芯的比例。",
-      "commercialization_gap": "主题产品/材料关联已确认，但尚未可靠核实该主题商业化订单或实际交付",
-      "next_trigger": "核实专用产品客户认证/实际商业订单/小批量交付及其最终用途",
-      "sources": [
-        {
-          "date": "2026-08-28",
-          "url": "https://stock.stockstar.com/notice/SN2026082800049864.shtml",
-          "kind": "公司公开披露/投资者关系/公告转载"
+          "date": "2026-10-09",
+          "url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0827/2026082701752_c.pdf",
+          "kind": "天齐锂业2026年半年度报告"
         }
       ]
     },
@@ -2210,16 +3663,16 @@
       "company_name": "东方锆业",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
       "transmission": "EARLY_EVIDENCE",
-      "evidence": "9月公司投资者关系：锆可用于氧化物/卤化物电解质，正配合下游送样、测试，客户认证未完成。",
-      "commercialization_gap": "主题产品/材料关联已确认，但尚未可靠核实该主题商业化订单或实际交付",
-      "next_trigger": "核实专用产品客户认证/实际商业订单/小批量交付及其最终用途",
+      "evidence": "固态电解质用氧化物样品获初步认可，仍处送样验证阶段。",
+      "commercialization_gap": "需看到客户定点/正式订单、批量交付或可量化收入贡献后再进入预期评估。",
+      "next_trigger": "未来1–2季度跟踪订单、客户验证、量产交付、产销价格及关键反证",
       "sources": [
         {
-          "date": "2026-09-15",
-          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12604447&stockid=002167",
-          "kind": "公司公开披露/投资者关系/公告转载"
+          "date": "2026-10-09",
+          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12529387&stockid=002167",
+          "kind": "东方锆业2026年半年度报告"
         }
       ]
     }
@@ -2230,295 +3683,219 @@
       "company_name": "科达利",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
       "status": "UNCERTAIN",
       "uncertain_stage": "TRANSMISSION",
-      "reason": "结构件为通用电池配件；未核实专用于固态电池的客户认证、订单或交付。",
-      "evidence": [
-        {
-          "date": "2026-10-08",
-          "url": "https://www.kedali.com.cn/about/index.html?page=2",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "gap_check": "当前检索未闭合主题特定的公司级商业事实；不能断言无业务"
+      "reason": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence": [],
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。"
     },
     {
-      "code": "600110",
-      "company_name": "诺德股份",
+      "code": "000049",
+      "company_name": "德赛电池",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
       "status": "UNCERTAIN",
-      "uncertain_stage": "RISK_REWARD",
-      "reason": "虽已有固态镀镍合金箔小单，当前动态PE约103.5倍、TTM盈利及现金流质量矛盾，保守同业锚显著低于60日结构，风险收益估值冲突。",
-      "evidence": [
-        {
-          "date": "2026-07-16",
-          "url": "https://www.ndgf.net/news/info?id=286&menu_id=30&top_id=1",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "gap_check": "传导已SUPPORTED、Expectation已评估；但价格/估值冲突，未伪造价格区间",
-      "transmission": "SUPPORTED",
-      "expectation": "EARLY"
+      "uncertain_stage": "TRANSMISSION",
+      "reason": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence": [],
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。"
+    },
+    {
+      "code": "002245",
+      "company_name": "蔚蓝锂芯",
+      "industry_code": "S630701",
+      "industry_name": "锂电池",
+      "trend_name": "固态电池产业链",
+      "status": "UNCERTAIN",
+      "uncertain_stage": "TRANSMISSION",
+      "reason": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence": [],
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。"
     },
     {
       "code": "600152",
       "company_name": "维科技术",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
       "status": "UNCERTAIN",
       "uncertain_stage": "TRANSMISSION",
-      "reason": "官网显示消费锂电与钠电为主，本轮未定位到固态电池专用订单及客户。",
-      "evidence": [
-        {
-          "date": "2026-10-08",
-          "url": "https://www.veken-tech.com/cms/index/product.html",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "gap_check": "当前检索未闭合主题特定的公司级商业事实；不能断言无业务"
+      "reason": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence": [],
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。"
     },
     {
-      "code": "002812",
-      "company_name": "恩捷股份",
+      "code": "000695",
+      "company_name": "滨海能源",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
       "status": "UNCERTAIN",
-      "uncertain_stage": "RISK_REWARD",
-      "reason": "固态电解质已小批量出货，但当前动态PE约29.06倍，对比行业正PE中位约16.94倍的保守锚远低于60日结构，无法建立可信买入区。",
-      "evidence": [
-        {
-          "date": "2026-04-23",
-          "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12163604&stockid=002812",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "gap_check": "传导已SUPPORTED、Expectation已评估；但价格/估值冲突，未伪造价格区间",
-      "transmission": "SUPPORTED",
-      "expectation": "EARLY"
+      "uncertain_stage": "TRANSMISSION",
+      "reason": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence": [],
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。"
+    },
+    {
+      "code": "600884",
+      "company_name": "杉杉股份",
+      "industry_code": "S630702",
+      "industry_name": "电池化学品",
+      "trend_name": "固态电池产业链",
+      "status": "UNCERTAIN",
+      "uncertain_stage": "TRANSMISSION",
+      "reason": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence": [],
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。"
     },
     {
       "code": "603026",
       "company_name": "石大胜华",
       "industry_code": "S630702",
       "industry_name": "电池化学品",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
       "status": "UNCERTAIN",
       "uncertain_stage": "TRANSMISSION",
-      "reason": "电解液、锂盐相关业务有潜在工艺关联，尚未核实固态专用材料批量订单或出货。",
+      "reason": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
       "evidence": [],
-      "gap_check": "当前检索未闭合主题特定的公司级商业事实；不能断言无业务"
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。"
     },
     {
       "code": "603032",
       "company_name": "德新科技",
       "industry_code": "S630703",
       "industry_name": "锂电专用设备",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
       "status": "UNCERTAIN",
-      "uncertain_stage": "RISK_REWARD",
-      "reason": "固态模具销售规模极小，当前所属三级行业仅一家完整估值样本，可靠上级/可比业务组锚无法核实。",
-      "evidence": [
-        {
-          "date": "2026-04-28",
-          "url": "https://finance.eastmoney.com/a/202604283722734812.html",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "gap_check": "传导已SUPPORTED、Expectation已评估；但价格/估值冲突，未伪造价格区间",
-      "transmission": "SUPPORTED",
-      "expectation": "EARLY"
+      "uncertain_stage": "TRANSMISSION",
+      "reason": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence": [],
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。"
+    },
+    {
+      "code": "002192",
+      "company_name": "融捷股份",
+      "industry_code": "S240603",
+      "industry_name": "锂",
+      "trend_name": "固态电池产业链",
+      "status": "UNCERTAIN",
+      "uncertain_stage": "TRANSMISSION",
+      "reason": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence": [],
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。"
+    },
+    {
+      "code": "002460",
+      "company_name": "赣锋锂业",
+      "industry_code": "S240603",
+      "industry_name": "锂",
+      "trend_name": "固态电池产业链",
+      "status": "UNCERTAIN",
+      "uncertain_stage": "TRANSMISSION",
+      "reason": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence": [],
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。"
     },
     {
       "code": "000762",
       "company_name": "西藏矿业",
       "industry_code": "S240603",
       "industry_name": "锂",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
       "status": "UNCERTAIN",
       "uncertain_stage": "TRANSMISSION",
-      "reason": "锂资源业务可作通用上游，但未确认与本轮固态专用材料的商业增量。",
+      "reason": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
       "evidence": [],
-      "gap_check": "当前检索未闭合主题特定的公司级商业事实；不能断言无业务"
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。"
     },
     {
       "code": "002756",
       "company_name": "永兴材料",
       "industry_code": "S240603",
       "industry_name": "锂",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
       "status": "UNCERTAIN",
       "uncertain_stage": "TRANSMISSION",
-      "reason": "电池级锂盐通用上游，未确认固态专用原料客户认证或专属订单。",
+      "reason": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
       "evidence": [],
-      "gap_check": "当前检索未闭合主题特定的公司级商业事实；不能断言无业务"
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。"
+    },
+    {
+      "code": "002240",
+      "company_name": "盛新锂能",
+      "industry_code": "S240603",
+      "industry_name": "锂",
+      "trend_name": "固态电池产业链",
+      "status": "UNCERTAIN",
+      "uncertain_stage": "TRANSMISSION",
+      "reason": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence": [],
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。"
     },
     {
       "code": "002738",
       "company_name": "中矿资源",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
       "status": "UNCERTAIN",
       "uncertain_stage": "TRANSMISSION",
-      "reason": "锂盐及氟化锂属通用电池原料，未核实固态电池专用订单与交付。",
-      "evidence": [
-        {
-          "date": "2026-10-08",
-          "url": "https://www.sinomine.com/",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "gap_check": "当前检索未闭合主题特定的公司级商业事实；不能断言无业务"
+      "reason": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence": [],
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。"
     },
     {
       "code": "000960",
       "company_name": "锡业股份",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
       "status": "UNCERTAIN",
       "uncertain_stage": "TRANSMISSION",
-      "reason": "主营锡冶炼与有色材料，未核实固态电池专用材料已商业化。",
-      "evidence": [
-        {
-          "date": "2026-08-20",
-          "url": "https://vip.stock.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?CompanyCode=10001212&gather=1&id=12507043",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "gap_check": "当前检索未闭合主题特定的公司级商业事实；不能断言无业务"
+      "reason": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence": [],
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。"
     },
     {
       "code": "002978",
       "company_name": "安宁股份",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
       "status": "UNCERTAIN",
       "uncertain_stage": "TRANSMISSION",
-      "reason": "半年报显示主营钛精矿和钒钛铁精矿，无法归因固态电池专属订单。",
-      "evidence": [
-        {
-          "date": "2026-08-28",
-          "url": "https://vip.stock.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12563767&stockid=002978",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "gap_check": "当前检索未闭合主题特定的公司级商业事实；不能断言无业务"
+      "reason": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence": [],
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。"
     },
     {
       "code": "600301",
       "company_name": "华锡有色",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
       "status": "UNCERTAIN",
       "uncertain_stage": "TRANSMISSION",
-      "reason": "华锡有色有色金属业务与固态电池直接商业传导尚未取得可核实证据。",
-      "evidence": [
-        {
-          "date": "2026-10-08",
-          "url": "https://www.china-tin.com/",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "gap_check": "当前检索未闭合主题特定的公司级商业事实；不能断言无业务"
+      "reason": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
+      "evidence": [],
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。"
     },
     {
       "code": "600459",
       "company_name": "贵研铂业",
       "industry_code": "S240504",
       "industry_name": "其他小金属",
-      "trend_name": "固态电池",
+      "trend_name": "固态电池产业链",
       "status": "UNCERTAIN",
       "uncertain_stage": "TRANSMISSION",
-      "reason": "贵金属材料具潜在用途，但尚未确认相关固态电池订单、认证或交付。",
+      "reason": "未检索到足以证明未来1–2季度固态电池方向订单、客户、产品交付或价格传导的公司级可核验证据。",
       "evidence": [],
-      "gap_check": "当前检索未闭合主题特定的公司级商业事实；不能断言无业务"
-    },
-    {
-      "code": "600871",
-      "company_name": "石化油服",
-      "industry_code": "S750201",
-      "industry_name": "油田服务",
-      "trend_name": "油气/石油",
-      "status": "UNCERTAIN",
-      "uncertain_stage": "RISK_REWARD",
-      "reason": "有实际大额新签油服合同，但PB4.11远高于油服硬过滤同业中位约2.27，盈利正常化锚与市场结构严重分离，无法形成可靠风险收益区间。",
-      "evidence": [
-        {
-          "date": "2026-08-19",
-          "url": "https://www.stcn.com/article/detail/4085738.html",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "gap_check": "传导已SUPPORTED、Expectation已评估；但价格/估值冲突，未伪造价格区间",
-      "transmission": "SUPPORTED",
-      "expectation": "CONFIRMING"
-    },
-    {
-      "code": "002629",
-      "company_name": "仁智股份",
-      "industry_code": "S750201",
-      "industry_name": "油田服务",
-      "trend_name": "油气/石油",
-      "status": "UNCERTAIN",
-      "uncertain_stage": "TRANSMISSION",
-      "reason": "半年报披露油田环保和井下服务业务，但未闭合未来两季油气趋势增量订单。",
-      "evidence": [
-        {
-          "date": "2026-08-28",
-          "url": "https://vip.stock.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12561101&stockid=002629",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "gap_check": "当前检索未闭合主题特定的公司级商业事实；不能断言无业务"
-    },
-    {
-      "code": "603619",
-      "company_name": "中曼石油",
-      "industry_code": "S750201",
-      "industry_name": "油田服务",
-      "trend_name": "油气/石油",
-      "status": "UNCERTAIN",
-      "uncertain_stage": "RISK_REWARD",
-      "reason": "虽油气产量增加，但半年净利同比大幅下降、钻完井收入下行，正常化利润、PB与价格结构锚冲突，当前无法形成可靠低风险买入区。",
-      "evidence": [
-        {
-          "date": "2026-08-28",
-          "url": "https://vip.stock.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12558033&stockid=603619",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ],
-      "gap_check": "传导已SUPPORTED、Expectation已评估；但价格/估值冲突，未伪造价格区间",
-      "transmission": "SUPPORTED",
-      "expectation": "UNCERTAIN"
+      "gap_check": "需要公司公告、投资者关系记录或财报披露的固态电池相关订单/送样转量产/收入证据。"
     }
   ],
-  "drop": [
-    {
-      "code": "002192",
-      "company_name": "融捷股份",
-      "industry_code": "S240603",
-      "industry_name": "锂",
-      "trend_name": "固态电池",
-      "status": "DROP",
-      "drop_stage": "TRANSMISSION",
-      "reason": "公司7月24日明确答复当前不涉及固态电池相关业务，通用锂盐销售不等于直接受益。",
-      "evidence": [
-        {
-          "date": "2026-07-24",
-          "url": "https://stock.stockstar.com/RB2026072400028377.shtml",
-          "kind": "公司公开披露/投资者关系/公告转载"
-        }
-      ]
-    }
-  ],
+  "drop": [],
   "coverage": {
     "materialized_view_gate": "PASSED",
     "trend_handoff_gate": "PASSED",
@@ -2533,48 +3910,48 @@
     "publication_ready": true
   },
   "data_access_audit": {
-    "routed_industry_count": 7,
-    "routed_industry_with_universe_count": 7,
+    "routed_industry_count": 8,
+    "routed_industry_with_universe_count": 8,
     "no_universe_industry_count": 0,
-    "universe_company_count": 54,
-    "working_set_count": 7,
-    "working_set_company_count": 54,
+    "universe_company_count": 78,
+    "working_set_count": 8,
+    "working_set_company_count": 78,
     "materialized_index_read_count": 1,
-    "materialized_manifest_read_count": 7,
-    "materialized_part_read_count": 14,
-    "materialized_part_segment_fetch_count": 14,
-    "materialized_industry_complete_count": 7,
+    "materialized_manifest_read_count": 8,
+    "materialized_part_read_count": 19,
+    "materialized_part_segment_fetch_count": 19,
+    "materialized_industry_complete_count": 8,
     "legacy_industry_file_read_count": 0,
     "unique_shard_read_count": 0,
     "post_freeze_shard_read_count": 0,
     "post_freeze_materialized_read_count": 0
   },
   "execution_audit": {
-    "deep_research_company_count": 31,
-    "industry_batch_count": 7,
-    "single_company_followup_count": 3
+    "deep_research_company_count": 42,
+    "industry_batch_count": 8,
+    "single_company_followup_count": 8
   },
   "funnel": {
-    "routed_industries": 7,
-    "universe_companies": 54,
-    "hard_filtered_out": 5,
-    "hard_eligible": 49,
-    "pre_screen_selected": 31,
-    "pre_screened_out": 18,
-    "transmission_supported": 11,
-    "transmission_early_evidence": 8,
-    "transmission_uncertain": 11,
-    "transmission_not_supported": 1,
-    "expectation_assessed": 11,
+    "routed_industries": 8,
+    "universe_companies": 78,
+    "hard_filtered_out": 4,
+    "hard_eligible": 74,
+    "pre_screen_selected": 42,
+    "pre_screened_out": 32,
+    "transmission_supported": 19,
+    "transmission_early_evidence": 5,
+    "transmission_uncertain": 18,
+    "transmission_not_supported": 0,
+    "expectation_assessed": 19,
     "ready": 0,
-    "wait": 6,
-    "uncertain": 16,
-    "drop": 1
+    "wait": 19,
+    "uncertain": 18,
+    "drop": 0
   },
   "notes": [
-    "手动Fresh Run：不使用旧结论作为选股输入，重新核查2026-10-08固态电池、油气/石油公司商业证据。",
-    "固态电池固有设备及材料交付证据促成诺德股份、璞泰来、恩捷股份、天赐材料等主题传导重估；SUPPORTED不是买入信号。",
-    "本次仅更新正式结果；不更新research/low_risk_handoff.json。",
-    "同一主题的早期技术储备、送样与实际材料设备出货须严格区分。"
+    "所有价格、估值、MA60与结构事实均来自2026-10-09冻结工作集；Freeze后未重读物化文件。",
+    "固态电池仅公司级可核验商业传导进入SUPPORTED；中试、送样和研发阶段单列EARLY_EVIDENCE。",
+    "周期行业估值使用正常化盈利代理与PB-ROE双锚，并由60日结构和波动安全边际约束。",
+    "本结果不构成投资建议。"
   ]
 }
