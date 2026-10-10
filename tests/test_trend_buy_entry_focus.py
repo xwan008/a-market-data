@@ -1,4 +1,4 @@
-"""An attention pick is a credible near-entry WAIT, not best-looking company."""
+"""Early trend watch candidates: one per researched sector, never a READY."""
 import importlib.util
 import unittest
 from pathlib import Path
@@ -9,59 +9,83 @@ engine=importlib.util.module_from_spec(spec)
 spec.loader.exec_module(engine)
 
 
-def item(code,sector,price,zone=None,stop=None,confirmed=False,market="候选趋势",
-         trans="SUPPORTED",risk=3.5,wait_reason="WAIT_CONFIRMATION",setup="BREAKOUT"):
-    return {"code":code,"company_name":"测试"+code,"trend_name":sector,
-            "status":"WAIT","wait_reason":wait_reason,"current_price":price,
-            "entry_zone":zone,"invalidation_price":stop,"initial_risk_pct":risk,
-            "market_state":market,"transmission":trans,"structure_confirmed":confirmed,
-            "setup_type":setup}
+def item(code, sector, price, ma20, ma60, support, market="候选趋势",
+         trans="SUPPORTED", vol1=1.2, rel=1.0, confirmed=False):
+    return {
+        "code":code,"company_name":"合成"+code,"trend_name":sector,
+        "status":"WAIT","wait_reason":"WAIT_CONFIRMATION",
+        "current_price":price,"market_state":market,
+        "transmission":trans,"structure_confirmed":confirmed,
+        "technical_context":{
+            "ma20":ma20,"ma60":ma60,"support_invalidation":support,
+            "volume_ratio_1d_vs_20d":vol1,
+            "volume_ratio_5d_vs_20d":1.07,
+            "relative_strength_20d_vs_market_pct":rel,
+            "ma20_slope_5d_pct":0.1,"close_location_pct":65,
+            "higher_low":True,
+        },
+    }
 
 
-def research(sectors,scores=None):
-    scores=scores or {}
-    return {"trade_date":"2026-10-09",
-            "companies":[{"trend_name":name} for name in sectors],
-            "screen_audit":{"pre_screen_selected":[{"code":k,"score":v} for k,v in scores.items()]}}
+def research(names):
+    return {"trade_date":"2026-10-09","companies":[{"trend_name":n} for n in names],
+            "screen_audit":{"pre_screen_selected":[]}}
 
 
-class EntryFocusTests(unittest.TestCase):
-    def test_far_breakout_cannot_beat_near_but_unconfirmed_ma60(self):
-        gold=[
-            item("001337","黄金",47.03,[59.168,60.526],58.164),
-            item("600489","黄金",22.95,None,None),
-        ]
-        picks=engine.select_focus_watchlist([],gold,research(["黄金"],{"001337":.784,"600489":.547}))
-        self.assertEqual(picks[0]["status"],"NO_NEAR_TERM_SETUP")
-        self.assertIsNone(picks[0]["code"])
-
-    def test_already_confirmed_structure_can_be_closest_when_sector_candidate(self):
-        coal=[
-            item("002128","煤炭",28.8,[28.656,29.146],27.557,confirmed=True,setup="PULLBACK",risk=5.45),
-            item("600546","煤炭",13.9,[14.569,14.903],14.322,confirmed=False),
-        ]
-        picks=engine.select_focus_watchlist([],coal,research(["煤炭"],{"002128":.61,"600546":.91}))
-        self.assertEqual(picks[0]["status"],"WATCH_ONLY")
-        self.assertEqual(picks[0]["code"],"002128")
-        self.assertIn("上游板块尚未趋势确认",picks[0]["blocking_conditions"])
-
-    def test_company_score_does_not_beat_nearer_valid_entry(self):
+class EarlyFocusTests(unittest.TestCase):
+    def test_one_per_sector_even_unconfirmed_gold(self):
         wait=[
-            item("000001","固态电池",20,[22.1,22.5],21.2,market="趋势确认",risk=4),
-            item("000002","固态电池",20,[20.4,20.8],19.9,market="趋势确认",risk=4),
+            item("001337","黄金",47.03,48.954,45.8845,45.2,vol1=.7,rel=-3),
+            item("600489","黄金",22.95,23.7695,23.5001,22.55,vol1=1.3,rel=2),
+            item("002128","煤炭",28.8,28.5,27.7,27.4,confirmed=True),
         ]
-        best=engine.select_focus_watchlist([],wait,research(["固态电池"],{"000001":.96,"000002":.35}))[0]
-        self.assertEqual(best["code"],"000002")
-        self.assertLess(best["distance_to_entry_zone_pct"],3)
+        picks=engine.select_focus_watchlist([],wait,research(["黄金","煤炭"]))
+        self.assertEqual(len(picks),2)
+        gold=next(x for x in picks if x["trend_name"]=="黄金")
+        self.assertEqual(gold["code"],"600489")
+        self.assertEqual(gold["status"],"EARLY_FOCUS_NOT_READY")
+        self.assertTrue(gold["not_buy_order"])
+        self.assertIn("板块趋势仍待确认",gold["remaining_blocks_to_ready"])
+        self.assertIsNotNone(gold["reference"]["reference_trigger_price"])
 
-    def test_no_wait_and_ready_do_not_force_focus(self):
-        a=engine.select_focus_watchlist([],[],research(["黄金"]))[0]
-        self.assertEqual(a["status"],"NO_QUALIFIED_WAIT")
-        self.assertEqual(engine.select_focus_watchlist([{"code":"1"}],[],research(["黄金"])),[])
+    def test_far_60day_breakout_doesnt_drive_early_trigger(self):
+        gold=item("001337","黄金",47.03,48.954,45.8845,45.2)
+        gold.update({"entry_zone":[59.168,60.526],"invalidation_price":58.164,
+                     "setup_type":"BREAKOUT"})
+        p=engine.select_focus_watchlist([], [gold], research(["黄金"]))[0]
+        self.assertEqual(p["code"],"001337")
+        self.assertAlmostEqual(p["reference"]["reference_trigger_price"],48.954,places=3)
+        self.assertLess(p["reference_trigger_distance_pct"],5)
+        self.assertTrue(p["not_buy_order"])
 
-    def test_unconfirmed_sector_and_stock_cannot_fake_imminent_entry(self):
-        w=[item("000001","煤炭",10,[10.1,10.3],9.8,confirmed=False,market="候选趋势")]
-        self.assertEqual(engine.select_focus_watchlist([],w,research(["煤炭"]))[0]["status"],"NO_NEAR_TERM_SETUP")
+    def test_no_close_stop_must_not_generate_buy_zone(self):
+        gold=item("600489","黄金",22.95,23.77,23.50,18.3)
+        p=engine.select_focus_watchlist([], [gold], research(["黄金"]))[0]
+        self.assertEqual(p["code"],"600489")
+        self.assertIsNone(p["reference"]["reference_zone"])
+        self.assertIsNone(p["reference"]["invalidation_price"])
+        self.assertIn("尚缺可靠",p["remaining_blocks_to_ready"][2])
+
+    def test_company_without_ma_still_in_research_not_ready(self):
+        x=item("123456","矿业",11,10.9,10.7,10.5)
+        x["technical_context"]={}
+        p=engine.select_focus_watchlist([], [x], research(["矿业"]))[0]
+        self.assertEqual(p["status"],"EARLY_FOCUS_NOT_READY")
+        self.assertEqual(p["reference"]["stage"],"EVIDENCE_PENDING")
+        self.assertIsNone(p["reference"]["reference_zone"])
+
+    def test_no_wait_and_ready(self):
+        p=engine.select_focus_watchlist([],[],research(["黄金"]))[0]
+        self.assertEqual(p["status"],"NO_QUALIFIED_WAIT")
+        self.assertEqual(engine.select_focus_watchlist([{"code":"600000"}],[],research(["黄金"])),[])
+
+    def test_no_one_dropped_and_more_flow_signals_rank_higher(self):
+        a=item("000001","工业",10,9.7,9.5,9.3,vol1=.5,rel=-5)
+        a["status"]="DROP"
+        b=item("000002","工业",10,10.1,9.8,9.2,vol1=1.2,rel=2)
+        p=engine.select_focus_watchlist([], [b], research(["工业"]))[0]
+        self.assertEqual(p["code"],"000002")
+        self.assertGreaterEqual(p["early_signal_count"],3)
 
 
 if __name__=="__main__":
