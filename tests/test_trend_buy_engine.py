@@ -62,6 +62,17 @@ class TrendTests(unittest.TestCase):
         s["companies"]["600001"]["previous_close"]=20.1
         self.assertEqual(engine.generate(r,s)["wait"][0]["status"],"WAIT")
 
+    def test_wait_pullback_zone_is_near_ma20_not_current_high(self):
+        r,s=inputs(s=structure(current_price=22.0,ma20=20.3,ma60=19.0,
+                              support_invalidation=19.85,
+                              structure_type="trend_continuation",breakout_confirmed=False,
+                              chase_risk="medium",distance_to_ma20_pct=8.37,
+                              first_effective_resistance=None))
+        x=engine.generate(r,s)["wait"][0]
+        self.assertEqual(x["setup_type"],"PULLBACK")
+        self.assertLess(x["entry_zone"][1],22.0)
+        self.assertAlmostEqual(x["entry_zone"][1],20.665,places=2)
+
     def test_overheat_risk_blocks_ready(self):
         r,s=inputs(s=structure(chase_risk="high",distance_to_ma20_pct=13))
         x=engine.generate(r,s)["wait"][0]
