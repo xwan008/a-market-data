@@ -32,6 +32,8 @@ def validate_items(handoff):
             raise ValueError("trend_handoff_invalid_status")
         if status=="READY" and reason is not None:
             raise ValueError("trend_handoff_ready_reason")
+        if status=="READY" and item.get("market_state")!="趋势确认":
+            raise ValueError("trend_handoff_ready_requires_confirmed_sector")
         if status=="WAIT" and reason not in WAIT_REASONS:
             raise ValueError("trend_handoff_invalid_wait_reason")
         if item.get("rank")!=i+1:
@@ -72,7 +74,7 @@ def project(result, formal_sha, *, shadow=False):
     rows=[]
     for rank,x in enumerate(ready+wait,1):
         rows.append({k:x.get(k) for k in (
-            "code","company_name","trend_name","industry_code","industry_name","current_price","status","wait_reason",
+            "code","company_name","trend_name","industry_code","industry_name","current_price","market_state","trend_state","status","wait_reason",
             "setup_type","entry_zone","entry_trigger","max_entry_price","invalidation_price",
             "invalidation_rule","initial_risk_pct","upside_to_resistance_R","exit_plan",
             "decision_reason","transmission","research_falsifier"
