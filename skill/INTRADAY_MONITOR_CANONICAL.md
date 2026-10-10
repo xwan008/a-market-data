@@ -82,3 +82,13 @@ ETF 持仓动作为 继续持有/持有观察/减仓观察/减仓/退出；上�
 ## 7. 输出顺序与原则
 
 标题“A股盘中交易执行监测｜北京时间 <scan time>”。先报告 captured_at、报价覆盖、正式交易日/Gate、板块七日历史及个股七日历史的可用性、持久化结果；Gate 未通过时不输出当轮交易动作。通过后按冻结顺序完整展示所有板块/ETF：方向、上游趋势、七日板块统计（真实中位数、上涨比例、样本覆盖）、板块 previous→current、动量 previous→current、空仓/持仓动作及具体证据。每个板块须分开展示「今日盘中变化」「七日累计历史」「可比的前交易日盘中截面」及「升级门槛是否满足」，列出参与判断的广度和中位数；跨日不可比要明确写原因，区分「分歧持续」与「衰退预警」，也须区分「减仓观察」与真正减仓。再按第5A节展示 Airtable 持仓重点关注（只使用冻结股票池内行情；缺数据须明示），最后按正式 rank 展示所有 READY/WAIT 个股：历史七日收益及技术结构、现价、行业相对表现、相对强弱、价格行为、空仓/持仓动作及依据。无有效历史则明示，不漏股，不虚构。最后只补重大动作变化；无强信号时如实报告。永不反向修改上游趋势榜、低风险榜或正式 handoff。
+
+## 8. 趋势买点榜V2兼容（仅在正式切换后生效）
+
+若快照根字段 stock_handoff_kind == trend_buy_v2 且 source_stock_handoff_path == research/trend_buy_handoff.json，并且source_run_id/schema/日期/冻结身份与当天首轮快照和 research/trend_buy_handoff.json 的 COMPLETE 正式版本严格一致，则本节优先于前述旧版低估值买入区解释；若格式/来源不符则 DATA_INSUFFICIENT，不允许从旧版handoff补价。
+
+**只使用** snapshot.low_risk_stocks[*].trend_entry_plan 已冻结的 setup_type、entry_zone、entry_trigger、max_entry_price、invalidation_price、invalidation_rule、initial_risk_pct、exit_plan。该集合名称 low_risk_stocks 在当前快照仍为兼容技术字段，不表示估值买入区；reasonable_buy_range 和 low_risk_buy_range 不参与任何新版本判断，不能用它们推断 READY、追涨风险、退出价。旧版快照 stock_handoff_kind=low_risk_legacy 则第1至7节照常运行，V2规则不可追溯修改旧身份。
+
+盘中职责为**确认并提示是否仍满足已发布的条件**，绝不重做公司筛选、重新生成价格结构或下单：未达到entry_trigger的WAIT只报等待；READY但现价>max_entry_price一律标“超过计划买入上限，不追价”，不把昨日确认当成今日市价买入信号；价格进入entry_zone也须检查行业/个股当前转弱及信号仍有效，缺这些数据则等待而非推断确认。已有持仓独立结合结构失效价、有效收盘/盘中突发例外、趋势衰退证据给继续持有/减仓观察/退出建议；invalidation_price为计划参考位，盘中触及不自动视为收盘已确认。上游可核实重大风险或跳空可能超出预设风险比例，明确提示滑点/无法成交。
+
+旧版的持仓Airtable只读优先级、日期/15分钟/90%快照Gate、7日历史与同日previous_*身份冻结、交易所日历与唯一state GitHub readback纪律完全保留；不因V2多读取其他行情或扩大当日冻结股票池。
