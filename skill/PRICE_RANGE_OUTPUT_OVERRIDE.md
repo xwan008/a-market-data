@@ -139,3 +139,7 @@ publication_ready = true
 - 榜单价格区间是研究结果，不是保证成交或收益；
 - 当前价必须来自本轮正式收盘 frozen working set；
 - 价格区间若因新财报、订单、重大事件或价格大幅波动失效，应在下一次正式版重新计算。
+
+## 8. 影子估值不影响正式价格榜（实验隔离）
+
+`FORWARD_VALUATION_SHADOW_PROTOCOL.md` 的前瞻企业价值、市场隐含EPS、早期机会观察属于**正式发布后的独立研究结果**，不得替换本文件第1–7节的 `reasonable_price_range`、`low_risk_buy_range`、原有 WAIT/READY 状态与排名、6.1附表候选范围、任何 JSON/handoff 字段或发布 Gate。EARLY_EVIDENCE 的早期观察不等于 WAIT，也不得在正式主榜编造区间。新旧估值对照只能在明确标示 `SHADOW / NOT_PROMOTED` 的独立材料展示；正式切换须先完成多时点、同口径和风险回撤验证并另行批准。
