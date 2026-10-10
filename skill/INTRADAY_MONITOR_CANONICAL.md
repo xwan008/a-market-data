@@ -74,7 +74,7 @@ ETF 持仓动作为 继续持有/持有观察/减仓观察/减仓/退出；上�
 
 先构造完整对象并用可执行环境实际 JSON 序列化和 JSON.parse 同一个待提交文本，核验字段、日期、全部冻结身份和行业/股票覆盖、枚举值及 previous_* 仅来自同日更早已落库扫描。不接受省略、截断或目测检查。无法校验则 PREWRITE_JSON_INVALID，最多在同一有效快照和已核实状态下完整重建一次，仍失败则 STATE_WRITE_FAILED，绝不将失败轮次纳入历史。
 
-写入前重新读取 main 目标文件最新全文及 blob SHA，只在实际写工具返回新 commit_sha、content_sha 后立即从 main READBACK 完整 JSON 和 SHA，比较日期、last_scan_at、来源日、冻结身份和排序、行业/股票各轮完整覆盖、必需字段及内容一致性。全部通过才报告 STATE_PERSISTED 且允许作为下一轮 previous_*。失败则 STATE_WRITE_FAILED/READBACK_JSON_INVALID/READBACK_MISMATCH，不冒称持久化或盲目二次覆盖。SHA_CONFLICT 必须重读、重做前置验证后最多重试一次。记录 READ_SOURCE、PREPARE_PAYLOAD、PREWRITE_JSON_PARSE、PREWRITE_SCHEMA_VERIFY、WRITE_REQUEST、WRITE_RESPONSE、READBACK、READBACK_JSON_PARSE、VERIFY 阶段及 attempt_id、日期、目标、工具、旧/新 SHA 和实际可见的脱敏错误；不可见 HTTP status/error.code/request_id 标 unavailable，不推测 403/409。
+写入前重新读取 main 目标文件最新全文及 blob SHA；**首次新版state不存在时，先核实GitHub明确返回路径不存在，并调用create_file建立新基线，不得把不存在视为数据出错或用旧state回填**。只在实际写工具返回新 commit_sha、content_sha 后立即从 main READBACK 完整 JSON 和 SHA，比较日期、last_scan_at、来源日、冻结身份和排序、行业/股票各轮完整覆盖、必需字段及内容一致性。全部通过才报告 STATE_PERSISTED 且允许作为下一轮 previous_*。失败则 STATE_WRITE_FAILED/READBACK_JSON_INVALID/READBACK_MISMATCH，不冒称持久化或盲目二次覆盖。SHA_CONFLICT 必须重读、重做前置验证后最多重试一次。记录 READ_SOURCE、PREPARE_PAYLOAD、PREWRITE_JSON_PARSE、PREWRITE_SCHEMA_VERIFY、WRITE_REQUEST、WRITE_RESPONSE、READBACK、READBACK_JSON_PARSE、VERIFY 阶段及 attempt_id、日期、目标、工具、旧/新 SHA 和实际可见的脱敏错误；不可见 HTTP status/error.code/request_id 标 unavailable，不推测 403/409。
 
 明确的 PRECHECK_BLOCKED（安全预检）不可将内容视为已落库，不得更换通道、拆分/编码/删减 payload 绕过；若执行环境许可，按既有受控规则延迟 30–60 秒，重新获取相同路径当前 SHA、验证相同语义的完整文本，以原工具最多原样重试一次；第二次仍被阻断立即停止并报告 PRECHECK_BLOCKED_REPEATED 和两次实际证据。其他权限/安全拒绝或审批要求须停止并如实报告。
 
