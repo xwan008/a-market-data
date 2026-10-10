@@ -48,7 +48,8 @@ def build_plan(kind, s, current):
         if not pos(breakout):
             return None
         entry_floor = max(breakout * 1.002, current * .995)
-        entry_ceiling = min(breakout * 1.025, current * (1 + MAX_ENTRY_SLIPPAGE_PCT / 100))
+        entry_ceiling = (breakout * 1.025 if current < breakout else
+                         min(breakout * 1.025, current * (1 + MAX_ENTRY_SLIPPAGE_PCT / 100)))
         # Failure: recapture below former resistance, with structural stop below it.
         invalid = max(support, breakout * .985)
         trigger = "收盘站稳前60日压力位且放量/收盘位置确认；下一交易日仅在计划价格内执行"
@@ -120,6 +121,10 @@ def evaluate_candidate(c, structure, trade_date):
     current, ma20, ma60 = structure.get("current_price"), structure.get("ma20"), structure.get("ma60")
     if not (pos(current) and pos(ma20) and pos(ma60)):
         result["decision_reason"] = "缺少同日价格和均线"
+        return result
+    frozen_price = c.get("asof_price")
+    if not pos(frozen_price) or abs(current - frozen_price) > max(.011, current * .001):
+        result["decision_reason"] = "STRUCTURE_PRICE_MISMATCH: 当前公司冻结价与技术快照价格不一致"
         return result
     if current < ma60 and structure.get("structure_type") == "damaged":
         result.update(status="DROP", decision_reason="中期价格结构已破坏")
