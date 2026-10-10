@@ -26,6 +26,7 @@ def structure(**changes):
 def inputs(c=None,s=None):
     c=company() if c is None else c
     s=structure() if s is None else s
+    c.setdefault("asof_price",s["current_price"])
     return ({"schema_version":"trend_buy_research_v2","trade_date":"2026-10-09","coverage_complete":True,
              "selected_company_count":1,"companies":[c],"mode":"SHADOW"},
             {"contract_id":"a-share-low-risk-price-structure","reference_trade_date":"2026-10-09",
