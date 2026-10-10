@@ -101,6 +101,7 @@ def evaluate_candidate(c, structure, trade_date):
         "max_entry_price": None, "entry_trigger": None, "invalidation_price": None,
         "invalidation_rule": None, "initial_risk_pct": None,
         "upside_to_resistance_R": None, "exit_plan": None,
+        "structure_confirmed": False,
         "data_date": trade_date, "price_basis": "completed_daily_bar",
         "research_falsifier": c.get("research_falsifier"), "source_review": c.get("source_review"),
     }
@@ -159,6 +160,7 @@ def evaluate_candidate(c, structure, trade_date):
         kind = "BREAKOUT"
     else:
         kind = "PULLBACK"
+    result["structure_confirmed"] = breakout_confirmed or pullback_confirmed
     plan = build_plan(kind, structure, current, confirmed=(breakout_confirmed or pullback_confirmed))
     if plan is None:
         result.update(status="UNCERTAIN",decision_reason="无法建立可验证入场区或结构失效价")
@@ -205,6 +207,100 @@ def evaluate_candidate(c, structure, trade_date):
                       decision_reason="公司筛选通过，尚未形成有效突破或回踩承接确认")
     return result
 
+
+
+def select_focus_watchlist(ready, wait, research):
+    """One NON-TRADE attention pick per research sector when READY is empty.
+
+    A focus pick never upgrades a WAIT signal. A sector with no WAIT is
+    explicitly shown as NO_QUALIFIED_WAIT, not filled from UNCERTAIN/DROP.
+    Ranking: already confirmed stock structure, grounded plan, commercial
+    evidence strength, intra-industry pre-screen score, proximity, risk.
+    """
+    if ready:
+        return []
+    sectors = sorted({str(c.get("trend_name") or "") for c in research.get("companies", [])
+                      if c.get("trend_name")})
+    audit = research.get("screen_audit") or {}
+    scores = {str(x.get("code")): x["score"] for x in
+              audit.get("pre_screen_selected", [])
+              if pos(x.get("score")) or x.get("score") == 0}
+    picks = []
+    for sector in sectors:
+        candidates = [x for x in wait if x.get("trend_name") == sector]
+        if not candidates:
+            picks.append({"trend_name": sector, "status": "NO_QUALIFIED_WAIT",
+                          "trade_date": research["trade_date"], "code": None,
+                          "company_name": None, "reason": "该板块没有通过研究门槛的WAIT；不从UNCERTAIN/DROP补选"})
+            continue
+
+        def plan_valid(x):
+            zone = x.get("entry_zone")
+            return (isinstance(zone, list) and len(zone) == 2
+                    and pos(zone[0]) and pos(zone[1])
+                    and pos(x.get("invalidation_price"))
+                    and x["invalidation_price"] < zone[0]
+                    and pos(x.get("initial_risk_pct"))
+                    and x["initial_risk_pct"] <= MAX_ENTRY_RISK_PCT)
+
+        def gap(x):
+            z, p = x.get("entry_zone"), x.get("current_price")
+            if not plan_valid(x) or not pos(p):
+                return 1.0
+            return (max(z[0] - p, 0.0, p - z[1]) / p)
+
+        candidates.sort(key=lambda x: (
+            -(1 if x.get("structure_confirmed") and plan_valid(x) else 0),
+            -(1 if plan_valid(x) else 0),
+            -(1 if x.get("transmission") == "SUPPORTED" else 0),
+            -scores.get(x["code"], 0.5),
+            gap(x),
+            x.get("initial_risk_pct") if pos(x.get("initial_risk_pct")) else 100.0,
+            x["code"],
+        ))
+        best = candidates[0]
+        sector_confirmed = best.get("market_state") == "趋势确认"
+        stock_confirmed = best.get("structure_confirmed") is True
+        blockers = []
+        if not sector_confirmed:
+            blockers.append("板块市场状态尚未趋势确认")
+        if not stock_confirmed:
+            blockers.append("个股突破/回调买点尚未确认")
+        if best.get("transmission") == "EARLY_EVIDENCE":
+            blockers.append("主题业务仍属早期证据，须复核经营风险")
+        if not plan_valid(best):
+            blockers.append("暂无线下单可用的完整入场/失效计划")
+        if best.get("wait_reason") == "WAIT_RISK_REWARD":
+            blockers.append("结构风险收益不达门槛")
+        if not blockers:
+            blockers.append("当前仍是WAIT；只能在下轮完成全部入场Gate后重新评估")
+        rationale = ("个股形态已有确认，但板块趋势尚未确认"
+                     if stock_confirmed and not sector_confirmed else
+                     "行业与个股信号均需重新核实"
+                     if not sector_confirmed else
+                     "板块趋势已确认，等待个股入场结构与风险核查")
+        picks.append({
+            "trend_name": sector,
+            "status": "WATCH_ONLY",
+            "trade_date": research["trade_date"],
+            "code": best["code"],
+            "company_name": best["company_name"],
+            "market_state": best.get("market_state"),
+            "transmission": best.get("transmission"),
+            "source_wait_reason": best["wait_reason"],
+            "structure_confirmed": stock_confirmed,
+            "setup_type": best.get("setup_type"),
+            "current_price": best.get("current_price"),
+            "entry_zone": best.get("entry_zone"),
+            "invalidation_price": best.get("invalidation_price"),
+            "initial_risk_pct": best.get("initial_risk_pct"),
+            "pre_screen_score": scores.get(best["code"]),
+            "reason": rationale,
+            "blocking_conditions": blockers,
+            "decision_policy": "只推荐关注优先级；原状态保持WAIT，不代表可买，周一/下个交易日重验",
+            "ranking_policy": "个股已确认结构>可验证交易计划>商业传导>同业预筛分>距条件区距离>计划风险",
+        })
+    return picks
 
 def generate(research, structure):
     if research.get("schema_version") != "trend_buy_research_v2":
@@ -261,6 +357,7 @@ def generate(research, structure):
         "publication_audit":audit if formal else {"fresh_research":False},
         "coverage":{"selected":len(co),"judged":len(rows),"complete":True},
         "ready":ready,"wait":wait,"uncertain":uncertain,"drop":drop,
+        "focus_watchlist":select_focus_watchlist(ready, wait, research),
         "summary":{"ready":len(ready),"wait":len(wait),"uncertain":len(uncertain),"drop":len(drop)},
         "production_eligible":formal,
         "production_eligibility_reason":("fresh_complete_research_and_structure" if formal else
