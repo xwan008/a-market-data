@@ -1,6 +1,6 @@
 # A股盘中交易执行监测｜唯一执行规则（7日监测指标）
 
-时间统一按 Asia/Shanghai；仓库 xwan008/a-market-data，分支 main。保持现有盘中执行监测、板块/ETF 与 READY/WAIT 个股执行判断、状态持久化业务边界；短周期历史收益统一为**七个完整交易日**，并将盘中分歧与跨日趋势衰退的证据分层。禁止改写或重算上游板块趋势榜、低风险买点榜、研究 handoff、估值或选股。
+时间统一按 Asia/Shanghai；仓库 xwan008/a-market-data，分支 main。保持现有盘中执行监测、板块/ETF 与 READY/WAIT 个股执行判断、状态持久化业务边界；短周期历史收益统一为**七个完整交易日**，并将盘中分歧与跨日趋势衰退的证据分层。禁止改写或重算上游板块趋势榜、趋势买点榜、研究 handoff、估值或选股。
 
 ## 1. 交易日、数据与范围 Gate（最高优先级）
 
@@ -8,14 +8,14 @@
 
 唯一**行情及历史事实**输入：main 上的 research/intraday_market_snapshot.json；当天执行记录唯一输入：research/intraday_monitor_state.json。Airtable 仅作为附加的**用户交易记录/持仓上下文**，严格按第5A节读取，不是行情、正式收盘价、趋势研究或股票池来源。本规则文件只提供执行规范，不是行情源。Web 仅用于官方交易日确认；禁止额外搜索行情或直接读取 history_shards / 其他研究数据来补充快照中的事实。只监测当天首次有效快照所冻结的 trends 和正式 READY/WAIT 个股；Airtable 不得扩张冻结交易监测股票池。
 
-快照必须同时满足：result_kind=a_share_intraday_market_snapshot；snapshot.trade_date=today；captured_at 距真实扫描时间 0–15 分钟；validation.status=passed；validation.quote_coverage>=0.90；manifest_errors=[]；source_trend_trade_date/source_low_risk_trade_date 均非空且相等，source_handoff_trade_date_consistent 若提供必须为 true。低风险 handoff 的覆盖率、来源版本与校验须与快照一致；不能以外部价格弥补缺失。任何核心 Gate 失败则报告 SNAPSHOT_INVALID / HANDOFF_SOURCE_MISMATCH / DATA_INSUFFICIENT，不产生本轮动作或状态迁移。
+快照必须同时满足：result_kind=a_share_intraday_market_snapshot；snapshot.trade_date=today；captured_at 距真实扫描时间 0–15 分钟；validation.status=passed；validation.quote_coverage>=0.90；manifest_errors=[]；source_trend_trade_date/source_trend_buy_trade_date 均非空且相等，source_handoff_trade_date_consistent 若提供必须为 true。趋势买点 handoff 的覆盖率、来源版本与校验须与快照一致；不能以外部价格弥补缺失。任何核心 Gate 失败则报告 SNAPSHOT_INVALID / HANDOFF_SOURCE_MISMATCH / DATA_INSUFFICIENT，不产生本轮动作或状态迁移。
 
 ## 2. 七个完整交易日的历史数据约定
 
 - 板块读取 snapshot.trends[*].history_context.seven_day：window_sessions=7（八个有效收盘价、七个收益区间）、median_constituent_return_pct（当前冻结成分股七日涨幅的中位数）、positive_constituent_ratio、sample_count、target_count、coverage_ratio、status。它不是板块指数涨幅，也不是指数超额收益。仅 status=available 且必要覆盖与日期自洽时作为充分历史佐证；partial 必须显式标注样本局限；unavailable 不推断。
-- 个股读取 snapshot.low_risk_stocks[*].seven_day：window_sessions=7、status、source_trade_date、observation_count、close_change_7d_pct；只有 available、8 个有效收盘点且 source_trade_date 与正式历史基准一致时，才报告有效七日涨幅。历史技术结构仍参考 snapshot.low_risk_stocks[*].history_context 的 history_confidence、trend_state、break_state、latest_high、latest_low、invalidation 等；只有 history_context_status=available、confidence 为 high/medium 且字段自洽时作有效增强证据。
+- 个股读取 snapshot.trend_buy_stocks[*].seven_day：window_sessions=7、status、source_trade_date、observation_count、close_change_7d_pct；只有 available、8 个有效收盘点且 source_trade_date 与正式历史基准一致时，才报告有效七日涨幅。历史技术结构仍参考 snapshot.trend_buy_stocks[*].history_context 的 history_confidence、trend_state、break_state、latest_high、latest_low、invalidation 等；只有 history_context_status=available、confidence 为 high/medium 且字段自洽时作有效增强证据。
 - 不得再使用、推断或把旧 close_change_5d_pct、five_day 当七日数据。七日统计是截至指定历史基准日的**累计七日截面**，不包含七天逐日板块路径；七日中位数为负、上涨比例低，不等于「最近连续七天恶化」，也不能直接证明今日盘中回落即为趋势衰退。七日历史不得单独触发买卖、状态升级或当日动量变化，必须结合实时横截面与可核实的跨日信息。
-- 跨日参照仅可来自 snapshot.trends[*].history_context.previous_trade_day 与 low_risk_stocks[*].previous_trade_day_monitor 等快照自带的已核实字段；其中 previous_trade_day 是**上一个正式数据日最后一次已成功持久化的盘中扫描**，不是官方收盘价或正式收盘确认。行业跨日可比需同时满足：trade_date 明确早于 today 且为快照声明的前一个有效数据日，same_industry_codes=true，双方报价覆盖率 >=90%，历史 data_quality=READY，指标/成分口径一致；否则标「跨日证据不可比/不足」，不得强行判断跨日恶化。即使可比，也须注明其为两次盘中截面比较，不能称为逐日连续趋势或官方收盘数据。历史不足不阻断有效的当天监测，但限制趋势衰退升级的证据等级。
+- 跨日参照仅可来自 snapshot.trends[*].history_context.previous_trade_day 与 trend_buy_stocks[*].previous_trade_day_monitor 等快照自带的已核实字段；其中 previous_trade_day 是**上一个正式数据日最后一次已成功持久化的盘中扫描**，不是官方收盘价或正式收盘确认。行业跨日可比需同时满足：trade_date 明确早于 today 且为快照声明的前一个有效数据日，same_industry_codes=true，双方报价覆盖率 >=90%，历史 data_quality=READY，指标/成分口径一致；否则标「跨日证据不可比/不足」，不得强行判断跨日恶化。即使可比，也须注明其为两次盘中截面比较，不能称为逐日连续趋势或官方收盘数据。历史不足不阻断有效的当天监测，但限制趋势衰退升级的证据等级。
 
 ## 3. 新交易日与同日 previous_*
 
@@ -41,16 +41,15 @@ structure_momentum 仅 增强/稳定/减弱；同日对比至少两类改善才�
 ETF 空仓动作为 可跟随/关注回踩/等待/不追涨/暂停买入；有效上游+当下正常/修复+动量增强或广度明显健康才可跟随；趋势有效但缺少承接则关注回踩或等待，明显加速/集中不追涨，**分歧持续且动量减弱时即使尚未构成衰退预警，也可暂停买入**。上游高潮/衰退/失效且当下恶化亦可暂停；首轮除充分共振外不激进。
 ETF 持仓动作为 继续持有/持有观察/减仓观察/减仓/退出；上游有效且正常/修复、动量稳定/增强可继续持有，普通分歧或单日持续分歧但跨日证据不足原则上持有观察；若同日持续分歧并出现进一步两类实质恶化，可在已有个股/ETF 自身弱化佐证时升级「减仓观察」，但该标签**不等于已执行减仓**，不能仅由板块状态名称自动卖出。确认的上游衰退迹象与跨日/当下弱化共振可减仓观察；上游高潮/衰退与实时显著恶化共振且价格结构证据充分才可减仓；上游失效且结构持续明显弱化、失效确认才退出。不凭单次分歧、七日累计收益为负或单一标签退出；首轮上游已明确衰退/失效且今天确认弱势，可按原规则触发。没有明确 ETF 代码不得猜测。
 
-## 5. READY/WAIT 个股盘中执行
+## 5. READY/WAIT 个股盘中执行｜仅趋势买点V2
 
-仅监测今天正式冻结的 READY/WAIT，禁止重选股或重估值。trend_in_current_handoff=false 时空仓至少暂停买入、持仓至少持有观察，不能仅因此退出。
+个股唯一输入为 snapshot.trend_buy_stocks[*]，冻结身份只来自同日 research/trend_buy_handoff.json；不再允许任何旧低PE榜合理价值区、低风险折扣价和旧WAIT_PRICE/WAIT_MARGIN作为买卖依据。今天正式冻结的全部READY/WAIT均要展示，严禁重选股、重研究或重估值。
 
-综合四组证据：①历史七日涨幅及有效历史结构 trend_state/break_state/latest_high/latest_low/invalidation；②当前 price/change_pct/industry_median_change_pct/relative_to_industry_pct；③实时行业动量与上游趋势；④同日持久化 previous_*。relative_strength 仅 增强/稳定/减弱，根据同日行业相对优势扩张/持平/收窄，首轮 previous_relative_strength=null、默认稳定，不把七日历史冒充同日增减。price_behavior 仅 强化/承接/震荡/加速/转弱/结构破坏：涨幅和相对优势同日持续改善而未过度加速为强化；行业弱而个股相对强且历史结构未破为承接；变化不大且历史有效为震荡；短时优势快速扩大为加速；同日明显减弱或历史弱化背景下再度走弱为转弱。
+空仓动作：只有已发布READY并且 entry_trigger在当前行情中仍有效、现价位于entry_zone且不超过max_entry_price、板块/个股相对强弱与价格行为没有破坏证据时，才可提出“条件可跟随”；WAIT一律“等待确认/关注回调”，不得因进入等待区间就说可直接买入。超max_entry_price、跳空超标或价格剧烈加速一律“不追价”；业务与量价证据无效则“暂停买入”。空仓动作合法枚举仍沿用 可跟随/关注回踩/等待/不追涨/暂停买入。
 
-结构破坏要求多证据共振：历史已 bearish/break 且现价未修复、弱于行业且行业恶化；或现价明确跌破历史 invalidation 未修复且行业分歧/衰退；或历史 intact/bullish 下同日多轮持续转弱、跌破 latest_low/invalidation 且行业持续恶化。无历史时首轮默认震荡、不凭空判结构破坏；已有明确历史破坏并获今日价格和行业确认时首轮可判破坏。
+持仓动作：按快照中已冻结的invalidation_price、invalidation_rule、exit_plan及有效历史结构判断，不把“盘中短暂跌破”误作“收盘确认失效”。历史结构破坏、板块趋势持续衰退与今日相对优势持续减弱可增强减仓/退出判断；缺少共振先持有观察。突发事件和跳空触发即时风险复核，但止损参考价不能保证成交。持仓动作沿用 继续持有/持有观察/减仓观察/减仓/退出，卖出证据门槛高于空仓入场。trend_in_current_handoff=false时空仓暂停买入、持仓至少持有观察，不自动清仓。
 
-个股空仓动作仅 可跟随/关注回踩/等待/不追涨/暂停买入。历史健康+行业正常/修复+个股增强且强化/承接可跟随；健康但待承接关注回踩；历史 transition/break、行业预警或个股明显减弱/转弱暂停；有效趋势但加速或远离合理区不追涨；其余等待。买入区间用于安全边际/追高风险提示，非买入硬 Gate。
-个股持仓动作仅 继续持有/持有观察/减仓观察/减仓/退出。历史健康+行业一般分歧+个股稳定/增强且未破坏可持有/观察；历史 transition/弱化+今天减弱/转弱而行业尚未共振可观察或减仓观察；行业跨日衰退且今天弱化、个股历史与今天转弱共振可减仓；行业衰退/失效持续恶化且个股历史 break/invalidation 获今天价格确认才退出。上游不能盘中核实的订单或业绩失效不得用价格代替；卖出确认比买入严格，优先行业和个股共振。区分不追涨与卖出、持有与新仓买入。板块从旧「衰退预警」按新证据门槛调整为「分歧持续」时，不得自动将个股标为「结构修复」或取消其独立的历史破位风险；反过来，也不能仅凭板块当日连续分歧与负七日收益认定个股应减仓或退出。
+仍须对本轮每只股票区分七日历史、当日盘中变化和上一完整交易日盘中截面；相对行业表现只使用本轮冻结快照；高价区与企业估值没有等号。
 
 ## 5A. Airtable 实际持仓优先关注（轻量、只读，不扩行情池）
 
@@ -63,7 +62,7 @@ ETF 持仓动作为 继续持有/持有观察/减仓观察/减仓/退出；上�
 - 对可核实的首仓/买入/加仓增加实际股数，对减仓/卖出扣减实际股数；清仓仅在实际已成交数量可核实时清零。净持仓 >0 才列为「Airtable 登记持仓」；=0 不列持仓；不推断未来成交或自动修改记录。买入成本按成交股数×单价核算，期间有卖出时仅在交易顺序可靠前提下以移动加权平均法估算剩余成本；缺失必要价格时只报告有效数量，不造成本；手续费、税费及滑点另注明未计。Airtable 数据仅是用户记录，不保证与券商实际持仓完全一致。
 - 优先解析每只持仓的「失效条件」为**用户已记录的观察计划**。同一股票不同记录条件如不一致、过期、临时待复核或仅为文本模糊描述，则明示「待复核」并保留来源记录，不自行发明或上移止损价，不把买入成本当失效线。
 
-**与盘中快照的匹配：**只用股票代码把 Airtable 的净持仓匹配到**当天冻结的** snapshot.low_risk_stocks 正式 READY/WAIT 股票身份，命中才结合本轮有效行情、7日有效历史、原规则的相对行业表现与同日变化输出重点分析，并解释原有的 holding_action（持仓动作）而非将 entry_action（空仓动作）冒充持仓建议。不能因为用户持仓修改当前板块 current_state、个股结构判断、原有正式 rank 或买卖动作触发阈值。未命中冻结股票池的已登记持仓，只可提示「现有快照未覆盖，本轮无可靠盘中价格/结构信号」，不新增股票、不调用其他行情接口、不写入 state 的冻结身份。记录为空且完整读取成功，明确「Airtable 未发现可核实的在持股票」；读取失败不得做此结论。
+**与盘中快照的匹配：**只用股票代码把 Airtable 的净持仓匹配到**当天冻结的** snapshot.trend_buy_stocks 正式 READY/WAIT 股票身份，命中才结合本轮有效行情、7日有效历史、原规则的相对行业表现与同日变化输出重点分析，并解释原有的 holding_action（持仓动作）而非将 entry_action（空仓动作）冒充持仓建议。不能因为用户持仓修改当前板块 current_state、个股结构判断、原有正式 rank 或买卖动作触发阈值。未命中冻结股票池的已登记持仓，只可提示「现有快照未覆盖，本轮无可靠盘中价格/结构信号」，不新增股票、不调用其他行情接口、不写入 state 的冻结身份。记录为空且完整读取成功，明确「Airtable 未发现可核实的在持股票」；读取失败不得做此结论。
 
 **风控语义：**可计算当前**有效盘中报价**相对登记成本的浮动差额（注明不含费用），并检查已记录的**盘中预警条件**；用户约定「日线收盘价低于某价才失效」时，盘中低于该价**只能提示接近/盘中触及待收盘核验**，不是已确认收盘跌破、也不得自动减仓或退出。快照只有盘中报价时，绝不把该报价/上一交易日盘中扫描称为正式收盘价。即使价格触线也不单靠成本盈亏、单次波动或板块预警直接下卖出结论；分开说明「触发了什么观察条件」「哪些确认条件仍缺失」「原有模型的持仓动作」。
 
@@ -81,14 +80,10 @@ ETF 持仓动作为 继续持有/持有观察/减仓观察/减仓/退出；上�
 
 ## 7. 输出顺序与原则
 
-标题“A股盘中交易执行监测｜北京时间 <scan time>”。先报告 captured_at、报价覆盖、正式交易日/Gate、板块七日历史及个股七日历史的可用性、持久化结果；Gate 未通过时不输出当轮交易动作。通过后按冻结顺序完整展示所有板块/ETF：方向、上游趋势、七日板块统计（真实中位数、上涨比例、样本覆盖）、板块 previous→current、动量 previous→current、空仓/持仓动作及具体证据。每个板块须分开展示「今日盘中变化」「七日累计历史」「可比的前交易日盘中截面」及「升级门槛是否满足」，列出参与判断的广度和中位数；跨日不可比要明确写原因，区分「分歧持续」与「衰退预警」，也须区分「减仓观察」与真正减仓。再按第5A节展示 Airtable 持仓重点关注（只使用冻结股票池内行情；缺数据须明示），最后按正式 rank 展示所有 READY/WAIT 个股：历史七日收益及技术结构、现价、行业相对表现、相对强弱、价格行为、空仓/持仓动作及依据。无有效历史则明示，不漏股，不虚构。最后只补重大动作变化；无强信号时如实报告。永不反向修改上游趋势榜、低风险榜或正式 handoff。
+标题“A股盘中交易执行监测｜北京时间 <scan time>”。先报告 captured_at、报价覆盖、正式交易日/Gate、板块七日历史及个股七日历史的可用性、持久化结果；Gate 未通过时不输出当轮交易动作。通过后按冻结顺序完整展示所有板块/ETF：方向、上游趋势、七日板块统计（真实中位数、上涨比例、样本覆盖）、板块 previous→current、动量 previous→current、空仓/持仓动作及具体证据。每个板块须分开展示「今日盘中变化」「七日累计历史」「可比的前交易日盘中截面」及「升级门槛是否满足」，列出参与判断的广度和中位数；跨日不可比要明确写原因，区分「分歧持续」与「衰退预警」，也须区分「减仓观察」与真正减仓。再按第5A节展示 Airtable 持仓重点关注（只使用冻结股票池内行情；缺数据须明示），最后按正式 rank 展示所有 READY/WAIT 个股：历史七日收益及技术结构、现价、行业相对表现、相对强弱、价格行为、空仓/持仓动作及依据。无有效历史则明示，不漏股，不虚构。最后只补重大动作变化；无强信号时如实报告。永不反向修改上游趋势榜、趋势买点榜或正式 handoff。
 
-## 8. 趋势买点榜V2兼容（仅在正式切换后生效）
+## 8. 唯一版本断言
 
-若快照根字段 stock_handoff_kind == trend_buy_v2 且 source_stock_handoff_path == research/trend_buy_handoff.json，并且source_run_id/schema/日期/冻结身份与当天首轮快照和 research/trend_buy_handoff.json 的 COMPLETE 正式版本严格一致，则本节优先于前述旧版低估值买入区解释；若格式/来源不符则 DATA_INSUFFICIENT，不允许从旧版handoff补价。
+在任何本轮交易动作或状态持久化之前，必须核验 snapshot.schema_version=2、stock_handoff_kind=trend_buy_v2、source_stock_handoff_path=research/trend_buy_handoff.json、source_trend_buy_handoff_schema_version=trend_buy_handoff_v2，以及快照冻结名单、trade_date、source_run_id和validations全部匹配。若本轮新版有效基线缺失或快照仍是旧格式，报NO_VALID_TREND_BUY_HANDOFF或SNAPSHOT_INVALID；**绝不运行旧版本，也绝不继承旧版本同日previous_*。** 有效新版首轮 previous_*=null。
 
-**只使用** snapshot.low_risk_stocks[*].trend_entry_plan 已冻结的 setup_type、entry_zone、entry_trigger、max_entry_price、invalidation_price、invalidation_rule、initial_risk_pct、exit_plan。该集合名称 low_risk_stocks 在当前快照仍为兼容技术字段，不表示估值买入区；reasonable_buy_range 和 low_risk_buy_range 不参与任何新版本判断，不能用它们推断 READY、追涨风险、退出价。旧版快照 stock_handoff_kind=low_risk_legacy 则第1至7节照常运行，V2规则不可追溯修改旧身份。
-
-盘中职责为**确认并提示是否仍满足已发布的条件**，绝不重做公司筛选、重新生成价格结构或下单：未达到entry_trigger的WAIT只报等待；READY但现价>max_entry_price一律标“超过计划买入上限，不追价”，不把昨日确认当成今日市价买入信号；价格进入entry_zone也须检查行业/个股当前转弱及信号仍有效，缺这些数据则等待而非推断确认。已有持仓独立结合结构失效价、有效收盘/盘中突发例外、趋势衰退证据给继续持有/减仓观察/退出建议；invalidation_price为计划参考位，盘中触及不自动视为收盘已确认。上游可核实重大风险或跳空可能超出预设风险比例，明确提示滑点/无法成交。
-
-旧版的持仓Airtable只读优先级、日期/15分钟/90%快照Gate、7日历史与同日previous_*身份冻结、交易所日历与唯一state GitHub readback纪律完全保留；不因V2多读取其他行情或扩大当日冻结股票池。
+个股具体条件只以 trend_buy_stocks[*].trend_entry_plan 的setup_type、entry_zone、entry_trigger、max_entry_price、invalidation_price、invalidation_rule、initial_risk_pct、exit_plan为准。禁止参考旧版低估值区间或在盘中重新画出买点。拒绝从旧研究结果和已退役handoff恢复。继续遵守前述板块/ETF证据、七日历史、持仓只读、日期Gate、写前完整JSON解析和GitHub commit+READBACK规则。
