@@ -265,7 +265,7 @@ def early_watch_reference(row):
             "invalidation_price":stop,
             "estimated_price_risk_pct":risk,
             "risk_threshold_pct":EARLY_WATCH_MAX_PLAN_RISK_PCT,
-            "price_basis":"2026交易日实际冻结技术数据，非估值买入价"}
+            "price_basis":"同一已完成交易日的冻结技术数据，非估值买入价"}
 
 
 def select_focus_watchlist(ready,wait,research):
