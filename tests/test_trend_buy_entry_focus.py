@@ -58,6 +58,19 @@ class EarlyFocusTests(unittest.TestCase):
         self.assertLess(p["reference_trigger_distance_pct"],5)
         self.assertTrue(p["not_buy_order"])
 
+    def test_confirmed_stock_plan_beats_unconfirmed_but_high_volume_candidate(self):
+        earlier=item("002128","煤炭",28.8,28.5,27.7,27.557,
+                     vol1=.85,rel=-1,confirmed=True)
+        earlier.update({"setup_type":"PULLBACK","entry_zone":[28.656,29.146],
+                        "invalidation_price":27.557,"initial_risk_pct":5.45})
+        volume=item("601918","煤炭",11.58,10.752,10.3,10.35,
+                    vol1=1.9,rel=4,confirmed=False)
+        chosen=engine.select_focus_watchlist([], [volume,earlier], research(["煤炭"]))[0]
+        self.assertEqual(chosen["code"],"002128")
+        self.assertEqual(chosen["reference"]["stage"],"STOCK_CONFIRMED_SECTOR_PENDING")
+        self.assertEqual(chosen["reference"]["reference_zone"],[28.656,29.146])
+        self.assertTrue(chosen["not_buy_order"])
+
     def test_no_close_stop_must_not_generate_buy_zone(self):
         gold=item("600489","黄金",22.95,23.77,23.50,18.3)
         p=engine.select_focus_watchlist([], [gold], research(["黄金"]))[0]
