@@ -1,4 +1,4 @@
-# A股低风险买点榜｜Trend Handoff Routing
+# A股趋势买点榜｜Trend Handoff Routing
 
 ## 1. 职责边界
 
@@ -17,7 +17,7 @@ trend_handoff
 
 本文件不读取原始 company_industry_index / 个股 shard，不做硬过滤、不做预筛、不做 Transmission / Expectation / Risk–Reward。
 
-完整数据读取与 run-local working set 构造由 `LOW_RISK_CANONICAL_FLOW.md` 统一负责。
+完整数据读取与 run-local working set 构造由 `TREND_BUY_CANONICAL.md` 统一负责。
 
 ---
 
