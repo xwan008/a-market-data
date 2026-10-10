@@ -53,24 +53,21 @@ jobs:
                       captured = captured.replace(tzinfo=ZoneInfo("Asia/Shanghai"))
 
                   validation = payload.get("validation") or {}
-                  handoff_path = (Path("research/trend_buy_handoff.json")
-                                  if Path("research/trend_buy_handoff.json").exists()
-                                  else Path("research/low_risk_handoff.json"))
+                  handoff_path = Path("research/trend_buy_handoff.json")
                   handoff = json.loads(handoff_path.read_text(encoding="utf-8"))
-                  handoff_kind = ("trend_buy_v2" if handoff_path.name == "trend_buy_handoff.json"
-                                  else "low_risk_legacy")
+                  handoff_kind = "trend_buy_v2"
                   handoff_items = handoff.get("items") or []
-                  stocks = payload.get("low_risk_stocks") or {}
+                  stocks = payload.get("trend_buy_stocks") or {}
                   expected = {str(item.get("code") or "").zfill(6): item for item in handoff_items}
                   handoff_matches = (
                       handoff.get("status") == "COMPLETE"
                       and isinstance(handoff.get("items"), list)
                       and len(expected) == len(handoff_items)
                       and set(stocks) == set(expected)
-                      and payload.get("source_low_risk_handoff_run_id") == handoff.get("source_run_id")
-                      and payload.get("source_low_risk_handoff_schema_version") == handoff.get("schema_version")
+                      and payload.get("source_trend_buy_handoff_run_id") == handoff.get("source_run_id")
+                      and payload.get("source_trend_buy_handoff_schema_version") == handoff.get("schema_version")
                       and payload.get("stock_handoff_kind") == handoff_kind
-                      and validation.get("low_risk_stock_coverage_passed") is True
+                      and validation.get("trend_buy_stock_coverage_passed") is True
                       and all(
                           stocks[code].get("formal_status") == item.get("status")
                           and stocks[code].get("wait_reason") == item.get("wait_reason")
@@ -113,9 +110,9 @@ jobs:
         if: steps.freshness.outputs.skip != 'true'
         run: pip install -r requirements.txt
 
-      - name: Test low-risk handoff contract
+      - name: Test trend-buy handoff contract
         if: steps.freshness.outputs.skip != 'true'
-        run: python -m unittest discover -s tests -p 'test_low_risk_handoff_contract.py'
+        run: python -m unittest discover -s tests -p 'test_trend_buy_handoff.py'
 
       - name: Test cross-day continuity
         if: steps.freshness.outputs.skip != 'true'
@@ -145,20 +142,20 @@ jobs:
           assert validation.get("source_handoff_dates_present") is True
           assert validation.get("source_handoff_trade_date_consistent") is True
           assert validation.get("formal_prev_close_alignment_passed") is True
-          assert validation.get("low_risk_stock_coverage_passed") is True
-          handoff = json.loads(Path("research/low_risk_handoff.json").read_text(encoding="utf-8"))
+          assert validation.get("trend_buy_stock_coverage_passed") is True
+          handoff = json.loads(Path("research/trend_buy_handoff.json").read_text(encoding="utf-8"))
           assert handoff.get("status") == "COMPLETE"
           items = handoff.get("items")
           assert isinstance(items, list)
           expected = {str(item.get("code") or "").zfill(6): item for item in items}
-          assert len(expected) == len(items), "duplicate low-risk handoff codes"
-          stocks = payload.get("low_risk_stocks")
+          assert len(expected) == len(items), "duplicate trend-buy handoff codes"
+          stocks = payload.get("trend_buy_stocks")
           assert isinstance(stocks, dict)
-          assert set(stocks) == set(expected), "low-risk handoff stocks lost in snapshot"
-          assert validation.get("low_risk_handoff_item_count") == len(items)
-          assert validation.get("low_risk_stock_count") == len(stocks)
-          assert payload.get("source_low_risk_handoff_run_id") == handoff.get("source_run_id")
-          assert payload.get("source_low_risk_handoff_schema_version") == handoff.get("schema_version")
+          assert set(stocks) == set(expected), "trend-buy handoff stocks lost in snapshot"
+          assert validation.get("trend_buy_handoff_item_count") == len(items)
+          assert validation.get("trend_buy_stock_count") == len(stocks)
+          assert payload.get("source_trend_buy_handoff_run_id") == handoff.get("source_run_id")
+          assert payload.get("source_trend_buy_handoff_schema_version") == handoff.get("schema_version")
           valid_reasons = {"WAIT_PRICE", "WAIT_MARGIN", "WAIT_EXPECTATION", "WAIT_CATALYST"}
           for code, item in expected.items():
               assert item.get("status") in {"READY", "WAIT"}
@@ -200,7 +197,7 @@ jobs:
               "quote_coverage": validation.get("quote_coverage"),
               "trends": len(payload.get("trends") or {}),
               "industries": len(payload.get("industries") or {}),
-              "low_risk_stocks": len(payload.get("low_risk_stocks") or {}),
+              "trend_buy_stocks": len(payload.get("trend_buy_stocks") or {}),
           }, ensure_ascii=False))
           PY
 
