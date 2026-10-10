@@ -38,7 +38,7 @@ def pair(a, b):
     return [price(a), price(b)]
 
 
-def build_plan(kind, s, current):
+def build_plan(kind, s, current, confirmed=False):
     ma20 = s.get("ma20")
     support = s.get("support_invalidation")
     breakout = s.get("breakout_level") or s.get("prior_60d_high")
@@ -47,15 +47,17 @@ def build_plan(kind, s, current):
     if kind == "BREAKOUT":
         if not pos(breakout):
             return None
-        entry_floor = max(breakout * 1.002, current * .995)
-        entry_ceiling = (breakout * 1.025 if current < breakout else
-                         min(breakout * 1.025, current * (1 + MAX_ENTRY_SLIPPAGE_PCT / 100)))
+        entry_floor = (max(breakout * 1.002, current * .995)
+                       if confirmed else breakout * 1.002)
+        entry_ceiling = (min(breakout * 1.025, current * (1 + MAX_ENTRY_SLIPPAGE_PCT / 100))
+                         if confirmed else breakout * 1.025)
         # Failure: recapture below former resistance, with structural stop below it.
         invalid = max(support, breakout * .985)
         trigger = "收盘站稳前60日压力位且放量/收盘位置确认；下一交易日仅在计划价格内执行"
     elif kind == "PULLBACK":
-        entry_floor = max(ma20, current * .995)
-        entry_ceiling = current * (1 + MAX_ENTRY_SLIPPAGE_PCT / 100)
+        entry_floor = (max(ma20, current * .995) if confirmed else ma20 * .995)
+        entry_ceiling = (current * (1 + MAX_ENTRY_SLIPPAGE_PCT / 100)
+                         if confirmed else ma20 * 1.018)
         invalid = min(support, ma20 * .985)
         trigger = "上升结构回踩MA20附近，日内触及支撑后收盘重新站上MA20且出现积极承接"
     else:
@@ -156,7 +158,7 @@ def evaluate_candidate(c, structure, trade_date):
         kind = "BREAKOUT"
     else:
         kind = "PULLBACK"
-    plan = build_plan(kind, structure, current)
+    plan = build_plan(kind, structure, current, confirmed=(breakout_confirmed or pullback_confirmed))
     if plan is None:
         result.update(status="UNCERTAIN",decision_reason="无法建立可验证入场区或结构失效价")
         return result
