@@ -1,4 +1,4 @@
-name: Validate trend buy V2 shadow
+name: Validate A-share trend-buy canonical
 
 on:
   push:
@@ -8,6 +8,7 @@ on:
       - 'scripts/build_intraday_snapshot.py'
       - 'tests/test_trend_buy_handoff.py'
       - 'tests/test_trend_buy_snapshot_bridge.py'
+      - 'tests/test_trend_buy_full_pipeline.py'
       - 'skill/INTRADAY_MONITOR_CANONICAL.md'
       - 'scripts/run_trend_buy_shadow_compare.py'
       - 'research/shadow/low_risk_comparison_2026-10-09.json'
@@ -22,7 +23,7 @@ permissions:
 
 jobs:
   test-trend-buy:
-    name: Trend entry research V2 (non-production)
+    name: Sole trend-buy production contracts plus historic regression
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
@@ -37,9 +38,10 @@ jobs:
           python -m unittest discover -s tests -p 'test_trend_buy_engine.py' -v
           python -m unittest discover -s tests -p 'test_trend_buy_handoff.py' -v
           python -m unittest discover -s tests -p 'test_trend_buy_snapshot_bridge.py' -v
+          python -m unittest discover -s tests -p 'test_trend_buy_full_pipeline.py' -v
       - name: Rebuild historical same-day OHLCV structures (no commit)
         run: python scripts/build_full_market_price_structure.py
-      - name: Run historical Oct 9 cohort in shadow mode
+      - name: Run independent historical Oct 9 regression fixture
         run: |
           python scripts/run_trend_buy_shadow_compare.py --screen-comparison research/shadow/low_risk_comparison_2026-10-09.json --structure data/research/full_market_price_structure.json --output /tmp/trend-buy-shadow-2026-10-09.json
           python scripts/trend_buy_handoff.py --shadow --result /tmp/trend-buy-shadow-2026-10-09.json --result-blob-sha shadow-not-formal --output /tmp/trend-buy-shadow-handoff.json
@@ -57,10 +59,10 @@ jobs:
           assert all('reasonable_buy_range' not in x and 'low_risk_buy_range' not in x for x in handoff['items'])
           print('SHADOW_SUMMARY',json.dumps(result['summary'],ensure_ascii=False))
           PY
-      - name: Archive shadow report and handoff
+      - name: Archive historical regression output
         uses: actions/upload-artifact@v4
         with:
-          name: trend-buy-shadow-2026-10-09
+          name: trend-buy-regression-2026-10-09
           path: |
             /tmp/trend-buy-shadow-2026-10-09.json
             /tmp/trend-buy-shadow-handoff.json
