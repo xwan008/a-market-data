@@ -1,4 +1,5 @@
-"""Only the promoted trend V2 handoff is a valid intraday entry source."""
+"""Single-version intraday reader requires valid V2 result and exact SHA."""
+import hashlib
 import json
 import sys
 import tempfile
@@ -11,52 +12,77 @@ sys.path.insert(0,str(ROOT/"scripts"))
 import build_intraday_snapshot as snap
 
 
-def ready_payload():
-    return {"schema_version":"trend_buy_handoff_v2","status":"COMPLETE",
-        "shadow":False,"source_run_id":"run-20261009","source_formal_blob_sha":"verifiedsha",
-        "trade_date":"2026-10-09",
-        "items":[{"rank":1,"code":"600001","trade_date":"2026-10-09","status":"READY",
-                  "wait_reason":None,"setup_type":"BREAKOUT","entry_zone":[20.1,20.4],
-                  "max_entry_price":20.4,"invalidation_price":19.6,"invalidation_rule":"confirmed failure",
-                  "entry_trigger":"breakout close and volume confirmed","initial_risk_pct":4,
-                  "exit_plan":{"failed_setup":"exit"}}]}
+def fixtures():
+    row={"rank":1,"code":"600001","trade_date":"2026-10-09","status":"READY",
+         "wait_reason":None,"setup_type":"BREAKOUT","entry_zone":[20.1,20.4],
+         "max_entry_price":20.4,"invalidation_price":19.6,"invalidation_rule":"confirmed failure",
+         "entry_trigger":"breakout close and volume confirmed","initial_risk_pct":4,
+         "exit_plan":{"failed_setup":"exit"}}
+    formal={"schema_version":"trend_buy_result_v2","status":"COMPLETE",
+            "production_eligible":True,"run_id":"formal-20261009","trade_date":"2026-10-09",
+            "ready":[row],"wait":[]}
+    handoff={"schema_version":"trend_buy_handoff_v2","status":"COMPLETE",
+             "shadow":False,"source_run_id":"formal-20261009","source_formal_blob_sha":None,
+             "trade_date":"2026-10-09","items":[row]}
+    return formal,handoff
 
 
-class SoleHandoffTests(unittest.TestCase):
-    def test_v2_handoff_is_the_only_accepted_format(self):
+class SingleVersionReaderTests(unittest.TestCase):
+    def setup_files(self,folder):
+        formal,handoff=fixtures()
+        fp=Path(folder)/"trend_buy_formal_result.json"
+        hp=Path(folder)/"trend_buy_handoff.json"
+        payload=json.dumps(formal,ensure_ascii=False).encode()
+        fp.write_bytes(payload)
+        handoff["source_formal_blob_sha"]=hashlib.sha1(b"blob "+str(len(payload)).encode()+b"\0"+payload).hexdigest()
+        hp.write_text(json.dumps(handoff,ensure_ascii=False))
+        return fp,hp
+
+    def test_only_promoted_v2_can_be_read(self):
         with tempfile.TemporaryDirectory() as t:
-            p=Path(t)/"trend_buy_handoff.json"
-            p.write_text(json.dumps(ready_payload()))
-            with patch.object(snap,"TREND_BUY_PATH",p):
-                h,rows,kind=snap.active_stock_handoff()
+            fp,hp=self.setup_files(t)
+            with patch.object(snap,"TREND_BUY_FORMAL_PATH",fp),patch.object(snap,"TREND_BUY_PATH",hp):
+                _,rows,kind=snap.active_stock_handoff()
             self.assertEqual(kind,"trend_buy_v2")
             self.assertEqual(rows[0]["entry_zone"],[20.1,20.4])
-            self.assertNotIn("reasonable_buy_range",rows[0])
+            self.assertNotIn("low_risk_buy_range",rows[0])
 
-    def test_missing_v2_does_not_fallback_to_legacy(self):
+    def test_missing_new_handoff_never_uses_old_data(self):
         with tempfile.TemporaryDirectory() as t:
-            p=Path(t)/"trend_buy_handoff.json"
+            p=Path(t)/"absent.json"
             with patch.object(snap,"TREND_BUY_PATH",p):
                 with self.assertRaises(FileNotFoundError):
                     snap.active_stock_handoff()
 
-    def test_shadow_result_must_not_enter_intraday(self):
+    def test_unready_migration_baseline_blocks_execution(self):
         with tempfile.TemporaryDirectory() as t:
-            p=Path(t)/"trend_buy_handoff.json"
-            x=ready_payload()
-            x["shadow"]=True
-            p.write_text(json.dumps(x))
-            with patch.object(snap,"TREND_BUY_PATH",p):
-                with self.assertRaisesRegex(ValueError,"not_production"):
+            _,hp=self.setup_files(t)
+            x=json.loads(hp.read_text())
+            x["status"]="BASELINE_UNAVAILABLE"
+            x["source_run_id"]=None
+            hp.write_text(json.dumps(x))
+            with patch.object(snap,"TREND_BUY_PATH",hp):
+                with self.assertRaisesRegex(ValueError,"NO_VALID_TREND_BUY_HANDOFF"):
                     snap.active_stock_handoff()
 
-    def test_legacy_state_is_not_accepted(self):
+    def test_formal_readback_mismatch_blocks_execution(self):
         with tempfile.TemporaryDirectory() as t:
-            p=Path(t)/"trend_buy_handoff.json"
-            p.write_text(json.dumps({"status":"COMPLETE","trade_date":"2026-10-09",
-                                     "items":[{"code":"600001","wait_reason":"WAIT_PRICE","status":"WAIT"}]}))
-            with patch.object(snap,"TREND_BUY_PATH",p):
-                with self.assertRaisesRegex(ValueError,"not_production"):
+            fp,hp=self.setup_files(t)
+            data=json.loads(fp.read_text())
+            data["trade_date"]="2026-10-08"
+            fp.write_text(json.dumps(data))
+            with patch.object(snap,"TREND_BUY_FORMAL_PATH",fp),patch.object(snap,"TREND_BUY_PATH",hp):
+                with self.assertRaisesRegex(ValueError,"MISMATCH"):
+                    snap.active_stock_handoff()
+
+    def test_hand_off_must_match_formal_prices(self):
+        with tempfile.TemporaryDirectory() as t:
+            fp,hp=self.setup_files(t)
+            data=json.loads(hp.read_text())
+            data["items"][0]["entry_zone"]=[20.2,20.4]
+            hp.write_text(json.dumps(data))
+            with patch.object(snap,"TREND_BUY_FORMAL_PATH",fp),patch.object(snap,"TREND_BUY_PATH",hp):
+                with self.assertRaisesRegex(ValueError,"ITEM_MISMATCH"):
                     snap.active_stock_handoff()
 
 
