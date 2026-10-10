@@ -14,6 +14,7 @@ on:
       - 'research/shadow/low_risk_comparison_2026-10-09.json'
       - 'scripts/build_full_market_price_structure.py'
       - 'tests/test_trend_buy_engine.py'
+      - 'tests/test_trend_buy_entry_focus.py'
       - 'skill/TREND_BUY_CANONICAL.md'
       - '.github/workflows/validate-trend-buy-v2.yml'
   workflow_dispatch:
@@ -36,6 +37,7 @@ jobs:
       - name: Test technical entry and no stale/future leakage
         run: |
           python -m unittest discover -s tests -p 'test_trend_buy_engine.py' -v
+          python -m unittest discover -s tests -p 'test_trend_buy_entry_focus.py' -v
           python -m unittest discover -s tests -p 'test_trend_buy_handoff.py' -v
           python -m unittest discover -s tests -p 'test_trend_buy_snapshot_bridge.py' -v
           python -m unittest discover -s tests -p 'test_trend_buy_full_pipeline.py' -v
