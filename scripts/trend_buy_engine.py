@@ -95,6 +95,7 @@ def evaluate_candidate(c, structure, trade_date):
         "code": code, "company_name": c.get("company_name"),
         "industry_name": c.get("industry_name"), "current_price": c.get("asof_price"),
         "trend_name": c.get("trend_name"), "industry_code": c.get("industry_code"),
+        "market_state": c.get("market_state"), "trend_state": c.get("trend_state"),
         "status": "UNCERTAIN", "wait_reason": None, "decision_reason": None,
         "transmission": st, "setup_type": None, "entry_zone": None,
         "max_entry_price": None, "entry_trigger": None, "invalidation_price": None,
@@ -163,7 +164,11 @@ def evaluate_candidate(c, structure, trade_date):
         result.update(status="UNCERTAIN",decision_reason="无法建立可验证入场区或结构失效价")
         return result
     result.update(plan)
-    if plan["initial_risk_pct"] > MAX_ENTRY_RISK_PCT:
+    if c.get("market_state") != "趋势确认":
+        result.update(status="WAIT", wait_reason="WAIT_CONFIRMATION",
+                      decision_reason="上游板块市场状态未到趋势确认；现为"
+                       + str(c.get("market_state") or "UNVERIFIED") + "，禁止只靠个股形态升级READY")
+    elif plan["initial_risk_pct"] > MAX_ENTRY_RISK_PCT:
         result.update(status="WAIT", wait_reason="WAIT_RISK_REWARD", decision_reason="结构失效距离太远，风险超过试验性6%阈值")
     elif (plan["upside_to_resistance_R"] is not None
           and plan["upside_to_resistance_R"] < MIN_UPSIDE_R):
