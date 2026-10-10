@@ -88,7 +88,7 @@ def project(result, formal_sha, *, shadow=False):
         raise ValueError("dynamic_theme_top5_duplicated_or_unresearched")
     if any(len(group.get("items",[]))>5 for group in groups):
         raise ValueError("dynamic_theme_top5_exceeds_five")
-    if any(x.get("trend_name")!=group["trend_name"]
+    if any(candidate_by_code[x["code"]].get("trend_name")!=group["trend_name"]
            for group in groups for x in group.get("items",[])):
         raise ValueError("dynamic_theme_top5_sector_mismatch")
     rows=[]
