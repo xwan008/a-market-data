@@ -74,6 +74,8 @@ jobs:
           assert all(x['status']!='WAIT' or x['wait_reason'] for x in r['wait'])
           assert all(x['data_date']=='2026-10-09' for x in r['ready']+r['wait']+r['uncertain']+r['drop'])
           assert all(x['setup_type']=='PULLBACK' for x in r['wait'] if x['wait_reason']=='WAIT_PULLBACK'), 'WAIT_PULLBACK_must_use_actual_pullback_zone'
+          assert all(x['market_state']=='趋势确认' for x in r['ready']), 'READY_requires_confirmed_market_sector'
+          assert all(x['status']=='WAIT' for x in r['wait'] if x.get('market_state')=='候选趋势'), 'candidate_sector_cannot_be_READY'
           assert not any('reasonable_buy_range' in x or 'low_risk_buy_range' in x for x in r['ready']+r['wait'])
           r['universe_audit']=a['screen_audit']
           r['manual_execution_asof']='2026-10-09 completed official session; executed 2026-10-10 (Saturday)'
