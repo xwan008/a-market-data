@@ -193,9 +193,10 @@ def build(evidence_path):
             raise ValueError("source_outside_asof:"+c["code"])
         if status=="UNCERTAIN" and not sources:
             no_source.append(c["code"])
-        trend_name=next((s["trend_name"] for s in trend["signals"] if c["industry_code"] in s["industry_codes"]),"")
-        if not trend_name:
-            raise ValueError("unrouted_company:"+c["code"])
+        signal=next((z for z in trend["signals"] if c["industry_code"] in z["industry_codes"]),None)
+        trend_name=(signal or {}).get("trend_name") or ""
+        if not trend_name or not signal.get("market_state") or not signal.get("trend_state"):
+            raise ValueError("unrouted_or_unreviewed_sector:"+c["code"])
         # Explicitly preserve no-verifiable-evidence as UNCERTAIN; evidence
         # source presence is not proof that financial quality is satisfactory.
         ocf=c.get("operating_cashflow_per_share")
@@ -209,6 +210,7 @@ def build(evidence_path):
         candidate.append({
             "code":c["code"],"company_name":c["name"],"industry_code":c["industry_code"],
             "industry_name":c["industry_name"],"trend_name":trend_name,
+            "market_state":signal["market_state"],"trend_state":signal["trend_state"],
             "asof_price":c["price"],"filter_passed":True,
             "transmission":status,
             "theme_link_verified":status in {"SUPPORTED","EARLY_EVIDENCE"} and len(sources)>0,
