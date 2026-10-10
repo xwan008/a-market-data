@@ -1,0 +1,192 @@
+name: A-share trend-buy formal mainline run
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/run-trend-buy-formal.yml"
+      - "research/trend_buy_company_review_current.json"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trend-buy-mainline-formal-publish
+  cancel-in-progress: false
+
+jobs:
+  formal-mainline:
+    name: Fresh market screening, verified research and conditional formal publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Validate latest completed upstream day and this-run company evidence
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          handoff=json.loads(Path('research/trend_handoff.json').read_text(encoding='utf-8'))
+          idx=json.loads(Path('data/low_risk/index.json').read_text(encoding='utf-8'))
+          evidence=json.loads(Path('research/trend_buy_company_review_current.json').read_text(encoding='utf-8'))
+          day=handoff['trade_date']
+          assert day==idx['trade_date']==evidence['as_of_date'], 'TRADING_DAY_OR_REVIEW_DATE_MISMATCH'
+          assert idx['validation']['status']=='passed', 'COMPANY_INPUT_NOT_VALIDATED'
+          assert evidence.get('explicit_no_prior_formal_or_archive_input') is True
+          assert len({x['code'] for x in evidence['reviews']})==len(evidence['reviews'])
+          assert len(evidence['reviews'])>0
+          for x in evidence['reviews']:
+              assert x['review_evidence_date']==day, ('REVIEW_DATE',x['code'])
+              assert x.get('source_review') and x.get('review_basis')
+              assert x.get('transmission') in ('SUPPORTED','EARLY_EVIDENCE','UNCERTAIN','NOT_SUPPORTED')
+              for material in x.get('source_materials',[]):
+                  assert material.get('asof')==day, ('SOURCE_ASOF',x['code'])
+                  assert material.get('published_at') and material['published_at']<=day, ('POST_ASOF_SOURCE',x['code'])
+                  assert str(material.get('url','')).startswith('https://'), ('BAD_SOURCE',x['code'])
+          print('LATEST_UPSTREAM_AND_FRESH_RESEARCH_DATE_VERIFIED',day,len(evidence['reviews']))
+          PY
+
+      - name: Recompute compact full-market technical structure from raw OHLCV
+        run: python scripts/build_full_market_price_structure.py
+
+      - name: Fresh dynamic industry Top5 and selected company research
+        run: |
+          python scripts/build_trend_buy_manual_research.py \
+            --evidence research/trend_buy_company_review_current.json \
+            --structure data/research/full_market_price_structure.json \
+            --output /tmp/mainline-fresh-research.json
+
+      - name: Recompute every selected entry, theme Top5 and risk plan
+        run: |
+          python scripts/trend_buy_engine.py \
+            --research /tmp/mainline-fresh-research.json \
+            --structure data/research/full_market_price_structure.json \
+            --output /tmp/mainline-fresh-result.json
+
+      - name: Fail-closed full audit and prepare sole formal result
+        run: |
+          python - <<'PY'
+          import json,os,subprocess
+          from pathlib import Path
+          src=lambda p:json.loads(Path(p).read_text(encoding='utf-8'))
+          res=src('/tmp/mainline-fresh-result.json')
+          research=src('/tmp/mainline-fresh-research.json')
+          technical=src('data/research/full_market_price_structure.json')
+          handoff=src('research/trend_handoff.json')
+          evidence=src('research/trend_buy_company_review_current.json')
+          day=handoff['trade_date']
+          audit=research['screen_audit']
+          assert res['trade_date']==research['trade_date']==technical['reference_trade_date']==day
+          assert audit['hard_eligible']==len(audit['lightweight_scanned'])
+          assert audit['hard_eligible']==len(audit['pre_screen_selected'])+len(audit['pre_screened_out'])
+          assert audit['research_scope']=='dynamic_tertiary_industry_top5_after_lightweight_scan'
+          assert len(audit['pre_screen_selected'])==research['selected_company_count']
+          assert research['selected_company_count']==res['coverage']['judged']
+          assert audit['source_review_pending_count']==0, ('RESEARCH_PENDING',audit['source_review_pending_codes'])
+          assert {x['code'] for x in evidence['reviews']}=={x['code'] for x in research['companies']}, 'RESEARCH_NOT_EXACTLY_FRESH_TOP5'
+          assert research['mode']==res['mode']=='FORMAL'
+          assert res['production_eligible'] is True and res['status']=='COMPLETE'
+          assert res['coverage']['complete']
+          assert sum(res['summary'].values())==res['coverage']['judged']
+          gates=['fresh_company_research','working_set_frozen','pre_screen_coverage',
+                 'company_research_coverage','structure_same_day','no_future_evidence','json_schema_valid']
+          assert all(res['publication_audit'].get(k) is True for k in gates),res['publication_audit']
+          assert all(len(g['items'])<=5 for g in res['top5_by_theme'])
+          assert all(z['trend_phase']!='COOLING' for g in res['top5_by_theme'] for z in g['items'])
+          assert all(x['market_state']=='趋势确认' for x in res['ready'])
+          res['run_id']='trend-buy-formal-main-'+os.environ['GITHUB_RUN_ID']+'-asof-'+day
+          res['fresh_mainline_provenance']={
+              'source_trade_date':day,
+              'run':'new_screen_new_issuer_review_new_price_analysis',
+              'old_formal_or_replay_used_as_input':False,
+              'industry_handoff_sha':subprocess.check_output(['git','rev-parse','HEAD:research/trend_handoff.json'],text=True).strip(),
+              'frozen_company_index_sha':subprocess.check_output(['git','rev-parse','HEAD:data/low_risk/index.json'],text=True).strip(),
+              'company_review_sha':subprocess.check_output(['git','rev-parse','HEAD:research/trend_buy_company_review_current.json'],text=True).strip(),
+              'research_selected_company_count':research['selected_company_count'],
+              'lightweight_scanned':audit['hard_eligible'],
+              'technical_rebuilt_at':technical['generated_at'],
+              'github_actions_run_id':os.environ['GITHUB_RUN_ID']
+          }
+          out=Path('research/trend_buy_formal_result.json')
+          text=json.dumps(res,ensure_ascii=False,indent=2)+'\n'
+          assert json.loads(text)==res
+          out.write_text(text,encoding='utf-8')
+          print('FULL_FORMAL_AUDIT_OK',json.dumps({
+              'run_id':res['run_id'],'date':day,
+              'lightweight_scanned':audit['hard_eligible'],
+              'deep_researched':research['selected_company_count'],
+              'summary':res['summary'],
+              'top5':{g['trend_name']:[x['code'] for x in g['items']] for g in res['top5_by_theme']},
+              'focus':[(x['trend_name'],x.get('code')) for x in res['focus_watchlist']]
+          },ensure_ascii=False))
+          PY
+
+      - name: Commit formal result to main and check exact readback
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/trend_buy_formal_result.json
+          git commit -m "research: fresh mainline trend-buy formal result from new full research"
+          git push origin HEAD:main
+          git fetch origin main
+          git show origin/main:research/trend_buy_formal_result.json | cmp - research/trend_buy_formal_result.json
+          test "$(git rev-parse origin/main:research/trend_buy_formal_result.json)" = "$(git hash-object research/trend_buy_formal_result.json)"
+          echo "FORMAL_PERSISTED_READBACK $(git rev-parse origin/main:research/trend_buy_formal_result.json)"
+
+      - name: Project new dynamic theme Top5 into final only valid handoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          FORMAL_SHA="$(git rev-parse origin/main:research/trend_buy_formal_result.json)"
+          python scripts/trend_buy_handoff.py \
+            --result research/trend_buy_formal_result.json \
+            --result-blob-sha "$FORMAL_SHA" \
+            --output research/trend_buy_handoff.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          f=json.loads(Path('research/trend_buy_formal_result.json').read_text())
+          h=json.loads(Path('research/trend_buy_handoff.json').read_text())
+          assert h['trade_date']==f['trade_date'] and h['source_run_id']==f['run_id']
+          assert h['status']=='COMPLETE' and h['shadow'] is False
+          assert [x['code'] for x in h['items']]==[
+              x['code'] for g in f['top5_by_theme'] for x in g['items']]
+          print('HANDOFF_CONTRACT_FROM_FRESH_FORMAL_OK',len(h['items']))
+          PY
+
+      - name: Commit final handoff and READBACK both formal SHA and handoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add research/trend_buy_handoff.json
+          git commit -m "research: current mainline only verified theme Top5 handoff"
+          git push origin HEAD:main
+          git fetch origin main
+          for p in research/trend_buy_formal_result.json research/trend_buy_handoff.json; do
+            git show "origin/main:$p" | cmp - "$p"
+          done
+          python - <<'PY'
+          import json,subprocess
+          from pathlib import Path
+          result=json.loads(Path('research/trend_buy_formal_result.json').read_text())
+          handoff=json.loads(Path('research/trend_buy_handoff.json').read_text())
+          sha=subprocess.check_output(['git','rev-parse','origin/main:research/trend_buy_formal_result.json'],text=True).strip()
+          assert handoff['source_formal_blob_sha']==sha
+          print('FINAL_MAIN_HANDOFF_READBACK_OK',json.dumps({
+              'date':result['trade_date'],'run_id':result['run_id'],
+              'formal_blob_sha':sha,
+              'handoff_blob_sha':subprocess.check_output(['git','rev-parse','origin/main:research/trend_buy_handoff.json'],text=True).strip(),
+              'summary':result['summary'],
+              'handoff_count':len(handoff['items']),
+              'top5':{g['trend_name']:[x['code'] for x in g['items']] for g in result['top5_by_theme']}
+          },ensure_ascii=False))
+          PY
