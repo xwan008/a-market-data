@@ -10,7 +10,7 @@ spec.loader.exec_module(engine)
 
 def company(**kw):
     return {"code":"600001","company_name":"合成样本","trend_name":"示例主题","industry_code":"S630702",
-            "transmission":"SUPPORTED","theme_link_verified":True,"filter_passed":True,
+            "transmission":"SUPPORTED","market_state":"趋势确认","trend_state":"T1","theme_link_verified":True,"filter_passed":True,
             "material_risk_unresolved":False,"source_review":"synthetic test","research_falsifier":"theme invalidated",**kw}
 
 def structure(**changes):
@@ -72,6 +72,14 @@ class TrendTests(unittest.TestCase):
         self.assertEqual(x["setup_type"],"PULLBACK")
         self.assertLess(x["entry_zone"][1],22.0)
         self.assertAlmostEqual(x["entry_zone"][1],20.665,places=2)
+
+    def test_candidate_sector_blocks_ready_even_when_stock_setup_confirms(self):
+        c=company()
+        c["market_state"]="候选趋势"
+        r,s=inputs(c=c)
+        row=engine.generate(r,s)["wait"][0]
+        self.assertEqual(row["wait_reason"],"WAIT_CONFIRMATION")
+        self.assertEqual(row["market_state"],"候选趋势")
 
     def test_overheated_breakout_wait_pullback_has_real_pullback_zone(self):
         r,s=inputs(s=structure(current_price=21.37,ma20=18.7,ma60=18.1,
