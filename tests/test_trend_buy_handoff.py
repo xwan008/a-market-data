@@ -17,7 +17,8 @@ def sample():
         "invalidation_price":19.65,"invalidation_rule":"结构失败退出",
         "initial_risk_pct":3.7,"exit_plan":{"failed_setup":"退"},"transmission":"SUPPORTED"}
     return {"schema_version":"trend_buy_result_v2","status":"COMPLETE","trade_date":"2026-10-09",
-            "run_id":"synthetic-run","ready":[row],"wait":[],"production_eligible":False}
+            "run_id":"synthetic-run","ready":[row],"wait":[],"production_eligible":False,
+            "top5_by_theme":[{"trend_name":"示例","items":[{"code":"600001"}]}]}
 
 
 class ContractTests(unittest.TestCase):
