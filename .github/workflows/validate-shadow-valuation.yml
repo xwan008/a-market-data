@@ -5,6 +5,8 @@ on:
     paths:
       - 'scripts/shadow_forward_valuation.py'
       - 'tests/test_shadow_forward_valuation.py'
+      - 'scripts/shadow_cyclical_valuation.py'
+      - 'tests/test_shadow_cyclical_valuation.py'
       - 'research/shadow/**'
       - 'skill/FORWARD_VALUATION_SHADOW_PROTOCOL.md'
       - '.github/workflows/validate-shadow-valuation.yml'
@@ -26,7 +28,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Unit tests
-        run: python -m unittest discover -s tests -p 'test_shadow_forward_valuation.py' -v
+        run: python -m unittest discover -s tests -p 'test_shadow_*valuation.py' -v
       - name: Reproduce frozen 2026-10-09 shadow
         run: |
           python scripts/shadow_forward_valuation.py \
@@ -43,4 +45,34 @@ jobs:
           assert actual == preview, 'shadow preview does not reproduce Python engine output'
           assert actual['production_effect'] == 'NONE'
           assert all(x['scenario_valuation']['expected_value_now'] is None for x in actual['companies'])
+          PY
+      - name: Multi-date forward no-lookahead observation
+        run: |
+          python scripts/shadow_forward_valuation.py --input research/shadow/forward_valuation_input_2026-09-29.json --output /tmp/shadow-2026-09-29.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d1=json.loads(Path('/tmp/shadow-2026-09-29.json').read_text())
+          d2=json.loads(Path('/tmp/shadow-forward-valuation-2026-10-09.json').read_text())
+          old={x['code']:x for x in d1['companies']}
+          new={x['code']:x for x in d2['companies']}
+          assert len(old)==3 and len(new)==4
+          assert all('STALE_MULTIPLE' in x['data_flags'] for x in (*old.values(),*new.values()))
+          assert all(x['scenario_valuation']['expected_value_now'] is None for x in (*old.values(),*new.values()))
+          for code in old:
+              assert new[code]['market_implied']['implied_forward_eps']>old[code]['market_implied']['implied_forward_eps']
+          PY
+      - name: Cyclical PB ROE conditional check
+        run: |
+          python scripts/shadow_cyclical_valuation.py --input research/shadow/cyclical_pb_roe_input_2026-10-09.json --output /tmp/cyclical-2026-10-09.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result=json.loads(Path('/tmp/cyclical-2026-10-09.json').read_text(encoding='utf-8'))
+          row=result['companies'][0]
+          assert result['production_effect']=='NONE'
+          assert row['original_formal_status']=='WAIT'
+          assert row['status']=='CONDITIONAL_SENSITIVITY_ONLY'
+          assert abs(row['book_value_per_share']-9.782395)<1e-5
+          assert row['forward_scenario_value'] is None
           PY
