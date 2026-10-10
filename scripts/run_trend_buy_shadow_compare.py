@@ -57,6 +57,15 @@ def main():
     out.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print(json.dumps({"mode":"SHADOW_HISTORICAL","date":result["trade_date"],"summary":result["summary"],
           "production_eligible":False,"not_fresh_company_research":True},ensure_ascii=False))
+    print("READY_RECORDS", json.dumps([
+        {"code":x["code"],"name":x["company_name"],"setup":x["setup_type"],
+         "entry_zone":x["entry_zone"],"invalidation_price":x["invalidation_price"],
+         "initial_risk_pct":x["initial_risk_pct"]} for x in result["ready"]
+    ],ensure_ascii=False))
+    print("WAIT_REASONS", json.dumps({
+        reason:sum(x["wait_reason"]==reason for x in result["wait"])
+        for reason in sorted(engine.WAIT_REASONS)
+    },ensure_ascii=False))
 
 if __name__=="__main__":
     main()
