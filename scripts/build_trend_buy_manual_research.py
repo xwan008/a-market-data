@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build one auditable 2026-10-09 as-of research input from frozen company facts.
+"""Build date-scoped audited research inputs for all eligible companies.
 
 Reads the trend handoff and mapped industry manifest/part files once,
 freezes the company set in memory, then scores eligible businesses.
@@ -109,13 +109,13 @@ def build(evidence_path):
     index=read(INDEX)
     vault=read(evidence_path)
     day=trend.get("trade_date")
-    if day!="2026-10-09" or index.get("trade_date")!=day or vault.get("as_of_date")!=day:
-        raise ValueError("asof_date_not_2026_10_09")
+    if not day or index.get("trade_date")!=day or vault.get("as_of_date")!=day:
+        raise ValueError("asof_date_mismatch")
     if (index.get("validation") or {}).get("status")!="passed":
         raise ValueError("materialized_index_not_valid")
     industries=sorted({str(code) for sig in trend.get("signals",[]) for code in sig.get("industry_codes",[])})
-    if len(industries)!=8:
-        raise ValueError("trend_routes_must_have_eight_industries")
+    if not industries:
+        raise ValueError("trend_has_no_routed_industries")
     audit={"universe":0,"hard_eligible":0,"hard_filtered":[],
            "pre_screen_selected":[],"pre_screened_out":[],
            "industry_count":len(industries),"industry_manifests":[]}
@@ -146,8 +146,8 @@ def build(evidence_path):
         audit["universe"]+=len(rows)
         audit["industry_manifests"].append({"code":code,"companies":len(rows),"parts":len(manifest["parts"])})
     # Freeze complete: all sector materialized data have been read and verified.
-    if audit["universe"]!=78:
-        raise ValueError("universe_coverage_mismatch")
+    if audit["universe"]<=0:
+        raise ValueError("universe_empty")
     selected=[]
     for code in industries:
         items=universe[code]
@@ -160,28 +160,32 @@ def build(evidence_path):
         audit["hard_eligible"]+=len(valid)
         rankvals=scores(valid)
         ranked=sorted(zip(valid,rankvals),key=lambda p:(-p[1][0],p[0]["code"]))
-        selected_for_industry=ranked[:5]
-        if len(ranked)>=6 and ranked[4][1][0]-ranked[5][1][0]<=.030000001:
-            selected_for_industry.append(ranked[5])
-        select_codes={z[0]["code"] for z in selected_for_industry}
+        # No Top5 cut here: every hard-eligible company receives a compact
+        # phase evaluation. Theme-level opportunity Top5 is selected only after
+        # completed OHLCV structure, business evidence and entry risk checks.
         for c,metric in ranked:
             d={"code":c["code"],"name":c["name"],"industry_code":code,
                "score":metric[0],"growth":metric[1],"quality":metric[2],
                "valuation_match":metric[3],"trend_health":metric[4],
                "growth_risk":metric[5]}
-            if c["code"] in select_codes:
-                audit["pre_screen_selected"].append(d)
-                selected.append(c)
-            else:audit["pre_screened_out"].append(d)
-    if audit["hard_eligible"]!=74 or len(selected)!=42 or len(set(x["code"] for x in selected))!=42:
-        raise ValueError("screen_coverage_not_expected")
+            audit["pre_screen_selected"].append(d)
+            selected.append(c)
+    if len(selected)!=audit["hard_eligible"] or len({x["code"] for x in selected})!=len(selected):
+        raise ValueError("screen_coverage_incomplete_or_duplicate")
     review={x["code"]:x for x in vault["reviews"]}
-    if len(review)!=42 or len(vault["reviews"])!=42 or set(review)!={x["code"] for x in selected}:
-        raise ValueError("company_reviews_do_not_cover_selected")
+    if len(review)!=len(vault["reviews"]):
+        raise ValueError("duplicate_company_reviews")
     candidate=[]
     no_source=[]
+    missing_review=[]
     for c in selected:
-        item=review[c["code"]]
+        item=review.get(c["code"])
+        if item is None:
+            missing_review.append(c["code"])
+            item={"transmission":"UNCERTAIN","source_materials":[],
+                  "source_review":"公司主题关联尚无本轮逐项核验证据，不能升级为买点候选",
+                  "review_basis":"RESEARCH_PENDING", "review_evidence_date":day,
+                  "research_falsifier":"获得真实披露证据后重新审查"}
         stamp=item.get("review_evidence_date")
         if not stamp or date.fromisoformat(stamp)>date.fromisoformat(day):
             raise ValueError("future_review_info:"+c["code"])
@@ -224,7 +228,9 @@ def build(evidence_path):
                                        "noncore_eps_share_pct":round(noncore,2) if noncore is not None else None},
         })
     audit["selected_company_count"]=len(candidate)
-    audit["source_review_complete_count"]=len(candidate)
+    audit["source_review_complete_count"]=len(candidate)-len(missing_review)
+    audit["source_review_pending_count"]=len(missing_review)
+    audit["source_review_pending_codes"]=missing_review
     audit["unverifiable_theme_count"]=len(no_source)
     audit["source_gap_codes"]=no_source
     audit["transmission_counts"]=dict(Counter(x["transmission"] for x in candidate))
@@ -237,12 +243,15 @@ def build(evidence_path):
     # structure_same_day verified by trend_buy_engine at actual Kline input;
     # emitted gate means pre-reviewed declaration, not a forged structure result.
     gate={k:True for k in required}
+    gate["fresh_company_research"]=not missing_review
+    gate["company_research_coverage"]=not missing_review
     gate["structure_same_day"]=True
-    result={"schema_version":"trend_buy_research_v2","mode":"FORMAL",
-            "run_id":"trend-buy-manual-20261010-asof-20261009",
+    result={"schema_version":"trend_buy_research_v2",
+            "mode":"FORMAL" if not missing_review else "SHADOW",
+            "run_id":"trend-buy-research-asof-"+day,
             "trade_date":day,"coverage_complete":True,
             "selected_company_count":len(candidate),"publication_audit":gate,
-            "source_research_protocol":"precollected_asof_10_09_with_10_10_review",
+            "source_research_protocol":"date_scoped_disclosures_and_dynamic_all_eligible_screen",
             "screen_audit":audit,"companies":candidate}
     return result
 
