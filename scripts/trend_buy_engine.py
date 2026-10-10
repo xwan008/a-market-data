@@ -202,6 +202,17 @@ def generate(research, structure):
     if research.get("selected_company_count") != len(co):
         raise ValueError("selected_coverage_mismatch")
     rows=[evaluate_candidate(c, (structure.get("companies") or {}).get(code), day) for c,code in zip(co,ids)]
+    formal = research.get("mode") == "FORMAL"
+    audit = research.get("publication_audit") or {}
+    if formal:
+        required = ("fresh_company_research", "working_set_frozen",
+                    "pre_screen_coverage", "company_research_coverage",
+                    "structure_same_day", "no_future_evidence", "json_schema_valid")
+        if any(audit.get(k) is not True for k in required):
+            raise ValueError("formal_publication_gate_not_passed")
+        if any(not isinstance(c.get("source_review"),str) or not c["source_review"].strip()
+               for c in co):
+            raise ValueError("formal_company_research_missing")
     for row in rows:
         if row["status"] not in STATES or (row["status"]=="WAIT" and row["wait_reason"] not in WAIT_REASONS):
             raise ValueError("invalid_final_status")
@@ -220,12 +231,17 @@ def generate(research, structure):
         "status":"COMPLETE", "trade_date":day, "mode":research.get("mode","SHADOW"),
         "structure_trade_date":structure["reference_trade_date"],
         "structure_contract":structure["contract_id"],
-        "model_thresholds":{"max_entry_risk_pct":MAX_ENTRY_RISK_PCT,"max_ma20_distance_pct":MAX_MA20_DISTANCE_PCT,"min_resistance_reward_R":MIN_UPSIDE_R,"status":"UNVALIDATED_TRIAL_PARAMETERS"},
+        "model_thresholds":{"max_entry_risk_pct":MAX_ENTRY_RISK_PCT,
+                            "max_ma20_distance_pct":MAX_MA20_DISTANCE_PCT,
+                            "min_resistance_reward_R":MIN_UPSIDE_R,
+                            "status":"PROVISIONAL_LIVE_PARAMETERS_MONITOR_AND_REVISE"},
+        "publication_audit":audit if formal else {"fresh_research":False},
         "coverage":{"selected":len(co),"judged":len(rows),"complete":True},
         "ready":ready,"wait":wait,"uncertain":uncertain,"drop":drop,
         "summary":{"ready":len(ready),"wait":len(wait),"uncertain":len(uncertain),"drop":len(drop)},
-        "production_eligible":False,
-        "production_eligibility_reason":"Trial parameters and sample-outcome backtest not yet validated; never automatically overwrite old formal/handoff"
+        "production_eligible":formal,
+        "production_eligibility_reason":("fresh_complete_research_and_structure" if formal else
+                                         "historical_or_incomplete_shadow_study")
     }
 
 
