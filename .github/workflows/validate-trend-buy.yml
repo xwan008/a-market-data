@@ -12,6 +12,8 @@ on:
       - 'tests/test_trend_buy_snapshot_bridge.py'
       - 'tests/test_trend_buy_full_pipeline.py'
       - 'skill/INTRADAY_MONITOR_CANONICAL.md'
+      - '.github/workflows/update-intraday-snapshot.yml'
+      - 'research/trend_buy_company_review_current.json'
       - 'scripts/build_full_market_price_structure.py'
       - 'tests/test_trend_buy_engine.py'
       - 'tests/test_trend_buy_entry_focus.py'
@@ -47,7 +49,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_trend_buy_handoff.py' -v
           python -m unittest discover -s tests -p 'test_trend_buy_snapshot_bridge.py' -v
           python -m unittest discover -s tests -p 'test_trend_buy_full_pipeline.py' -v
-      - name: Rebuild historical same-day OHLCV structures (no commit)
+      - name: Rebuild compact price structures for frozen completed session
         run: python scripts/build_full_market_price_structure.py
       - name: Fresh company screening from frozen market inputs only
         run: |
@@ -85,66 +87,67 @@ jobs:
             for c in o['companies']
           ],ensure_ascii=False))
           PY
-      - name: Read-only all-eligible lightweight scan and dynamic prescreen Top5 research audit
+      - name: Validate current fresh company research and dynamic Top5
         run: |
-          python scripts/build_trend_buy_manual_research.py --evidence research/trend_buy_evidence_2026-10-09.json --output /tmp/dynamic_research.json
-          python scripts/trend_buy_engine.py --research /tmp/dynamic_research.json --structure data/research/full_market_price_structure.json --output /tmp/dynamic_result.json
+          python scripts/build_trend_buy_manual_research.py --evidence research/trend_buy_company_review_current.json --output /tmp/current_research.json
+          python scripts/trend_buy_engine.py --research /tmp/current_research.json --structure data/research/full_market_price_structure.json --output /tmp/current_result.json
           python - <<'PY'
           import json
           from pathlib import Path
-          research=json.loads(Path('/tmp/dynamic_research.json').read_text())
-          r=json.loads(Path('/tmp/dynamic_result.json').read_text())
+          load=lambda p:json.loads(Path(p).read_text(encoding='utf-8'))
+          research=load('/tmp/current_research.json')
+          result=load('/tmp/current_result.json')
           audit=research['screen_audit']
+          review=load('research/trend_buy_company_review_current.json')
           assert audit['hard_eligible']==len(audit['lightweight_scanned'])
           assert audit['hard_eligible']==len(audit['pre_screen_selected'])+len(audit['pre_screened_out'])
           assert audit['research_scope']=='dynamic_tertiary_industry_top5_after_lightweight_scan'
-          assert r['coverage']['judged']==len(audit['pre_screen_selected'])
-          assert all(0 <= v <= 6 for v in audit['research_slots_per_industry'].values())
-          assert r['coverage']['judged'] <= len(audit['research_slots_per_industry'])*6
-          assert audit['source_review_pending_count']==r['coverage']['judged']-audit['source_review_complete_count']
-          assert r['coverage']['complete']
-          assert sum(r['summary'].values())==r['coverage']['judged']
-          assert len(r['top5_by_theme'])==3
-          assert all(len(x['items'])<=5 for x in r['top5_by_theme'])
-          if audit['source_review_pending_count']:
-              assert research['mode']=='SHADOW'
-              assert r['production_eligible'] is False
-          assert all(x['trend_phase']!='COOLING' for g in r['top5_by_theme'] for x in g['items'])
-          assert r['focus_watchlist'] and len(r['focus_watchlist'])==3
-          print('DYNAMIC_RESEARCH_SUMMARY',json.dumps({
-            'trade_date':r['trade_date'],'coverage':r['coverage'],
-            'lightweight_scanned':audit['hard_eligible'],
-            'research_slots_by_industry':audit['research_slots_per_industry'],
-            'research_pending':audit['source_review_pending_count'],
-            'top5':{x['trend_name']:[y['code'] for y in x['items']] for x in r['top5_by_theme']},
-            'focus':[(x['trend_name'],x.get('code')) for x in r['focus_watchlist']]
+          assert result['coverage']['judged']==len(audit['pre_screen_selected'])
+          assert all(0<=v<=6 for v in audit['research_slots_per_industry'].values())
+          assert audit['source_review_pending_count']==0
+          assert {x['code'] for x in research['companies']}=={x['code'] for x in review['reviews']}
+          assert research['mode']==result['mode']=='FORMAL'
+          assert result['status']=='COMPLETE' and result['production_eligible'] is True
+          assert sum(result['summary'].values())==result['coverage']['judged']
+          assert all(len(g['items'])<=5 for g in result['top5_by_theme'])
+          assert all(x['trend_phase']!='COOLING' for g in result['top5_by_theme'] for x in g['items'])
+          assert all(result['publication_audit'].values())
+          print('MAINLINE_CURRENT_RESEARCH_AUDIT',json.dumps({
+            'trade_date':result['trade_date'],'scanned':audit['hard_eligible'],
+            'researched':result['coverage']['judged'],'summary':result['summary'],
+            'top5':{g['trend_name']:[x['code'] for x in g['items']] for g in result['top5_by_theme']}
           },ensure_ascii=False))
           PY
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          j=json.loads(Path('data/research/full_market_price_structure.json').read_text())
-          examples={'002074':'COOLING','002709':'REPAIRING','603659':'REPAIRING'}
-          print('PHASE_EXAMPLES',{code:j['companies'][code].get('trend_phase') for code in examples})
-          assert all('phase_evidence' in j['companies'][code] for code in examples)
-          PY
-      - name: Verify current mainline projection and contract
+      - name: Verify exact current dynamic-theme handoff contract
         run: |
-          python scripts/trend_buy_handoff.py --shadow --result /tmp/dynamic_result.json --result-blob-sha ci-mainline --output /tmp/mainline-contract-handoff.json
+          python scripts/trend_buy_handoff.py --result /tmp/current_result.json --result-blob-sha ci-contract-only --output /tmp/trend_buy_handoff.json
           python - <<'PY'
-          import json
+          import json,sys
           from pathlib import Path
-          result=json.loads(Path('/tmp/dynamic_result.json').read_text())
-          handoff=json.loads(Path('/tmp/mainline-contract-handoff.json').read_text())
-          expected=[x['code'] for g in result['top5_by_theme'] for x in g['items']]
-          assert [x['code'] for x in handoff['items']]==expected
-          assert len(expected)<=5*len(result['top5_by_theme'])
-          assert handoff['shadow'] is True and result['production_eligible'] is False
-          import sys
           sys.path.insert(0,'scripts')
           from trend_buy_handoff import validate_items
-          assert len(validate_items(handoff))==len(expected)
-          print('MAINLINE_THEME_TOP5_PROJECTION',expected)
+          formal=json.loads(Path('/tmp/current_result.json').read_text())
+          handoff=json.loads(Path('/tmp/trend_buy_handoff.json').read_text())
+          codes=[x['code'] for g in formal['top5_by_theme'] for x in g['items']]
+          assert handoff['shadow'] is False
+          assert [x['code'] for x in handoff['items']]==codes
+          assert len(validate_items(handoff))==len(codes)
+          print('CURRENT_MAINLINE_HANDOFF_CONTRACT',len(codes))
+          PY
+      - name: Check persisted formal SHA and monitor compatibility
+        run: |
+          python - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,'scripts')
+          import build_intraday_snapshot as snapshot
+          import trend_buy_handoff
+          h,items,kind=snapshot.active_stock_handoff()
+          assert kind=='trend_buy_v2'
+          assert all(x['wait_reason'] in trend_buy_handoff.WAIT_REASONS
+                     for x in items if x['status']=='WAIT')
+          assert len(items)==len(json.loads(Path('research/trend_buy_handoff.json').read_text())['items'])
+          print('PERSISTED_MAINLINE_HANDOFF_VALID',len(items))
           PY
       - name: Syntax check trend-buy modules
         run: python -m py_compile scripts/build_full_market_price_structure.py scripts/build_trend_buy_manual_research.py scripts/trend_buy_engine.py scripts/trend_buy_handoff.py scripts/build_intraday_snapshot.py
