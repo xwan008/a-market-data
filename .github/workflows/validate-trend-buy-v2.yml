@@ -47,7 +47,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_trend_buy_full_pipeline.py' -v
       - name: Rebuild historical same-day OHLCV structures (no commit)
         run: python scripts/build_full_market_price_structure.py
-      - name: Read-only all-eligible as-of replay and source-coverage audit
+      - name: Read-only all-eligible lightweight scan and dynamic prescreen Top5 research audit
         run: |
           python scripts/build_trend_buy_manual_research.py --evidence research/trend_buy_evidence_2026-10-09.json --output /tmp/dynamic_research.json
           python scripts/trend_buy_engine.py --research /tmp/dynamic_research.json --structure data/research/full_market_price_structure.json --output /tmp/dynamic_result.json
@@ -57,9 +57,13 @@ jobs:
           research=json.loads(Path('/tmp/dynamic_research.json').read_text())
           r=json.loads(Path('/tmp/dynamic_result.json').read_text())
           audit=research['screen_audit']
-          assert audit['hard_eligible']==len(audit['pre_screen_selected'])
-          assert audit['hard_eligible']==r['coverage']['judged']
-          assert audit['source_review_pending_count']==audit['hard_eligible']-audit['source_review_complete_count']
+          assert audit['hard_eligible']==len(audit['lightweight_scanned'])
+          assert audit['hard_eligible']==len(audit['pre_screen_selected'])+len(audit['pre_screened_out'])
+          assert audit['research_scope']=='dynamic_tertiary_industry_top5_after_lightweight_scan'
+          assert r['coverage']['judged']==len(audit['pre_screen_selected'])
+          assert all(0 <= v <= 6 for v in audit['research_slots_per_industry'].values())
+          assert r['coverage']['judged'] <= len(audit['research_slots_per_industry'])*6
+          assert audit['source_review_pending_count']==r['coverage']['judged']-audit['source_review_complete_count']
           assert r['coverage']['complete']
           assert sum(r['summary'].values())==r['coverage']['judged']
           assert len(r['top5_by_theme'])==3
@@ -71,6 +75,8 @@ jobs:
           assert r['focus_watchlist'] and len(r['focus_watchlist'])==3
           print('DYNAMIC_RESEARCH_SUMMARY',json.dumps({
             'trade_date':r['trade_date'],'coverage':r['coverage'],
+            'lightweight_scanned':audit['hard_eligible'],
+            'research_slots_by_industry':audit['research_slots_per_industry'],
             'research_pending':audit['source_review_pending_count'],
             'top5':{x['trend_name']:[y['code'] for y in x['items']] for x in r['top5_by_theme']},
             'focus':[(x['trend_name'],x.get('code')) for x in r['focus_watchlist']]
