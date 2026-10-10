@@ -195,3 +195,7 @@ READY / WAIT 必须输出：
 价格区间不得写 N/A / 待估值 / 待确认。
 
 具体字段和发布 Gate 以 `PRICE_RANGE_OUTPUT_OVERRIDE.md` 为准。
+
+## 8. 前瞻研究影子通道（非正式状态）
+
+正式 Transmission/Expectation/Risk–Reward 和 READY/WAIT/UNCERTAIN/DROP 状态严格沿用上文。正式榜单发布并 readback 完成后，允许按 `FORWARD_VALUATION_SHADOW_PROTOCOL.md` 对已有 `SUPPORTED` 公司做独立前瞻估值实验，并对**已有可核验直接业务关联**的 `EARLY_EVIDENCE` 公司做 `EARLY_OPPORTUNITY_OBSERVATION` 研究。后一通道只是独立观察，不是新的主状态，不得因此进入正式 `wait`/`ready` 数组或 handoff；主营业务订单必须与趋势业务证据分别归因。所有影子预测需要来源、时间点、情景参数和推翻条件；事实不足时不报价。未完成模型验收与显式晋升前，本节不得改变上述正式规则及发布 Gate。
