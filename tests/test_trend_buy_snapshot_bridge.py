@@ -14,7 +14,7 @@ import build_intraday_snapshot as snap
 
 def fixtures():
     row={"rank":1,"code":"600001","trade_date":"2026-10-09","status":"READY",
-         "wait_reason":None,"setup_type":"BREAKOUT","entry_zone":[20.1,20.4],
+         "wait_reason":None,"market_state":"趋势确认","trend_state":"T1","setup_type":"BREAKOUT","entry_zone":[20.1,20.4],
          "max_entry_price":20.4,"invalidation_price":19.6,"invalidation_rule":"confirmed failure",
          "entry_trigger":"breakout close and volume confirmed","initial_risk_pct":4,
          "exit_plan":{"failed_setup":"exit"}}
