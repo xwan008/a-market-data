@@ -182,7 +182,6 @@ def trend_phase_metrics(rows, ma20, ma60, current, ratio1, ratio5, close_locatio
     cooling_signal = (
         (short_advance or current > ma20 * 1.08)
         and meaningful_volume and weak_close
-        and (last5[-1][1] < 0 or last3_locs and sum(last3_locs)/len(last3_locs) < .45)
     )
     broken_structure = (current < previous20_low * .98
                         and recent_5d_return is not None and recent_5d_return < -5
