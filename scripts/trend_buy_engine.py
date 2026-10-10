@@ -171,7 +171,25 @@ def evaluate_candidate(c, structure, trade_date):
     elif (pos(structure.get("distance_to_ma20_pct"))
           and structure["distance_to_ma20_pct"] > MAX_MA20_DISTANCE_PCT
           or structure.get("chase_risk") == "high"):
-        result.update(status="WAIT",wait_reason="WAIT_PULLBACK",decision_reason="短期明显偏离MA20或追高风险过高")
+        # An overheated BREAKOUT must NEVER publish a breakout-price zone while
+        # telling the trader to WAIT for a pullback. Rebuild around real MA20
+        # support, otherwise publish no conditional buy range.
+        revised = build_plan("PULLBACK", structure, current, confirmed=False)
+        if revised is None:
+            result.update(status="UNCERTAIN", wait_reason=None,
+                          setup_type=None, entry_zone=None, max_entry_price=None,
+                          entry_trigger=None, invalidation_price=None,
+                          invalidation_rule=None, initial_risk_pct=None,
+                          upside_to_resistance_R=None, exit_plan=None,
+                          decision_reason="短期追高风险高，但尚无可验证的回调支撑/失效结构")
+        else:
+            result.update(revised)
+            if revised["initial_risk_pct"] > MAX_ENTRY_RISK_PCT:
+                result.update(status="WAIT", wait_reason="WAIT_RISK_REWARD",
+                              decision_reason="等待回调至MA20但可计算结构风险仍超过6%")
+            else:
+                result.update(status="WAIT", wait_reason="WAIT_PULLBACK",
+                              decision_reason="短期明显偏离MA20；只能等待真正回调承接确认")
     elif is_early and not c.get("early_evidence_risk_review_passed"):
         result.update(status="WAIT",wait_reason="WAIT_CONFIRMATION",decision_reason="早期主题关联已有，但未完成特定早期业务风险审查")
     elif breakout_confirmed or pullback_confirmed:
