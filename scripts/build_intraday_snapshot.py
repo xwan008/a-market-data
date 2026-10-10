@@ -316,31 +316,31 @@ def main() -> int:
             "company_codes": sorted(set(grouped_codes)),
         }
 
-    low_risk_only_attempted: set[str] = set()
+    trend_buy_only_attempted: set[str] = set()
     for item in trend_buy_items:
         target_codes.add(str(item.get("code") or "").zfill(6))
         industry_code = str(item.get("industry_code") or "")
         if (
             not industry_code
             or industry_code in industries
-            or industry_code in low_risk_only_attempted
+            or industry_code in trend_buy_only_attempted
         ):
             continue
 
-        low_risk_only_attempted.add(industry_code)
+        trend_buy_only_attempted.add(industry_code)
         manifest_path = MANIFEST_ROOT / industry_code / "manifest.json"
         try:
             manifest = read_json(manifest_path)
         except Exception as exc:
             manifest_errors.append(
-                f"{industry_code}:low_risk_only_manifest_read_failed:"
+                f"{industry_code}:trend_buy_only_manifest_read_failed:"
                 f"{type(exc).__name__}:{exc}"
             )
             continue
 
         if manifest.get("industry_code") != industry_code:
             manifest_errors.append(
-                f"{industry_code}:low_risk_only_manifest_identity_mismatch"
+                f"{industry_code}:trend_buy_only_manifest_identity_mismatch"
             )
             continue
         if (
@@ -348,7 +348,7 @@ def main() -> int:
             and manifest.get("trade_date") != source_trend_buy_trade_date
         ):
             manifest_errors.append(
-                f"{industry_code}:low_risk_only_manifest_trade_date_mismatch:"
+                f"{industry_code}:trend_buy_only_manifest_trade_date_mismatch:"
                 f"{manifest.get('trade_date')}!={source_trend_buy_trade_date}"
             )
             continue
@@ -368,7 +368,7 @@ def main() -> int:
             "trend_name": item.get("trend_name"),
             "trend_state": None,
             "market_state": None,
-            "source_scope": "low_risk_only",
+            "source_scope": "trend_buy_only",
             "company_codes": company_codes,
         }
 
@@ -543,10 +543,10 @@ def main() -> int:
             ),
         }
 
-    expected_low_risk_codes = {str(item["code"]).zfill(6) for item in trend_buy_items}
+    expected_trend_buy_codes = {str(item["code"]).zfill(6) for item in trend_buy_items}
     trend_buy_stock_coverage_passed = (
         len(trend_buy_stocks) == len(trend_buy_items)
-        and set(trend_buy_stocks) == expected_low_risk_codes
+        and set(trend_buy_stocks) == expected_trend_buy_codes
         and all(
             trend_buy_stocks[str(item["code"]).zfill(6)]["formal_status"] == item["status"]
             and trend_buy_stocks[str(item["code"]).zfill(6)]["wait_reason"] == item.get("wait_reason")
@@ -596,8 +596,8 @@ def main() -> int:
                 source_trend_trade_date and source_trend_buy_trade_date
             ),
             "source_handoff_trade_date_consistent": source_handoff_trade_date_consistent,
-            "low_risk_handoff_item_count": len(trend_buy_items),
-            "low_risk_stock_count": len(trend_buy_stocks),
+            "trend_buy_handoff_item_count": len(trend_buy_items),
+            "trend_buy_stock_count": len(trend_buy_stocks),
             "trend_buy_stock_coverage_passed": trend_buy_stock_coverage_passed,
             "formal_prev_close_comparable_count": formal_prev_close_comparable_count,
             "formal_prev_close_matched_count": formal_prev_close_matched_count,
@@ -640,7 +640,7 @@ def main() -> int:
                 "usable_quote_count": usable_quotes,
                 "quote_coverage": round(quote_coverage, 4),
                 "industry_count": len(industries),
-                "low_risk_stock_count": len(trend_buy_stocks),
+                "trend_buy_stock_count": len(trend_buy_stocks),
                 "history_context_available_count": len(history_contexts),
                 "history_context_part_read_count": history_context_part_read_count,
                 "validation_status": payload["validation"]["status"],
