@@ -73,6 +73,18 @@ class TrendTests(unittest.TestCase):
         self.assertLess(x["entry_zone"][1],22.0)
         self.assertAlmostEqual(x["entry_zone"][1],20.665,places=2)
 
+    def test_overheated_breakout_wait_pullback_has_real_pullback_zone(self):
+        r,s=inputs(s=structure(current_price=21.37,ma20=18.7,ma60=18.1,
+                              support_invalidation=18.3,prior_60d_high=26.2,
+                              breakout_level=26.2,breakout_confirmed=False,
+                              structure_type="breakout",chase_risk="high",
+                              distance_to_ma20_pct=14.28))
+        x=engine.generate(r,s)["wait"][0]
+        self.assertEqual(x["wait_reason"],"WAIT_PULLBACK")
+        self.assertEqual(x["setup_type"],"PULLBACK")
+        self.assertLess(x["entry_zone"][1],21.37)
+        self.assertLess(x["invalidation_price"],x["entry_zone"][0])
+
     def test_overheat_risk_blocks_ready(self):
         r,s=inputs(s=structure(chase_risk="high",distance_to_ma20_pct=13))
         x=engine.generate(r,s)["wait"][0]
