@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import math
 from datetime import datetime
+from functools import lru_cache
 from pathlib import Path
 from statistics import median
 from zoneinfo import ZoneInfo
@@ -41,8 +42,14 @@ def risk_warning(name: str) -> tuple[bool, str | None]:
     return False, None
 
 
+@lru_cache(maxsize=24)
+def load_prefix_history(prefix: str) -> dict:
+    """Bounded cache: parse each 4-digit OHLCV shard once, not once per stock."""
+    return load(HISTORY_DIR / f"{prefix}.json", {})
+
+
 def rows_for(code: str) -> list[dict]:
-    shard = load(HISTORY_DIR / f"{code[:4]}.json", {})
+    shard = load_prefix_history(code[:4])
     item = (shard.get("stocks") or {}).get(code) or {}
     rows = []
     for r in item.get("history", []):
