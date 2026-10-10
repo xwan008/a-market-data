@@ -178,6 +178,10 @@ jobs:
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/build_history.py
 
+      - name: Build full-market daily trend entry structure
+        if: steps.gate.outputs.persist == 'true'
+        run: python scripts/build_full_market_price_structure.py
+
       - name: Build daily market environment state
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/build_market_state.py
