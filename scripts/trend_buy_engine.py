@@ -320,7 +320,7 @@ def opportunity_key(row):
         "PULLBACK": 3, "TRANSITION": 4, "COOLING": 9, "FAILED": 10
     }.get(phase, 5)
     return (0 if direct and phase not in {"COOLING", "FAILED"} else 1,
-            phase_tier, 0 if feasible else 1,
+            0 if feasible else 1, phase_tier,
             0 if distance <= 8 else 1, round(distance, 4),
             row.get("code") or "")
 
