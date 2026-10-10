@@ -64,7 +64,7 @@ jobs:
         run: |
           python scripts/run_trend_buy_shadow_compare.py --screen-comparison research/shadow/low_risk_comparison_2026-10-09.json --structure data/research/full_market_price_structure.json --output /tmp/trend-buy-shadow-2026-10-09.json
           python scripts/trend_buy_handoff.py --shadow --result /tmp/trend-buy-shadow-2026-10-09.json --result-blob-sha shadow-not-formal --output /tmp/trend-buy-shadow-handoff.json
-      - name: Check full 42-company output and no legacy ranges
+      - name: Check 42-company research and handoff schema
         run: |
           python - <<'PY'
           import json
@@ -75,7 +75,11 @@ jobs:
           assert result['coverage']['selected']==42 and result['coverage']['judged']==42
           assert sum(result['summary'].values())==42
           assert len(handoff['items'])==result['summary']['ready']+result['summary']['wait']
-          assert all('reasonable_buy_range' not in x and 'low_risk_buy_range' not in x for x in handoff['items'])
+          import sys
+          sys.path.insert(0,'scripts')
+          from trend_buy_handoff import ALLOWED_ITEM_FIELDS, validate_items
+          assert len(validate_items(handoff))==len(handoff['items'])
+          assert all(set(x).issubset(ALLOWED_ITEM_FIELDS) for x in handoff['items'])
           print('SHADOW_SUMMARY',json.dumps(result['summary'],ensure_ascii=False))
           PY
       - name: Archive historical regression output
@@ -86,5 +90,5 @@ jobs:
             /tmp/trend-buy-shadow-2026-10-09.json
             /tmp/trend-buy-shadow-handoff.json
           retention-days: 30
-      - name: Syntax check original aggregation engine
+      - name: Syntax check trend-buy modules
         run: python -m py_compile scripts/build_full_market_price_structure.py scripts/trend_buy_engine.py scripts/trend_buy_handoff.py scripts/build_intraday_snapshot.py
