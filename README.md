@@ -17,7 +17,7 @@ A股板块趋势榜 → research/trend_handoff.json
 → research/intraday_market_snapshot.json → research/intraday_monitor_state.json
 ```
 
-**没有额外的V3榜单或备用选股流程。** 算法调整直接更新主分支上的 canonical 规则和正式程序。现有接口字段 `trend_buy_result_v2`、`trend_buy_handoff_v2` 和 `trend_buy_v2` 是为下游盘中任务保留的数据格式名称，**并非第二套选股策略**。
+**只允许上述单一正式业务链路，不维护额外的试验榜单或备用选股流程。** 算法调整直接更新主分支上的 canonical 规则和正式程序。现有接口字段 `trend_buy_result_v2`、`trend_buy_handoff_v2` 和 `trend_buy_v2` 是为下游盘中任务保留的数据格式名称，**并非第二套选股策略**。
 
 **研究边界：** 公司预筛使用增长、质量、估值匹配及技术机会；先对全部合格公司做Python轻量扫描，再按70%买点机会+30%原基本面分限制深度研究名额。MA60不是单项淘汰红线；COOLING不代表持仓强制卖出。业务证据缺失就阻断正式发布，不使用旧榜替代、不把试算冒充正式买点。
 
