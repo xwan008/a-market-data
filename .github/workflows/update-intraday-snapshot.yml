@@ -27,6 +27,34 @@ jobs:
           ref: main
           fetch-depth: 1
 
+      - name: Require published trend-buy V2 baseline
+        id: handoff
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, json, os, sys
+          from pathlib import Path
+          sys.path.insert(0, 'scripts')
+          from trend_buy_handoff import validate_items
+          ready = False
+          try:
+              h = json.loads(Path('research/trend_buy_handoff.json').read_text(encoding='utf-8'))
+              fb = Path('research/trend_buy_formal_result.json').read_bytes()
+              f = json.loads(fb)
+              sha = hashlib.sha1(b'blob '+str(len(fb)).encode()+b'\0'+fb).hexdigest()
+              validate_items(h)
+              ready = (h.get('shadow') is False and h.get('source_formal_blob_sha') == sha
+                       and f.get('status') == 'COMPLETE' and f.get('production_eligible') is True
+                       and f.get('run_id') == h.get('source_run_id')
+                       and f.get('trade_date') == h.get('trade_date'))
+          except (ValueError, KeyError, OSError) as exc:
+              print('NO_VALID_TREND_BUY_HANDOFF:', type(exc).__name__, str(exc))
+          if not ready:
+              print('NO_VALID_TREND_BUY_HANDOFF: skip snapshot; NEVER fallback to low-risk PE version')
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as out:
+              out.write('ready='+('true' if ready else 'false')+'\n')
+          PY
+
       - name: Check scheduled snapshot freshness
         id: freshness
         if: github.event_name == 'schedule'
@@ -100,30 +128,33 @@ jobs:
           PY
 
       - name: Setup Python
-        if: steps.freshness.outputs.skip != 'true'
+        if: steps.handoff.outputs.ready == 'true' && steps.freshness.outputs.skip != 'true'
         uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
 
       - name: Install dependencies
-        if: steps.freshness.outputs.skip != 'true'
+        if: steps.handoff.outputs.ready == 'true' && steps.freshness.outputs.skip != 'true'
         run: pip install -r requirements.txt
 
       - name: Test trend-buy handoff contract
-        if: steps.freshness.outputs.skip != 'true'
+        if: steps.handoff.outputs.ready == 'true' && steps.freshness.outputs.skip != 'true'
         run: python -m unittest discover -s tests -p 'test_trend_buy_handoff.py'
+      - name: Test single-version intraday reader
+        if: steps.handoff.outputs.ready == 'true' && steps.freshness.outputs.skip != 'true'
+        run: python -m unittest discover -s tests -p 'test_trend_buy_snapshot_bridge.py'
 
       - name: Test cross-day continuity
-        if: steps.freshness.outputs.skip != 'true'
+        if: steps.handoff.outputs.ready == 'true' && steps.freshness.outputs.skip != 'true'
         run: python -m unittest discover -s tests -p "test_intraday_crossday.py"
 
       - name: Build intraday snapshot
-        if: steps.freshness.outputs.skip != 'true'
+        if: steps.handoff.outputs.ready == 'true' && steps.freshness.outputs.skip != 'true'
         run: python scripts/build_intraday_snapshot.py
 
       - name: Validate snapshot
-        if: steps.freshness.outputs.skip != 'true'
+        if: steps.handoff.outputs.ready == 'true' && steps.freshness.outputs.skip != 'true'
         run: |
           python - <<'PY'
           import json
@@ -202,7 +233,7 @@ jobs:
           PY
 
       - name: Commit intraday snapshot only
-        if: steps.freshness.outputs.skip != 'true'
+        if: steps.handoff.outputs.ready == 'true' && steps.freshness.outputs.skip != 'true'
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
