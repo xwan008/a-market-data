@@ -7,11 +7,13 @@ from statistics import median
 
 import fetch_market as market
 import intraday_crossday_context as crossday
+import trend_buy_handoff as trend_contract
 
 ROOT = Path(__file__).resolve().parents[1]
 RESEARCH_DIR = ROOT / "research"
 TREND_PATH = RESEARCH_DIR / "trend_handoff.json"
 LOW_RISK_PATH = RESEARCH_DIR / "low_risk_handoff.json"
+TREND_BUY_PATH = RESEARCH_DIR / "trend_buy_handoff.json"
 SNAPSHOT_PATH = RESEARCH_DIR / "intraday_market_snapshot.json"
 MANIFEST_ROOT = ROOT / "data" / "low_risk" / "by_industry"
 HISTORY_CONTEXT_RUNTIME_FORMAT = "low_risk_industry_working_set_chunk"
@@ -47,6 +49,19 @@ def validate_low_risk_handoff_items(handoff: dict) -> list[dict]:
             raise ValueError(f"low_risk_handoff_invalid_or_duplicate_code:{index}:{code}")
         seen_codes.add(code)
     return items
+
+
+def active_stock_handoff() -> tuple[dict, list[dict], str]:
+    """Prefer the independently published v2 trend handoff, never a shadow file."""
+    if TREND_BUY_PATH.exists():
+        handoff = read_json(TREND_BUY_PATH)
+        if handoff.get("shadow") is not False or not handoff.get("source_formal_blob_sha") or not handoff.get("source_run_id"):
+            raise ValueError("trend_buy_handoff_not_production_validated")
+        items = trend_contract.validate_items(handoff)
+        return handoff, items, "trend_buy_v2"
+    handoff = read_json(LOW_RISK_PATH)
+    items = validate_low_risk_handoff_items(handoff)
+    return handoff, items, "low_risk_legacy"
 
 
 def round_or_none(value, digits: int = 4):
@@ -259,9 +274,8 @@ def load_history_contexts(
 def main() -> int:
     now = datetime.now(market.TZ)
     trend = read_json(TREND_PATH)
-    low_risk = read_json(LOW_RISK_PATH)
     try:
-        low_risk_items = validate_low_risk_handoff_items(low_risk)
+        low_risk, low_risk_items, stock_handoff_kind = active_stock_handoff()
     except ValueError as exc:
         print(json.dumps({"error": "invalid_low_risk_handoff", "detail": str(exc)}, ensure_ascii=False))
         return 2
@@ -541,6 +555,13 @@ def main() -> int:
             "wait_or_trigger_condition": item.get("wait_or_trigger_condition"),
             "invalidation_condition": item.get("invalidation_condition") or item.get("invalidation"),
             "reentry_trigger": item.get("reentry_trigger"),
+            "trend_entry_plan": (
+                {k: item.get(k) for k in ("setup_type", "entry_zone", "entry_trigger",
+                     "max_entry_price", "invalidation_price", "invalidation_rule",
+                     "initial_risk_pct", "upside_to_resistance_R", "exit_plan")}
+                if stock_handoff_kind == "trend_buy_v2" else None
+            ),
+            "stock_handoff_kind": stock_handoff_kind,
             "price": quote.get("price"),
             "prev_close": quote.get("prev_close"),
             "change_pct": quote.get("change_pct"),
@@ -591,6 +612,11 @@ def main() -> int:
         "market_status": market.clock_market_status(now),
         "source_trend_trade_date": source_trend_trade_date,
         "source_low_risk_trade_date": source_low_risk_trade_date,
+        "stock_handoff_kind": stock_handoff_kind,
+        "source_stock_handoff_path": (
+            "research/trend_buy_handoff.json" if stock_handoff_kind == "trend_buy_v2"
+            else "research/low_risk_handoff.json"
+        ),
         "source_low_risk_handoff_run_id": low_risk.get("source_run_id"),
         "source_low_risk_handoff_schema_version": low_risk.get("schema_version"),
         "source_status": {
