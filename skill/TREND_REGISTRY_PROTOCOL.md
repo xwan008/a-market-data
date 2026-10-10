@@ -7,7 +7,7 @@
 - `research/trend_registry.json`：完整趋势状态账本，仅供下一轮**趋势榜**复核；保存新仓优先榜以内、以外的全部已发现且未证实失效的趋势，以及待复核的历史趋势。不能仅根据当期优先榜反推完整趋势池。
 - `research/trend_handoff.json`：原格式、原排序、原生成资格，**仅当期新仓优先榜**；供趋势买点榜及其下游盘中快照继续使用。不得混入高潮/衰退但不适合新仓的其他方向，也不得扩展 schema/更改消费者。
 - “退出新仓优先榜”与“趋势失效”是不同事件；前者不可自动触发后者。
-- 盘中监测仍读取已冻结的当期 handoff 和低风险 handoff，不额外监测仅在 registry 中的旧方向。
+- 盘中快照由当期 `research/trend_handoff.json` 与 `research/trend_buy_handoff.json` 中冻结的行业和公司名单生成；`research/trend_registry.json` 用于趋势研究记录，不直接扩充盘中监测股票池。
 
 ## 2. 读取与事实优先级
 
