@@ -56,6 +56,21 @@ class DynamicStageTests(unittest.TestCase):
         self.assertEqual(f[0]["code"], "002709")
         self.assertNotEqual(f[0]["status"], "CURRENT_READY_FOCUS")
 
+    def test_individually_confirmed_wait_outranks_unconfirmed_repairing(self):
+        early = wait_stock("600985", "REPAIRING")
+        stock_confirmed = wait_stock("002128", "TRANSITION")
+        stock_confirmed.update({
+            "structure_confirmed": True, "setup_type": "PULLBACK",
+            "entry_zone": [10.0, 10.1], "invalidation_price": 9.5,
+            "initial_risk_pct": 5.94
+        })
+        research = {"trade_date": "2026-10-09",
+                    "companies": [{"trend_name": "固态电池"}]}
+        top = engine.dynamic_top5_by_theme([], [early, stock_confirmed], research)
+        self.assertEqual(top[0]["items"][0]["code"], "002128")
+        pick = engine.select_focus_watchlist([], [early, stock_confirmed], research, top)
+        self.assertEqual(pick[0]["code"], "002128")
+
     def test_only_five_per_theme_across_industries(self):
         rows=[wait_stock("%06d"%(600001+i),"REPAIRING",support=9.4)
               for i in range(9)]
