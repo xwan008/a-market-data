@@ -1,4 +1,4 @@
-# A股低风险买点榜｜预筛与深度研究范围
+# A股趋势买点榜｜公司预筛与深度研究范围
 
 ## 1. 职责边界
 
@@ -18,7 +18,7 @@ Frozen Working Set
 - 读取任何原始 company_industry_index / shard；
 - 构造 working set。
 
-这些由 `LOW_RISK_CANONICAL_FLOW.md` 在 Freeze 前完成。
+这些由 `TREND_BUY_CANONICAL.md` 在 Freeze 前完成。
 
 ---
 
@@ -146,7 +146,7 @@ pre_screen_score =
 
 权重变化：增长 40%→45%；盈利质量仍 25%；估值匹配仍 20%；价格位置调整为趋势健康度 15%→10%。`pre_screen_score` 保持在 0–1 之间，只决定深度研究排序，不自动影响 Transmission、Expectation、READY/WAIT 或实际买入价格。
 
-**不改变其他流程：** 每个三级行业 Top5、与第5名差距 <=0.03 时可并列第6、总名额最多6；第3节硬过滤、coverage、Stage C 及之后的研究、估值、安全边际与发布流程、现有 JSON 字段及 handoff 全部不变。不新增强制 JSON 字段；如增长可靠性/过热说明无可用原备注字段，仅在用户可见研究文字中说明即可。
+**与唯一趋势买点主流程的边界：** Top5、与第五名分差≤0.03的并列第6、覆盖率和公司风险硬过滤不变。本文件只负责选择深度研究对象，不再决定合理估值、额外安全边际或正式入场价。后续以 `TREND_BUY_CANONICAL.md` 的公司证据核验、BREAKOUT/PULLBACK结构入场与版本化handoff执行。
 
 ---
 
@@ -185,7 +185,7 @@ Deep Research Set：
 随后：
 - Transmission 只覆盖 Deep Research Set；
 - Expectation 覆盖其中所有 Transmission=SUPPORTED；
-- Transmission=EARLY_EVIDENCE 单列观察，记录公司直接关联证据、商业化缺口与下一次验证触发条件，不进入 Expectation、READY / WAIT 或 handoff；
+- Transmission=EARLY_EVIDENCE 不升级为已商业化SUPPORTED；只有真实主题关联并完成额外经营风险核查，才能按 `TREND_BUY_CANONICAL.md` 继续判断趋势入场条件；
 - Risk–Reward 按后续规则闭合。
 
 Transmission 各状态（SUPPORTED / EARLY_EVIDENCE / NOT_SUPPORTED / UNCERTAIN）的去重公司数之和必须等于 Deep Research Set 去重公司数；必要检索未完成的 RESEARCH_INCOMPLETE 不得伪装成其中任一状态并发布 COMPLETE。
