@@ -13,7 +13,7 @@ import build_intraday_snapshot as snap
 
 
 def fixtures():
-    row={"rank":1,"code":"600001","trade_date":"2026-10-09","status":"READY",
+    row={"rank":1,"code":"600001","trend_name":"示例","company_name":"合成公司","trade_date":"2026-10-09","status":"READY",
          "wait_reason":None,"market_state":"趋势确认","trend_state":"T1","setup_type":"BREAKOUT","entry_zone":[20.1,20.4],
          "max_entry_price":20.4,"invalidation_price":19.6,"invalidation_rule":"confirmed failure",
          "entry_trigger":"breakout close and volume confirmed","initial_risk_pct":4,
@@ -35,7 +35,8 @@ class SingleVersionReaderTests(unittest.TestCase):
         hp=Path(folder)/"trend_buy_handoff.json"
         payload=json.dumps(formal,ensure_ascii=False).encode()
         fp.write_bytes(payload)
-        handoff["source_formal_blob_sha"]=hashlib.sha1(b"blob "+str(len(payload)).encode()+b"\0"+payload).hexdigest()
+        sha=hashlib.sha1(b"blob "+str(len(payload)).encode()+b"\0"+payload).hexdigest()
+        handoff=snap.trend_contract.project(formal,sha,shadow=False)
         hp.write_text(json.dumps(handoff,ensure_ascii=False))
         return fp,hp
 
