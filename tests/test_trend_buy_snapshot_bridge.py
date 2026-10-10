@@ -45,16 +45,16 @@ class SingleVersionReaderTests(unittest.TestCase):
                 _,rows,kind=snap.active_stock_handoff()
             self.assertEqual(kind,"trend_buy_v2")
             self.assertEqual(rows[0]["entry_zone"],[20.1,20.4])
-            self.assertNotIn("low_risk_buy_range",rows[0])
+            self.assertEqual(rows[0]["setup_type"],"BREAKOUT")
 
-    def test_missing_new_handoff_never_uses_old_data(self):
+    def test_missing_handoff_prevents_execution(self):
         with tempfile.TemporaryDirectory() as t:
             p=Path(t)/"absent.json"
             with patch.object(snap,"TREND_BUY_PATH",p):
                 with self.assertRaises(FileNotFoundError):
                     snap.active_stock_handoff()
 
-    def test_unready_migration_baseline_blocks_execution(self):
+    def test_unavailable_baseline_blocks_execution(self):
         with tempfile.TemporaryDirectory() as t:
             _,hp=self.setup_files(t)
             x=json.loads(hp.read_text())
