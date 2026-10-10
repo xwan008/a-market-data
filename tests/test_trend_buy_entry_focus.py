@@ -89,7 +89,7 @@ class EarlyFocusTests(unittest.TestCase):
     def test_no_wait_and_ready(self):
         p=engine.select_focus_watchlist([],[],research(["黄金"]))[0]
         self.assertEqual(p["status"],"NO_CURRENT_BUY_OPPORTUNITY")
-        self.assertEqual(engine.select_focus_watchlist([{"code":"600000","trend_name":"黄金","status":"READY","current_price":10,"market_state":"趋势确认","structure_confirmed":True,"setup_type":"BREAKOUT","entry_zone":[10,10.1],"invalidation_price":9.6,"initial_risk_pct":4}],[],research(["黄金"]))[0]["status"],"CURRENT_READY_FOCUS")
+        self.assertEqual(engine.select_focus_watchlist([{"code":"600000","company_name":"合成可执行样本","trend_name":"黄金","status":"READY","current_price":10,"market_state":"趋势确认","structure_confirmed":True,"setup_type":"BREAKOUT","entry_zone":[10,10.1],"invalidation_price":9.6,"initial_risk_pct":4}],[],research(["黄金"]))[0]["status"],"CURRENT_READY_FOCUS")
 
     def test_no_one_dropped_and_more_flow_signals_rank_higher(self):
         a=item("000001","工业",10,9.7,9.5,9.3,vol1=.5,rel=-5)
