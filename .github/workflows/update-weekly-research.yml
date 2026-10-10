@@ -99,7 +99,7 @@ jobs:
           print({'industry_mapping_coverage': round(coverage, 4), 'mapped': mapped, 'stocks': total})
           PY
 
-      - name: Rebuild frozen company screening working sets (legacy technical path)
+      - name: Rebuild frozen company screening working sets
         run: python scripts/build_low_risk_working_sets.py
 
       - name: Commit updated weekly research data
