@@ -32,8 +32,7 @@ class ContractTests(unittest.TestCase):
         self.assertEqual(h["schema_version"],"trend_buy_handoff_v2")
         self.assertTrue(h["shadow"])
         self.assertEqual(len(tool.validate_items(h)),1)
-        self.assertNotIn("reasonable_buy_range",h["items"][0])
-        self.assertNotIn("low_risk_buy_range",h["items"][0])
+        self.assertTrue(set(h["items"][0]).issubset(tool.ALLOWED_ITEM_FIELDS))
 
     def test_shadow_must_not_publish_live(self):
         with self.assertRaisesRegex(ValueError,"not_promoted"):
@@ -53,14 +52,14 @@ class ContractTests(unittest.TestCase):
         s["ready"]=[]
         h=tool.project(s,"testsha",shadow=True)
         self.assertEqual(h["items"][0]["wait_reason"],"WAIT_BREAKOUT")
-        h["items"][0]["wait_reason"]="WAIT_MARGIN"
+        h["items"][0]["wait_reason"]="WAIT_OTHER"
         with self.assertRaisesRegex(ValueError,"invalid_wait_reason"):
             tool.validate_items(h)
 
-    def test_legacy_value_zone_forbidden(self):
+    def test_undeclared_field_rejected(self):
         h=tool.project(sample(),"testsha",shadow=True)
-        h["items"][0]["low_risk_buy_range"]=[10,12]
-        with self.assertRaisesRegex(ValueError,"legacy_value"):
+        h["items"][0]["unexpected_trade_price"]=[10,12]
+        with self.assertRaisesRegex(ValueError,"invalid_handoff_item_fields"):
             tool.validate_items(h)
 
     def test_formal_projection_only_after_gate(self):
