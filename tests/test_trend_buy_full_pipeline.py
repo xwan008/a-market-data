@@ -25,7 +25,7 @@ def fixture():
        "selected_company_count":1,"publication_audit":audit,
        "companies":[{"code":"600001","company_name":"纯虚构测试股票","industry_code":"S000000",
           "industry_name":"纯测试","asof_price":20.2,
-          "trend_name":"测试趋势","filter_passed":True,"theme_link_verified":True,
+          "trend_name":"测试趋势","market_state":"趋势确认","trend_state":"T1","filter_passed":True,"theme_link_verified":True,
           "transmission":"SUPPORTED","source_review":"2026-10-09 synthetic proof",
           "research_falsifier":"商业传导被证伪"}]}
     structure={"contract_id":"a-share-low-risk-price-structure",
