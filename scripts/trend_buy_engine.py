@@ -242,7 +242,7 @@ def early_watch_reference(row):
         return {
             "stage":"STOCK_CONFIRMED_SECTOR_PENDING",
             "setup_mode":row["setup_type"],
-            "conditional_trigger":"个股收盘结构已出现；仍须重核板块强度、计划价未超限及下交易日量价有效性，不能视作READY",
+            "conditional_trigger":"个股收盘结构已出现；板块即使仍为候选，也可提前研究小规模试探入场，但必须次交易日复核信号仍有效、价格不超上限、账户亏损预算和结构失效位；不得冒充READY自动买入",
             "reference_trigger_price":row["entry_zone"][0],
             "reference_zone":row["entry_zone"],
             "invalidation_price":row["invalidation_price"],
