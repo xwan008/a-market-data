@@ -194,7 +194,7 @@ jobs:
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/enrich_shards_with_industry.py
 
-      - name: Build frozen company screening working sets (legacy storage path)
+      - name: Build frozen company screening working sets 
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/build_low_risk_working_sets.py
 
