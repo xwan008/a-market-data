@@ -52,8 +52,7 @@ class SingleVersionContractTests(unittest.TestCase):
         published=handoff.project(result,sha,shadow=False)
         self.assertEqual(published["schema_version"],"trend_buy_handoff_v2")
         self.assertEqual(published["source_formal_blob_sha"],sha)
-        self.assertNotIn("low_risk_buy_range",published["items"][0])
-        self.assertNotIn("reasonable_buy_range",published["items"][0])
+        self.assertTrue(set(published["items"][0]).issubset(handoff.ALLOWED_ITEM_FIELDS))
         self.assertEqual(published["items"][0]["max_entry_price"],result["ready"][0]["max_entry_price"])
 
     def test_formal_missing_one_gate_fails_closed(self):
