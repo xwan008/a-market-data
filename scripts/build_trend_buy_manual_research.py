@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Build one auditable 2026-10-09 as-of research input from frozen company facts.
 
-No reading legacy PE formal or shadow rankings. Reads trend handoff/index and
-the mapped 8 manifests/part files ONCE; freezes in memory, then scores eligible
-companies. Reviews are pre-collected dated company facts, not future estimates.
+Reads the trend handoff and mapped industry manifest/part files once,
+freezes the company set in memory, then scores eligible businesses.
+Research evidence is date-scoped and independently reviewed.
 """
 from __future__ import annotations
 import argparse
