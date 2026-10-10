@@ -72,7 +72,7 @@ def project(result, formal_sha, *, shadow=False):
     rows=[]
     for rank,x in enumerate(ready+wait,1):
         rows.append({k:x.get(k) for k in (
-            "code","company_name","trend_name","industry_code","status","wait_reason",
+            "code","company_name","trend_name","industry_code","industry_name","current_price","status","wait_reason",
             "setup_type","entry_zone","entry_trigger","max_entry_price","invalidation_price",
             "invalidation_rule","initial_risk_pct","upside_to_resistance_R","exit_plan",
             "decision_reason","transmission","research_falsifier"
