@@ -1,77 +1,50 @@
-# A股趋势买点榜｜V2唯一研究、执行和发布契约
+# A股趋势买点榜｜唯一正式业务规则（2026-10-10 起）
 
-**状态：CANDIDATE_SHADOW，尚未晋升正式调度。** 本协议拟替换“低风险PE买点榜”的买点阶段；**不改变**已有上游“A股板块趋势榜”、原行业映射、原冻结公司池、Top5/并列第6预筛、公司基本面风险过滤、商业关联事实审查、全量Coverage/Fresh Run证据审计和交易日校验。旧版正式result/handoff保留历史，只读，不原地重释旧price range。生效切换必须一次性升级 result/handoff→快照→盘中解释→定时任务，并校验通过；前置影子验证不自动晋升。
+**状态：PRODUCTION_CANONICAL。** 此文件是原“A股低风险PE买点榜”的**唯一替代**。不存在双引擎、双榜或自动回退旧估值版本。历史低风险榜及其规则只可作为 Git 版本历史查阅，不得在当前决策、发布、监控或失败恢复中引用。技术阈值为可修正的初始参数，不代表已经证明有超额收益。
 
-## 1. 唯一目标和边界
+## 1. 唯一目标
 
-趋势买点榜仅回答：在已验证市场/产业趋势与公司级关联的前提下，是否**出现可执行的趋势入场结构**？在哪个价格区内执行？超过什么价格取消追入？什么条件说明结构错误，如何风险退出？
+从已核实的行业趋势出发，选择真实业务关联且公司质量/风险可接受的候选股票，识别**完成交易日K线确认**的突破/回踩买点，给出**次日允许的入场区间、最高追价、结构失效价、退出条件、初始价格风险**。没有买点就 WAIT，没有可靠数据就 UNCERTAIN，结构或业务严重失效就 DROP，绝不为凑READY而推测。
 
-链路：
-```
-当日Trend Handoff（不篡改上游）
-→ Manifest/Part冻结工作集 + Stage A硬过滤 + Stage B行业Top5/6
-→ Stage C公司主题业务关联与风险过滤
-→ Stage D个股同日价格结构确认（突破 / 回调，价格量能证据）
-→ Stage E入场区间、失效价、最大可接受风险与退出条件
-→ READY / WAIT / UNCERTAIN / DROP → 版本化handoff → 盘中执行（只监测不重选股）
-```
+公司基本面 / PE / PB / MA60 / 历史位置是**公司过滤、同业比较和风险识别**，不是估值折价买价。不能以“便宜”或“离MA60近”自动标记 READY。趋势买点与企业公允价值不同，失效价格是执行纪律，不保证实际成交止损。
 
-**公司过滤≠买点确认。** PE/PB/盈利、经营现金流/MA60/结构健康度可影响筛选、风险标记，但**禁止**把PE估值锚、MA60、历史60日低点或折价后的所谓“合理价值”直接作为入场价格。短期过热不能单纯因创新高判负，必须结合成交、距MA20距离及入场损失衡量。市场轮动/Expectation仅为趋势是否持续的研究解释，不能凭新闻热度单独触发买入。
+## 2. 唯一执行链
 
-## 2. 上游兼容与数据门槛
+1. 使用 research/trend_handoff.json，按 skill/TREND_HANDOFF_ROUTING_OVERRIDE.md 路由行业；时间以 Asia/Shanghai 为准，官方A股交易日校验。早7:00用严格前一完整交易日，晚19:00用当日完整收盘；非交易日自动任务停止，不把旧日期冒充当前。
+2. 读取 data/low_risk/index.json（这是**公司冻结池的旧技术目录名**，不代表旧榜仍在运行），逐行业读取一次manifest和所有parts，校验日期、身份、成员、字节、完整性；构造working set后Freeze，禁止回读shard/index/part补充冻结字段。
+3. 依据 skill/PRE_SCREEN_RESEARCH_SCOPE_OVERRIDE.md 对全部公司硬过滤和同业预筛：0.45增长传导代理+0.25质量+0.20 PE/PB与增长匹配+0.10趋势健康；每行业Top5，分差≤0.03可第6。审计完整的Universe、未入选名单、公司覆盖率，未完成不得发布。
+4. 对全部入选公司完成本轮公司业务关联/风险核查：SUPPORTED=有可核实的商业传导；EARLY_EVIDENCE=主题相关研发/客户测试有事实但盈利未兑现，允许继续评估交易结构但需额外核实风险；UNCERTAIN=证据缺失/冲突，NOT_SUPPORTED=直接业务联系被证伪。公司盈利和现金流的实质性风险可能阻断READY，但不得靠PE/MA60生成入场位。
+5. 从已完成日K生成并持久化的 data/research/full_market_price_structure.json 获取结构（scripts/build_full_market_price_structure.py）。交易日必须等于冻结池trade_date；每个候选≥120根有效已完成日K，data_status=verified，data_date与price一致；同日冻结收盘价与结构价偏差超过合理精度该公司UNCERTAIN，不能回退旧值。
+6. 使用 scripts/trend_buy_engine.py 的 `trend_buy_research_v2 → trend_buy_result_v2` 逻辑。仅确认 BREAKOUT（历史60/120日前高、放量、收盘位置）或 PULLBACK（上升结构、MA20回踩、收盘承接）两类结构。必须明确 entry_zone、max_entry_price、entry_trigger、invalidation_price、invalidation_rule、initial_risk_pct、exit_plan；待触发WAIT可以给条件区，不将其称作当天有效买点。
+7. 完成发布前审计：fresh_company_research、working_set_frozen、pre_screen_coverage、company_research_coverage、structure_same_day、no_future_evidence、json_schema_valid 全部true；以及source-review、价格和状态一致。**无合法COMPLETE结果就报告失败，并让盘中标记“本轮趋势榜不可用”；绝不回退历史低风险榜。**
+8. 正式结果唯一写 research/trend_buy_formal_result.json，schema `trend_buy_result_v2`，包含明确run_id、trade_date、READY/WAIT/UNCERTAIN/DROP及审计。写前JSON序列化+反解析+完整Gate；GitHub提交后从main回读内容、SHA、run_id、名单逐项一致。
+9. 仅19:00完整正式研究发布后，取已readback正式结果的真实 blob SHA，投影 scripts/trend_buy_handoff.py 的 `trend_buy_handoff_v2`，**唯一写 research/trend_buy_handoff.json**。HANDOFF只含READY+WAIT，完全保留股票身份、交易计划和rank，禁止出现 `reasonable_buy_range`、`low_risk_buy_range`。写后READBACK比对。早7:00只是隔夜信息复核，不写handoff；人工明确要求完整收盘版且Gate全部通过时可更新。
+10. 盘中唯一读取 research/intraday_market_snapshot.json，并确认其 source_stock_handoff_path 为 research/trend_buy_handoff.json、stock_handoff_kind=trend_buy_v2、schema/run_id/日期/名单完全一致后执行 skill/INTRADAY_MONITOR_CANONICAL.md。盘中不重新选股，不改入场价，不用历史“估值买点”补价，不自动下单。
 
-- 日期全部 Asia/Shanghai；07:00用前一已完成正式交易日，19:00用当日正式收盘；遇非交易日自动跳过；不推断交易日。
-- 原 `skill/LOW_RISK_CANONICAL_FLOW.md` **仅第2至5节的行业路由、manifest/index/part/Freeze、硬过滤和预筛流程**以及 `skill/PRE_SCREEN_RESEARCH_SCOPE_OVERRIDE.md` 预筛规则沿用。第6-9节中基于静态估值决定WAIT/READY、fundamental anchor、安全边际的部分**在V2不可继续适用**。其他历史研究协议只作为旧版本，不被V2调用决定买点。
-- Frozen Working Set 的数据事实只从本轮已核验的行业物化工作集建立。禁止 Freeze 后重复读取 index、manifest、part、shard补价；上游价格缺失/旧数据不能后验补造。
-- **独立结构输入**：构建市场每日已完成日K数据 `data/research/full_market_price_structure.json`（由 `scripts/build_full_market_price_structure.py` 从完成交易日行情和180日历史生成）。其 `reference_trade_date` 必须严格等于本轮 `trade_date`，候选记录 `data_status=verified`、`data_date=trade_date`、`history_points>=120` 才能做入场结论。结构数据为另一个**同日已建成、已发布且一致性验证通过的聚合视图**；如果正式 Freeze 已完成而该视图未准备好，停止该轮发布，不能回头读取shard补建或拿旧指标凑数。
-- 结构视图必须源于同一根日度行情并验证当前价/收盘日期/公司身份与Frozen Working Set一致；差异超合理报价精度则 `STRUCTURE_PRICE_MISMATCH`，该公司UNCERTAIN并在审计披露。不凭空外推成交量。
-- 不够120个有效日K时必须 UNCERTAIN；从预筛成功不能推导出买点准备就绪。
-- 新版预筛 `0.45 growth + 0.25 quality +0.20 valuation_match +0.10 trend_health` 保留。PE/PB仅用于同业质量/估值风险过滤，**不把指标直接变成买价**。单行业Top5，差距<=0.03可含第6，覆盖率100%。
+## 3. 初始交易规则（继续运行中校准）
 
-## 3. 公司证据与Transmission
+- BREAKOUT：当日收盘站稳前60/120日关键阻力（不含当日K线），当日/近5日量比确认且收盘在当日振幅位置≥55%；距MA20明显过大不追，跳空超max_entry_price取消买入。
+- PULLBACK：已确认上升结构、higher_low、MA20附近实际触及、收盘重新站上MA20且高于前收盘并形成较强承接；仅碰到均线不是买点。
+- 风控初值：入场区间上沿到失效价的价格距离上限6%；收盘距MA20>8%或chase=high时不追；已知合理上方阻力若不足1.5R暂缓；默认下一交易日最多1.2%执行价格容差。**这些均是试运行参数，后续根据假突破、最大回撤、换手、跳空、手续费实证调整。** 不知道上方阻力不能伪造涨幅目标。
+- 价格区与失效价只是计划；实盘跳空、涨跌停、成交滑点可导致更大亏损；仓位按账户可承受错误成本决定。
+- EXIT：①商业逻辑被证伪；②确认结构失效/突破失败；③市场/行业趋势衰退与个股转弱共振；④上涨后结构保护位上移及分批退出。盘中暂时跌破与收盘确认分开处理；持仓与空仓使用不同规则。不得因为价格反弹到成本价就机械清仓。
 
-- SUPPORTED：已核实行业主题直接商业订单、客户认证、正式项目/交付或经营传导。
-- EARLY_EVIDENCE：真实技术/样品/研发业务关联，但商业化不足；**可继续观察趋势结构**，不是公司盈利已兑现的证据。只有 `theme_link_verified=true`、已逐项完成重大经营现金流/稀释/概念归因风险审查 `early_evidence_risk_review_passed=true`，且交易结构也通过时才允许有条件 READY，且必须明确更高不确定性；不因股价上涨自动升级 SUPPORTED。保守阶段可保持WAIT_CONFIRMATION。
-- UNCERTAIN：缺公司业务关联/关键财务资料/量价证据，不能给READY；NOT_SUPPORTED或硬过滤失败为DROP。
-- 任何公司的重大退市风险、ST、不明股本变化、明显失真信息等必须先阻断。不存在“必须三情景预测未来EPS才能形成趋势买点”的条件；但同样不能以无法估值暗示便宜。
+## 4. 状态与字段
 
-## 4. 唯一的两种入场结构
+- READY：公司研究完成，入场结构已确认，下一交易日存在具风险边界的条件执行计划。不是即时无条件买入。
+- WAIT：等待突破/回调/进一步确认/风险改善，`wait_reason` 只允许 WAIT_BREAKOUT / WAIT_PULLBACK / WAIT_CONFIRMATION / WAIT_RISK_REWARD。WAIT理由必须可理解；待触发区间不等于已经满足入场条件。
+- UNCERTAIN：公司业务、K线/成交或日期口径缺口，不能给可信计划。
+- DROP：公司业务关联反证、重大风险硬过滤，或明确结构损毁且不再可研究。
+- EARLY_EVIDENCE 不能自动升级为商业化SUPPORTED，但可以在充分直接业务证据和额外经营风险复核后研究趋势买点。禁止把主营其他合同冒充主题商业兑现。
 
-**突破 BREAKOUT**
-1. 只用已完成收盘的当日K线与此前60/120日高位（计算压力位必须排除当日数据）；
-2. 当前完成K线收于关键前高附近/上方，且成交比（当日对20日>=1.15，或5日对20日>=1.05）与收盘在当日振幅位置>=55%确认；
-3. 价格位于上升结构，距MA20不过度延伸、追高风险不高；
-4. 给出下一交易日允许的 `entry_zone`、绝对 `max_entry_price`、失败结构位及成本损失率；
-5. 跳空超过上限取消，不能把“昨日收盘确认”冒充次日可在昨日价格成交。
+状态按行业/公司、来源时间、情景风险、价格证据全覆盖。READY/WAIT依正式引擎保证具有必填参数；handoff不许保留旧估值区间字段。
 
-**回调 PULLBACK**
-1. 必须有有效上升趋势背景、MA60支撑和 `higher_low`；
-2. 当日最低价触及MA20的合理容差范围，收盘重新站上MA20且高于前收盘，收盘位置>=55%；
-3. 跌到均线本身不是买入信号；不能用过期Pivot/未观察的回踩路径冒充已出现的承接；
-4. 同样给出入场价格上限、结构失效与跳空风险。
+## 5. 唯一版本与异常原则
 
-**风险收益**：V2初版试验参数（**非经回测证明最优**）为结构入场损失上限6%、距MA20>8%或chase=high禁追、已知第一上方阻力若不足1.5R则WAIT。没有可信阻力不伪造涨幅目标，采用趋势保护退出。风险预算只以认错成本控制仓位，实际跳空/滑点可超预期。设置风险验证、收盘/盘中例外与减仓原则；固定2R不是止盈硬门槛。需要多日样本比较最大回撤、误触发、换手成本后才能晋升正式算法。
+原 low-risk 正式结果、handoff、对应历史规则和影子估值研究**已退役**；仓库 Git 历史及研究归档可追溯，但**没有活跃第二榜单**。每日定时任务名称“A股趋势买点榜”，周一至周五北京07:00/19:00原时段。上游“A股板块趋势榜”06:40/18:40及盘中执行监测原时段保持不变，仍通过交易日Gate。
 
-## 5. 状态与合同（V2）
+旧路径 research/latest_formal_result.json 和 research/low_risk_handoff.json 不可再被读取为生产研究或盘中状态来源。若当天新版正式结果还未有效发布（例如首个早间没有基线），则报告 MORNING_HANDOFF_UNAVAILABLE / NO_VALID_TREND_BUY_HANDOFF；不能将历史低风险记录改名冒充新榜。
 
-READY：公司通过研究，突破或回调**在目标收盘日已经确认**，形成下一交易日有条件的有效 `entry_zone`、`entry_trigger`、`max_entry_price`、`invalidation_price`、`invalidation_rule`、`initial_risk_pct`和`exit_plan`；READY并非市价买入指令。
+每次失败记录具体阶段、工具、readback/commit与真实错误；权限或安全拒绝不得换工具规避。失败不覆盖最后一份**同版本且时间适用**的COMPLETE正式结果，也不以旧数据冒充新日期。完整审计通过后才称PERSISTED。
 
-WAIT：候选合格但未突破、回调尚未确认、短时过热或结构成本太高；原因只允许 `WAIT_BREAKOUT`、`WAIT_PULLBACK`、`WAIT_CONFIRMATION`、`WAIT_RISK_REWARD`；不得由原WAIT_MARGIN、WAIT_PRICE冒充新原因。对于不能准确计算入场条件的公司，UNCERTAIN而非编造价位。
-
-UNCERTAIN：缺关键量价、研究/价日期不符或入场/失效价无法建立；DROP：已证伪直接主题关联、硬过滤失败或已确认结构失效。筛出并不等于任何必买信号。
-
-独立版本化schema：
-- 正式结果规划路径 `research/trend_buy_formal_result.json`，`schema_version=trend_buy_result_v2`；在晋升前仅在 `research/shadow/` 输出试验结果，标 `production_eligible=false`。
-- 正式交接规划路径 `research/trend_buy_handoff.json`，`schema_version=trend_buy_handoff_v2`，只可从同日 `status=COMPLETE` 且已readback的正式result投影其 READY+WAIT，禁止携带旧 `reasonable_buy_range` 或 `low_risk_buy_range` 字段。
-- 传递字段必须有 `trade_date/source_run_id/source_formal_blob_sha`、rank、code、公司/主题/行业身份、status、wait_reason、类型、入场计划与退出计划。冻结身份顺序完全一致。
-- 盘中快照须读取**当前已切换版本**的handoff并进行相同 schema/Gate；存储和提示必须保留新旧两套字段独立命名，不把趋势入场价误作估值合理区。盘中只负责触发/等待/风险提示，不自动下单、不重新研判公司或估值。
-- 每次run须从最新有效上游handoff重算、全部审计通过才发布；报告全部READY/WAIT/UNCERTAIN/DROP、覆盖率和等待原因，不能为了出READY提前停止。
-- 写入必须先JSON序列化和反解析、Coverage/Gate检查，更新前读目标最新SHA，成功后取得新commit与blob SHA且完整回读，才报告PERSISTED。失败不覆盖最后一版有效榜单。
-
-## 6. 迁移和晋升顺序
-
-1. **SHADOW**：新增规则与引擎，补每日聚合价格结构的自动生成，CI校验典型突破/回踩/高开/缺数据/假突破、跨日期隔离。
-2. **PAPER**：使用已发布10/09候选及当日冻结视图进行不泄漏未来信息的对照；反复在不同市场环境进行样本外分析。旧正式结果、旧handoff、盘中监控不改变。
-3. **PRODUCTION**：只有价格视图日期和数据完整性、真实案例买点检验、跨交易日risk/return验证、新版result与handoff投影、盘中快照消费与执行规则、新旧历史衔接均PASSED，才将单一定时任务从“A股低风险买点榜”更名为“A股趋势买点榜”；保留07:00/19:00、Asia/Shanghai、交易日Gate。盘中任务保持原时间，不在一次未经验证的迁移中停用所有监控。
-
-冻结期间不造新的“今天”行情；当前测试用阈值与模型尚未证明优于旧规则时明确标 `NOT_PROMOTED`。
+正式业务流程不再读 skill/LOW_RISK_CANONICAL_FLOW.md、skill/PRICE_RANGE_OUTPUT_OVERRIDE.md、skill/INDUSTRY_ADAPTIVE_VALUATION_OVERRIDE.md、skill/SKILL.md 的旧状态/估值买价规则；以本文件为唯一公司研究与买点主规则。其余旧研究文件只保留存档用途，不可与本文件“合并生效”。
