@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Versioned trend-entry handoff projection and semantic validation.
 
-The payload is never written to legacy low-risk files. Shadow input cannot
-publish a live handoff. Publication requires explicit production gate.
+Projects validated READY/WAIT trade plans into a versioned handoff.
+Published handoffs require an eligible, completed formal research result.
 """
 from __future__ import annotations
 import argparse
@@ -11,6 +11,14 @@ from pathlib import Path
 
 WAIT_REASONS={"WAIT_BREAKOUT","WAIT_PULLBACK","WAIT_CONFIRMATION","WAIT_RISK_REWARD"}
 SETUPS={"BREAKOUT","PULLBACK"}
+PROJECT_FIELDS=(
+    "code","company_name","trend_name","industry_code","industry_name","current_price",
+    "market_state","trend_state","status","wait_reason","setup_type","entry_zone",
+    "entry_trigger","max_entry_price","invalidation_price","invalidation_rule",
+    "initial_risk_pct","upside_to_resistance_R","exit_plan","decision_reason",
+    "transmission","research_falsifier",
+)
+ALLOWED_ITEM_FIELDS=set(PROJECT_FIELDS)|{"rank","trade_date"}
 
 def positive(v):
     return type(v) in (int,float) and v>0
@@ -40,8 +48,8 @@ def validate_items(handoff):
             raise ValueError("trend_handoff_rank_mismatch")
         if item.get("trade_date")!=handoff.get("trade_date"):
             raise ValueError("trend_handoff_date_mismatch")
-        if "reasonable_buy_range" in item or "low_risk_buy_range" in item:
-            raise ValueError("legacy_value_buy_ranges_not_allowed")
+        if not set(item).issubset(ALLOWED_ITEM_FIELDS):
+            raise ValueError("invalid_handoff_item_fields")
         zone=item.get("entry_zone")
         stop=item.get("invalidation_price")
         if zone is not None:
@@ -73,12 +81,7 @@ def project(result, formal_sha, *, shadow=False):
     wait=result.get("wait") or []
     rows=[]
     for rank,x in enumerate(ready+wait,1):
-        rows.append({k:x.get(k) for k in (
-            "code","company_name","trend_name","industry_code","industry_name","current_price","market_state","trend_state","status","wait_reason",
-            "setup_type","entry_zone","entry_trigger","max_entry_price","invalidation_price",
-            "invalidation_rule","initial_risk_pct","upside_to_resistance_R","exit_plan",
-            "decision_reason","transmission","research_falsifier"
-        )}|{"rank":rank,"trade_date":result["trade_date"]})
+        rows.append({k:x.get(k) for k in PROJECT_FIELDS}|{"rank":rank,"trade_date":result["trade_date"]})
     payload={
         "schema_version":"trend_buy_handoff_v2","status":"COMPLETE",
         "trade_date":result["trade_date"],
@@ -98,8 +101,8 @@ def main():
     args=ap.parse_args()
     inp=Path(args.result).resolve()
     out=Path(args.output).resolve()
-    if inp==out or out.name in {"low_risk_handoff.json","latest_formal_result.json"}:
-        raise ValueError("refusing overwrite old formal objects")
+    if inp==out:
+        raise ValueError("input_and_output_must_differ")
     if not args.shadow and out.name!="trend_buy_handoff.json":
         raise ValueError("formal handoff filename mismatch")
     data=project(json.loads(inp.read_text(encoding="utf-8")),args.result_blob_sha,shadow=args.shadow)
