@@ -8,8 +8,9 @@
 Frozen Working Set
 → Company Hard Filter
 → Lightweight Peer Pre-screen
-→ 每行业 Top5 / 并列第6
-→ Deep Research Set
+→ 所有hard-eligible轻量趋势评估
+→ 完成主题核查与入场分析
+→ 每主题动态Top5
 ```
 
 本文件不负责：
@@ -58,7 +59,7 @@ post_freeze_materialized_read_count == 0
 
 ## 4. 轻量同业预筛
 
-**目标：** 预筛仅在同业 hard-eligible 公司之间分配深度研究名额；不再将「PE 越低越好」「60 日股价位置越低越好」视作独立优势。改为寻找**增长与估值匹配、盈利质量良好、趋势结构健康**的公司，避免低增长价值陷阱和盲目追逐高估值成长故事。仍只消费本轮已 Freeze 的 working set，禁止补读 shard/index/materialized、另行 Web 查询或引入未经验证的未来盈利预测。
+**目标：** 在同业hard-eligible公司之间提供研究优先级与质量描述；不得提前截断后续买点候选；不再将「PE 越低越好」「60 日股价位置越低越好」视作独立优势。改为寻找**增长与估值匹配、盈利质量良好、趋势结构健康**的公司，避免低增长价值陷阱和盲目追逐高估值成长故事。仍只消费本轮已 Freeze 的 working set，禁止补读 shard/index/materialized、另行 Web 查询或引入未经验证的未来盈利预测。
 
 ### 4.1 输入及同业分位
 
@@ -146,62 +147,17 @@ pre_screen_score =
 
 `pre_screen_score` 保持在0–1之间，仅决定深度研究的同业排序。买点形态与风险计划由后续趋势研究独立确认。
 
-**与趋势买点主流程的边界：** 本文件负责硬过滤、同业Top5/并列第6、覆盖率及预筛排序。入场触发、结构失效与正式状态由`TREND_BUY_CANONICAL.md`负责。
+**边界：** 本文件负责所有hard-eligible的硬过滤、评分与覆盖审计，不截断Top5；最终每主题0-5只由趋势买点引擎在公司研究、趋势阶段及风险判断之后确定。
 
 ---
 
-## 5. Deep Research 名额
+## 5. 不进行前置Top5截断
 
-1. 每个三级行业按 pre_screen_score 降序；
-2. 原则上 Top5；
-3. hard-eligible <=5 时全部进入；
-4. 第6名与第5名绝对分差 <=0.03 时可并列进入；
-5. 单行业最多6家；
-6. 同一公司多路由命中只深研一次。
+所有hard-eligible公司保留在预筛结果中，统一计算紧凑价量状态。原评分继续用于辅助审查，不按分数固定限制研究对象。不得把MA60以下股票因均线位置排除于修复研究之外；硬风险过滤仍有效。新买入机会按趋势主题跨三级行业竞争，最多五个，不凑足名单。
 
-未入选：
+## 6. 覆盖与发布
 
-`PRE_SCREENED_OUT`
-
-这表示本轮不继续深研，不等于基本面否定，不计入 DROP。
-
----
-
-## 6. Coverage
-
-```text
-pre_screen_processed_codes
-==
-all_hard_eligible_codes_in_frozen_working_sets
-```
-
-Deep Research Set：
-
-```text
-每行业 Top5 + 明确并列第6
-的去重并集
-```
-
-随后：
-- Transmission 只覆盖 Deep Research Set；
-- 每家深度研究候选都应核实商业传导的来源、经营兑现阶段和风险；
-- Transmission=EARLY_EVIDENCE 不升级为已商业化SUPPORTED；只有真实主题关联并完成额外经营风险核查，才能按 `TREND_BUY_CANONICAL.md` 继续判断趋势入场条件；
-- 入场计划与风险收益评估由趋势买点引擎完成。
-
-Transmission 各状态（SUPPORTED / EARLY_EVIDENCE / NOT_SUPPORTED / UNCERTAIN）的去重公司数之和必须等于 Deep Research Set 去重公司数；必要检索未完成的 RESEARCH_INCOMPLETE 不得伪装成其中任一状态并发布 COMPLETE。
-
----
-
-## 7. 正式结果
-
-至少保存：
-
-- `hard_filtered_out`
-- `pre_screen_selected`
-- `pre_screened_out`
-- 每个 hard-eligible 公司的 pre_screen_score 或明确不可计算原因
-
-若任何 hard-eligible 公司未完成预筛且无明确原因：
-`pre_screen_coverage != COMPLETE`
-
-不得因为已找到 READY 提前停止已入选公司的完整 coverage。
+- 所有hard-eligible公司都必须有可审计的预筛分数和技术摘要；无数据要明确原因。
+- 真实主题关联、经营与财务风险需要独立验证；缺乏直接核查不能升级为READY或合格WAIT。
+- 研究覆盖Gate不完整不得以FORMAL模式发布COMPLETE结果。
+- 动态Top5只从完成审查且有合格近期买点条件的READY/WAIT里选择；其他研究结果仍须保留并解释。
