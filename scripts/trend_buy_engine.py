@@ -3,7 +3,7 @@
 
 Consumes an independently screened/researched current-date candidate JSON and
 the existing full-market mechanical price-structure snapshot. No order placement.
-Never writes/reads the legacy low-risk formal or handoff files.
+Produces a versioned, independently validated trade research result.
 """
 from __future__ import annotations
 import argparse
@@ -437,8 +437,8 @@ def main():
     args=ap.parse_args()
     src=[Path(args.research).resolve(),Path(args.structure).resolve()]
     out=Path(args.output).resolve()
-    if out in src or out.name in {"latest_formal_result.json","low_risk_handoff.json","trend_buy_handoff.json"}:
-        raise ValueError("refuse overwrite formal/handoff")
+    if out in src or out.name in {"trend_buy_formal_result.json","trend_buy_handoff.json"}:
+        raise ValueError("refuse_direct_publication_from_computation_stage")
     data=generate(json.loads(src[0].read_text(encoding="utf-8")),
                   json.loads(src[1].read_text(encoding="utf-8")))
     out.parent.mkdir(parents=True,exist_ok=True)
