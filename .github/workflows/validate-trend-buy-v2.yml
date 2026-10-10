@@ -52,5 +52,13 @@ jobs:
           assert all('reasonable_buy_range' not in x and 'low_risk_buy_range' not in x for x in handoff['items'])
           print('SHADOW_SUMMARY',json.dumps(result['summary'],ensure_ascii=False))
           PY
+      - name: Archive shadow report and handoff
+        uses: actions/upload-artifact@v4
+        with:
+          name: trend-buy-shadow-2026-10-09
+          path: |
+            /tmp/trend-buy-shadow-2026-10-09.json
+            /tmp/trend-buy-shadow-handoff.json
+          retention-days: 30
       - name: Syntax check original aggregation engine
         run: python -m py_compile scripts/build_full_market_price_structure.py scripts/trend_buy_engine.py scripts/trend_buy_handoff.py scripts/build_intraday_snapshot.py
