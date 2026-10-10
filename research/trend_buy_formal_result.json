@@ -8,8 +8,8 @@
   "structure_trade_date": "2026-10-09",
   "structure_contract": "a-share-low-risk-price-structure",
   "model_thresholds": {
-    "max_entry_risk_pct": 6.0,
-    "max_ma20_distance_pct": 8.0,
+    "max_entry_risk_pct": 6,
+    "max_ma20_distance_pct": 8,
     "min_resistance_reward_R": 1.5,
     "status": "PROVISIONAL_LIVE_PARAMETERS_MONITOR_AND_REVISE"
   },
@@ -1306,6 +1306,134 @@
       "source_review": "公司煤炭产销与售价直接受动力煤/焦煤景气传导，2026年中报及行业资料可核验经营量价、成本和利润兑现。"
     }
   ],
+  "focus_watchlist": [
+    {
+      "trend_name": "固态电池",
+      "status": "EARLY_FOCUS_NOT_READY",
+      "trade_date": "2026-10-09",
+      "code": "002074",
+      "company_name": "国轩高科",
+      "market_state": "趋势确认",
+      "source_wait_reason": "WAIT_PULLBACK",
+      "transmission": "EARLY_EVIDENCE",
+      "current_price": 30.41,
+      "standard_setup_confirmed": false,
+      "early_signal_count": 5,
+      "early_signal_flags": {
+        "volume_1d": true,
+        "volume_5d": true,
+        "relative_strength": true,
+        "ma20_turning": true,
+        "close_strength": false,
+        "higher_low": true
+      },
+      "reference": {
+        "stage": "PRE_TREND_WATCH",
+        "setup_mode": "PULLBACK_HOLD",
+        "conditional_trigger": "等待回踩MA20附近后出现真实承接/反包，避免仅因价格碰到均线就买；现有结构止损过远或缺失，尚不能给可靠的条件买入区，需等待新支撑形成",
+        "reference_trigger_price": 26.872,
+        "reference_zone": null,
+        "invalidation_price": null,
+        "estimated_price_risk_pct": null,
+        "risk_threshold_pct": 8,
+        "price_basis": "同一已完成交易日的冻结技术数据，非估值买入价"
+      },
+      "reference_trigger_distance_pct": 11.63,
+      "company_screen_score": 0.746875,
+      "decision_reason": "从本板块全部合格WAIT中优先早期量价承接/相对强弱与近期条件入场，不要求板块已确认",
+      "remaining_blocks_to_ready": [
+        "个股标准趋势买点尚未确认",
+        "尚缺可靠的近端风险失效价，不能形成条件交易区间",
+        "相关业务仍属早期商业化证据"
+      ],
+      "not_buy_order": true
+    },
+    {
+      "trend_name": "煤炭",
+      "status": "EARLY_FOCUS_NOT_READY",
+      "trade_date": "2026-10-09",
+      "code": "002128",
+      "company_name": "电投能源",
+      "market_state": "候选趋势",
+      "source_wait_reason": "WAIT_CONFIRMATION",
+      "transmission": "SUPPORTED",
+      "current_price": 28.8,
+      "standard_setup_confirmed": true,
+      "early_signal_count": 2,
+      "early_signal_flags": {
+        "volume_1d": false,
+        "volume_5d": false,
+        "relative_strength": false,
+        "ma20_turning": false,
+        "close_strength": true,
+        "higher_low": true
+      },
+      "reference": {
+        "stage": "STOCK_CONFIRMED_SECTOR_PENDING",
+        "setup_mode": "PULLBACK",
+        "conditional_trigger": "个股收盘结构已出现；板块即使仍为候选，也可提前研究小规模试探入场，但必须次交易日复核信号仍有效、价格不超上限、账户亏损预算和结构失效位；不得冒充READY自动买入",
+        "reference_trigger_price": 28.656,
+        "reference_zone": [
+          28.656,
+          29.146
+        ],
+        "invalidation_price": 27.557,
+        "estimated_price_risk_pct": 5.45,
+        "risk_threshold_pct": 6,
+        "price_basis": "同日已确认个股结构，板块可能尚未确认"
+      },
+      "reference_trigger_distance_pct": 0.5,
+      "company_screen_score": 0.666477,
+      "decision_reason": "从本板块全部合格WAIT中优先早期量价承接/相对强弱与近期条件入场，不要求板块已确认",
+      "remaining_blocks_to_ready": [
+        "板块趋势仍待确认"
+      ],
+      "not_buy_order": true
+    },
+    {
+      "trend_name": "黄金/贵金属",
+      "status": "EARLY_FOCUS_NOT_READY",
+      "trade_date": "2026-10-09",
+      "code": "600988",
+      "company_name": "赤峰黄金",
+      "market_state": "候选趋势",
+      "source_wait_reason": "WAIT_CONFIRMATION",
+      "transmission": "SUPPORTED",
+      "current_price": 41.38,
+      "standard_setup_confirmed": false,
+      "early_signal_count": 3,
+      "early_signal_flags": {
+        "volume_1d": true,
+        "volume_5d": true,
+        "relative_strength": false,
+        "ma20_turning": false,
+        "close_strength": true,
+        "higher_low": false
+      },
+      "reference": {
+        "stage": "PRE_TREND_WATCH",
+        "setup_mode": "MA20_RECOVERY",
+        "conditional_trigger": "观察日K重新站上MA20，回调低点不创新低，且收盘承接与相对强弱改善",
+        "reference_trigger_price": 42.638,
+        "reference_zone": [
+          42.638,
+          43.405
+        ],
+        "invalidation_price": 41.254,
+        "estimated_price_risk_pct": 4.96,
+        "risk_threshold_pct": 8,
+        "price_basis": "同一已完成交易日的冻结技术数据，非估值买入价"
+      },
+      "reference_trigger_distance_pct": 3.04,
+      "company_screen_score": 0.615625,
+      "decision_reason": "从本板块全部合格WAIT中优先早期量价承接/相对强弱与近期条件入场，不要求板块已确认",
+      "remaining_blocks_to_ready": [
+        "板块趋势仍待确认",
+        "个股标准趋势买点尚未确认"
+      ],
+      "not_buy_order": true
+    }
+  ],
   "summary": {
     "ready": 0,
     "wait": 18,
@@ -1342,7 +1470,7 @@
         "industry_code": "S240401",
         "score": 0.815625,
         "growth": 0.9375,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.59375,
         "trend_health": 0.25,
         "growth_risk": false
@@ -1353,7 +1481,7 @@
         "industry_code": "S240401",
         "score": 0.784375,
         "growth": 0.8125,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.46875,
         "trend_health": 0.75,
         "growth_risk": false
@@ -1364,7 +1492,7 @@
         "industry_code": "S240401",
         "score": 0.615625,
         "growth": 0.4375,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.46875,
         "trend_health": 0.75,
         "growth_risk": false
@@ -1386,7 +1514,7 @@
         "industry_code": "S240401",
         "score": 0.56875,
         "growth": 0.375,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.625,
         "trend_health": 0.25,
         "growth_risk": false
@@ -1397,7 +1525,7 @@
         "industry_code": "S240401",
         "score": 0.546875,
         "growth": 0.3125,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.65625,
         "trend_health": 0.25,
         "growth_risk": false
@@ -1408,7 +1536,7 @@
         "industry_code": "S240504",
         "score": 0.730556,
         "growth": 0.59091,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.57323,
         "trend_health": 1,
         "growth_risk": false
@@ -1441,7 +1569,7 @@
         "industry_code": "S240504",
         "score": 0.633333,
         "growth": 0.63636,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.48485,
         "trend_health": 0,
         "growth_risk": false
@@ -1463,7 +1591,7 @@
         "industry_code": "S240504",
         "score": 0.55,
         "growth": 0.27273,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.63636,
         "trend_health": 0.5,
         "growth_risk": false
@@ -1474,7 +1602,7 @@
         "industry_code": "S240603",
         "score": 0.879167,
         "growth": 0.91667,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.95833,
         "trend_health": 0.25,
         "growth_risk": false
@@ -1485,7 +1613,7 @@
         "industry_code": "S240603",
         "score": 0.708333,
         "growth": 0.66667,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.66667,
         "trend_health": 0.25,
         "growth_risk": false
@@ -1496,7 +1624,7 @@
         "industry_code": "S240603",
         "score": 0.679167,
         "growth": 0.58333,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.70833,
         "trend_health": 0.25,
         "growth_risk": false
@@ -1507,7 +1635,7 @@
         "industry_code": "S240603",
         "score": 0.6125,
         "growth": 0.58333,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.375,
         "trend_health": 0.25,
         "growth_risk": false
@@ -1518,7 +1646,7 @@
         "industry_code": "S240603",
         "score": 0.35,
         "growth": 0.5,
-        "quality": 0.0,
+        "quality": 0,
         "valuation_match": 0.5,
         "trend_health": 0.25,
         "growth_risk": true
@@ -1528,8 +1656,8 @@
         "name": "永兴材料",
         "industry_code": "S240603",
         "score": 0.325,
-        "growth": 0.0,
-        "quality": 1.0,
+        "growth": 0,
+        "quality": 1,
         "valuation_match": 0.25,
         "trend_health": 0.25,
         "growth_risk": false
@@ -1551,7 +1679,7 @@
         "industry_code": "S630701",
         "score": 0.713125,
         "growth": 0.6875,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.64375,
         "trend_health": 0.25,
         "growth_risk": false
@@ -1561,8 +1689,8 @@
         "name": "诺德股份",
         "industry_code": "S630701",
         "score": 0.65,
-        "growth": 1.0,
-        "quality": 0.0,
+        "growth": 1,
+        "quality": 0,
         "valuation_match": 0.625,
         "trend_health": 0.75,
         "growth_risk": true
@@ -1573,7 +1701,7 @@
         "industry_code": "S630701",
         "score": 0.620625,
         "growth": 0.4375,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.61875,
         "trend_health": 0.5,
         "growth_risk": false
@@ -1595,7 +1723,7 @@
         "industry_code": "S630702",
         "score": 0.915972,
         "growth": 0.95833,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.92361,
         "trend_health": 0.5,
         "growth_risk": false
@@ -1606,7 +1734,7 @@
         "industry_code": "S630702",
         "score": 0.723611,
         "growth": 0.75,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.43056,
         "trend_health": 0.5,
         "growth_risk": false
@@ -1628,7 +1756,7 @@
         "industry_code": "S630702",
         "score": 0.632639,
         "growth": 0.45833,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.50694,
         "trend_health": 0.75,
         "growth_risk": false
@@ -1639,7 +1767,7 @@
         "industry_code": "S630702",
         "score": 0.629861,
         "growth": 0.45833,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.61806,
         "trend_health": 0.5,
         "growth_risk": false
@@ -1661,7 +1789,7 @@
         "industry_code": "S630703",
         "score": 0.625,
         "growth": 0.5,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.5,
         "trend_health": 0.5,
         "growth_risk": false
@@ -1672,7 +1800,7 @@
         "industry_code": "S740101",
         "score": 0.830492,
         "growth": 0.70833,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.80871,
         "trend_health": 1,
         "growth_risk": false
@@ -1683,7 +1811,7 @@
         "industry_code": "S740101",
         "score": 0.794129,
         "growth": 0.70833,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.62689,
         "trend_health": 1,
         "growth_risk": false
@@ -1693,7 +1821,7 @@
         "name": "恒源煤电",
         "industry_code": "S740101",
         "score": 0.734091,
-        "growth": 1.0,
+        "growth": 1,
         "quality": 0.5,
         "valuation_match": 0.42045,
         "trend_health": 0.75,
@@ -1716,7 +1844,7 @@
         "industry_code": "S740101",
         "score": 0.673106,
         "growth": 0.58333,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.42803,
         "trend_health": 0.75,
         "growth_risk": false
@@ -1727,7 +1855,7 @@
         "industry_code": "S740101",
         "score": 0.666477,
         "growth": 0.625,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.67614,
         "trend_health": 0,
         "growth_risk": false
@@ -1738,7 +1866,7 @@
         "industry_code": "S740102",
         "score": 0.827778,
         "growth": 0.77778,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.63889,
         "trend_health": 1,
         "growth_risk": false
@@ -1749,7 +1877,7 @@
         "industry_code": "S740102",
         "score": 0.797619,
         "growth": 0.83333,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.4881,
         "trend_health": 0.75,
         "growth_risk": false
@@ -1760,7 +1888,7 @@
         "industry_code": "S740102",
         "score": 0.715079,
         "growth": 0.72222,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.5754,
         "trend_health": 0.25,
         "growth_risk": false
@@ -1771,7 +1899,7 @@
         "industry_code": "S740102",
         "score": 0.662698,
         "growth": 0.55556,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.43849,
         "trend_health": 0.75,
         "growth_risk": true
@@ -1782,7 +1910,7 @@
         "industry_code": "S740102",
         "score": 0.661111,
         "growth": 0.61111,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.30556,
         "trend_health": 0.75,
         "growth_risk": false
@@ -1793,7 +1921,7 @@
         "industry_code": "S740102",
         "score": 0.640873,
         "growth": 0.44444,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.57937,
         "trend_health": 0.75,
         "growth_risk": false
@@ -1817,7 +1945,7 @@
         "industry_code": "S240401",
         "score": 0.321875,
         "growth": 0.0625,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.21875,
         "trend_health": 0,
         "growth_risk": false
@@ -1828,7 +1956,7 @@
         "industry_code": "S240401",
         "score": 0.271875,
         "growth": 0.3125,
-        "quality": 0.0,
+        "quality": 0,
         "valuation_match": 0.53125,
         "trend_health": 0.25,
         "growth_risk": false
@@ -1850,7 +1978,7 @@
         "industry_code": "S240504",
         "score": 0.491667,
         "growth": 0.27273,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.4697,
         "trend_health": 0.25,
         "growth_risk": false
@@ -1861,7 +1989,7 @@
         "industry_code": "S240504",
         "score": 0.425,
         "growth": 0.54545,
-        "quality": 0.0,
+        "quality": 0,
         "valuation_match": 0.52273,
         "trend_health": 0.75,
         "growth_risk": false
@@ -1894,7 +2022,7 @@
         "industry_code": "S240504",
         "score": 0.111111,
         "growth": 0.13636,
-        "quality": 0.0,
+        "quality": 0,
         "valuation_match": 0.12374,
         "trend_health": 0.25,
         "growth_risk": false
@@ -1905,7 +2033,7 @@
         "industry_code": "S240603",
         "score": 0.195833,
         "growth": 0.25,
-        "quality": 0.0,
+        "quality": 0,
         "valuation_match": 0.16667,
         "trend_health": 0.5,
         "growth_risk": true
@@ -1927,7 +2055,7 @@
         "industry_code": "S630701",
         "score": 0.4325,
         "growth": 0.25,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.225,
         "trend_health": 0.25,
         "growth_risk": false
@@ -1949,7 +2077,7 @@
         "industry_code": "S630701",
         "score": 0.303125,
         "growth": 0.3125,
-        "quality": 0.0,
+        "quality": 0,
         "valuation_match": 0.3125,
         "trend_health": 1,
         "growth_risk": false
@@ -1960,7 +2088,7 @@
         "industry_code": "S630702",
         "score": 0.560417,
         "growth": 0.79167,
-        "quality": 0.0,
+        "quality": 0,
         "valuation_match": 0.64583,
         "trend_health": 0.75,
         "growth_risk": false
@@ -1971,7 +2099,7 @@
         "industry_code": "S630702",
         "score": 0.552778,
         "growth": 0.33333,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.38889,
         "trend_health": 0.75,
         "growth_risk": false
@@ -2004,7 +2132,7 @@
         "industry_code": "S630702",
         "score": 0.372917,
         "growth": 0.04167,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.02083,
         "trend_health": 1,
         "growth_risk": false
@@ -2037,7 +2165,7 @@
         "industry_code": "S740101",
         "score": 0.615152,
         "growth": 0.33333,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.57576,
         "trend_health": 1,
         "growth_risk": false
@@ -2048,7 +2176,7 @@
         "industry_code": "S740101",
         "score": 0.541667,
         "growth": 0.16667,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.58333,
         "trend_health": 1,
         "growth_risk": false
@@ -2059,7 +2187,7 @@
         "industry_code": "S740101",
         "score": 0.529167,
         "growth": 0.41667,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.20833,
         "trend_health": 0.5,
         "growth_risk": false
@@ -2070,7 +2198,7 @@
         "industry_code": "S740101",
         "score": 0.523864,
         "growth": 0.25,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.30682,
         "trend_health": 1,
         "growth_risk": false
@@ -2081,7 +2209,7 @@
         "industry_code": "S740101",
         "score": 0.482386,
         "growth": 0.125,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.38068,
         "trend_health": 1,
         "growth_risk": false
@@ -2114,7 +2242,7 @@
         "industry_code": "S740102",
         "score": 0.602778,
         "growth": 0.27778,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.63889,
         "trend_health": 1,
         "growth_risk": false
@@ -2125,7 +2253,7 @@
         "industry_code": "S740102",
         "score": 0.507937,
         "growth": 0.22222,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.53968,
         "trend_health": 0.5,
         "growth_risk": false
@@ -2136,7 +2264,7 @@
         "industry_code": "S740102",
         "score": 0.5,
         "growth": 0.33333,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.25,
         "trend_health": 0.5,
         "growth_risk": false
@@ -2147,7 +2275,7 @@
         "industry_code": "S740102",
         "score": 0.450794,
         "growth": 0.22222,
-        "quality": 1.0,
+        "quality": 1,
         "valuation_match": 0.25397,
         "trend_health": 0.5,
         "growth_risk": false
