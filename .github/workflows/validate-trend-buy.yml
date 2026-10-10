@@ -49,6 +49,42 @@ jobs:
           python -m unittest discover -s tests -p 'test_trend_buy_full_pipeline.py' -v
       - name: Rebuild historical same-day OHLCV structures (no commit)
         run: python scripts/build_full_market_price_structure.py
+      - name: Fresh company screening from frozen market inputs only
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          handoff=json.loads(Path('research/trend_handoff.json').read_text(encoding='utf-8'))
+          index=json.loads(Path('data/low_risk/index.json').read_text(encoding='utf-8'))
+          assert index['trade_date']==handoff['trade_date']
+          assert index['validation']['status']=='passed'
+          day=handoff['trade_date']
+          Path('/tmp/fresh-company-evidence.json').write_text(json.dumps({
+            'as_of_date':day,'reviews':[],'origin':'empty_new_run_no_prior_research'
+          }),encoding='utf-8')
+          print('FRESH_SOURCE_DATE',day)
+          PY
+          python scripts/build_trend_buy_manual_research.py --evidence /tmp/fresh-company-evidence.json --output /tmp/fresh-company-screen.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          o=json.loads(Path('/tmp/fresh-company-screen.json').read_text())
+          a=o['screen_audit']
+          assert o['mode']=='SHADOW' and o['publication_audit']['company_research_coverage'] is False
+          assert a['source_review_pending_count']==o['selected_company_count']
+          print('FRESH_SCREEN_AUDIT',json.dumps({
+            'date':o['trade_date'],'universe':a['universe'],
+            'hard_eligible':a['hard_eligible'],'selected':o['selected_company_count'],
+            'research_slots_per_industry':a['research_slots_per_industry']
+          },ensure_ascii=False))
+          print('FRESH_SCREEN_CANDIDATES',json.dumps([
+            {'code':c['code'],'name':c['company_name'],
+             'theme':c['trend_name'],'industry':c['industry_code'],
+             'prescreen':next((x['combined_score'] for x in a['pre_screen_selected']
+                               if x['code']==c['code']),None)}
+            for c in o['companies']
+          ],ensure_ascii=False))
+          PY
       - name: Read-only all-eligible lightweight scan and dynamic prescreen Top5 research audit
         run: |
           python scripts/build_trend_buy_manual_research.py --evidence research/trend_buy_evidence_2026-10-09.json --output /tmp/dynamic_research.json
