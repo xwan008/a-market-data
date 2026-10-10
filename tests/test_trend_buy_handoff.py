@@ -12,7 +12,7 @@ spec.loader.exec_module(tool)
 
 def sample():
     row={"rank":1,"code":"600001","company_name":"合成","trend_name":"示例","industry_code":"S630702",
-        "status":"READY","wait_reason":None,"setup_type":"BREAKOUT","entry_zone":[20.1,20.4],
+        "status":"READY","wait_reason":None,"market_state":"趋势确认","trend_state":"T1","setup_type":"BREAKOUT","entry_zone":[20.1,20.4],
         "max_entry_price":20.4,"entry_trigger":"确认突破之后仅限次日区间内买入",
         "invalidation_price":19.65,"invalidation_rule":"结构失败退出",
         "initial_risk_pct":3.7,"exit_plan":{"failed_setup":"退"},"transmission":"SUPPORTED"}
@@ -21,6 +21,12 @@ def sample():
 
 
 class ContractTests(unittest.TestCase):
+    def test_ready_cannot_escape_industry_market_confirmation(self):
+        h=tool.project(sample(),"testsha",shadow=True)
+        h["items"][0]["market_state"]="候选趋势"
+        with self.assertRaisesRegex(ValueError,"ready_requires_confirmed_sector"):
+            tool.validate_items(h)
+
     def test_shadow_projection_and_validation(self):
         h=tool.project(sample(),"testsha",shadow=True)
         self.assertEqual(h["schema_version"],"trend_buy_handoff_v2")
