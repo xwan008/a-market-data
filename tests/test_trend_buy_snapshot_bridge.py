@@ -61,7 +61,7 @@ class SingleVersionReaderTests(unittest.TestCase):
             fp.write_bytes(payload)
             h=json.loads(hp.read_text())
             h["source_formal_blob_sha"]=hashlib.sha1(
-                b"blob "+str(len(payload)).encode()+b"\\0"+payload).hexdigest()
+                b"blob "+str(len(payload)).encode()+b"\0"+payload).hexdigest()
             hp.write_text(json.dumps(h,ensure_ascii=False))
             with patch.object(snap,"TREND_BUY_FORMAL_PATH",fp),patch.object(snap,"TREND_BUY_PATH",hp):
                 _,items,_=snap.active_stock_handoff()
@@ -76,7 +76,7 @@ class SingleVersionReaderTests(unittest.TestCase):
             fp.write_bytes(payload)
             h=json.loads(hp.read_text())
             h["source_formal_blob_sha"]=hashlib.sha1(
-                b"blob "+str(len(payload)).encode()+b"\\0"+payload).hexdigest()
+                b"blob "+str(len(payload)).encode()+b"\0"+payload).hexdigest()
             hp.write_text(json.dumps(h,ensure_ascii=False))
             with patch.object(snap,"TREND_BUY_FORMAL_PATH",fp),patch.object(snap,"TREND_BUY_PATH",hp):
                 with self.assertRaisesRegex(ValueError,"DYNAMIC_TOP5_MISSING"):
