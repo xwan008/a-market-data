@@ -15,6 +15,9 @@ on:
       - 'scripts/build_full_market_price_structure.py'
       - 'tests/test_trend_buy_engine.py'
       - 'tests/test_trend_buy_entry_focus.py'
+      - 'tests/test_trend_buy_dynamic_top5.py'
+      - 'scripts/build_trend_buy_manual_research.py'
+      - 'skill/PRE_SCREEN_RESEARCH_SCOPE_OVERRIDE.md'
       - 'skill/TREND_BUY_CANONICAL.md'
       - '.github/workflows/validate-trend-buy-v2.yml'
   workflow_dispatch:
@@ -38,33 +41,54 @@ jobs:
         run: |
           python -m unittest discover -s tests -p 'test_trend_buy_engine.py' -v
           python -m unittest discover -s tests -p 'test_trend_buy_entry_focus.py' -v
+          python -m unittest discover -s tests -p 'test_trend_buy_dynamic_top5.py' -v
           python -m unittest discover -s tests -p 'test_trend_buy_handoff.py' -v
           python -m unittest discover -s tests -p 'test_trend_buy_snapshot_bridge.py' -v
           python -m unittest discover -s tests -p 'test_trend_buy_full_pipeline.py' -v
       - name: Rebuild historical same-day OHLCV structures (no commit)
         run: python scripts/build_full_market_price_structure.py
-      - name: Read-only early focus replay on actual Oct 9 researched candidates
+      - name: Read-only all-eligible as-of replay and source-coverage audit
         run: |
-          python scripts/build_trend_buy_manual_research.py --evidence research/trend_buy_evidence_2026-10-09.json --output /tmp/early_focus_research_2026-10-09.json
-          python scripts/trend_buy_engine.py --research /tmp/early_focus_research_2026-10-09.json --structure data/research/full_market_price_structure.json --output /tmp/early_focus_result_2026-10-09.json
+          python scripts/build_trend_buy_manual_research.py --evidence research/trend_buy_evidence_2026-10-09.json --output /tmp/dynamic_research.json
+          python scripts/trend_buy_engine.py --research /tmp/dynamic_research.json --structure data/research/full_market_price_structure.json --output /tmp/dynamic_result.json
           python - <<'PY'
           import json
           from pathlib import Path
-          r=json.loads(Path('/tmp/early_focus_result_2026-10-09.json').read_text())
-          assert r['trade_date']=='2026-10-09'
-          assert r['coverage']['judged']==42
-          assert r['summary']['ready']==0
-          assert len(r['focus_watchlist'])==3
-          assert all(z['status']=='EARLY_FOCUS_NOT_READY' for z in r['focus_watchlist'])
-          assert {z['trend_name'] for z in r['focus_watchlist']}=={'煤炭','固态电池','黄金/贵金属'}
-          print('EARLY_FOCUS_READONLY_REPLAY',json.dumps(r['focus_watchlist'],ensure_ascii=False))
-          print('FORMAL_RESEARCH_REPLAY_SUMMARY',json.dumps(r['summary'],ensure_ascii=False))
+          research=json.loads(Path('/tmp/dynamic_research.json').read_text())
+          r=json.loads(Path('/tmp/dynamic_result.json').read_text())
+          audit=research['screen_audit']
+          assert audit['hard_eligible']==len(audit['pre_screen_selected'])
+          assert audit['hard_eligible']==r['coverage']['judged']
+          assert audit['source_review_pending_count']==audit['hard_eligible']-audit['source_review_complete_count']
+          assert r['coverage']['complete']
+          assert sum(r['summary'].values())==r['coverage']['judged']
+          assert len(r['top5_by_theme'])==3
+          assert all(len(x['items'])<=5 for x in r['top5_by_theme'])
+          if audit['source_review_pending_count']:
+              assert research['mode']=='SHADOW'
+              assert r['production_eligible'] is False
+          assert all(x['trend_phase']!='COOLING' for g in r['top5_by_theme'] for x in g['items'])
+          assert r['focus_watchlist'] and len(r['focus_watchlist'])==3
+          print('DYNAMIC_RESEARCH_SUMMARY',json.dumps({
+            'trade_date':r['trade_date'],'coverage':r['coverage'],
+            'research_pending':audit['source_review_pending_count'],
+            'top5':{x['trend_name']:[y['code'] for y in x['items']] for x in r['top5_by_theme']},
+            'focus':[(x['trend_name'],x.get('code')) for x in r['focus_watchlist']]
+          },ensure_ascii=False))
+          PY
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          j=json.loads(Path('data/research/full_market_price_structure.json').read_text())
+          examples={'002074':'COOLING','002709':'REPAIRING','603659':'REPAIRING'}
+          print('PHASE_EXAMPLES',{code:j['companies'][code].get('trend_phase') for code in examples})
+          assert all('phase_evidence' in j['companies'][code] for code in examples)
           PY
       - name: Run independent historical Oct 9 regression fixture
         run: |
           python scripts/run_trend_buy_shadow_compare.py --screen-comparison research/shadow/low_risk_comparison_2026-10-09.json --structure data/research/full_market_price_structure.json --output /tmp/trend-buy-shadow-2026-10-09.json
           python scripts/trend_buy_handoff.py --shadow --result /tmp/trend-buy-shadow-2026-10-09.json --result-blob-sha shadow-not-formal --output /tmp/trend-buy-shadow-handoff.json
-      - name: Check 42-company research and handoff schema
+      - name: Check dynamic thematic Top5 projection and handoff schema
         run: |
           python - <<'PY'
           import json
@@ -72,15 +96,16 @@ jobs:
           result=json.loads(Path('/tmp/trend-buy-shadow-2026-10-09.json').read_text())
           handoff=json.loads(Path('/tmp/trend-buy-shadow-handoff.json').read_text())
           assert result['production_eligible'] is False
-          assert result['coverage']['selected']==42 and result['coverage']['judged']==42
-          assert sum(result['summary'].values())==42
-          assert len(handoff['items'])==result['summary']['ready']+result['summary']['wait']
+          assert result['coverage']['selected']==result['coverage']['judged']
+          assert sum(result['summary'].values())==result['coverage']['judged']
+          assert len(handoff['items'])==sum(len(x['items']) for x in result['top5_by_theme'])
           import sys
           sys.path.insert(0,'scripts')
           from trend_buy_handoff import ALLOWED_ITEM_FIELDS, validate_items
           assert len(validate_items(handoff))==len(handoff['items'])
           assert all(set(x).issubset(ALLOWED_ITEM_FIELDS) for x in handoff['items'])
           print('SHADOW_SUMMARY',json.dumps(result['summary'],ensure_ascii=False))
+          print('THEME_TOP5',json.dumps(result['top5_by_theme'],ensure_ascii=False)[:1200])
           PY
       - name: Archive historical regression output
         uses: actions/upload-artifact@v4
@@ -91,4 +116,4 @@ jobs:
             /tmp/trend-buy-shadow-handoff.json
           retention-days: 30
       - name: Syntax check trend-buy modules
-        run: python -m py_compile scripts/build_full_market_price_structure.py scripts/trend_buy_engine.py scripts/trend_buy_handoff.py scripts/build_intraday_snapshot.py
+        run: python -m py_compile scripts/build_full_market_price_structure.py scripts/build_trend_buy_manual_research.py scripts/trend_buy_engine.py scripts/trend_buy_handoff.py scripts/build_intraday_snapshot.py
