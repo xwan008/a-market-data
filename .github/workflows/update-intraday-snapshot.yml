@@ -53,7 +53,12 @@ jobs:
                       captured = captured.replace(tzinfo=ZoneInfo("Asia/Shanghai"))
 
                   validation = payload.get("validation") or {}
-                  handoff = json.loads(Path("research/low_risk_handoff.json").read_text(encoding="utf-8"))
+                  handoff_path = (Path("research/trend_buy_handoff.json")
+                                  if Path("research/trend_buy_handoff.json").exists()
+                                  else Path("research/low_risk_handoff.json"))
+                  handoff = json.loads(handoff_path.read_text(encoding="utf-8"))
+                  handoff_kind = ("trend_buy_v2" if handoff_path.name == "trend_buy_handoff.json"
+                                  else "low_risk_legacy")
                   handoff_items = handoff.get("items") or []
                   stocks = payload.get("low_risk_stocks") or {}
                   expected = {str(item.get("code") or "").zfill(6): item for item in handoff_items}
@@ -64,6 +69,7 @@ jobs:
                       and set(stocks) == set(expected)
                       and payload.get("source_low_risk_handoff_run_id") == handoff.get("source_run_id")
                       and payload.get("source_low_risk_handoff_schema_version") == handoff.get("schema_version")
+                      and payload.get("stock_handoff_kind") == handoff_kind
                       and validation.get("low_risk_stock_coverage_passed") is True
                       and all(
                           stocks[code].get("formal_status") == item.get("status")
