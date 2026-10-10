@@ -104,11 +104,78 @@ def scores(industry_rows):
         totals.append((round(score,6),round(gr,5),round(quality,5),round(attraction,5),trend,abnormal))
     return totals
 
-def build(evidence_path):
+
+def clamp01(x):
+    return min(1.0, max(0.0, x))
+
+
+def compact_opportunity(structure, trade_date):
+    """Cheap deterministic opportunity proxy; never substitutes for a trade plan."""
+    if (not isinstance(structure, dict)
+        or structure.get("data_status")!="verified"
+        or structure.get("data_date")!=trade_date
+        or structure.get("history_points",0)<120):
+        return None, "PRICE_STRUCTURE_UNVERIFIED"
+    if not structure.get("low_risk_eligible",False):
+        return None, "STRUCTURE_RISK"
+    phase=structure.get("trend_phase")
+    if phase in ("COOLING","FAILED"):
+        return None, "NEW_ENTRY_"+phase
+    if phase not in {"INITIATING","PULLBACK","REACCELERATING","REPAIRING","TRANSITION"}:
+        return None, "UNKNOWN_TREND_PHASE"
+    p,ma20,ma60=(structure.get(k) for k in ("current_price","ma20","ma60"))
+    if not all(pos(z) for z in (p,ma20,ma60)):
+        return None, "TECHNICAL_PRICE_MISSING"
+    context=structure.get("phase_evidence") or {}
+    if phase in {"INITIATING","REACCELERATING"}:
+        trigger=context.get("prior_5d_high")
+    elif phase=="PULLBACK":
+        trigger=ma20
+    elif p<ma60:
+        trigger=max(ma20,ma60)
+    else:
+        trigger=ma20
+    support=structure.get("support_invalidation")
+    near=clamp01(1-abs(p/trigger-1)/.12) if pos(trigger) else 0
+    risk=(trigger-support)/trigger if pos(trigger) and pos(support) and support<trigger else None
+    risk_quality=(clamp01(1-max(0.0,risk-.015)/.085) if risk is not None and risk<=.08 else 0)
+    entry=.55*near+.45*risk_quality if risk_quality else .20*near
+    phase_quality={"REACCELERATING":1.0,"INITIATING":.92,"REPAIRING":.80,
+                   "PULLBACK":.72,"TRANSITION":.42}[phase]
+    price_score=(.65*phase_quality
+        +.20*int(structure.get("higher_low") is True)
+        +.15*int(context.get("fresh_break") is True))
+    v1=structure.get("volume_ratio_1d_vs_20d")
+    v5=structure.get("volume_ratio_5d_vs_20d")
+    loc=structure.get("close_location_pct")
+    volume_score=(.35*clamp01(v1/2.2) if isnum(v1) else 0)
+    volume_score+=(.35*clamp01(v5/1.6) if isnum(v5) else 0)
+    volume_score+=(.30*clamp01(loc/100) if isnum(loc) else 0)
+    rs=structure.get("relative_strength_20d_vs_market_pct")
+    rs_score=clamp01((rs+5)/15) if isnum(rs) else .5
+    opportunity=(.35*entry+.30*price_score+.20*volume_score+.15*rs_score)
+    if structure.get("chase_risk")=="high":
+        opportunity*=.55
+    if context.get("weak_close_high_volume"):
+        opportunity*=.65
+    return {"opportunity_score":round(opportunity,6),
+            "trend_phase":phase, "entry_score":round(entry,4),
+            "price_structure_score":round(price_score,4),
+            "volume_quality_score":round(volume_score,4),
+            "relative_strength_score":round(rs_score,4),
+            "reference_trigger":round(trigger,4) if pos(trigger) else None,
+            "reference_risk_pct":round(risk*100,2) if risk is not None else None,
+            "reference_is_not_buy_signal":True}, None
+
+
+def build(evidence_path, structure_path=None):
     trend=read(TREND)
     index=read(INDEX)
     vault=read(evidence_path)
+    structure=read(Path(structure_path) if structure_path else ROOT/'data/research/full_market_price_structure.json')
     day=trend.get("trade_date")
+    if structure.get('reference_trade_date')!=day or structure.get('contract_id')!='a-share-low-risk-price-structure':
+        raise ValueError('price_structure_trade_date_or_contract_mismatch')
     if not day or index.get("trade_date")!=day or vault.get("as_of_date")!=day:
         raise ValueError("asof_date_mismatch")
     if (index.get("validation") or {}).get("status")!="passed":
@@ -148,7 +215,15 @@ def build(evidence_path):
     # Freeze complete: all sector materialized data have been read and verified.
     if audit["universe"]<=0:
         raise ValueError("universe_empty")
+    # Every hard-eligible stock is CHEAPLY scored. Only the tertiary-industry
+    # Top5 (one close sixth allowed) receives expensive company research.
+    review={x["code"]:x for x in vault["reviews"]}
+    if len(review)!=len(vault["reviews"]):
+        raise ValueError("duplicate_company_reviews")
     selected=[]
+    audit["lightweight_scanned"]=[]
+    audit["research_slots_per_industry"]={}
+    audit["research_replacements"]=[]
     for code in industries:
         items=universe[code]
         valid=[]
@@ -156,25 +231,61 @@ def build(evidence_path):
             fail=hard_reason(c)
             if fail:
                 audit["hard_filtered"].append({"code":c["code"],"reason":fail})
-            else:valid.append(c)
+            else:
+                valid.append(c)
         audit["hard_eligible"]+=len(valid)
-        rankvals=scores(valid)
-        ranked=sorted(zip(valid,rankvals),key=lambda p:(-p[1][0],p[0]["code"]))
-        # No Top5 cut here: every hard-eligible company receives a compact
-        # phase evaluation. Theme-level opportunity Top5 is selected only after
-        # completed OHLCV structure, business evidence and entry risk checks.
-        for c,metric in ranked:
+        ranked=[]
+        for c,metric in zip(valid,scores(valid)):
+            price_structure=(structure.get("companies") or {}).get(c["code"])
+            opportunity,reason=compact_opportunity(price_structure,day)
+            if price_structure and price_structure.get("data_status")=="verified" and (
+                not pos(c.get("price")) or
+                abs(c["price"]-price_structure["current_price"])>max(.011,c["price"]*.001)):
+                opportunity,reason=None,"FROZEN_PRICE_MISMATCH"
             d={"code":c["code"],"name":c["name"],"industry_code":code,
-               "score":metric[0],"growth":metric[1],"quality":metric[2],
+               "fundamental_score":metric[0],
+               "growth":metric[1],"quality":metric[2],
                "valuation_match":metric[3],"trend_health":metric[4],
-               "growth_risk":metric[5]}
+               "growth_risk":metric[5],
+               "opportunity":opportunity,"excluded_reason":reason}
+            if opportunity is not None:
+                d["combined_score"]=round(.70*opportunity["opportunity_score"]+.30*metric[0],6)
+                ranked.append((c,d))
+            else:
+                d["combined_score"]=None
+                audit["pre_screened_out"].append({
+                    "code":c["code"],"industry_code":code,"reason":reason})
+            audit["lightweight_scanned"].append(d)
+        ranked.sort(key=lambda row:(-row[1]["combined_score"],row[0]["code"]))
+        accepted=[]
+        for c,d in ranked:
+            # A specifically researched and falsified thematic link can release
+            # this research slot to the next ranked peer, WITHOUT deep-researching
+            # the whole eligible universe.
+            prior=review.get(c["code"])
+            if prior and prior.get("transmission")=="NOT_SUPPORTED":
+                audit["pre_screened_out"].append({
+                    "code":c["code"],"industry_code":code,"reason":"THEME_NOT_SUPPORTED"})
+                audit["research_replacements"].append(c["code"])
+                continue
+            if len(accepted)<5 or (len(accepted)==5 and
+                                   accepted[4][1]["combined_score"]-d["combined_score"]<=.03):
+                if len(accepted)<6:
+                    accepted.append((c,d))
+                    continue
+            audit["pre_screened_out"].append({
+                "code":c["code"],"industry_code":code,"reason":"NOT_DYNAMIC_PRE_SCREEN_TOP5"})
+        audit["research_slots_per_industry"][code]=len(accepted)
+        for c,d in accepted:
             audit["pre_screen_selected"].append(d)
             selected.append(c)
-    if len(selected)!=audit["hard_eligible"] or len({x["code"] for x in selected})!=len(selected):
-        raise ValueError("screen_coverage_incomplete_or_duplicate")
-    review={x["code"]:x for x in vault["reviews"]}
-    if len(review)!=len(vault["reviews"]):
-        raise ValueError("duplicate_company_reviews")
+    if len({c["code"] for c in selected})!=len(selected):
+        raise ValueError("duplicate_selected_company")
+    if len(audit["lightweight_scanned"])!=audit["hard_eligible"]:
+        raise ValueError("incomplete_lightweight_coverage")
+    if (len(audit["pre_screen_selected"])+len(audit["pre_screened_out"])
+        !=audit["hard_eligible"]):
+        raise ValueError("screen_selection_partition_mismatch")
     candidate=[]
     no_source=[]
     missing_review=[]
@@ -228,6 +339,8 @@ def build(evidence_path):
                                        "noncore_eps_share_pct":round(noncore,2) if noncore is not None else None},
         })
     audit["selected_company_count"]=len(candidate)
+    audit["research_scope"]="dynamic_tertiary_industry_top5_after_lightweight_scan"
+    audit["pre_screen_coverage_complete"]=(len(audit["lightweight_scanned"])==audit["hard_eligible"])
     audit["source_review_complete_count"]=len(candidate)-len(missing_review)
     audit["source_review_pending_count"]=len(missing_review)
     audit["source_review_pending_codes"]=missing_review
@@ -237,7 +350,7 @@ def build(evidence_path):
     audit["freeze_state"]="FROZEN_NO_POSTFREEZE_MATERIALIZED_READS"
     audit["source_authority"]={"index_date":index["trade_date"],"trend_date":trend["trade_date"],
                                "company_evidence_date":vault["as_of_date"],
-                               "provenance":"date-scoped reviewed company disclosures and 10/09 frozen working sets"}
+                               "provenance":"frozen data and date-scoped company disclosures"}
     required=("fresh_company_research","working_set_frozen","pre_screen_coverage",
               "company_research_coverage","structure_same_day","no_future_evidence","json_schema_valid")
     # structure_same_day verified by trend_buy_engine at actual Kline input;
@@ -251,16 +364,17 @@ def build(evidence_path):
             "run_id":"trend-buy-research-asof-"+day,
             "trade_date":day,"coverage_complete":True,
             "selected_company_count":len(candidate),"publication_audit":gate,
-            "source_research_protocol":"date_scoped_disclosures_and_dynamic_all_eligible_screen",
+            "source_research_protocol":"date_scoped_dynamic_pre_screen_top5_company_reviews",
             "screen_audit":audit,"companies":candidate}
     return result
 
 def main():
     p=argparse.ArgumentParser()
     p.add_argument("--evidence",required=True)
+    p.add_argument("--structure",default=None,help="Same-day compact full-market price structure")
     p.add_argument("--output",required=True)
     a=p.parse_args()
-    out=build(Path(a.evidence))
+    out=build(Path(a.evidence),a.structure)
     path=Path(a.output)
     path.parent.mkdir(parents=True,exist_ok=True)
     path.write_text(json.dumps(out,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
