@@ -1,0 +1,46 @@
+name: Validate forward valuation shadow
+
+on:
+  push:
+    paths:
+      - 'scripts/shadow_forward_valuation.py'
+      - 'tests/test_shadow_forward_valuation.py'
+      - 'research/shadow/**'
+      - 'skill/FORWARD_VALUATION_SHADOW_PROTOCOL.md'
+      - '.github/workflows/validate-shadow-valuation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-shadow:
+    name: Offline shadow validation only
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Unit tests
+        run: python -m unittest discover -s tests -p 'test_shadow_forward_valuation.py' -v
+      - name: Reproduce frozen 2026-10-09 shadow
+        run: |
+          python scripts/shadow_forward_valuation.py \
+            --input research/shadow/forward_valuation_input_2026-10-09.json \
+            --output /tmp/shadow-forward-valuation-2026-10-09.json
+      - name: Compare preview with Python engine
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          actual=json.loads(Path('/tmp/shadow-forward-valuation-2026-10-09.json').read_text(encoding='utf-8'))
+          preview=json.loads(Path('research/shadow/forward_valuation_preview_2026-10-09.json').read_text(encoding='utf-8'))
+          preview.pop('preview_execution_note',None)
+          assert actual == preview, 'shadow preview does not reproduce Python engine output'
+          assert actual['production_effect'] == 'NONE'
+          assert all(x['scenario_valuation']['expected_value_now'] is None for x in actual['companies'])
+          PY
