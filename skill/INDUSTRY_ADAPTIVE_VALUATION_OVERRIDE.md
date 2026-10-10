@@ -273,3 +273,7 @@ READY / WAIT 必须增加：
 - CFA real estate：REIT/地产证券应使用 NAV、FFO/AFFO 等更贴合资产与现金流的指标。
 
 这些来源决定“选什么估值工具”；具体 A 股买入区不照搬海外行业倍数，而使用本轮 A 股同三级行业 peer statistics + 公司质量 + frozen working set 价格结构计算。
+
+## 10. 前瞻估值影子验证（暂不覆盖本文件正式方法）
+
+本轮已建立独立的 `FORWARD_VALUATION_SHADOW_PROTOCOL.md` 与 `scripts/shadow_forward_valuation.py`，用于正式结果**完成发布与回读以后**校验同日价/PE/EPS口径、12–24个月盈利情景、市场隐含EPS与交易结构分离。**本节仅登记研究实验，不变更上述第1–9节正在生效的估值原型、fundamental anchor、合理/低风险区、风险折价、READY/WAIT规则。** 若历史PE与现价日期不一致，影子模块必须标记 `STALE_MULTIPLE`，不能据此声称旧估值锚可信；但不得借该实验静默修改已发布的正式估值数据。周期/金融/期权模型尚未实现时如实写 `UNSUPPORTED_ARCHETYPE`，不强行套成长PE公式。完成多时点、无未来信息的验证后，才可另行批准正式方法切换。
