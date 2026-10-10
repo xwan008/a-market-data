@@ -1,0 +1,29 @@
+name: Validate trend buy V2 shadow
+
+on:
+  push:
+    paths:
+      - 'scripts/trend_buy_engine.py'
+      - 'scripts/build_full_market_price_structure.py'
+      - 'tests/test_trend_buy_engine.py'
+      - 'skill/TREND_BUY_CANONICAL.md'
+      - '.github/workflows/validate-trend-buy-v2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-trend-buy:
+    name: Trend entry research V2 (non-production)
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Test technical entry and no stale/future leakage
+        run: python -m unittest discover -s tests -p 'test_trend_buy_engine.py' -v
+      - name: Syntax check original aggregation engine
+        run: python -m py_compile scripts/build_full_market_price_structure.py scripts/trend_buy_engine.py
