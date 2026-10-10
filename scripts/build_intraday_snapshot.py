@@ -242,12 +242,12 @@ def main() -> int:
     now = datetime.now(market.TZ)
     trend = read_json(TREND_PATH)
     try:
-        low_risk, trend_buy_items, stock_handoff_kind = active_stock_handoff()
+        trend_buy_handoff, trend_buy_items, stock_handoff_kind = active_stock_handoff()
     except ValueError as exc:
-        print(json.dumps({"error": "invalid_low_risk_handoff", "detail": str(exc)}, ensure_ascii=False))
+        print(json.dumps({"error": "invalid_trend_buy_handoff", "detail": str(exc)}, ensure_ascii=False))
         return 2
     source_trend_trade_date = trend.get("trade_date")
-    source_trend_buy_trade_date = low_risk.get("trade_date")
+    source_trend_buy_trade_date = trend_buy_handoff.get("trade_date")
     source_handoff_trade_date_consistent = bool(
         source_trend_trade_date
         and source_trend_buy_trade_date
@@ -574,8 +574,8 @@ def main() -> int:
         "source_trend_buy_trade_date": source_trend_buy_trade_date,
         "stock_handoff_kind": stock_handoff_kind,
         "source_stock_handoff_path": "research/trend_buy_handoff.json",
-        "source_trend_buy_handoff_run_id": low_risk.get("source_run_id"),
-        "source_trend_buy_handoff_schema_version": low_risk.get("schema_version"),
+        "source_trend_buy_handoff_run_id": trend_buy_handoff.get("source_run_id"),
+        "source_trend_buy_handoff_schema_version": trend_buy_handoff.get("schema_version"),
         "source_status": {
             "sina": "ok" if sina else "failed",
             "tencent": "ok" if tencent else "failed",
