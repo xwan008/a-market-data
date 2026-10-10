@@ -202,6 +202,9 @@ def base_metrics(code: str, name: str, rows: list[dict], quote: dict, reference_
         "volume_ratio_1d_vs_20d": round(ratio1, 3) if ratio1 is not None else None,
         "volume_ratio_5d_vs_20d": round(ratio5, 3) if ratio5 is not None else None,
         "close_location_pct": round(close_loc * 100, 2),
+        "previous_close": closes[-2],
+        "current_day_open": rows[-1].get("open"),
+        "current_day_low": rows[-1]["low"],
         "current_day_high": rows[-1]["high"],
         "raw_return_20d": ret20,
     }
