@@ -2,6 +2,8 @@ name: Validate A-share trend-buy canonical
 
 on:
   push:
+    branches:
+      - main
     paths:
       - 'scripts/trend_buy_engine.py'
       - 'scripts/trend_buy_handoff.py'
@@ -10,8 +12,6 @@ on:
       - 'tests/test_trend_buy_snapshot_bridge.py'
       - 'tests/test_trend_buy_full_pipeline.py'
       - 'skill/INTRADAY_MONITOR_CANONICAL.md'
-      - 'scripts/run_trend_buy_shadow_compare.py'
-      - 'research/shadow/low_risk_comparison_2026-10-09.json'
       - 'scripts/build_full_market_price_structure.py'
       - 'tests/test_trend_buy_engine.py'
       - 'tests/test_trend_buy_entry_focus.py'
@@ -20,7 +20,7 @@ on:
       - 'scripts/build_trend_buy_manual_research.py'
       - 'skill/PRE_SCREEN_RESEARCH_SCOPE_OVERRIDE.md'
       - 'skill/TREND_BUY_CANONICAL.md'
-      - '.github/workflows/validate-trend-buy-v2.yml'
+      - '.github/workflows/validate-trend-buy.yml'
   workflow_dispatch:
 
 permissions:
@@ -28,7 +28,7 @@ permissions:
 
 jobs:
   test-trend-buy:
-    name: Sole trend-buy production contracts plus historic regression
+    name: Mainline trend-buy production gates and regression
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
@@ -92,36 +92,23 @@ jobs:
           print('PHASE_EXAMPLES',{code:j['companies'][code].get('trend_phase') for code in examples})
           assert all('phase_evidence' in j['companies'][code] for code in examples)
           PY
-      - name: Run independent historical Oct 9 regression fixture
+      - name: Verify current mainline projection and contract
         run: |
-          python scripts/run_trend_buy_shadow_compare.py --screen-comparison research/shadow/low_risk_comparison_2026-10-09.json --structure data/research/full_market_price_structure.json --output /tmp/trend-buy-shadow-2026-10-09.json
-          python scripts/trend_buy_handoff.py --shadow --result /tmp/trend-buy-shadow-2026-10-09.json --result-blob-sha shadow-not-formal --output /tmp/trend-buy-shadow-handoff.json
-      - name: Check dynamic thematic Top5 projection and handoff schema
-        run: |
+          python scripts/trend_buy_handoff.py --shadow --result /tmp/dynamic_result.json --result-blob-sha ci-mainline --output /tmp/mainline-contract-handoff.json
           python - <<'PY'
           import json
           from pathlib import Path
-          result=json.loads(Path('/tmp/trend-buy-shadow-2026-10-09.json').read_text())
-          handoff=json.loads(Path('/tmp/trend-buy-shadow-handoff.json').read_text())
-          assert result['production_eligible'] is False
-          assert result['coverage']['selected']==result['coverage']['judged']
-          assert sum(result['summary'].values())==result['coverage']['judged']
-          assert len(handoff['items'])==sum(len(x['items']) for x in result['top5_by_theme'])
+          result=json.loads(Path('/tmp/dynamic_result.json').read_text())
+          handoff=json.loads(Path('/tmp/mainline-contract-handoff.json').read_text())
+          expected=[x['code'] for g in result['top5_by_theme'] for x in g['items']]
+          assert [x['code'] for x in handoff['items']]==expected
+          assert len(expected)<=5*len(result['top5_by_theme'])
+          assert handoff['shadow'] is True and result['production_eligible'] is False
           import sys
           sys.path.insert(0,'scripts')
-          from trend_buy_handoff import ALLOWED_ITEM_FIELDS, validate_items
-          assert len(validate_items(handoff))==len(handoff['items'])
-          assert all(set(x).issubset(ALLOWED_ITEM_FIELDS) for x in handoff['items'])
-          print('SHADOW_SUMMARY',json.dumps(result['summary'],ensure_ascii=False))
-          print('THEME_TOP5',json.dumps(result['top5_by_theme'],ensure_ascii=False)[:1200])
+          from trend_buy_handoff import validate_items
+          assert len(validate_items(handoff))==len(expected)
+          print('MAINLINE_THEME_TOP5_PROJECTION',expected)
           PY
-      - name: Archive historical regression output
-        uses: actions/upload-artifact@v4
-        with:
-          name: trend-buy-regression-2026-10-09
-          path: |
-            /tmp/trend-buy-shadow-2026-10-09.json
-            /tmp/trend-buy-shadow-handoff.json
-          retention-days: 30
       - name: Syntax check trend-buy modules
         run: python -m py_compile scripts/build_full_market_price_structure.py scripts/build_trend_buy_manual_research.py scripts/trend_buy_engine.py scripts/trend_buy_handoff.py scripts/build_intraday_snapshot.py

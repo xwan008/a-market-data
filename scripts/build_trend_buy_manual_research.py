@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build date-scoped audited research inputs for all eligible companies.
+"""Build date-scoped audited dynamic-pre-screen Top5 research inputs.
 
 Reads the trend handoff and mapped industry manifest/part files once,
 freezes the company set in memory, then scores eligible businesses.

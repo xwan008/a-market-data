@@ -2,33 +2,26 @@
 
 **运行目标：从行业趋势中寻找值得参与的公司、可观察的趋势萌芽信号、经过确认的入场计划，以及判断错误后的退出边界。**
 
-## 业务链路
+## 唯一主流程（main）
 
 ```text
-A股板块趋势榜（行业状态与优先方向）
-  → research/trend_handoff.json
-  → data/low_risk/index.json + 行业manifest/parts
-  → Frozen Working Set + 公司硬过滤 + 同业预筛
-  → 业务关联、经营与财务风险核验
-  → data/research/full_market_price_structure.json（日K、量价与风险结构）
-  → scripts/trend_buy_engine.py
-      ├─ READY：已确认的BREAKOUT / PULLBACK条件入场计划
-      ├─ WAIT：等待量价或板块确认
-      ├─ UNCERTAIN / DROP：资料不足或资格失效
-      └─ READY=0时：各板块一只EARLY_FOCUS_NOT_READY研究关注股
-  → research/trend_buy_formal_result.json
-  → research/trend_buy_handoff.json（正式READY/WAIT交易计划）
-  → research/intraday_market_snapshot.json
-  → research/intraday_monitor_state.json
+A股板块趋势榜 → research/trend_handoff.json
+→ data/low_risk/index.json + 各行业 manifest/parts → 冻结公司池
+→ 公司硬过滤 → Python 对所有合格公司计算紧凑量价与基本面机会分
+→ 每申万三级行业前置动态 Top5（必要时并列第6）
+→ 仅对入选公司核查真实主题传导、财务与业务风险；必要时同行候补
+→ scripts/trend_buy_engine.py：READY / WAIT / UNCERTAIN / DROP
+→ 跨三级行业每主题动态0–5只买点候选和一只优先关注股
+→ research/trend_buy_formal_result.json（完整 Gate 后正式提交并回读）
+→ research/trend_buy_handoff.json（只投影主题Top5，核对SHA后提交并回读）
+→ research/intraday_market_snapshot.json → research/intraday_monitor_state.json
 ```
 
-**数据时间要求：** 价格结构、公司身份和研究证据与相应的已完成交易日一致。公司筛选采用同业增长、盈利质量、估值匹配、趋势健康度，并完整覆盖每个上游行业Top5、并列第6的研究集合。PE/PB用于公司风险比较，入场与失效价格由量价结构生成。
+**没有额外的V3榜单或备用选股流程。** 算法调整直接更新主分支上的 canonical 规则和正式程序。现有接口字段 `trend_buy_result_v2`、`trend_buy_handoff_v2` 和 `trend_buy_v2` 是为下游盘中任务保留的数据格式名称，**并非第二套选股策略**。
 
-## 两种观察视角
+**研究边界：** 公司预筛使用增长、质量、估值匹配及技术机会；先对全部合格公司做Python轻量扫描，再按70%买点机会+30%原基本面分限制深度研究名额。MA60不是单项淘汰红线；COOLING不代表持仓强制卖出。业务证据缺失就阻断正式发布，不使用旧榜替代、不把试算冒充正式买点。
 
-**确认买点 READY：** 行业趋势与个股入场形态、商业证据和风险审查都通过时，产生下一交易日有价格上限的条件性交易计划，包括`entry_zone`、`entry_trigger`、`max_entry_price`、`invalidation_price`、`initial_risk_pct`、`exit_plan`。
-
-**趋势萌芽期重点关注：** READY为0时，每个有合格WAIT的板块优先选出一只`EARLY_FOCUS_NOT_READY`。研究同日1日/5日量比、20日相对强弱、MA20斜率、收盘强度和抬高低点，提出参考触发价、需要补齐的量价证据及可核验的风控参考；缺失可信支撑时只报告观察条件，不生成可执行买入区。关注股始终保留WAIT状态，不直接授权盘中买入。
+**盘中安全边界：** 仅接受与当期正式 `top5_by_theme` 完全对应的handoff。如果历史正式结果不带动态Top5，盘中交易监控暂停该部分信号并要求重新完成正式研究，不允许退回旧的全部READY/WAIT名单。
 
 ## 三个自动任务
 
@@ -54,6 +47,6 @@ A股板块趋势榜（行业状态与优先方向）
 
 - [当前正式结果](research/trend_buy_formal_result.json)
 - [当前交易交接](research/trend_buy_handoff.json)
-- [趋势模型持续回归测试](.github/workflows/validate-trend-buy-v2.yml)
+- [主流程持续回归测试](.github/workflows/validate-trend-buy.yml)
 
 研究建议均带有交易日时间戳；早期关注和条件入场并不保证收益。跳空、涨跌停、流动性和滑点可能导致真实损失超出计划。

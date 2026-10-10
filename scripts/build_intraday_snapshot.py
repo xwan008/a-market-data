@@ -25,7 +25,7 @@ def read_json(path: Path) -> dict:
 
 
 def active_stock_handoff() -> tuple[dict, list[dict], str]:
-    """Only one V2 handoff; cross-check its exact persisted formal blob and IDs."""
+    """One official handoff; validate exact SHA and dynamic Top5 membership."""
     handoff = read_json(TREND_BUY_PATH)
     if handoff.get("shadow") is not False or not handoff.get("source_formal_blob_sha") or not handoff.get("source_run_id"):
         raise ValueError("NO_VALID_TREND_BUY_HANDOFF")
@@ -40,14 +40,13 @@ def active_stock_handoff() -> tuple[dict, list[dict], str]:
         or formal.get("run_id") != handoff.get("source_run_id")
         or formal.get("trade_date") != handoff.get("trade_date")):
         raise ValueError("TREND_BUY_FORMAL_HANDOFF_MISMATCH")
-    ranked = (formal.get("ready") or []) + (formal.get("wait") or [])
-    if len(ranked) != len(items):
-        raise ValueError("TREND_BUY_FORMAL_HANDOFF_COVERAGE_MISMATCH")
-    for a,b in zip(items,ranked):
-        if any(a.get(k) != b.get(k) for k in
-               ("code", "status", "wait_reason", "entry_zone", "max_entry_price",
-                "invalidation_price", "setup_type")):
-            raise ValueError("TREND_BUY_FORMAL_HANDOFF_ITEM_MISMATCH")
+    # The only production monitor universe is the *researched dynamic theme Top5*.
+    # Never silently fall back to yesterday's unranked READY+WAIT population.
+    if not isinstance(formal.get("top5_by_theme"), list):
+        raise ValueError("TREND_BUY_FORMAL_DYNAMIC_TOP5_MISSING")
+    projected = trend_contract.project(formal, digest, shadow=False)
+    if items != projected["items"]:
+        raise ValueError("TREND_BUY_FORMAL_HANDOFF_ITEM_MISMATCH")
     return handoff, items, "trend_buy_v2"
 
 
