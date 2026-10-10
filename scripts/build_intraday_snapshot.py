@@ -12,56 +12,23 @@ import trend_buy_handoff as trend_contract
 ROOT = Path(__file__).resolve().parents[1]
 RESEARCH_DIR = ROOT / "research"
 TREND_PATH = RESEARCH_DIR / "trend_handoff.json"
-LOW_RISK_PATH = RESEARCH_DIR / "low_risk_handoff.json"
 TREND_BUY_PATH = RESEARCH_DIR / "trend_buy_handoff.json"
 SNAPSHOT_PATH = RESEARCH_DIR / "intraday_market_snapshot.json"
 MANIFEST_ROOT = ROOT / "data" / "low_risk" / "by_industry"
 HISTORY_CONTEXT_RUNTIME_FORMAT = "low_risk_industry_working_set_chunk"
-VALID_WAIT_REASONS = {"WAIT_PRICE", "WAIT_MARGIN", "WAIT_EXPECTATION", "WAIT_CATALYST"}
 
 
 def read_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def validate_low_risk_handoff_items(handoff: dict) -> list[dict]:
-    """Validate the full READY/WAIT handoff; never silently discard unknown statuses."""
-    if handoff.get("status") != "COMPLETE":
-        raise ValueError("low_risk_handoff_status_not_complete")
-    items = handoff.get("items")
-    if not isinstance(items, list):
-        raise ValueError("low_risk_handoff_items_not_a_list")
-
-    seen_codes: set[str] = set()
-    for index, item in enumerate(items):
-        if not isinstance(item, dict):
-            raise ValueError(f"low_risk_handoff_item_invalid:{index}")
-        status = item.get("status")
-        reason = item.get("wait_reason")
-        if status not in {"READY", "WAIT"}:
-            raise ValueError(f"low_risk_handoff_unknown_status:{index}:{status}")
-        if status == "WAIT" and reason not in VALID_WAIT_REASONS:
-            raise ValueError(f"low_risk_handoff_invalid_wait_reason:{index}:{reason}")
-        if status == "READY" and reason is not None:
-            raise ValueError(f"low_risk_handoff_ready_has_wait_reason:{index}:{reason}")
-        code = str(item.get("code") or "").zfill(6)
-        if len(code) != 6 or not code.isdigit() or code in seen_codes:
-            raise ValueError(f"low_risk_handoff_invalid_or_duplicate_code:{index}:{code}")
-        seen_codes.add(code)
-    return items
-
-
 def active_stock_handoff() -> tuple[dict, list[dict], str]:
-    """Prefer the independently published v2 trend handoff, never a shadow file."""
-    if TREND_BUY_PATH.exists():
-        handoff = read_json(TREND_BUY_PATH)
-        if handoff.get("shadow") is not False or not handoff.get("source_formal_blob_sha") or not handoff.get("source_run_id"):
-            raise ValueError("trend_buy_handoff_not_production_validated")
-        items = trend_contract.validate_items(handoff)
-        return handoff, items, "trend_buy_v2"
-    handoff = read_json(LOW_RISK_PATH)
-    items = validate_low_risk_handoff_items(handoff)
-    return handoff, items, "low_risk_legacy"
+    """Sole production path. No legacy fallback, even when V2 is unavailable."""
+    handoff = read_json(TREND_BUY_PATH)
+    if handoff.get("shadow") is not False or not handoff.get("source_formal_blob_sha") or not handoff.get("source_run_id"):
+        raise ValueError("trend_buy_handoff_not_production_validated")
+    items = trend_contract.validate_items(handoff)
+    return handoff, items, "trend_buy_v2"
 
 
 def round_or_none(value, digits: int = 4):
@@ -183,7 +150,7 @@ def project_history_context(company: dict, source_trade_date: str | None) -> dic
 
 
 def load_history_contexts(
-    low_risk_items: list[dict],
+    trend_buy_items: list[dict],
     manifests: dict[str, dict],
     expected_trade_date: str | None,
 ) -> tuple[dict[str, dict], list[str], int]:
@@ -196,7 +163,7 @@ def load_history_contexts(
     errors: list[str] = []
     required_parts: dict[str, dict] = {}
 
-    for item in low_risk_items:
+    for item in trend_buy_items:
         code = str(item.get("code") or "").zfill(6)
         industry_code = str(item.get("industry_code") or "")
         manifest = manifests.get(industry_code)
@@ -275,16 +242,16 @@ def main() -> int:
     now = datetime.now(market.TZ)
     trend = read_json(TREND_PATH)
     try:
-        low_risk, low_risk_items, stock_handoff_kind = active_stock_handoff()
+        low_risk, trend_buy_items, stock_handoff_kind = active_stock_handoff()
     except ValueError as exc:
         print(json.dumps({"error": "invalid_low_risk_handoff", "detail": str(exc)}, ensure_ascii=False))
         return 2
     source_trend_trade_date = trend.get("trade_date")
-    source_low_risk_trade_date = low_risk.get("trade_date")
+    source_trend_buy_trade_date = low_risk.get("trade_date")
     source_handoff_trade_date_consistent = bool(
         source_trend_trade_date
-        and source_low_risk_trade_date
-        and source_trend_trade_date == source_low_risk_trade_date
+        and source_trend_buy_trade_date
+        and source_trend_trade_date == source_trend_buy_trade_date
     )
 
     industries: dict[str, dict] = {}
@@ -314,12 +281,12 @@ def main() -> int:
                 manifest_errors.append(f"{industry_code}:manifest_identity_mismatch")
                 continue
             if (
-                source_low_risk_trade_date
-                and manifest.get("trade_date") != source_low_risk_trade_date
+                source_trend_buy_trade_date
+                and manifest.get("trade_date") != source_trend_buy_trade_date
             ):
                 manifest_errors.append(
                     f"{industry_code}:manifest_trade_date_mismatch:"
-                    f"{manifest.get('trade_date')}!={source_low_risk_trade_date}"
+                    f"{manifest.get('trade_date')}!={source_trend_buy_trade_date}"
                 )
                 continue
 
@@ -350,7 +317,7 @@ def main() -> int:
         }
 
     low_risk_only_attempted: set[str] = set()
-    for item in low_risk_items:
+    for item in trend_buy_items:
         target_codes.add(str(item.get("code") or "").zfill(6))
         industry_code = str(item.get("industry_code") or "")
         if (
@@ -377,12 +344,12 @@ def main() -> int:
             )
             continue
         if (
-            source_low_risk_trade_date
-            and manifest.get("trade_date") != source_low_risk_trade_date
+            source_trend_buy_trade_date
+            and manifest.get("trade_date") != source_trend_buy_trade_date
         ):
             manifest_errors.append(
                 f"{industry_code}:low_risk_only_manifest_trade_date_mismatch:"
-                f"{manifest.get('trade_date')}!={source_low_risk_trade_date}"
+                f"{manifest.get('trade_date')}!={source_trend_buy_trade_date}"
             )
             continue
 
@@ -407,9 +374,9 @@ def main() -> int:
 
 
     history_contexts, history_context_errors, history_context_part_read_count = load_history_contexts(
-        low_risk_items,
+        trend_buy_items,
         manifests,
-        source_low_risk_trade_date,
+        source_trend_buy_trade_date,
     )
 
     sina, sina_error = market.safe_fetch(market.fetch_sina_snapshot, "sina")
@@ -431,7 +398,7 @@ def main() -> int:
 
     formal_prev_close_comparable_count = 0
     formal_prev_close_matched_count = 0
-    for item in low_risk_items:
+    for item in trend_buy_items:
         code = str(item.get("code") or "").zfill(6)
         formal_close = market.positive_number(item.get("current_price"))
         live_prev_close = market.positive_number((quotes.get(code) or {}).get("prev_close"))
@@ -442,8 +409,8 @@ def main() -> int:
         if diff_ratio <= 0.005:
             formal_prev_close_matched_count += 1
 
-    if low_risk_items:
-        required_comparable = max(1, (len(low_risk_items) * 8 + 9) // 10)
+    if trend_buy_items:
+        required_comparable = max(1, (len(trend_buy_items) * 8 + 9) // 10)
         formal_prev_close_alignment_ratio = (
             formal_prev_close_matched_count / formal_prev_close_comparable_count
             if formal_prev_close_comparable_count
@@ -494,11 +461,11 @@ def main() -> int:
         try:
             merged_archive = crossday.merge_archive(old_archive, crossday.MONITOR_PATH, trade_date)
             contexts, board_history_audit = crossday.build_board_context(
-                trends, source_low_risk_trade_date, merged_archive
+                trends, source_trend_buy_trade_date, merged_archive
             )
             stock_seven_day_contexts, stock_seven_day_audit = crossday.build_stock_seven_day_context(
-                {str(item["code"]).zfill(6) for item in low_risk_items},
-                source_low_risk_trade_date,
+                {str(item["code"]).zfill(6) for item in trend_buy_items},
+                source_trend_buy_trade_date,
             )
             for name, context in contexts.items():
                 trend_item = trends[name]
@@ -509,7 +476,7 @@ def main() -> int:
                     else "partial" if seven_day_status == "partial" else "unavailable"
                 )
             previous_day = next(
-                (d for d in merged_archive["days"] if d["trade_date"] == source_low_risk_trade_date),
+                (d for d in merged_archive["days"] if d["trade_date"] == source_trend_buy_trade_date),
                 None,
             )
             if previous_day:
@@ -529,8 +496,8 @@ def main() -> int:
         context["seven_day_status"] = stock_seven.get("status", "unavailable")
         context["seven_day_window_sessions"] = 7
 
-    low_risk_stocks: dict[str, dict] = {}
-    for item in low_risk_items:
+    trend_buy_stocks: dict[str, dict] = {}
+    for item in trend_buy_items:
         code = str(item.get("code") or "").zfill(6)
         quote = quotes.get(code) or {}
         industry = industries.get(str(item.get("industry_code") or "")) or {}
@@ -540,7 +507,7 @@ def main() -> int:
         if stock_change is not None and industry_median is not None:
             relative_to_industry = round(float(stock_change) - float(industry_median), 4)
 
-        low_risk_stocks[code] = {
+        trend_buy_stocks[code] = {
             "rank": item.get("rank"),
             "code": code,
             "company_name": item.get("company_name"),
@@ -550,17 +517,10 @@ def main() -> int:
             "formal_status": item.get("status"),
             "wait_reason": item.get("wait_reason"),
             "formal_current_price": item.get("current_price"),
-            "reasonable_buy_range": item.get("reasonable_buy_range"),
-            "low_risk_buy_range": item.get("low_risk_buy_range"),
-            "wait_or_trigger_condition": item.get("wait_or_trigger_condition"),
-            "invalidation_condition": item.get("invalidation_condition") or item.get("invalidation"),
-            "reentry_trigger": item.get("reentry_trigger"),
-            "trend_entry_plan": (
-                {k: item.get(k) for k in ("setup_type", "entry_zone", "entry_trigger",
-                     "max_entry_price", "invalidation_price", "invalidation_rule",
-                     "initial_risk_pct", "upside_to_resistance_R", "exit_plan")}
-                if stock_handoff_kind == "trend_buy_v2" else None
-            ),
+            "trend_entry_plan": {k: item.get(k) for k in
+                ("setup_type", "entry_zone", "entry_trigger", "max_entry_price",
+                 "invalidation_price", "invalidation_rule", "initial_risk_pct",
+                 "upside_to_resistance_R", "exit_plan")},
             "stock_handoff_kind": stock_handoff_kind,
             "price": quote.get("price"),
             "prev_close": quote.get("prev_close"),
@@ -576,21 +536,21 @@ def main() -> int:
             "history_context": history_contexts.get(code),
             "seven_day": stock_seven_day_contexts.get(code),
             "previous_trade_day_monitor": (
-                {"trade_date": source_low_risk_trade_date,
+                {"trade_date": source_trend_buy_trade_date,
                  "basis": "last_persisted_intraday_scan_not_official_close",
                  **previous_day_stock_refs[code]}
                 if code in previous_day_stock_refs else None
             ),
         }
 
-    expected_low_risk_codes = {str(item["code"]).zfill(6) for item in low_risk_items}
-    low_risk_stock_coverage_passed = (
-        len(low_risk_stocks) == len(low_risk_items)
-        and set(low_risk_stocks) == expected_low_risk_codes
+    expected_low_risk_codes = {str(item["code"]).zfill(6) for item in trend_buy_items}
+    trend_buy_stock_coverage_passed = (
+        len(trend_buy_stocks) == len(trend_buy_items)
+        and set(trend_buy_stocks) == expected_low_risk_codes
         and all(
-            low_risk_stocks[str(item["code"]).zfill(6)]["formal_status"] == item["status"]
-            and low_risk_stocks[str(item["code"]).zfill(6)]["wait_reason"] == item.get("wait_reason")
-            for item in low_risk_items
+            trend_buy_stocks[str(item["code"]).zfill(6)]["formal_status"] == item["status"]
+            and trend_buy_stocks[str(item["code"]).zfill(6)]["wait_reason"] == item.get("wait_reason")
+            for item in trend_buy_items
         )
     )
 
@@ -604,21 +564,18 @@ def main() -> int:
     quote_coverage = usable_quotes / total_quotes if total_quotes else 0.0
 
     payload = {
-        "schema_version": 1,
+        "schema_version": 2,
         "result_kind": "a_share_intraday_market_snapshot",
         "trade_date": trade_date,
         "captured_at": now.isoformat(),
         "timezone": "Asia/Shanghai",
         "market_status": market.clock_market_status(now),
         "source_trend_trade_date": source_trend_trade_date,
-        "source_low_risk_trade_date": source_low_risk_trade_date,
+        "source_trend_buy_trade_date": source_trend_buy_trade_date,
         "stock_handoff_kind": stock_handoff_kind,
-        "source_stock_handoff_path": (
-            "research/trend_buy_handoff.json" if stock_handoff_kind == "trend_buy_v2"
-            else "research/low_risk_handoff.json"
-        ),
-        "source_low_risk_handoff_run_id": low_risk.get("source_run_id"),
-        "source_low_risk_handoff_schema_version": low_risk.get("schema_version"),
+        "source_stock_handoff_path": "research/trend_buy_handoff.json",
+        "source_trend_buy_handoff_run_id": low_risk.get("source_run_id"),
+        "source_trend_buy_handoff_schema_version": low_risk.get("schema_version"),
         "source_status": {
             "sina": "ok" if sina else "failed",
             "tencent": "ok" if tencent else "failed",
@@ -629,19 +586,19 @@ def main() -> int:
                 "passed"
                 if trade_date == now.date().isoformat()
                 and source_handoff_trade_date_consistent
-                and low_risk_stock_coverage_passed
+                and trend_buy_stock_coverage_passed
                 and formal_prev_close_alignment_passed
                 and quote_coverage >= 0.90
                 and not manifest_errors
                 else "degraded"
             ),
             "source_handoff_dates_present": bool(
-                source_trend_trade_date and source_low_risk_trade_date
+                source_trend_trade_date and source_trend_buy_trade_date
             ),
             "source_handoff_trade_date_consistent": source_handoff_trade_date_consistent,
-            "low_risk_handoff_item_count": len(low_risk_items),
-            "low_risk_stock_count": len(low_risk_stocks),
-            "low_risk_stock_coverage_passed": low_risk_stock_coverage_passed,
+            "low_risk_handoff_item_count": len(trend_buy_items),
+            "low_risk_stock_count": len(trend_buy_stocks),
+            "trend_buy_stock_coverage_passed": trend_buy_stock_coverage_passed,
             "formal_prev_close_comparable_count": formal_prev_close_comparable_count,
             "formal_prev_close_matched_count": formal_prev_close_matched_count,
             "formal_prev_close_alignment_ratio": round(formal_prev_close_alignment_ratio, 4),
@@ -650,9 +607,9 @@ def main() -> int:
             "usable_quote_count": usable_quotes,
             "quote_coverage": round(quote_coverage, 4),
             "manifest_errors": manifest_errors,
-            "history_context_target_count": len(low_risk_items),
+            "history_context_target_count": len(trend_buy_items),
             "history_context_available_count": len(history_contexts),
-            "history_context_unavailable_count": max(0, len(low_risk_items) - len(history_contexts)),
+            "history_context_unavailable_count": max(0, len(trend_buy_items) - len(history_contexts)),
             "history_context_part_read_count": history_context_part_read_count,
             "history_context_errors": history_context_errors,
             **board_history_audit,
@@ -662,7 +619,7 @@ def main() -> int:
         },
         "trends": trends,
         "industries": industries,
-        "low_risk_stocks": low_risk_stocks,
+        "trend_buy_stocks": trend_buy_stocks,
     }
 
     if crossday_archive is not None:
@@ -683,7 +640,7 @@ def main() -> int:
                 "usable_quote_count": usable_quotes,
                 "quote_coverage": round(quote_coverage, 4),
                 "industry_count": len(industries),
-                "low_risk_stock_count": len(low_risk_stocks),
+                "low_risk_stock_count": len(trend_buy_stocks),
                 "history_context_available_count": len(history_contexts),
                 "history_context_part_read_count": history_context_part_read_count,
                 "validation_status": payload["validation"]["status"],
