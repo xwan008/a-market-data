@@ -48,7 +48,7 @@ def run(payload):
                 result["flags"].append("FUTURE_SOURCE");continue
             if not (isinstance(source.get("url"),str) and source["url"].startswith(("https://","http://"))):
                 result["flags"].append("NO_SOURCE");continue
-            eq=co.get("attributable_equity"),shares=co.get("issued_shares")
+            eq,shares=co.get("attributable_equity"),co.get("issued_shares")
             if not pos(eq) or not pos(shares):
                 result["flags"].append("BOOK_VALUE_MISSING");continue
             bvps=eq/shares
