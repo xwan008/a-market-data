@@ -14,13 +14,13 @@
 2. 读取 data/low_risk/index.json（这是**公司冻结池的旧技术目录名**，不代表旧榜仍在运行），逐行业读取一次manifest和所有parts，校验日期、身份、成员、字节、完整性；构造working set后Freeze，禁止回读shard/index/part补充冻结字段。
 3. 依据 skill/PRE_SCREEN_RESEARCH_SCOPE_OVERRIDE.md 对全部公司硬过滤和同业预筛：0.45增长传导代理+0.25质量+0.20 PE/PB与增长匹配+0.10趋势健康；每行业Top5，分差≤0.03可第6。审计完整的Universe、未入选名单、公司覆盖率，未完成不得发布。
 4. **上游板块确认门槛：** Trend Handoff的每个板块必须冻结并传递 `trend_state`、`market_state`。只有市场状态为**趋势确认**的板块才允许个股进入READY；“候选趋势”即使个股突破/回调形态确认，也只能WAIT_CONFIRMATION，禁止越过板块确认擅自下单。对高潮/衰退、失效状态按风险证据降低优先级。板块研究和状态只由原板块趋势榜改变，下游买点任务无权替上游升级。
-11. 对全部入选公司完成本轮公司业务关联/风险核查：SUPPORTED=有可核实的商业传导；EARLY_EVIDENCE=主题相关研发/客户测试有事实但盈利未兑现，允许继续评估交易结构但需额外核实风险；UNCERTAIN=证据缺失/冲突，NOT_SUPPORTED=直接业务联系被证伪。公司盈利和现金流的实质性风险可能阻断READY，但不得靠PE/MA60生成入场位。
-5. 从已完成日K生成并持久化的 data/research/full_market_price_structure.json 获取结构（scripts/build_full_market_price_structure.py）。交易日必须等于冻结池trade_date；每个候选≥120根有效已完成日K，data_status=verified，data_date与price一致；同日冻结收盘价与结构价偏差超过合理精度该公司UNCERTAIN，不能回退旧值。
-6. 使用 scripts/trend_buy_engine.py 的 `trend_buy_research_v2 → trend_buy_result_v2` 逻辑。仅确认 BREAKOUT（历史60/120日前高、放量、收盘位置）或 PULLBACK（上升结构、MA20回踩、收盘承接）两类结构。必须明确 entry_zone、max_entry_price、entry_trigger、invalidation_price、invalidation_rule、initial_risk_pct、exit_plan；待触发WAIT可以给条件区，不将其称作当天有效买点。
-7. 完成发布前审计：fresh_company_research、working_set_frozen、pre_screen_coverage、company_research_coverage、structure_same_day、no_future_evidence、json_schema_valid 全部true；以及source-review、价格和状态一致。**无合法COMPLETE结果就报告失败，并让盘中标记“本轮趋势榜不可用”；绝不回退历史低风险榜。**
-8. 正式结果唯一写 research/trend_buy_formal_result.json，schema `trend_buy_result_v2`，包含明确run_id、trade_date、READY/WAIT/UNCERTAIN/DROP及审计。写前JSON序列化+反解析+完整Gate；GitHub提交后从main回读内容、SHA、run_id、名单逐项一致。
-9. 仅19:00完整正式研究发布后，取已readback正式结果的真实 blob SHA，投影 scripts/trend_buy_handoff.py 的 `trend_buy_handoff_v2`，**唯一写 research/trend_buy_handoff.json**。HANDOFF只含READY+WAIT，完全保留股票身份、交易计划和rank，禁止出现 `reasonable_buy_range`、`low_risk_buy_range`。写后READBACK比对。早7:00只是隔夜信息复核，不写handoff；人工明确要求完整收盘版且Gate全部通过时可更新。
-10. 盘中唯一读取 research/intraday_market_snapshot.json，并确认其 source_stock_handoff_path 为 research/trend_buy_handoff.json、stock_handoff_kind=trend_buy_v2、schema/run_id/日期/名单完全一致后执行 skill/INTRADAY_MONITOR_CANONICAL.md。盘中不重新选股，不改入场价，不用历史“估值买点”补价，不自动下单。
+5. 对全部入选公司完成本轮公司业务关联/风险核查：SUPPORTED=有可核实的商业传导；EARLY_EVIDENCE=主题相关研发/客户测试有事实但盈利未兑现，允许继续评估交易结构但需额外核实风险；UNCERTAIN=证据缺失/冲突，NOT_SUPPORTED=直接业务联系被证伪。公司盈利和现金流的实质性风险可能阻断READY，但不得靠PE/MA60生成入场位。
+6. 从已完成日K生成并持久化的 data/research/full_market_price_structure.json 获取结构（scripts/build_full_market_price_structure.py）。交易日必须等于冻结池trade_date；每个候选≥120根有效已完成日K，data_status=verified，data_date与price一致；同日冻结收盘价与结构价偏差超过合理精度该公司UNCERTAIN，不能回退旧值。
+7. 使用 scripts/trend_buy_engine.py 的 `trend_buy_research_v2 → trend_buy_result_v2` 逻辑。仅确认 BREAKOUT（历史60/120日前高、放量、收盘位置）或 PULLBACK（上升结构、MA20回踩、收盘承接）两类结构。必须明确 entry_zone、max_entry_price、entry_trigger、invalidation_price、invalidation_rule、initial_risk_pct、exit_plan；待触发WAIT可以给条件区，不将其称作当天有效买点。
+8. 完成发布前审计：fresh_company_research、working_set_frozen、pre_screen_coverage、company_research_coverage、structure_same_day、no_future_evidence、json_schema_valid 全部true；以及source-review、价格和状态一致。**无合法COMPLETE结果就报告失败，并让盘中标记“本轮趋势榜不可用”；绝不回退历史低风险榜。**
+9. 正式结果唯一写 research/trend_buy_formal_result.json，schema `trend_buy_result_v2`，包含明确run_id、trade_date、READY/WAIT/UNCERTAIN/DROP及审计。写前JSON序列化+反解析+完整Gate；GitHub提交后从main回读内容、SHA、run_id、名单逐项一致。
+10. 仅19:00完整正式研究发布后，取已readback正式结果的真实 blob SHA，投影 scripts/trend_buy_handoff.py 的 `trend_buy_handoff_v2`，**唯一写 research/trend_buy_handoff.json**。HANDOFF只含READY+WAIT，完全保留股票身份、交易计划和rank，禁止出现 `reasonable_buy_range`、`low_risk_buy_range`。写后READBACK比对。早7:00只是隔夜信息复核，不写handoff；人工明确要求完整收盘版且Gate全部通过时可更新。
+11. 盘中唯一读取 research/intraday_market_snapshot.json，并确认其 source_stock_handoff_path 为 research/trend_buy_handoff.json、stock_handoff_kind=trend_buy_v2、schema/run_id/日期/名单完全一致后执行 skill/INTRADAY_MONITOR_CANONICAL.md。盘中不重新选股，不改入场价，不用历史“估值买点”补价，不自动下单。
 
 ## 3. 初始交易规则（继续运行中校准）
 
