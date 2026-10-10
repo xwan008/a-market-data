@@ -1,25 +1,25 @@
 # A股趋势买点榜｜唯一正式业务规则（2026-10-10 起）
 
-**状态：PRODUCTION_CANONICAL。** 此文件是原“A股低风险PE买点榜”的**唯一替代**。不存在双引擎、双榜或自动回退旧估值版本。历史低风险榜及其规则只可作为 Git 版本历史查阅，不得在当前决策、发布、监控或失败恢复中引用。技术阈值为可修正的初始参数，不代表已经证明有超额收益。
+**状态：PRODUCTION_CANONICAL。** 本文件定义“A股趋势买点榜”完整研究与发布流程。技术阈值可依据运行证据持续修正，尚不代表已证实超额收益。
 
 ## 1. 唯一目标
 
 从已核实的行业趋势出发，选择真实业务关联且公司质量/风险可接受的候选股票，识别**完成交易日K线确认**的突破/回踩买点，给出**次日允许的入场区间、最高追价、结构失效价、退出条件、初始价格风险**。没有买点就 WAIT，没有可靠数据就 UNCERTAIN，结构或业务严重失效就 DROP，绝不为凑READY而推测。
 
-公司基本面 / PE / PB / MA60 / 历史位置是**公司过滤、同业比较和风险识别**，不是估值折价买价。不能以“便宜”或“离MA60近”自动标记 READY。趋势买点与企业公允价值不同，失效价格是执行纪律，不保证实际成交止损。
+公司基本面、PE/PB、MA60与历史位置用于公司过滤、同业比较和风险识别。入场价由实际量价结构与触发条件形成，READY必须通过完整验证；结构失效价格属于执行风险边界，不保证实际止损成交价。
 
 ## 2. 唯一执行链
 
 1. 使用 research/trend_handoff.json，按 skill/TREND_HANDOFF_ROUTING_OVERRIDE.md 路由行业；时间以 Asia/Shanghai 为准，官方A股交易日校验。早7:00用严格前一完整交易日，晚19:00用当日完整收盘；非交易日自动任务停止，不把旧日期冒充当前。
-2. 读取 data/low_risk/index.json（这是**公司冻结池的旧技术目录名**，不代表旧榜仍在运行），逐行业读取一次manifest和所有parts，校验日期、身份、成员、字节、完整性；构造working set后Freeze，禁止回读shard/index/part补充冻结字段。
+2. 读取 `data/low_risk/index.json`，逐行业读取一次manifest和全部parts，校验日期、身份、成员、字节及完整性；构造working set并Freeze，后续研究只使用冻结的数据事实。
 3. 依据 skill/PRE_SCREEN_RESEARCH_SCOPE_OVERRIDE.md 对全部公司硬过滤和同业预筛：0.45增长传导代理+0.25质量+0.20 PE/PB与增长匹配+0.10趋势健康；每行业Top5，分差≤0.03可第6。审计完整的Universe、未入选名单、公司覆盖率，未完成不得发布。
 4. **上游板块确认门槛：** Trend Handoff的每个板块必须冻结并传递 `trend_state`、`market_state`。只有市场状态为**趋势确认**的板块才允许个股进入READY；“候选趋势”即使个股突破/回调形态确认，也只能WAIT_CONFIRMATION，禁止越过板块确认擅自下单。对高潮/衰退、失效状态按风险证据降低优先级。板块研究和状态只由原板块趋势榜改变，下游买点任务无权替上游升级。
 5. 对全部入选公司完成本轮公司业务关联/风险核查：SUPPORTED=有可核实的商业传导；EARLY_EVIDENCE=主题相关研发/客户测试有事实但盈利未兑现，允许继续评估交易结构但需额外核实风险；UNCERTAIN=证据缺失/冲突，NOT_SUPPORTED=直接业务联系被证伪。公司盈利和现金流的实质性风险可能阻断READY，但不得靠PE/MA60生成入场位。
 6. 从已完成日K生成并持久化的 data/research/full_market_price_structure.json 获取结构（scripts/build_full_market_price_structure.py）。交易日必须等于冻结池trade_date；每个候选≥120根有效已完成日K，data_status=verified，data_date与price一致；同日冻结收盘价与结构价偏差超过合理精度该公司UNCERTAIN，不能回退旧值。
 7. 使用 scripts/trend_buy_engine.py 的 `trend_buy_research_v2 → trend_buy_result_v2` 逻辑。仅确认 BREAKOUT（历史60/120日前高、放量、收盘位置）或 PULLBACK（上升结构、MA20回踩、收盘承接）两类结构。必须明确 entry_zone、max_entry_price、entry_trigger、invalidation_price、invalidation_rule、initial_risk_pct、exit_plan；待触发WAIT可以给条件区，不将其称作当天有效买点。
-8. 完成发布前审计：fresh_company_research、working_set_frozen、pre_screen_coverage、company_research_coverage、structure_same_day、no_future_evidence、json_schema_valid 全部true；以及source-review、价格和状态一致。**无合法COMPLETE结果就报告失败，并让盘中标记“本轮趋势榜不可用”；绝不回退历史低风险榜。**
+8. 完成发布前审计：fresh_company_research、working_set_frozen、pre_screen_coverage、company_research_coverage、structure_same_day、no_future_evidence、json_schema_valid 全部true；以及source-review、价格和状态一致。**无合法COMPLETE结果则报告失败，盘中标记“本轮趋势榜不可用”。**
 9. 正式结果唯一写 research/trend_buy_formal_result.json，schema `trend_buy_result_v2`，包含明确run_id、trade_date、READY/WAIT/UNCERTAIN/DROP及审计。写前JSON序列化+反解析+完整Gate；GitHub提交后从main回读内容、SHA、run_id、名单逐项一致。
-10. 仅19:00完整正式研究发布后，取已readback正式结果的真实 blob SHA，投影 scripts/trend_buy_handoff.py 的 `trend_buy_handoff_v2`，**唯一写 research/trend_buy_handoff.json**。HANDOFF只含READY+WAIT，完全保留股票身份、交易计划和rank，禁止出现 `reasonable_buy_range`、`low_risk_buy_range`。写后READBACK比对。早7:00只是隔夜信息复核，不写handoff；人工明确要求完整收盘版且Gate全部通过时可更新。
+10. 仅19:00完整正式研究发布后，取已readback正式结果的真实 blob SHA，投影 scripts/trend_buy_handoff.py 的 `trend_buy_handoff_v2`，**唯一写 research/trend_buy_handoff.json**。HANDOFF只含READY+WAIT，严格采用`trend_buy_handoff_v2`字段契约，保留股票身份、交易计划和rank。写后READBACK比对。早7:00只是隔夜信息复核，不写handoff；人工明确要求完整收盘版且Gate全部通过时可更新。
 11. 盘中唯一读取 research/intraday_market_snapshot.json，并确认其 source_stock_handoff_path 为 research/trend_buy_handoff.json、stock_handoff_kind=trend_buy_v2、schema/run_id/日期/名单完全一致后执行 skill/INTRADAY_MONITOR_CANONICAL.md。盘中不重新选股，不改入场价，不用历史“估值买点”补价，不自动下单。
 
 ## 3. 初始交易规则（继续运行中校准）
@@ -58,10 +58,10 @@
 
 ## 5. 唯一版本与异常原则
 
-原 low-risk 正式结果、handoff、对应历史规则和影子估值研究**已退役**；仓库 Git 历史及研究归档可追溯，但**没有活跃第二榜单**。每日定时任务名称“A股趋势买点榜”，周一至周五北京07:00/19:00原时段。上游“A股板块趋势榜”06:40/18:40及盘中执行监测原时段保持不变，仍通过交易日Gate。
+每日“A股趋势买点榜”按北京时间07:00、19:00执行，并严格校验官方交易日；上游板块趋势榜按06:40、18:40提供行业交接，盘中监控按既定时段消费已发布的正式快照。
 
-旧路径 research/latest_formal_result.json 和 research/low_risk_handoff.json 不可再被读取为生产研究或盘中状态来源。若当天新版正式结果还未有效发布（例如首个早间没有基线），则报告 MORNING_HANDOFF_UNAVAILABLE / NO_VALID_TREND_BUY_HANDOFF；不能将历史低风险记录改名冒充新榜。
+没有有效正式结果时，报告 `MORNING_HANDOFF_UNAVAILABLE` 或 `NO_VALID_TREND_BUY_HANDOFF`，不生成没有数据依据的交易判断。
 
-每次失败记录具体阶段、工具、readback/commit与真实错误；权限或安全拒绝不得换工具规避。失败不覆盖最后一份**同版本且时间适用**的COMPLETE正式结果，也不以旧数据冒充新日期。完整审计通过后才称PERSISTED。
+每次失败记录具体阶段、工具、readback/commit与真实错误；权限或安全拒绝不得换工具规避。失败不覆盖最后一份时间适用的COMPLETE正式结果，不以过期数据冒充新日期。完整审计通过后才称PERSISTED。
 
-正式业务流程不再读 skill/LOW_RISK_CANONICAL_FLOW.md、skill/PRICE_RANGE_OUTPUT_OVERRIDE.md、skill/INDUSTRY_ADAPTIVE_VALUATION_OVERRIDE.md、skill/SKILL.md 的旧状态/估值买价规则；以本文件为唯一公司研究与买点主规则。其余旧研究文件只保留存档用途，不可与本文件“合并生效”。
+公司筛选使用 `PRE_SCREEN_RESEARCH_SCOPE_OVERRIDE.md`，行业路由使用 `TREND_HANDOFF_ROUTING_OVERRIDE.md`，交易计划与发布以本文件和 `scripts/trend_buy_engine.py` 为准。
