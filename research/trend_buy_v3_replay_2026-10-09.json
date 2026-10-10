@@ -1,6 +1,6 @@
 {
   "schema_version": "trend_buy_result_v2",
-  "run_id": "trend-buy-v3-full-rerun-38037349939-asof-2026-10-09",
+  "run_id": "trend-buy-v3-full-rerun-38037505443-asof-2026-10-09",
   "result_kind": "a_share_trend_buy_result",
   "status": "COMPLETE",
   "trade_date": "2026-10-09",
@@ -4725,29 +4725,6 @@
       "qualified_opportunity_count": 11,
       "items": [
         {
-          "code": "600985",
-          "company_name": "淮北矿业",
-          "status": "WAIT",
-          "trend_phase": "REPAIRING",
-          "entry_opportunity": "EARLY_NOT_READY",
-          "current_price": 16.39,
-          "reference": {
-            "stage": "PRE_TREND_WATCH",
-            "setup_mode": "MA20_RECOVERY",
-            "conditional_trigger": "观察日K重新站上MA20，回调低点不创新低，且收盘承接与相对强弱改善",
-            "reference_trigger_price": 16.614,
-            "reference_zone": [
-              16.614,
-              16.913
-            ],
-            "invalidation_price": 16.29,
-            "estimated_price_risk_pct": 3.68,
-            "risk_threshold_pct": 8.0,
-            "price_basis": "同一已完成交易日的冻结技术数据，非估值买入价"
-          },
-          "decision_reason": "上游板块市场状态未到趋势确认；现为候选趋势，禁止只靠个股形态升级READY"
-        },
-        {
           "code": "002128",
           "company_name": "电投能源",
           "status": "WAIT",
@@ -4767,6 +4744,29 @@
             "estimated_price_risk_pct": 5.45,
             "risk_threshold_pct": 6.0,
             "price_basis": "同日已确认个股结构，板块可能尚未确认"
+          },
+          "decision_reason": "上游板块市场状态未到趋势确认；现为候选趋势，禁止只靠个股形态升级READY"
+        },
+        {
+          "code": "600985",
+          "company_name": "淮北矿业",
+          "status": "WAIT",
+          "trend_phase": "REPAIRING",
+          "entry_opportunity": "EARLY_NOT_READY",
+          "current_price": 16.39,
+          "reference": {
+            "stage": "PRE_TREND_WATCH",
+            "setup_mode": "MA20_RECOVERY",
+            "conditional_trigger": "观察日K重新站上MA20，回调低点不创新低，且收盘承接与相对强弱改善",
+            "reference_trigger_price": 16.614,
+            "reference_zone": [
+              16.614,
+              16.913
+            ],
+            "invalidation_price": 16.29,
+            "estimated_price_risk_pct": 3.68,
+            "risk_threshold_pct": 8.0,
+            "price_basis": "同一已完成交易日的冻结技术数据，非估值买入价"
           },
           "decision_reason": "上游板块市场状态未到趋势确认；现为候选趋势，禁止只靠个股形态升级READY"
         },
@@ -5022,63 +5022,62 @@
       "trend_name": "煤炭",
       "status": "EARLY_FOCUS_NOT_READY",
       "trade_date": "2026-10-09",
-      "code": "600985",
-      "company_name": "淮北矿业",
-      "current_price": 16.39,
+      "code": "002128",
+      "company_name": "电投能源",
+      "current_price": 28.8,
       "market_state": "候选趋势",
       "source_wait_reason": "WAIT_CONFIRMATION",
-      "trend_phase": "REPAIRING",
+      "trend_phase": "TRANSITION",
       "phase_evidence": {
-        "return_3d_pct": 3.08,
-        "return_5d_pct": -0.61,
-        "previous_5d_return_pct": -1.02,
-        "positive_days_5d": 2,
-        "negative_days_5d": 3,
-        "up_day_volume_ratio_5d": 1.149,
-        "down_day_volume_ratio_5d": 1.008,
-        "volume_ratio_1d": 1.322,
-        "volume_ratio_5d": 1.065,
-        "close_location_pct": 23.68,
-        "close_location_3d_avg_pct": 42.71,
-        "max_close_drawdown_10d_pct": -5.2,
-        "prior_5d_high": 16.79,
-        "prior_20d_low": 15.57,
-        "recent_3d_low": 15.83,
-        "fresh_break": false,
+        "return_3d_pct": 2.35,
+        "return_5d_pct": 3.52,
+        "previous_5d_return_pct": 0.18,
+        "positive_days_5d": 3,
+        "negative_days_5d": 2,
+        "up_day_volume_ratio_5d": 1.094,
+        "down_day_volume_ratio_5d": 0.833,
+        "volume_ratio_1d": 1.091,
+        "volume_ratio_5d": 0.99,
+        "close_location_pct": 90.65,
+        "close_location_3d_avg_pct": 67.43,
+        "max_close_drawdown_10d_pct": -1.77,
+        "prior_5d_high": 28.36,
+        "prior_20d_low": 26.65,
+        "recent_3d_low": 27.62,
+        "fresh_break": true,
         "pullback_low_holds": true,
         "weak_close_high_volume": false,
         "signal_uses_completed_bars_only": true
       },
       "transmission": "SUPPORTED",
-      "standard_setup_confirmed": false,
+      "standard_setup_confirmed": true,
       "early_signal_count": 2,
       "early_signal_flags": {
-        "volume_1d": true,
-        "volume_5d": true,
+        "volume_1d": false,
+        "volume_5d": false,
         "relative_strength": false,
         "ma20_turning": false,
-        "close_strength": false,
-        "higher_low": false
+        "close_strength": true,
+        "higher_low": true
       },
       "reference": {
-        "stage": "PRE_TREND_WATCH",
-        "setup_mode": "MA20_RECOVERY",
-        "conditional_trigger": "观察日K重新站上MA20，回调低点不创新低，且收盘承接与相对强弱改善",
-        "reference_trigger_price": 16.614,
+        "stage": "STOCK_CONFIRMED_SECTOR_PENDING",
+        "setup_mode": "PULLBACK",
+        "conditional_trigger": "个股收盘结构已出现；板块即使仍为候选，也可提前研究小规模试探入场，但必须次交易日复核信号仍有效、价格不超上限、账户亏损预算和结构失效位；不得冒充READY自动买入",
+        "reference_trigger_price": 28.656,
         "reference_zone": [
-          16.614,
-          16.913
+          28.656,
+          29.146
         ],
-        "invalidation_price": 16.29,
-        "estimated_price_risk_pct": 3.68,
-        "risk_threshold_pct": 8.0,
-        "price_basis": "同一已完成交易日的冻结技术数据，非估值买入价"
+        "invalidation_price": 27.557,
+        "estimated_price_risk_pct": 5.45,
+        "risk_threshold_pct": 6.0,
+        "price_basis": "同日已确认个股结构，板块可能尚未确认"
       },
-      "reference_trigger_distance_pct": 1.37,
+      "reference_trigger_distance_pct": 0.5,
       "decision_reason": "根据截至本轮收盘的最新买点成熟度、趋势阶段与入场距离动态选择",
       "remaining_blocks_to_ready": [
-        "板块趋势仍待确认",
-        "个股标准趋势买点尚未确认"
+        "板块趋势仍待确认"
       ],
       "not_buy_order": true
     },
@@ -5163,9 +5162,9 @@
     "archived_disclosures_blob": "d174657e4c3e70e99a698255a4d6f8d87c809347",
     "price_engine_blob": "59cec6014f4f785d05659adb919eed7a9fd28346",
     "screen_engine_blob": "d3923ecd6b5a121a0e360a0daebd33fa517e055d",
-    "entry_engine_blob": "4ac5279bc557531360eb04be7101b08f80d3b864",
-    "new_price_snapshot_generated_at": "2026-10-10T16:17:28.577558+08:00",
-    "github_actions_run_id": "38037349939",
+    "entry_engine_blob": "337fa1b23fc6127d5821551ba91e5c2ecc53329d",
+    "new_price_snapshot_generated_at": "2026-10-10T16:20:17.643267+08:00",
+    "github_actions_run_id": "38037505443",
     "formal_publication_gate_passed": false,
     "did_not_consume_prior_formal_as_input": true
   }
