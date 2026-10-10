@@ -31,7 +31,7 @@ def active_stock_handoff() -> tuple[dict, list[dict], str]:
         raise ValueError("NO_VALID_TREND_BUY_HANDOFF")
     items = trend_contract.validate_items(handoff)
     formal_bytes = TREND_BUY_FORMAL_PATH.read_bytes()
-    digest = hashlib.sha1(b"blob " + str(len(formal_bytes)).encode() + b"\\0" + formal_bytes).hexdigest()
+    digest = hashlib.sha1(b"blob " + str(len(formal_bytes)).encode() + b"\0" + formal_bytes).hexdigest()
     formal = json.loads(formal_bytes)
     if (digest != handoff.get("source_formal_blob_sha")
         or formal.get("schema_version") != "trend_buy_result_v2"
