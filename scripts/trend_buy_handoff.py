@@ -79,8 +79,21 @@ def project(result, formal_sha, *, shadow=False):
         raise ValueError("source_blob_sha_required")
     ready=result.get("ready") or []
     wait=result.get("wait") or []
+    groups=result.get("top5_by_theme")
+    if not isinstance(groups,list):
+        raise ValueError("missing_dynamic_theme_top5")
+    candidate_by_code={x["code"]:x for x in ready+wait}
+    codes=[x["code"] for group in groups for x in group.get("items",[])]
+    if len(codes)!=len(set(codes)) or any(code not in candidate_by_code for code in codes):
+        raise ValueError("dynamic_theme_top5_duplicated_or_unresearched")
+    if any(len(group.get("items",[]))>5 for group in groups):
+        raise ValueError("dynamic_theme_top5_exceeds_five")
+    if any(x.get("trend_name")!=group["trend_name"]
+           for group in groups for x in group.get("items",[])):
+        raise ValueError("dynamic_theme_top5_sector_mismatch")
     rows=[]
-    for rank,x in enumerate(ready+wait,1):
+    for rank,code in enumerate(codes,1):
+        x=candidate_by_code[code]
         rows.append({k:x.get(k) for k in PROJECT_FIELDS}|{"rank":rank,"trade_date":result["trade_date"]})
     payload={
         "schema_version":"trend_buy_handoff_v2","status":"COMPLETE",
