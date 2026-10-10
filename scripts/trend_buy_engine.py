@@ -228,6 +228,28 @@ def early_watch_reference(row):
     Do not invent a stop or borrow one from a remote historical breakout.
     Use only contemporaneous verified MA/support data captured in the row.
     """
+    if (row.get("structure_confirmed") is True and
+        row.get("setup_type") in {"BREAKOUT","PULLBACK"} and
+        isinstance(row.get("entry_zone"),list) and len(row["entry_zone"])==2 and
+        all(pos(z) for z in row["entry_zone"]) and
+        pos(row.get("invalidation_price")) and
+        row["invalidation_price"]<row["entry_zone"][0] and
+        pos(row.get("initial_risk_pct")) and
+        row["initial_risk_pct"]<=MAX_ENTRY_RISK_PCT):
+        # A true, already observed stock structure must take precedence over
+        # an inferred moving-average anticipation. Its WAIT is often due to
+        # the unconfirmed industry and can be studied earlier, not auto-bought.
+        return {
+            "stage":"STOCK_CONFIRMED_SECTOR_PENDING",
+            "setup_mode":row["setup_type"],
+            "conditional_trigger":"个股收盘结构已出现；仍须重核板块强度、计划价未超限及下交易日量价有效性，不能视作READY",
+            "reference_trigger_price":row["entry_zone"][0],
+            "reference_zone":row["entry_zone"],
+            "invalidation_price":row["invalidation_price"],
+            "estimated_price_risk_pct":row["initial_risk_pct"],
+            "risk_threshold_pct":MAX_ENTRY_RISK_PCT,
+            "price_basis":"同日已确认个股结构，板块可能尚未确认",
+        }
     ctx=row.get("technical_context") or {}
     p, ma20, ma60 = row.get("current_price"), ctx.get("ma20"), ctx.get("ma60")
     if not all(pos(z) for z in (p,ma20,ma60)):
@@ -308,7 +330,8 @@ def select_focus_watchlist(ready,wait,research):
             plan_complete=ref.get("reference_zone") is not None
             # Favor early capital/price improvement and actual feasibility.
             # Business and screen scores are supporting tie-breakers only.
-            rank=(-count,-int(plan_complete),trigger_distance,
+            confirmed_plan=(x.get("structure_confirmed") is True and plan_complete)
+            rank=(-int(confirmed_plan),-int(plan_complete),-count,trigger_distance,
                   -int(x.get("transmission")=="SUPPORTED"),
                   ref.get("estimated_price_risk_pct") or 100,
                   -score_lookup.get(x["code"],.5),x["code"])
