@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 from datetime import datetime
 from pathlib import Path
 from statistics import median
@@ -13,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 RESEARCH_DIR = ROOT / "research"
 TREND_PATH = RESEARCH_DIR / "trend_handoff.json"
 TREND_BUY_PATH = RESEARCH_DIR / "trend_buy_handoff.json"
+TREND_BUY_FORMAL_PATH = RESEARCH_DIR / "trend_buy_formal_result.json"
 SNAPSHOT_PATH = RESEARCH_DIR / "intraday_market_snapshot.json"
 MANIFEST_ROOT = ROOT / "data" / "low_risk" / "by_industry"
 HISTORY_CONTEXT_RUNTIME_FORMAT = "low_risk_industry_working_set_chunk"
@@ -23,11 +25,29 @@ def read_json(path: Path) -> dict:
 
 
 def active_stock_handoff() -> tuple[dict, list[dict], str]:
-    """Sole production path. No legacy fallback, even when V2 is unavailable."""
+    """Only one V2 handoff; cross-check its exact persisted formal blob and IDs."""
     handoff = read_json(TREND_BUY_PATH)
     if handoff.get("shadow") is not False or not handoff.get("source_formal_blob_sha") or not handoff.get("source_run_id"):
-        raise ValueError("trend_buy_handoff_not_production_validated")
+        raise ValueError("NO_VALID_TREND_BUY_HANDOFF")
     items = trend_contract.validate_items(handoff)
+    formal_bytes = TREND_BUY_FORMAL_PATH.read_bytes()
+    digest = hashlib.sha1(b"blob " + str(len(formal_bytes)).encode() + b"\\0" + formal_bytes).hexdigest()
+    formal = json.loads(formal_bytes)
+    if (digest != handoff.get("source_formal_blob_sha")
+        or formal.get("schema_version") != "trend_buy_result_v2"
+        or formal.get("status") != "COMPLETE"
+        or formal.get("production_eligible") is not True
+        or formal.get("run_id") != handoff.get("source_run_id")
+        or formal.get("trade_date") != handoff.get("trade_date")):
+        raise ValueError("TREND_BUY_FORMAL_HANDOFF_MISMATCH")
+    ranked = (formal.get("ready") or []) + (formal.get("wait") or [])
+    if len(ranked) != len(items):
+        raise ValueError("TREND_BUY_FORMAL_HANDOFF_COVERAGE_MISMATCH")
+    for a,b in zip(items,ranked):
+        if any(a.get(k) != b.get(k) for k in
+               ("code", "status", "wait_reason", "entry_zone", "max_entry_price",
+                "invalidation_price", "setup_type")):
+            raise ValueError("TREND_BUY_FORMAL_HANDOFF_ITEM_MISMATCH")
     return handoff, items, "trend_buy_v2"
 
 
