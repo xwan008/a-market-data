@@ -350,4 +350,4 @@ working set freeze
 
 ## 14. 正式发布后的独立前瞻影子审计（非第二主流程）
 
-第1–13节所述的唯一正式主流程、数据 Freeze、发布顺序与 handoff 完全不变。本轮如需验证前瞻估值，必须**在合法正式结果提交并 READBACK 成功之后**，用独立导出的同日 frozen facts 和可追溯情景输入，在发布流程之外运行 `scripts/shadow_forward_valuation.py`；禁止在正式 Freeze 后为影子实验重读 index/manifest/part/shard，亦禁止读取影子结果作为新仓研究输入。影子结果只能写入独立 `research/shadow/` 路径，保留 `production_effect=NONE`，不能改变正式审计计数、READY/WAIT、h​​andoff、历史账本或盘中监控。详细边界见 `FORWARD_VALUATION_SHADOW_PROTOCOL.md`。
+第1–13节所述的唯一正式主流程、数据 Freeze、发布顺序与 handoff 完全不变。本轮如需验证前瞻估值，必须**在合法正式结果提交并 READBACK 成功之后**，用独立导出的同日 frozen facts 和可追溯情景输入，在发布流程之外运行 `scripts/shadow_forward_valuation.py`；禁止在正式 Freeze 后为影子实验重读 index/manifest/part/shard，亦禁止读取影子结果作为新仓研究输入。影子结果只能写入独立 `research/shadow/` 路径，保留 `production_effect=NONE`，不能改变正式审计计数、READY/WAIT、handoff、历史账本或盘中监控。详细边界见 `FORWARD_VALUATION_SHADOW_PROTOCOL.md`。
