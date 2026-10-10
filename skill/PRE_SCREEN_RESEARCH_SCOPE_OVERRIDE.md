@@ -36,7 +36,7 @@ post_freeze_shard_read_count == 0
 post_freeze_materialized_read_count == 0
 ```
 
-预筛阶段不得再次访问 materialized industry file、company_industry_index、shard、Legacy Runtime artifacts 或 Web。
+预筛阶段使用本轮冻结工作集计算，确保每家公司仅使用已审计的物化事实。
 
 ---
 
@@ -113,9 +113,9 @@ valuation_attractiveness =
 
 这里的匹配评分只是**研究资源的同业排序代理**，不是真正的 PEG、预测盈利或合理价值计算：低 PE 但低增长不会单边受奖励，高 PE 且高质量增长也不会天然被排除。
 
-### 4.4 趋势健康度：替换低位单边奖励，权重为 10%
+### 4.4 趋势健康度：权重为 10%
 
-将 `price_crowding_attractiveness` 替换为内部评分 `trend_health_score`，只取已有价格与技术结构事实。依优先级执行：
+使用 `trend_health_score`，只取已验证的价格与技术结构事实。依优先级执行：
 
 ```text
 if already confirmed structure break / invalidation:
@@ -134,7 +134,7 @@ else:
 
 若 60 日位置较高（将 0–100 或 0–1 的 `position_pct` 统一规范到 0–1，例：>=0.90），**不得仅因为创新高扣分**。仅在股价偏离 MA20 的程度位于同三级行业最高四分位，且已有成交量/结构事实不能支持有效突破时，才将健康度上限设为 0.70，提示短期过热。若已有可信放量突破和结构支撑，不机械压分；证据缺失时不臆测过热。技术强弱只是预筛资源排序依据，不能替代后续入场/买点判断。
 
-### 4.5 新预筛总分与边界
+### 4.5 预筛总分与边界
 
 ```text
 pre_screen_score =
@@ -144,9 +144,9 @@ pre_screen_score =
   + 0.10*trend_health_score
 ```
 
-权重变化：增长 40%→45%；盈利质量仍 25%；估值匹配仍 20%；价格位置调整为趋势健康度 15%→10%。`pre_screen_score` 保持在 0–1 之间，只决定深度研究排序，不自动影响 Transmission、Expectation、READY/WAIT 或实际买入价格。
+`pre_screen_score` 保持在0–1之间，仅决定深度研究的同业排序。买点形态与风险计划由后续趋势研究独立确认。
 
-**与唯一趋势买点主流程的边界：** Top5、与第五名分差≤0.03的并列第6、覆盖率和公司风险硬过滤不变。本文件只负责选择深度研究对象，不再决定合理估值、额外安全边际或正式入场价。后续以 `TREND_BUY_CANONICAL.md` 的公司证据核验、BREAKOUT/PULLBACK结构入场与版本化handoff执行。
+**与趋势买点主流程的边界：** 本文件负责硬过滤、同业Top5/并列第6、覆盖率及预筛排序。入场触发、结构失效与正式状态由`TREND_BUY_CANONICAL.md`负责。
 
 ---
 
@@ -184,9 +184,9 @@ Deep Research Set：
 
 随后：
 - Transmission 只覆盖 Deep Research Set；
-- Expectation 覆盖其中所有 Transmission=SUPPORTED；
+- 每家深度研究候选都应核实商业传导的来源、经营兑现阶段和风险；
 - Transmission=EARLY_EVIDENCE 不升级为已商业化SUPPORTED；只有真实主题关联并完成额外经营风险核查，才能按 `TREND_BUY_CANONICAL.md` 继续判断趋势入场条件；
-- Risk–Reward 按后续规则闭合。
+- 入场计划与风险收益评估由趋势买点引擎完成。
 
 Transmission 各状态（SUPPORTED / EARLY_EVIDENCE / NOT_SUPPORTED / UNCERTAIN）的去重公司数之和必须等于 Deep Research Set 去重公司数；必要检索未完成的 RESEARCH_INCOMPLETE 不得伪装成其中任一状态并发布 COMPLETE。
 
