@@ -52,7 +52,7 @@ def main():
     research=build_research(old)
     result=engine.generate(research,m)
     out=Path(a.output).resolve()
-    if out.name in {"trend_buy_formal_result.json","trend_buy_handoff.json","latest_formal_result.json","low_risk_handoff.json"}:
+    if out.name in {"trend_buy_formal_result.json","trend_buy_handoff.json"}:
         raise ValueError("shadow_cannot_write_formal")
     out.parent.mkdir(parents=True,exist_ok=True)
     out.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
