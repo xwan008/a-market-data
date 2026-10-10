@@ -62,3 +62,11 @@ implied_forward_eps_T = (price_now * (1+r)^T - optional_terminal_dividend) / exi
 6. 多交易日、无未来信息的历史检验能证明增益，且全部正式契约保持原样。
 
 **未满足验证前不得晋升。** 通过后才另行修改 `SKILL.md`、`INDUSTRY_ADAPTIVE_VALUATION_OVERRIDE.md`、`PRICE_RANGE_OUTPUT_OVERRIDE.md`、`LOW_RISK_CANONICAL_FLOW.md` 等正式协议并进行兼容性审计。单日横截面不能证明模型长期选股效果。
+
+## 六、第二阶段新增：双交易日与周期PB/ROE验证
+
+本协议第3节所说“暂不支持周期原型”特指原 scripts/shadow_forward_valuation.py 的 PE 模型。第二阶段已额外建立独立 scripts/shadow_cyclical_valuation.py，通过公司定期报告披露的归母净资产、已发行股本和同一研究日收盘价计算 PB，并在明确假定的要求回报率/长期增长下反推可持续 ROE。它**不等于已经完成周期正常化盈利模型**，且不足以推出真实前瞻公允价；forward_scenario_value 仍要求明确的未来BVPS、ROE、概率、证据和推翻条件。为避免周期盈利/净资产口径混用，严禁在此脚本中以当期PE代替PB。
+
+第二阶段同时加入独立封存的 2026-09-29 冻结事实，与2026-10-09双时点比较旧价、旧PE、条件隐含EPS。历史案例的示例远期PE/r/T参数若为事后固定用于敏感性比较，必须标记“ex-post illustrative”，**不能宣称为历史当时可获得的预测，也不能称为真实回测**。历史上市公司公告的 published_at 不得晚于分析对应 as_of_date；龙蟠科技10月8日供货框架只能用于10/09研究，不可用于9/29样本。研究过程和数据来源见 research/shadow/VALIDATION_PHASE2_2026-10-10.md。
+
+以上仅为独立影子测试；不更改唯一主流程的任何状态、价格区间、发布/接力契约及结果日期。
