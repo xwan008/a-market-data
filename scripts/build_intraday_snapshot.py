@@ -509,7 +509,7 @@ def main() -> int:
         trend_item.setdefault("history_context", None)
         trend_item.setdefault("history_context_status", "unavailable")
     # Prefer the same eight validated completed-session closes used by boards.
-    # Never present a stale legacy five-close metric as a seven-session return.
+    # Seven-session returns require eight verified closing observations.
     for code, context in history_contexts.items():
         stock_seven = stock_seven_day_contexts.get(code) or {}
         context["close_change_7d_pct"] = stock_seven.get("close_change_7d_pct")
