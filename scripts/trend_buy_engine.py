@@ -91,6 +91,7 @@ def evaluate_candidate(c, structure, trade_date):
     st = str(c.get("transmission") or "")
     result = {
         "code": code, "company_name": c.get("company_name"),
+        "industry_name": c.get("industry_name"), "current_price": c.get("asof_price"),
         "trend_name": c.get("trend_name"), "industry_code": c.get("industry_code"),
         "status": "UNCERTAIN", "wait_reason": None, "decision_reason": None,
         "transmission": st, "setup_type": None, "entry_zone": None,
@@ -212,6 +213,7 @@ def generate(research, structure):
         x["rank"]=i
     return {
         "schema_version":"trend_buy_result_v2",
+        "run_id":research.get("run_id") or f"shadow-trend-buy-{day}",
         "result_kind":"a_share_trend_buy_result",
         "status":"COMPLETE", "trade_date":day, "mode":research.get("mode","SHADOW"),
         "structure_trade_date":structure["reference_trade_date"],
