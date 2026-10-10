@@ -314,13 +314,17 @@ def opportunity_key(row):
     direct = (row.get("status") == "READY" and row.get("structure_confirmed") is True)
     feasible = (ref.get("reference_zone") is not None
                 and pos(ref.get("invalidation_price")))
+    independently_confirmed = (row.get("status") == "WAIT"
+                               and row.get("structure_confirmed") is True
+                               and ref.get("stage") == "STOCK_CONFIRMED_SECTOR_PENDING"
+                               and feasible)
     # Confirmed READY comes first, but not if the current phase says COOLING.
     phase_tier = {
         "REACCELERATING": 0, "INITIATING": 1, "REPAIRING": 2,
         "PULLBACK": 3, "TRANSITION": 4, "COOLING": 9, "FAILED": 10
     }.get(phase, 5)
-    return (0 if direct and phase not in {"COOLING", "FAILED"} else 1,
-            0 if feasible else 1, phase_tier,
+    maturity_tier = (0 if direct else 1 if independently_confirmed else 2)
+    return (maturity_tier, 0 if feasible else 1, phase_tier,
             0 if distance <= 8 else 1, round(distance, 4),
             row.get("code") or "")
 
