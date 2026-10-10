@@ -1,0 +1,186 @@
+name: Full dynamic trend-buy independent rerun 2026-10-09
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/trend-buy-v3-full-replay.request"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trend-buy-v3-full-replay-20261009
+  cancel-in-progress: false
+
+jobs:
+  rerun-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Freeze same-day upstream and verify evidence scope
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          target="2026-10-09"
+          trend=json.loads(Path("research/trend_handoff.json").read_text())
+          idx=json.loads(Path("data/low_risk/index.json").read_text())
+          ev=json.loads(Path("research/trend_buy_evidence_2026-10-09.json").read_text())
+          latest=json.loads(Path("data/latest.json").read_text())
+          assert latest["trade_date"]==idx["trade_date"]==trend["trade_date"]==ev["as_of_date"]==target
+          assert latest["market_status"]=="closed"
+          assert idx["validation"]["status"]=="passed"
+          assert all(x.get("mapping_status")=="resolved" for x in trend["signals"])
+          print("UPSTREAM_FROZEN",target,"themes",[x["trend_name"] for x in trend["signals"]])
+          print("DISCLOSURE_ARCHIVE_COUNT",len(ev["reviews"]))
+          PY
+
+      - name: Compute fresh full-market compact OHLCV indicators
+        run: python scripts/build_full_market_price_structure.py
+
+      - name: Independently freeze and pre-screen full company universe
+        run: |
+          python scripts/build_trend_buy_manual_research.py \
+            --evidence research/trend_buy_evidence_2026-10-09.json \
+            --output /tmp/independent-v3-research.json
+
+      - name: Evaluate ALL hard-eligible stocks and rank dynamic thematic opportunities
+        run: |
+          python scripts/trend_buy_engine.py \
+            --research /tmp/independent-v3-research.json \
+            --structure data/research/full_market_price_structure.json \
+            --output /tmp/independent-v3-result.json
+
+      - name: Audit full run and preserve safe result then compare to earlier publication
+        run: |
+          python - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          research=json.loads(Path("/tmp/independent-v3-research.json").read_text())
+          result=json.loads(Path("/tmp/independent-v3-result.json").read_text())
+          structure=json.loads(Path("data/research/full_market_price_structure.json").read_text())
+          date="2026-10-09"
+          sa=research["screen_audit"]
+          pending=sa["source_review_pending_codes"]
+          assert result["trade_date"]==research["trade_date"]==structure["reference_trade_date"]==date
+          assert sa["universe"]==78 and sa["hard_eligible"]==74
+          assert result["coverage"]["selected"]==result["coverage"]["judged"]==sa["hard_eligible"]
+          assert sum(result["summary"].values())==sa["hard_eligible"]
+          assert len(sa["pre_screen_selected"])==sa["hard_eligible"]
+          assert sa["source_review_pending_count"]==len(pending)
+          assert len({x["code"] for coll in (result["ready"],result["wait"],result["uncertain"],result["drop"]) for x in coll})==74
+          assert {g["trend_name"] for g in result["top5_by_theme"]}=={s["trend_name"] for s in json.loads(Path("research/trend_handoff.json").read_text())["signals"]}
+          assert all(len(g["items"])<=5 for g in result["top5_by_theme"])
+          assert all(x["trend_phase"] not in {"COOLING","FAILED"} for g in result["top5_by_theme"] for x in g["items"])
+          assert len(result["focus_watchlist"])==len(result["top5_by_theme"])
+          assert pending and research["mode"]=="SHADOW" and not result["production_eligible"]
+          assert research["publication_audit"]["fresh_company_research"] is False
+          assert research["publication_audit"]["company_research_coverage"] is False
+          assert result["publication_audit"]["fresh_research"] is False
+          def sha(path):
+              return subprocess.check_output(["git","rev-parse","HEAD:"+path],text=True).strip()
+          result["run_id"]="trend-buy-v3-full-rerun-"+os.environ["GITHUB_RUN_ID"]+"-asof-"+date
+          result["fresh_rerun_provenance"]={
+              "kind":"independent_fresh_screen_and_technical_pipeline",
+              "source_trade_date":date,
+              "upstream_sector_handoff_blob":sha("research/trend_handoff.json"),
+              "frozen_company_index_blob":sha("data/low_risk/index.json"),
+              "archived_disclosures_blob":sha("research/trend_buy_evidence_2026-10-09.json"),
+              "price_engine_blob":sha("scripts/build_full_market_price_structure.py"),
+              "screen_engine_blob":sha("scripts/build_trend_buy_manual_research.py"),
+              "entry_engine_blob":sha("scripts/trend_buy_engine.py"),
+              "new_price_snapshot_generated_at":structure["generated_at"],
+              "github_actions_run_id":os.environ["GITHUB_RUN_ID"],
+              "formal_publication_gate_passed":False,
+              "did_not_consume_prior_formal_as_input":True
+          }
+          out=Path("research/trend_buy_v3_replay_2026-10-09.json")
+          out.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n")
+          older=json.loads(Path("research/trend_buy_formal_result.json").read_text())
+          def items(r):
+              return {x["code"]:x for field in ("ready","wait","uncertain","drop") for x in r[field]}
+          old,new=items(older),items(result)
+          old_focus={x["trend_name"]:x.get("code") for x in older["focus_watchlist"]}
+          new_focus={x["trend_name"]:x.get("code") for x in result["focus_watchlist"]}
+          delta=[{"code":code,"company_name":new[code]["company_name"],
+                  "old_status":old[code]["status"],"new_status":new[code]["status"],
+                  "trend_phase":new[code].get("trend_phase")}
+                 for code in sorted(old.keys() & new.keys()) if old[code]["status"]!=new[code]["status"]]
+          audit={
+              "result_kind":"trend_buy_v3_independent_full_rerun_audit",
+              "asof_trade_date":date,"run_id":result["run_id"],
+              "execution_result":"SHADOW_NOT_FORMAL_RESEARCH_GATE",
+              "universe_count":sa["universe"],"hard_eligible_count":sa["hard_eligible"],
+              "company_reviewed_count":sa["source_review_complete_count"],
+              "pending_business_review_count":len(pending),"pending_business_review_codes":pending,
+              "new_summary":result["summary"],"old_summary":older["summary"],
+              "old_coverage":older["coverage"],"new_coverage":result["coverage"],
+              "old_focus":old_focus,"new_focus":new_focus,
+              "theme_top5":{x["trend_name"]:[{"code":y["code"],
+                  "company_name":y["company_name"],"phase":y["trend_phase"],
+                  "status":y["status"]} for y in x["items"]] for x in result["top5_by_theme"]},
+              "old_new_status_changes":delta,
+              "shadow_handoff_not_live":True,"old_formal_used_for_comparison_only":True}
+          Path("research/trend_buy_v3_replay_audit_2026-10-09.json").write_text(
+              json.dumps(audit,ensure_ascii=False,indent=2)+"\n")
+          print("FRESH_V3_REPLAY_AUDIT",json.dumps(audit,ensure_ascii=False)[:14000])
+          PY
+
+      - name: Project shadow-only next-session research list without touching live handoff
+        run: |
+          set -euo pipefail
+          SHA="$(git hash-object research/trend_buy_v3_replay_2026-10-09.json)"
+          python scripts/trend_buy_handoff.py \
+            --shadow \
+            --result research/trend_buy_v3_replay_2026-10-09.json \
+            --result-blob-sha "$SHA" \
+            --output research/trend_buy_v3_replay_shadow_handoff_2026-10-09.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("research/trend_buy_v3_replay_2026-10-09.json").read_text())
+          h=json.loads(Path("research/trend_buy_v3_replay_shadow_handoff_2026-10-09.json").read_text())
+          assert r["mode"]=="SHADOW" and r["production_eligible"] is False
+          assert h["shadow"] is True and h["source_run_id"]==r["run_id"]
+          assert len(h["items"])==sum(len(x["items"]) for x in r["top5_by_theme"])
+          print("SHADOW_HANDOFF_SAFE",len(h["items"]),[i["code"] for i in h["items"]])
+          PY
+
+      - name: Persist newly computed research and read back SHA and bytes
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/trend_buy_v3_replay_2026-10-09.json \
+            research/trend_buy_v3_replay_audit_2026-10-09.json \
+            research/trend_buy_v3_replay_shadow_handoff_2026-10-09.json
+          git commit -m "research: independently rerun dynamic trend-buy on frozen 2026-10-09 close"
+          git push origin HEAD:main
+          git fetch origin main
+          for p in research/trend_buy_v3_replay_2026-10-09.json research/trend_buy_v3_replay_audit_2026-10-09.json research/trend_buy_v3_replay_shadow_handoff_2026-10-09.json; do
+            git show "origin/main:$p" | cmp - "$p"
+            test "$(git rev-parse origin/main:$p)" = "$(git hash-object "$p")"
+          done
+          git show origin/main:research/trend_buy_formal_result.json | cmp - research/trend_buy_formal_result.json
+          git show origin/main:research/trend_buy_handoff.json | cmp - research/trend_buy_handoff.json
+          echo "PERSISTED_SHADOW_ONLY_READBACK $(git rev-parse HEAD) $(git rev-parse origin/main:research/trend_buy_v3_replay_2026-10-09.json)"
+
+      - name: Archive research input and result audit for inspection
+        uses: actions/upload-artifact@v4
+        with:
+          name: dynamic-full-rerun-2026-10-09
+          path: |
+            /tmp/independent-v3-research.json
+            research/trend_buy_v3_replay_2026-10-09.json
+            research/trend_buy_v3_replay_audit_2026-10-09.json
+            research/trend_buy_v3_replay_shadow_handoff_2026-10-09.json
+          retention-days: 30
