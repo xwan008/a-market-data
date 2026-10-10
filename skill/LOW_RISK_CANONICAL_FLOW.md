@@ -347,3 +347,7 @@ working set freeze
 新仓研究绝不能在开始或中途读取历史信号账本作为 Universe、筛选、估值、排序或 handoff 的输入。**只在本轮 Fresh Run 完成、正式结果已提交并 READBACK 通过以后**，必须尝试读取最近一次已验证的 `research/low_risk_signal_registry.json`，用于本轮结果的事后历史对比；没有可信旧账本时说明历史不可用，不影响本轮正式发布。19:00 自动正式版还须先按原契约完成同轮 `research/low_risk_handoff.json` 的提交及 READBACK；这一步成功提交后，独立 GitHub Actions 工作流才可以按 `skill/LOW_RISK_HISTORY_PROTOCOL.md` 进行历史记录持久化。07:00 增量版不更新正式历史账本。
 
 事后报告若旧账本存在且可信，应简洁说明上轮个股中仍入选、新增、暂停（板块不在本轮新仓 handoff）、退出（当轮已核实的筛选分类），不把板块缺席误称为趋势失效，不因历史记录挤占本轮新榜名额。历史账本属于独立附属输出；它的触发、生成、提交、回读异常只报告 HISTORY_PENDING/HISTORY_WRITE_FAILED，不撤回、不覆盖、不重新计算已发布的正式结果或 handoff，也不得宣称历史持久化成功。仍持仓但未进入本轮 READY/WAIT 的个股不自动重新纳入盘中冻结集；真实持仓监控未来另设通道。
+
+## 14. 正式发布后的独立前瞻影子审计（非第二主流程）
+
+第1–13节所述的唯一正式主流程、数据 Freeze、发布顺序与 handoff 完全不变。本轮如需验证前瞻估值，必须**在合法正式结果提交并 READBACK 成功之后**，用独立导出的同日 frozen facts 和可追溯情景输入，在发布流程之外运行 `scripts/shadow_forward_valuation.py`；禁止在正式 Freeze 后为影子实验重读 index/manifest/part/shard，亦禁止读取影子结果作为新仓研究输入。影子结果只能写入独立 `research/shadow/` 路径，保留 `production_effect=NONE`，不能改变正式审计计数、READY/WAIT、h​​andoff、历史账本或盘中监控。详细边界见 `FORWARD_VALUATION_SHADOW_PROTOCOL.md`。
