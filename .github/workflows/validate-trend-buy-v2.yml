@@ -43,6 +43,23 @@ jobs:
           python -m unittest discover -s tests -p 'test_trend_buy_full_pipeline.py' -v
       - name: Rebuild historical same-day OHLCV structures (no commit)
         run: python scripts/build_full_market_price_structure.py
+      - name: Read-only early focus replay on actual Oct 9 researched candidates
+        run: |
+          python scripts/build_trend_buy_manual_research.py --evidence research/trend_buy_evidence_2026-10-09.json --output /tmp/early_focus_research_2026-10-09.json
+          python scripts/trend_buy_engine.py --research /tmp/early_focus_research_2026-10-09.json --structure data/research/full_market_price_structure.json --output /tmp/early_focus_result_2026-10-09.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/early_focus_result_2026-10-09.json').read_text())
+          assert r['trade_date']=='2026-10-09'
+          assert r['coverage']['judged']==42
+          assert r['summary']['ready']==0
+          assert len(r['focus_watchlist'])==3
+          assert all(z['status']=='EARLY_FOCUS_NOT_READY' for z in r['focus_watchlist'])
+          assert {z['trend_name'] for z in r['focus_watchlist']}=={'煤炭','固态电池','黄金/贵金属'}
+          print('EARLY_FOCUS_READONLY_REPLAY',json.dumps(r['focus_watchlist'],ensure_ascii=False))
+          print('FORMAL_RESEARCH_REPLAY_SUMMARY',json.dumps(r['summary'],ensure_ascii=False))
+          PY
       - name: Run independent historical Oct 9 regression fixture
         run: |
           python scripts/run_trend_buy_shadow_compare.py --screen-comparison research/shadow/low_risk_comparison_2026-10-09.json --structure data/research/full_market_price_structure.json --output /tmp/trend-buy-shadow-2026-10-09.json
