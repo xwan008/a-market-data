@@ -209,13 +209,15 @@ def evaluate_candidate(c, structure, trade_date):
 
 
 
-def select_focus_watchlist(ready, wait, research):
-    """One NON-TRADE attention pick per research sector when READY is empty.
+FOCUS_MAX_DISTANCE_PCT = 5.0  # provisional proximity gate, not a verified return predictor
 
-    A focus pick never upgrades a WAIT signal. A sector with no WAIT is
-    explicitly shown as NO_QUALIFIED_WAIT, not filled from UNCERTAIN/DROP.
-    Ranking: already confirmed stock structure, grounded plan, commercial
-    evidence strength, intra-industry pre-screen score, proximity, risk.
+
+def select_focus_watchlist(ready, wait, research):
+    """Identify one NEAR-EXECUTABLE WAIT per sector, or explicitly abstain.
+
+    Proximity to MA60 alone is NEVER an entry signal. A far-away hypothetical
+    breakout is not a useful entry focus merely because it has a price plan.
+    WATCH_ONLY does not change WAIT or authorize intraday buying.
     """
     if ready:
         return []
@@ -224,81 +226,87 @@ def select_focus_watchlist(ready, wait, research):
     audit = research.get("screen_audit") or {}
     scores = {str(x.get("code")): x["score"] for x in
               audit.get("pre_screen_selected", [])
-              if pos(x.get("score")) or x.get("score") == 0}
+              if val(x.get("score"))}
     picks = []
     for sector in sectors:
         candidates = [x for x in wait if x.get("trend_name") == sector]
         if not candidates:
-            picks.append({"trend_name": sector, "status": "NO_QUALIFIED_WAIT",
-                          "trade_date": research["trade_date"], "code": None,
-                          "company_name": None, "reason": "该板块没有通过研究门槛的WAIT；不从UNCERTAIN/DROP补选"})
+            picks.append({"trend_name":sector, "status":"NO_QUALIFIED_WAIT",
+                          "trade_date":research["trade_date"],
+                          "code":None, "company_name":None,
+                          "reason":"本板块没有合格WAIT，不能从UNCERTAIN或DROP凑数"})
             continue
 
-        def plan_valid(x):
-            zone = x.get("entry_zone")
-            return (isinstance(zone, list) and len(zone) == 2
-                    and pos(zone[0]) and pos(zone[1])
-                    and pos(x.get("invalidation_price"))
-                    and x["invalidation_price"] < zone[0]
-                    and pos(x.get("initial_risk_pct"))
-                    and x["initial_risk_pct"] <= MAX_ENTRY_RISK_PCT)
+        def viable(x):
+            zone, p, stop, risk = (x.get("entry_zone"), x.get("current_price"),
+                                  x.get("invalidation_price"), x.get("initial_risk_pct"))
+            if (not isinstance(zone,list) or len(zone)!=2 or
+                not all(pos(v) for v in zone) or zone[0]>zone[1] or
+                not pos(p) or not pos(stop) or stop>=zone[0] or
+                not pos(risk) or risk>MAX_ENTRY_RISK_PCT or
+                x.get("setup_type") not in {"BREAKOUT","PULLBACK"} or
+                x.get("wait_reason") == "WAIT_RISK_REWARD"):
+                return None
+            gap = max(zone[0]-p, 0., p-zone[1])/p*100
+            if gap>FOCUS_MAX_DISTANCE_PCT:
+                return None
+            # An unconfirmed industry can be watched only after the individual
+            # setup really confirmed; otherwise waiting for two independent
+            # confirmations is NOT an imminent buyable opportunity.
+            if (x.get("market_state") != "趋势确认"
+                and x.get("structure_confirmed") is not True):
+                return None
+            return round(gap, 4)
 
-        def gap(x):
-            z, p = x.get("entry_zone"), x.get("current_price")
-            if not plan_valid(x) or not pos(p):
-                return 1.0
-            return (max(z[0] - p, 0.0, p - z[1]) / p)
+        eligible = [(x,viable(x)) for x in candidates]
+        eligible = [(x,gap) for x,gap in eligible if gap is not None]
+        if not eligible:
+            picks.append({"trend_name":sector,"status":"NO_NEAR_TERM_SETUP",
+                          "trade_date":research["trade_date"],"code":None,
+                          "company_name":None,
+                          "reason":"WAIT候选当前均缺可核实的近端买点，或距观察区过远/仅接近MA60；不能强行推荐买入",
+                          "near_entry_distance_threshold_pct":FOCUS_MAX_DISTANCE_PCT,
+                          "wait_count":len(candidates)})
+            continue
 
-        candidates.sort(key=lambda x: (
-            -(1 if x.get("structure_confirmed") and plan_valid(x) else 0),
-            -(1 if plan_valid(x) else 0),
-            -(1 if x.get("transmission") == "SUPPORTED" else 0),
-            -scores.get(x["code"], 0.5),
-            gap(x),
-            x.get("initial_risk_pct") if pos(x.get("initial_risk_pct")) else 100.0,
-            x["code"],
+        # Confirmed price setup > proximity to validated trigger > business
+        # substantiation > initial stop risk > company pre-screen score.
+        eligible.sort(key=lambda z:(
+            -(1 if z[0].get("structure_confirmed") is True else 0),
+            z[1],
+            -(1 if z[0].get("transmission")=="SUPPORTED" else 0),
+            z[0]["initial_risk_pct"],
+            -scores.get(z[0]["code"],.5),
+            z[0]["code"],
         ))
-        best = candidates[0]
-        sector_confirmed = best.get("market_state") == "趋势确认"
-        stock_confirmed = best.get("structure_confirmed") is True
-        blockers = []
-        if not sector_confirmed:
-            blockers.append("板块市场状态尚未趋势确认")
-        if not stock_confirmed:
-            blockers.append("个股突破/回调买点尚未确认")
-        if best.get("transmission") == "EARLY_EVIDENCE":
-            blockers.append("主题业务仍属早期证据，须复核经营风险")
-        if not plan_valid(best):
-            blockers.append("暂无线下单可用的完整入场/失效计划")
-        if best.get("wait_reason") == "WAIT_RISK_REWARD":
-            blockers.append("结构风险收益不达门槛")
-        if not blockers:
-            blockers.append("当前仍是WAIT；只能在下轮完成全部入场Gate后重新评估")
-        rationale = ("个股形态已有确认，但板块趋势尚未确认"
-                     if stock_confirmed and not sector_confirmed else
-                     "行业与个股信号均需重新核实"
-                     if not sector_confirmed else
-                     "板块趋势已确认，等待个股入场结构与风险核查")
+        best, gap=eligible[0]
+        blocks=[]
+        if best.get("market_state")!="趋势确认":
+            blocks.append("上游板块尚未趋势确认")
+        if best.get("structure_confirmed") is not True:
+            blocks.append("个股入场形态尚未确认")
+        if best.get("transmission")=="EARLY_EVIDENCE":
+            blocks.append("商业传导仍为早期证据，需再次复核经营风险")
+        if not blocks:
+            blocks.append("属于WAIT；必须重新运行全部买点和执行Gate，不可直接买入")
         picks.append({
-            "trend_name": sector,
-            "status": "WATCH_ONLY",
-            "trade_date": research["trade_date"],
-            "code": best["code"],
-            "company_name": best["company_name"],
-            "market_state": best.get("market_state"),
-            "transmission": best.get("transmission"),
-            "source_wait_reason": best["wait_reason"],
-            "structure_confirmed": stock_confirmed,
-            "setup_type": best.get("setup_type"),
-            "current_price": best.get("current_price"),
-            "entry_zone": best.get("entry_zone"),
-            "invalidation_price": best.get("invalidation_price"),
-            "initial_risk_pct": best.get("initial_risk_pct"),
-            "pre_screen_score": scores.get(best["code"]),
-            "reason": rationale,
-            "blocking_conditions": blockers,
-            "decision_policy": "只推荐关注优先级；原状态保持WAIT，不代表可买，周一/下个交易日重验",
-            "ranking_policy": "个股已确认结构>可验证交易计划>商业传导>同业预筛分>距条件区距离>计划风险",
+            "trend_name":sector,"status":"WATCH_ONLY",
+            "trade_date":research["trade_date"],
+            "code":best["code"],"company_name":best["company_name"],
+            "market_state":best.get("market_state"),
+            "transmission":best.get("transmission"),
+            "source_wait_reason":best["wait_reason"],
+            "structure_confirmed":best.get("structure_confirmed") is True,
+            "setup_type":best.get("setup_type"),
+            "current_price":best["current_price"],"entry_zone":best["entry_zone"],
+            "invalidation_price":best["invalidation_price"],
+            "initial_risk_pct":best["initial_risk_pct"],
+            "distance_to_entry_zone_pct":gap,
+            "pre_screen_score":scores.get(best["code"]),
+            "reason":"在已研究WAIT中具备最接近可验证入场计划的结构和风险条件，仍不是可执行买点",
+            "blocking_conditions":blocks,
+            "decision_policy":"仅为优先观察，不能替代正式READY；观察区非买入指令",
+            "ranking_policy":"真实结构已确认>计划入场距离≤5%>有据可查的业务>结构风险>预筛分；无合格对象则明确空缺",
         })
     return picks
 
