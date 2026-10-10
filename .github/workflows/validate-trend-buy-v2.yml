@@ -7,6 +7,8 @@ on:
       - 'scripts/trend_buy_handoff.py'
       - 'scripts/build_intraday_snapshot.py'
       - 'tests/test_trend_buy_handoff.py'
+      - 'scripts/run_trend_buy_shadow_compare.py'
+      - 'research/shadow/low_risk_comparison_2026-10-09.json'
       - 'scripts/build_full_market_price_structure.py'
       - 'tests/test_trend_buy_engine.py'
       - 'skill/TREND_BUY_CANONICAL.md'
@@ -30,5 +32,25 @@ jobs:
         run: |
           python -m unittest discover -s tests -p 'test_trend_buy_engine.py' -v
           python -m unittest discover -s tests -p 'test_trend_buy_handoff.py' -v
+      - name: Rebuild historical same-day OHLCV structures (no commit)
+        run: python scripts/build_full_market_price_structure.py
+      - name: Run historical Oct 9 cohort in shadow mode
+        run: |
+          python scripts/run_trend_buy_shadow_compare.py --screen-comparison research/shadow/low_risk_comparison_2026-10-09.json --structure data/research/full_market_price_structure.json --output /tmp/trend-buy-shadow-2026-10-09.json
+          python scripts/trend_buy_handoff.py --shadow --result /tmp/trend-buy-shadow-2026-10-09.json --result-blob-sha shadow-not-formal --output /tmp/trend-buy-shadow-handoff.json
+      - name: Check full 42-company output and no legacy ranges
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result=json.loads(Path('/tmp/trend-buy-shadow-2026-10-09.json').read_text())
+          handoff=json.loads(Path('/tmp/trend-buy-shadow-handoff.json').read_text())
+          assert result['production_eligible'] is False
+          assert result['coverage']['selected']==42 and result['coverage']['judged']==42
+          assert sum(result['summary'].values())==42
+          assert len(handoff['items'])==result['summary']['ready']+result['summary']['wait']
+          assert all('reasonable_buy_range' not in x and 'low_risk_buy_range' not in x for x in handoff['items'])
+          print('SHADOW_SUMMARY',json.dumps(result['summary'],ensure_ascii=False))
+          PY
       - name: Syntax check original aggregation engine
         run: python -m py_compile scripts/build_full_market_price_structure.py scripts/trend_buy_engine.py scripts/trend_buy_handoff.py scripts/build_intraday_snapshot.py
