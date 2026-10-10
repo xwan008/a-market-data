@@ -27,7 +27,7 @@ def build_research(snapshot):
             "code":x["code"],"company_name":x["name"],
             "trend_name":("固态电池" if x["industry_code"] in {"S630701","S630702","S630703","S240603","S240504"}
                           else "煤炭" if x["industry_code"] in {"S740101","S740102"} else "黄金/贵金属"),
-            "industry_code":x["industry_code"],"asof_price":x["price_2026_10_09"],
+            "industry_code":x["industry_code"],"industry_name":x.get("industry_name"),"asof_price":x["price_2026_10_09"],
             "transmission":state,"theme_link_verified":direct,
             "filter_passed":True,
             "material_risk_unresolved":bucket=="NEW_UNCERTAIN_RISK_REWARD",
@@ -36,6 +36,7 @@ def build_research(snapshot):
             "research_falsifier":"归因业务断裂、趋势失效、经营质量或交易结构被证伪"
         })
     return {"schema_version":"trend_buy_research_v2","mode":"SHADOW_HISTORICAL",
+            "run_id":"shadow-oct09-trend-entry-comparison",
             "trade_date":day,"selected_company_count":42,"coverage_complete":True,
             "completeness_scope":"42 screening results, NOT 42 fresh company qualitative research",
             "companies":items}
