@@ -83,8 +83,9 @@ jobs:
           assert all(x["trend_phase"] not in {"COOLING","FAILED"} for g in result["top5_by_theme"] for x in g["items"])
           assert len(result["focus_watchlist"])==len(result["top5_by_theme"])
           assert pending and research["mode"]=="SHADOW" and not result["production_eligible"]
-          assert result["publication_audit"]["fresh_company_research"] is False
-          assert result["publication_audit"]["company_research_coverage"] is False
+          assert research["publication_audit"]["fresh_company_research"] is False
+          assert research["publication_audit"]["company_research_coverage"] is False
+          assert result["publication_audit"]["fresh_research"] is False
           def sha(path):
               return subprocess.check_output(["git","rev-parse","HEAD:"+path],text=True).strip()
           result["run_id"]="trend-buy-v3-full-rerun-"+os.environ["GITHUB_RUN_ID"]+"-asof-"+date
