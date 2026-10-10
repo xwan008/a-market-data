@@ -27,7 +27,7 @@ jobs:
           ref: main
           fetch-depth: 1
 
-      - name: Require published trend-buy V2 baseline
+      - name: Require current published trend-buy baseline
         id: handoff
         shell: bash
         run: |
@@ -50,7 +50,7 @@ jobs:
           except (ValueError, KeyError, OSError) as exc:
               print('NO_VALID_TREND_BUY_HANDOFF:', type(exc).__name__, str(exc))
           if not ready:
-              print('NO_VALID_TREND_BUY_HANDOFF: skip snapshot; NEVER fallback to low-risk PE version')
+              print('NO_VALID_TREND_BUY_HANDOFF: skip snapshot; no verified publication available')
           with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as out:
               out.write('ready='+('true' if ready else 'false')+'\n')
           PY
@@ -187,7 +187,10 @@ jobs:
           assert validation.get("trend_buy_stock_count") == len(stocks)
           assert payload.get("source_trend_buy_handoff_run_id") == handoff.get("source_run_id")
           assert payload.get("source_trend_buy_handoff_schema_version") == handoff.get("schema_version")
-          valid_reasons = {"WAIT_PRICE", "WAIT_MARGIN", "WAIT_EXPECTATION", "WAIT_CATALYST"}
+          import sys
+          sys.path.insert(0, 'scripts')
+          from trend_buy_handoff import WAIT_REASONS
+          valid_reasons = WAIT_REASONS
           for code, item in expected.items():
               assert item.get("status") in {"READY", "WAIT"}
               if item.get("status") == "WAIT":
