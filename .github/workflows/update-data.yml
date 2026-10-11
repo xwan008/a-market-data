@@ -79,11 +79,30 @@ jobs:
                   and low_risk_validation.get("chunk_company_coverage_exact") is True
                   and low_risk_validation.get("chunk_size_within_limit") is True
               )
+              derived_ready = False
+              if latest_trade_date == today and low_risk_trade_date == today:
+                  try:
+                      from scripts.price_inputs import load_momentum_shards
+                      coverage = load_momentum_shards(today)
+                      sectors = json.loads(Path("data/research/sector_discovery_snapshot.json").read_text(encoding="utf-8"))
+                      audit = json.loads(Path("data/research/sector_discovery_audit.json").read_text(encoding="utf-8"))
+                      themes = json.loads(Path("data/research/theme_evidence_snapshot.json").read_text(encoding="utf-8"))
+                      derived_ready = (
+                          coverage["momentum_total"] >= 3000
+                          and sectors.get("trade_date") == today
+                          and audit.get("trade_date") == today
+                          and themes.get("trade_date") == today
+                          and themes.get("status") == "COMPLETE"
+                          and themes.get("point_in_time_eligible") is True
+                      )
+                  except (OSError, ValueError, KeyError) as exc:
+                      print(f"derived_data_not_ready:{exc}")
               already_fresh = (
                   latest_trade_date == today
                   and latest_market_status == "closed"
                   and low_risk_trade_date == today
                   and low_risk_valid
+                  and derived_ready
               )
               should_run = not already_fresh
               reason = "fallback_already_fresh" if already_fresh else "fallback_refresh_required"
