@@ -1,0 +1,77 @@
+name: Sector Discovery Point-in-Time Replay
+
+on:
+  pull_request:
+    paths:
+      - "scripts/backtest_sector_discovery_asof.py"
+      - "tests/test_sector_discovery_backtest.py"
+      - "research/backtests/sector_discovery_asof_manifest_20260917_20261009.json"
+      - ".github/workflows/replay-sector-discovery-asof.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  point-in-time:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fetch only as-of blobs from immutable historical commits
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          from pathlib import Path
+          manifest=json.loads(Path("research/backtests/sector_discovery_asof_manifest_20260917_20261009.json").read_text())
+          for item in manifest["snapshots"]:
+              day,sha=item["trade_date"],item["commit"]
+              subprocess.run(["git","fetch","--filter=blob:none","--depth=1","--no-tags","origin",sha],check=True,
+                             stdout=subprocess.DEVNULL)
+              for original,desired in [
+                  ("data/latest.json","latest.json"),
+                  ("data/research/company_industry_index.json","company_industry_index.json")]:
+                  destination=Path("/tmp/sector_asof_snapshots")/day/desired
+                  destination.parent.mkdir(parents=True,exist_ok=True)
+                  with destination.open("wb") as stream:
+                      subprocess.run(["git","show",f"{sha}:{original}"],check=True,stdout=stream)
+              meta=json.loads((Path("/tmp/sector_asof_snapshots")/day/"latest.json").read_text(encoding="utf-8"))
+              print("ASOF_SOURCE_READY",day,sha,"latest_day="+str(meta.get("trade_date")),
+                    "latest_status="+str(meta.get("market_status")),flush=True)
+          PY
+      - name: Run day-isolated signals then forward continuation proxy
+        run: |
+          python -m unittest discover -s tests -p 'test_sector_discovery_backtest.py' -v
+          python -m py_compile scripts/backtest_sector_discovery_asof.py
+          python scripts/backtest_sector_discovery_asof.py \
+            --root /tmp/sector_asof_snapshots \
+            --manifest research/backtests/sector_discovery_asof_manifest_20260917_20261009.json \
+            --output /tmp/sector_backtest_report.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("/tmp/sector_backtest_report.json").read_text())
+          assert r["days"]>=11
+          dated={x["date"]:x for x in r["daily_decisions"]}
+          assert "2026-10-08" in dated and "2026-10-09" in dated
+          assert all(x["source_future_data_used_for_discovery"] is False for x in dated.values())
+          assert len([x for x in r["forward_evaluations"]
+                      if x["outcomes"]["2"]["status"]=="OBSERVED"])>0
+          print("ASOF_REPLAY_VERIFIED",json.dumps({
+              "days":r["days"],"summary":r["summary"],
+              "oct8":dated["2026-10-08"]["agriculture"],
+              "oct9":dated["2026-10-09"]["agriculture"]},ensure_ascii=False))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sector-asof-backtest-report
+          path: /tmp/sector_backtest_report.json
+          if-no-files-found: ignore
+          retention-days: 30
