@@ -104,16 +104,8 @@ jobs:
                   )
                   age_seconds = (now - captured).total_seconds() if captured else None
 
-                  quote_index = payload.get("portfolio_quote_index") or {}
-                  index_fresh = (
-                      quote_index.get("status") == "available"
-                      and quote_index.get("trade_date") == now.date().isoformat()
-                      and quote_index.get("captured_at") == payload.get("captured_at")
-                      and bool(quote_index.get("shards"))
-                  )
                   fresh = (
-                      index_fresh
-                      and payload.get("trade_date") == now.date().isoformat()
+                      payload.get("trade_date") == now.date().isoformat()
                       and age_seconds is not None
                       and 0 <= age_seconds <= 8 * 60
                       and validation.get("status") == "passed"
@@ -156,10 +148,6 @@ jobs:
       - name: Test cross-day continuity
         if: steps.handoff.outputs.ready == 'true' && steps.freshness.outputs.skip != 'true'
         run: python -m unittest discover -s tests -p "test_intraday_crossday.py"
-
-      - name: Test privacy-safe public quote index
-        if: steps.handoff.outputs.ready == 'true' && steps.freshness.outputs.skip != 'true'
-        run: python -m unittest discover -s tests -p "test_intraday_quote_index.py"
 
       - name: Build intraday snapshot
         if: steps.handoff.outputs.ready == 'true' && steps.freshness.outputs.skip != 'true'
@@ -213,29 +201,6 @@ jobs:
               assert stocks[code].get("wait_reason") == item.get("wait_reason")
           assert validation.get("quote_coverage", 0) >= 0.90
           assert not validation.get("manifest_errors")
-          # These contain public whole-market quotes, never position membership.
-          import hashlib
-          index = payload.get("portfolio_quote_index") or {}
-          assert index.get("kind") == "public_full_market_quotes_not_portfolio"
-          assert index.get("trade_date") == payload["trade_date"]
-          assert index.get("captured_at") == payload["captured_at"]
-          if index.get("status") == "available":
-              assert index.get("shards"), "available quote index has no shards"
-              for prefix, info in index["shards"].items():
-                  assert prefix.isdigit() and len(prefix) == 2
-                  expected_path = "research/intraday_quote_shards/" + prefix + ".json"
-                  assert info["path"] == expected_path
-                  raw = Path(expected_path).read_bytes()
-                  assert hashlib.sha256(raw).hexdigest() == info["sha256"]
-                  shard = json.loads(raw)
-                  assert shard["trade_date"] == payload["trade_date"]
-                  assert shard["captured_at"] == payload["captured_at"]
-                  assert shard["prefix"] == prefix
-                  assert shard["result_kind"] == "a_share_full_market_quote_shard"
-                  assert len(shard["quotes"]) == info["quote_count"]
-                  assert all(code.startswith(prefix) for code in shard["quotes"])
-          else:
-              print("PORTFOLIO_QUOTES_UNAVAILABLE: cannot assess out-of-list positions")
           assert payload.get("trends")
           assert payload.get("industries")
           assert validation.get("board_history_target_count") in (0, len(payload["trends"]))
@@ -277,15 +242,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add -A -- research/intraday_market_snapshot.json
-          if [ -f research/intraday_crossday_archive.json ]; then
-            git add -A -- research/intraday_crossday_archive.json
-          fi
-          if [ -d research/intraday_quote_shards ]; then
-            git add -A -- research/intraday_quote_shards
-          fi
+          git add research/intraday_market_snapshot.json research/intraday_crossday_archive.json
 
-          if git diff --cached --quiet; then
+          if git diff --cached --quiet -- research/intraday_market_snapshot.json research/intraday_crossday_archive.json; then
             echo "intraday snapshot unchanged"
             exit 0
           fi
