@@ -86,16 +86,25 @@ def calculate_change_pct(price, prev_close) -> float | None:
     return (current / previous - 1) * 100
 
 
-def fetch_easyquotation_snapshot(provider: str) -> dict[str, dict]:
+def fetch_easyquotation_snapshot(provider: str, include_all: bool = False) -> dict[str, dict]:
     import easyquotation
 
     q = easyquotation.use(provider)
     raw = q.market_snapshot(prefix=True)
     out: dict[str, dict] = {}
     for symbol, item in raw.items():
-        if not is_main_board_symbol(symbol):
-            continue
-        code = normalize_code(symbol)
+        # The default daily fundamentals pipeline remains main-board only.
+        # The intraday public quote index additionally covers valid quoted
+        # A-share/ETF symbols, without knowing anything about user holdings.
+        if include_all:
+            code = normalize_code(symbol)
+            if not (len(code) == 6 and code.isascii() and code.isdigit()
+                    and str(symbol).lower().startswith(("sh", "sz", "bj"))):
+                continue
+        else:
+            if not is_main_board_symbol(symbol):
+                continue
+            code = normalize_code(symbol)
         out[code] = {
             "name": item.get("name"),
             "price": item.get("now"),
@@ -110,12 +119,12 @@ def fetch_easyquotation_snapshot(provider: str) -> dict[str, dict]:
     return out
 
 
-def fetch_sina_snapshot() -> dict[str, dict]:
-    return fetch_easyquotation_snapshot("sina")
+def fetch_sina_snapshot(include_all: bool = False) -> dict[str, dict]:
+    return fetch_easyquotation_snapshot("sina", include_all=include_all)
 
 
-def fetch_tencent_snapshot() -> dict[str, dict]:
-    return fetch_easyquotation_snapshot("tencent")
+def fetch_tencent_snapshot(include_all: bool = False) -> dict[str, dict]:
+    return fetch_easyquotation_snapshot("tencent", include_all=include_all)
 
 
 def safe_fetch(fn, label: str) -> tuple[dict[str, dict], str | None]:
