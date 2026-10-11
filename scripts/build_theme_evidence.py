@@ -86,6 +86,37 @@ def _validate_catalog(catalog, trade_date, index_names, retrospective):
             code_seen.add(code)
         if not core_count:
             raise ValueError("catalog_theme_no_core:" + tid)
+    # SW2021 second-level classification is a deterministic partition of
+    # six-digit L3 industries. Never claim this partitions investment themes.
+    base_groups = catalog.get("base_industry_groups") or []
+    mapped_codes = set()
+    ids = set()
+    for group in base_groups:
+        gid = group.get("group_id")
+        sw2 = group.get("sw_level2_code")
+        if not gid or gid in ids or group.get("group_kind") != "SW_L2_TAXONOMY":
+            raise ValueError("taxonomy_invalid_group_identity")
+        if not re.fullmatch(r"\d{6}", str(sw2)) or not str(sw2).endswith("00"):
+            raise ValueError("taxonomy_invalid_level2_code")
+        ids.add(gid)
+        rows = group.get("industries") or []
+        if len(rows) != group.get("industry_count") or not rows:
+            raise ValueError("taxonomy_invalid_industry_count")
+        for row in rows:
+            code = row.get("code")
+            if not isinstance(code, str) or not CODE_RE.fullmatch(code):
+                raise ValueError("taxonomy_invalid_industry_code")
+            if code[1:5] != sw2[:4]:
+                raise ValueError("taxonomy_code_hierarchy_mismatch")
+            if code in mapped_codes:
+                raise ValueError("taxonomy_duplicate_industry:" + code)
+            if index_names.get(code) != row.get("name"):
+                raise ValueError("taxonomy_industry_not_in_same_universe:" + str(code))
+            if row.get("role") != "core":
+                raise ValueError("taxonomy_industries_must_be_core")
+            mapped_codes.add(code)
+    if base_groups and mapped_codes != set(index_names):
+        raise ValueError("taxonomy_incomplete_level3_coverage")
     return asof > trade_date
 
 
@@ -174,8 +205,19 @@ def build(latest, industry_index, structure, catalog, registry=None, sector_audi
 
     detailed = [_theme_metrics(theme, groups, features, market_median)
                 for theme in catalog["themes"]]
+    for row in detailed:
+        row["evidence_group_type"] = "RESEARCH_THEME"
+    taxonomy = [
+        _theme_metrics(
+            {"theme_id": group["group_id"], "theme_name": group["group_name"],
+             "industries": group["industries"]}, groups, features, market_median)
+        for group in (catalog.get("base_industry_groups") or [])
+    ]
+    for row in taxonomy:
+        row["evidence_group_type"] = "SW_L2_TAXONOMY"
     eligible = [x for x in detailed if x["channels"]]
-    # Compact research-input order only, not trend priority or new-position rank.
+    taxonomy_eligible = [x for x in taxonomy if x["channels"]]
+    # Evidence review ordering only; NEVER a formal trend or new-position rank.
     def candidate_key(t):
         return (
             "STRONG" not in t["channels"],
@@ -183,7 +225,29 @@ def build(latest, industry_index, structure, catalog, registry=None, sector_audi
             -(t["breadth_1d"] or 0), t["theme_id"]
         )
     eligible.sort(key=candidate_key)
-    candidates = eligible[:max_research]
+    taxonomy_eligible.sort(key=candidate_key)
+    # Guarantee some taxonomy leads survive into the compact shortlist without
+    # suppressing the curated cross-industry/theme seeds. Avoid near-identical
+    # core stock sets getting two review slots.
+    taxonomy_reserve = min(max_research // 3, len(taxonomy_eligible))
+    chosen = []
+    def append_nonduplicate(items, capacity):
+        for item in items:
+            if len(chosen) >= capacity:
+                break
+            item_codes = set(item["core_industry_codes"])
+            is_duplicate = any(
+                len(item_codes & set(prior["core_industry_codes"])) /
+                len(item_codes | set(prior["core_industry_codes"])) >= .85
+                for prior in chosen
+            )
+            if not is_duplicate:
+                chosen.append(item)
+    append_nonduplicate(eligible, max_research - taxonomy_reserve)
+    curated_before_taxonomy = len(chosen)
+    append_nonduplicate(taxonomy_eligible, max_research)
+    append_nonduplicate(eligible, max_research)
+    candidates = chosen
     def brief(t):
         return {k: v for k, v in t.items() if k not in ("core_industries",)}
     research = [brief(t) for t in candidates]
@@ -228,6 +292,8 @@ def build(latest, industry_index, structure, catalog, registry=None, sector_audi
                 })
 
     unmapped, total_unmapped = [], 0
+    # 'Unmapped' means not yet in a CURATED RESEARCH THEME, even though
+    # every SW-L3 sector has a stable baseline taxonomy group.
     covered_sectors = {i["code"] for t in catalog["themes"] for i in t["industries"]}
     if sector_audit:
         rows = sorted(
@@ -245,7 +311,7 @@ def build(latest, industry_index, structure, catalog, registry=None, sector_audi
              "advance_ratio": r["advance_ratio"],
              "relative_strength_1d_vs_market_median_pct":
                  r["relative_1d_vs_market_median_pct"],
-             "note": "No validated catalog relationship; legacy model must independently research."}
+             "note": "Not yet linked to a curated research theme (SW L2 taxonomy is still covered); legacy model researches independently."}
             for r in rows[:max_unmapped]
         ]
     status = "RETROSPECTIVE_MAPPING_SMOKE" if is_retrospective else "COMPLETE"
@@ -256,13 +322,22 @@ def build(latest, industry_index, structure, catalog, registry=None, sector_audi
         "decision_authority": "legacy_model_driven_trend_research",
         "catalog_version": catalog["catalog_version"],
         "catalog_as_of_date": catalog["catalog_as_of_date"],
-        "mapping_semantics": "core_only_deduplicated_stocks;related_research_only",
+        "mapping_semantics": "curated_theme_plus_SW_L2_taxonomy;core_only_deduplicated_stocks;related_research_only",
+        "candidate_types": ["RESEARCH_THEME", "SW_L2_TAXONOMY"],
         "point_in_time_eligible": not is_retrospective,
         "scan_summary": {
             "industry_universe_count": len(groups), "themes_evaluated": len(detailed),
+            "taxonomy_groups_evaluated": len(taxonomy),
+            "taxonomy_covered_level3_industries": len(groups) if taxonomy else 0,
+            "research_themes_with_eligible_quant_signals": len(eligible),
+            "taxonomy_groups_with_eligible_quant_signals": len(taxonomy_eligible),
             "themes_with_eligible_quant_signals": len(eligible),
             "research_candidates_returned": len(research),
-            "research_candidates_deferred": len(eligible) - len(research),
+            "curated_candidates_returned": sum(x["evidence_group_type"] == "RESEARCH_THEME"
+                                                for x in research),
+            "taxonomy_candidates_returned": sum(x["evidence_group_type"] == "SW_L2_TAXONOMY"
+                                                 for x in research),
+            "research_candidates_deferred": len(eligible) + len(taxonomy_eligible) - len(research),
             "tracked_alert_count": len(alerts),
             "unmapped_industry_alert_count": len(unmapped),
             "unmapped_eligible_industry_count": total_unmapped,
