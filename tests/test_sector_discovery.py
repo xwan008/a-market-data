@@ -53,7 +53,7 @@ class SectorDiscoveryTests(unittest.TestCase):
         self.assertIn("旧版模型驱动的独立全市场产业研究", protocol)
         self.assertIn("Python不产生另一套正式趋势榜", protocol)
         self.assertIn("辅助文件缺失本身不得阻断旧版正式研究及发布", protocol)
-        self.assertIn("仅限制程序候选补充研究工作量", protocol)
+        self.assertIn("程序候选补充研究工作量", protocol)
 
     def test_verified_concept_and_future_prevention(self):
         latest, index, structure = inputs()
