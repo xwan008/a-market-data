@@ -158,13 +158,39 @@ def build(latest, industry_index, structure, concept_payload=None, review_cap=20
                        "INSUFFICIENT_COVERAGE" if quality != "OK" else "NO_COHERENT_TRIGGER")
         })
 
-    # A sector may be present on both channels; one review slot per identity.
-    pool = sorted((r for r in rows if r["channels"]), key=lambda r: (-r["score"], r["id"]))
-    selected = pool[:review_cap]
+    # Deduplicate near-identical membership; keep source provenance in full audit.
+    members_by_id = {g["id"]: g["codes"] for g in groups}
+    pool = sorted((r for r in rows if r["channels"]),
+                  key=lambda r: (-r["score"], r["kind"] != "concept", r["id"]))
+    unique = []
+    for row in pool:
+        members = members_by_id[row["id"]]
+        duplicate = next((
+            prior for prior in unique
+            if len(members & members_by_id[prior["id"]])
+               / max(len(members | members_by_id[prior["id"]]), 1) >= .85
+        ), None)
+        if duplicate:
+            row["reason"] = "OVERLAPPING_CANDIDATE"
+            row["overlaps_with"] = duplicate["id"]
+        else:
+            unique.append(row)
+
+    # Reserve one third of research capacity for early improvements not already strong.
+    emerging_only = [r for r in unique if "EMERGING" in r["channels"]
+                     and "STRONG" not in r["channels"]]
+    reserve = min(max(1, review_cap // 3), len(emerging_only))
+    selected = [r for r in unique if "STRONG" in r["channels"]][:review_cap - reserve]
+    selected += emerging_only[:reserve]
     selected_ids = {r["id"] for r in selected}
-    for r in rows:
-        if r["channels"]:
-            r["reason"] = "MODEL_REVIEW" if r["id"] in selected_ids else "CAPACITY_DEFERRED"
+    for row in unique:
+        if len(selected) >= review_cap:
+            break
+        if row["id"] not in selected_ids:
+            selected.append(row)
+            selected_ids.add(row["id"])
+    for row in unique:
+        row["reason"] = "MODEL_REVIEW" if row["id"] in selected_ids else "CAPACITY_DEFERRED"
 
     audit = {
         "schema_version": 1, "trade_date": trade_date,
@@ -174,8 +200,9 @@ def build(latest, industry_index, structure, concept_payload=None, review_cap=20
         "industry_count": len(industries), "concept_count": len(concepts),
         "concept_coverage_status": concept_status, "mapped_stocks": len(mapped),
         "market_median_return_1d_pct": round(market_median, 3),
-        "review_capacity": review_cap, "eligible_count": len(pool),
-        "selected_count": len(selected), "deferred_count": len(pool) - len(selected),
+        "review_capacity": review_cap, "eligible_count": len(unique),
+        "selected_count": len(selected), "deferred_count": len(unique) - len(selected),
+        "overlap_deduplicated_count": len(pool) - len(unique),
         "sectors": sorted(rows, key=lambda r: r["id"])
     }
     snapshot = {
@@ -187,7 +214,7 @@ def build(latest, industry_index, structure, concept_payload=None, review_cap=20
         "audit_path": "data/research/sector_discovery_audit.json",
         "scan_audit": {k: v for k, v in audit.items() if k != "sectors"},
         "model_research_candidates": selected,
-        "deferred_candidates": [r for r in pool if r["id"] not in selected_ids],
+        "deferred_candidates": [r for r in unique if r["id"] not in selected_ids],
         "coverage_limitations": ([] if concept_status in ("VERIFIED", "EMPTY_VERIFIED")
                                 else ["concept_membership_not_verified; do not claim concept full scan"]),
     }
