@@ -4,7 +4,9 @@ on:
   pull_request:
     paths:
       - "scripts/build_sector_discovery.py"
+      - "scripts/validate_theme_handoff_routes.py"
       - "tests/test_sector_discovery.py"
+      - "tests/test_theme_handoff_routes.py"
       - "skill/TREND_REGISTRY_PROTOCOL.md"
       - ".github/workflows/validate-sector-discovery.yml"
       - ".github/workflows/update-data.yml"
@@ -31,8 +33,10 @@ jobs:
           python-version: "3.12"
       - name: Unit-test discovery and coverage gates
         run: python -m unittest discover -s tests -p 'test_sector_discovery.py' -v
-      - name: Compile discovery
-        run: python -m py_compile scripts/build_sector_discovery.py
+      - name: Route validation unit tests
+        run: python -m unittest discover -s tests -p 'test_theme_handoff_routes.py' -v
+      - name: Compile discovery and routing preflight
+        run: python -m py_compile scripts/build_sector_discovery.py scripts/validate_theme_handoff_routes.py
       - name: Smoke-test with frozen real market data
         run: |
           python scripts/build_full_market_price_structure.py
@@ -48,6 +52,10 @@ jobs:
           assert audit['selected_count'] <= 20
           assert audit['selected_count'] + audit['deferred_count'] == audit['eligible_count']
           assert snapshot['no_trade_signal'] is True
+          assert len(snapshot['candidate_overview']) == audit['eligible_count']
+          assert snapshot['theme_research_budget']['max_new_theme_deep_research'] == 20
+          assert snapshot['theme_research_budget']['unit'] == 'evidence_verified_theme_not_industry'
+          assert len(snapshot['classification_peer_hints']) <= 20
           print('DISCOVERY_REAL_DATA_VALID', json.dumps({
               'date': snapshot['trade_date'], 'status': snapshot['status'],
               'industry_count': audit['industry_count'],
@@ -63,3 +71,9 @@ jobs:
                       'channels': row['channels'], 'reason': row['reason']},
                       ensure_ascii=False))
           PY
+      - name: Verify current original-schema trend handoff and industry routes
+        run: |
+          python scripts/validate_theme_handoff_routes.py \
+            --handoff research/trend_handoff.json \
+            --registry research/trend_registry.json \
+            --low-risk-index data/low_risk/index.json
