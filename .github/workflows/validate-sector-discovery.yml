@@ -95,6 +95,10 @@ jobs:
           assert t['point_in_time_eligible'] is False
           assert t['scan_summary']['industry_universe_count']==331
           assert t['scan_summary']['themes_evaluated']==17
+          assert t['scan_summary']['taxonomy_groups_evaluated']==131
+          assert t['scan_summary']['taxonomy_covered_level3_industries']==331
+          assert t['scan_summary']['curated_candidates_returned']+t['scan_summary']['taxonomy_candidates_returned']==len(t['research_candidates'])
+          assert all(x['evidence_group_type'] in ('RESEARCH_THEME','SW_L2_TAXONOMY') for x in t['research_candidates'])
           assert len(t['research_candidates'])<=12
           assert t['no_trade_signal'] and t['auxiliary_only']
           assert t['decision_authority']=='legacy_model_driven_trend_research'

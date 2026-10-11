@@ -157,12 +157,97 @@ class ThemeEvidenceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "catalog_invalid_industry_code"):
             build(*data)
 
+    def test_committed_catalog_has_complete_disjoint_331_sector_taxonomy(self):
+        import json
+        root = Path(__file__).resolve().parents[1]
+        catalog = json.loads((root / "research/theme_industry_catalog.json").read_text(encoding="utf-8"))
+        universe = json.loads((root / "data/low_risk/index.json").read_text(encoding="utf-8"))
+        groups = catalog["base_industry_groups"]
+        codes = [industry["code"] for group in groups for industry in group["industries"]]
+        self.assertEqual(len(groups), 131)
+        self.assertEqual(len(codes), 331)
+        self.assertEqual(len(set(codes)), 331)
+        self.assertEqual(set(codes), set(universe["industries"]))
+        self.assertEqual(len(catalog["themes"]), 17)
+        for group in groups:
+            self.assertEqual(group["sw_level2_code"][-2:], "00")
+            self.assertEqual(group["industry_count"], len(group["industries"]))
+            for industry in group["industries"]:
+                self.assertEqual(industry["code"][1:5], group["sw_level2_code"][:4])
+                self.assertEqual(industry["name"],
+                                 universe["industries"][industry["code"]]["industry_name"])
+
+    def test_taxonomy_groups_are_an_independent_market_evidence_layer(self):
+        data = list(sample_data())
+        # Make both strong independent groups beat a low overall market median.
+        for i in range(19, 26):
+            code = f"{i:06d}"
+            data[0]["stocks"][code] = {"change_pct": -3, "confidence": "high"}
+            data[1]["companies"][code] = {
+                "mapping_status": "mapped", "industry_code": "S200101",
+                "sw_level3_name": "Related only"}
+            data[2]["companies"][code] = {
+                "data_status": "verified", "data_date": data[0]["trade_date"],
+                "phase_evidence": {"return_3d_pct": -4, "return_5d_pct": -2,
+                                   "volume_ratio_1d": 1.5}}
+        data[3] = copy.deepcopy(data[3])
+        data[3]["base_industry_groups"] = [
+            {"group_id": f"sw_l2_{prefix}", "group_name": label,
+             "group_kind": "SW_L2_TAXONOMY", "sw_level2_code": prefix+"00",
+             "industry_count": 1,
+             "industries": [{"code": sector, "name": name, "role": "core"}]}
+            for prefix, sector, name, label in [
+                ("1001", "S100101", "Test core industry", "test base"),
+                ("2001", "S200101", "Related only", "related base"),
+                ("3001", "S300101", "Unmapped hot", "unmapped base"),
+            ]
+        ]
+        result = build(*data, max_research=3)
+        self.assertEqual(result["scan_summary"]["taxonomy_groups_evaluated"], 3)
+        self.assertEqual(result["scan_summary"]["taxonomy_covered_level3_industries"], 3)
+        self.assertEqual(result["scan_summary"]["themes_evaluated"], 2)
+        self.assertEqual(result["scan_summary"]["curated_candidates_returned"], 1)
+        self.assertEqual(result["scan_summary"]["taxonomy_candidates_returned"], 1)
+        self.assertEqual(len(result["research_candidates"]), 2)
+        self.assertEqual({x["evidence_group_type"] for x in result["research_candidates"]},
+                         {"RESEARCH_THEME", "SW_L2_TAXONOMY"})
+        self.assertEqual(result["unmapped_industry_alerts"][0]["industry_code"], "S300101")
+        self.assertTrue(result["auxiliary_only"])
+
+    def test_taxonomy_missing_duplicate_and_misplaced_industry_fail_closed(self):
+        data = list(sample_data())
+        data[3] = copy.deepcopy(data[3])
+        baseline = [
+            {"group_id": f"sw_l2_{prefix}", "group_name": label,
+             "group_kind": "SW_L2_TAXONOMY", "sw_level2_code": prefix+"00",
+             "industry_count": 1,
+             "industries": [{"code": sector, "name": name, "role": "core"}]}
+            for prefix, sector, name, label in [
+                ("1001", "S100101", "Test core industry", "test base"),
+                ("2001", "S200101", "Related only", "related base"),
+                ("3001", "S300101", "Unmapped hot", "unmapped base"),
+            ]
+        ]
+        data[3]["base_industry_groups"] = baseline[:-1]
+        with self.assertRaisesRegex(ValueError, "taxonomy_incomplete_level3_coverage"):
+            build(*data)
+        data[3]["base_industry_groups"] = copy.deepcopy(baseline)
+        data[3]["base_industry_groups"][1]["group_id"] = "sw_l2_1001"
+        with self.assertRaisesRegex(ValueError, "taxonomy_invalid_group_identity"):
+            build(*data)
+        data[3]["base_industry_groups"] = copy.deepcopy(baseline)
+        data[3]["base_industry_groups"][2]["sw_level2_code"] = "100100"
+        with self.assertRaisesRegex(ValueError, "taxonomy_code_hierarchy_mismatch"):
+            build(*data)
+
     def test_regression_flags_model_first_protocol_and_source(self):
         protocol = (Path(__file__).resolve().parents[1]
                     / "skill/TREND_REGISTRY_PROTOCOL.md").read_text(encoding="utf-8")
         self.assertIn("Python不产生另一套正式趋势榜", protocol)
         self.assertIn("theme_evidence_snapshot.json", protocol)
         self.assertIn("不允许程序借静态主题目录替代旧版模型", protocol)
+        self.assertIn("131个", protocol)
+        self.assertIn("base_industry_groups", protocol)
 
 
 if __name__ == "__main__":
