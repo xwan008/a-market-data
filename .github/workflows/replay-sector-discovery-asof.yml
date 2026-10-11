@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "scripts/backtest_sector_discovery_asof.py"
+      - "tests/test_sector_discovery_backtest.py"
       - "research/backtests/sector_discovery_asof_manifest_20260917_20261009.json"
       - ".github/workflows/replay-sector-discovery-asof.yml"
   workflow_dispatch:
@@ -46,6 +47,7 @@ jobs:
           PY
       - name: Run day-isolated signals then forward continuation proxy
         run: |
+          python -m unittest discover -s tests -p 'test_sector_discovery_backtest.py' -v
           python -m py_compile scripts/backtest_sector_discovery_asof.py
           python scripts/backtest_sector_discovery_asof.py \
             --root /tmp/sector_asof_snapshots \
