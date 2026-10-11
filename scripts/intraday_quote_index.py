@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from datetime import datetime
 from pathlib import Path
 
 QUOTE_DIR = Path(__file__).resolve().parents[1] / "research" / "intraday_quote_shards"
@@ -21,6 +22,58 @@ def compact_quote(quote: dict) -> dict:
         "name", "price", "prev_close", "change_pct", "quote_time",
         "confidence", "warnings", "primary_source",
     )}
+
+
+def verify_public_quote_for_held_code(snapshot: dict, code: str, raw: bytes) -> dict:
+    """Verify a single public quote without importing any private position data.
+
+    The caller must establish the user's real net holding *privately* first.
+    SHA verification uses the exact raw bytes returned from the stored shard.
+    """
+    if not isinstance(code, str) or not CODE_RE.fullmatch(code):
+        raise ValueError("PORTFOLIO_CODE_INVALID")
+    index = snapshot.get("portfolio_quote_index") or {}
+    prefix = code[:2]
+    entry = (index.get("shards") or {}).get(prefix) or {}
+    if not (
+        index.get("schema_version") == 1
+        and index.get("kind") == "public_full_market_quotes_not_portfolio"
+        and index.get("status") == "available"
+        and index.get("trade_date") == snapshot.get("trade_date")
+        and index.get("captured_at") == snapshot.get("captured_at")
+        and entry.get("path") == f"research/intraday_quote_shards/{prefix}.json"
+        and hashlib.sha256(raw).hexdigest() == entry.get("sha256")
+    ):
+        raise ValueError("PORTFOLIO_QUOTE_INDEX_MISMATCH")
+    try:
+        shard = json.loads(raw.decode("utf-8"))
+        row = shard["quotes"][code]
+    except (ValueError, KeyError, TypeError, UnicodeDecodeError) as exc:
+        raise ValueError("PORTFOLIO_QUOTE_NOT_FOUND") from exc
+    if not (
+        shard.get("schema_version") == 1
+        and shard.get("result_kind") == "a_share_full_market_quote_shard"
+        and shard.get("prefix") == prefix
+        and shard.get("trade_date") == snapshot.get("trade_date")
+        and shard.get("captured_at") == snapshot.get("captured_at")
+        and len(shard["quotes"]) == entry.get("quote_count")
+    ):
+        raise ValueError("PORTFOLIO_QUOTE_SHARD_MISMATCH")
+    try:
+        capture_time = datetime.fromisoformat(snapshot["captured_at"])
+        quote_time = datetime.fromisoformat(row["quote_time"])
+        quote_is_fresh = (
+            quote_time.tzinfo is not None
+            and capture_time.tzinfo is not None
+            and quote_time.date().isoformat() == snapshot["trade_date"]
+            and -120 <= (capture_time - quote_time).total_seconds() <= 900
+        )
+        valid_price = float(row["price"]) > 0
+    except (ValueError, TypeError, KeyError, OverflowError):
+        quote_is_fresh = valid_price = False
+    if row.get("confidence") not in {"high", "medium"} or not quote_is_fresh or not valid_price:
+        raise ValueError("PORTFOLIO_QUOTE_UNAVAILABLE")
+    return row
 
 
 def build_public_quote_index(sina: dict, tencent: dict, trade_date: str,
