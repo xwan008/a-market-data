@@ -42,6 +42,8 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_theme_evidence.py' -v
       - name: Route validation unit tests
         run: python -m unittest discover -s tests -p 'test_theme_handoff_routes.py' -v
+      - name: Verify daily persistence, Python checks and fail-closed auxiliary data
+        run: python -m unittest discover -s tests -p "test_daily_data_delivery_workflow.py" -v
       - name: Compile discovery and routing preflight
         run: python -m py_compile scripts/build_sector_discovery.py scripts/build_theme_evidence.py scripts/validate_theme_handoff_routes.py
       - name: Prove sector discovery needs no full-market JSON
