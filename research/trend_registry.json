@@ -2,27 +2,48 @@
   "schema_version": 1,
   "result_kind": "a_share_trend_registry",
   "trade_date": "2026-10-09",
-  "generated_at": "2026-10-09T18:36:50+08:00",
+  "generated_at": "2026-10-12T06:35:52+08:00",
   "timezone": "Asia/Shanghai",
   "status": "COMPLETE",
   "scan_audit": {
-    "mode": "full_close",
-    "full_market_scan_completed": true,
-    "previous_registry_trade_date": "2026-10-08",
-    "previous_trend_count": 12,
-    "previous_trend_rechecked_count": 12,
+    "mode": "early_incremental",
+    "full_market_scan_completed": false,
+    "previous_registry_trade_date": "2026-10-09",
+    "previous_trend_count": 14,
+    "previous_trend_rechecked_count": 14,
     "recheck_queue_rechecked_count": 0,
-    "new_trend_count": 2,
+    "new_trend_count": 0,
     "pending_revalidation_count": 3,
     "invalidated_count": 0,
     "new_position_count": 3,
     "evidence_cutoff_trade_date": "2026-10-09",
     "market_data_trade_date": "2026-10-09",
     "market_data_completed": true,
-    "scan_scope": "申万全行业与主要概念板块全量扫描；逐一复核上一registry全部12个趋势，核验资源品第一锚、宏观风险、资金量价辅助证据并扫描新增异动",
-    "market_summary": "沪指+0.05%、深成指+0.17%、创业板指+0.22%，两市成交约1.90万亿元、较前一交易日增加约2184亿元，约3300股上涨；传媒、贵金属、零售、软件和电池活跃，PCB、风电设备、电子化学品、半导体与CPO偏弱。",
-    "funds_observation": "沪深两市主力资金净流出126.22亿元；电力设备净流入31.35亿元居首，传媒与有色金属净流入均超10亿元。资金数据仅作同日量价辅助，不作为状态迁移或排序的独立依据。",
-    "coverage_note": "完成全行业及主要概念扫描；风电、铜和机器人因产业/市场交叉证据不足继续保留原始日期并标记待复核。"
+    "baseline_full_close_audit": {
+      "mode": "full_close",
+      "full_market_scan_completed": true,
+      "previous_registry_trade_date": "2026-10-08",
+      "previous_trend_count": 12,
+      "previous_trend_rechecked_count": 12,
+      "recheck_queue_rechecked_count": 0,
+      "new_trend_count": 2,
+      "pending_revalidation_count": 3,
+      "invalidated_count": 0,
+      "new_position_count": 3,
+      "evidence_cutoff_trade_date": "2026-10-09",
+      "market_data_trade_date": "2026-10-09",
+      "market_data_completed": true,
+      "scan_scope": "申万全行业与主要概念板块全量扫描；逐一复核上一registry全部12个趋势，核验资源品第一锚、宏观风险、资金量价辅助证据并扫描新增异动",
+      "market_summary": "沪指+0.05%、深成指+0.17%、创业板指+0.22%，两市成交约1.90万亿元、较前一交易日增加约2184亿元，约3300股上涨；传媒、贵金属、零售、软件和电池活跃，PCB、风电设备、电子化学品、半导体与CPO偏弱。",
+      "funds_observation": "沪深两市主力资金净流出126.22亿元；电力设备净流入31.35亿元居首，传媒与有色金属净流入均超10亿元。资金数据仅作同日量价辅助，不作为状态迁移或排序的独立依据。",
+      "coverage_note": "完成全行业及主要概念扫描；风电、铜和机器人因产业/市场交叉证据不足继续保留原始日期并标记待复核。"
+    },
+    "scan_scope": "06:40隔夜增量：逐项复核10月9日COMPLETE registry全部14个方向；未进行10月12日尚未开盘的全市场收盘扫描。",
+    "market_summary": "截至北京时间2026-10-12 06:35，A股尚未开盘；正式市场结构仍以2026-10-09完整收盘为基线，不生成或冒充2026-10-12收盘状态。",
+    "funds_observation": "无新的A股收盘资金数据；沿用10月9日已验证记录，不以海外或周末消息替代A股资金与广度。",
+    "coverage_note": "14个历史方向均完成隔夜信息复核；3个待复核历史项保留原状态和原验证日期。未触发产业或市场状态迁移。",
+    "python_auxiliary_status": "DISCOVERY_UNAVAILABLE",
+    "python_auxiliary_note": "main分支data/research/theme_evidence_snapshot.json读取返回GitHub 404；按协议仅记录辅助快照不可用，不阻断原有早间增量复核。"
   },
   "trends": [
     {
@@ -1059,5 +1080,52 @@
     }
   ],
   "invalidated_history": [],
-  "recheck_queue": []
+  "recheck_queue": [],
+  "incremental_review": {
+    "mode": "early_incremental",
+    "as_of": "2026-10-12T06:35:52+08:00",
+    "baseline_trade_date": "2026-10-09",
+    "target_trade_date": "2026-10-09",
+    "official_trade_day_gate": {
+      "today": "2026-10-12",
+      "is_formal_trade_day": true,
+      "previous_trade_date": "2026-10-09",
+      "sources": [
+        "https://www.sse.com.cn/disclosure/announcement/general/c/c_20260915_10832273.shtml",
+        "https://www.szse.cn/www/disclosure/notice/general/t20260917_622911.html"
+      ]
+    },
+    "overnight_evidence": [
+      {
+        "topic": "固态电池",
+        "observation": "周末媒体汇总多家公司风险提示：部分固态电池业务尚未形成长期稳定规模收入，产业化和盈利兑现仍需验证；作为反向证据，不单独改变T1/趋势确认。",
+        "source": "https://finance.sina.com.cn/roll/2026-10-11/doc-iniuvpan0549877.shtml",
+        "evidence_date": "2026-10-11",
+        "conclusion": "状态不迁移"
+      },
+      {
+        "topic": "油气/石油",
+        "observation": "10月9日WTI与布伦特均收涨约0.4%，但周末中东风险事件令海湾股市承压；商品事件溢价仍高，缺少新的A股广度验证。",
+        "source": "https://www.reuters.com/business/energy/oil-falls-trump-comments-iran-talks-ease-supply-concerns-2026-10-09/",
+        "evidence_date": "2026-10-09",
+        "conclusion": "维持T1/观察"
+      },
+      {
+        "topic": "黄金/贵金属",
+        "observation": "黄金10月9日上涨逾1%、周线结束连续两周下跌，但高利率环境仍构成反证；缺少新的A股收盘结构，不升级市场状态。",
+        "source": "https://www.marketscreener.com/news/gold-adds-over-1-on-easing-oil-prices-softer-dollar-ce785ddfd18cff24",
+        "evidence_date": "2026-10-09",
+        "conclusion": "维持T1/候选趋势"
+      }
+    ],
+    "state_migrations": [],
+    "priority_changes": [],
+    "auxiliary_validation": {
+      "expected_path": "data/research/theme_evidence_snapshot.json",
+      "expected_trade_date": "2026-10-09",
+      "status": "DISCOVERY_UNAVAILABLE",
+      "visible_error": "GitHub API error 404: Not Found",
+      "blocking": false
+    }
+  }
 }
