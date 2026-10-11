@@ -58,3 +58,15 @@
 **落库与兼容**：不增加 trend_handoff.json 字段、不修改 schema_version、不改变下游输入。若本轮能取得可比资金证据，仅在 trend_registry.json 已有每条趋势的 supporting_evidence / contrary_evidence 中，以注明来源、截至交易日、观察窗口和“仅资金辅助观察”的描述性证据保存；中性、背离及不可用情况可在当轮用户报告中说明，不强制新增 registry 字段或要求为每条趋势取得资金数据。上述资金备注不是新的状态迁移依据；新证据不充分时仍遵守原来的待复核和状态迁移规则。
 
 **本轮输出**：在原有“完整趋势池 → 当期新仓优先榜 → ETF时机/失效条件 → 旧趋势状态变化 → 持久化结果”的报告结构内，为有可靠数据的板块附一行“资金流向/量价配合观察”，标明具体窗口、方向和背离（如有）；无数据时标“未验证”，不因资金缺失删减原榜。
+
+
+## 7. 程序化板块发现（V2 接入，保持原确认门槛）
+
+- 18:40 的新方向研究须优先读取同一完整收盘交易日的 `data/research/sector_discovery_snapshot.json`；核验 `schema_version=1`、`result_kind=sector_discovery_snapshot`、`trade_date`、`no_trade_signal=true`、`scan_audit` 和 `audit_path`。对应 `data/research/sector_discovery_audit.json` 应具有同日来源、行业/概念覆盖及全部候选的可追溯筛选理由。文件不存在、过期或不一致时标记 `DISCOVERY_UNAVAILABLE`，不可把未验证的程序扫描写成已完成。
+- 程序只负责根据客观量价形成强势（STRONG）与启动（EMERGING）候选，不得机械决定 T0/T1/T2、候选/确认、ETF 时机、新仓优先或交易动作。市场与产业状态仍由模型依本协议的现有证据规则独立判断。
+- 程序前置研究名额仅约束**新增候选深研**；`deferred_candidates` 为容量不足待研究，不等于未形成趋势。所有历史已识别主题仍需逐项复核且不占这一上限。对于候选重叠须核对真实产业传导，不将同一股票集合因主题命名差异重复晋级。
+- `status=INDUSTRY_ONLY_PARTIAL` 仅表示**申万行业量化扫描有效、跨行业概念成分覆盖未验证**。这种情况下可使用可靠的行业候选，但仍需独立补充概念领域的新异动调查，报告概念数据缺口；不能声称由程序完成全概念扫描，亦不能基于空缺认定粮食等跨行业主题没有异动。概念成分必须具备核验来源、历史生效日期，禁止回测时使用未来成分。
+- 程序筛选失败与模型证据不足是不同状态：`NO_COHERENT_TRIGGER`、`LOW_SAMPLE_OBSERVE`、`INSUFFICIENT_COVERAGE`、`CAPACITY_DEFERRED`、`OVERLAPPING_CANDIDATE` 均留在发现审计；模型否决应在报告或当轮审计中说明独立事实理由。低样本行业不能因数值上涨就自动断定板块广度可靠。
+- 现有 `research/trend_registry.json` 与 `research/trend_handoff.json` 的生产责任不变。registry 的 `scan_audit` 增记 discovery 的交易日、程序来源、候选数量、延迟研究数量、完整/部分覆盖及本轮研究去向；`full_market_scan_completed=true` 只可在实际完成全行业和主要概念调查的情况下声明。handoff 只保留通过原资格 Gate 的当期新仓方向，不扩展 schema；趋势买点榜和盘中监测不得直接消费 discovery。
+- 数据生产步骤与模型研究执行顺序须保证已完成交易日数据、当日 discovery 提交与读取一致。文件无效或概念数据缺失时真实报告缺口；不使用历史/未来数据补齐，不因研究结论回填量化输入。
+- 程序阈值（初版）为发现线索的**待回测参数**，绝不构成交易系统收益承诺或确认门槛。首次部署应先影子记录并测试历史样本；历史概念成分不可追溯时不可声称已验证跨行业回测。不得为了补捕某一个涨停案例调整已确定的市场状态晋级标准。

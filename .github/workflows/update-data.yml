@@ -198,6 +198,13 @@ jobs:
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/build_low_risk_working_sets.py
 
+      - name: Run industry-first sector discovery (shadow evidence only)
+        if: steps.gate.outputs.persist == 'true'
+        continue-on-error: true
+        run: |
+          python -m unittest discover -s tests -p 'test_sector_discovery.py' -q
+          python scripts/build_sector_discovery.py
+
       - name: Commit updated daily data
         if: steps.gate.outputs.persist == 'true'
         shell: bash
