@@ -39,7 +39,7 @@ state 不存在或不是今天时，新建 monitor_date=trade_date=snapshot.trad
 structure_momentum 仅 增强/稳定/减弱；同日对比至少两类改善才增强，两类恶化才减弱，否则稳定；首轮 previous_structure_momentum=null、structure_momentum=稳定，七日涨跌不冒充同日动量。
 
 ETF 空仓动作为 可跟随/关注回踩/等待/不追涨/暂停买入；有效上游+当下正常/修复+动量增强或广度明显健康才可跟随；趋势有效但缺少承接则关注回踩或等待，明显加速/集中不追涨，**分歧持续且动量减弱时即使尚未构成衰退预警，也可暂停买入**。上游高潮/衰退/失效且当下恶化亦可暂停；首轮除充分共振外不激进。
-ETF 持仓动作为 继续持有/持有观察/减仓观察/减仓/退出；上游有效且正常/修复、动量稳定/增强可继续持有，普通分歧或单日持续分歧但跨日证据不足原则上持有观察；若同日持续分歧并出现进一步两类实质恶化，可在已有个股/ETF 自身弱化佐证时升级「减仓观察」，但该标签**不等于已执行减仓**，不能仅由板块状态名称自动卖出。确认的上游衰退迹象与跨日/当下弱化共振可减仓观察；上游高潮/衰退与实时显著恶化共振且价格结构证据充分才可减仓；上游失效且结构持续明显弱化、失效确认才退出。不凭单次分歧、七日累计收益为负或单一标签退出；首轮上游已明确衰退/失效且今天确认弱势，可按原规则触发。没有明确 ETF 代码不得猜测。
+ETF 持仓动作**仅对Airtable核实已实际持有的ETF**适用，且须具备该ETF本人的有效行情与既定退出依据；否则只输出板块和ETF机会观察，不给假设性持仓卖出动作。ETF持仓动作为 继续持有/持有观察/减仓观察/减仓/退出；上游有效且正常/修复、动量稳定/增强可继续持有，普通分歧或单日持续分歧但跨日证据不足原则上持有观察；若同日持续分歧并出现进一步两类实质恶化，可在已有个股/ETF 自身弱化佐证时升级「减仓观察」，但该标签**不等于已执行减仓**，不能仅由板块状态名称自动卖出。确认的上游衰退迹象与跨日/当下弱化共振可减仓观察；上游高潮/衰退与实时显著恶化共振且价格结构证据充分才可减仓；上游失效且结构持续明显弱化、失效确认才退出。不凭单次分歧、七日累计收益为负或单一标签退出；首轮上游已明确衰退/失效且今天确认弱势，可按原规则触发。没有明确 ETF 代码不得猜测。
 
 ## 5. READY/WAIT 机会观察与实际持仓的双轨决策
 
@@ -81,7 +81,7 @@ ETF 持仓动作为 继续持有/持有观察/减仓观察/减仓/退出；上�
 
 ## 6. 唯一状态持久化、校验和错误
 
-只允许写 main 上 research/intraday_monitor_state.json；绝不写入Airtable个人持仓明细/持仓列表、私人买卖动作映射或成本。State 仅为全量冻结候选的公共技术观察记录，不能被当成真正持仓交易动作。State 包含 schema_version、result_kind=a_share_intraday_monitor_state、execution_schema_version=2、trade_date/monitor_date、last_scan_at、snapshot_at、冻结 handoff 日期和全部身份/rank、industry_history/stock_history。每条行业记录保存 trend_name、上游状态、previous_state/current_state、previous_structure_momentum/structure_momentum、广度/涨跌/覆盖/中位数、previous_entry_action/entry_action、previous_holding_action/holding_action、reason 和 data_quality；个股每条保存完整身份与 rank、价格/相对行业、历史可用性和有效七日摘要、previous_relative_strength/relative_strength、previous_price_behavior/price_behavior、前后操作、买入区间关系、handoff 标志、reason、data_quality。
+只允许写 main 上 research/intraday_monitor_state.json；绝不写入Airtable个人持仓明细/持仓列表、私人买卖动作映射或成本。State 仅为全量冻结候选的公共技术观察记录，不能被当成真正持仓交易动作。候选state中若保留旧版holding_action/previous_holding_action字段，仅为全部候选统一生成的**非私人、假设性兼容字段**，不得按Airtable持仓状态修改；实际持仓结论只临时输出、不落库。State 包含 schema_version、result_kind=a_share_intraday_monitor_state、execution_schema_version=2、trade_date/monitor_date、last_scan_at、snapshot_at、冻结 handoff 日期和全部身份/rank、industry_history/stock_history。每条行业记录保存 trend_name、上游状态、previous_state/current_state、previous_structure_momentum/structure_momentum、广度/涨跌/覆盖/中位数、previous_entry_action/entry_action、previous_holding_action/holding_action、reason 和 data_quality；个股每条保存完整身份与 rank、价格/相对行业、历史可用性和有效七日摘要、previous_relative_strength/relative_strength、previous_price_behavior/price_behavior、前后操作、买入区间关系、handoff 标志、reason、data_quality。
 
 先构造完整对象并用可执行环境实际 JSON 序列化和 JSON.parse 同一个待提交文本，核验字段、日期、全部冻结身份和行业/股票覆盖、枚举值及 previous_* 仅来自同日更早已落库扫描。不接受省略、截断或目测检查。无法校验则 PREWRITE_JSON_INVALID，最多在同一有效快照和已核实状态下完整重建一次，仍失败则 STATE_WRITE_FAILED，绝不将失败轮次纳入历史。
 
@@ -91,7 +91,7 @@ ETF 持仓动作为 继续持有/持有观察/减仓观察/减仓/退出；上�
 
 ## 7. 输出顺序与原则
 
-标题“A股盘中交易执行监测｜北京时间 <scan time>”。先报告 captured_at、报价覆盖、正式交易日/Gate、板块七日历史及个股七日历史的可用性、持久化结果；Gate 未通过时不输出当轮交易动作。通过后按冻结顺序完整展示所有板块/ETF：方向、上游趋势、七日板块统计（真实中位数、上涨比例、样本覆盖）、板块 previous→current、动量 previous→current、空仓/持仓动作及具体证据。每个板块须分开展示「今日盘中变化」「七日累计历史」「可比的前交易日盘中截面」及「升级门槛是否满足」，列出参与判断的广度和中位数；跨日不可比要明确写原因，区分「分歧持续」与「衰退预警」，也须区分「减仓观察」与真正减仓。再按第5A节展示 Airtable 持仓重点关注（只使用冻结股票池内行情；缺数据须明示），最后按正式rank展示全部 READY/WAIT 的技术状态与未持仓机会建议；实际已持有的代码标明转入前述持仓管理，不重复入场或卖出建议。无有效历史则明示，不漏股，不虚构。最后只补重大动作变化；无强信号时如实报告。永不反向修改上游趋势榜、趋势买点榜或正式 handoff。
+标题“A股盘中交易执行监测｜北京时间 <scan time>”。先报告 captured_at、报价覆盖、正式交易日/Gate、板块七日历史及个股七日历史的可用性、持久化结果；Gate 未通过时不输出当轮交易动作。通过后按冻结顺序完整展示所有板块/ETF：方向、上游趋势、七日板块统计（真实中位数、上涨比例、样本覆盖）、板块 previous→current、动量 previous→current、空仓/持仓动作及具体证据。每个板块须分开展示「今日盘中变化」「七日累计历史」「可比的前交易日盘中截面」及「升级门槛是否满足」，列出参与判断的广度和中位数；跨日不可比要明确写原因，区分「分歧持续」与「衰退预警」，也须区分「减仓观察」与真正减仓。再按第5A节展示 Airtable 持仓重点关注（只使用冻结股票池内行情；缺数据须明示），最后按正式rank展示全部 READY/WAIT 的技术状态与未持仓机会建议；实际已持有的代码标明转入前述持仓管理，不重复入场或卖出建议。未持仓候选不展示内部兼容的 holding_action；无法核实持仓状态者标「持仓未知、仅非个性化机会观察」。无有效历史则明示，不漏股，不虚构。最后只补重大动作变化；无强信号时如实报告。永不反向修改上游趋势榜、趋势买点榜或正式 handoff。
 
 ## 8. 快照与交易计划契约
 
