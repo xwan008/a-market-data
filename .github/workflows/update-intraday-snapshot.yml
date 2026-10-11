@@ -277,7 +277,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add research/intraday_market_snapshot.json research/intraday_crossday_archive.json
+          git add -A -- research/intraday_market_snapshot.json
+          if [ -f research/intraday_crossday_archive.json ]; then
+            git add -A -- research/intraday_crossday_archive.json
+          fi
           if [ -d research/intraday_quote_shards ]; then
             git add -A -- research/intraday_quote_shards
           fi
