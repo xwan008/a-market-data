@@ -53,4 +53,13 @@ jobs:
               'industry_count': audit['industry_count'],
               'concept_coverage_status': audit['concept_coverage_status'],
               'candidate_count': audit['eligible_count']}, ensure_ascii=False))
+          for row in audit['sectors']:
+              if row['kind'] == 'industry' and any(x in row['name'] for x in ('种子', '粮食种植', '粮油加工')):
+                  print('AGRICULTURE_INDUSTRY_AUDIT', json.dumps({
+                      'sector': row['name'], 'n': row['member_count'],
+                      'median_1d_pct': row['median_1d_pct'],
+                      'breadth': row['advance_ratio'], 'relative_strength':
+                      row['relative_1d_vs_market_median_pct'],
+                      'channels': row['channels'], 'reason': row['reason']},
+                      ensure_ascii=False))
           PY
