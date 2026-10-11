@@ -47,7 +47,8 @@ class SectorDiscoveryTests(unittest.TestCase):
         snap, audit = build(latest, index, structure, c)
         self.assertEqual(snap["status"], "COMPLETE")
         self.assertEqual(audit["concept_count"], 1)
-        self.assertEqual(len(snap["model_research_candidates"]), 2)
+        self.assertEqual(len(snap["model_research_candidates"]), 1)
+        self.assertEqual(audit["overlap_deduplicated_count"], 1)
         c["as_of_trade_date"] = "2026-10-10"
         with self.assertRaisesRegex(ValueError, "future"):
             build(latest, index, structure, c)
@@ -66,8 +67,22 @@ class SectorDiscoveryTests(unittest.TestCase):
              "as_of_trade_date": "2026-10-09", "concepts": [
                  {"concept_id": "hot", "name": "Hot concept", "source": "verified provider",
                   "member_codes": [f"{i:06d}" for i in range(1, 7)]}]}
+        # Two distinct strong industries plus a fully overlapping concept alias.
+        for i in range(13, 25):
+            code = f"{i:06d}"
+            hot = i < 19
+            latest["stocks"][code] = {"change_pct": 4 if hot else -1, "confidence": "high"}
+            index["companies"][code] = {
+                "mapping_status": "mapped", "industry_code": "S300101" if hot else "S400101",
+                "sw_level3_name": "Second hot" if hot else "Second weak"}
+            structure["companies"][code] = {
+                "data_status": "verified", "data_date": latest["trade_date"],
+                "phase_evidence": {"return_3d_pct": 5 if hot else -2,
+                                   "return_5d_pct": 2 if hot else -3,
+                                   "volume_ratio_1d": 2 if hot else .8}}
         snap, audit = build(latest, index, structure, c, review_cap=1)
         self.assertEqual(audit["eligible_count"], 2)
+        self.assertEqual(audit["overlap_deduplicated_count"], 1)
         self.assertEqual(len(snap["model_research_candidates"]), 1)
         self.assertEqual(len(snap["deferred_candidates"]), 1)
         self.assertEqual(sum(r["reason"] == "CAPACITY_DEFERRED" for r in audit["sectors"]), 1)
