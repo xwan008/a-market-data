@@ -53,6 +53,11 @@ jobs:
           print('LATEST_UPSTREAM_AND_FRESH_RESEARCH_DATE_VERIFIED',day,len(evidence['reviews']))
           PY
 
+      - name: Prepare same-session 65-day momentum in existing quote shards
+        run: |
+          python scripts/build_history.py
+          python scripts/build_bridge.py
+
       - name: Fresh dynamic industry Top5 and selected company research
         run: |
           python scripts/build_trend_buy_manual_research.py \
