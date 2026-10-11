@@ -35,6 +35,7 @@ jobs:
         run: python -m py_compile scripts/build_sector_discovery.py
       - name: Smoke-test with frozen real market data
         run: |
+          python scripts/build_full_market_price_structure.py
           python scripts/build_sector_discovery.py --output /tmp/sector_discovery.json --audit /tmp/sector_audit.json
           python - <<'PY'
           import json
