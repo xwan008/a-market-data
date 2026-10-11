@@ -33,3 +33,23 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_sector_discovery.py' -v
       - name: Compile discovery
         run: python -m py_compile scripts/build_sector_discovery.py
+      - name: Smoke-test with frozen real market data
+        run: |
+          python scripts/build_sector_discovery.py --output /tmp/sector_discovery.json --audit /tmp/sector_audit.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          snapshot=json.loads(Path('/tmp/sector_discovery.json').read_text())
+          audit=json.loads(Path('/tmp/sector_audit.json').read_text())
+          assert snapshot['trade_date'] == audit['trade_date']
+          assert audit['industry_count'] >= 300
+          assert len(audit['sectors']) >= 300
+          assert audit['selected_count'] <= 20
+          assert audit['selected_count'] + audit['deferred_count'] == audit['eligible_count']
+          assert snapshot['no_trade_signal'] is True
+          print('DISCOVERY_REAL_DATA_VALID', json.dumps({
+              'date': snapshot['trade_date'], 'status': snapshot['status'],
+              'industry_count': audit['industry_count'],
+              'concept_coverage_status': audit['concept_coverage_status'],
+              'candidate_count': audit['eligible_count']}, ensure_ascii=False))
+          PY
