@@ -15,6 +15,7 @@ from statistics import median
 from zoneinfo import ZoneInfo
 
 from build_sector_discovery import number, read_json, stock_features
+from price_inputs import load_momentum_shards
 
 TZ = ZoneInfo("Asia/Shanghai")
 CODE_RE = re.compile(r"^S\d{6}$")
@@ -358,7 +359,7 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--latest", default="data/latest.json")
     p.add_argument("--industry-index", default="data/research/company_industry_index.json")
-    p.add_argument("--structure", default="data/research/full_market_price_structure.json")
+    p.add_argument("--shard-dir", default="data/shards")
     p.add_argument("--catalog", default="research/theme_industry_catalog.json")
     p.add_argument("--registry", default="research/trend_registry.json")
     p.add_argument("--sector-audit", default="data/research/sector_discovery_audit.json")
@@ -375,7 +376,7 @@ def main():
     registry = read_json(args.registry) if Path(args.registry).exists() else None
     audit = read_json(args.sector_audit) if Path(args.sector_audit).exists() else None
     snapshot = build(read_json(args.latest), read_json(args.industry_index),
-                     read_json(args.structure), catalog, registry, audit,
+                     load_momentum_shards(read_json(args.latest)["trade_date"], args.shard_dir), catalog, registry, audit,
                      args.max_research, args.max_unmapped, args.allow_retrospective_smoke)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(snapshot, ensure_ascii=False, indent=2) + "\n",

@@ -114,7 +114,7 @@ def compact_opportunity(structure, trade_date):
     if (not isinstance(structure, dict)
         or structure.get("data_status")!="verified"
         or structure.get("data_date")!=trade_date
-        or structure.get("history_points",0)<120):
+        or structure.get("history_points",0)<65):
         return None, "PRICE_STRUCTURE_UNVERIFIED"
     if not structure.get("low_risk_eligible",False):
         return None, "STRUCTURE_RISK"
@@ -168,14 +168,21 @@ def compact_opportunity(structure, trade_date):
             "reference_is_not_buy_signal":True}, None
 
 
-def build(evidence_path, structure_path=None):
+def build(evidence_path, structure_path=None, structure_output_path=None):
     trend=read(TREND)
     index=read(INDEX)
     vault=read(evidence_path)
-    structure=read(Path(structure_path) if structure_path else ROOT/'data/research/full_market_price_structure.json')
+    structure=read(Path(structure_path)) if structure_path else None
     day=trend.get("trade_date")
-    if structure.get('reference_trade_date')!=day or structure.get('contract_id')!='a-share-low-risk-price-structure':
+    if structure is not None and (structure.get('reference_trade_date')!=day or structure.get('contract_id')!='a-share-low-risk-price-structure'):
         raise ValueError('price_structure_trade_date_or_contract_mismatch')
+    if structure is None:
+        from price_inputs import SelectedStockStructures
+        scoped = SelectedStockStructures(day)
+        technical_cache = {}
+    else:
+        scoped = None
+        technical_cache = None
     if not day or index.get("trade_date")!=day or vault.get("as_of_date")!=day:
         raise ValueError("asof_date_mismatch")
     if (index.get("validation") or {}).get("status")!="passed":
@@ -236,7 +243,10 @@ def build(evidence_path, structure_path=None):
         audit["hard_eligible"]+=len(valid)
         ranked=[]
         for c,metric in zip(valid,scores(valid)):
-            price_structure=(structure.get("companies") or {}).get(c["code"])
+            price_structure=((structure.get("companies") or {}).get(c["code"])
+                             if structure is not None else scoped.get(c["code"],c))
+            if technical_cache is not None:
+                technical_cache[c["code"]] = price_structure
             opportunity,reason=compact_opportunity(price_structure,day)
             if price_structure and price_structure.get("data_status")=="verified" and (
                 not pos(c.get("price")) or
@@ -366,15 +376,32 @@ def build(evidence_path, structure_path=None):
             "selected_company_count":len(candidate),"publication_audit":gate,
             "source_research_protocol":"date_scoped_dynamic_pre_screen_top5_company_reviews",
             "screen_audit":audit,"companies":candidate}
+    if structure_output_path:
+        if structure is None:
+            from datetime import datetime
+            from zoneinfo import ZoneInfo
+            selected_structures={x["code"]:technical_cache[x["code"]] for x in candidate}
+            payload={"contract_id":"a-share-low-risk-price-structure",
+                     "reference_trade_date":day,
+                     "generated_at":datetime.now(ZoneInfo("Asia/Shanghai")).isoformat(),
+                     "universe_count":len(technical_cache),
+                     "companies":selected_structures,
+                     "source":"data/low_risk + data/shards + on_demand_65d_history"}
+        else:
+            payload=structure
+        target=Path(structure_output_path)
+        target.parent.mkdir(parents=True,exist_ok=True)
+        target.write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     return result
 
 def main():
     p=argparse.ArgumentParser()
     p.add_argument("--evidence",required=True)
-    p.add_argument("--structure",default=None,help="Same-day compact full-market price structure")
+    p.add_argument("--structure",default=None,help="Optional legacy fixture, not used by production")
+    p.add_argument("--structure-output",default=None,help="Write only selected candidates to an ephemeral technical input")
     p.add_argument("--output",required=True)
     a=p.parse_args()
-    out=build(Path(a.evidence),a.structure)
+    out=build(Path(a.evidence),a.structure,a.structure_output)
     path=Path(a.output)
     path.parent.mkdir(parents=True,exist_ok=True)
     path.write_text(json.dumps(out,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")

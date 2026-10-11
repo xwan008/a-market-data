@@ -229,14 +229,14 @@ def trend_phase_metrics(rows, ma20, ma60, current, ratio1, ratio5, close_locatio
         }
     }
 
-def base_metrics(code: str, name: str, rows: list[dict], quote: dict, reference_date: str):
+def base_metrics(code: str, name: str, rows: list[dict], quote: dict, reference_date: str, min_points: int = MIN_POINTS):
     flagged, flag_reason = risk_warning(name)
     base_flags = {
         "risk_warning": flagged,
         "risk_warning_reason": flag_reason,
         "low_risk_eligible": not flagged,
     }
-    if len(rows) < MIN_POINTS:
+    if len(rows) < min_points:
         return {
             "code": code,
             "name": name,
@@ -268,7 +268,7 @@ def base_metrics(code: str, name: str, rows: list[dict], quote: dict, reference_
     slope20 = ma20 / ma20_5 - 1
     slope60 = ma60 / ma60_5 - 1
     prev60_high = max(r["high"] for r in rows[-61:-1])
-    prev120_high = max(r["high"] for r in rows[-121:-1])
+    prev120_high = max(r["high"] for r in rows[-121:-1]) if len(rows) >= 120 else None
     ratio1, ratio5, close_loc = volume_metrics(rows)
     phase = trend_phase_metrics(rows, ma20, ma60, current, ratio1, ratio5, close_loc)
 
@@ -276,7 +276,7 @@ def base_metrics(code: str, name: str, rows: list[dict], quote: dict, reference_
     above = [p for p in highs if p["price"] > current * 1.005]
     if above:
         resistance = min(above, key=lambda x: x["price"])
-    elif current < prev120_high * 0.995:
+    elif prev120_high is not None and current < prev120_high * 0.995:
         resistance = {"date": None, "price": prev120_high, "source": "prior_120d_high"}
 
     supports = [x["price"] for x in recent_lows if x["price"] < current]
@@ -305,7 +305,7 @@ def base_metrics(code: str, name: str, rows: list[dict], quote: dict, reference_
         "distance_to_ma60_pct": round(dist60 * 100, 2),
         "atr14_pct": round((atr_pct(rows) or 0) * 100, 2),
         "prior_60d_high": round(prev60_high, 4),
-        "prior_120d_high": round(prev120_high, 4),
+        "prior_120d_high": round(prev120_high, 4) if prev120_high is not None else None,
         "higher_high": hh,
         "higher_low": hl,
         "first_effective_resistance": resistance,
@@ -343,7 +343,9 @@ def classify(row: dict, market_ret20: float):
     slopes_up = s20 > 0 and s60 >= 0
     structure_up = row.get("higher_high") or row.get("higher_low")
 
-    levels = [row["prior_60d_high"], row["prior_120d_high"]]
+    levels = [row["prior_60d_high"]]
+    if f(row.get("prior_120d_high")):
+        levels.append(row["prior_120d_high"])
     touched = [lvl for lvl in levels if row["current_day_high"] >= lvl]
     breakout_level = max(touched) if touched else None
     price_confirmed = bool(breakout_level and p >= breakout_level * 0.995)
@@ -353,7 +355,7 @@ def classify(row: dict, market_ret20: float):
     )
     close_confirmed = (row.get("close_location_pct") or 0) >= 55
     breakout_confirmed = price_confirmed and volume_confirmed and close_confirmed
-    near_breakout = p >= row["prior_60d_high"] * 0.995 or p >= row["prior_120d_high"] * 0.995
+    near_breakout = any(p >= level * 0.995 for level in levels)
     row.update(
         {
             "breakout_level": round(breakout_level, 4) if breakout_level else None,
@@ -389,7 +391,7 @@ def classify(row: dict, market_ret20: float):
     row.update({"chase_risk": chase, "structure_type": stype, "action": action})
     row["price_discovery"] = bool(
         breakout_confirmed
-        and p >= row["prior_120d_high"] * 0.995
+        and p >= max(levels) * 0.995
         and row.get("first_effective_resistance") is None
     )
     row["resistance_context"] = (
