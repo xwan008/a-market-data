@@ -35,17 +35,14 @@ jobs:
                              stdout=subprocess.DEVNULL)
               for original,desired in [
                   ("data/latest.json","latest.json"),
-                  ("data/research/company_industry_index.json","company_industry_index.json"),
-                  ("data/research/full_market_price_structure.json","full_market_price_structure.json")]:
+                  ("data/research/company_industry_index.json","company_industry_index.json")]:
                   destination=Path("/tmp/sector_asof_snapshots")/day/desired
                   destination.parent.mkdir(parents=True,exist_ok=True)
                   with destination.open("wb") as stream:
                       subprocess.run(["git","show",f"{sha}:{original}"],check=True,stdout=stream)
-              meta=[json.loads((Path("/tmp/sector_asof_snapshots")/day/f).read_text(encoding="utf-8")) for f in ("latest.json","full_market_price_structure.json")]
-              print("ASOF_SOURCE_READY", day, sha, 
-                    "latest_day="+str(meta[0].get("trade_date")),
-                    "latest_status="+str(meta[0].get("market_status")),
-                    "structure_day="+str(meta[1].get("reference_trade_date")),flush=True)
+              meta=json.loads((Path("/tmp/sector_asof_snapshots")/day/"latest.json").read_text(encoding="utf-8"))
+              print("ASOF_SOURCE_READY",day,sha,"latest_day="+str(meta.get("trade_date")),
+                    "latest_status="+str(meta.get("market_status")),flush=True)
           PY
       - name: Run day-isolated signals then forward continuation proxy
         run: |
@@ -58,7 +55,7 @@ jobs:
           import json
           from pathlib import Path
           r=json.loads(Path("/tmp/sector_backtest_report.json").read_text())
-          assert r["days"]>=8
+          assert r["days"]>=11
           dated={x["date"]:x for x in r["daily_decisions"]}
           assert "2026-10-08" in dated and "2026-10-09" in dated
           assert all(x["source_future_data_used_for_discovery"] is False for x in dated.values())
