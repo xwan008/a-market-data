@@ -87,6 +87,54 @@ class SectorDiscoveryTests(unittest.TestCase):
         self.assertEqual(len(snap["deferred_candidates"]), 1)
         self.assertEqual(sum(r["reason"] == "CAPACITY_DEFERRED" for r in audit["sectors"]), 1)
 
+    def test_full_candidate_queue_is_available_after_seed_theme_merging(self):
+        latest, index, structure = inputs()
+        for i in range(13, 25):
+            code = f"{i:06d}"
+            hot = i < 19
+            latest["stocks"][code] = {"change_pct": 4 if hot else -1, "confidence": "high"}
+            index["companies"][code] = {
+                "mapping_status": "mapped",
+                "industry_code": "S300101" if hot else "S400101",
+                "sw_level3_name": "Second hot" if hot else "Second weak"}
+            structure["companies"][code] = {
+                "data_status": "verified", "data_date": latest["trade_date"],
+                "phase_evidence": {"return_3d_pct": 5 if hot else -2,
+                                   "return_5d_pct": 2 if hot else -3,
+                                   "volume_ratio_1d": 2 if hot else .8}}
+        snap, audit = build(latest, index, structure, review_cap=1)
+        queue = snap["candidate_overview"]
+        self.assertEqual(len(queue), audit["eligible_count"])
+        self.assertEqual({row["industry_code"] for row in queue},
+                         {"S100101", "S300101"})
+        self.assertEqual(len(snap["model_research_candidates"]), 1)
+        self.assertEqual(len(snap["deferred_candidates"]), 1)
+        self.assertEqual(snap["theme_research_budget"]["max_new_theme_deep_research"], 1)
+        self.assertTrue(snap["theme_research_budget"]["refill_from_candidate_overview_after_merging"])
+        self.assertEqual(snap["all_industry_metrics"],
+                         "data/research/sector_discovery_audit.json#sectors")
+
+    def test_classification_peers_are_only_research_hints(self):
+        latest, index, structure = inputs()
+        for i in range(13, 18):
+            code = f"{i:06d}"
+            latest["stocks"][code] = {"change_pct": -0.6, "confidence": "high"}
+            index["companies"][code] = {"mapping_status": "mapped",
+                "industry_code": "S100102", "sw_level3_name": "Related classification weak"}
+            structure["companies"][code] = {
+                "data_status": "verified", "data_date": latest["trade_date"],
+                "phase_evidence": {"return_3d_pct": -1, "return_5d_pct": -2,
+                                   "volume_ratio_1d": .7}}
+        snap, audit = build(latest, index, structure)
+        seed = next(x for x in snap["classification_peer_hints"]
+                    if x["anchor_industry_code"] == "S100101")
+        self.assertTrue(seed["classification_only"])
+        self.assertIn("S100102", [x["code"] for x in seed["nearby_industries"]])
+        self.assertNotIn("S100102", [x["industry_code"]
+                                    for x in snap["candidate_overview"]])
+        self.assertEqual(next(x for x in audit["sectors"]
+                              if x["id"] == "industry:S100102")["channels"], [])
+
     def test_snapshot_must_match_completed_trade_date(self):
         latest, index, structure = inputs()
         structure["reference_trade_date"] = "2026-10-08"
