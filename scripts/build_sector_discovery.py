@@ -205,6 +205,41 @@ def build(latest, industry_index, structure, concept_payload=None, review_cap=20
         "overlap_deduplicated_count": len(pool) - len(unique),
         "sectors": sorted(rows, key=lambda r: r["id"])
     }
+    # Compact, uncapped sector shortlist lets the model merge shared-driver
+    # sectors into ONE theme study and refill released deep-research slots.
+    # It is not itself a theme classifier or a buy/industry-routing decision.
+    candidate_overview = [
+        {"id": row["id"], "name": row["name"], "kind": row["kind"],
+         "industry_code": row["id"].split(":", 1)[1] if row["kind"] == "industry" else None,
+         "channels": row["channels"], "score": row["score"],
+         "relative_strength": row["relative_1d_vs_market_median_pct"],
+         "advance_ratio": row["advance_ratio"], "research_queue_status": row["reason"]}
+        for row in unique
+    ]
+    industry_rows = {
+        row["id"].split(":", 1)[1]: row for row in rows if row["kind"] == "industry"
+    }
+    # Same SW level-2 branch is only a lookup clue, not proof of common
+    # catalysts/profitability. Models may review unrelated branches too.
+    peer_hints = []
+    for anchor in selected:
+        if anchor["kind"] != "industry":
+            continue
+        code = anchor["id"].split(":", 1)[1]
+        peers = sorted(
+            (item for other_code, item in industry_rows.items()
+             if other_code != code and other_code[:5] == code[:5]),
+            key=lambda item: (-item["score"], item["id"])
+        )
+        peer_hints.append({
+            "anchor_industry_code": code,
+            "classification_only": True,
+            "nearby_industries": [
+                {"code": item["id"].split(":", 1)[1], "name": item["name"],
+                 "sample_quality": item["sample_quality"], "reason": item["reason"]}
+                for item in peers[:8]
+            ],
+        })
     snapshot = {
         "schema_version": 1, "result_kind": "sector_discovery_snapshot",
         "trade_date": trade_date, "generated_at": datetime.now(TZ).isoformat(),
@@ -215,6 +250,20 @@ def build(latest, industry_index, structure, concept_payload=None, review_cap=20
         "scan_audit": {k: v for k, v in audit.items() if k != "sectors"},
         "model_research_candidates": selected,
         "deferred_candidates": [r for r in unique if r["id"] not in selected_ids],
+        "theme_research_budget": {
+            "unit": "evidence_verified_theme_not_industry",
+            "max_new_theme_deep_research": review_cap,
+            "initial_seed_industry_count": len(selected),
+            "seed_industries_are_not_hard_theme_limit": True,
+            "refill_from_candidate_overview_after_merging": True,
+            "existing_registry_theme_rechecks_excluded_from_budget": True,
+            "cross_industry_driver_validation_required": True,
+            "routable_codes_only_after_model_verification": True,
+        },
+        "candidate_overview": candidate_overview,
+        "classification_peer_hints": peer_hints,
+        "all_industry_metrics": "data/research/sector_discovery_audit.json#sectors",
+        "handoff_routing_reference": "data/low_risk/index.json",
         "coverage_limitations": ([] if concept_status in ("VERIFIED", "EMPTY_VERIFIED")
                                 else ["concept_membership_not_verified; do not claim concept full scan"]),
     }
