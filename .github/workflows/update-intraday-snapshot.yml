@@ -157,6 +157,10 @@ jobs:
         if: steps.handoff.outputs.ready == 'true' && steps.freshness.outputs.skip != 'true'
         run: python -m unittest discover -s tests -p "test_intraday_crossday.py"
 
+      - name: Test privacy-safe public quote index
+        if: steps.handoff.outputs.ready == 'true' && steps.freshness.outputs.skip != 'true'
+        run: python -m unittest discover -s tests -p "test_intraday_quote_index.py"
+
       - name: Build intraday snapshot
         if: steps.handoff.outputs.ready == 'true' && steps.freshness.outputs.skip != 'true'
         run: python scripts/build_intraday_snapshot.py
