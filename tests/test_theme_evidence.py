@@ -179,6 +179,17 @@ class ThemeEvidenceTests(unittest.TestCase):
 
     def test_taxonomy_groups_are_an_independent_market_evidence_layer(self):
         data = list(sample_data())
+        # Make both strong independent groups beat a low overall market median.
+        for i in range(19, 26):
+            code = f"{i:06d}"
+            data[0]["stocks"][code] = {"change_pct": -3, "confidence": "high"}
+            data[1]["companies"][code] = {
+                "mapping_status": "mapped", "industry_code": "S200101",
+                "sw_level3_name": "Related only"}
+            data[2]["companies"][code] = {
+                "data_status": "verified", "data_date": data[0]["trade_date"],
+                "phase_evidence": {"return_3d_pct": -4, "return_5d_pct": -2,
+                                   "volume_ratio_1d": 1.5}}
         data[3] = copy.deepcopy(data[3])
         data[3]["base_industry_groups"] = [
             {"group_id": f"sw_l2_{prefix}", "group_name": label,
