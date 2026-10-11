@@ -53,21 +53,18 @@ jobs:
           print('LATEST_UPSTREAM_AND_FRESH_RESEARCH_DATE_VERIFIED',day,len(evidence['reviews']))
           PY
 
-      - name: Recompute compact full-market technical structure from raw OHLCV
-        run: python scripts/build_full_market_price_structure.py
-
       - name: Fresh dynamic industry Top5 and selected company research
         run: |
           python scripts/build_trend_buy_manual_research.py \
             --evidence research/trend_buy_company_review_current.json \
-            --structure data/research/full_market_price_structure.json \
+            --structure-output /tmp/mainline-scoped-structure.json \
             --output /tmp/mainline-fresh-research.json
 
       - name: Recompute every selected entry, theme Top5 and risk plan
         run: |
           python scripts/trend_buy_engine.py \
             --research /tmp/mainline-fresh-research.json \
-            --structure data/research/full_market_price_structure.json \
+            --structure /tmp/mainline-scoped-structure.json \
             --output /tmp/mainline-fresh-result.json
 
       - name: Fail-closed full audit and prepare sole formal result
@@ -78,7 +75,7 @@ jobs:
           src=lambda p:json.loads(Path(p).read_text(encoding='utf-8'))
           res=src('/tmp/mainline-fresh-result.json')
           research=src('/tmp/mainline-fresh-research.json')
-          technical=src('data/research/full_market_price_structure.json')
+          technical=src('/tmp/mainline-scoped-structure.json')
           handoff=src('research/trend_handoff.json')
           evidence=src('research/trend_buy_company_review_current.json')
           day=handoff['trade_date']

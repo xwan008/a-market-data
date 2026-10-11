@@ -5,6 +5,8 @@ on:
     paths:
       - "scripts/build_sector_discovery.py"
       - "scripts/build_theme_evidence.py"
+      - "scripts/price_inputs.py"
+      - "scripts/build_history.py"
       - "tests/test_theme_evidence.py"
       - "research/theme_industry_catalog.json"
       - "scripts/validate_theme_handoff_routes.py"
@@ -44,7 +46,8 @@ jobs:
         run: python -m py_compile scripts/build_sector_discovery.py scripts/build_theme_evidence.py scripts/validate_theme_handoff_routes.py
       - name: Smoke-test with frozen real market data
         run: |
-          python scripts/build_full_market_price_structure.py
+          python scripts/build_history.py
+          python scripts/build_bridge.py
           python scripts/build_sector_discovery.py --output /tmp/sector_discovery.json --audit /tmp/sector_audit.json
           python - <<'PY'
           import json

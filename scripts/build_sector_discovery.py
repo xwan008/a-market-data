@@ -11,6 +11,8 @@ from pathlib import Path
 from statistics import median
 from zoneinfo import ZoneInfo
 
+from price_inputs import load_momentum_shards
+
 TZ = ZoneInfo("Asia/Shanghai")
 
 
@@ -196,7 +198,7 @@ def build(latest, industry_index, structure, concept_payload=None, review_cap=20
         "schema_version": 1, "trade_date": trade_date,
         "scan_inputs": {"industry_index": "data/research/company_industry_index.json",
                         "quotes": "data/latest.json",
-                        "structure": "data/research/full_market_price_structure.json"},
+                        "momentum": "data/shards/*.json#trend.momentum_evidence"},
         "industry_count": len(industries), "concept_count": len(concepts),
         "concept_coverage_status": concept_status, "mapped_stocks": len(mapped),
         "market_median_return_1d_pct": round(market_median, 3),
@@ -285,7 +287,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--latest", default="data/latest.json")
     parser.add_argument("--industry-index", default="data/research/company_industry_index.json")
-    parser.add_argument("--structure", default="data/research/full_market_price_structure.json")
+    parser.add_argument("--shard-dir", default="data/shards")
     parser.add_argument("--concept-membership", default="data/research/concept_membership_asof.json")
     parser.add_argument("--output", default="data/research/sector_discovery_snapshot.json")
     parser.add_argument("--audit", default="data/research/sector_discovery_audit.json")
@@ -296,7 +298,7 @@ def main():
     concept_path = Path(args.concept_membership)
     concept = read_json(concept_path) if concept_path.exists() else None
     snapshot, audit = build(read_json(args.latest), read_json(args.industry_index),
-                            read_json(args.structure), concept, args.review_cap)
+                            load_momentum_shards(read_json(args.latest)["trade_date"], args.shard_dir), concept, args.review_cap)
     for path, payload in ((args.output, snapshot), (args.audit, audit)):
         target = Path(path)
         target.parent.mkdir(parents=True, exist_ok=True)

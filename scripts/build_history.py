@@ -502,6 +502,13 @@ def build_stock_summary(
     high20 = max(float(r.get("high") or r["close"]) for r in last20)
     low20 = min(float(r.get("low") or r["close"]) for r in last20)
 
+    prev_volumes = [v for r in rows[-21:-1]
+                    if (v := normalized_volume(r)) is not None and v > 0]
+    average_volume = mean(prev_volumes) if len(prev_volumes) >= 10 else None
+    current_volume = normalized_volume(rows[-1])
+    volume_ratio_1d = (round(current_volume / average_volume, 3)
+                       if average_volume and current_volume and current_volume > 0 else None)
+
     out = {
         "points": points,
         "last_date": rows[-1].get("date"),
@@ -516,6 +523,13 @@ def build_stock_summary(
         "close_change_7d_pct": pct_change(last8_closes[0], last8_closes[-1]) if points >= 8 else None,
         "close_change_20d_pct": pct_change(last20_closes[0], last20_closes[-1]) if points >= 20 else None,
         "last5": [{"date": r.get("date"), "close": r.get("close")} for r in last5],
+        "momentum_evidence": {
+            "data_date": rows[-1].get("date"),
+            "return_3d_pct": round(pct_change(closes[-4], closes[-1]), 2) if points >= 4 else None,
+            "return_5d_pct": round(pct_change(closes[-6], closes[-1]), 2) if points >= 6 else None,
+            "return_20d_pct": round(pct_change(closes[-21], closes[-1]), 2) if points >= 21 else None,
+            "volume_ratio_1d": volume_ratio_1d,
+        },
     }
 
     if points >= 60:

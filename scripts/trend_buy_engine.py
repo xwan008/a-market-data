@@ -119,7 +119,7 @@ def evaluate_candidate(c, structure, trade_date):
     if c.get("material_risk_unresolved"):
         result["decision_reason"] = "财务、退市或重大信息风险尚未解除"
         return result
-    if not structure or structure.get("data_status") != "verified" or structure.get("data_date") != trade_date or structure.get("history_points", 0) < 120:
+    if not structure or structure.get("data_status") != "verified" or structure.get("data_date") != trade_date or structure.get("history_points", 0) < 65:
         result["decision_reason"] = "完整同日有效OHLCV结构不足；禁止用过期MA或推测价格补齐"
         return result
     if not structure.get("low_risk_eligible"):
