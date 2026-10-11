@@ -1,0 +1,24 @@
+name: Validate Historical Theme Shadow
+
+on:
+  pull_request:
+    paths:
+      - "research/backtests/trend_theme_shadow_replay_20261009.json"
+      - "tests/test_shadow_theme_20261009.py"
+      - ".github/workflows/validate-shadow-theme.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-shadow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate 78-candidate accounting and same-day downstream routing
+        run: python -m unittest discover -s tests -p 'test_shadow_theme_20261009.py' -v
