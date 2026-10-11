@@ -25,14 +25,13 @@ def load_days(root, manifest):
         sub = Path(root) / day
         latest = load(sub / "latest.json")
         index = load(sub / "company_industry_index.json")
-        structure = load(sub / "full_market_price_structure.json")
-        if latest.get("trade_date") != day or structure.get("reference_trade_date") != day:
+        if latest.get("trade_date") != day:
             raise ValueError("ASOF_DATE_MISMATCH:" + day)
         if latest.get("market_status") != "closed":
             raise ValueError("ASOF_NOT_COMPLETED_SESSION:" + day)
         if not isinstance(index.get("companies"), dict) or not index["companies"]:
             raise ValueError("ASOF_INDUSTRY_INDEX_MISSING:" + day)
-        observed.append((day, entry["commit"], latest, index, structure))
+        observed.append((day, entry["commit"], latest, index))
     if not observed or len({row[0] for row in observed}) != len(observed):
         raise ValueError("missing_or_duplicate_sessions")
     if [x[0] for x in observed] != sorted(x[0] for x in observed):
@@ -52,6 +51,40 @@ def closes(quotes, codes):
     return result
 
 
+def asof_features(days, i):
+    """Compute compact 3d/5d/volume signals using ONLY archived daily quote snapshots <= i.
+
+    The originally persisted full_market_price_structure file is stale as of
+    2026-09-16 in all audited historical commits, so it must not be used.
+    """
+    day, _, current, _ = days[i]
+    quotes = current.get("stocks") or {}
+    companies = {}
+    for code, quote in quotes.items():
+        code = str(code).zfill(6)
+        now = number(quote.get("price"))
+        values = {}
+        for window in (3, 5):
+            previous = (days[i - window][2].get("stocks") or {}).get(code) if i >= window else None
+            old = number((previous or {}).get("price"))
+            values[f"return_{window}d_pct"] = round((now / old - 1) * 100, 3) if now and old and old > 0 else None
+        # Same as the production metric: current volume / 20 previous-session mean,
+        # with at least ten valid prior sessions. Unavailable until history is long enough.
+        prior = []
+        for j in range(max(0, i - 20), i):
+            item = (days[j][2].get("stocks") or {}).get(code) or {}
+            v = number(item.get("volume"))
+            if v is not None and v > 0:
+                prior.append(v)
+        current_volume = number(quote.get("volume"))
+        values["volume_ratio_1d"] = (
+            round(current_volume / (sum(prior) / len(prior)), 3)
+            if len(prior) >= 10 and current_volume and current_volume > 0 else None)
+        companies[code] = {
+            "data_status": "verified", "data_date": day, "phase_evidence": values}
+    return {"reference_trade_date": day, "companies": companies}
+
+
 def future_return(signal_quotes, future_quotes, codes, coverage_floor=.8):
     start = closes(signal_quotes, codes)
     finish = closes(future_quotes, codes)
@@ -64,7 +97,8 @@ def future_return(signal_quotes, future_quotes, codes, coverage_floor=.8):
 def replay(root, manifest, horizon=2, cap=20):
     days = load_days(root, manifest)
     decisions, all_results = [], []
-    for day, commit, latest, index, structure in days:
+    for i, (day, commit, latest, index) in enumerate(days):
+        structure = asof_features(days, i)
         snapshot, audit = build(latest, index, structure, review_cap=cap)
         if snapshot["trade_date"] != day:
             raise ValueError("REPLAY_DATE_MISMATCH")
@@ -141,13 +175,14 @@ def replay(root, manifest, horizon=2, cap=20):
         "scope": "SW_LEVEL3_ONLY", "days": len(days),
         "date_range": [days[0][0], days[-1][0]],
         "horizon_session_count": horizon, "research_cap": cap,
-        "signal_input_rule": "exact committed data files at signal-day SHA; no future inputs",
+        "signal_input_rule": "exact committed daily quotes and industry index at as-of SHA; 3/5d computed only from earlier committed quotes",
         "evaluation_rule": "future committed daily snapshots used only after decisions frozen",
         "weak_follow_through_definition": "sector median forward return <=0 and relative vs entire market median <=0",
         "warnings": [
             "Forward weakness is only a market-continuation proxy; NOT proof of an emotional/speculative false positive or a failed trade.",
             "Some historical sessions may lack later complete sessions; exclude them from that horizon denominator.",
             "Historical data publishing times may differ from fixed 18:40 research task time.",
+            "Stored price-structure snapshots were all stale at 2026-09-16; 3d/5d and available volume ratios reconstructed from immutable historic daily quotes. Volume windows under ten valid days remain unavailable.",
             "Only repository-covered mainboard equities and contemporaneous stored SW mapping are tested."],
         "summary": {
             "selected_horizon_1": summarize(selected, 1),
