@@ -41,7 +41,11 @@ jobs:
                   destination.parent.mkdir(parents=True,exist_ok=True)
                   with destination.open("wb") as stream:
                       subprocess.run(["git","show",f"{sha}:{original}"],check=True,stdout=stream)
-              print("ASOF_SOURCE_READY",day,sha,flush=True)
+              meta=[json.loads((Path("/tmp/sector_asof_snapshots")/day/f).read_text(encoding="utf-8")) for f in ("latest.json","full_market_price_structure.json")]
+              print("ASOF_SOURCE_READY", day, sha, 
+                    "latest_day="+str(meta[0].get("trade_date")),
+                    "latest_status="+str(meta[0].get("market_status")),
+                    "structure_day="+str(meta[1].get("reference_trade_date")),flush=True)
           PY
       - name: Run day-isolated signals then forward continuation proxy
         run: |
