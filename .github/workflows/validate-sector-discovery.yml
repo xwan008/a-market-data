@@ -1,0 +1,35 @@
+name: Validate Sector Discovery
+
+on:
+  pull_request:
+    paths:
+      - "scripts/build_sector_discovery.py"
+      - "tests/test_sector_discovery.py"
+      - "skill/TREND_REGISTRY_PROTOCOL.md"
+      - ".github/workflows/validate-sector-discovery.yml"
+      - ".github/workflows/update-data.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "scripts/build_sector_discovery.py"
+      - "tests/test_sector_discovery.py"
+      - ".github/workflows/validate-sector-discovery.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deterministic-discovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Unit-test discovery and coverage gates
+        run: python -m unittest discover -s tests -p 'test_sector_discovery.py' -v
+      - name: Compile discovery
+        run: python -m py_compile scripts/build_sector_discovery.py
