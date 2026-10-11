@@ -1,0 +1,416 @@
+{
+  "schema_version": 1,
+  "result_kind": "a_share_static_theme_industry_catalog",
+  "catalog_as_of_date": "2026-10-11",
+  "catalog_version": "2026-10-11.1",
+  "mapping_reference_trade_date": "2026-10-09",
+  "classification": "SW_L3",
+  "classification_universe_count": 331,
+  "purpose": "Stable research relationship catalog for daily auxiliary market evidence, not a trend signal or official industry routing authority.",
+  "authority": "AUXILIARY_ONLY",
+  "role_semantics": {
+    "core": "Industry aggregate used for theme evidence calculations. NOT proof of profitability for every constituent.",
+    "related": "Watchlist industry only; excluded from core theme scores, ranking, and automatic downstream handoff."
+  },
+  "update_policy": "Version reviewed mappings when classifications or verifiable industry evidence changes; never rewrite catalog daily from stock movements.",
+  "historical_rule": "Catalog as-of 2026-10-11. Applying it to an earlier trade date is retrospective smoke only; it must not be presented as strict point-in-time replay.",
+  "sources": [
+    "research/trend_registry.json @ 2026-10-09",
+    "research/theme_alias_map.json @ 2026-10-11",
+    "data/low_risk/index.json @ 2026-10-09"
+  ],
+  "themes": [
+    {
+      "theme_id": "solid_state_battery",
+      "theme_name": "固态电池",
+      "aliases": [
+        "固态电池",
+        "全固态电池",
+        "半固态电池"
+      ],
+      "mapping_provenance": "legacy_registry_2026-10-09",
+      "industries": [
+        {
+          "code": "S630701",
+          "name": "锂电池",
+          "role": "core"
+        },
+        {
+          "code": "S630702",
+          "name": "电池化学品",
+          "role": "core"
+        },
+        {
+          "code": "S630703",
+          "name": "锂电专用设备",
+          "role": "core"
+        },
+        {
+          "code": "S240603",
+          "name": "锂",
+          "role": "related"
+        },
+        {
+          "code": "S240504",
+          "name": "其他小金属",
+          "role": "related"
+        }
+      ]
+    },
+    {
+      "theme_id": "cro_outsourcing",
+      "theme_name": "CRO/医疗研发外包",
+      "aliases": [
+        "CRO/医疗研发外包",
+        "CRO",
+        "医疗研发外包"
+      ],
+      "mapping_provenance": "legacy_registry_2026-10-09",
+      "industries": [
+        {
+          "code": "S370603",
+          "name": "医疗研发外包",
+          "role": "core"
+        }
+      ]
+    },
+    {
+      "theme_id": "wind_equipment",
+      "theme_name": "风电设备",
+      "aliases": [
+        "风电设备",
+        "风电",
+        "海风"
+      ],
+      "mapping_provenance": "legacy_registry_2026-10-09",
+      "industries": [
+        {
+          "code": "S630602",
+          "name": "风电零部件",
+          "role": "core"
+        }
+      ]
+    },
+    {
+      "theme_id": "pcb_ccl",
+      "theme_name": "PCB/CCL",
+      "aliases": [
+        "PCB/CCL",
+        "PCB",
+        "CCL"
+      ],
+      "mapping_provenance": "legacy_registry_2026-10-09",
+      "industries": [
+        {
+          "code": "S270202",
+          "name": "印制电路板",
+          "role": "core"
+        }
+      ]
+    },
+    {
+      "theme_id": "semiconductor_equipment_materials",
+      "theme_name": "半导体设备/材料",
+      "aliases": [
+        "半导体设备/材料",
+        "半导体设备",
+        "半导体材料"
+      ],
+      "mapping_provenance": "legacy_registry_2026-10-09",
+      "industries": [
+        {
+          "code": "S270108",
+          "name": "半导体设备",
+          "role": "core"
+        },
+        {
+          "code": "S270103",
+          "name": "半导体材料",
+          "role": "core"
+        }
+      ]
+    },
+    {
+      "theme_id": "cpo_optical",
+      "theme_name": "CPO/光模块",
+      "aliases": [
+        "CPO/光模块",
+        "CPO",
+        "光模块"
+      ],
+      "mapping_provenance": "legacy_registry_2026-10-09",
+      "industries": [
+        {
+          "code": "S730204",
+          "name": "通信网络设备及器件",
+          "role": "core"
+        }
+      ]
+    },
+    {
+      "theme_id": "coal",
+      "theme_name": "煤炭",
+      "aliases": [
+        "煤炭"
+      ],
+      "mapping_provenance": "legacy_registry_2026-10-09",
+      "industries": [
+        {
+          "code": "S740101",
+          "name": "动力煤",
+          "role": "core"
+        },
+        {
+          "code": "S740102",
+          "name": "焦煤",
+          "role": "core"
+        },
+        {
+          "code": "S740201",
+          "name": "焦炭Ⅲ",
+          "role": "related"
+        }
+      ]
+    },
+    {
+      "theme_id": "copper_nonferrous",
+      "theme_name": "铜/有色",
+      "aliases": [
+        "铜/有色",
+        "铜"
+      ],
+      "mapping_provenance": "legacy_registry_2026-10-09",
+      "industries": [
+        {
+          "code": "S240302",
+          "name": "铜",
+          "role": "core"
+        }
+      ]
+    },
+    {
+      "theme_id": "real_estate",
+      "theme_name": "房地产",
+      "aliases": [
+        "房地产"
+      ],
+      "mapping_provenance": "legacy_registry_2026-10-09",
+      "industries": [
+        {
+          "code": "S430101",
+          "name": "住宅开发",
+          "role": "core"
+        },
+        {
+          "code": "S430102",
+          "name": "商业地产",
+          "role": "core"
+        },
+        {
+          "code": "S430103",
+          "name": "产业地产",
+          "role": "core"
+        },
+        {
+          "code": "S430301",
+          "name": "物业管理",
+          "role": "core"
+        },
+        {
+          "code": "S430303",
+          "name": "房地产综合服务",
+          "role": "core"
+        }
+      ]
+    },
+    {
+      "theme_id": "robotics",
+      "theme_name": "机器人",
+      "aliases": [
+        "机器人"
+      ],
+      "mapping_provenance": "legacy_registry_2026-10-09",
+      "industries": [
+        {
+          "code": "S640701",
+          "name": "机器人",
+          "role": "core"
+        }
+      ]
+    },
+    {
+      "theme_id": "oil_gas",
+      "theme_name": "油气/石油",
+      "aliases": [
+        "油气/石油"
+      ],
+      "mapping_provenance": "legacy_registry_2026-10-09",
+      "industries": [
+        {
+          "code": "S750101",
+          "name": "油气开采Ⅲ",
+          "role": "core"
+        },
+        {
+          "code": "S750201",
+          "name": "油田服务",
+          "role": "core"
+        }
+      ]
+    },
+    {
+      "theme_id": "shipping_ports",
+      "theme_name": "航运/港口",
+      "aliases": [
+        "航运/港口"
+      ],
+      "mapping_provenance": "legacy_registry_2026-10-09",
+      "industries": [
+        {
+          "code": "S421101",
+          "name": "航运",
+          "role": "core"
+        },
+        {
+          "code": "S421102",
+          "name": "港口",
+          "role": "core"
+        }
+      ]
+    },
+    {
+      "theme_id": "gold_precious_metals",
+      "theme_name": "黄金/贵金属",
+      "aliases": [
+        "黄金/贵金属"
+      ],
+      "mapping_provenance": "legacy_registry_2026-10-09",
+      "industries": [
+        {
+          "code": "S240401",
+          "name": "黄金",
+          "role": "core"
+        }
+      ]
+    },
+    {
+      "theme_id": "culture_media",
+      "theme_name": "文化传媒/影视院线",
+      "aliases": [
+        "文化传媒/影视院线"
+      ],
+      "mapping_provenance": "legacy_registry_2026-10-09",
+      "industries": [
+        {
+          "code": "S720601",
+          "name": "影视动漫制作",
+          "role": "core"
+        },
+        {
+          "code": "S720602",
+          "name": "院线",
+          "role": "core"
+        },
+        {
+          "code": "S720502",
+          "name": "广告媒体",
+          "role": "core"
+        },
+        {
+          "code": "S720902",
+          "name": "大众出版",
+          "role": "core"
+        },
+        {
+          "code": "S720401",
+          "name": "游戏Ⅲ",
+          "role": "related"
+        },
+        {
+          "code": "S720501",
+          "name": "营销代理",
+          "role": "related"
+        }
+      ]
+    },
+    {
+      "theme_id": "agriculture_grains",
+      "theme_name": "农业/粮食安全",
+      "aliases": [
+        "农业/粮食安全",
+        "粮食安全",
+        "种业"
+      ],
+      "mapping_provenance": "auxiliary_research_seed_2026-10-11",
+      "industries": [
+        {
+          "code": "S110101",
+          "name": "种子",
+          "role": "core"
+        },
+        {
+          "code": "S110103",
+          "name": "其他种植业",
+          "role": "core"
+        },
+        {
+          "code": "S110102",
+          "name": "粮食种植",
+          "role": "related"
+        },
+        {
+          "code": "S110502",
+          "name": "粮油加工",
+          "role": "related"
+        }
+      ]
+    },
+    {
+      "theme_id": "organic_silicone",
+      "theme_name": "有机硅",
+      "aliases": [
+        "有机硅",
+        "DMC"
+      ],
+      "mapping_provenance": "auxiliary_research_seed_2026-10-11",
+      "industries": [
+        {
+          "code": "S220316",
+          "name": "有机硅",
+          "role": "core"
+        }
+      ]
+    },
+    {
+      "theme_id": "physical_retail",
+      "theme_name": "商贸零售",
+      "aliases": [
+        "商贸零售",
+        "百货/超市"
+      ],
+      "mapping_provenance": "auxiliary_research_seed_2026-10-11",
+      "industries": [
+        {
+          "code": "S450301",
+          "name": "百货",
+          "role": "core"
+        },
+        {
+          "code": "S450302",
+          "name": "超市",
+          "role": "core"
+        },
+        {
+          "code": "S450303",
+          "name": "多业态零售",
+          "role": "related"
+        },
+        {
+          "code": "S450304",
+          "name": "商业物业经营",
+          "role": "related"
+        }
+      ]
+    }
+  ]
+}
