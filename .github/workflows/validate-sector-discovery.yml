@@ -4,6 +4,9 @@ on:
   pull_request:
     paths:
       - "scripts/build_sector_discovery.py"
+      - "scripts/build_theme_evidence.py"
+      - "tests/test_theme_evidence.py"
+      - "research/theme_industry_catalog.json"
       - "scripts/validate_theme_handoff_routes.py"
       - "tests/test_sector_discovery.py"
       - "tests/test_theme_handoff_routes.py"
@@ -33,10 +36,12 @@ jobs:
           python-version: "3.12"
       - name: Unit-test discovery and coverage gates
         run: python -m unittest discover -s tests -p 'test_sector_discovery.py' -v
+      - name: Test compact auxiliary theme evidence
+        run: python -m unittest discover -s tests -p 'test_theme_evidence.py' -v
       - name: Route validation unit tests
         run: python -m unittest discover -s tests -p 'test_theme_handoff_routes.py' -v
       - name: Compile discovery and routing preflight
-        run: python -m py_compile scripts/build_sector_discovery.py scripts/validate_theme_handoff_routes.py
+        run: python -m py_compile scripts/build_sector_discovery.py scripts/build_theme_evidence.py scripts/validate_theme_handoff_routes.py
       - name: Smoke-test with frozen real market data
         run: |
           python scripts/build_full_market_price_structure.py
@@ -74,6 +79,28 @@ jobs:
                       row['relative_1d_vs_market_median_pct'],
                       'channels': row['channels'], 'reason': row['reason']},
                       ensure_ascii=False))
+          PY
+      - name: Verify full 17-theme auxiliary aggregation with frozen market data
+        run: |
+          python scripts/build_theme_evidence.py \
+            --sector-audit /tmp/sector_audit.json \
+            --allow-retrospective-smoke \
+            --output /tmp/theme_evidence_smoke.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          t=json.loads(Path('/tmp/theme_evidence_smoke.json').read_text())
+          assert t['trade_date']=='2026-10-09'
+          assert t['status']=='RETROSPECTIVE_MAPPING_SMOKE'
+          assert t['point_in_time_eligible'] is False
+          assert t['scan_summary']['industry_universe_count']==331
+          assert t['scan_summary']['themes_evaluated']==17
+          assert len(t['research_candidates'])<=12
+          assert t['no_trade_signal'] and t['auxiliary_only']
+          assert t['decision_authority']=='legacy_model_driven_trend_research'
+          assert 'all_theme_metrics' not in t
+          assert 'trends' not in t
+          print('AUXILIARY_THEME_SMOKE_VALID', json.dumps(t['scan_summary'], ensure_ascii=False))
           PY
       - name: Verify current original-schema trend handoff and industry routes
         run: |
