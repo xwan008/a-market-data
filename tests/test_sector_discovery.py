@@ -36,6 +36,24 @@ class SectorDiscoveryTests(unittest.TestCase):
         self.assertEqual(snap["model_research_candidates"][0]["name"], "Sample hot")
         self.assertEqual(snap["model_research_candidates"][0]["channels"], ["STRONG", "EMERGING"])
         self.assertTrue(snap["no_trade_signal"])
+        self.assertEqual(snap["discovery_role"]["mode"], "AUXILIARY_EVIDENCE_ONLY")
+        self.assertEqual(snap["discovery_role"]["primary_research"],
+                         "legacy_model_driven_full_market")
+        self.assertFalse(snap["discovery_role"]["may_set_new_position_priority"])
+        self.assertFalse(snap["discovery_role"]["may_determine_trend_state"])
+        self.assertFalse(snap["discovery_role"]["may_override_independent_existing_trend"])
+        self.assertFalse(snap["discovery_role"]["missing_discovery_blocks_primary_research"])
+        self.assertTrue(snap["theme_research_budget"]["does_not_limit_model_independent_research"])
+        self.assertEqual(snap["theme_research_budget"]["scope"],
+                         "supplemental_program_discovery_only")
+
+    def test_protocol_preserves_original_model_decision_priority(self):
+        protocol = (Path(__file__).resolve().parents[1]
+                    / "skill/TREND_REGISTRY_PROTOCOL.md").read_text(encoding="utf-8")
+        self.assertIn("旧版模型驱动的独立全市场产业研究", protocol)
+        self.assertIn("Python不产生另一套正式趋势榜", protocol)
+        self.assertIn("辅助文件缺失本身不得阻断旧版正式研究及发布", protocol)
+        self.assertIn("程序候选补充研究工作量", protocol)
 
     def test_verified_concept_and_future_prevention(self):
         latest, index, structure = inputs()

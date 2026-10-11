@@ -205,9 +205,9 @@ def build(latest, industry_index, structure, concept_payload=None, review_cap=20
         "overlap_deduplicated_count": len(pool) - len(unique),
         "sectors": sorted(rows, key=lambda r: r["id"])
     }
-    # Compact, uncapped sector shortlist lets the model merge shared-driver
-    # sectors into ONE theme study and refill released deep-research slots.
-    # It is not itself a theme classifier or a buy/industry-routing decision.
+    # Ancillary sector evidence for cross-checking independent legacy model
+    # research; optional grouping/refill only within supplemental review work.
+    # Never choose, rank, admit, invalidate or replace official themes.
     candidate_overview = [
         {"id": row["id"], "name": row["name"], "kind": row["kind"],
          "industry_code": row["id"].split(":", 1)[1] if row["kind"] == "industry" else None,
@@ -248,9 +248,20 @@ def build(latest, industry_index, structure, concept_payload=None, review_cap=20
         "no_trade_signal": True,
         "audit_path": "data/research/sector_discovery_audit.json",
         "scan_audit": {k: v for k, v in audit.items() if k != "sectors"},
+        "discovery_role": {
+            "mode": "AUXILIARY_EVIDENCE_ONLY",
+            "primary_research": "legacy_model_driven_full_market",
+            "may_determine_trend_state": False,
+            "may_set_new_position_priority": False,
+            "may_override_independent_existing_trend": False,
+            "missing_discovery_blocks_primary_research": False,
+        },
         "model_research_candidates": selected,
         "deferred_candidates": [r for r in unique if r["id"] not in selected_ids],
         "theme_research_budget": {
+            "scope": "supplemental_program_discovery_only",
+            "does_not_limit_model_independent_research": True,
+            "optional_refill_uses_independent_industry_evidence": True,
             "unit": "evidence_verified_theme_not_industry",
             "max_new_theme_deep_research": review_cap,
             "initial_seed_industry_count": len(selected),

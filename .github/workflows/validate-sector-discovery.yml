@@ -52,6 +52,10 @@ jobs:
           assert audit['selected_count'] <= 20
           assert audit['selected_count'] + audit['deferred_count'] == audit['eligible_count']
           assert snapshot['no_trade_signal'] is True
+          assert snapshot['discovery_role']['mode'] == 'AUXILIARY_EVIDENCE_ONLY'
+          assert snapshot['discovery_role']['may_set_new_position_priority'] is False
+          assert snapshot['discovery_role']['missing_discovery_blocks_primary_research'] is False
+          assert snapshot['theme_research_budget']['scope'] == 'supplemental_program_discovery_only'
           assert len(snapshot['candidate_overview']) == audit['eligible_count']
           assert snapshot['theme_research_budget']['max_new_theme_deep_research'] == 20
           assert snapshot['theme_research_budget']['unit'] == 'evidence_verified_theme_not_industry'
