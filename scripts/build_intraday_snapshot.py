@@ -7,6 +7,7 @@ from pathlib import Path
 from statistics import median
 
 import fetch_market as market
+import intraday_quote_index as quote_index_builder
 import intraday_crossday_context as crossday
 import trend_buy_handoff as trend_contract
 
@@ -398,8 +399,14 @@ def main() -> int:
         source_trend_buy_trade_date,
     )
 
-    sina, sina_error = market.safe_fetch(market.fetch_sina_snapshot, "sina")
-    tencent, tencent_error = market.safe_fetch(market.fetch_tencent_snapshot, "tencent")
+    # Full public market snapshot is already fetched; do not request holdings
+    # or publish a position-specific ticker list in this public repository.
+    sina, sina_error = market.safe_fetch(
+        lambda: market.fetch_sina_snapshot(include_all=True), "sina"
+    )
+    tencent, tencent_error = market.safe_fetch(
+        lambda: market.fetch_tencent_snapshot(include_all=True), "tencent"
+    )
     if not sina and not tencent:
         print(
             json.dumps(
@@ -582,6 +589,27 @@ def main() -> int:
     total_quotes = len(quotes)
     quote_coverage = usable_quotes / total_quotes if total_quotes else 0.0
 
+    # Portfolio-independent quote shards let a private monitor look up actual
+    # holdings even when they are absent from today's dynamic READY/WAIT Top5.
+    # They contain only public whole-market quotes, never user position records.
+    try:
+        portfolio_quote_index, quote_shard_texts = quote_index_builder.build_public_quote_index(
+            sina, tencent, trade_date, now.isoformat(), choose_quote
+        )
+        if portfolio_quote_index["status"] != "available":
+            portfolio_quote_index["reason"] = "full_market_quote_coverage_insufficient"
+    except (ValueError, TypeError, OSError) as exc:
+        portfolio_quote_index = {
+            "schema_version": 1,
+            "kind": "public_full_market_quotes_not_portfolio",
+            "status": "unavailable",
+            "trade_date": trade_date,
+            "captured_at": now.isoformat(),
+            "shards": {},
+            "reason": "quote_index_build_failed:" + type(exc).__name__,
+        }
+        quote_shard_texts = {}
+
     payload = {
         "schema_version": 2,
         "result_kind": "a_share_intraday_market_snapshot",
@@ -635,11 +663,26 @@ def main() -> int:
             **stock_seven_day_audit,
             "crossday_archive_days": len(crossday_archive["days"]) if crossday_archive else 0,
             "crossday_history_errors": crossday_errors,
+            "public_quote_index_status": portfolio_quote_index["status"],
         },
+        "portfolio_quote_index": portfolio_quote_index,
         "trends": trends,
         "industries": industries,
         "trend_buy_stocks": trend_buy_stocks,
     }
+
+    # Shards and manifest are committed together by the workflow. A failed
+    # write invalidates the index without disturbing the formal stock snapshot.
+    try:
+        for relative, content in quote_shard_texts.items():
+            path = ROOT / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(content, encoding="utf-8")
+    except OSError as exc:
+        portfolio_quote_index["status"] = "unavailable"
+        portfolio_quote_index["shards"] = {}
+        portfolio_quote_index["reason"] = "quote_shard_write_failed:" + type(exc).__name__
+        payload["validation"]["public_quote_index_status"] = "unavailable"
 
     if crossday_archive is not None:
         crossday.ARCHIVE_PATH.write_text(
@@ -660,6 +703,8 @@ def main() -> int:
                 "quote_coverage": round(quote_coverage, 4),
                 "industry_count": len(industries),
                 "trend_buy_stock_count": len(trend_buy_stocks),
+                "public_quote_index_status": portfolio_quote_index["status"],
+                "public_quote_index_count": portfolio_quote_index.get("quote_count", 0),
                 "history_context_available_count": len(history_contexts),
                 "history_context_part_read_count": history_context_part_read_count,
                 "validation_status": payload["validation"]["status"],
