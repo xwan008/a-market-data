@@ -186,6 +186,22 @@ jobs:
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/build_bridge.py
 
+      - name: Verify same-day momentum is present in rebuilt shards
+        if: steps.gate.outputs.persist == 'true'
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from scripts.price_inputs import load_momentum_shards
+
+          latest = json.loads(Path("data/latest.json").read_text(encoding="utf-8"))
+          day = latest["trade_date"]
+          snapshot = load_momentum_shards(day)
+          assert snapshot["momentum_total"] >= 3000, "MOMENTUM_UNIVERSE_TOO_SMALL"
+          assert snapshot["momentum_valid"] >= 0.90 * snapshot["momentum_total"], "MOMENTUM_COVERAGE_FAILED"
+          print(f"MOMENTUM_SHARDS_VERIFIED day={day} valid={snapshot['momentum_valid']}/{snapshot['momentum_total']}")
+          PY
+
       - name: Apply industry mapping
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/enrich_shards_with_industry.py
@@ -193,6 +209,13 @@ jobs:
       - name: Build frozen company screening working sets 
         if: steps.gate.outputs.persist == 'true'
         run: python scripts/build_low_risk_working_sets.py
+
+      - name: Clear obsolete auxiliary files before same-day calculation
+        if: steps.gate.outputs.persist == 'true'
+        run: |
+          rm -f data/research/sector_discovery_snapshot.json
+          rm -f data/research/sector_discovery_audit.json
+          rm -f data/research/theme_evidence_snapshot.json
 
       - name: Run industry-first sector discovery (shadow evidence only)
         if: steps.gate.outputs.persist == 'true'
@@ -206,6 +229,68 @@ jobs:
         continue-on-error: true
         run: |
           python scripts/build_theme_evidence.py
+
+      - name: Verify optional auxiliary evidence and expose failures
+        if: steps.gate.outputs.persist == 'true'
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          day = json.loads(Path("data/latest.json").read_text(encoding="utf-8"))["trade_date"]
+          root = Path("data/research")
+          sector = root / "sector_discovery_snapshot.json"
+          audit = root / "sector_discovery_audit.json"
+          theme = root / "theme_evidence_snapshot.json"
+          statuses = []
+
+          def read(path):
+              try:
+                  return json.loads(path.read_text(encoding="utf-8"))
+              except (OSError, ValueError):
+                  return None
+
+          s, a = read(sector), read(audit)
+          sector_ok = bool(
+              isinstance(s, dict) and isinstance(a, dict)
+              and s.get("schema_version") == 1 and s.get("result_kind") == "sector_discovery_snapshot"
+              and s.get("trade_date") == day and s.get("no_trade_signal") is True
+              and s.get("status") in ("COMPLETE", "INDUSTRY_ONLY_PARTIAL")
+              and a.get("schema_version") == 1 and a.get("trade_date") == day
+          )
+          if not sector_ok:
+              sector.unlink(missing_ok=True)
+              audit.unlink(missing_ok=True)
+              statuses.append(("sector_discovery", "UNAVAILABLE"))
+          else:
+              statuses.append(("sector_discovery", s["status"]))
+
+          t = read(theme)
+          theme_ok = bool(
+              isinstance(t, dict) and t.get("schema_version") == 1
+              and t.get("result_kind") == "a_share_theme_evidence_snapshot"
+              and t.get("trade_date") == day and t.get("status") == "COMPLETE"
+              and t.get("point_in_time_eligible") is True
+              and t.get("no_trade_signal") is True and t.get("auxiliary_only") is True
+              and t.get("catalog_as_of_date", "9999") <= day
+          )
+          if not theme_ok:
+              theme.unlink(missing_ok=True)
+              statuses.append(("theme_evidence", "UNAVAILABLE"))
+          else:
+              statuses.append(("theme_evidence", "COMPLETE"))
+
+          summary = Path(os.environ["GITHUB_STEP_SUMMARY"])
+          with summary.open("a", encoding="utf-8") as fh:
+              fh.write(f"### Python auxiliary evidence for {day}\n\n")
+              for name, status in statuses:
+                  fh.write(f"- {name}: **{status}**\n")
+                  print(f"AUXILIARY_STATUS {name}={status} day={day}")
+                  if status == "UNAVAILABLE":
+                      print(f"::warning title=Python auxiliary evidence unavailable::{name} missing, stale, or invalid for {day}; primary market data is still persisted, do not claim Python verified the trend.")
+          PY
 
       - name: Commit updated daily data
         if: steps.gate.outputs.persist == 'true'
@@ -224,11 +309,53 @@ jobs:
 
           if git diff --cached --quiet -- data; then
             echo "daily market data unchanged after staging"
-            exit 0
+          else
+            git commit -m "data: update daily market dataset"
+            git push origin HEAD:main
           fi
 
-          git commit -m "data: update daily market dataset"
-          git push origin HEAD:main
+          # Read back the pushed commit and the actual small auxiliary artifacts.
+          # Optional evidence may be absent, but never claim successful Python verification then.
+          git fetch origin main --quiet
+          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
+          python - <<'PY'
+          import json
+          import subprocess
+          from pathlib import Path
+
+          latest = json.loads(Path("data/latest.json").read_text(encoding="utf-8"))
+          day = latest["trade_date"]
+          shards = sorted(Path("data/shards").glob("*.json"))
+          assert shards, "MOMENTUM_SHARDS_MISSING"
+          paths = [
+              Path("data/latest.json"),
+              Path("data/low_risk/index.json"),
+              shards[0],
+              shards[-1],
+              Path("data/research/sector_discovery_snapshot.json"),
+              Path("data/research/sector_discovery_audit.json"),
+              Path("data/research/theme_evidence_snapshot.json"),
+          ]
+          for path in paths:
+              show = subprocess.run(
+                  ["git", "show", f"origin/main:{path.as_posix()}"],
+                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False
+              )
+              if path.exists():
+                  assert show.returncode == 0 and show.stdout == path.read_bytes(), (
+                      "READBACK_CONTENT_MISMATCH", path.as_posix()
+                  )
+              else:
+                  assert show.returncode != 0, ("READBACK_STALE_ARTIFACT", path.as_posix())
+          for path in (shards[0], shards[-1]):
+              data = json.loads(path.read_text(encoding="utf-8"))
+              assert data.get("trade_date") == day
+              assert any(
+                  (stock.get("trend") or {}).get("momentum_evidence")
+                  for stock in (data.get("stocks") or {}).values()
+              ), ("READBACK_MOMENTUM_MISSING", path.as_posix())
+          print("DAILY_DATA_AND_AUXILIARY_READBACK_OK", day)
+          PY
 
       - name: Report skipped persistence
         if: steps.gate.outputs.persist != 'true'
