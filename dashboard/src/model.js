@@ -154,7 +154,7 @@ export function archivedDays(archive,monitor,identifier,kind='sector',limit=5){
   const date=day?.trade_date;
   if(!/^\d{4}-\d{2}-\d{2}$/.test(String(date||'')))continue;
   const record=day[selector]?.[identifier];
-  if(!record || typeof record!=='object' || !record.scan_at?.startsWith(date))continue;
+  if(!record || typeof record!=='object' || typeof record.scan_at!=='string' || !record.scan_at.startsWith(date))continue;
   if(record.data_quality && record.data_quality!=='READY' && record.data_quality!=='DEGRADED')continue;
   map.set(date,{trade_date:date,source:'archived_last_scan',...record});
  }
