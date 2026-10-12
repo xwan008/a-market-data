@@ -1119,3 +1119,40 @@ button{transition:color .2s var(--studio-ease),background-color .2s var(--studio
 @media(prefers-reduced-motion:reduce){
  .login-screen--terminal .login-submit{transition:none}
 }
+
+/* Trend / entry workspaces: retain the selected detail while the long left list scrolls.
+   The detail pane scrolls internally only when its content exceeds the visible desktop area. */
+@media (min-width:1011px){
+ .buy-workspace > .inspector{
+  position:sticky;
+  top:88px; /* 73px sticky header + breathing room */
+  align-self:start;
+  max-height:calc(100vh - 104px);
+  max-height:calc(100dvh - 104px);
+  overflow-x:hidden;
+  overflow-y:auto;
+  overscroll-behavior-y:contain;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(148,169,155,.34) transparent;
+ }
+}
+@media (min-width:1201px){
+ .trend-workspace > .inspector{
+  position:sticky;
+  top:88px;
+  align-self:start;
+  max-height:calc(100vh - 104px);
+  max-height:calc(100dvh - 104px);
+  overflow-x:hidden;
+  overflow-y:auto;
+  overscroll-behavior-y:contain;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(148,169,155,.34) transparent;
+ }
+}
+.two-pane > .inspector:focus-visible{
+ outline:2px solid rgba(173,205,184,.58);
+ outline-offset:2px;
+}
+/* Trend list intentionally becomes a full-width stacked layout at <=1200px.
+   Buy list stacks at <=1010px; neither retains a pinned inspector in that mode. */
