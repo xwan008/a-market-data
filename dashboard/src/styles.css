@@ -1294,3 +1294,59 @@ button{transition:color .2s var(--studio-ease),background-color .2s var(--studio
  .login-screen--terminal .login-input{height:56px}
  .login-screen--terminal .login-submit{height:57px;font-size:15px}
 }
+
+
+/* Login visual refinement: full-resolution source and luminous card perimeter. */
+.login-screen--terminal .login-visual{
+  background-image:url('/login-market-crisp.webp');
+  background-size:cover;
+  background-position:50% 48%;
+  image-rendering:auto;
+}
+.login-screen--terminal .login-panel{
+  position:relative;
+  isolation:isolate;
+  overflow:visible;
+  border:1px solid rgba(216,255,235,.83);
+  box-shadow:
+    0 0 0 1px rgba(210,254,228,.12),
+    0 0 17px rgba(161,254,202,.25),
+    0 0 47px rgba(112,233,180,.13),
+    0 24px 75px rgba(21,59,66,.17),
+    inset 0 1px rgba(249,255,250,.32);
+}
+.login-screen--terminal .login-panel::before{
+  content:"";
+  position:absolute;
+  inset:-3px;
+  border-radius:20px;
+  pointer-events:none;
+  z-index:0;
+  box-shadow:
+    0 0 19px 2px rgba(182,255,220,.22),
+    0 0 38px rgba(109,234,184,.13);
+}
+.login-screen--terminal .login-panel::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  padding:1.5px;
+  border-radius:inherit;
+  pointer-events:none;
+  z-index:2;
+  background:linear-gradient(
+    133deg,
+    rgba(238,255,243,.96) 0%,
+    rgba(194,255,220,.78) 17%,
+    rgba(171,230,214,.19) 37%,
+    rgba(171,230,214,.34) 64%,
+    rgba(198,255,227,.87) 88%,
+    rgba(237,255,244,.93) 100%
+  );
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;
+  mask-composite:exclude;
+}
+@media(max-width:1080px){
+  .login-screen--terminal .login-visual{background-position:44% center}
+}
