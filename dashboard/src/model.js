@@ -110,3 +110,25 @@ export function rankedTrendRows(registry, handoff, history, tradeDate, mode='for
   });
   return items.sort(formal);
 }
+
+
+// A 股图表语义：只比较同一指标首末两个有效数值，红涨绿跌；不足两点为中性。
+export function seriesDirection(rows,field='value') {
+  const values=(Array.isArray(rows)?rows:[]).map(row=>row?.[field])
+    .filter(value=>typeof value==='number' && Number.isFinite(value));
+  if (values.length < 2) return 'neutral';
+  return values.at(-1)>values[0]?'rise':values.at(-1)<values[0]?'fall':'neutral';
+}
+
+// 研究状态与涨跌分开编码：红色仅用于趋势确认/扩散等正向描述，候选为金、观察为蓝灰。
+export function statusTone(raw) {
+  const value=String(raw??'').trim();
+  if (value==='READY') return 'ready';
+  if (/趋势确认|趋势扩散|扩散|增强|走强|上涨/.test(value)) return 'rise';
+  if (/候选趋势|候选/.test(value)) return 'candidate';
+  if (/观察|待复核/.test(value)) return 'watch';
+  if (/分歧|修复|关注|等待确认/.test(value)) return 'caution';
+  if (/失效|衰退|退化|破位|收缩|回落|转弱|下跌|减弱/.test(value)) return 'fall';
+  if (value==='WAIT'||value==='暂停') return 'neutral';
+  return 'neutral';
+}

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {summarizeTrades,extractRecords,latestMonitorRecords,fixed,validSnapshots,snapshotChange,rankedTrendRows} from '../src/model.js';
+import {summarizeTrades,extractRecords,latestMonitorRecords,fixed,validSnapshots,snapshotChange,rankedTrendRows,seriesDirection,statusTone} from '../src/model.js';
 
 function row(code,kind,qty,price,day,extras={}) {return {'股票代码':code,'操作类型':kind,'实际成交股数':qty,'价格（元）':price,'交易日期':day,'交易标的': '测试股票',...extras};}
 test('买入、加仓、卖出移动加权成本正确',()=>{
@@ -55,4 +55,24 @@ test('趋势顺序只认正式 rank，未上榜板块不虚构名次',()=>{
  const moving=rankedTrendRows(registry,handoff,history,'2026-10-12','change');
  assert.deepEqual(moving.map(x=>x.trend_name),['甲','乙','丙']);
  assert.equal(moving[0].intradayDelta,-40);
+});
+
+
+test('A 股折线只按同指标首末有效点判断红涨绿跌',()=>{
+ assert.equal(seriesDirection([{value:20},{value:21}]),'rise');
+ assert.equal(seriesDirection([{value:20},{value:19}]),'fall');
+ assert.equal(seriesDirection([{value:20},{value:20}]),'neutral');
+ assert.equal(seriesDirection([{value:20}]),'neutral');
+ assert.equal(seriesDirection([{value:null},{value:20}]),'neutral');
+ assert.equal(seriesDirection([{ratio:.43},{ratio:.61}],'ratio'),'rise');
+});
+test('研究状态分别对应确认、候选、观察、扩散和衰弱语义',()=>{
+ assert.equal(statusTone('趋势确认'),'rise');
+ assert.equal(statusTone('趋势扩散'),'rise');
+ assert.equal(statusTone('候选趋势'),'candidate');
+ assert.equal(statusTone('观察'),'watch');
+ assert.equal(statusTone('分歧'),'caution');
+ assert.equal(statusTone('减弱'),'fall');
+ assert.equal(statusTone('READY'),'ready');
+ assert.equal(statusTone('WAIT'),'neutral');
 });
