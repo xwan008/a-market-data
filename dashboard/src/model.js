@@ -103,6 +103,18 @@ export const snapshotChange = (rows, field, multiplier=1) => {
   return (samples.at(-1)[field]-samples[0][field])*multiplier;
 };
 
+// 正式研究状态排序独立于 handoff rank，其他未知状态放最后；额外的「趋势扩散」归入确认级。
+const MARKET_STATE_ORDER=new Map([['趋势确认',0],['趋势扩散',0],['候选趋势',1],['观察',2],['新异动',3],['高潮/衰退',4],['失效',5]]);
+const BUY_STATUS_ORDER={READY:0,WAIT:1};
+const formalNumber=value=>Number.isInteger(value)&&value>0?value:Infinity;
+export function rankedBuyRows(items){
+  return (Array.isArray(items)?items:[]).slice().sort((a,b)=>{
+    const state=(BUY_STATUS_ORDER[a?.status]??2)-(BUY_STATUS_ORDER[b?.status]??2);
+    if(state)return state;
+    const x=formalNumber(a?.rank),y=formalNumber(b?.rank);
+    return x===y?0:x-y;
+  });
+}
 // 只有 trend_handoff 中明确提供的 rank 才是正式名次，其余标为未上榜。
 export function rankedTrendRows(registry, handoff, history, tradeDate, mode='formal') {
   const priority=new Map((Array.isArray(handoff?.signals)?handoff.signals:[])
@@ -114,6 +126,8 @@ export function rankedTrendRows(registry, handoff, history, tradeDate, mode='for
       intradayDelta:snapshotChange(records,'up_ratio',100),originalIndex:index};
   });
   const formal=(a,b)=>(a.priorityRank??Infinity)-(b.priorityRank??Infinity) || a.originalIndex-b.originalIndex;
+  if(mode==='state')return items.sort((a,b)=>
+    (MARKET_STATE_ORDER.get(a.market_state)??6)-(MARKET_STATE_ORDER.get(b.market_state)??6) || formal(a,b));
   if(mode==='change') return items.sort((a,b)=>{
     const aa=a.intradayDelta==null?-1:Math.abs(a.intradayDelta);
     const bb=b.intradayDelta==null?-1:Math.abs(b.intradayDelta);
