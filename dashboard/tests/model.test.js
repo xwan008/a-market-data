@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {summarizeTrades,extractRecords,latestMonitorRecords,fixed,validSnapshots,snapshotChange,rankedTrendRows,seriesDirection,statusTone,trendEvents,archivedDays,assessHoldingRisk,evaluateExitCondition,extractExitLevels} from '../src/model.js';
+import {summarizeTrades,extractRecords,latestMonitorRecords,fixed,validSnapshots,snapshotChange,rankedTrendRows,seriesDirection,statusTone,trendEvents,archivedDays,assessHoldingRisk,evaluateExitCondition,normalizeRiskPlans,attachRiskPlans} from '../src/model.js';
 
 function row(code,kind,qty,price,day,extras={}) {return {'股票代码':code,'操作类型':kind,'实际成交股数':qty,'价格（元）':price,'交易日期':day,'交易标的': '测试股票',...extras};}
 test('买入、加仓、卖出移动加权成本正确',()=>{
@@ -123,122 +123,153 @@ test('高优先级风险状态和分歧不会与正常状态混用',()=>{
 });
 
 
-function holding(code='600988',conditions=['趋势失效条件暂未设置，待结合日K及风险预算确认。']) {
- return {code,shares:400,verified:true,avgCost:40.475,conditions};
+
+const today='2026-10-12';
+const sampleTrade=(code,quantity,price)=>row(code,'首仓',quantity,price,today);
+const riskRow=(code,first,action='清仓剩余',extras={})=>({
+ '股票代码':code,'股票名称':'测试股票','计划状态':{name:'生效'},'生效日期':today,
+ '首道退出价格':first,'首道退出动作':{name:action},'触发依据':{name:'日线收盘'},...extras
+});
+function owned(code='600988',plans=[riskRow(code,39.50)],shares=400){
+ const portfolio=summarizeTrades([sampleTrade(code,shares,40.475)]);
+ return attachRiskPlans(portfolio,plans,'OK',today).positions[0];
 }
-function monitoring(price=39.28,options={}) {
- const day='2026-10-12';
- return {result_kind:'a_share_intraday_monitor_state',trade_date:day,
+function monitor(price=39.28,options={}){
+ return {result_kind:'a_share_intraday_monitor_state',trade_date:today,
   stock_history:{'600988':[{
-   scan_at:day+'T14:39:54+08:00',data_quality:'READY',price,
+   scan_at:today+'T14:39:54+08:00',data_quality:'READY',price,
    price_behavior:'转弱',change_pct:-5.07,relative_to_industry_pct:-0.81,
-   latest_low:{price:36.83},trend_name:'黄金/贵金属',entry_action:'等待',holding_action:null,
-   ...options
+   latest_low:{price:36.83},trend_name:'黄金/贵金属',
+   entry_action:'等待',holding_action:null,...options
   }]},
-  industry_history:{'黄金/贵金属':[{scan_at:day+'T14:39:54+08:00',
-    data_quality:'READY',current_state:'衰退预警'}]}
+  industry_history:{'黄金/贵金属':[{
+   scan_at:today+'T14:39:54+08:00',data_quality:'READY',current_state:'衰退预警'
+  }]}
  };
 }
-test('已持有 WAIT 股票用真实净持仓和当日快照进行风险观察，不把空仓等待冒充持仓意见',()=>{
- const result=assessHoldingRisk(holding(),monitoring(),'2026-10-12');
- assert.equal(result.state,'watch');
- assert.match(result.label,/盘中走弱/);
- assert.equal(result.rule.state,'unconfirmed');
- assert.equal(result.last.price,39.28);
- assert.ok(result.evidence.some(x=>x.includes('相对所属行业')));
- assert.ok(result.evidence.some(x=>x.includes('历史结构低点')));
- assert.ok(result.evidence.some(x=>x.includes('衰退预警')));
- assert.equal(result.evidence.some(x=>x.includes('卖出建议')),false);
+test('交易流水继续单独计算净持仓与加权成本，退出计划不改变持仓股数',()=>{
+ const trade=summarizeTrades([
+  sampleTrade('601212',2000,5.70),
+  row('601212','加仓',2000,5.54,today)
+ ]);
+ const joined=attachRiskPlans(trade,[
+  riskRow('601212',5.48,'减仓',{
+   '首道减仓股数':2000,'最终退出价格':5.35,
+   '最终退出动作':{name:'清仓剩余'}
+  })
+ ],'OK',today);
+ assert.equal(joined.positions[0].shares,4000);
+ assert.ok(Math.abs(joined.positions[0].avgCost-5.62)<0.0001);
+ assert.equal(joined.positions[0].riskPlan.firstQuantity,2000);
 });
-test('没有明确退出线不能拿买点计划或历史结构低点自动做卖出阈值',()=>{
- const r=assessHoldingRisk(holding(),monitoring(35,{history_break_state:'broken',
-  trend_entry_plan:{invalidation_price:51.21}}),'2026-10-12');
- assert.equal(r.rule.state,'unconfirmed');
- assert.notEqual(r.state,'triggered');
- assert.ok(r.evidence.some(x=>x.includes('低于历史结构低点')));
-});
-test('盘中低于用户设定的收盘退出线，也只能等待有效收盘确认',()=>{
- const r=assessHoldingRisk(holding('600988',['收盘价跌破40元时止损']),monitoring(39.28),'2026-10-12');
- assert.equal(r.state,'pending');
- assert.equal(r.rule.state,'close_pending');
- assert.match(r.rule.detail,/收盘确认/);
-});
-test('只有明确的盘中硬止损规则被有效盘中快照跌破时才标示触及',()=>{
- const rule=['盘中跌破40元立即止损'];
- const touched=assessHoldingRisk(holding('600988',rule),monitoring(39.28),'2026-10-12');
- assert.equal(touched.rule.state,'intraday_touched');
- assert.equal(touched.state,'triggered');
- const safe=assessHoldingRisk(holding('600988',rule),monitoring(40.2),'2026-10-12');
- assert.equal(safe.rule.state,'intraday_not_touched');
- assert.notEqual(safe.state,'triggered');
- assert.match(touched.rule.detail,/不代表已成交/);
-});
-test('不明确时间口径、多个退出价格和文字条件均不生成确定退出信号',()=>{
- assert.equal(evaluateExitCondition(['跌破40元止损'],39.1).state,'review');
- assert.equal(evaluateExitCondition(['盘中跌破40元止损，收盘确认再执行'],39.1).state,'review');
- assert.equal(evaluateExitCondition(['盘中跌破40元止损，涨到45元止盈'],39.1).state,'review');
- assert.equal(evaluateExitCondition(['盘中低于40元观察'],39.1).state,'review');
- assert.equal(evaluateExitCondition(['盘中跌破40元止损','收盘跌破39元止损'],38).state,'review');
-});
-test('旧日快照、失效扫描、未覆盖股票和未核实股数都不能伪造持仓判断',()=>{
- const old=monitoring();old.trade_date='2026-10-09';
- assert.equal(assessHoldingRisk(holding(),old,'2026-10-12').state,'stale');
- const degraded=monitoring();degraded.stock_history['600988'][0].data_quality='DEGRADED';
- assert.equal(assessHoldingRisk(holding(),degraded,'2026-10-12').state,'not_covered');
- assert.equal(assessHoldingRisk(holding('600985'),monitoring(),'2026-10-12').state,'not_covered');
- assert.equal(assessHoldingRisk({...holding(),verified:false},monitoring(),'2026-10-12').state,'unverified');
-});
-
-test('赤峰黄金的长文本规则应识别39.50元收盘退出线，不被日期和盘中短破说明干扰',()=>{
- const rule='【2026-10-12拟定｜日线收盘确认】核心退出线39.50元：若日线收盘价严格低于39.50元，退出全部400股。10/12页面列出收盘39.61元；若仅盘中跌破后收回，不算确认。下方38.25元为阶段支撑。';
- const p=holding('600988',[rule]);
- const result=assessHoldingRisk(p,monitoring(39.28),'2026-10-12');
+test('赤峰黄金39.50元结构化收盘线优先，盘中走弱只是辅助证据',()=>{
+ const p=owned();
+ const result=assessHoldingRisk(p,monitor(),'2026-10-12');
  assert.equal(result.rule.state,'close_pending');
- assert.equal(result.rule.levels.length,1);
  assert.equal(result.rule.levels[0].price,39.5);
  assert.match(result.label,/39.50/);
  assert.match(result.label,/待收盘确认/);
  assert.equal(result.state,'pending');
+ assert.ok(result.evidence.some(x=>x.includes('盘中走弱')));
+ assert.ok(result.evidence.some(x=>x.includes('相对所属行业')));
 });
-test('淮北矿业双价格线：15.88预警线盘中低于，不把15.70收盘退出线当成已触发',()=>{
- const p=holding('600988',['【2026-10-12拟定｜日线收盘确认】预警线15.88元：本轮短线预警。首要退出线15.70元：若后续日线收盘严格低于15.70元，退出全部500股。15.57元是阶段底线。']);
- const r=assessHoldingRisk(p,monitoring(15.82),'2026-10-12');
- assert.equal(r.rule.state,'warning_only');
- assert.equal(r.rule.levels.length,2);
- assert.equal(r.rule.levels[0].kind,'warning');
- assert.equal(r.rule.levels[1].price,15.7);
- assert.equal(r.state,'warning');
- assert.match(r.label,/15.88/);
- assert.doesNotMatch(r.label,/盘中走弱/);
+test('淮北矿业预警价15.88与收盘退出线15.70分开处理',()=>{
+ const p=owned('600988',[
+  riskRow('600988',15.70,'清仓剩余',{'预警价格':15.88})
+ ],500);
+ const a=assessHoldingRisk(p,monitor(15.82),today);
+ assert.equal(a.rule.state,'warning_only');
+ assert.equal(a.rule.levels.length,2);
+ assert.equal(a.rule.levels[0].kind,'warning');
+ assert.equal(a.rule.levels[1].price,15.7);
+ assert.equal(a.state,'warning');
+ assert.doesNotMatch(a.label,/盘中走弱/);
 });
-test('白银有色两级退出线在缺少冻结行情时仍显示Airtable规则，但不能认定已触发',()=>{
- const text='【2026-10-12拟定｜日线收盘确认】第一道退出线5.48元：若日线收盘价严格低于5.48元，计划减仓2000股。最终失效线5.35元：若收盘低于5.35元，余下仓位退出；仅盘中跌破不算确认。';
- const p={code:'601212',shares:4000,verified:true,avgCost:5.62,conditions:[text,text]};
- const r=assessHoldingRisk(p,monitoring(15.82),'2026-10-12');
- assert.equal(r.state,'not_covered');
- assert.equal(r.rule.state,'await_price');
- assert.deepEqual(r.rule.levels.map(x=>x.price),[5.48,5.35]);
- assert.match(r.label,/退出计划已记录/);
- assert.equal(r.rule.levels[0].observation,'no_quote');
- const old=monitoring(15.82);old.trade_date='2026-10-09';
- const stale=assessHoldingRisk(p,old,'2026-10-12');
- assert.equal(stale.state,'stale');
- assert.match(stale.rule.label,/退出计划已记录/);
+test('白银有色多级退出计划直接用数字和股数，不从备注提取',()=>{
+ const p=owned('601212',[
+  riskRow('601212',5.48,'减仓',{
+   '首道减仓股数':2000,'最终退出价格':5.35,
+   '最终退出动作':'清仓剩余','策略说明':'备注写5.99元并不构成退出线。'
+  })
+ ],4000);
+ assert.equal(p.riskPlan.firstQuantity,2000);
+ const missing=assessHoldingRisk(p,monitor(5.3),today);
+ assert.equal(missing.state,'not_covered');
+ assert.equal(missing.rule.state,'await_price');
+ assert.deepEqual(missing.rule.levels.map(x=>x.price),[5.48,5.35]);
+ assert.equal(missing.rule.levels[0].quantity,2000);
+ assert.ok(missing.rule.detail.includes('5.35'));
+ assert.doesNotMatch(missing.rule.detail,/5\.99/);
 });
-test('两级用户退出线分别判断盘中价位，收盘要求不会降级成自动减仓',()=>{
- const plan=['【日线收盘确认】第一道退出线5.48元：若日线收盘价严格低于5.48元计划减仓；最终失效线5.35元：收盘低于5.35元退出。'];
- const p=holding('600988',plan);
- const r=assessHoldingRisk(p,monitoring(5.3),'2026-10-12');
+test('两级价格盘中均低于时展示最终退出（但日线必须收盘确认）',()=>{
+ const p=owned('600988',[riskRow('600988',5.48,'减仓',{
+  '首道减仓股数':200,'最终退出价格':5.35,
+  '最终退出动作':'清仓剩余'
+ })],400);
+ const r=assessHoldingRisk(p,monitor(5.30),today);
  assert.equal(r.rule.state,'close_pending');
  assert.deepEqual(r.rule.levels.map(x=>x.observation),['below','below']);
+ assert.match(r.label,/最终退出价5.35/);
+ assert.match(r.rule.detail,/拟清仓剩余/);
  assert.notEqual(r.state,'triggered');
- assert.match(r.label,/5.48/);
- assert.match(r.label,/5.35/);
 });
-test('名称相同价格不一致或没有明确判断时点则不主动解释为触发',()=>{
- const inconsistent=['【日线收盘确认】核心退出线39.50元；旧版本核心退出线38.25元'];
- assert.equal(extractExitLevels(inconsistent).state,'conflict');
- const unknown=['核心退出线39.50元，但尚不确定用盘中或收盘'];
- assert.equal(extractExitLevels(unknown).state,'ambiguous');
- assert.equal(evaluateExitCondition(unknown,39.2).state,'review');
+test('只在明确选择盘中触发依据且存在有效READY快照时提示触及，不代表成交',()=>{
+ const p=owned('600988',[riskRow('600988',40,'清仓剩余',{'触发依据':'盘中'})]);
+ const result=assessHoldingRisk(p,monitor(39.28),today);
+ assert.equal(result.rule.state,'intraday_touched');
+ assert.equal(result.state,'triggered');
+ assert.match(result.rule.detail,/不代表已委托或成交/);
+ const safe=assessHoldingRisk(p,monitor(40.20),today);
+ assert.equal(safe.rule.state,'intraday_not_touched');
+});
+test('规则缺失或结构化表不可用时，绝不回退到旧文字字段',()=>{
+ const trade=summarizeTrades([sampleTrade('600988',400,40.475)].map(x=>({
+  ...x,'失效条件':'【收盘确认】首道退出线39.50元，卖出400股'
+ })));
+ const missing=attachRiskPlans(trade,[],'OK',today).positions[0];
+ assert.equal(missing.planState,'missing');
+ assert.equal(evaluateExitCondition(missing,39.28).state,'no_plan');
+ assert.match(assessHoldingRisk(missing,monitor(),today).label,/退出计划待录入/);
+ const unavailable=attachRiskPlans(trade,null,'HTTP_500',today).positions[0];
+ assert.equal(unavailable.planState,'unavailable');
+ assert.match(assessHoldingRisk(unavailable,monitor(),today).label,/数据源不可用/);
+});
+test('同股票多条生效计划须拦截，不自动选择价格较低的一条',()=>{
+ const trade=summarizeTrades([sampleTrade('600988',400,40.475)]);
+ const plans=[riskRow('600988',39.5),riskRow('600988',37.2)];
+ const p=attachRiskPlans(trade,plans,'OK',today).positions[0];
+ assert.equal(p.planState,'invalid');
+ assert.equal(p.riskPlan,null);
+ assert.match(p.planIssue,/多条生效/);
+});
+test('超额减仓、首道已清仓仍配置最终退出、逆序阈值和无生效日期均拦截',()=>{
+ const base=summarizeTrades([sampleTrade('601212',400,5.7)]);
+ const check=extra=>attachRiskPlans(base,[riskRow('601212',5.48,'减仓',extra)],'OK',today).positions[0];
+ assert.equal(check({'首道减仓股数':500}).planState,'invalid');
+ assert.equal(check({'首道减仓股数':200,'最终退出价格':5.49,'最终退出动作':'清仓剩余'}).planState,'invalid');
+ assert.equal(check({'首道减仓股数':200,'生效日期':''}).planState,'invalid');
+ const p=attachRiskPlans(base,[riskRow('601212',5.48,'清仓剩余',{
+  '最终退出价格':5.35,'最终退出动作':'清仓剩余'
+ })],'OK',today).positions[0];
+ assert.equal(p.planState,'invalid');
+});
+test('停用、待核验、未来生效计划不能用于正式风险判断',()=>{
+ const base=summarizeTrades([sampleTrade('600988',400,40.475)]);
+ for(const status of ['待核验','停用']){
+  const p=attachRiskPlans(base,[riskRow('600988',39.5,'清仓剩余',{'计划状态':status})],'OK',today).positions[0];
+  assert.equal(p.planState,'missing');
+ }
+ const future=attachRiskPlans(base,[riskRow('600988',39.5,'清仓剩余',{'生效日期':'2026-10-13'})],'OK',today).positions[0];
+ assert.equal(future.planState,'invalid');
+});
+test('过期行情、DEGRADED采样、未覆盖池不会模拟当前退出触发',()=>{
+ const p=owned();
+ const old=monitor();old.trade_date='2026-10-09';
+ assert.equal(assessHoldingRisk(p,old,today).state,'stale');
+ const quality=monitor();quality.stock_history['600988'][0].data_quality='DEGRADED';
+ assert.equal(assessHoldingRisk(p,quality,today).state,'not_covered');
+ const noSymbol=owned('600985',[riskRow('600985',15.7)],500);
+ assert.equal(assessHoldingRisk(noSymbol,monitor(),today).state,'not_covered');
+ const verify=assessHoldingRisk({...p,verified:false},monitor(),today);
+ assert.equal(verify.state,'unverified');
 });
