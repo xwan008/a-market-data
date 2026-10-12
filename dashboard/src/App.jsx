@@ -388,7 +388,58 @@ function HoldingRiskPanel({assessment}){
  </section>;
 }
 function Portfolio({data,status,monitor}){const {positions,recordCount,invalidCount}=data;const ok=status.airtable==='OK';return <><PageIntro title="个人持仓记录" desc="Airtable 仅用于核验登记交易与退出规则，不作为实时市场行情源。"/><div className="monitor-note privacy-note"><LockKeyhole size={18}/><div><strong>个人数据仅经受保护的服务端接口读取</strong><p>不会写入公开 GitHub 仓库；未取得行情与收盘确认时，不计算实时收益或自动给出卖出指令。</p></div></div>{!ok?<section className="panel monitor-empty"><Empty title="Airtable 尚未接通网站" detail={status.airtable==='NOT_CONFIGURED'?'在 Vercel 设置 AIRTABLE_TOKEN、AIRTABLE_BASE_ID、AIRTABLE_TABLE_ID 后即可读取。':`当前状态：${formatSource(status.airtable)}；不会将读取失败解释为没有持仓。`} icon={Database}/></section>:<><div className="metrics-grid portfolio-metrics"><Metric label="记录交易" value={recordCount} icon={Database} meta="Airtable 原始条目"/><Metric label="登记在持" value={positions.filter(p=>p.verified).length} icon={Wallet} accent="green" meta="可核实净持仓 > 0"/><Metric label="待核对记录" value={invalidCount+positions.filter(p=>!p.verified).length} icon={ShieldAlert} accent="amber" meta="不可据此生成交易动作"/><Metric label="行情联动" value={monitor?.result_kind==='a_share_intraday_monitor_state'?'有监测数据':'尚未就绪'} icon={Activity} accent="purple" meta="仅已发布的盘中快照"/></div><section className="panel"><PanelHead title="登记持仓清单" aside={<span className="count-chip">{positions.length} 条待关注</span>}/>{positions.length?<div className="portfolio-grid">{positions.map(p=>{const assessment=assessHoldingRisk(p,status.monitor==='OK'?monitor:null,shanghaiDay());return <article key={p.code} className="position-card"><div className="position-heading"><div><div className="eyebrow">{p.code}</div><h3>{p.name}</h3></div><Badge variant={p.verified?'verified':'caution'}>{p.verified?'已核实股数':'待核验'}</Badge></div><div className="position-numbers"><div><span>登记股数</span><strong>{p.shares==null?'待确认':p.shares.toLocaleString('zh-CN')}</strong></div><div><span>剩余均价估算</span><strong>{fixed(p.avgCost,3)}</strong></div><div><span>剩余成本估算</span><strong>{fixed(p.costValue)}</strong></div></div><div className="position-rule"><span><ShieldAlert size={14}/> 记录的失效条件</span><p>{p.conditions.length===1?p.conditions[0]:p.conditions.length>1?'存在多条不同条件，需人工核验':'尚未记录明确失效条件'}</p></div>{p.issues.length>0&&<div className="issue-text">{p.issues.join('；')}</div>}<HoldingRiskPanel assessment={assessment}/><div className="position-foot">最后登记交易日 <b>{p.lastDate||'—'}</b><span>共 {p.recordCount} 条成交记录</span></div></article>})}</div>:<Empty title="没有可核实的在持股票" detail={invalidCount?'仍有代码缺失的记录需要人工核验。':'已成功读取 Airtable，目前无可核实净持仓。'} icon={Wallet}/>}</section></>}</>}
-function Login({login,loading,error,setupError}){const [password,setPassword]=useState('');return <div className="login-screen"><div className="login-glow"/><div className="login-shell"><div className="login-brand"><img className="brand-mark" src="/favicon.svg" alt="" aria-hidden="true"/><img className="brand-wordmark" src="/wordmark.svg" alt="w.x."/></div><div className="login-eyebrow">PRIVATE MARKET WORKSPACE</div><h1 className="login-slogan">辨趋势之真伪，<br/><span>顺市场之大势。</span></h1><p className="login-description">你的 A 股市场研究与个人持仓决策工作台。一个页面，掌握所有重要信息。</p><form onSubmit={e=>{e.preventDefault();login(password)}}><label htmlFor="pass">访问密码</label><div className="password-control"><LockKeyhole size={19}/><input id="pass" value={password} onChange={e=>setPassword(e.target.value)} placeholder="输入看板访问密码" type="password" autoComplete="current-password" minLength={1} required/></div>{error&&<p className="login-error"><CircleAlert size={15}/>{error}</p>}<button type="submit" className="primary-btn" disabled={loading||!!setupError}>{loading?'验证中...':'进入工作台'} <ArrowRight size={17}/></button></form>{setupError&&<div className="setup-warning">站点尚未配置密码或会话密钥。请先配置 Vercel 环境变量。</div>}<div className="login-footer"><ShieldCheck size={15}/> READ ONLY · PRIVATE BY DESIGN</div></div><div className="login-art"><div className="login-art-box"><div className="login-art-title"><span className="live-indicator"/> SIGNAL DISCIPLINE</div><div className="login-art-line">OBSERVE <span>→</span> VERIFY <span>→</span> DECIDE</div><div className="login-art-graph"><svg viewBox="0 0 440 190" preserveAspectRatio="none"><defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#68d5bb" stopOpacity=".26"/><stop offset="1" stopColor="#68d5bb" stopOpacity="0"/></linearGradient></defs><path d="M0 150 L40 144 L75 148 L110 104 L151 111 L187 83 L223 101 L253 68 L282 73 L322 44 L363 55 L399 23 L440 12 L440 190 L0 190Z" fill="url(#lg)"/><path d="M0 150 L40 144 L75 148 L110 104 L151 111 L187 83 L223 101 L253 68 L282 73 L322 44 L363 55 L399 23 L440 12" stroke="#67dcc0" strokeWidth="2.5" fill="none"/></svg></div><div className="art-bottom"><span>MARKET<br/>INTELLIGENCE</span><strong>01 — 05</strong></div></div><span className="mock-warning">装饰性图形 · 非实际行情</span></div></div>}
+
+function Login({login,loading,error,setupError}) {
+ const [password,setPassword]=useState('');
+ return <div className="login-screen">
+  <div className="login-glow" aria-hidden="true"/>
+  <div className="login-shell">
+   <div className="login-brand">
+    <img className="brand-mark" src="/favicon.svg" alt="" aria-hidden="true"/>
+    <img className="brand-wordmark" src="/wordmark.svg" alt="w.x."/>
+    <span className="login-brand-name">辨势</span>
+   </div>
+   <h1 className="login-slogan">辨趋势之真伪<br/><span>顺市场之大势</span></h1>
+   <form onSubmit={e=>{e.preventDefault();login(password)}}>
+    <label htmlFor="pass">访问密码</label>
+    <div className="password-control">
+     <LockKeyhole size={18}/>
+     <input id="pass" value={password} onChange={e=>setPassword(e.target.value)} placeholder="输入访问密码" type="password" autoComplete="current-password" minLength={1} required/>
+    </div>
+    {error&&<p className="login-error"><CircleAlert size={15}/>{error}</p>}
+    <button type="submit" className="primary-btn" disabled={loading||!!setupError}>
+     {loading?'正在验证':'进入系统'} <ArrowRight size={17}/>
+    </button>
+   </form>
+   {setupError&&<div className="setup-warning">站点尚未配置密码或会话密钥。请先配置 Vercel 环境变量。</div>}
+  </div>
+  <div className="login-art" aria-hidden="true">
+   <svg className="login-brand-art" viewBox="0 0 620 620" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false">
+    <defs>
+     <linearGradient id="wxLoginSage" x1="8%" y1="96%" x2="92%" y2="10%">
+      <stop offset="0%" stopColor="#719A82"/>
+      <stop offset="57%" stopColor="#AAC9B2"/>
+      <stop offset="100%" stopColor="#E3EEE2"/>
+     </linearGradient>
+     <radialGradient id="wxLoginHalo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stopColor="#719E80" stopOpacity=".10"/>
+      <stop offset="100%" stopColor="#719E80" stopOpacity="0"/>
+     </radialGradient>
+    </defs>
+    <circle cx="310" cy="310" r="290" fill="url(#wxLoginHalo)"/>
+    <circle cx="310" cy="310" r="238" stroke="#A3C1AC" strokeOpacity=".11"/>
+    <circle cx="310" cy="310" r="184" stroke="#A3C1AC" strokeOpacity=".12" strokeDasharray="2 13"/>
+    <circle cx="310" cy="310" r="125" stroke="#A3C1AC" strokeOpacity=".07"/>
+    <path d="M85 483L513 116" stroke="#A3C1AC" strokeOpacity=".075" strokeWidth="1"/>
+    <path d="M69 261L134 402L210 255L282 402L367 200" stroke="url(#wxLoginSage)" strokeWidth="15" strokeLinejoin="round" strokeLinecap="square"/>
+    <path d="M414 271L517 399M515 271L414 399" stroke="url(#wxLoginSage)" strokeWidth="13" strokeLinecap="square"/>
+    <circle cx="384" cy="400" r="7" fill="#C4D8C5"/>
+    <circle cx="549" cy="400" r="7" fill="#C4D8C5"/>
+   </svg>
+  </div>
+ </div>;
+}
+
 export default function App(){
  const [authenticated,setAuthenticated]=useState(null),[setupError,setSetupError]=useState(false),[loginError,setLoginError]=useState(''),[loadingLogin,setLoadingLogin]=useState(false),[loading,setLoading]=useState(false),[payload,setPayload]=useState(null),[section,setSection]=useState('overview'),[menu,setMenu]=useState(false),[selectedTrend,setSelectedTrend]=useState(null),[selectedBuy,setSelectedBuy]=useState(null);
  const fetchData=useCallback(async()=>{setLoading(true);try{const response=await fetch('/api/data',{cache:'no-store'});if(response.status===401){setAuthenticated(false);setPayload(null);return;}if(!response.ok)throw new Error(`数据接口 HTTP ${response.status}`);setPayload(await response.json());}catch(e){setPayload(old=>old?{...old,fetchError:e.message}:{datasets:{},status:{},fetchError:e.message});}finally{setLoading(false)}},[]);
