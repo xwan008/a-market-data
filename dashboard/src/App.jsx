@@ -17,7 +17,16 @@ const sections = [
 ];
 const tone = statusTone;
 const stageLabel = s => ({T1:'T1 · 早期趋势',T2:'T2 · 产业阶段',T3:'T3 · 成熟阶段'}[s]||safeText(s));
-function Badge({children,variant}) {return <span className={`badge badge-${variant||tone(children)}`}><span className="badge-dot"/>{children}</span>}
+function Badge({children,variant}) {
+ const value=String(children??'');
+ const risk=/衰退预警|高潮\/衰退|失效|破位|退化/.test(value);
+ const dispute=/分歧/.test(value);
+ const confirmed=/趋势确认|趋势扩散/.test(value);
+ const emphasis=risk?'badge-emphasis-risk':dispute?'badge-emphasis-dispute':confirmed?'badge-emphasis-confirmed':'';
+ return <span className={`badge badge-${variant||tone(children)} ${emphasis}`}>
+  {risk?<ShieldAlert size={12} aria-hidden="true"/>:dispute?<CircleAlert size={12} aria-hidden="true"/>:confirmed?<TrendingUp size={12} aria-hidden="true"/>:<span className="badge-dot"/>}{children}
+ </span>;
+}
 function MiniDot({active=false}) {return <span className={`mini-dot ${active?'mini-dot-active':''}`}/>}
 function PanelHead({label,title,aside,children}) {return <div className="panel-head"><div><div className="eyebrow">{label}</div><h3>{title}</h3>{children}</div>{aside}</div>}
 function Empty({title,detail,icon:Icon=CircleAlert}) {return <div className="empty"><div className="empty-icon"><Icon size={23}/></div><strong>{title}</strong><p>{detail}</p></div>}
@@ -89,14 +98,19 @@ function SnapshotPlot({rows,field,label,unit='%',scale=1,bounds=null,compact=fal
     {!compact&&[0,.5,1].map((t,i)=><g key={i}><line x1={left} y1={top+t*(h-top-bottom)} x2={w-right} y2={top+t*(h-top-bottom)} className="plot-grid"/><text x={left-8} y={top+t*(h-top-bottom)+4} textAnchor="end" className="plot-axis">{display(high-t*(high-low))}</text></g>)}
     {data.length>=2&&<path d={area} fill={'url(#'+id+')'}/>}
     {data.length>=2&&<path className={'plot-line plot-line-'+direction} d={path} fill="none" strokeWidth={compact?2.3:2.5} strokeLinecap="round" strokeLinejoin="round"/>}
-    {data.map((d,i)=><g key={d.scan_at} onMouseEnter={()=>setHovered({idx:i,at:d.scan_at,value:d.value})}>
+    {data.map((d,i)=>{
+     const latest=i===data.length-1;
+     return <g key={d.scan_at} onMouseEnter={()=>setHovered({idx:i,at:d.scan_at,value:d.value})}>
       {hoveredIndex===i&&!compact&&<line x1={pts[i][0]} y1={top} x2={pts[i][0]} y2={h-bottom} className="plot-cursor"/>}
-      <circle cx={pts[i][0]} cy={pts[i][1]} r={compact?3.4:4.25} className={'plot-point plot-point-'+direction}/>
+      {latest&&<><circle cx={pts[i][0]} cy={pts[i][1]} r={compact?10:15} className={'plot-latest-halo plot-latest-halo-'+direction}/><circle cx={pts[i][0]} cy={pts[i][1]} r={compact?6.2:8} className={'plot-latest-ring plot-latest-ring-'+direction}/></>}
+      <circle cx={pts[i][0]} cy={pts[i][1]} r={latest?(compact?4.3:5.4):(compact?3.4:4.25)} className={'plot-point plot-point-'+direction+(latest?' plot-point-current':'')}/>
       <circle cx={pts[i][0]} cy={pts[i][1]} r={compact?10:12} fill="transparent" stroke="none" onClick={compact?undefined:e=>{e.stopPropagation();setHovered(hoveredIndex===i?null:{idx:i,at:d.scan_at,value:d.value})}}/>
-      <title>{fmtTime(d.scan_at)+' · '+display(d.value)}</title>
-      {!compact&&<text x={pts[i][0]+(i===0?2:i===data.length-1?-2:0)} y={Math.max(top+12,pts[i][1]-11)} className={'plot-point-label '+(i===data.length-1?'plot-point-label-last':'')} textAnchor={i===0?'start':i===data.length-1?'end':'middle'}>{display(d.value)}</text>}
+      <title>{fmtTime(d.scan_at)+' · '+display(d.value)+(latest?' · 最新已发布快照':'')}</title>
+      {!compact&&<text x={pts[i][0]+(i===0?2:latest?-2:0)} y={Math.max(top+12,pts[i][1]-12)} className={'plot-point-label '+(latest?'plot-point-label-last':'')} textAnchor={i===0?'start':latest?'end':'middle'}>{display(d.value)}</text>}
+      {!compact&&latest&&<text x={Math.min(w-right-3,Math.max(left+22,pts[i][0]-4))} y={Math.min(h-bottom-8,pts[i][1]+25)} className="plot-latest-caption" textAnchor="end">最新快照</text>}
       {!compact&&<text x={pts[i][0]} y={h-13} className="plot-axis plot-time" textAnchor="middle">{new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(d.at))}</text>}
-    </g>)}
+     </g>;
+    })}
    </svg>
    {compact?<span className={'plot-compact-value plot-head-'+direction}>{display(data.at(-1).value)}</span>:hItem&&<div className="plot-tooltip" role="status"><span className="plot-tooltip-time">{fmtTime(hItem.scan_at)}</span><strong>{display(hItem.value)}</strong><span className={direction==='rise'?'plot-positive':direction==='fall'?'plot-negative':''}>{hoveredIndex===0?'首轮基准': '相对首轮 '+signed(hItem.value-data[0].value,unit==='元'?2:1)+unit}</span>{(hItem.row.current_state||hItem.row.price_behavior)&&<small>监测状态 · {hItem.row.current_state||hItem.row.price_behavior}</small>}</div>}
   </div>
