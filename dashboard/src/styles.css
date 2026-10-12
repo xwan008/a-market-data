@@ -789,8 +789,6 @@ button{transition:color .2s var(--studio-ease),background-color .2s var(--studio
 .badge-neutral,.badge-watch,.badge-verified{background:rgba(170,189,181,.04)}
 .plot-latest-ring{fill:none;stroke:var(--plot-stroke);stroke-width:1.3;opacity:.46;pointer-events:none}
 .plot-point-current{stroke-width:1.9;filter:none}
-.plot-latest-caption{fill:var(--plot-stroke);font:500 9.5px 'DM Sans','Noto Sans SC',sans-serif;
- paint-order:stroke;stroke:var(--surface);stroke-width:2px;stroke-linejoin:round;pointer-events:none}
 .plot-compact .plot-latest-ring{opacity:.38}
 .plot-line{filter:none}
 .plot-point-label{font-size:10px}
@@ -810,6 +808,10 @@ button{transition:color .2s var(--studio-ease),background-color .2s var(--studio
 .home-sector-state{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}
 .home-study-text{font-size:10px;color:#adbcb1;font-weight:550}
 .home-sector-evidence{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+/* High-specificity price-breadth color: quiet auxiliary text must not override market direction. */
+.new-home .decision-row-meta small.intraday-breadth-change.market-up{color:var(--market-up);font-weight:600}
+.new-home .decision-row-meta small.intraday-breadth-change.market-down{color:var(--market-down);font-weight:600}
+.new-home .decision-row-meta small.intraday-breadth-change:not(.market-up):not(.market-down){color:var(--muted)}
 .focus-signal{font-size:10px}
 .focus-switch button{gap:8px}
 .monitor-selector-state{display:flex;align-items:center;gap:7px}
@@ -833,9 +835,9 @@ button{transition:color .2s var(--studio-ease),background-color .2s var(--studio
 .overview-kpi:hover,.overview-kpi:focus-visible{background:rgba(200,211,202,.035)}
 .overview-kpi-label{font-size:11px;color:#9caaa1;font-weight:500;line-height:1.5}
 .overview-kpi-body{display:inline-flex;align-items:baseline;gap:5px;flex:none}
-.overview-kpi-body strong{font:500 24px 'DM Sans','Noto Sans SC',sans-serif;color:#e4ebe5;
+.overview-kpi-body strong{font:600 24px 'DM Sans','Noto Sans SC',sans-serif;color:#f2f5ef;
  font-variant-numeric:tabular-nums;letter-spacing:-.6px;line-height:1.1}
-.overview-kpi-body>span{font-size:10px;color:#88998d}
+.overview-kpi-body>span{font-size:11px;font-weight:600;color:#c5d1c8}
 .overview-brief-monitor{display:flex;align-items:center;gap:15px;min-height:34px;
  border-top:1px solid rgba(219,229,221,.07);padding:7px 4px;font-size:10px;color:#91a399}
 .overview-brief-label{display:inline-flex;align-items:center;gap:7px;color:#bbc9be;font-weight:600;white-space:nowrap}
