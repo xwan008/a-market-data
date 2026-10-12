@@ -103,7 +103,7 @@
 1. 在读取**本轮** Python 辅助快照（sector discovery、theme evidence 的候选及异常清单）之前，按第2/7/9节先完成模型自身全市场产业研究与上期 registry 全量复核，形成**第一轮独立发现清单**；记录每个方向的规范名称、已核验的申万三级行业代码、是新发现还是旧趋势复核、主要依据/截至日期。将该名单冻结在本轮研究记录中，后续只能追加解释，不得在看见 Python 后逆向改写或补报为“模型先发现”。不能预先从当天 Python 榜单或其衍生转述中获得候选线索。
 2. 再读取同一收盘交易日且校验合格的 Python 快照（含 research_candidates、unmapped_industry_alerts、sector_discovery 的模型复核队列）；按真实行业关联和产业主题身份去重，记录文件 blob SHA 与交易日。申万二级统计分组和跨行业主题可能重叠，不得把同一机会虚增为数条。
 3. 以**冻结的首轮模型名单**和程序的**正向发现候选**求并集逐项标记来源。只有记录明确表明模型初判中已经有该方向，才可计模型发现。Python 的 tracked_theme_alerts 是对旧趋势的风险/异动复核，不等同于“新发现”；程序未输出候选不能证明模型错过机会。对只由程序提出者，必须按旧版产业/市场准则做独立验证。标注最终采用/待复核/排除/合并，保留未上正式榜的候选，禁止只统计胜出者。
-4. 如果第一轮名单没有在接触程序之前明确冻结、Python 缺失/过期、身份匹配不清或无法验证先后顺序，标记 \`UNVERIFIED\`，不得事后猜成模型或程序；不要为了凑完整来源标签阻断旧版正式发布。06:40 早间只复核上次收盘记录，不构造新的发现来源样本。
+4. 如果第一轮名单没有在接触程序之前明确冻结、Python 缺失/过期或行业身份匹配不清，逐项标记 \`UNVERIFIED\`，不得事后猜成模型或程序；不要为了凑完整来源标签阻断旧版正式发布。06:40 早间只复核上次收盘记录，不构造新的发现来源样本。若只在同一轮最终JSON中记录冻结清单，来源标签只作为本轮**声明式研究审计**，不能称为已独立证明“先于程序阅读”。
 
 **来源标签**（针对本轮*正向发现*、非历史成立趋势）：
 - \`BOTH\`：模型首轮独立候选和同日 Python 正向发现候选都包含该规范产业方向。
@@ -115,7 +115,7 @@
 **落库位置、最小兼容结构**：仅在 \`research/trend_registry.json.scan_audit.discovery_attribution\` 中新增本轮审计对象（\`schema_version\`仍为1，因为 \`scan_audit\` 为可扩展审计）；至少包含：
 - \`trade_date\`、\`method="MODEL_FIRST_THEN_PYTHON"\`、\`model_first_pass_frozen\`（仅在真实先行冻结时为true）、\`model_first_pass\`（主题、三级行业代码、证据日期与新旧复核标记的清单），\`python_snapshot_trade_date\`、\`python_snapshot_blob_shas\`（文件路径和真实 SHA，缺失如实记录）。
 - \`candidates\`：本轮模型独立候选与 Python 正向候选的**去重并集**，每条包含 \`direction\`、\`industry_codes\`、\`origin\`、\`model_first_pass_hit\`、\`python_positive_hit\`、\`python_source_types\`（例如 \`research_candidates\`/\`unmapped_industry_alerts\`/\`sector_discovery\`）、\`disposition\`（\`INCLUDED\`/\`PENDING\`/\`REJECTED\`/\`MERGED\`）、\`canonical_trend_name\`（可为空）、\`reason\`。程序发现但最终未入榜、来源不明确者仍必须保留记录；已有旧主题的单纯风险预警另记 \`recheck_alerts\`，不得误计为新发现。
-- \`attribution_status\`：\`RECORDED\` 或 \`UNVERIFIED\`，不使用未经审计的“准确率”或“命中率”标签。如模型首轮仅为同轮事后自述，不能证明独立冻结，则采用 \`UNVERIFIED\`，原因应明确记录；可通过**实际独立提交并 READBACK 的先行快照**进一步强化来源先后证据，但不为来源统计强制改动原发布流程。
+- \`attribution_status\`：\`DECLARED_IN_RUN\`（同轮记录了冻结清单、仅为声明式来源归因）、\`VERIFIED_PRECOMMIT\`（确实在查看程序前独立提交首轮清单并完成READBACK，且记录对应commit/blob SHA）或 \`UNVERIFIED\`（清单缺失、来源无法区分等）。不能将 \`DECLARED_IN_RUN\` 的来源标签误报为独立审计证实；没有预先持久化的前提下先进行低成本观察，不强制新增文件、Git提交或原正式发布Gate。
 - 凡有真实可验证的首次识别来源，后续历史记录不得将其改成另一来源；本规则上线前的首次发现一律 \`UNVERIFIED\`，不得对10月12日及之前的主题做事后标签回填。
 
 **以后实战验证**：将每个方向的首次发现交易日、当日**冻结的**申万行业/样本范围及来源标签作为起点；用首次发现后5/10/20个完整交易日的行业收益、相对全市场超额、趋势延续/失效及误报代理观察三种来源，不使用未来成分股或未来数据回写旧样本。必须同时比较未纳入正式榜的程序/模型候选，说明同期市场环境、样本量、风险暴露与右删失；分别统计“发现后市场表现”和“最终正式入榜后表现”，不得只看盈利个案或把相关性当因果。样本不足时只描述结果、不宣布某渠道胜出。
