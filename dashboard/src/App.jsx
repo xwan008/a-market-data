@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {
  Activity, ArrowDownRight, ArrowLeft, ArrowRight, ArrowUpRight, BarChart3, CalendarDays,
  Check, ChevronDown, ChevronRight, CircleAlert, Clock3, Command, Database,
- ExternalLink, Eye, GitBranch, Layers, LockKeyhole, LogOut, Menu,
+ ExternalLink, Eye, EyeOff, GitBranch, Layers, LockKeyhole, LogOut, Menu,
  RefreshCw, Search, ShieldCheck, ShieldAlert, SlidersHorizontal,
  Sparkles, Target, Wallet, X, Zap, PanelLeftClose, ListFilter
 } from 'lucide-react';
@@ -387,57 +387,50 @@ function HoldingRiskPanel({assessment}){
   <div className="holding-assessment-foot">{assessment.last?'已发布盘中快照 '+fmtTime(assessment.last.scan_at):'当日有效行情尚未齐备'} · {assessment.note||'不使用旧日行情生成今日交易判断'}</div>
  </section>;
 }
-function Portfolio({data,status,monitor}){const {positions,recordCount,invalidCount}=data;const ok=status.airtable==='OK';return <><PageIntro title="个人持仓记录" desc="Airtable 成交流水核算净持仓，结构化风控计划提供退出价格和动作。"/><div className="monitor-note privacy-note"><LockKeyhole size={18}/><div><strong>个人数据仅经受保护的服务端接口读取</strong><p>不会写入公开 GitHub 仓库；未取得行情与收盘确认时，不计算实时收益或自动给出卖出指令。</p></div></div>{!ok?<section className="panel monitor-empty"><Empty title="Airtable 尚未接通网站" detail={status.airtable==='NOT_CONFIGURED'?'在 Vercel 设置 AIRTABLE_TOKEN、AIRTABLE_BASE_ID、AIRTABLE_TABLE_ID 后即可读取。':`当前状态：${formatSource(status.airtable)}；不会将读取失败解释为没有持仓。`} icon={Database}/></section>:<><div className="metrics-grid portfolio-metrics"><Metric label="记录交易" value={recordCount} icon={Database} meta="Airtable 原始条目"/><Metric label="登记在持" value={positions.filter(p=>p.verified).length} icon={Wallet} accent="green" meta="可核实净持仓 > 0"/><Metric label="待核对记录" value={invalidCount+positions.filter(p=>!p.verified).length} icon={ShieldAlert} accent="amber" meta="不可据此生成交易动作"/><Metric label="行情联动" value={monitor?.result_kind==='a_share_intraday_monitor_state'?'有监测数据':'尚未就绪'} icon={Activity} accent="purple" meta="仅已发布的盘中快照"/></div><section className="panel"><PanelHead title="登记持仓清单" aside={<span className="count-chip">{positions.length} 条待关注</span>}/>{positions.length?<div className="portfolio-grid">{positions.map(p=>{const assessment=assessHoldingRisk(p,status.monitor==='OK'?monitor:null,shanghaiDay());return <article key={p.code} className="position-card"><div className="position-heading"><div><div className="eyebrow">{p.code}</div><h3>{p.name}</h3></div><Badge variant={p.verified?'verified':'caution'}>{p.verified?'已核实股数':'待核验'}</Badge></div><div className="position-numbers"><div><span>登记股数</span><strong>{p.shares==null?'待确认':p.shares.toLocaleString('zh-CN')}</strong></div><div><span>剩余均价估算</span><strong>{fixed(p.avgCost,3)}</strong></div><div><span>剩余成本估算</span><strong>{fixed(p.costValue)}</strong></div></div><div className="position-rule"><span><ShieldAlert size={14}/> 结构化退出计划</span><p>{p.riskPlan?.notes||p.planIssue||'尚未录入生效的结构化退出计划。'}{p.riskPlan&&<small> · 生效日期 {p.riskPlan.effectiveDate} · {p.riskPlan.basis}触发</small>}</p></div>{p.issues.length>0&&<div className="issue-text">{p.issues.join('；')}</div>}<HoldingRiskPanel assessment={assessment}/><div className="position-foot">最后登记交易日 <b>{p.lastDate||'—'}</b><span>共 {p.recordCount} 条成交记录</span></div></article>})}</div>:<Empty title="没有可核实的在持股票" detail={invalidCount?'仍有代码缺失的记录需要人工核验。':'已成功读取 Airtable，目前无可核实净持仓。'} icon={Wallet}/>}</section></>}</>}
-
-function Login({login,loading,error,setupError}) {
+function Portfolio({data,status,monitor}){const {positions,recordCount,invalidCount}=data;const ok=status.airtable==='OK';return <><PageIntro title="个人持仓记录" desc="Airtable 成交流水核算净持仓，结构化风控计划提供退出价格和动作。"/><div className="monitor-note privacy-note"><LockKeyhole size={18}/><div><strong>个人数据仅经受保护的服务端接口读取</strong><p>不会写入公开 GitHub 仓库；未取得行情与收盘确认时，不计算实时收益或自动给出卖出指令。</p></div></div>{!ok?<section className="panel monitor-empty"><Empty title="Airtable 尚未接通网站" detail={status.airtable==='NOT_CONFIGURED'?'在 Vercel 设置 AIRTABLE_TOKEN、AIRTABLE_BASE_ID、AIRTABLE_TABLE_ID 后即可读取。':`当前状态：${formatSource(status.airtable)}；不会将读取失败解释为没有持仓。`} icon={Database}/></section>:<><div className="metrics-grid portfolio-metrics"><Metric label="记录交易" value={recordCount} icon={Database} meta="Airtable 原始条目"/><Metric label="登记在持" value={positions.filter(p=>p.verified).length} icon={Wallet} accent="green" meta="可核实净持仓 > 0"/><Metric label="待核对记录" value={invalidCount+positions.filter(p=>!p.verified).length} icon={ShieldAlert} accent="amber" meta="不可据此生成交易动作"/><Metric label="行情联动" value={monitor?.result_kind==='a_share_intraday_monitor_state'?'有监测数据':'尚未就绪'} icon={Activity} accent="purple" meta="仅已发布的盘中快照"/></div><section className="panel"><PanelHead title="登记持仓清单" aside={<span className="count-chip">{positions.length} 条待关注</span>}/>{positions.length?<div className="portfolio-grid">{positions.map(p=>{const assessment=assessHoldingRisk(p,status.monitor==='OK'?monitor:null,shanghaiDay());return <article key={p.code} className="position-card"><div className="position-heading"><div><div className="eyebrow">{p.code}</div><h3>{p.name}</h3></div><Badge variant={p.verified?'verified':'caution'}>{p.verified?'已核实股数':'待核验'}</Badge></div><div className="position-numbers"><div><span>登记股数</span><strong>{p.shares==null?'待确认':p.shares.toLocaleString('zh-CN')}</strong></div><div><span>剩余均价估算</span><strong>{fixed(p.avgCost,3)}</strong></div><div><span>剩余成本估算</span><strong>{fixed(p.costValue)}</strong></div></div><div className="position-rule"><span><ShieldAlert size={14}/> 结构化退出计划</span><p>{p.riskPlan?.notes||p.planIssue||'尚未录入生效的结构化退出计划。'}{p.riskPlan&&<small> · 生效日期 {p.riskPlan.effectiveDate} · {p.riskPlan.basis}触发</small>}</p></div>{p.issues.length>0&&<div className="issue-text">{p.issues.join('；')}</div>}<HoldingRiskPanel assessment={assessment}/><div className="position-foot">最后登记交易日 <b>{p.lastDate||'—'}</b><span>共 {p.recordCount} 条成交记录</span></div></article>})}</div>:<Empty title="没有可核实的在持股票" detail={invalidCount?'仍有代码缺失的记录需要人工核验。':'已成功读取 Airtable，目前无可核实净持仓。'} icon={Wallet}/>}</section></function Login({login,loading,error,setupError}) {
  const [password,setPassword]=useState('');
- return <div className="login-screen">
-  <div className="login-glow" aria-hidden="true"/>
-  <div className="login-shell">
-   <div className="login-brand">
-    <img className="brand-mark" src="/favicon.svg" alt="" aria-hidden="true"/>
-    <img className="brand-wordmark" src="/wordmark.svg" alt="w.x."/>
-    <span className="login-brand-name">辨势</span>
-   </div>
-   <h1 className="login-slogan">辨趋势之真伪<br/><span>顺市场之大势</span></h1>
-   <form onSubmit={e=>{e.preventDefault();login(password)}}>
-    <label htmlFor="pass">访问密码</label>
-    <div className="password-control">
-     <LockKeyhole size={18}/>
-     <input id="pass" value={password} onChange={e=>setPassword(e.target.value)} placeholder="输入访问密码" type="password" autoComplete="current-password" minLength={1} required/>
+ const [showPassword,setShowPassword]=useState(false);
+ return <div className="login-screen login-screen--terminal">
+  <div className="login-visual" aria-hidden="true"/>
+  <main className="login-panel-wrap">
+   <section className="login-panel" aria-labelledby="login-title">
+    <div className="login-panel-top">
+     <div className="login-panel-brand">
+      <img src="/favicon.svg" alt="" aria-hidden="true"/>
+      <img src="/wordmark.svg" alt="w.x."/>
+     </div>
+     <span className="login-panel-name">辨势</span>
     </div>
-    {error&&<p className="login-error"><CircleAlert size={15}/>{error}</p>}
-    <button type="submit" className="primary-btn" disabled={loading||!!setupError}>
-     {loading?'正在验证':'进入系统'} <ArrowRight size={17}/>
-    </button>
-   </form>
-   {setupError&&<div className="setup-warning">站点尚未配置密码或会话密钥。请先配置 Vercel 环境变量。</div>}
-  </div>
-  <div className="login-art" aria-hidden="true">
-   <svg className="login-brand-art" viewBox="0 0 620 620" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false">
-    <defs>
-     <linearGradient id="wxLoginSage" x1="8%" y1="96%" x2="92%" y2="10%">
-      <stop offset="0%" stopColor="#719A82"/>
-      <stop offset="57%" stopColor="#AAC9B2"/>
-      <stop offset="100%" stopColor="#E3EEE2"/>
-     </linearGradient>
-     <radialGradient id="wxLoginHalo" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stopColor="#719E80" stopOpacity=".10"/>
-      <stop offset="100%" stopColor="#719E80" stopOpacity="0"/>
-     </radialGradient>
-    </defs>
-    <circle cx="310" cy="310" r="290" fill="url(#wxLoginHalo)"/>
-    <circle cx="310" cy="310" r="238" stroke="#A3C1AC" strokeOpacity=".11"/>
-    <circle cx="310" cy="310" r="184" stroke="#A3C1AC" strokeOpacity=".12" strokeDasharray="2 13"/>
-    <circle cx="310" cy="310" r="125" stroke="#A3C1AC" strokeOpacity=".07"/>
-    <path d="M85 483L513 116" stroke="#A3C1AC" strokeOpacity=".075" strokeWidth="1"/>
-    <path d="M69 261L134 402L210 255L282 402L367 200" stroke="url(#wxLoginSage)" strokeWidth="15" strokeLinejoin="round" strokeLinecap="square"/>
-    <path d="M414 271L517 399M515 271L414 399" stroke="url(#wxLoginSage)" strokeWidth="13" strokeLinecap="square"/>
-    <circle cx="384" cy="400" r="7" fill="#C4D8C5"/>
-    <circle cx="549" cy="400" r="7" fill="#C4D8C5"/>
-   </svg>
-  </div>
+    <div className="login-panel-rule" aria-hidden="true"/>
+    <h1 id="login-title" className="login-panel-title">辨趋势之真伪<br/><span>顺市场之大势</span></h1>
+    <form className="login-form" onSubmit={e=>{e.preventDefault();login(password)}}>
+     <label className="login-sr-only" htmlFor="pass">访问密码</label>
+     <div className="login-input">
+      <LockKeyhole size={18} aria-hidden="true"/>
+      <input id="pass" value={password} onChange={e=>setPassword(e.target.value)}
+       placeholder="输入访问密码" type={showPassword?'text':'password'} autoComplete="current-password"
+       minLength={1} required/>
+      <button type="button" className="login-toggle-password" onClick={()=>setShowPassword(p=>!p)}
+       aria-label={showPassword?'隐藏密码':'显示密码'} aria-pressed={showPassword}>
+       {showPassword?<EyeOff size={18}/>:<Eye size={18}/>}
+      </button>
+     </div>
+     {error&&<p className="login-error" role="alert"><CircleAlert size={15}/>{error}</p>}
+     <button type="submit" className="login-submit" disabled={loading||!!setupError}>
+      <span>{loading?'正在验证':'进入系统'}</span><ArrowRight size={18} aria-hidden="true"/>
+     </button>
+    </form>
+    {setupError&&<div className="setup-warning" role="alert">站点尚未配置密码或会话密钥。请先配置 Vercel 环境变量。</div>}
+    <div className="login-panel-footer">
+     <span className="login-panel-footer-line"/>
+     <ShieldCheck size={13} aria-hidden="true"/>
+     <span>仅限受邀用户访问</span>
+     <span className="login-panel-footer-line"/>
+    </div>
+   </section>
+  </main>
  </div>;
+}div>;
 }
 
 export default function App(){
