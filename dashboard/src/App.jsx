@@ -49,12 +49,68 @@ function TrendTable({trends,onSelect,selected,compact=false}) {
  const filtered=useMemo(()=>trends.filter(t=>(t.trend_name||'').includes(query)&& (state==='全部'||t.market_state===state)),[trends,query,state]);
  return <><div className="table-controls"><div className="search"><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="搜索板块名称..."/></div><div className="filter-select"><ListFilter size={16}/><select value={state} onChange={e=>setState(e.target.value)}><option>全部</option>{[...new Set(trends.map(t=>t.market_state).filter(Boolean))].map(s=><option key={s}>{s}</option>)}</select><ChevronDown size={13}/></div></div><div className="table-wrap"><table className="data-table"><thead><tr><th>板块方向</th><th>产业阶段</th><th>市场状态</th>{!compact&&<th>生命周期</th>}<th>核验日期</th><th className="arrow-col"/></tr></thead><tbody>{filtered.map(t=><tr key={t.trend_name} className={selected?.trend_name===t.trend_name?'row-selected':''} onClick={()=>onSelect(t)}><td><strong>{t.trend_name}</strong><small>{asArray(t.industry_names).slice(0,2).join(' / ')||'—'}</small></td><td><span className="stage-cell">{t.trend_state||'—'}</span></td><td><Badge>{t.market_state}</Badge></td>{!compact&&<td><span className="soft-text">{t.lifecycle_status||'—'}</span></td>}<td><span className="mono soft-text">{t.last_verified_trade_date||'—'}</span></td><td className="arrow-col"><ChevronRight size={16}/></td></tr>)}</tbody></table>{!filtered.length&&<Empty title="没有匹配板块" detail="更改搜索词或状态筛选试试" icon={Search}/>}</div><div className="table-footer">展示 {filtered.length} / {trends.length} 个方向 <span>点击行查看依据</span></div></>;
 }
-function Overview({registry,trendHandoff,buy,monitor,portfolio,status,onSection,selected,setSelected}){
- const trends=asArray(registry?.trends); const signals=asArray(trendHandoff?.signals);const buys=asArray(buy?.items);const ready=buys.filter(i=>i.status==='READY').length;
- const confirmed=trends.filter(t=>t.market_state==='趋势确认').length;
- const pending=trends.filter(t=>t.lifecycle_status==='待复核').length;
- const stages=[['趋势确认',confirmed],['候选趋势',trends.filter(t=>t.market_state==='候选趋势').length],['观察',trends.filter(t=>t.market_state==='观察').length],['其他',trends.filter(t=>!['趋势确认','候选趋势','观察'].includes(t.market_state)).length]];
- return <><div className="overview-hero"><div className="hero-copy"><div className="eyebrow hero-eyebrow"><span className="eyebrow-line"/> MARKET INTELLIGENCE / A-SHARE</div><h1>看清趋势，<span>从容决策。</span></h1><p>把市场方向、候选买点与实际持仓，放在同一个决策视野里。</p><div className="hero-tags"><span><span className="live-indicator"/> 数据驱动 · 只读模式</span><span><Clock3 size={14}/>研究基准 {registry?.trade_date||'未发布'}</span></div></div><div className="hero-orbit"><div className="orbit-ring orbit-one"/><div className="orbit-ring orbit-two"/><div className="orbit-center"><TrendingUp size={36}/><span>LT / 01</span></div><div className="orbit-chip orbit-chip-1">TREND <span>RADAR</span></div><div className="orbit-chip orbit-chip-2">DISCIPLINE <span>FIRST</span></div></div></div><div className="metrics-grid"><Metric label="趋势池方向" value={status.registry==='OK'?trends.length:'—'} icon={Layers} meta="当前研究覆盖" hint={status.registry==='OK'?`${pending} 待复核`:'等待数据'}/><Metric label="已确认市场趋势" value={status.registry==='OK'?confirmed:'—'} icon={TrendingUp} accent="green" meta="市场状态：趋势确认"/><Metric label="买点 READY" value={status.buyHandoff==='OK'?ready:'—'} icon={Target} accent="amber" meta={status.buyHandoff==='OK'?`${buys.length} 只正式候选`:'等待数据'}/><Metric label="登记持仓" value={status.airtable==='OK'?portfolio.positions.filter(p=>p.verified).length:'—'} icon={Wallet} accent="purple" meta={status.airtable==='OK'?'Airtable 已核实股票数':'未读取到个人数据'}/></div><div className="overview-columns"><section className="panel panorama"><PanelHead label="SECTOR DISTRIBUTION" title="趋势结构分布" aside={<span className="panel-note">截至 {registry?.trade_date||'—'}</span>}/>{trends.length?<><div className="distribution-bar">{stages.filter(s=>s[1]).map(([name,n],i)=><div title={`${name} · ${n}`} key={name} style={{flex:n}} className={`bar-segment bar-${i}`}/>)}</div><div className="distribution-legend">{stages.map(([name,n],i)=><div key={name}><span className={`legend-dot legend-${i}`}/><span>{name}</span><strong>{n}</strong></div>)}</div><div className="panel-footnote">依据正式趋势池中的 market_state 统计，不预测未来走势。</div></>:<Empty title="趋势数据暂不可用" detail="请检查 GitHub 数据是否正常发布" icon={Database}/>}</section><section className="panel priority"><PanelHead label="PRIORITY WATCHLIST" title="优先观察方向" aside={<button className="text-link" onClick={()=>onSection('trends')}>查看趋势池 <ArrowRight size={14}/></button>}/>{signals.length?<div className="focus-list">{signals.map((i,index)=><TrendFocus key={i.trend_name||index} item={i} rank={i.rank||index+1}/>)}</div>:<Empty title="没有已发布的优先榜单" detail="趋势 Handoff 未发布时不提供虚构排序" icon={Layers}/>}</section></div><div className="overview-columns overview-secondary"><section className="panel trend-panel"><PanelHead label="FULL TREND REGISTRY" title="全部板块趋势" aside={<button className="text-link" onClick={()=>onSection('trends')}>进入板块研究 <ArrowRight size={14}/></button>}/>{trends.length?<TrendTable trends={trends.slice(0,9)} selected={selected} onSelect={setSelected} compact/>:<Empty title="趋势池没有数据" detail="请检查 research/trend_registry.json" icon={Database}/>}</section><section className="panel inspector"><TrendInspector item={selected||trends[0]}/></section></div></>;
+
+function Overview({registry,trendHandoff,buy,monitor,portfolio,status,onSection,setSelectedBuy}){
+ const confirmedPositions=portfolio.positions.filter(p=>p.verified);
+ const unverifiedPositions=portfolio.positions.filter(p=>!p.verified);
+ const formalItems=asArray(buy?.items);
+ const ready=formalItems.filter(item=>item.status==='READY').sort((a,b)=>(a.rank||999)-(b.rank||999));
+ const waiting=formalItems.filter(item=>item.status==='WAIT');
+ const ranked=asArray(trendHandoff?.signals).slice().sort((a,b)=>(a.rank||999)-(b.rank||999));
+ const monitorCurrent=status.monitor==='OK' && monitor?.result_kind==='a_share_intraday_monitor_state' && monitor.trade_date===shanghaiDay();
+ const monitoredSectors=monitorCurrent?latestMonitorRecords(monitor.industry_history):[];
+ const monitoredStocks=monitorCurrent?latestMonitorRecords(monitor.stock_history):[];
+ const sectorByName=new Map(monitoredSectors.map(row=>[row.trend_name||row.key,row]));
+ const stockByCode=new Map(monitoredStocks.map(row=>[row.code||row.key,row]));
+ const visiblePositions=[...unverifiedPositions,...confirmedPositions].slice(0,4);
+ return <div className="decision-home">
+  <div className="decision-heading">
+   <div><div className="eyebrow">TODAY / DECISION FOCUS</div><h1>今日重点</h1><p>先看已有持仓，再看市场变化，最后看新的机会。</p></div>
+   <div className="decision-date"><Clock3 size={14}/><span>趋势基准 {registry?.trade_date||'—'}<br/>盘中最近扫描 {monitorCurrent?fmtTime(monitor.last_scan_at):'暂无今日有效记录'}</span></div>
+  </div>
+  <div className="decision-strip">
+   <div><span>登记持仓</span><strong>{status.airtable==='OK'?confirmedPositions.length:'—'}</strong><small>{unverifiedPositions.length?String(unverifiedPositions.length)+' 项待核验':'按 Airtable 记录'}</small></div>
+   <div><span>盘中覆盖</span><strong>{monitorCurrent?monitoredSectors.length:'—'}</strong><small>{monitorCurrent?'今日板块快照':'尚无今日快照'}</small></div>
+   <div><span>正式 READY</span><strong>{status.buyHandoff==='OK'?ready.length:'—'}</strong><small>{status.buyHandoff==='OK'?String(waiting.length)+' 只 WAIT':'暂无数据'}</small></div>
+  </div>
+  <div className="decision-grid">
+   <section className="panel decision-panel decision-portfolio">
+    <div className="decision-panel-top"><div><span className="decision-step">01 · 优先关注</span><h2>我的持仓</h2><p>只展示已记录的持仓与已发布的监测结果，不新增卖出判断。</p></div><button className="text-link" onClick={()=>onSection('portfolio')}>持仓详情 <ArrowRight size={14}/></button></div>
+    {status.airtable!=='OK'?<div className="decision-empty">Airtable 暂不可用，无法核实持仓。<button onClick={()=>onSection('portfolio')}>查看数据状态 <ArrowRight size={13}/></button></div>:
+      visiblePositions.length?<div className="decision-rows">{visiblePositions.map(p=>{
+        const m=stockByCode.get(p.code);
+        return <button type="button" className="decision-row" key={p.code} onClick={()=>onSection('portfolio')}>
+         <div className="decision-row-main"><strong>{p.name}</strong><small>{p.code} · {p.verified?String(p.shares)+' 股':'持仓待核验'}</small></div>
+         <div className="decision-row-meta"><span>{!p.verified?'成交记录待核验':!monitorCurrent?'暂无今日监测':!m?'盘中快照未覆盖':m.holding_action||'无已发布持仓动作'}</span><small>{p.conditions.length?'已有失效观察条件':'退出条件待补充'}</small></div><ChevronRight size={15}/>
+        </button>
+       })}</div>:<div className="decision-empty">目前没有可核实的登记持仓。<button onClick={()=>onSection('portfolio')}>查看交易记录 <ArrowRight size={13}/></button></div>}
+    {portfolio.positions.length>visiblePositions.length&&<button className="decision-more" onClick={()=>onSection('portfolio')}>其余持仓在详情中查看 <ArrowRight size={13}/></button>}
+   </section>
+   <section className="panel decision-panel decision-market">
+    <div className="decision-panel-top"><div><span className="decision-step">02 · 盘中变化</span><h2>优先板块</h2><p>保留趋势榜原始排序，对照本轮盘中状态。</p></div><button className="text-link" onClick={()=>onSection('monitor')}>监测详情 <ArrowRight size={14}/></button></div>
+    {!monitorCurrent&&<div className="decision-message"><CircleAlert size={14}/> 当前没有今日有效监测，以下仅展示趋势榜的历史优先顺序。</div>}
+    {ranked.length?<div className="decision-rows">{ranked.slice(0,4).map((item,i)=>{
+      const m=sectorByName.get(item.trend_name);
+      const movement=m?(m.previous_state&&m.previous_state!==m.current_state?m.previous_state+' → '+m.current_state:m.current_state):'尚无今日盘中状态';
+      return <button type="button" className="decision-row" key={item.trend_name} onClick={()=>onSection('monitor')}>
+       <div className="decision-rank">{String(item.rank||i+1).padStart(2,'0')}</div>
+       <div className="decision-row-main"><strong>{item.trend_name}</strong><small>{item.trend_state} · {item.market_state}</small></div>
+       <div className="decision-row-meta"><span>{movement}</span><small>{m?'结构动量：'+safeText(m.structure_momentum):'研究日 '+(trendHandoff?.trade_date||'—')}</small></div><ChevronRight size={15}/>
+      </button>
+    })}</div>:<div className="decision-empty">尚未发布优先趋势排序。</div>}
+   </section>
+  </div>
+  <section className="panel decision-panel decision-opportunity">
+   <div className="decision-panel-top"><div><span className="decision-step">03 · 新的机会</span><h2>正式买点</h2><p>仅 READY 作为已发布待核对机会；WAIT 不等于可立即买入。</p></div><button className="text-link" onClick={()=>onSection('buy')}>完整买点榜 <ArrowRight size={14}/></button></div>
+   {status.buyHandoff!=='OK'?<div className="decision-empty">正式买点数据暂不可用。</div>:ready.length?
+    <div className="decision-rows decision-entries">{ready.slice(0,3).map(item=><button className="decision-row" type="button" key={item.code} onClick={()=>{setSelectedBuy(item);onSection('buy')}}>
+     <div className="decision-row-main"><strong>{item.company_name}</strong><small>{item.code} · {item.trend_name}</small></div>
+     <Badge variant="good">READY</Badge><div className="decision-row-meta"><span>{Array.isArray(item.entry_zone)?fixed(item.entry_zone[0],2)+' – '+fixed(item.entry_zone[1],2):'入场计划待核验'}</span><small>入场计划，不是实时交易指令</small></div><ChevronRight size={15}/>
+    </button>)}</div>
+   :<div className="decision-no-ready"><span className="decision-no-icon"><ShieldCheck size={21}/></span><div><strong>目前没有 READY 买点</strong><p>正式榜单中的 {waiting.length} 只股票仍为 WAIT，暂不把等待信号显示为买入机会。</p></div><button className="text-link" onClick={()=>onSection('buy')}>查看 WAIT <ArrowRight size={14}/></button></div>}
+  </section>
+  <div className="decision-bottom"><span>所有信息均来自已发布的正式数据；盘中观察不等于结构失效或交易指令。</span><button onClick={()=>onSection('trends')}>研究全部 {asArray(registry?.trends).length} 个趋势方向 <ArrowRight size={14}/></button></div>
+ </div>;
 }
 function Trends({registry,selected,setSelected}){const trends=asArray(registry?.trends);return <><PageIntro code="01 / SECTOR RESEARCH" title="板块趋势雷达" desc="产业阶段、市场确认和反向证据，分层呈现。所有状态均来自正式趋势池。" date={registry?.trade_date}/><div className="two-pane"><section className="panel"><PanelHead label="TREND REGISTRY" title="全部趋势方向" aside={<span className="count-chip">{trends.length} 个方向</span>}/>{trends.length?<TrendTable trends={trends} selected={selected} onSelect={setSelected}/>:<Empty title="暂无趋势数据" detail="等待正式趋势池发布"/>}</section><section className="panel inspector inspector-tall"><TrendInspector item={selected||trends[0]}/></section></div></>}
 function PageIntro({code,title,desc,date}){return <div className="page-intro"><div><div className="eyebrow">{code}</div><h1>{title}</h1><p>{desc}</p></div><div className="asof"><Clock3 size={15}/><span>数据交易日 <strong>{date||'—'}</strong></span></div></div>}
@@ -74,5 +130,5 @@ export default function App(){
  const portfolio=useMemo(()=>summarizeTrades(datasets.airtable),[datasets.airtable]);
  if(authenticated===null)return <div className="boot-screen"><div className="brand-mark"><TrendingUp size={29}/></div><span>LAN TU</span><div className="spinner"/></div>;
  if(!authenticated)return <Login login={login} loading={loadingLogin} error={loginError} setupError={setupError}/>;
- return <div className="app-shell"><Sidebar section={section} onSection={setSection} openMenu={menu} setOpenMenu={setMenu} status={status}/><div className="main-shell"><Header section={section} refresh={fetchData} refreshing={loading} data={payload} openMenu={menu} setOpenMenu={setMenu} logout={logout}/><main className="main-content">{payload?.fetchError&&<div className="fetch-warning"><CircleAlert size={17}/>{payload.fetchError}，展示上次成功加载的数据。</div>}{!payload?<Skeleton/>:<>{section==='overview'&&<Overview registry={datasets.registry} trendHandoff={datasets.trendHandoff} buy={datasets.buyHandoff} monitor={datasets.monitor} portfolio={portfolio} status={status} onSection={setSection} selected={selectedTrend} setSelected={setSelectedTrend}/ >}{section==='trends'&&<Trends registry={datasets.registry} selected={selectedTrend} setSelected={setSelectedTrend}/ >}{section==='buy'&&<Buy buy={datasets.buyHandoff} selected={selectedBuy} setSelected={setSelectedBuy} status={status}/ >}{section==='monitor'&&<Monitor monitor={datasets.monitor} status={status}/ >}{section==='portfolio'&&<Portfolio data={portfolio} status={status} monitor={datasets.monitor}/>}</>}<footer className="main-footer"><span>LAN TU MARKET DESK</span><span>数据来自已发布的 GitHub 文件和私有 Airtable 记录 · 仅供研究参考，不构成交易建议</span><span>{payload?.receivedAt?`页面读取于 ${fmtTime(payload.receivedAt)}`:'等待同步'}</span></footer></main></div></div>;
+ return <div className="app-shell"><Sidebar section={section} onSection={setSection} openMenu={menu} setOpenMenu={setMenu} status={status}/><div className="main-shell"><Header section={section} refresh={fetchData} refreshing={loading} data={payload} openMenu={menu} setOpenMenu={setMenu} logout={logout}/><main className="main-content">{payload?.fetchError&&<div className="fetch-warning"><CircleAlert size={17}/>{payload.fetchError}，展示上次成功加载的数据。</div>}{!payload?<Skeleton/>:<>{section==='overview'&&<Overview registry={datasets.registry} trendHandoff={datasets.trendHandoff} buy={datasets.buyHandoff} monitor={datasets.monitor} portfolio={portfolio} status={status} onSection={setSection} setSelectedBuy={setSelectedBuy}/ >}{section==='trends'&&<Trends registry={datasets.registry} selected={selectedTrend} setSelected={setSelectedTrend}/ >}{section==='buy'&&<Buy buy={datasets.buyHandoff} selected={selectedBuy} setSelected={setSelectedBuy} status={status}/ >}{section==='monitor'&&<Monitor monitor={datasets.monitor} status={status}/ >}{section==='portfolio'&&<Portfolio data={portfolio} status={status} monitor={datasets.monitor}/>}</>}<footer className="main-footer"><span>LAN TU MARKET DESK</span><span>数据来自已发布的 GitHub 文件和私有 Airtable 记录 · 仅供研究参考，不构成交易建议</span><span>{payload?.receivedAt?`页面读取于 ${fmtTime(payload.receivedAt)}`:'等待同步'}</span></footer></main></div></div>;
 }
