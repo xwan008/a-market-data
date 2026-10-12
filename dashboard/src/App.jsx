@@ -236,7 +236,7 @@ function Overview({registry,trendHandoff,buy,monitor,portfolio,status,onSection,
       return <button className="decision-row home-holding" key={p.code} onClick={()=>onSection('portfolio')}>
        <div className="decision-row-main"><strong>{p.name}</strong><small>{p.code} · {p.verified?p.shares+' 股':'持仓待核验'}</small></div>
        <div className="home-mini-chart">{scans.length>=2?<SnapshotPlot rows={scans} field="price" label="盘中快照价" unit="元" compact/>:<span className="plot-unavailable">暂无价格曲线</span>}</div>
-       <div className="decision-row-meta"><span className={'holding-risk-brief risk-'+assessment.tone}>{assessment.label}</span><small>{assessment.last?'快照 '+fmtTime(assessment.last.scan_at)+' · '+assessment.rule.label:assessment.rule.label}</small></div><ChevronRight size={15}/>
+       <div className="decision-row-meta"><span className={'holding-risk-brief risk-'+assessment.tone}>{assessment.label}</span><small>{assessment.last?'盘中快照 '+fmtTime(assessment.last.scan_at)+(assessment.rule.basis==='close'?' · 收盘确认制':''):'规则来自 Airtable · 等待有效行情'}</small></div><ChevronRight size={15}/>
       </button>
      })}</div>:<div className="decision-empty">暂无可核实的登记持仓。</div>}
    </section>
@@ -377,7 +377,12 @@ function Monitor({monitor,archive,status}){
 function HoldingRiskPanel({assessment}){
  return <section className={'holding-assessment holding-assessment-'+assessment.tone} aria-label="持仓风险评估">
   <div className="holding-assessment-title"><span><Activity size={14}/> 持仓风险评估</span><strong>{assessment.label}</strong></div>
-  <div className="holding-rule"><span>{assessment.rule.label}</span><p>{assessment.rule.detail}</p></div>
+  <div className="holding-rule"><span>{assessment.rule.label}</span>
+   {assessment.rule.levels?.length>0&&<div className="holding-levels">{assessment.rule.levels.map((line,i)=><div className="holding-level" key={line.name+'-'+i}>
+     <span>{line.name}</span><strong>{fixed(line.price,2)} 元</strong>
+     <small>{line.observation==='below'?(line.kind==='warning'?'盘中低于预警线':'盘中低于 · 待收盘确认'):line.observation==='not_below'?'盘中未低于':'等待有效当日行情'}</small>
+   </div>)}</div>}
+   <p>{assessment.rule.detail}</p></div>
   {assessment.evidence.length>0&&<ul className="holding-evidence">{assessment.evidence.map((fact,i)=><li key={i}>{fact}</li>)}</ul>}
   <div className="holding-assessment-foot">{assessment.last?'已发布盘中快照 '+fmtTime(assessment.last.scan_at):'当日有效行情尚未齐备'} · {assessment.note||'不使用旧日行情生成今日交易判断'}</div>
  </section>;

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {summarizeTrades,extractRecords,latestMonitorRecords,fixed,validSnapshots,snapshotChange,rankedTrendRows,seriesDirection,statusTone,trendEvents,archivedDays,assessHoldingRisk,evaluateExitCondition} from '../src/model.js';
+import {summarizeTrades,extractRecords,latestMonitorRecords,fixed,validSnapshots,snapshotChange,rankedTrendRows,seriesDirection,statusTone,trendEvents,archivedDays,assessHoldingRisk,evaluateExitCondition,extractExitLevels} from '../src/model.js';
 
 function row(code,kind,qty,price,day,extras={}) {return {'股票代码':code,'操作类型':kind,'实际成交股数':qty,'价格（元）':price,'交易日期':day,'交易标的': '测试股票',...extras};}
 test('买入、加仓、卖出移动加权成本正确',()=>{
@@ -187,4 +187,58 @@ test('旧日快照、失效扫描、未覆盖股票和未核实股数都不能�
  assert.equal(assessHoldingRisk(holding(),degraded,'2026-10-12').state,'not_covered');
  assert.equal(assessHoldingRisk(holding('600985'),monitoring(),'2026-10-12').state,'not_covered');
  assert.equal(assessHoldingRisk({...holding(),verified:false},monitoring(),'2026-10-12').state,'unverified');
+});
+
+test('赤峰黄金的长文本规则应识别39.50元收盘退出线，不被日期和盘中短破说明干扰',()=>{
+ const rule='【2026-10-12拟定｜日线收盘确认】核心退出线39.50元：若日线收盘价严格低于39.50元，退出全部400股。10/12页面列出收盘39.61元；若仅盘中跌破后收回，不算确认。下方38.25元为阶段支撑。';
+ const p=holding('600988',[rule]);
+ const result=assessHoldingRisk(p,monitoring(39.28),'2026-10-12');
+ assert.equal(result.rule.state,'close_pending');
+ assert.equal(result.rule.levels.length,1);
+ assert.equal(result.rule.levels[0].price,39.5);
+ assert.match(result.label,/39.50/);
+ assert.match(result.label,/待收盘确认/);
+ assert.equal(result.state,'pending');
+});
+test('淮北矿业双价格线：15.88预警线盘中低于，不把15.70收盘退出线当成已触发',()=>{
+ const p=holding('600988',['【2026-10-12拟定｜日线收盘确认】预警线15.88元：本轮短线预警。首要退出线15.70元：若后续日线收盘严格低于15.70元，退出全部500股。15.57元是阶段底线。']);
+ const r=assessHoldingRisk(p,monitoring(15.82),'2026-10-12');
+ assert.equal(r.rule.state,'warning_only');
+ assert.equal(r.rule.levels.length,2);
+ assert.equal(r.rule.levels[0].kind,'warning');
+ assert.equal(r.rule.levels[1].price,15.7);
+ assert.equal(r.state,'warning');
+ assert.match(r.label,/15.88/);
+ assert.doesNotMatch(r.label,/盘中走弱/);
+});
+test('白银有色两级退出线在缺少冻结行情时仍显示Airtable规则，但不能认定已触发',()=>{
+ const text='【2026-10-12拟定｜日线收盘确认】第一道退出线5.48元：若日线收盘价严格低于5.48元，计划减仓2000股。最终失效线5.35元：若收盘低于5.35元，余下仓位退出；仅盘中跌破不算确认。';
+ const p={code:'601212',shares:4000,verified:true,avgCost:5.62,conditions:[text,text]};
+ const r=assessHoldingRisk(p,monitoring(15.82),'2026-10-12');
+ assert.equal(r.state,'not_covered');
+ assert.equal(r.rule.state,'await_price');
+ assert.deepEqual(r.rule.levels.map(x=>x.price),[5.48,5.35]);
+ assert.match(r.label,/退出计划已记录/);
+ assert.equal(r.rule.levels[0].observation,'no_quote');
+ const old=monitoring(15.82);old.trade_date='2026-10-09';
+ const stale=assessHoldingRisk(p,old,'2026-10-12');
+ assert.equal(stale.state,'stale');
+ assert.match(stale.rule.label,/退出计划已记录/);
+});
+test('两级用户退出线分别判断盘中价位，收盘要求不会降级成自动减仓',()=>{
+ const plan=['【日线收盘确认】第一道退出线5.48元：若日线收盘价严格低于5.48元计划减仓；最终失效线5.35元：收盘低于5.35元退出。'];
+ const p=holding('600988',plan);
+ const r=assessHoldingRisk(p,monitoring(5.3),'2026-10-12');
+ assert.equal(r.rule.state,'close_pending');
+ assert.deepEqual(r.rule.levels.map(x=>x.observation),['below','below']);
+ assert.notEqual(r.state,'triggered');
+ assert.match(r.label,/5.48/);
+ assert.match(r.label,/5.35/);
+});
+test('名称相同价格不一致或没有明确判断时点则不主动解释为触发',()=>{
+ const inconsistent=['【日线收盘确认】核心退出线39.50元；旧版本核心退出线38.25元'];
+ assert.equal(extractExitLevels(inconsistent).state,'conflict');
+ const unknown=['核心退出线39.50元，但尚不确定用盘中或收盘'];
+ assert.equal(extractExitLevels(unknown).state,'ambiguous');
+ assert.equal(evaluateExitCondition(unknown,39.2).state,'review');
 });
