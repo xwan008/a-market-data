@@ -6,7 +6,7 @@ import {
  RefreshCw, Search, ShieldCheck, ShieldAlert, SlidersHorizontal,
  Sparkles, Target, TrendingUp, Wallet, X, Zap, PanelLeftClose, ListFilter
 } from 'lucide-react';
-import {asArray, latestMonitorRecords, fixed, fmtTime, formatSource, pct, safeText, shanghaiDay, summarizeTrades} from './model.js';
+import {asArray, latestMonitorRecords, fixed, fmtTime, formatSource, pct, safeText, shanghaiDay, summarizeTrades, validSnapshots, snapshotChange, rankedTrendRows} from './model.js';
 
 const sections = [
  {id:'overview',icon:BarChart3,title:'市场总览',en:'Overview'},
@@ -44,12 +44,69 @@ function TrendInspector({item}) {
  const contrary=asArray(item.contrary_evidence).slice(-2).reverse();
  return <div className="detail-content"><div className="detail-hero"><div className="eyebrow">SECTOR PROFILE / 板块详情</div><h2>{item.trend_name}</h2><div className="detail-badges"><Badge>{item.market_state}</Badge><Badge>{item.lifecycle_status}</Badge></div></div><div className="data-pair"><div><span>产业阶段</span><strong>{stageLabel(item.trend_state)}</strong></div><div><span>最近核验</span><strong>{safeText(item.last_verified_trade_date)}</strong></div></div><div className="detail-section"><div className="small-heading"><GitBranch size={15}/> 状态演变</div><HistoryStrip events={item.state_history}/></div><div className="detail-section"><div className="small-heading"><Check size={15}/> 支持证据</div>{evidence.length ? evidence.map((e,i)=><div className="evidence" key={i}><span className="evidence-date">{e.trade_date}</span><p>{e.description}</p>{/^https?:\/\//.test(e.source||'')&&<a href={e.source} target="_blank" rel="noopener noreferrer">查看依据 <ExternalLink size={12}/></a>}</div>):<p className="muted">没有已发布证据</p>}</div><div className="detail-section"><div className="small-heading"><ShieldAlert size={15}/> 反向证据</div>{contrary.length ? contrary.map((e,i)=><div className="evidence" key={i}><span className="evidence-date">{e.trade_date}</span><p>{e.description}</p></div>):<p className="muted">暂无记录</p>}</div><div className="invalidation"><span>失效观察条件</span><p>{safeText(item.invalidation_condition)}</p></div></div>;
 }
-function TrendTable({trends,onSelect,selected,compact=false}) {
- const [query,setQuery]=useState('');const [state,setState]=useState('全部');
- const filtered=useMemo(()=>trends.filter(t=>(t.trend_name||'').includes(query)&& (state==='全部'||t.market_state===state)),[trends,query,state]);
- return <><div className="table-controls"><div className="search"><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="搜索板块名称..."/></div><div className="filter-select"><ListFilter size={16}/><select value={state} onChange={e=>setState(e.target.value)}><option>全部</option>{[...new Set(trends.map(t=>t.market_state).filter(Boolean))].map(s=><option key={s}>{s}</option>)}</select><ChevronDown size={13}/></div></div><div className="table-wrap"><table className="data-table"><thead><tr><th>板块方向</th><th>产业阶段</th><th>市场状态</th>{!compact&&<th>生命周期</th>}<th>核验日期</th><th className="arrow-col"/></tr></thead><tbody>{filtered.map(t=><tr key={t.trend_name} className={selected?.trend_name===t.trend_name?'row-selected':''} onClick={()=>onSelect(t)}><td><strong>{t.trend_name}</strong><small>{asArray(t.industry_names).slice(0,2).join(' / ')||'—'}</small></td><td><span className="stage-cell">{t.trend_state||'—'}</span></td><td><Badge>{t.market_state}</Badge></td>{!compact&&<td><span className="soft-text">{t.lifecycle_status||'—'}</span></td>}<td><span className="mono soft-text">{t.last_verified_trade_date||'—'}</span></td><td className="arrow-col"><ChevronRight size={16}/></td></tr>)}</tbody></table>{!filtered.length&&<Empty title="没有匹配板块" detail="更改搜索词或状态筛选试试" icon={Search}/>}</div><div className="table-footer">展示 {filtered.length} / {trends.length} 个方向 <span>点击行查看依据</span></div></>;
+
+const signed = (value,digits=1) => typeof value==='number' && Number.isFinite(value) ? (value>0?'+':'')+fixed(value,digits) : '—';
+const changeWord = d => d==null?'不足两轮':d<0?'回落':d>0?'回升':'持平';
+function SnapshotPlot({rows,field,label,unit='%',scale=1,bounds=null,compact=false,color='mint'}){
+ const id=React.useId().replace(/:/g,'');
+ const data=asArray(rows).filter(row=>typeof row?.[field]==='number' && Number.isFinite(row[field]) && !Number.isNaN(Date.parse(row.scan_at)))
+  .map(row=>({at:Date.parse(row.scan_at),value:row[field]*scale,scan_at:row.scan_at})).sort((a,b)=>a.at-b.at);
+ if(!data.length)return <span className="plot-unavailable">无有效数值快照</span>;
+ const w=compact?164:680,h=compact?53:242;
+ const left=compact?5:56,right=compact?5:24,top=compact?7:17,bottom=compact?7:43;
+ const values=data.map(x=>x.value);
+ let low=bounds?bounds[0]:Math.min(...values);
+ let high=bounds?bounds[1]:Math.max(...values);
+ if(!bounds){const spread=high-low;const pad=Math.max(spread*.20,Math.max(Math.abs(high),Math.abs(low),1)*.012);low-=pad;high+=pad}
+ if(high<=low){low-=1;high+=1}
+ const xMin=data[0].at,xMax=data.at(-1).at;
+ const xp=item=>xMax===xMin?(left+w-right)/2:left+(item.at-xMin)/(xMax-xMin)*(w-left-right);
+ const yp=item=>top+(high-item.value)/(high-low)*(h-top-bottom);
+ const pts=data.map(x=>[xp(x),yp(x)]);
+ const path=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(2)+' '+p[1].toFixed(2)).join(' ');
+ const area=path+' L'+pts.at(-1)[0].toFixed(2)+' '+(h-bottom)+' L'+pts[0][0].toFixed(2)+' '+(h-bottom)+' Z';
+ const display=value=>fixed(value,unit==='元'?2:1)+unit;
+ return <div className={compact?'plot plot-compact':'plot plot-large'}>
+  {!compact&&<div className="plot-head"><strong>{label}</strong><span>{data.length} 轮有效快照 · 最新 {display(data.at(-1).value)}</span></div>}
+  <svg viewBox={'0 0 '+w+' '+h} preserveAspectRatio="xMidYMid meet" role="img" aria-label={label+'：'+data.map(d=>fmtTime(d.scan_at)+' '+display(d.value)).join('，')}>
+   <defs><linearGradient id={id} x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor={color==='amber'?'#d0b18a':'#9ecbb0'} stopOpacity=".15"/><stop offset="100%" stopColor={color==='amber'?'#d0b18a':'#9ecbb0'} stopOpacity="0"/></linearGradient></defs>
+   {!compact&&[0,.5,1].map((t,i)=><g key={i}><line x1={left} y1={top+t*(h-top-bottom)} x2={w-right} y2={top+t*(h-top-bottom)} className="plot-grid"/><text x={left-12} y={top+t*(h-top-bottom)+4} textAnchor="end" className="plot-axis">{display(high-t*(high-low))}</text></g>)}
+   {data.length>=2&&<path d={area} fill={'url(#'+id+')'}/>}
+   {data.length>=2&&<path className={'plot-line plot-line-'+color} d={path} fill="none" strokeWidth={compact?2.2:2.65} strokeLinecap="round" strokeLinejoin="round"/>}
+   {data.map((d,i)=><g key={d.scan_at}><circle cx={pts[i][0]} cy={pts[i][1]} r={compact?3.25:4.6} className={'plot-point plot-point-'+color}/><title>{fmtTime(d.scan_at)+' · '+display(d.value)}</title>{!compact&&<text x={pts[i][0]} y={h-14} className="plot-axis plot-time" textAnchor="middle">{new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(d.at))}</text>}</g>)}
+  </svg>
+ </div>;
+}
+function SnapshotTimeline({rows,kind='sector'}){
+ if(!rows.length)return <div className="chart-empty">该交易日没有有效监测记录。</div>;
+ return <div className="snapshot-timeline">{rows.map((row,i)=><div className="snapshot-event" key={row.scan_at}>
+  <div className="snapshot-marker">{String(i+1).padStart(2,'0')}</div>
+  <div className="snapshot-event-main"><div className="snapshot-event-head"><strong>{fmtTime(row.scan_at)}</strong><Badge>{kind==='sector'?row.current_state||'—':row.price_behavior||'—'}</Badge><span>{kind==='sector'?'结构动量 '+safeText(row.structure_momentum):'相对强度 '+safeText(row.relative_strength)}</span></div>
+  <div className="snapshot-event-figures">{kind==='sector'?'上涨家数占比 '+(typeof row.up_ratio==='number'?fixed(row.up_ratio*100,1)+'%':'—')+' · 中位涨幅 '+pct(row.median_change_pct):'快照价格 '+(typeof row.price==='number'?fixed(row.price)+' 元':'—')+' · 相对行业 '+pct(row.relative_to_industry_pct)}</div>
+  <details className="snapshot-details"><summary>查看本轮判断依据</summary><p>{safeText(row.reason)}</p></details>
+  </div></div>)}</div>;
 }
 
+function TrendTable({trends,onSelect,selected,monitor,monitorDay,sortMode,onSort,compact=false}){
+ const [query,setQuery]=useState(''),[state,setState]=useState('全部');
+ const filtered=useMemo(()=>trends.filter(t=>(t.trend_name||'').includes(query)&&(state==='全部'||t.market_state===state)),[trends,query,state]);
+ const options=[...new Set(trends.map(t=>t.market_state).filter(Boolean))];
+ return <><div className="table-controls trend-controls"><div className="search"><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="搜索板块名称…"/></div>
+ <div className="filter-select"><select value={state} onChange={e=>setState(e.target.value)} aria-label="按市场状态筛选"><option>全部</option>{options.map(s=><option key={s}>{s}</option>)}</select><ChevronDown size={13}/></div>
+ {onSort&&<div className="filter-select"><select value={sortMode} onChange={e=>onSort(e.target.value)} aria-label="排序方式"><option value="formal">正式优先顺序</option><option value="change">当日广度变化幅度</option></select><ChevronDown size={13}/></div>}</div>
+ <div className="table-wrap"><table className="data-table trend-ranked-table"><thead><tr><th>正式名次</th><th>板块方向</th><th>市场状态</th>{!compact&&<th>盘中上涨占比</th>}{!compact&&<th>当日广度变化</th>}<th>核验日</th><th/></tr></thead><tbody>{filtered.map(t=>{
+ const rows=validSnapshots(monitor?.[t.trend_name],monitorDay);
+ const delta=snapshotChange(rows,'up_ratio',100);
+ return <tr key={t.trend_name} className={selected?.trend_name===t.trend_name?'row-selected':''} onClick={()=>onSelect(t)}>
+  <td><span className={t.priorityRank!=null?'official-rank':'unranked'}>{t.priorityRank!=null?String(t.priorityRank).padStart(2,'0'):'—'}</span></td>
+  <td><strong>{t.trend_name}</strong><small>{safeText(t.trend_state)} · {asArray(t.industry_names).slice(0,1).join(' / ')||'正式趋势池'}</small></td>
+  <td><Badge>{t.market_state}</Badge></td>
+  {!compact&&<td><SnapshotPlot rows={rows} field="up_ratio" label="上涨占比" scale={100} bounds={[0,100]} compact/></td>}
+  {!compact&&<td><span className={'trend-delta '+(delta!=null&&delta<0?'trend-down':'')}>{delta==null?'—':signed(delta,1)+' pp'}</span><small>{rows.length?'采样 '+rows.length+' 轮':'未覆盖'}</small></td>}
+  <td className="mono soft-text">{safeText(t.last_verified_trade_date)}</td><td className="arrow-col"><ChevronRight size={16}/></td>
+ </tr>})}</tbody></table>{!filtered.length&&<Empty title="没有匹配板块" detail="调整搜索条件再试" icon={Search}/>}</div>
+ <div className="table-footer">展示 {filtered.length} / {trends.length} 个板块 <span>正式名次仅来自趋势 Handoff · 广度变化单位 pp（百分点）</span></div></>;
+}
 function Overview({registry,trendHandoff,buy,monitor,portfolio,status,onSection,setSelectedBuy}){
  const confirmedPositions=portfolio.positions.filter(p=>p.verified);
  const unverifiedPositions=portfolio.positions.filter(p=>!p.verified);
