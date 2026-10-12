@@ -9,6 +9,7 @@ from statistics import median
 import fetch_market as market
 import intraday_crossday_context as crossday
 import trend_buy_handoff as trend_contract
+import holding_watchlist as holdings
 
 ROOT = Path(__file__).resolve().parents[1]
 RESEARCH_DIR = ROOT / "research"
@@ -262,6 +263,7 @@ def main() -> int:
     trend = read_json(TREND_PATH)
     try:
         trend_buy_handoff, trend_buy_items, stock_handoff_kind = active_stock_handoff()
+        holding_items = holdings.load_watchlist()
     except ValueError as exc:
         print(json.dumps({"error": "invalid_trend_buy_handoff", "detail": str(exc)}, ensure_ascii=False))
         return 2
@@ -334,6 +336,9 @@ def main() -> int:
             "industry_codes": list(signal.get("industry_codes") or []),
             "company_codes": sorted(set(grouped_codes)),
         }
+
+    # Holding-only tickers join the quote query without changing frozen handoff membership.
+    target_codes.update(item['code'] for item in holding_items)
 
     trend_buy_only_attempted: set[str] = set()
     for item in trend_buy_items:
@@ -573,6 +578,30 @@ def main() -> int:
         )
     )
 
+    # Independent holding quote records; never invent formal READY/WAIT signals.
+    holding_stocks = {}
+    for item in holding_items:
+        code = item["code"]
+        quote = quotes.get(code) or {}
+        holding_stocks[code] = {
+            "code": code, "company_name": item["company_name"],
+            "source_scope": "holding_watchlist",
+            "in_trend_buy_handoff": code in trend_buy_stocks,
+            "price": quote.get("price"), "prev_close": quote.get("prev_close"),
+            "change_pct": quote.get("change_pct"),
+            "quote_time": quote.get("quote_time"),
+            "confidence": quote.get("confidence", "invalid"),
+            "warnings": quote.get("warnings") or [],
+        }
+    holding_stock_coverage_passed = set(holding_stocks) == {item["code"] for item in holding_items}
+    holding_valid_quote_count = sum(
+        1 for row in holding_stocks.values()
+        if row.get("confidence") in {"high", "medium"}
+        and isinstance(row.get("price"), (int, float)) and row["price"] > 0
+        and isinstance(row.get("quote_time"), str)
+        and row["quote_time"].startswith(trade_date or "")
+    )
+
     usable_quotes = sum(
         1
         for quote in quotes.values()
@@ -606,6 +635,7 @@ def main() -> int:
                 if trade_date == now.date().isoformat()
                 and source_handoff_trade_date_consistent
                 and trend_buy_stock_coverage_passed
+                and holding_stock_coverage_passed
                 and formal_prev_close_alignment_passed
                 and quote_coverage >= 0.90
                 and not manifest_errors
@@ -618,6 +648,10 @@ def main() -> int:
             "trend_buy_handoff_item_count": len(trend_buy_items),
             "trend_buy_stock_count": len(trend_buy_stocks),
             "trend_buy_stock_coverage_passed": trend_buy_stock_coverage_passed,
+            "holding_stock_count": len(holding_stocks),
+            "holding_quote_valid_count": holding_valid_quote_count,
+            "holding_stock_coverage_passed": holding_stock_coverage_passed,
+            "holding_watchlist_as_of": read_json(holdings.WATCHLIST_PATH).get("as_of_date"),
             "formal_prev_close_comparable_count": formal_prev_close_comparable_count,
             "formal_prev_close_matched_count": formal_prev_close_matched_count,
             "formal_prev_close_alignment_ratio": round(formal_prev_close_alignment_ratio, 4),
@@ -639,6 +673,7 @@ def main() -> int:
         "trends": trends,
         "industries": industries,
         "trend_buy_stocks": trend_buy_stocks,
+        "holding_stocks": holding_stocks,
     }
 
     if crossday_archive is not None:
@@ -660,6 +695,8 @@ def main() -> int:
                 "quote_coverage": round(quote_coverage, 4),
                 "industry_count": len(industries),
                 "trend_buy_stock_count": len(trend_buy_stocks),
+                "holding_stock_count": len(holding_stocks),
+                "holding_quote_valid_count": holding_valid_quote_count,
                 "history_context_available_count": len(history_contexts),
                 "history_context_part_read_count": history_context_part_read_count,
                 "validation_status": payload["validation"]["status"],

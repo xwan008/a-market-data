@@ -188,7 +188,7 @@ function TrendTable({trends,onSelect,selected,monitor,monitorDay,sortMode,onSort
  <div className="table-footer">展示 {filtered.length} / {trends.length} 个板块 <span>正式名次仅来自趋势 Handoff · 广度变化单位 pp（百分点）</span></div></>;
 }
 
-function Overview({registry,trendHandoff,buy,monitor,portfolio,status,onSection,setSelectedBuy,monitorUi,setMonitorUi,openMonitor}){
+function Overview({registry,trendHandoff,buy,monitor,holdingSnapshot,portfolio,status,onSection,setSelectedBuy,monitorUi,setMonitorUi,openMonitor}){
  const monitorCurrent=status.monitor==='OK'&&monitor?.result_kind==='a_share_intraday_monitor_state'&&monitor?.trade_date===shanghaiDay();
  const monitorDay=monitorCurrent?monitor.trade_date:null;
  const history=monitorCurrent?monitor.industry_history:{};
@@ -252,7 +252,7 @@ function Overview({registry,trendHandoff,buy,monitor,portfolio,status,onSection,
     {status.airtable!=='OK'?<div className="decision-empty">Airtable 当前不可用；不能确认持仓。</div>:positions.length?
      <div className="decision-rows">{positions.map(p=>{
       const scans=monitorCurrent?validSnapshots(monitor.stock_history?.[p.code],monitorDay):[];
-      const assessment=assessHoldingRisk(p,status.monitor==='OK'?monitor:null,shanghaiDay());
+      const assessment=assessHoldingRisk(p,status.monitor==='OK'?monitor:null,shanghaiDay(),status.holdingSnapshot==='OK'?holdingSnapshot:null);
       return <button className="decision-row home-holding" key={p.code} onClick={()=>onSection('portfolio')}>
        <div className="decision-row-main"><strong>{p.name}</strong><small>{p.code} · {p.verified?p.shares+' 股':'持仓待核验'}</small></div>
        <div className="home-mini-chart">{scans.length>=2?<SnapshotPlot rows={scans} field="price" label="盘中快照价" unit="元" compact/>:<span className="plot-unavailable">暂无价格曲线</span>}</div>
@@ -478,7 +478,7 @@ function PortfolioTrades({position}){
   <p className="portfolio-trades-foot">按登记交易日期倒序展示，不推断同日交易先后；成本与持仓股数仍由原有核算逻辑计算。</p>
  </div>;
 }
-function Portfolio({data,status,monitor}){
+function Portfolio({data,status,monitor,holdingSnapshot}){
  const {positions,recordCount,invalidCount}=data;
  const ok=status.airtable==='OK';
  const [selectedCode,setSelectedCode]=useState(null);
@@ -486,7 +486,7 @@ function Portfolio({data,status,monitor}){
  const [listFilter,setListFilter]=useState('all');
  const today=shanghaiDay();
  const rows=useMemo(()=>positions.map(position=>({
-  position,assessment:assessHoldingRisk(position,status.monitor==='OK'?monitor:null,today)
+  position,assessment:assessHoldingRisk(position,status.monitor==='OK'?monitor:null,today,status.holdingSnapshot==='OK'?holdingSnapshot:null)
  })).sort((a,b)=>(portfolioPriority[a.assessment.state]??5)-(portfolioPriority[b.assessment.state]??5)),[positions,monitor,status.monitor,today]);
  const attentionCount=rows.filter(row=>portfolioAttention.has(row.assessment.state)).length;
  const unverifiedCount=invalidCount+positions.filter(position=>!position.verified).length;
@@ -593,5 +593,5 @@ export default function App(){
  const portfolio=useMemo(()=>attachRiskPlans(ledger,datasets.riskPlans,status.riskPlans),[ledger,datasets.riskPlans,status.riskPlans]);
  if(authenticated===null)return <div className="boot-screen"><img className="brand-mark" src="/favicon.svg" alt="" aria-hidden="true"/><img className="brand-wordmark" src="/wordmark.svg" alt="w.x."/><div className="spinner"/></div>;
  if(!authenticated)return <Login login={login} loading={loadingLogin} error={loginError} setupError={setupError}/>;
- return <div className="app-shell"><Sidebar section={section} onSection={setSection} openMenu={menu} setOpenMenu={setMenu} status={status}/><div className="main-shell"><Header section={section} refresh={fetchData} refreshing={loading} data={payload} openMenu={menu} setOpenMenu={setMenu} logout={logout}/><main className="main-content">{payload?.fetchError&&<div className="fetch-warning"><CircleAlert size={17}/>{payload.fetchError}，展示上次成功加载的数据。</div>}{!payload?<Skeleton/>:<div className="view-enter" key={section}>{section==='overview'&&<Overview registry={datasets.registry} trendHandoff={datasets.trendHandoff} buy={datasets.buyHandoff} monitor={datasets.monitor} portfolio={portfolio} status={status} onSection={setSection} setSelectedBuy={setSelectedBuy} monitorUi={monitorUi} setMonitorUi={setMonitorUi} openMonitor={openMonitor}/ >}{section==='trends'&&<Trends registry={datasets.registry} trendHandoff={datasets.trendHandoff} monitor={datasets.monitor} archive={datasets.crossdayArchive} selected={selectedTrend} setSelected={setSelectedTrend}/ >}{section==='buy'&&<Buy buy={datasets.buyHandoff} selected={selectedBuy} setSelected={setSelectedBuy} status={status}/ >}{section==='monitor'&&<Monitor monitor={datasets.monitor} archive={datasets.crossdayArchive} status={status} monitorUi={monitorUi} setMonitorUi={setMonitorUi}/ >}{section==='portfolio'&&<Portfolio data={portfolio} status={status} monitor={datasets.monitor}/>}</div>}<footer className="main-footer"><span>w.x. · 辨势</span><span>数据来自已发布的 GitHub 文件和私有 Airtable 记录 · 仅供研究参考，不构成交易建议</span><span>{payload?.receivedAt?`页面读取于 ${fmtTime(payload.receivedAt)}`:'等待同步'}</span></footer></main></div></div>;
+ return <div className="app-shell"><Sidebar section={section} onSection={setSection} openMenu={menu} setOpenMenu={setMenu} status={status}/><div className="main-shell"><Header section={section} refresh={fetchData} refreshing={loading} data={payload} openMenu={menu} setOpenMenu={setMenu} logout={logout}/><main className="main-content">{payload?.fetchError&&<div className="fetch-warning"><CircleAlert size={17}/>{payload.fetchError}，展示上次成功加载的数据。</div>}{!payload?<Skeleton/>:<div className="view-enter" key={section}>{section==='overview'&&<Overview registry={datasets.registry} trendHandoff={datasets.trendHandoff} buy={datasets.buyHandoff} monitor={datasets.monitor} holdingSnapshot={datasets.holdingSnapshot} portfolio={portfolio} status={status} onSection={setSection} setSelectedBuy={setSelectedBuy} monitorUi={monitorUi} setMonitorUi={setMonitorUi} openMonitor={openMonitor}/ >}{section==='trends'&&<Trends registry={datasets.registry} trendHandoff={datasets.trendHandoff} monitor={datasets.monitor} archive={datasets.crossdayArchive} selected={selectedTrend} setSelected={setSelectedTrend}/ >}{section==='buy'&&<Buy buy={datasets.buyHandoff} selected={selectedBuy} setSelected={setSelectedBuy} status={status}/ >}{section==='monitor'&&<Monitor monitor={datasets.monitor} archive={datasets.crossdayArchive} status={status} monitorUi={monitorUi} setMonitorUi={setMonitorUi}/ >}{section==='portfolio'&&<Portfolio data={portfolio} status={status} monitor={datasets.monitor} holdingSnapshot={datasets.holdingSnapshot}/>}</div>}<footer className="main-footer"><span>w.x. · 辨势</span><span>数据来自已发布的 GitHub 文件和私有 Airtable 记录 · 仅供研究参考，不构成交易建议</span><span>{payload?.receivedAt?`页面读取于 ${fmtTime(payload.receivedAt)}`:'等待同步'}</span></footer></main></div></div>;
 }

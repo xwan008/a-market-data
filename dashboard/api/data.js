@@ -5,6 +5,7 @@ const FILES = {
   trendHandoff: ['research/trend_handoff.json','a_share_trend_handoff'],
   buyHandoff: ['research/trend_buy_handoff.json',null],
   monitor: ['research/intraday_monitor_state.json','a_share_intraday_monitor_state'],
+  holdingSnapshot: ['research/intraday_market_snapshot.json','a_share_intraday_market_snapshot'],
   crossdayArchive: ['research/intraday_crossday_archive.json','a_share_intraday_crossday_archive']
 };
 const TIMEOUT_MS = 12000;

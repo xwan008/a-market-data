@@ -345,18 +345,37 @@ export function evaluateExitCondition(positionOrPlan,price){
   levels,basis};
 }
 
-export function assessHoldingRisk(position,monitor,today=shanghaiDay()){
+// A verified independently collected quote can fill the holding-only monitor gap.
+// It is neither an official closing price nor a formal research signal.
+export function validHoldingQuote(snapshot,code,today){
+ if(snapshot?.result_kind!=='a_share_intraday_market_snapshot'||snapshot?.trade_date!==today||
+    typeof snapshot.captured_at!=='string'||!snapshot.captured_at.startsWith(today)||
+    Number.isNaN(Date.parse(snapshot.captured_at)))return null;
+ const q=snapshot.holding_stocks?.[code];
+ if(!q||q.code!==code||q.source_scope!=='holding_watchlist'||
+    !['high','medium'].includes(q.confidence)||
+    typeof q.price!=='number'||!Number.isFinite(q.price)||q.price<=0||
+    typeof q.quote_time!=='string'||!q.quote_time.startsWith(today)||
+    Number.isNaN(Date.parse(q.quote_time)))return null;
+ return {scan_at:snapshot.captured_at,company_name:q.company_name,code,
+   price:q.price,change_pct:q.change_pct,source_scope:'holding_watchlist',
+   data_quality:'READY'};
+}
+
+export function assessHoldingRisk(position,monitor,today=shanghaiDay(),holdingSnapshot=null){
  const ruleBase=evaluateExitCondition(position,null);
  const base={state:'unavailable',tone:'neutral',label:ruleBase.label,rule:ruleBase,evidence:[],last:null,marketDay:null};
  if(!position?.verified||!Number.isInteger(position.shares)||position.shares<=0)
   return {...base,state:'unverified',label:'持仓待核验',
    rule:{...ruleBase,detail:'持仓股数尚未核实；'+ruleBase.detail}};
- if(monitor?.result_kind!=='a_share_intraday_monitor_state'||monitor?.trade_date!==today)
-  return {...base,state:'stale',note:'无当日有效盘中扫描，不能用历史价格判定今天的退出条件。'};
- const scans=validSnapshots(monitor.stock_history?.[position.code],today);
- if(!scans.length)return {...base,state:'not_covered',marketDay:today,
-  note:'该持仓未进入当日冻结个股监测池；仍可查看结构化退出规则。'};
- const last=scans.at(-1);
+ const monitorToday=monitor?.result_kind==='a_share_intraday_monitor_state'&&monitor?.trade_date===today;
+ const scans=monitorToday?validSnapshots(monitor.stock_history?.[position.code],today):[];
+ const researched=scans.at(-1);
+ const supplemental=validHoldingQuote(holdingSnapshot,position.code,today);
+ const last=supplemental&&(!researched||Date.parse(supplemental.scan_at)>Date.parse(researched.scan_at))
+  ? supplemental:researched;
+ if(!last)return {...base,state:monitorToday?'not_covered':'stale',marketDay:monitorToday?today:null,
+  note:'该持仓没有有效的同日行情快照；仍可查看结构化退出规则。'};
  if(typeof last.price!=='number'||!Number.isFinite(last.price)||last.price<=0)
   return {...base,state:'no_price',marketDay:today,last,note:'无有效当日报价，退出规则仅展示，不计算是否触及。'};
  const rule=evaluateExitCondition(position,last.price);
@@ -370,7 +389,7 @@ export function assessHoldingRisk(position,monitor,today=shanghaiDay()){
  if(typeof low==='number'&&Number.isFinite(low)&&low>0)
   evidence.push(last.price<low?'盘中价低于历史结构低点 '+fixed(low)+' 元；仍须结构确认':
    '历史结构低点 '+fixed(low)+' 元；盘中快照价尚未跌破');
- const sector=validSnapshots(monitor.industry_history?.[last.trend_name],today).at(-1);
+ const sector=validSnapshots(monitorToday?monitor.industry_history?.[last.trend_name]:null,today).at(-1);
  if(['衰退预警','分歧'].includes(sector?.current_state))
   evidence.push('所属板块盘中状态：'+sector.current_state+'（不独立触发退出）');
  const weak=last.price_behavior==='转弱'||
@@ -381,5 +400,5 @@ export function assessHoldingRisk(position,monitor,today=shanghaiDay()){
   rule.state==='warning_only'?'warning':rule.state==='no_plan'?'missing':weak?'watch':'observing';
  const tone=state==='triggered'?'fall':state==='pending'||state==='warning'?'caution':weak?'caution':'neutral';
  return {state,tone,label:rule.label,rule,evidence,last,marketDay:today,
-  note:'只比较 Airtable 结构化价格与同日已发布行情；需要收盘确认的条件不代表已触发退出，更不代表自动成交。'};
+  note:(last.source_scope==='holding_watchlist'?'行情来自持仓补充池，无正式 handoff 趋势信号。':'')+'只比较 Airtable 结构化价格与同日已发布行情；需要收盘确认的条件不代表已触发退出，更不代表自动成交。'};
 }
