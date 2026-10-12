@@ -370,3 +370,30 @@ test('冻结名次不存在时按同板块正式结果回退，仍保持代码�
  assert.equal(selectRepresentativeStocks(monitor,buy,day)[0].code,'002125');
  assert.equal(selectRepresentativeStocks(monitor,null,day)[0].code,'000049');
 });
+
+
+test('held stock outside handoff can trigger the existing risk plan with a fresh independent quote',()=>{
+ const p=owned('600985',[riskRow('600985',15.70)],500);
+ const q={result_kind:'a_share_intraday_market_snapshot',trade_date:today,
+  captured_at:today+'T14:28:23+08:00',holding_stocks:{
+   '600985':{code:'600985',company_name:'淮北矿业',source_scope:'holding_watchlist',
+   price:15.60,change_pct:-2,quote_time:today+'T14:28:00+08:00',confidence:'high',
+   in_trend_buy_handoff:false}}};
+ const result=assessHoldingRisk(p,monitor(),today,q);
+ assert.equal(result.state,'pending');
+ assert.equal(result.last.source_scope,'holding_watchlist');
+ assert.equal(assessHoldingRisk(p,monitor(),today,{...q,trade_date:'2026-10-09'}).state,'not_covered');
+ assert.equal(assessHoldingRisk(p,monitor(),today,{...q,holding_stocks:{
+  '600985':{...q.holding_stocks['600985'],confidence:'invalid'}}}).state,'not_covered');
+});
+
+test('older holding quote cannot overwrite a newer formal monitor scan',()=>{
+ const p=owned();
+ const q={result_kind:'a_share_intraday_market_snapshot',trade_date:today,
+  captured_at:today+'T10:00:00+08:00',holding_stocks:{'600988':{
+   code:'600988',company_name:'赤峰黄金',source_scope:'holding_watchlist',
+   price:38,quote_time:today+'T10:00:00+08:00',confidence:'medium'}}};
+ const result=assessHoldingRisk(p,monitor(40.20),today,q);
+ assert.notEqual(result.last.source_scope,'holding_watchlist');
+ assert.equal(result.state,'watch');
+});
