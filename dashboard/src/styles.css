@@ -1154,3 +1154,47 @@ button{transition:color .2s var(--studio-ease),background-color .2s var(--studio
  outline:2px solid rgba(173,205,184,.58);
  outline-offset:2px;
 }
+
+/* Sector trends: the ranking and its selected detail are separate desktop scroll areas.
+   Previous >1200px sticky breakpoint silently disabled this behavior at 1011–1200px.
+   A long detail also used to bound sticky against a shorter left list. */
+@media (min-width:1011px){
+ .trend-workspace{
+  grid-template-columns:minmax(0,1.18fr) minmax(300px,.82fr);
+  align-items:start;
+ }
+ .trend-workspace > .panel:first-child{
+  min-width:0;
+  max-height:calc(100vh - 104px);
+  max-height:calc(100dvh - 104px);
+  overflow-x:hidden;
+  overflow-y:auto;
+  overscroll-behavior-y:contain;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(148,169,155,.34) transparent;
+ }
+ .trend-workspace > .inspector{
+  position:sticky;
+  top:88px;
+  align-self:start;
+  min-width:0;
+  max-height:calc(100vh - 104px);
+  max-height:calc(100dvh - 104px);
+  overflow-x:hidden;
+  overflow-y:auto;
+  overscroll-behavior-y:contain;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(148,169,155,.34) transparent;
+ }
+}
+/* Preserve the normal stacked document flow on narrow screens. */
+@media (max-width:1010px){
+ .trend-workspace{grid-template-columns:minmax(0,1fr)}
+ .trend-workspace > .panel:first-child,
+ .trend-workspace > .inspector{
+  position:static;
+  max-height:none;
+  overflow:hidden;
+  overscroll-behavior-y:auto;
+ }
+}
