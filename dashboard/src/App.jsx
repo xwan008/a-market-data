@@ -6,7 +6,7 @@ import {
  RefreshCw, Search, ShieldCheck, ShieldAlert, SlidersHorizontal,
  Sparkles, Target, Wallet, X, Zap, PanelLeftClose, ListFilter
 } from 'lucide-react';
-import {asArray, latestMonitorRecords, fixed, fmtTime, formatSource, pct, safeText, shanghaiDay, summarizeTrades, validSnapshots, snapshotChange, rankedTrendRows, seriesDirection, statusTone, trendEvents, archivedDays, assessHoldingRisk, attachRiskPlans} from './model.js';
+import {asArray, latestMonitorRecords, fixed, fmtTime, formatSource, pct, safeText, shanghaiDay, summarizeTrades, validSnapshots, snapshotChange, rankedTrendRows, seriesDirection, statusTone, trendEvents, archivedDays, assessHoldingRisk, attachRiskPlans, selectRepresentativeStocks} from './model.js';
 
 const sections = [
  {id:'overview',icon:BarChart3,title:'市场总览',en:'Overview'},
@@ -188,8 +188,7 @@ function TrendTable({trends,onSelect,selected,monitor,monitorDay,sortMode,onSort
  <div className="table-footer">展示 {filtered.length} / {trends.length} 个板块 <span>正式名次仅来自趋势 Handoff · 广度变化单位 pp（百分点）</span></div></>;
 }
 
-function Overview({registry,trendHandoff,buy,monitor,portfolio,status,onSection,setSelectedBuy}){
- const [focusSector,setFocusSector]=useState(null);
+function Overview({registry,trendHandoff,buy,monitor,portfolio,status,onSection,setSelectedBuy,monitorUi,setMonitorUi,openMonitor}){
  const monitorCurrent=status.monitor==='OK'&&monitor?.result_kind==='a_share_intraday_monitor_state'&&monitor?.trade_date===shanghaiDay();
  const monitorDay=monitorCurrent?monitor.trade_date:null;
  const history=monitorCurrent?monitor.industry_history:{};
@@ -199,8 +198,18 @@ function Overview({registry,trendHandoff,buy,monitor,portfolio,status,onSection,
   const scans=validSnapshots(historyRows,monitorDay);
   return {name,scans,delta:snapshotChange(scans,'up_ratio',100)};
  }).filter(x=>x.scans.length).sort((a,b)=>Math.abs(b.delta??0)-Math.abs(a.delta??0));
- const active=monitored.find(x=>x.name===focusSector)||monitored[0];
+ const active=monitored.find(x=>x.name===monitorUi.sector)||monitored[0];
  const industryLatest=active?.scans.at(-1);
+ const representatives=selectRepresentativeStocks(monitor,buy,monitorDay);
+ const observed=monitored.flatMap(sector=>representatives.filter(x=>x.trend_name===sector.name));
+ const selectedRepresentative=observed.find(x=>x.code===monitorUi.stock)||observed[0];
+ const selectedStockLast=selectedRepresentative?.last;
+ const openCurrentMonitor=()=>openMonitor({
+  tab:monitorUi.tab,
+  sector:active?.name||'',
+  stock:selectedRepresentative?.code||'',
+  group:monitorUi.tab==='stock'?(selectedRepresentative?.trend_name||'全部板块'):monitorUi.group
+ });
  const retreatSectors=monitored.filter(item=>item.scans.at(-1)?.current_state==='衰退预警');
  const disputeSectors=monitored.filter(item=>item.scans.at(-1)?.current_state==='分歧');
  const positions=[...portfolio.positions.filter(p=>!p.verified),...portfolio.positions.filter(p=>p.verified)].slice(0,4);
@@ -235,7 +244,7 @@ function Overview({registry,trendHandoff,buy,monitor,portfolio,status,onSection,
        <span className="overview-brief-timestamp">· {fmtTime(monitor.last_scan_at)}</span>
       </span>
       :<span className="overview-brief-signals">今日尚无有效盘中扫描</span>}
-    <button type="button" className="overview-brief-link" onClick={()=>onSection('monitor')}>查看监测 <ArrowRight size={13}/></button>
+    <button type="button" className="overview-brief-link" onClick={openCurrentMonitor}>查看监测 <ArrowRight size={13}/></button>
    </div>
   </div>
   <div className="decision-grid">
@@ -265,14 +274,27 @@ function Overview({registry,trendHandoff,buy,monitor,portfolio,status,onSection,
      })}</div>:<div className="decision-empty">本期没有正式排名的板块。</div>}
    </section>
   </div>
+
   <section className="decision-feature">
-   <div className="decision-panel-top"><div><h2>盘中真实变化</h2><p>按当天上涨家数占比变化绝对值排列观察对象；这是展示顺序，不是模型强弱评分。</p></div><button className="text-link" onClick={()=>onSection('monitor')}>查看全部监测 <ArrowRight size={14}/></button></div>
-   {!monitorCurrent||!active?<div className="decision-empty">今日尚无有效盘中快照；不会拿历史数据冒充实时曲线。</div>:<>
-    <div className="focus-switch">{monitored.map(item=><button key={item.name} className={item.name===active.name?'active':''} onClick={()=>setFocusSector(item.name)}>
+   <div className="decision-panel-top"><div><h2>盘中真实变化</h2><p>板块看整体广度，个股每个已覆盖板块只展示一只冻结研究排序靠前的代表观察股；不是龙头评选或买入信号。</p></div><button className="text-link" onClick={openCurrentMonitor}>查看详细监测 <ArrowRight size={14}/></button></div>
+   <div className="intraday-tab-switch" role="group" aria-label="市场总览盘中维度">
+    <button type="button" aria-pressed={monitorUi.tab==='sector'} className={monitorUi.tab==='sector'?'active':''} onClick={()=>setMonitorUi(prev=>({...prev,tab:'sector'}))}>板块</button>
+    <button type="button" aria-pressed={monitorUi.tab==='stock'} className={monitorUi.tab==='stock'?'active':''} onClick={()=>setMonitorUi(prev=>({...prev,tab:'stock'}))}>个股 · 每板块一只</button>
+   </div>
+   {!monitorCurrent?<div className="decision-empty">今日尚无有效盘中快照；不会用历史报价冒充当日变化。</div>:monitorUi.tab==='sector'?
+    !active?<div className="decision-empty">当天尚未发布有效板块扫描。</div>:<>
+     <div className="focus-switch">{monitored.map(item=><button key={item.name} className={item.name===active.name?'active':''} onClick={()=>setMonitorUi(prev=>({...prev,sector:item.name}))}>
       <strong>{item.name}</strong><span className={'focus-signal state-'+tone(item.scans.at(-1)?.current_state)}><span className="state-dot"/>{item.scans.at(-1)?.current_state||'未知'}</span><span className={item.delta==null?'':item.delta>0?'market-up':item.delta<0?'market-down':''}>{item.delta==null?'不足两轮':signed(item.delta,1)+' pp'}</span></button>)}</div>
-    <div className="feature-plot-grid"><div className="feature-main-plot"><SnapshotPlot rows={active.scans} field="up_ratio" label="上涨家数占比" scale={100} bounds={[0,100]}/></div><div className="feature-side-plot"><SnapshotPlot rows={active.scans} field="median_change_pct" label="成分涨跌幅中位数" /></div></div>
-    <div className="feature-caption"><span>{active.name} · 最新盘中状态 <b>{industryLatest?.current_state||'—'}</b> · 结构动量 <b>{industryLatest?.structure_momentum||'—'}</b></span><span>来源 {monitor.trade_date} · 已扫描 {active.scans.length} 轮</span></div>
-   </>}
+     <div className="feature-plot-grid"><div className="feature-main-plot"><SnapshotPlot rows={active.scans} field="up_ratio" label="上涨家数占比" scale={100} bounds={[0,100]}/></div><div className="feature-side-plot"><SnapshotPlot rows={active.scans} field="median_change_pct" label="成分涨跌幅中位数"/></div></div>
+     <div className="feature-caption"><span>{active.name} · 最新盘中状态 <b>{industryLatest?.current_state||'—'}</b> · 结构动量 <b>{industryLatest?.structure_momentum||'—'}</b></span><span>已扫描 {active.scans.length} 轮 · {fmtTime(monitor.last_scan_at)}</span></div>
+    </>:
+    !selectedRepresentative?<div className="decision-empty">当前板块尚无已发布的有效代表股快照；不会按涨幅临时选股。</div>:<>
+     <div className="focus-switch home-representative-switch">{observed.map(item=><button key={item.code} className={item.code===selectedRepresentative.code?'active':''} onClick={()=>setMonitorUi(prev=>({...prev,stock:item.code,group:item.trend_name}))}>
+      <strong>{item.trend_name}</strong><span>{item.company_name} · {item.code}</span>
+      <span className={typeof item.last.relative_to_industry_pct==='number'?(item.last.relative_to_industry_pct>0?'market-up':item.last.relative_to_industry_pct<0?'market-down':''):''}>{typeof item.last.relative_to_industry_pct==='number'?signed(item.last.relative_to_industry_pct,2)+' pp':'相对行业暂无数据'}</span></button>)}</div>
+     <div className="feature-plot-grid"><div className="feature-main-plot"><SnapshotPlot rows={selectedRepresentative.scans} field="price" label="盘中快照价格" unit="元"/></div><div className="feature-side-plot"><SnapshotPlot rows={selectedRepresentative.scans} field="relative_to_industry_pct" label="相对所属行业强度" unit=" pp"/></div></div>
+     <div className="feature-caption"><span>{selectedRepresentative.company_name} · {selectedRepresentative.trend_name} · 盘中行为 <b>{selectedStockLast?.price_behavior||'—'}</b></span><span>冻结研究排序选取 · {fmtTime(selectedStockLast?.scan_at)} · 非买点建议</span></div>
+    </>}
   </section>
   <section className="decision-panel decision-opportunity"><div className="decision-panel-top"><div><h2>正式买点机会</h2><p>只把 READY 列为待核对机会，WAIT 保留在完整榜单中。</p></div><button className="text-link" onClick={()=>onSection('buy')}>全部买点 <ArrowRight size={14}/></button></div>
    {status.buyHandoff!=='OK'?<div className="decision-empty">买点正式结果尚不可用。</div>:ready.length?<div className="decision-rows decision-entries">
