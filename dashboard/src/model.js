@@ -72,3 +72,41 @@ export function summarizeTrades(rawRecords) {
   return {positions,invalidCount,recordCount:rawRecords.length};
 }
 export const formatSource = state => ({OK:'已连接',NOT_PUBLISHED:'尚未发布',NOT_CONFIGURED:'待配置',UNAUTHORIZED:'无访问权限',UNEXPECTED_SCHEMA:'结构不匹配',PAGINATION_INCOMPLETE:'分页读取未完成'}[state] || (state ? '暂不可用' : '未检查'));
+
+
+// 仅根据文件中真实的同交易日有效扫描绘图；不插值、不生成合成评分。
+export function validSnapshots(history, tradeDate) {
+  if (!Array.isArray(history) || !/^\d{4}-\d{2}-\d{2}$/.test(String(tradeDate||''))) return [];
+  const byTime = new Map();
+  for (const item of history) {
+    if (!item || item.data_quality !== 'READY' || typeof item.scan_at !== 'string' ||
+        !item.scan_at.startsWith(tradeDate) || Number.isNaN(Date.parse(item.scan_at))) continue;
+    byTime.set(item.scan_at, item);
+  }
+  return [...byTime.values()].sort((a,b)=>Date.parse(a.scan_at)-Date.parse(b.scan_at));
+}
+
+export const snapshotChange = (rows, field, multiplier=1) => {
+  const samples=rows.filter(row=>typeof row?.[field]==='number' && Number.isFinite(row[field]));
+  if(samples.length<2)return null;
+  return (samples.at(-1)[field]-samples[0][field])*multiplier;
+};
+
+// 只有 trend_handoff 中明确提供的 rank 才是正式名次，其余标为未上榜。
+export function rankedTrendRows(registry, handoff, history, tradeDate, mode='formal') {
+  const priority=new Map((Array.isArray(handoff?.signals)?handoff.signals:[])
+    .filter(x=>Number.isInteger(x?.rank)&&x.rank>0&&x.trend_name)
+    .map(x=>[x.trend_name,x.rank]));
+  const items=(Array.isArray(registry?.trends)?registry.trends:[]).map((item,index)=>{
+    const records=validSnapshots(history?.[item.trend_name],tradeDate);
+    return {...item,priorityRank:priority.get(item.trend_name)??null,
+      intradayDelta:snapshotChange(records,'up_ratio',100),originalIndex:index};
+  });
+  const formal=(a,b)=>(a.priorityRank??Infinity)-(b.priorityRank??Infinity) || a.originalIndex-b.originalIndex;
+  if(mode==='change') return items.sort((a,b)=>{
+    const aa=a.intradayDelta==null?-1:Math.abs(a.intradayDelta);
+    const bb=b.intradayDelta==null?-1:Math.abs(b.intradayDelta);
+    return bb-aa || formal(a,b);
+  });
+  return items.sort(formal);
+}
