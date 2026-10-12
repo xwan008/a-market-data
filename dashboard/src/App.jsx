@@ -52,11 +52,22 @@ function HistoryStrip({events}){
   <p className="history-disclaimer">近 {list.length} 次已发布核验事件 · 未记录交易日不补值 · 历史研究判断不等于今日行情</p>
  </div>;
 }
-function TrendInspector({item}) {
+function TrendInspector({item,view='all'}) {
  if(!item) return <Empty title="选择一个板块" detail="查看产业状态、支持证据与失效条件"/>;
  const evidence=asArray(item.supporting_evidence).slice(-2).reverse();
  const contrary=asArray(item.contrary_evidence).slice(-2).reverse();
- return <div className="detail-content"><div className="detail-hero"><h2>{item.trend_name}</h2><div className="detail-badges"><ResearchState value={item.market_state}/><Badge>{item.lifecycle_status}</Badge></div></div><div className="data-pair"><div><span>产业阶段</span><strong>{stageLabel(item.trend_state)}</strong></div><div><span>最近核验</span><strong>{safeText(item.last_verified_trade_date)}</strong></div></div><div className="detail-section"><div className="small-heading"><GitBranch size={15}/> 状态演变</div><HistoryStrip events={item.state_history}/></div><div className="detail-section"><div className="small-heading"><Check size={15}/> 支持证据</div>{evidence.length ? evidence.map((e,i)=><div className="evidence" key={i}><span className="evidence-date">{e.trade_date}</span><p>{e.description}</p>{/^https?:\/\//.test(e.source||'')&&<a href={e.source} target="_blank" rel="noopener noreferrer">查看依据 <ExternalLink size={12}/></a>}</div>):<p className="muted">没有已发布证据</p>}</div><div className="detail-section"><div className="small-heading"><ShieldAlert size={15}/> 反向证据</div>{contrary.length ? contrary.map((e,i)=><div className="evidence" key={i}><span className="evidence-date">{e.trade_date}</span><p>{e.description}</p></div>):<p className="muted">暂无记录</p>}</div><div className="invalidation"><span>失效观察条件</span><p>{safeText(item.invalidation_condition)}</p></div></div>;
+ return <div className="detail-content sector-detail-content">
+  {(view==='all'||view==='summary')&&<>
+   {view==='all'&&<div className="detail-hero"><h2>{item.trend_name}</h2><div className="detail-badges"><ResearchState value={item.market_state}/><Badge>{item.lifecycle_status}</Badge></div></div>}
+   <div className="data-pair"><div><span>产业阶段</span><strong>{stageLabel(item.trend_state)}</strong></div><div><span>最近核验</span><strong>{safeText(item.last_verified_trade_date)}</strong></div></div>
+   <div className="invalidation"><span>失效观察条件</span><p>{safeText(item.invalidation_condition)}</p></div>
+  </>}
+  {(view==='all'||view==='history')&&<div className="detail-section"><div className="small-heading"><GitBranch size={15}/> 状态演变</div><HistoryStrip events={item.state_history}/></div>}
+  {(view==='all'||view==='evidence')&&<>
+   <div className="detail-section"><div className="small-heading"><Check size={15}/> 支持证据</div>{evidence.length?evidence.map((e,i)=><div className="evidence" key={i}><span className="evidence-date">{e.trade_date}</span><p>{e.description}</p>{/^https?:\/\//.test(e.source||'')&&<a href={e.source} target="_blank" rel="noopener noreferrer">查看依据 <ExternalLink size={12}/></a>}</div>):<p className="muted">没有已发布证据</p>}</div>
+   <div className="detail-section"><div className="small-heading"><ShieldAlert size={15}/> 反向证据</div>{contrary.length?contrary.map((e,i)=><div className="evidence" key={i}><span className="evidence-date">{e.trade_date}</span><p>{e.description}</p></div>):<p className="muted">暂无记录</p>}</div>
+  </>}
+ </div>;
 }
 
 const signed = (value,digits=1) => typeof value==='number' && Number.isFinite(value) ? (value>0?'+':'')+fixed(value,digits) : '—';
@@ -274,17 +285,29 @@ function Overview({registry,trendHandoff,buy,monitor,portfolio,status,onSection,
 
 function Trends({registry,trendHandoff,monitor,archive,selected,setSelected}){
  const [sortMode,setSortMode]=useState('formal');
+ const [detailView,setDetailView]=useState('chart');
  const day=monitor?.result_kind==='a_share_intraday_monitor_state'?monitor.trade_date:null;
  const rows=rankedTrendRows(registry,trendHandoff,monitor?.industry_history,day,sortMode);
  const officialCount=rows.filter(x=>x.priorityRank!=null).length;
  const focus=rows.find(i=>i.trend_name===selected?.trend_name)||rows[0];
  const plotRows=validSnapshots(monitor?.industry_history?.[focus?.trend_name],day);
+ const detailTabs=[{id:'chart',label:'走势'},{id:'summary',label:'研判'},{id:'evidence',label:'证据'},{id:'history',label:'状态'},{id:'crossday',label:'跨日'}];
  return <><PageIntro title="板块趋势优先榜" desc="正式优先榜 rank 置顶；可切换按当日真实广度变化幅度排序。未上榜板块不被虚构名次。" date={registry?.trade_date}/>
   <div className="ranking-explainer"><span><b>{officialCount}</b> 个正式优先方向</span><span><b>{rows.length}</b> 个研究池板块</span><span>盘中快照 {day||'未发布'}</span></div>
   <div className="two-pane trend-workspace"><section className="panel"><PanelHead title="板块排序" aside={<span className="count-chip">{rows.length} 个方向</span>}/>
    {rows.length?<TrendTable trends={rows} onSelect={setSelected} selected={focus} monitor={monitor?.industry_history} monitorDay={day} sortMode={sortMode} onSort={setSortMode}/>:<Empty title="暂无趋势数据" detail="等待正式趋势池发布"/>}
   </section>
-  <section className="panel inspector inspector-tall" tabIndex={0} aria-label="板块趋势详情，可独立滚动"><div className="sector-chart-inset"><strong>{focus?.trend_name||'选择板块'}</strong><p>上涨家数占比 · {day||'尚未发布盘中监测'}</p><SnapshotPlot rows={plotRows} field="up_ratio" label="上涨家数占比" scale={100} bounds={[0,100]}/><CrossdayTimeline archive={archive} monitor={monitor} identifier={focus?.trend_name} kind="sector"/></div><TrendInspector item={focus}/></section>
+  <section className="panel inspector inspector-tall sector-detail-pane" aria-label="板块详情">
+   <div className="sector-detail-head"><div><strong>{focus?.trend_name||'选择板块'}</strong><span>{safeText(focus?.lifecycle_status)} · {day||'暂无盘中扫描'}</span></div><ResearchState value={focus?.market_state}/></div>
+   <div className="sector-detail-tabs" role="group" aria-label="板块详情内容">
+    {detailTabs.map(tab=><button key={tab.id} type="button" className={detailView===tab.id?'active':''} aria-pressed={detailView===tab.id} onClick={()=>setDetailView(tab.id)}>{tab.label}</button>)}
+   </div>
+   <div className="sector-detail-body" role="region" aria-label={detailTabs.find(tab=>tab.id===detailView)?.label+'详情'}>
+    {detailView==='chart'&&<div className="sector-chart-inset sector-chart-focus"><p>上涨家数占比 · {day||'尚未发布盘中监测'}</p><SnapshotPlot rows={plotRows} field="up_ratio" label="上涨家数占比" scale={100} bounds={[0,100]}/></div>}
+    {(detailView==='summary'||detailView==='evidence'||detailView==='history')&&<TrendInspector item={focus} view={detailView}/>}
+    {detailView==='crossday'&&<div className="sector-crossday-inset"><CrossdayTimeline archive={archive} monitor={monitor} identifier={focus?.trend_name} kind="sector"/></div>}
+   </div>
+  </section>
   </div>
  </>;
 }
