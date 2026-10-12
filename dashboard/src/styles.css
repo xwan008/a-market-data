@@ -1120,8 +1120,8 @@ button{transition:color .2s var(--studio-ease),background-color .2s var(--studio
  .login-screen--terminal .login-submit{transition:none}
 }
 
-/* Keep selected details visible while scrolling long ranking tables on wide screens.
-   Oversized details can be scrolled independently below the sticky 73px top bar. */
+
+/* Trend buying is already working; preserve its original sticky behavior. */
 @media (min-width:1011px){
  .buy-workspace > .inspector{
   position:sticky;
@@ -1136,65 +1136,74 @@ button{transition:color .2s var(--studio-ease),background-color .2s var(--studio
   scrollbar-color:rgba(148,169,155,.34) transparent;
  }
 }
-@media (min-width:1201px){
- .trend-workspace > .inspector{
-  position:sticky;
-  top:88px;
-  align-self:start;
-  max-height:calc(100vh - 104px);
-  max-height:calc(100dvh - 104px);
-  overflow-x:hidden;
-  overflow-y:auto;
-  overscroll-behavior-y:contain;
-  scrollbar-width:thin;
-  scrollbar-color:rgba(148,169,155,.34) transparent;
- }
-}
-.two-pane > .inspector:focus-visible{
- outline:2px solid rgba(173,205,184,.58);
- outline-offset:2px;
-}
-
-/* Sector trends: the ranking and its selected detail are separate desktop scroll areas.
-   Previous >1200px sticky breakpoint silently disabled this behavior at 1011–1200px.
-   A long detail also used to bound sticky against a shorter left list. */
+/* Sector rankings: just ONE vertical scrollbar (the document).
+   The selected inspector remains short via focused views, not nested scroll areas. */
 @media (min-width:1011px){
  .trend-workspace{
   grid-template-columns:minmax(0,1.18fr) minmax(300px,.82fr);
   align-items:start;
  }
  .trend-workspace > .panel:first-child{
-  min-width:0;
-  max-height:calc(100vh - 104px);
-  max-height:calc(100dvh - 104px);
-  overflow-x:hidden;
-  overflow-y:auto;
-  overscroll-behavior-y:contain;
-  scrollbar-width:thin;
-  scrollbar-color:rgba(148,169,155,.34) transparent;
+  max-height:none;
+  overflow:hidden;
  }
  .trend-workspace > .inspector{
   position:sticky;
   top:88px;
   align-self:start;
   min-width:0;
-  max-height:calc(100vh - 104px);
-  max-height:calc(100dvh - 104px);
-  overflow-x:hidden;
-  overflow-y:auto;
-  overscroll-behavior-y:contain;
-  scrollbar-width:thin;
-  scrollbar-color:rgba(148,169,155,.34) transparent;
+  min-height:0;
+  max-height:none;
+  overflow:visible;
  }
 }
-/* Preserve the normal stacked document flow on narrow screens. */
 @media (max-width:1010px){
- .trend-workspace{grid-template-columns:minmax(0,1fr)}
+ .trend-workspace{
+  grid-template-columns:minmax(0,1fr);
+ }
  .trend-workspace > .panel:first-child,
  .trend-workspace > .inspector{
   position:static;
+  min-height:0;
   max-height:none;
   overflow:hidden;
-  overscroll-behavior-y:auto;
  }
+}
+.sector-detail-head{
+ display:flex;align-items:center;justify-content:space-between;gap:9px 14px;
+ padding:19px 22px 15px;flex-wrap:wrap;
+}
+.sector-detail-head>div{display:flex;flex-direction:column;gap:6px;min-width:0}
+.sector-detail-head strong{color:#ecf2eb;font-size:18px;font-weight:650;letter-spacing:-.3px}
+.sector-detail-head>div>span{color:#8da197;font-size:10px;line-height:1.55}
+.sector-detail-tabs{
+ display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
+ align-items:stretch;gap:3px;margin:0 18px;
+ padding:4px;border:1px solid var(--studio-line);border-radius:8px;
+ background:rgba(183,210,190,.025);
+}
+.sector-detail-tabs button{
+ border:0;border-radius:5px;background:transparent;color:#93a89b;
+ text-align:center;min-width:0;padding:9px 3px;
+ font-size:11px;font-weight:550;
+}
+.sector-detail-tabs button:hover{color:#dce7dd;background:rgba(190,216,198,.065)}
+.sector-detail-tabs button.active{
+ color:#e6eee4;background:rgba(196,216,195,.12);font-weight:650;
+}
+.sector-detail-tabs button:focus-visible{outline:2px solid rgba(173,205,184,.72);outline-offset:1px}
+.sector-detail-body{min-width:0;min-height:195px;overflow-wrap:anywhere}
+.sector-chart-focus{padding-top:20px;border-bottom:0}
+.sector-chart-focus>p{margin-bottom:13px}
+.sector-detail-content{padding:19px 22px 24px}
+.sector-detail-content .data-pair{margin:0 0 14px}
+.sector-detail-content .invalidation{margin:13px 0 0}
+.sector-detail-content .detail-section:first-child{padding-top:7px;border-top:0}
+.sector-crossday-inset{padding:5px 20px 19px}
+.sector-crossday-inset .crossday-view{border-top:0;margin:0}
+.sector-detail-pane .plot-canvas svg{max-height:196px}
+@media(max-width:430px){
+ .sector-detail-tabs{margin:0 12px}
+ .sector-detail-head{padding:17px 16px 13px}
+ .sector-detail-content{padding:17px 16px 19px}
 }
