@@ -123,6 +123,37 @@ export function rankedTrendRows(registry, handoff, history, tradeDate, mode='for
 }
 
 
+// 首页每个已监测板块固定选一只代表观察股：只用冻结研究排序，不以盘中涨幅/波动排序。
+// rank 使用当日有效扫描最早轮的冻结 rank；没有 rank 则用同板块正式买点榜的 rank，再按代码稳定打破平局。
+// 只选已发布同交易日 READY 快照的监测股，不扩展股票池；代表性不等于龙头或买入推荐。
+export function selectRepresentativeStocks(monitor,buy,tradeDate){
+ if(monitor?.result_kind!=='a_share_intraday_monitor_state' ||
+    monitor?.trade_date!==tradeDate || !/^\d{4}-\d{2}-\d{2}$/.test(String(tradeDate||'')))return [];
+ const stockPool=monitor.stock_history||{}, sectors=monitor.industry_history||{};
+ const researchRank=new Map((Array.isArray(buy?.items)&&String(buy.trade_date||'')<=tradeDate?buy.items:[])
+  .filter(item=>/^\d{6}$/.test(String(item?.code||''))&&
+    Number.isInteger(item.rank)&&item.rank>0)
+  .map(item=>[item.code,{rank:item.rank,sector:item.trend_name}]));
+ const bySector=new Map();
+ for(const [code,history] of Object.entries(stockPool)){
+  if(!/^\d{6}$/.test(code))continue;
+  const scans=validSnapshots(history,tradeDate);
+  if(!scans.length)continue;
+  const last=scans.at(-1), sector=last.trend_name;
+  if(!sector || !Object.hasOwn(sectors,sector) || !validSnapshots(sectors[sector],tradeDate).length)continue;
+  const initial=scans[0];
+  const primaryRank=Number.isInteger(initial.rank)&&initial.rank>0?initial.rank:null;
+  const alternate=researchRank.get(code);
+  const rank=primaryRank??(alternate?.sector===sector?alternate.rank:Infinity);
+  const item={code,trend_name:sector,company_name:last.company_name||code,rank:Number.isFinite(rank)?rank:null,
+   scans,last,source:'frozen_monitor_pool'};
+  const prior=bySector.get(sector);
+  if(!prior || rank<(prior.rank??Infinity) ||
+    (rank===(prior.rank??Infinity)&&code.localeCompare(prior.code)<0))bySector.set(sector,item);
+ }
+ return [...bySector.values()];
+}
+
 // A 股图表语义：只比较同一指标首末两个有效数值，红涨绿跌；不足两点为中性。
 export function seriesDirection(rows,field='value') {
   const values=(Array.isArray(rows)?rows:[]).map(row=>row?.[field])
