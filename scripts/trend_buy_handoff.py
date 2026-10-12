@@ -54,6 +54,8 @@ def validate_items(handoff):
             raise ValueError("trend_handoff_date_mismatch")
         if not set(item).issubset(ALLOWED_ITEM_FIELDS):
             raise ValueError("invalid_handoff_item_fields")
+        if status=="WAIT" and any(item.get(field) is not None for field in TRADE_PLAN_FIELDS):
+            raise ValueError("wait_has_executable_trade_plan")
         zone=item.get("entry_zone")
         stop=item.get("invalidation_price")
         if zone is not None:
@@ -71,8 +73,6 @@ def validate_items(handoff):
                                   or not positive(item.get("initial_risk_pct"))):
             raise ValueError("ready_without_complete_trade_contract")
         if status=="WAIT":
-            if any(item.get(field) is not None for field in TRADE_PLAN_FIELDS):
-                raise ValueError("wait_has_executable_trade_plan")
             reference=item.get("watch_reference")
             if reference is not None:
                 if not isinstance(reference,dict):
