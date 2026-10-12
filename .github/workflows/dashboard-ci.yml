@@ -1,0 +1,31 @@
+name: Dashboard CI
+on:
+  pull_request:
+    paths:
+      - "dashboard/**"
+      - ".github/workflows/dashboard-ci.yml"
+  push:
+    branches:
+      - "feat/market-dashboard-v1-20261012"
+    paths:
+      - "dashboard/**"
+      - ".github/workflows/dashboard-ci.yml"
+permissions:
+  contents: read
+jobs:
+  dashboard:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dashboard
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Run logic tests
+        run: npm test
+      - name: Build web app
+        run: npm run build
