@@ -18,7 +18,11 @@ PROJECT_FIELDS=(
     "initial_risk_pct","upside_to_resistance_R","exit_plan","decision_reason",
     "transmission","research_falsifier",
 )
-ALLOWED_ITEM_FIELDS=set(PROJECT_FIELDS)|{"rank","trade_date"}
+ALLOWED_ITEM_FIELDS=set(PROJECT_FIELDS)|{"rank","trade_date","watch_reference"}
+# An unconfirmed WAIT carries research observations, never an executable order or exit contract.
+TRADE_PLAN_FIELDS=("setup_type","entry_zone","entry_trigger","max_entry_price",
+                   "invalidation_price","invalidation_rule","initial_risk_pct",
+                   "upside_to_resistance_R","exit_plan")
 
 def positive(v):
     return type(v) in (int,float) and v>0
@@ -66,8 +70,27 @@ def validate_items(handoff):
                                   or not isinstance(item.get("invalidation_rule"),str)
                                   or not positive(item.get("initial_risk_pct"))):
             raise ValueError("ready_without_complete_trade_contract")
-        if status=="WAIT" and reason!="WAIT_CONFIRMATION" and zone is None:
-            raise ValueError("wait_missing_conditional_trade_plan")
+        if status=="WAIT":
+            if any(item.get(field) is not None for field in TRADE_PLAN_FIELDS):
+                raise ValueError("wait_has_executable_trade_plan")
+            reference=item.get("watch_reference")
+            if reference is not None:
+                if not isinstance(reference,dict):
+                    raise ValueError("invalid_watch_reference")
+                trigger=reference.get("reference_trigger_price")
+                if trigger is not None and not positive(trigger):
+                    raise ValueError("invalid_watch_trigger")
+                watch_zone=reference.get("reference_zone")
+                if watch_zone is not None:
+                    if (not isinstance(watch_zone,list) or len(watch_zone)!=2
+                        or not all(positive(v) for v in watch_zone)
+                        or watch_zone[0]>watch_zone[1]):
+                        raise ValueError("invalid_watch_zone")
+                    watch_stop=reference.get("invalidation_price")
+                    if not positive(watch_stop) or watch_stop>=watch_zone[0]:
+                        raise ValueError("invalid_watch_stop")
+        elif item.get("watch_reference") is not None:
+            raise ValueError("ready_cannot_have_watch_reference")
     return rows
 
 def project(result, formal_sha, *, shadow=False):
@@ -91,10 +114,19 @@ def project(result, formal_sha, *, shadow=False):
     if any(candidate_by_code[x["code"]].get("trend_name")!=group["trend_name"]
            for group in groups for x in group.get("items",[])):
         raise ValueError("dynamic_theme_top5_sector_mismatch")
+    references={entry["code"]:entry.get("reference")
+                for group in groups for entry in group.get("items",[])}
     rows=[]
     for rank,code in enumerate(codes,1):
         x=candidate_by_code[code]
-        rows.append({k:x.get(k) for k in PROJECT_FIELDS}|{"rank":rank,"trade_date":result["trade_date"]})
+        row={k:x.get(k) for k in PROJECT_FIELDS}|{"rank":rank,"trade_date":result["trade_date"]}
+        if x["status"]=="WAIT":
+            # Upstream may model a remote breakout scenario, but the official WAIT
+            # handoff must only show an independently computed *watch* reference.
+            # Do not re-label the watch's price/risk as an order or holding stop.
+            row.update({field:None for field in TRADE_PLAN_FIELDS})
+            row["watch_reference"]=references.get(code)
+        rows.append(row)
     payload={
         "schema_version":"trend_buy_handoff_v2","status":"COMPLETE",
         "trade_date":result["trade_date"],

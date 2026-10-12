@@ -53,8 +53,46 @@ class ContractTests(unittest.TestCase):
         s["ready"]=[]
         h=tool.project(s,"testsha",shadow=True)
         self.assertEqual(h["items"][0]["wait_reason"],"WAIT_BREAKOUT")
+        self.assertIsNone(h["items"][0]["entry_zone"])
         h["items"][0]["wait_reason"]="WAIT_OTHER"
         with self.assertRaisesRegex(ValueError,"invalid_wait_reason"):
+            tool.validate_items(h)
+
+    def test_wait_observes_nearby_ma20_instead_of_remote_breakout(self):
+        s=sample()
+        row=s["ready"].pop()
+        row.update(code="600988",company_name="赤峰黄金",status="WAIT",
+                   wait_reason="WAIT_CONFIRMATION",market_state="候选趋势",
+                   current_price=41.38,entry_zone=[52.094,53.29],
+                   max_entry_price=53.29,invalidation_price=51.21)
+        s["wait"]=[row]
+        s["top5_by_theme"][0]["items"]=[{
+            "code":"600988",
+            "reference":{
+                "stage":"PRE_TREND_WATCH","setup_mode":"MA20_RECOVERY",
+                "reference_trigger_price":42.638,
+                "reference_zone":[42.638,43.405],
+                "invalidation_price":41.254,
+                "estimated_price_risk_pct":4.96,
+                "conditional_trigger":"收盘重新站上MA20且承接改善",
+                "price_basis":"2026-10-09已完成收盘结构"
+            }
+        }]
+        h=tool.project(s,"testsha",shadow=True)
+        x=h["items"][0]
+        self.assertEqual(x["status"],"WAIT")
+        self.assertIsNone(x["entry_zone"])
+        self.assertIsNone(x["invalidation_price"])
+        self.assertIsNone(x["exit_plan"])
+        self.assertEqual(x["watch_reference"]["reference_zone"],[42.638,43.405])
+        self.assertEqual(x["watch_reference"]["reference_trigger_price"],42.638)
+        self.assertEqual(len(tool.validate_items(h)),1)
+        x["entry_zone"]=[52.094,53.29]
+        with self.assertRaisesRegex(ValueError,"wait_has_executable_trade_plan"):
+            tool.validate_items(h)
+        x["entry_zone"]=None
+        x["watch_reference"]["invalidation_price"]=44
+        with self.assertRaisesRegex(ValueError,"invalid_watch_stop"):
             tool.validate_items(h)
 
     def test_undeclared_field_rejected(self):
