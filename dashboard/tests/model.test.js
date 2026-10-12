@@ -273,3 +273,20 @@ test('过期行情、DEGRADED采样、未覆盖池不会模拟当前退出触发
  const verify=assessHoldingRisk({...p,verified:false},monitor(),today);
  assert.equal(verify.state,'unverified');
 });
+
+
+test('持仓详情只展示登记流水中可核验的成交字段，不推断缺失数据',()=>{
+ const p=summarizeTrades([
+  row('603659','首仓',500,22.1,'2026-10-08'),
+  row('603659','加仓',200,21.94,'2026-10-09'),
+  row('603659','卖出',300,22.3,'2026-10-10')
+ ]).positions[0];
+ assert.equal(p.shares,400);
+ assert.deepEqual(p.trades.map(t=>[t.date,t.kind,t.quantity,t.price]),[
+  ['2026-10-08','buy',500,22.1],['2026-10-09','buy',200,21.94],['2026-10-10','sell',300,22.3]
+ ]);
+ const pending=summarizeTrades([row('000002','未知',100,null,'2026-10-08')]).positions[0];
+ assert.equal(pending.verified,false);
+ assert.equal(pending.trades[0].kind,null);
+ assert.equal(pending.trades[0].price,null);
+});
