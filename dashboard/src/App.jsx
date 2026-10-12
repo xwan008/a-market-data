@@ -174,7 +174,7 @@ function TrendTable({trends,onSelect,selected,monitor,monitorDay,sortMode,onSort
  return <tr key={t.trend_name} className={selected?.trend_name===t.trend_name?'row-selected':''} onClick={()=>onSelect(t)}>
   <td><div className="rank-column"><span className={t.priorityRank!=null?'official-rank':'unranked'}>{t.priorityRank!=null?String(t.priorityRank).padStart(2,'0'):'—'}</span>{t.priorityRank!=null&&<span className="rank-priority-chip">正式优先</span>}</div></td>
   <td><strong>{t.trend_name}</strong><small>{safeText(t.trend_state)} · {asArray(t.industry_names).slice(0,1).join(' / ')||'正式趋势池'}</small></td>
-  <td><Badge>{t.market_state}</Badge></td>
+  <td><div className="trend-state-stack"><Badge>{t.market_state}</Badge>{rows.length>0&&rows.at(-1)?.current_state&&<span className="trend-scan-status" title={'最近监测日 '+monitorDay}><span>最近扫描</span><Badge>{rows.at(-1).current_state}</Badge></span>}</div></td>
   {!compact&&<td><SnapshotPlot rows={rows} field="up_ratio" label="上涨占比" scale={100} bounds={[0,100]} compact/></td>}
   {!compact&&<td><span className={'trend-delta '+(delta==null?'':delta>0?'trend-up':delta<0?'trend-down':'')}>{delta==null?'—':signed(delta,1)+' pp'}</span><small>{rows.length?'采样 '+rows.length+' 轮':'未覆盖'}</small></td>}
   <td className="mono soft-text">{safeText(t.last_verified_trade_date)}</td><td className="arrow-col"><ChevronRight size={16}/></td>
