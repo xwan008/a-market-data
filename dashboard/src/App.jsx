@@ -140,10 +140,10 @@ function Overview({registry,trendHandoff,buy,monitor,portfolio,status,onSection,
  return <div className="decision-home new-home">
   <div className="decision-heading"><div><div className="eyebrow">LAN TU / TODAY'S BRIEF</div><h1>今日决策摘要</h1><p>持仓风险优先，趋势变化其次，只有明确的机会才进入视野。</p></div>
    <div className="decision-date"><Clock3 size={14}/><span>趋势研究日 {registry?.trade_date||'—'}<br/>{monitorCurrent?'盘中扫描 '+fmtTime(monitor.last_scan_at):'当前无今日盘中扫描'}</span></div></div>
-  <div className="decision-strip">
-   <div><span>已核实持仓</span><strong>{status.airtable==='OK'?portfolio.positions.filter(x=>x.verified).length:'—'}</strong><small>{status.airtable==='OK'?'按 Airtable 成交记录':'等待来源'}</small></div>
-   <div><span>正式优先板块</span><strong>{status.trendHandoff==='OK'?official.length:'—'}</strong><small>按 Handoff rank</small></div>
-   <div><span>买点 READY</span><strong>{status.buyHandoff==='OK'?ready.length:'—'}</strong><small>{status.buyHandoff==='OK'?waitCount+' 只仍 WAIT':'等待发布'}</small></div>
+  <div className="decision-strip" aria-label="今日关键数据">
+   <div className="decision-stat"><div className="decision-stat-label"><em>01</em><span>已核实持仓</span></div><strong>{status.airtable==='OK'?portfolio.positions.filter(x=>x.verified).length:'—'}</strong><small>{status.airtable==='OK'?'按 Airtable 成交记录':'等待来源'}</small></div>
+   <div className="decision-stat"><div className="decision-stat-label"><em>02</em><span>正式优先板块</span></div><strong>{status.trendHandoff==='OK'?official.length:'—'}</strong><small>研究排序 · Handoff rank</small></div>
+   <div className="decision-stat"><div className="decision-stat-label"><em>03</em><span>正式 READY</span></div><strong>{status.buyHandoff==='OK'?ready.length:'—'}</strong><small>{status.buyHandoff==='OK'?waitCount+' 只等待确认':'等待发布'}</small></div>
   </div>
   <div className="decision-grid">
    <section className="decision-panel decision-portfolio"><div className="decision-panel-top"><div><span className="decision-step">01 / HOLDINGS</span><h2>我的持仓</h2><p>只对已发布并被监测覆盖的持仓显示盘中价格快照。</p></div><button className="text-link" onClick={()=>onSection('portfolio')}>全部持仓 <ArrowRight size={14}/></button></div>
@@ -165,9 +165,9 @@ function Overview({registry,trendHandoff,buy,monitor,portfolio,status,onSection,
        const d=snapshotChange(scans,'up_ratio',100);
        return <button className="decision-row home-sector" key={item.trend_name} onClick={()=>onSection('trends')}>
         <span className="decision-rank">{String(item.priorityRank).padStart(2,'0')}</span>
-        <div className="decision-row-main"><strong>{item.trend_name}</strong><small>{item.trend_state} · {item.market_state}</small></div>
+        <div className="decision-row-main"><strong>{item.trend_name}</strong><span className="home-sector-state"><Badge>{item.market_state}</Badge><small>{item.trend_state}</small></span></div>
         <div className="home-mini-chart">{scans.length>=2?<SnapshotPlot rows={scans} field="up_ratio" label="上涨家数占比" bounds={[0,100]} scale={100} compact/>:<span className="plot-unavailable">等待盘中扫描</span>}</div>
-        <div className="decision-row-meta"><span>{d==null?'尚无两轮有效对比':changeWord(d)+' '+signed(d,1)+' pp'}</span><small>{scans.length?scans.at(-1).current_state:'正式研究排序'}</small></div><ChevronRight size={15}/>
+        <div className="decision-row-meta"><span className={d==null?'':d>0?'market-up':d<0?'market-down':''}>{d==null?'尚无两轮有效对比':changeWord(d)+' '+signed(d,1)+' pp'}</span><small>{scans.length?scans.at(-1).current_state:'正式研究排序'}</small></div><ChevronRight size={15}/>
        </button>
      })}</div>:<div className="decision-empty">本期没有正式排名的板块。</div>}
    </section>
@@ -176,8 +176,8 @@ function Overview({registry,trendHandoff,buy,monitor,portfolio,status,onSection,
    <div className="decision-panel-top"><div><span className="decision-step">03 / SNAPSHOT MOVEMENT</span><h2>盘中真实变化</h2><p>按当天上涨家数占比变化绝对值排列观察对象；这是展示顺序，不是模型强弱评分。</p></div><button className="text-link" onClick={()=>onSection('monitor')}>查看全部监测 <ArrowRight size={14}/></button></div>
    {!monitorCurrent||!active?<div className="decision-empty">今日尚无有效盘中快照；不会拿历史数据冒充实时曲线。</div>:<>
     <div className="focus-switch">{monitored.map(item=><button key={item.name} className={item.name===active.name?'active':''} onClick={()=>setFocusSector(item.name)}>
-      <strong>{item.name}</strong><span>{item.delta==null?'不足两轮':signed(item.delta,1)+' pp'}</span></button>)}</div>
-    <div className="feature-plot-grid"><div className="feature-main-plot"><SnapshotPlot rows={active.scans} field="up_ratio" label="上涨家数占比" scale={100} bounds={[0,100]}/></div><div className="feature-side-plot"><SnapshotPlot rows={active.scans} field="median_change_pct" label="成分涨跌幅中位数" color="amber"/></div></div>
+      <strong>{item.name}</strong><span className={item.delta==null?'':item.delta>0?'market-up':item.delta<0?'market-down':''}>{item.delta==null?'不足两轮':signed(item.delta,1)+' pp'}</span></button>)}</div>
+    <div className="feature-plot-grid"><div className="feature-main-plot"><SnapshotPlot rows={active.scans} field="up_ratio" label="上涨家数占比" scale={100} bounds={[0,100]}/></div><div className="feature-side-plot"><SnapshotPlot rows={active.scans} field="median_change_pct" label="成分涨跌幅中位数" /></div></div>
     <div className="feature-caption"><span>{active.name} · 最近状态 <b>{industryLatest?.current_state||'—'}</b> · 结构动量 <b>{industryLatest?.structure_momentum||'—'}</b></span><span>来源 {monitor.trade_date} · 已扫描 {active.scans.length} 轮</span></div>
    </>}
   </section>
@@ -233,14 +233,14 @@ function Monitor({monitor,status}){
    const scans=validSnapshots(monitor.industry_history[name],day),last=scans.at(-1);
    return <button key={name} className={sector===name?'active':''} onClick={()=>setSectorName(name)}><strong>{name}</strong><span>{last?.current_state||'未有效扫描'} · {scans.length} 轮</span></button>
   })}</div>
-  <div className="monitor-chart-pair"><SnapshotPlot rows={sectorRows} field="up_ratio" label="上涨家数占比" scale={100} bounds={[0,100]}/><SnapshotPlot rows={sectorRows} field="median_change_pct" label="成分涨跌幅中位数" color="amber"/></div>
-  <div className="monitor-latest">{sectorLast?<><span>最新状态 <Badge>{sectorLast.current_state||'—'}</Badge></span><span>结构动量 <strong>{safeText(sectorLast.structure_momentum)}</strong></span><span>空仓观察 <strong>{safeText(sectorLast.entry_action)}</strong></span><span>持仓管理 <strong>{safeText(sectorLast.holding_action)}</strong></span></>:<span>暂无有效判断</span>}</div>
+  <div className="monitor-chart-pair"><SnapshotPlot rows={sectorRows} field="up_ratio" label="上涨家数占比" scale={100} bounds={[0,100]}/><SnapshotPlot rows={sectorRows} field="median_change_pct" label="成分涨跌幅中位数" /></div>
+  <div className="monitor-latest">{sectorLast?<><span>最新状态 <Badge>{sectorLast.current_state||'—'}</Badge></span><span>结构动量 <Badge>{safeText(sectorLast.structure_momentum)}</Badge></span><span>空仓观察 <strong>{safeText(sectorLast.entry_action)}</strong></span><span>持仓管理 <strong>{safeText(sectorLast.holding_action)}</strong></span></>:<span>暂无有效判断</span>}</div>
   <details className="monitor-expand"><summary>查看 {sector||'板块'} 每轮状态与判断依据 <ChevronDown size={15}/></summary><SnapshotTimeline rows={sectorRows} kind="sector"/></details>
  </section>
  <section className="panel monitor-chart-panel">
   <div className="monitor-chart-top"><div><span className="eyebrow">02 / STOCK SNAPSHOTS</span><h2>个股监测价格与相对强度</h2><p>价格只是当次快照报价；相对强度以相对行业百分点单独绘制。</p></div>
   <div className="monitor-stock-select"><label htmlFor="monitored-stock">选择监测标的</label><select id="monitored-stock" value={stock||''} onChange={e=>setStockCode(e.target.value)}>{allStocks.map(item=><option key={item.code} value={item.code}>{item.rows.at(-1)?.company_name||item.code} · {item.code}</option>)}</select></div></div>
-  <div className="monitor-chart-pair"><SnapshotPlot rows={stockRows} field="price" label="盘中快照价" unit="元"/><SnapshotPlot rows={stockRows} field="relative_to_industry_pct" label="相对所属行业涨跌幅" unit=" pp" color="amber"/></div>
+  <div className="monitor-chart-pair"><SnapshotPlot rows={stockRows} field="price" label="盘中快照价" unit="元"/><SnapshotPlot rows={stockRows} field="relative_to_industry_pct" label="相对所属行业涨跌幅" unit=" pp" /></div>
   <div className="monitor-latest">{stockLast?<><span>个股 <strong>{stockLast.company_name||stock}</strong></span><span>行为 <Badge>{stockLast.price_behavior||'—'}</Badge></span><span>空仓观察 <strong>{safeText(stockLast.entry_action)}</strong></span><span>持仓管理 <strong>{safeText(stockLast.holding_action)}</strong></span></>:<span>该股票暂无有效快照</span>}</div>
   <details className="monitor-expand"><summary>查看 {stockLast?.company_name||stock||'个股'} 每轮状态与判断依据 <ChevronDown size={15}/></summary><SnapshotTimeline rows={stockRows} kind="stock"/></details>
  </section>
