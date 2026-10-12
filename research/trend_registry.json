@@ -2,82 +2,241 @@
   "schema_version": 1,
   "result_kind": "a_share_trend_registry",
   "trade_date": "2026-10-12",
-  "generated_at": "2026-10-12T18:39:05+08:00",
+  "generated_at": "2026-10-13T06:46:32+08:00",
   "timezone": "Asia/Shanghai",
   "status": "COMPLETE",
   "scan_audit": {
-    "mode": "full_close",
-    "full_market_scan_completed": true,
-    "previous_registry_trade_date": "2026-10-09",
-    "previous_trend_count": 14,
-    "previous_trend_rechecked_count": 14,
+    "mode": "early_incremental",
+    "full_market_scan_completed": false,
+    "previous_registry_trade_date": "2026-10-12",
+    "previous_trend_count": 17,
+    "previous_trend_rechecked_count": 17,
     "recheck_queue_rechecked_count": 0,
-    "new_trend_count": 3,
+    "new_trend_count": 0,
     "pending_revalidation_count": 2,
-    "invalidated_count": 4,
+    "invalidated_count": 0,
+    "carried_invalidated_history_count": 4,
     "new_position_count": 3,
     "evidence_cutoff_trade_date": "2026-10-12",
     "market_data_trade_date": "2026-10-12",
     "market_data_completed": true,
-    "scan_scope": "模型独立完成全市场产业政策、商品供需、订单盈利与A股市场结构扫描；逐项复核上一registry全部14个趋势；Python辅助层覆盖331个申万三级行业、17个研究主题与131个基础行业组，概念成分库缺失记为INDUSTRY_ONLY_PARTIAL。",
-    "market_summary": "沪指-0.43%、深成指-2.03%、创业板指-2.61%，两市成交约1.54万亿元、较前一交易日缩量约3627亿元，超过4300股下跌；银行与传媒逆势走强，风电、光伏设备局部活跃，CPO、光通信、贵金属与房地产偏弱。",
-    "funds_observation": "可靠同口径主力资金全市场净流数据未取得；仅使用价格、成交量、广度和相对强度，资金项标记未验证，不作为状态迁移独立依据。",
-    "coverage_note": "旧14个方向逐项有去向；新增银行、电网设备/特高压与线下药店线索。风电、铜完成历史待复核处置；机器人及线下药店继续待复核；PCB、半导体设备/材料、CPO、房地产记入失效审计。",
-    "python_auxiliary_status": "COMPLETE_INDUSTRY_ONLY_PARTIAL",
+    "baseline_registry_status": "COMPLETE",
+    "baseline_registry_blob_sha": "a4673a4b93ca5a6553f3f3fae19592e7496abaa8",
+    "scan_scope": "06:40隔夜增量复核；未执行10月13日A股全市场收盘扫描，未把尚未开盘的10月13日冒充完整行情。逐项复核10月12日正式registry的17个方向，仅检查隔夜商品、海外同业、市场风险与新增产业信息。",
+    "market_summary": "截至10月12日A股正式收盘，沪指-0.43%、深成指-2.03%、创业板指-2.61%，两市成交约1.54万亿元且超过4300股下跌。隔夜美股道指+0.38%、标普-0.06%、纳指-0.44%，半导体指数-2.7%；布伦特原油升至约106.5—107.2美元/桶，现货黄金下跌约0.6%，美元指数升至约18个月高位。",
+    "overnight_evidence": [
+      {
+        "direction": "油气/石油、航运/港口",
+        "observation": "中东供应扰动推动布伦特与WTI隔夜上涨，油气商品第一锚增强；但高油价同时增加航运燃油成本，且没有新的A股板块广度与承接数据。",
+        "source": "https://www.reuters.com/world/china/global-markets-wrapup-1-2026-10-12/",
+        "observed_at": "2026-10-13T06:46:32+08:00",
+        "disposition": "油气维持T1/高潮衰退，航运维持T0/观察；均不恢复或新增新仓资格。"
+      },
+      {
+        "direction": "黄金/贵金属",
+        "observation": "现货金与美国黄金期货均下跌约0.6%，美元指数升至18个月高位，实际利率与美元风险仍构成反证。",
+        "source": "https://www.reuters.com/world/india/gold-gains-weaker-oil-dollar-us-inflation-data-focus-2026-10-12/",
+        "observed_at": "2026-10-13T06:46:32+08:00",
+        "disposition": "维持T1/观察，不升级。"
+      },
+      {
+        "direction": "半导体设备/材料、CPO/光模块及市场风险",
+        "observation": "美股半导体指数隔夜下跌2.7%，纳指下跌0.44%，市场广度偏弱；该海外风险线索不能替代A股板块结构。",
+        "source": "https://www.reuters.com/business/us-stock-futures-muted-oil-stays-above-100-ahead-earnings-2026-10-12/",
+        "observed_at": "2026-10-13T06:46:32+08:00",
+        "disposition": "不撤销10月12日已失效记录；其余A股趋势不因海外单日波动迁移。"
+      }
+    ],
+    "trend_dispositions": [
+      {
+        "trend_name": "固态电池",
+        "baseline_trade_date": "2026-10-12",
+        "baseline_trend_state": "T1",
+        "baseline_market_state": "候选趋势",
+        "lifecycle_status": "有效",
+        "disposition": "状态不迁移",
+        "reason": "隔夜没有足够新增产业证据，且尚无10月13日A股市场结构，保留10月12日正式状态与验证日期。"
+      },
+      {
+        "trend_name": "CRO/医疗研发外包",
+        "baseline_trade_date": "2026-10-12",
+        "baseline_trend_state": "T2",
+        "baseline_market_state": "观察",
+        "lifecycle_status": "有效",
+        "disposition": "状态不迁移",
+        "reason": "隔夜没有足够新增产业证据，且尚无10月13日A股市场结构，保留10月12日正式状态与验证日期。"
+      },
+      {
+        "trend_name": "风电设备",
+        "baseline_trade_date": "2026-10-12",
+        "baseline_trend_state": "T1",
+        "baseline_market_state": "候选趋势",
+        "lifecycle_status": "有效",
+        "disposition": "状态不迁移",
+        "reason": "隔夜没有足够新增产业证据，且尚无10月13日A股市场结构，保留10月12日正式状态与验证日期。"
+      },
+      {
+        "trend_name": "PCB/CCL",
+        "baseline_trade_date": "2026-10-12",
+        "baseline_trend_state": "T1",
+        "baseline_market_state": "失效",
+        "lifecycle_status": "已失效",
+        "disposition": "状态不迁移",
+        "reason": "隔夜没有满足恢复为有效趋势的产业与A股市场双链证据，保留失效审计。"
+      },
+      {
+        "trend_name": "半导体设备/材料",
+        "baseline_trade_date": "2026-10-12",
+        "baseline_trend_state": "T1",
+        "baseline_market_state": "失效",
+        "lifecycle_status": "已失效",
+        "disposition": "状态不迁移",
+        "reason": "海外半导体走弱未提供恢复证据，保留10月12日失效审计。"
+      },
+      {
+        "trend_name": "CPO/光模块",
+        "baseline_trade_date": "2026-10-12",
+        "baseline_trend_state": "T2",
+        "baseline_market_state": "失效",
+        "lifecycle_status": "已失效",
+        "disposition": "状态不迁移",
+        "reason": "海外半导体走弱未提供恢复证据，保留10月12日失效审计。"
+      },
+      {
+        "trend_name": "煤炭",
+        "baseline_trade_date": "2026-10-12",
+        "baseline_trend_state": "T2",
+        "baseline_market_state": "观察",
+        "lifecycle_status": "有效",
+        "disposition": "状态不迁移",
+        "reason": "隔夜没有足够新增产业证据，且尚无10月13日A股市场结构，保留10月12日正式状态与验证日期。"
+      },
+      {
+        "trend_name": "铜/有色",
+        "baseline_trade_date": "2026-10-12",
+        "baseline_trend_state": "T2",
+        "baseline_market_state": "观察",
+        "lifecycle_status": "有效",
+        "disposition": "状态不迁移",
+        "reason": "隔夜没有足够新增产业证据，且尚无10月13日A股市场结构，保留10月12日正式状态与验证日期。"
+      },
+      {
+        "trend_name": "房地产",
+        "baseline_trade_date": "2026-10-12",
+        "baseline_trend_state": "T0",
+        "baseline_market_state": "失效",
+        "lifecycle_status": "已失效",
+        "disposition": "状态不迁移",
+        "reason": "隔夜没有满足恢复为有效趋势的产业与A股市场双链证据，保留失效审计。"
+      },
+      {
+        "trend_name": "机器人",
+        "baseline_trade_date": "2026-10-12",
+        "baseline_trend_state": "T0",
+        "baseline_market_state": "观察",
+        "lifecycle_status": "待复核",
+        "disposition": "状态不迁移",
+        "reason": "隔夜没有足够新增产业与市场证据，保留原状态、原验证日期并继续待复核。"
+      },
+      {
+        "trend_name": "油气/石油",
+        "baseline_trade_date": "2026-10-12",
+        "baseline_trend_state": "T1",
+        "baseline_market_state": "高潮/衰退",
+        "lifecycle_status": "有效",
+        "disposition": "状态不迁移",
+        "reason": "原油第一锚隔夜增强，但缺少新的A股广度、中票扩散和分歧承接，不足以退出高潮/衰退。"
+      },
+      {
+        "trend_name": "航运/港口",
+        "baseline_trade_date": "2026-10-12",
+        "baseline_trend_state": "T0",
+        "baseline_market_state": "观察",
+        "lifecycle_status": "有效",
+        "disposition": "状态不迁移",
+        "reason": "供应扰动为运价风险提供催化，同时高油价抬升燃油成本；缺少可核验运价和A股扩散证据。"
+      },
+      {
+        "trend_name": "黄金/贵金属",
+        "baseline_trade_date": "2026-10-12",
+        "baseline_trend_state": "T1",
+        "baseline_market_state": "观察",
+        "lifecycle_status": "有效",
+        "disposition": "状态不迁移",
+        "reason": "金价下跌且美元走强，未满足由观察升级的条件。"
+      },
+      {
+        "trend_name": "文化传媒/影视院线",
+        "baseline_trade_date": "2026-10-12",
+        "baseline_trend_state": "T1",
+        "baseline_market_state": "候选趋势",
+        "lifecycle_status": "有效",
+        "disposition": "状态不迁移",
+        "reason": "隔夜没有足够新增产业证据，且尚无10月13日A股市场结构，保留10月12日正式状态与验证日期。"
+      },
+      {
+        "trend_name": "银行",
+        "baseline_trade_date": "2026-10-12",
+        "baseline_trend_state": "T1",
+        "baseline_market_state": "趋势确认",
+        "lifecycle_status": "有效",
+        "disposition": "状态不迁移",
+        "reason": "隔夜没有足够新增产业证据，且尚无10月13日A股市场结构，保留10月12日正式状态与验证日期。"
+      },
+      {
+        "trend_name": "电网设备/特高压",
+        "baseline_trade_date": "2026-10-12",
+        "baseline_trend_state": "T1",
+        "baseline_market_state": "新异动",
+        "lifecycle_status": "有效",
+        "disposition": "状态不迁移",
+        "reason": "隔夜没有足够新增产业证据，且尚无10月13日A股市场结构，保留10月12日正式状态与验证日期。"
+      },
+      {
+        "trend_name": "线下药店",
+        "baseline_trade_date": "2026-10-12",
+        "baseline_trend_state": "待核验",
+        "baseline_market_state": "新异动",
+        "lifecycle_status": "待复核",
+        "disposition": "状态不迁移",
+        "reason": "隔夜没有足够新增产业与市场证据，保留原状态、原验证日期并继续待复核。"
+      }
+    ],
+    "state_migrations": [],
+    "priority_changes": [],
+    "funds_observation": "无同口径新增A股板块资金数据；隔夜只使用商品、海外行业表现与宏观风险作辅助，不把资金或ETF涨跌作为产业证明。",
+    "python_auxiliary_status": "COMPLETE_BASELINE_REUSED",
     "python_auxiliary_trade_date": "2026-10-12",
     "python_scan_summary": {
       "industry_universe_count": 331,
       "themes_evaluated": 17,
       "taxonomy_groups_evaluated": 131,
       "taxonomy_covered_level3_industries": 331,
+      "research_themes_with_eligible_quant_signals": 2,
+      "taxonomy_groups_with_eligible_quant_signals": 11,
+      "themes_with_eligible_quant_signals": 2,
       "research_candidates_returned": 12,
+      "curated_candidates_returned": 2,
+      "taxonomy_candidates_returned": 10,
+      "research_candidates_deferred": 1,
       "tracked_alert_count": 11,
       "unmapped_industry_alert_count": 8,
-      "concept_coverage_status": "UNAVAILABLE_NO_MEMBERSHIP",
-      "point_in_time_eligible": true
+      "unmapped_eligible_industry_count": 11,
+      "unknown_tracked_themes": [],
+      "invalid_or_low_sample_themes": 0,
+      "sector_audit_status": "MATCHED",
+      "registry_baseline_trade_date": "2026-10-09",
+      "all_theme_detail_retention": "computed_in_memory_not_persisted"
     },
-    "program_candidate_dispositions": [
-      {
-        "direction": "文化传媒/影视院线",
-        "disposition": "纳入并升级为T1/候选趋势",
-        "reason": "产业催化与两日扩散经独立核验成立"
-      },
-      {
-        "direction": "风电设备",
-        "disposition": "解除待复核并恢复T1/候选趋势",
-        "reason": "招标、价格、营收与市场广度交叉成立"
-      },
-      {
-        "direction": "银行",
-        "disposition": "新增T1/趋势确认并进入新仓优先榜",
-        "reason": "业绩改善、息差企稳预期、全子板块多日扩散交叉成立"
-      },
-      {
-        "direction": "线下药店",
-        "disposition": "新增待核验/新异动",
-        "reason": "量价强但缺乏可核验的全行业盈利驱动"
-      },
-      {
-        "direction": "教育出版/广告营销/游戏",
-        "disposition": "并入文化传媒主题研究，不重复计证据",
-        "reason": "产业驱动及样本与传媒主题重叠"
-      },
-      {
-        "direction": "保险",
-        "disposition": "排除正式趋势",
-        "reason": "成交量比低于1且3日收益为负，未形成独立产业趋势"
-      },
-      {
-        "direction": "啤酒",
-        "disposition": "排除正式趋势",
-        "reason": "单日相对强度线索，缺少订单、价格或盈利传导证据"
-      },
-      {
-        "direction": "商用载客车",
-        "disposition": "排除正式趋势",
-        "reason": "单日强势且样本仅5只，缺少产业持续性证据"
-      }
-    ]
+    "python_auxiliary_note": "同交易日10月12日快照已验证schema、COMPLETE、auxiliary_only、no_trade_signal、decision_authority与point_in_time_eligible；早间不重新生成研究候选，只复核上次收盘记录。",
+    "official_trade_day_gate": {
+      "today": "2026-10-13",
+      "is_official_trade_day": true,
+      "evidence": "上交所与深交所2026年休市安排均载明国庆节10月1日至7日休市、10月8日起照常开市；10月13日为星期二且不在公告休市区间。",
+      "sse_source": "https://www.sse.com.cn/disclosure/dealinstruc/closed/c/c_20251222_10802510.shtml",
+      "szse_source": "https://www.szse.cn/disclosure/notice/general/t20251222_618087.html"
+    },
+    "publication_note": "trade_date继续为previous_trade_date 2026-10-12；本轮仅更新隔夜增量审计，不生成或冒充2026-10-13完整收盘结论。"
   },
   "trends": [
     {
