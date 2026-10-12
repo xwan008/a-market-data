@@ -99,9 +99,12 @@ jobs:
           import json
           from pathlib import Path
           t=json.loads(Path('/tmp/theme_evidence_smoke.json').read_text())
-          assert t['trade_date']=='2026-10-09'
-          assert t['status']=='RETROSPECTIVE_MAPPING_SMOKE'
-          assert t['point_in_time_eligible'] is False
+          latest=json.loads(Path('data/latest.json').read_text())
+          catalog=json.loads(Path('research/theme_industry_catalog.json').read_text())
+          historical_replay=catalog['catalog_as_of_date']>latest['trade_date']
+          assert t['trade_date']==latest['trade_date']
+          assert t['status']==('RETROSPECTIVE_MAPPING_SMOKE' if historical_replay else 'COMPLETE')
+          assert t['point_in_time_eligible'] is (not historical_replay)
           assert t['scan_summary']['industry_universe_count']==331
           assert t['scan_summary']['themes_evaluated']==17
           assert t['scan_summary']['taxonomy_groups_evaluated']==131
