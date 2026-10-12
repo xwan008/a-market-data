@@ -6,7 +6,7 @@ import {
  RefreshCw, Search, ShieldCheck, ShieldAlert, SlidersHorizontal,
  Sparkles, Target, TrendingUp, Wallet, X, Zap, PanelLeftClose, ListFilter
 } from 'lucide-react';
-import {asArray, latestMonitorRecords, fixed, fmtTime, formatSource, pct, safeText, shanghaiDay, summarizeTrades, validSnapshots, snapshotChange, rankedTrendRows, seriesDirection, statusTone} from './model.js';
+import {asArray, latestMonitorRecords, fixed, fmtTime, formatSource, pct, safeText, shanghaiDay, summarizeTrades, validSnapshots, snapshotChange, rankedTrendRows, seriesDirection, statusTone, trendEvents, archivedDays} from './model.js';
 
 const sections = [
  {id:'overview',icon:BarChart3,title:'市场总览',en:'Overview'},
@@ -32,7 +32,20 @@ function Sidebar({section,onSection,openMenu,setOpenMenu,status}){
 }
 function Metric({label,value,meta,icon:Icon,accent='blue',hint}) {return <div className="metric-card"><div className="metric-top"><span>{label}</span><span className={`metric-icon metric-${accent}`}><Icon size={18}/></span></div><div className="metric-number">{value}</div><div className="metric-meta">{hint && <span className="metric-hint">{hint}</span>}{meta}</div></div>}
 function TrendFocus({item,rank}) {return <div className="focus-row"><div className="focus-rank">{String(rank).padStart(2,'0')}</div><div className="focus-details"><strong>{item.trend_name}</strong><div><span>{safeText(item.trend_state)}</span><span className="tiny-sep">·</span><span>{safeText(item.industry_names?.[0])}</span></div></div><Badge>{item.market_state}</Badge></div>}
-function HistoryStrip({events}) {const list=asArray(events).slice(-6);return list.length?<div className="history-strip">{list.map((e,i)=><div className="history-node" key={`${e.trade_date}-${i}`} title={`${e.trade_date} · ${e.to||e.event||'历史观察'}`}><span className={i===list.length-1?'history-node-current':''}/><small>{String(e.trade_date||'').slice(5)}</small></div>)}</div>:<span className="muted">暂无状态历史</span>}
+
+function HistoryStrip({events}){
+ const list=trendEvents({state_history:events},5),today=shanghaiDay();
+ if(!list.length)return <p className="muted">尚无可核验的历史状态事件。</p>;
+ return <div className="trend-history">
+  <div className="trend-history-rail">{list.map((e,i)=>{const isToday=e.trade_date===today;return <div key={e.trade_date} className={'trend-history-event '+(isToday?'is-today':'')+(i===list.length-1?' is-latest':'')}>
+   <span className="trend-history-date">{e.trade_date.slice(5)}{isToday&&<b>今日</b>}</span>
+   <span className="trend-history-state">{e.market_state?<Badge>{e.market_state}</Badge>:<span className="muted">历史观察</span>}</span>
+   <span className="trend-history-kind">{i===list.length-1?'最新记录':e.event==='market_state_change'||e.event==='market_downgrade'?'状态迁移':'已记录'}</span>
+   {e.reason&&<details className="trend-history-reason"><summary>本轮依据</summary><p>{e.reason}</p></details>}
+  </div>})}</div>
+  <p className="history-disclaimer">近 {list.length} 次已发布核验事件 · 未记录交易日不补值 · 历史研究判断不等于今日行情</p>
+ </div>;
+}
 function TrendInspector({item}) {
  if(!item) return <Empty title="选择一个板块" detail="查看产业状态、支持证据与失效条件"/>;
  const evidence=asArray(item.supporting_evidence).slice(-2).reverse();
@@ -87,6 +100,40 @@ function SnapshotPlot({rows,field,label,unit='%',scale=1,bounds=null,compact=fal
    </svg>
    {compact?<span className={'plot-compact-value plot-head-'+direction}>{display(data.at(-1).value)}</span>:hItem&&<div className="plot-tooltip" role="status"><span className="plot-tooltip-time">{fmtTime(hItem.scan_at)}</span><strong>{display(hItem.value)}</strong><span className={direction==='rise'?'plot-positive':direction==='fall'?'plot-negative':''}>{hoveredIndex===0?'首轮基准': '相对首轮 '+signed(hItem.value-data[0].value,unit==='元'?2:1)+unit}</span>{(hItem.row.current_state||hItem.row.price_behavior)&&<small>监测状态 · {hItem.row.current_state||hItem.row.price_behavior}</small>}</div>}
   </div>
+ </div>;
+}
+
+function CrossdayTimeline({archive,monitor,identifier,kind='sector'}){
+ const rows=archivedDays(archive,monitor,identifier,kind,5),today=shanghaiDay();
+ const count=rows.filter(row=>row.source==='archived_last_scan').length;
+ return <div className="crossday-view">
+  <div className="crossday-head"><strong>近 5 个可追溯交易日</strong><small>历史来自当日末次盘中扫描，不代表收盘价</small></div>
+  {rows.length?<div className="crossday-rail">{rows.map(row=>{const isToday=row.trade_date===today;
+    const state=kind==='sector'?(row.current_state||row.last_intraday_state):(row.price_behavior||row.relative_strength);
+    const value=kind==='sector'?(typeof row.up_ratio==='number'?fixed(row.up_ratio*100,1)+'%':'—'):(typeof row.price==='number'?fixed(row.price,2)+' 元':'—');
+    return <div className={'crossday-card '+(isToday?'crossday-today':'')} key={row.trade_date}>
+      <div className="crossday-date">{row.trade_date.slice(5)}{isToday&&<span>今日</span>}</div>
+      <strong className="crossday-value">{value}</strong>
+      <div className="crossday-state">{state?<Badge>{state}</Badge>:<span>无状态</span>}</div>
+      <small>{kind==='sector'?'上涨家数占比':'盘中末次快照价'}</small>
+    </div>;
+  })}</div>:<p className="crossday-unavailable">暂无可核验的跨日历史快照。</p>}
+  {count===0&&<p className="history-disclaimer">跨日存档尚无历史交易日记录，当前仅能展示当日数据。后续产生真实归档后这里会自动增加。</p>}
+  {count>0&&rows.length<5&&<p className="history-disclaimer">当前只有 {count} 个已归档交易日；不足 5 日不填充缺失值。</p>}
+ </div>;
+}
+function SevenSessionContext({sector,stock}){
+ const context=sector?.seven_day||stock?.seven_day;
+ if(!context)return <div className="monitor-more-none">暂未提供七日背景数据。</div>;
+ const sectorMode=!!sector;
+ const available=context.status==='available';
+ const value=sectorMode?context.median_constituent_return_pct:context.close_change_7d_pct;
+ const sourceDate=context.source_trade_date||context.baseline_trade_date||'未注明';
+ return <div className="seven-context">
+  <div><small>{sectorMode?'7 个完整交易时段 · 成分股收益中位数':'7 个完整交易时段 · 个股收盘涨跌幅'}</small><strong className={typeof value==='number'?(value>0?'market-up':value<0?'market-down':''):''}>{available&&typeof value==='number'?pct(value):'数据不足'}</strong></div>
+  {sectorMode&&<div><small>区间内正收益成分股比例</small><strong>{typeof context.positive_constituent_ratio==='number'?fixed(context.positive_constituent_ratio*100,1)+'%':'—'}</strong></div>}
+  <div><small>历史口径与样本</small><strong>{sectorMode?safeText(context.sample_count)+' / '+safeText(context.target_count):safeText(context.observation_count)+' 个有效收盘价'}</strong></div>
+  <p>截至 {sourceDate} · {context.status==='available'?'覆盖可用':'数据覆盖不完整'} · 这是截至历史基准日的累计背景，不是逐日曲线，也不是今天的实时信号。</p>
  </div>;
 }
 function SnapshotTimeline({rows,kind='sector'}){
