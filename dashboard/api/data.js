@@ -4,7 +4,8 @@ const FILES = {
   registry: ['research/trend_registry.json','a_share_trend_registry'],
   trendHandoff: ['research/trend_handoff.json','a_share_trend_handoff'],
   buyHandoff: ['research/trend_buy_handoff.json',null],
-  monitor: ['research/intraday_monitor_state.json','a_share_intraday_monitor_state']
+  monitor: ['research/intraday_monitor_state.json','a_share_intraday_monitor_state'],
+  crossdayArchive: ['research/intraday_crossday_archive.json','a_share_intraday_crossday_archive']
 };
 const TIMEOUT_MS = 12000;
 const FIELDS = ['股票代码','交易标的','操作类型','价格（元）','实际成交股数','金额（元）','交易日期','记录日期','失效条件','复盘备注'];
