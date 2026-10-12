@@ -12,33 +12,39 @@
       "trend_name": "固态电池",
       "industry_code": "S630701",
       "industry_name": "锂电池",
-      "current_price": 48.0,
+      "current_price": 48,
       "market_state": "趋势确认",
       "trend_state": "T1",
       "status": "WAIT",
       "wait_reason": "WAIT_CONFIRMATION",
-      "setup_type": "BREAKOUT",
-      "entry_zone": [
-        51.373,
-        52.552
-      ],
-      "entry_trigger": "收盘站稳前60日压力位且放量/收盘位置确认；下一交易日仅在计划价格内执行",
-      "max_entry_price": 52.552,
-      "invalidation_price": 50.501,
-      "invalidation_rule": "计划价格结构失效；以有效收盘确认优先，跳空/重大突发风险需即时再评估，不能保证按止损价成交",
-      "initial_risk_pct": 3.9,
+      "setup_type": null,
+      "entry_zone": null,
+      "entry_trigger": null,
+      "max_entry_price": null,
+      "invalidation_price": null,
+      "invalidation_rule": null,
+      "initial_risk_pct": null,
       "upside_to_resistance_R": null,
-      "exit_plan": {
-        "failed_setup": "突破失败或回调未获确认则不入场；已入场后触及预先定义的结构失败条件退出",
-        "trend_weakening": "趋势与板块强度持续衰退时减少风险敞口；不得单凭单日回调强制清仓",
-        "profit_protection": "持仓后逐步上移结构保护位，结合新高、回调低点和风险预算分批退出",
-        "risk_gap": "跳空、涨跌停与成交滑点可能使真实亏损超过理论结构风险"
-      },
+      "exit_plan": null,
       "decision_reason": "修复阶段需验证后续承接；单次放量不自动形成READY",
       "transmission": "EARLY_EVIDENCE",
       "research_falsifier": "若客户验证终止、量产推迟、未形成订单或公开说明技术适配不成立，则取消早期传导资格",
       "rank": 1,
-      "trade_date": "2026-10-09"
+      "trade_date": "2026-10-09",
+      "watch_reference": {
+        "stage": "PRE_TREND_WATCH",
+        "setup_mode": "MA20_RECOVERY",
+        "conditional_trigger": "观察日K重新站上MA20，回调低点不创新低，且收盘承接与相对强弱改善",
+        "reference_trigger_price": 48.071,
+        "reference_zone": [
+          48.071,
+          48.936
+        ],
+        "invalidation_price": 46.65,
+        "estimated_price_risk_pct": 4.67,
+        "risk_threshold_pct": 8,
+        "price_basis": "同一已完成交易日的冻结技术数据，非估值买入价"
+      }
     },
     {
       "code": "002709",
@@ -64,7 +70,21 @@
       "transmission": "EARLY_EVIDENCE",
       "research_falsifier": "若客户验证终止、量产推迟、未形成订单或公开说明技术适配不成立，则取消早期传导资格",
       "rank": 2,
-      "trade_date": "2026-10-09"
+      "trade_date": "2026-10-09",
+      "watch_reference": {
+        "stage": "PRE_TREND_WATCH",
+        "setup_mode": "RECLAIM",
+        "conditional_trigger": "观察日K重新站上MA20和MA60中较高者，收盘位置和成交承接改善；未重新站稳不可按参考价入场",
+        "reference_trigger_price": 35.806,
+        "reference_zone": [
+          35.806,
+          36.451
+        ],
+        "invalidation_price": 35.4,
+        "estimated_price_risk_pct": 2.88,
+        "risk_threshold_pct": 8,
+        "price_basis": "同一已完成交易日的冻结技术数据，非估值买入价"
+      }
     },
     {
       "code": "603659",
@@ -90,7 +110,21 @@
       "transmission": "EARLY_EVIDENCE",
       "research_falsifier": "若客户验证终止、量产推迟、未形成订单或公开说明技术适配不成立，则取消早期传导资格",
       "rank": 3,
-      "trade_date": "2026-10-09"
+      "trade_date": "2026-10-09",
+      "watch_reference": {
+        "stage": "PRE_TREND_WATCH",
+        "setup_mode": "RECLAIM",
+        "conditional_trigger": "观察日K重新站上MA20和MA60中较高者，收盘位置和成交承接改善；未重新站稳不可按参考价入场",
+        "reference_trigger_price": 23.166,
+        "reference_zone": [
+          23.166,
+          23.583
+        ],
+        "invalidation_price": 21.962,
+        "estimated_price_risk_pct": 6.87,
+        "risk_threshold_pct": 8,
+        "price_basis": "同一已完成交易日的冻结技术数据，非估值买入价"
+      }
     },
     {
       "code": "000049",
@@ -116,7 +150,21 @@
       "transmission": "EARLY_EVIDENCE",
       "research_falsifier": "若客户验证终止、量产推迟、未形成订单或公开说明技术适配不成立，则取消早期传导资格",
       "rank": 4,
-      "trade_date": "2026-10-09"
+      "trade_date": "2026-10-09",
+      "watch_reference": {
+        "stage": "PRE_TREND_WATCH",
+        "setup_mode": "RECLAIM",
+        "conditional_trigger": "观察日K重新站上MA20和MA60中较高者，收盘位置和成交承接改善；未重新站稳不可按参考价入场",
+        "reference_trigger_price": 23.568,
+        "reference_zone": [
+          23.568,
+          23.992
+        ],
+        "invalidation_price": 22.39,
+        "estimated_price_risk_pct": 6.68,
+        "risk_threshold_pct": 8,
+        "price_basis": "同一已完成交易日的冻结技术数据，非估值买入价"
+      }
     },
     {
       "code": "002125",
@@ -129,28 +177,31 @@
       "trend_state": "T1",
       "status": "WAIT",
       "wait_reason": "WAIT_CONFIRMATION",
-      "setup_type": "BREAKOUT",
-      "entry_zone": [
-        13.677,
-        13.991
-      ],
-      "entry_trigger": "收盘站稳前60日压力位且放量/收盘位置确认；下一交易日仅在计划价格内执行",
-      "max_entry_price": 13.991,
-      "invalidation_price": 13.445,
-      "invalidation_rule": "计划价格结构失效；以有效收盘确认优先，跳空/重大突发风险需即时再评估，不能保证按止损价成交",
-      "initial_risk_pct": 3.9,
+      "setup_type": null,
+      "entry_zone": null,
+      "entry_trigger": null,
+      "max_entry_price": null,
+      "invalidation_price": null,
+      "invalidation_rule": null,
+      "initial_risk_pct": null,
       "upside_to_resistance_R": null,
-      "exit_plan": {
-        "failed_setup": "突破失败或回调未获确认则不入场；已入场后触及预先定义的结构失败条件退出",
-        "trend_weakening": "趋势与板块强度持续衰退时减少风险敞口；不得单凭单日回调强制清仓",
-        "profit_protection": "持仓后逐步上移结构保护位，结合新高、回调低点和风险预算分批退出",
-        "risk_gap": "跳空、涨跌停与成交滑点可能使真实亏损超过理论结构风险"
-      },
+      "exit_plan": null,
       "decision_reason": "早期主题关联已有，但未完成特定早期业务风险审查",
       "transmission": "EARLY_EVIDENCE",
       "research_falsifier": "若客户验证终止、量产推迟、未形成订单或公开说明技术适配不成立，则取消早期传导资格",
       "rank": 5,
-      "trade_date": "2026-10-09"
+      "trade_date": "2026-10-09",
+      "watch_reference": {
+        "stage": "PRE_TREND_WATCH",
+        "setup_mode": "PULLBACK_HOLD",
+        "conditional_trigger": "等待回踩MA20附近后出现真实承接/反包，避免仅因价格碰到均线就买；现有结构止损过远或缺失，尚不能给可靠的条件买入区，需等待新支撑形成",
+        "reference_trigger_price": 12.117,
+        "reference_zone": null,
+        "invalidation_price": null,
+        "estimated_price_risk_pct": null,
+        "risk_threshold_pct": 8,
+        "price_basis": "同一已完成交易日的冻结技术数据，非估值买入价"
+      }
     },
     {
       "code": "600985",
@@ -163,28 +214,34 @@
       "trend_state": "T2",
       "status": "WAIT",
       "wait_reason": "WAIT_CONFIRMATION",
-      "setup_type": "BREAKOUT",
-      "entry_zone": [
-        18.808,
-        19.239
-      ],
-      "entry_trigger": "收盘站稳前60日压力位且放量/收盘位置确认；下一交易日仅在计划价格内执行",
-      "max_entry_price": 19.239,
-      "invalidation_price": 18.488,
-      "invalidation_rule": "计划价格结构失效；以有效收盘确认优先，跳空/重大突发风险需即时再评估，不能保证按止损价成交",
-      "initial_risk_pct": 3.9,
+      "setup_type": null,
+      "entry_zone": null,
+      "entry_trigger": null,
+      "max_entry_price": null,
+      "invalidation_price": null,
+      "invalidation_rule": null,
+      "initial_risk_pct": null,
       "upside_to_resistance_R": null,
-      "exit_plan": {
-        "failed_setup": "突破失败或回调未获确认则不入场；已入场后触及预先定义的结构失败条件退出",
-        "trend_weakening": "趋势与板块强度持续衰退时减少风险敞口；不得单凭单日回调强制清仓",
-        "profit_protection": "持仓后逐步上移结构保护位，结合新高、回调低点和风险预算分批退出",
-        "risk_gap": "跳空、涨跌停与成交滑点可能使真实亏损超过理论结构风险"
-      },
+      "exit_plan": null,
       "decision_reason": "上游板块市场状态未到趋势确认；现为候选趋势，禁止只靠个股形态升级READY",
       "transmission": "SUPPORTED",
       "research_falsifier": "若主营生产、矿业许可或相关商业业务发生重大终止与财务风险，重新核查主题及交易资格",
       "rank": 6,
-      "trade_date": "2026-10-09"
+      "trade_date": "2026-10-09",
+      "watch_reference": {
+        "stage": "PRE_TREND_WATCH",
+        "setup_mode": "MA20_RECOVERY",
+        "conditional_trigger": "观察日K重新站上MA20，回调低点不创新低，且收盘承接与相对强弱改善",
+        "reference_trigger_price": 16.614,
+        "reference_zone": [
+          16.614,
+          16.913
+        ],
+        "invalidation_price": 16.29,
+        "estimated_price_risk_pct": 3.68,
+        "risk_threshold_pct": 8,
+        "price_basis": "同一已完成交易日的冻结技术数据，非估值买入价"
+      }
     },
     {
       "code": "600188",
@@ -210,7 +267,21 @@
       "transmission": "SUPPORTED",
       "research_falsifier": "若主营生产、矿业许可或相关商业业务发生重大终止与财务风险，重新核查主题及交易资格",
       "rank": 7,
-      "trade_date": "2026-10-09"
+      "trade_date": "2026-10-09",
+      "watch_reference": {
+        "stage": "PRE_TREND_WATCH",
+        "setup_mode": "RECLAIM",
+        "conditional_trigger": "观察日K重新站上MA20和MA60中较高者，收盘位置和成交承接改善；未重新站稳不可按参考价入场",
+        "reference_trigger_price": 20.549,
+        "reference_zone": [
+          20.549,
+          20.919
+        ],
+        "invalidation_price": 20.371,
+        "estimated_price_risk_pct": 2.62,
+        "risk_threshold_pct": 8,
+        "price_basis": "同一已完成交易日的冻结技术数据，非估值买入价"
+      }
     },
     {
       "code": "601101",
@@ -223,28 +294,34 @@
       "trend_state": "T2",
       "status": "WAIT",
       "wait_reason": "WAIT_CONFIRMATION",
-      "setup_type": "BREAKOUT",
-      "entry_zone": [
-        15.351,
-        15.703
-      ],
-      "entry_trigger": "收盘站稳前60日压力位且放量/收盘位置确认；下一交易日仅在计划价格内执行",
-      "max_entry_price": 15.703,
-      "invalidation_price": 15.09,
-      "invalidation_rule": "计划价格结构失效；以有效收盘确认优先，跳空/重大突发风险需即时再评估，不能保证按止损价成交",
-      "initial_risk_pct": 3.9,
+      "setup_type": null,
+      "entry_zone": null,
+      "entry_trigger": null,
+      "max_entry_price": null,
+      "invalidation_price": null,
+      "invalidation_rule": null,
+      "initial_risk_pct": null,
       "upside_to_resistance_R": null,
-      "exit_plan": {
-        "failed_setup": "突破失败或回调未获确认则不入场；已入场后触及预先定义的结构失败条件退出",
-        "trend_weakening": "趋势与板块强度持续衰退时减少风险敞口；不得单凭单日回调强制清仓",
-        "profit_protection": "持仓后逐步上移结构保护位，结合新高、回调低点和风险预算分批退出",
-        "risk_gap": "跳空、涨跌停与成交滑点可能使真实亏损超过理论结构风险"
-      },
+      "exit_plan": null,
       "decision_reason": "上游板块市场状态未到趋势确认；现为候选趋势，禁止只靠个股形态升级READY",
       "transmission": "SUPPORTED",
       "research_falsifier": "若主营生产、矿业许可或相关商业业务发生重大终止与财务风险，重新核查主题及交易资格",
       "rank": 8,
-      "trade_date": "2026-10-09"
+      "trade_date": "2026-10-09",
+      "watch_reference": {
+        "stage": "PRE_TREND_WATCH",
+        "setup_mode": "MA20_RECOVERY",
+        "conditional_trigger": "观察日K重新站上MA20，回调低点不创新低，且收盘承接与相对强弱改善",
+        "reference_trigger_price": 13.237,
+        "reference_zone": [
+          13.237,
+          13.475
+        ],
+        "invalidation_price": 13.1,
+        "estimated_price_risk_pct": 2.78,
+        "risk_threshold_pct": 8,
+        "price_basis": "同一已完成交易日的冻结技术数据，非估值买入价"
+      }
     },
     {
       "code": "000983",
@@ -270,7 +347,21 @@
       "transmission": "SUPPORTED",
       "research_falsifier": "若主营生产、矿业许可或相关商业业务发生重大终止与财务风险，重新核查主题及交易资格",
       "rank": 9,
-      "trade_date": "2026-10-09"
+      "trade_date": "2026-10-09",
+      "watch_reference": {
+        "stage": "PRE_TREND_WATCH",
+        "setup_mode": "RECLAIM",
+        "conditional_trigger": "观察日K重新站上MA20和MA60中较高者，收盘位置和成交承接改善；未重新站稳不可按参考价入场",
+        "reference_trigger_price": 6.675,
+        "reference_zone": [
+          6.675,
+          6.795
+        ],
+        "invalidation_price": 6.636,
+        "estimated_price_risk_pct": 2.34,
+        "risk_threshold_pct": 8,
+        "price_basis": "同一已完成交易日的冻结技术数据，非估值买入价"
+      }
     },
     {
       "code": "601666",
@@ -283,28 +374,34 @@
       "trend_state": "T2",
       "status": "WAIT",
       "wait_reason": "WAIT_CONFIRMATION",
-      "setup_type": "BREAKOUT",
-      "entry_zone": [
-        10.281,
-        10.516
-      ],
-      "entry_trigger": "收盘站稳前60日压力位且放量/收盘位置确认；下一交易日仅在计划价格内执行",
-      "max_entry_price": 10.516,
-      "invalidation_price": 10.106,
-      "invalidation_rule": "计划价格结构失效；以有效收盘确认优先，跳空/重大突发风险需即时再评估，不能保证按止损价成交",
-      "initial_risk_pct": 3.9,
+      "setup_type": null,
+      "entry_zone": null,
+      "entry_trigger": null,
+      "max_entry_price": null,
+      "invalidation_price": null,
+      "invalidation_rule": null,
+      "initial_risk_pct": null,
       "upside_to_resistance_R": null,
-      "exit_plan": {
-        "failed_setup": "突破失败或回调未获确认则不入场；已入场后触及预先定义的结构失败条件退出",
-        "trend_weakening": "趋势与板块强度持续衰退时减少风险敞口；不得单凭单日回调强制清仓",
-        "profit_protection": "持仓后逐步上移结构保护位，结合新高、回调低点和风险预算分批退出",
-        "risk_gap": "跳空、涨跌停与成交滑点可能使真实亏损超过理论结构风险"
-      },
+      "exit_plan": null,
       "decision_reason": "上游板块市场状态未到趋势确认；现为候选趋势，禁止只靠个股形态升级READY",
       "transmission": "SUPPORTED",
       "research_falsifier": "若主营生产、矿业许可或相关商业业务发生重大终止与财务风险，重新核查主题及交易资格",
       "rank": 10,
-      "trade_date": "2026-10-09"
+      "trade_date": "2026-10-09",
+      "watch_reference": {
+        "stage": "PRE_TREND_WATCH",
+        "setup_mode": "MA20_RECOVERY",
+        "conditional_trigger": "观察日K重新站上MA20，回调低点不创新低，且收盘承接与相对强弱改善",
+        "reference_trigger_price": 9.062,
+        "reference_zone": [
+          9.062,
+          9.225
+        ],
+        "invalidation_price": 8.821,
+        "estimated_price_risk_pct": 4.38,
+        "risk_threshold_pct": 8,
+        "price_basis": "同一已完成交易日的冻结技术数据，非估值买入价"
+      }
     },
     {
       "code": "600988",
@@ -317,28 +414,34 @@
       "trend_state": "T1",
       "status": "WAIT",
       "wait_reason": "WAIT_CONFIRMATION",
-      "setup_type": "BREAKOUT",
-      "entry_zone": [
-        52.094,
-        53.29
-      ],
-      "entry_trigger": "收盘站稳前60日压力位且放量/收盘位置确认；下一交易日仅在计划价格内执行",
-      "max_entry_price": 53.29,
-      "invalidation_price": 51.21,
-      "invalidation_rule": "计划价格结构失效；以有效收盘确认优先，跳空/重大突发风险需即时再评估，不能保证按止损价成交",
-      "initial_risk_pct": 3.9,
+      "setup_type": null,
+      "entry_zone": null,
+      "entry_trigger": null,
+      "max_entry_price": null,
+      "invalidation_price": null,
+      "invalidation_rule": null,
+      "initial_risk_pct": null,
       "upside_to_resistance_R": null,
-      "exit_plan": {
-        "failed_setup": "突破失败或回调未获确认则不入场；已入场后触及预先定义的结构失败条件退出",
-        "trend_weakening": "趋势与板块强度持续衰退时减少风险敞口；不得单凭单日回调强制清仓",
-        "profit_protection": "持仓后逐步上移结构保护位，结合新高、回调低点和风险预算分批退出",
-        "risk_gap": "跳空、涨跌停与成交滑点可能使真实亏损超过理论结构风险"
-      },
+      "exit_plan": null,
       "decision_reason": "上游板块市场状态未到趋势确认；现为候选趋势，禁止只靠个股形态升级READY",
       "transmission": "SUPPORTED",
       "research_falsifier": "若主营生产、矿业许可或相关商业业务发生重大终止与财务风险，重新核查主题及交易资格",
       "rank": 11,
-      "trade_date": "2026-10-09"
+      "trade_date": "2026-10-09",
+      "watch_reference": {
+        "stage": "PRE_TREND_WATCH",
+        "setup_mode": "MA20_RECOVERY",
+        "conditional_trigger": "观察日K重新站上MA20，回调低点不创新低，且收盘承接与相对强弱改善",
+        "reference_trigger_price": 42.638,
+        "reference_zone": [
+          42.638,
+          43.405
+        ],
+        "invalidation_price": 41.254,
+        "estimated_price_risk_pct": 4.96,
+        "risk_threshold_pct": 8,
+        "price_basis": "同一已完成交易日的冻结技术数据，非估值买入价"
+      }
     },
     {
       "code": "001337",
@@ -351,28 +454,34 @@
       "trend_state": "T1",
       "status": "WAIT",
       "wait_reason": "WAIT_CONFIRMATION",
-      "setup_type": "BREAKOUT",
-      "entry_zone": [
-        59.168,
-        60.526
-      ],
-      "entry_trigger": "收盘站稳前60日压力位且放量/收盘位置确认；下一交易日仅在计划价格内执行",
-      "max_entry_price": 60.526,
-      "invalidation_price": 58.164,
-      "invalidation_rule": "计划价格结构失效；以有效收盘确认优先，跳空/重大突发风险需即时再评估，不能保证按止损价成交",
-      "initial_risk_pct": 3.9,
+      "setup_type": null,
+      "entry_zone": null,
+      "entry_trigger": null,
+      "max_entry_price": null,
+      "invalidation_price": null,
+      "invalidation_rule": null,
+      "initial_risk_pct": null,
       "upside_to_resistance_R": null,
-      "exit_plan": {
-        "failed_setup": "突破失败或回调未获确认则不入场；已入场后触及预先定义的结构失败条件退出",
-        "trend_weakening": "趋势与板块强度持续衰退时减少风险敞口；不得单凭单日回调强制清仓",
-        "profit_protection": "持仓后逐步上移结构保护位，结合新高、回调低点和风险预算分批退出",
-        "risk_gap": "跳空、涨跌停与成交滑点可能使真实亏损超过理论结构风险"
-      },
+      "exit_plan": null,
       "decision_reason": "上游板块市场状态未到趋势确认；现为候选趋势，禁止只靠个股形态升级READY",
       "transmission": "SUPPORTED",
       "research_falsifier": "若主营生产、矿业许可或相关商业业务发生重大终止与财务风险，重新核查主题及交易资格",
       "rank": 12,
-      "trade_date": "2026-10-09"
+      "trade_date": "2026-10-09",
+      "watch_reference": {
+        "stage": "PRE_TREND_WATCH",
+        "setup_mode": "MA20_RECOVERY",
+        "conditional_trigger": "观察日K重新站上MA20，回调低点不创新低，且收盘承接与相对强弱改善",
+        "reference_trigger_price": 48.954,
+        "reference_zone": [
+          48.954,
+          49.835
+        ],
+        "invalidation_price": 45.885,
+        "estimated_price_risk_pct": 7.93,
+        "risk_threshold_pct": 8,
+        "price_basis": "同一已完成交易日的冻结技术数据，非估值买入价"
+      }
     },
     {
       "code": "000975",
@@ -398,7 +507,18 @@
       "transmission": "SUPPORTED",
       "research_falsifier": "若主营生产、矿业许可或相关商业业务发生重大终止与财务风险，重新核查主题及交易资格",
       "rank": 13,
-      "trade_date": "2026-10-09"
+      "trade_date": "2026-10-09",
+      "watch_reference": {
+        "stage": "PRE_TREND_WATCH",
+        "setup_mode": "RECLAIM",
+        "conditional_trigger": "观察日K重新站上MA20和MA60中较高者，收盘位置和成交承接改善；未重新站稳不可按参考价入场；现有结构止损过远或缺失，尚不能给可靠的条件买入区，需等待新支撑形成",
+        "reference_trigger_price": 24.636,
+        "reference_zone": null,
+        "invalidation_price": null,
+        "estimated_price_risk_pct": null,
+        "risk_threshold_pct": 8,
+        "price_basis": "同一已完成交易日的冻结技术数据，非估值买入价"
+      }
     },
     {
       "code": "600489",
@@ -424,7 +544,18 @@
       "transmission": "SUPPORTED",
       "research_falsifier": "若主营生产、矿业许可或相关商业业务发生重大终止与财务风险，重新核查主题及交易资格",
       "rank": 14,
-      "trade_date": "2026-10-09"
+      "trade_date": "2026-10-09",
+      "watch_reference": {
+        "stage": "PRE_TREND_WATCH",
+        "setup_mode": "RECLAIM",
+        "conditional_trigger": "观察日K重新站上MA20和MA60中较高者，收盘位置和成交承接改善；未重新站稳不可按参考价入场；现有结构止损过远或缺失，尚不能给可靠的条件买入区，需等待新支撑形成",
+        "reference_trigger_price": 23.77,
+        "reference_zone": null,
+        "invalidation_price": null,
+        "estimated_price_risk_pct": null,
+        "risk_threshold_pct": 8,
+        "price_basis": "同一已完成交易日的冻结技术数据，非估值买入价"
+      }
     },
     {
       "code": "601069",
@@ -450,7 +581,18 @@
       "transmission": "SUPPORTED",
       "research_falsifier": "若主营生产、矿业许可或相关商业业务发生重大终止与财务风险，重新核查主题及交易资格",
       "rank": 15,
-      "trade_date": "2026-10-09"
+      "trade_date": "2026-10-09",
+      "watch_reference": {
+        "stage": "PRE_TREND_WATCH",
+        "setup_mode": "RECLAIM",
+        "conditional_trigger": "观察日K重新站上MA20和MA60中较高者，收盘位置和成交承接改善；未重新站稳不可按参考价入场；现有结构止损过远或缺失，尚不能给可靠的条件买入区，需等待新支撑形成",
+        "reference_trigger_price": 27.503,
+        "reference_zone": null,
+        "invalidation_price": null,
+        "estimated_price_risk_pct": null,
+        "risk_threshold_pct": 8,
+        "price_basis": "同一已完成交易日的冻结技术数据，非估值买入价"
+      }
     }
   ]
 }
