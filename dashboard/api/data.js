@@ -9,6 +9,8 @@ const FILES = {
 };
 const TIMEOUT_MS = 12000;
 const FIELDS = ['股票代码','交易标的','操作类型','价格（元）','实际成交股数','金额（元）','交易日期','记录日期','失效条件','复盘备注'];
+const RISK_TABLE_NAME = '持仓风控计划';
+const RISK_FIELDS = ['股票代码','股票名称','计划状态','生效日期','预警价格','首道退出价格','首道退出动作','首道减仓股数','最终退出价格','最终退出动作','触发依据','策略说明'];
 
 async function getJson(url, headers = {}) {
   const response = await fetch(url, { headers, signal: AbortSignal.timeout(TIMEOUT_MS), cache:'no-store' });
@@ -27,7 +29,7 @@ async function getGithub(key) {
     return {error:'UNEXPECTED_SCHEMA'};
   return result;
 }
-async function getAirtable() {
+async function getAirtable(kind='trades') {
   const { AIRTABLE_TOKEN: token, AIRTABLE_BASE_ID: base, AIRTABLE_TABLE_ID: table } = process.env;
   if (!token || !base || !table) return {error:'NOT_CONFIGURED'};
   if (!/^app[A-Za-z0-9]{14}$/.test(base) || !/^tbl[A-Za-z0-9]{14}$/.test(table)) return {error:'INVALID_CONFIG'};
@@ -35,9 +37,10 @@ async function getAirtable() {
   let offset = null;
   const seen = new Set();
   do {
-    const url = new URL(`https://api.airtable.com/v0/${base}/${table}`);
+    const tablePath=kind==='riskPlans'?encodeURIComponent(RISK_TABLE_NAME):table;
+    const url = new URL(`https://api.airtable.com/v0/${base}/${tablePath}`);
     url.searchParams.set('pageSize','100');
-    for (const field of FIELDS) url.searchParams.append('fields[]',field);
+    for (const field of kind==='riskPlans'?RISK_FIELDS:FIELDS) url.searchParams.append('fields[]',field);
     if (offset) url.searchParams.set('offset',offset);
     const result = await getJson(url.toString(),{Authorization:`Bearer ${token}`});
     if (result.error) return {error:result.error};
@@ -54,8 +57,8 @@ export default async function handler(req, res) {
   noStore(res);
   if (req.method !== 'GET') return res.status(405).json({error:'METHOD_NOT_ALLOWED'});
   if (!authorized(req)) return res.status(401).json({error:'UNAUTHORIZED'});
-  const keys = [...Object.keys(FILES),'airtable'];
-  const results = await Promise.allSettled(keys.map(key => key === 'airtable' ? getAirtable() : getGithub(key)));
+  const keys = [...Object.keys(FILES),'airtable','riskPlans'];
+  const results = await Promise.allSettled(keys.map(key => key === 'airtable'?getAirtable('trades'):key==='riskPlans'?getAirtable('riskPlans'):getGithub(key)));
   const datasets = {}, status = {};
   for (let i=0;i<keys.length;i++) {
     const result = results[i].status === 'fulfilled' ? results[i].value : {error:'SOURCE_UNAVAILABLE'};
