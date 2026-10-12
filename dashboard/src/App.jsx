@@ -6,7 +6,7 @@ import {
  RefreshCw, Search, ShieldCheck, ShieldAlert, SlidersHorizontal,
  Sparkles, Target, TrendingUp, Wallet, X, Zap, PanelLeftClose, ListFilter
 } from 'lucide-react';
-import {asArray, latestMonitorRecords, fixed, fmtTime, formatSource, pct, safeText, shanghaiDay, summarizeTrades, validSnapshots, snapshotChange, rankedTrendRows} from './model.js';
+import {asArray, latestMonitorRecords, fixed, fmtTime, formatSource, pct, safeText, shanghaiDay, summarizeTrades, validSnapshots, snapshotChange, rankedTrendRows, seriesDirection, statusTone} from './model.js';
 
 const sections = [
  {id:'overview',icon:BarChart3,title:'市场总览',en:'Overview'},
@@ -15,12 +15,7 @@ const sections = [
  {id:'monitor',icon:Activity,title:'盘中监测',en:'Live Monitor'},
  {id:'portfolio',icon:Wallet,title:'我的持仓',en:'Portfolio'}
 ];
-const tone = value => {
- if (value === 'READY' || value === '趋势确认' || value === '有效' || value === '正常') return 'good';
- if (/失效|衰退|退化|暂停|破位/.test(String(value))) return 'bad';
- if (/WAIT|分歧|候选|待复核|观察|修复/.test(String(value))) return 'warn';
- return 'neutral';
-};
+const tone = statusTone;
 const stageLabel = s => ({T1:'T1 · 早期趋势',T2:'T2 · 产业阶段',T3:'T3 · 成熟阶段'}[s]||safeText(s));
 function Badge({children,variant}) {return <span className={`badge badge-${variant||tone(children)}`}><span className="badge-dot"/>{children}</span>}
 function MiniDot({active=false}) {return <span className={`mini-dot ${active?'mini-dot-active':''}`}/>}
@@ -47,17 +42,19 @@ function TrendInspector({item}) {
 
 const signed = (value,digits=1) => typeof value==='number' && Number.isFinite(value) ? (value>0?'+':'')+fixed(value,digits) : '—';
 const changeWord = d => d==null?'不足两轮':d<0?'回落':d>0?'回升':'持平';
-function SnapshotPlot({rows,field,label,unit='%',scale=1,bounds=null,compact=false,color='mint'}){
+
+function SnapshotPlot({rows,field,label,unit='%',scale=1,bounds=null,compact=false}){
  const id=React.useId().replace(/:/g,'');
- const data=asArray(rows).filter(row=>typeof row?.[field]==='number' && Number.isFinite(row[field]) && !Number.isNaN(Date.parse(row.scan_at)))
-  .map(row=>({at:Date.parse(row.scan_at),value:row[field]*scale,scan_at:row.scan_at})).sort((a,b)=>a.at-b.at);
+ const [hovered,setHovered]=useState(null);
+ const data=asArray(rows).filter(row=>typeof row?.[field]==='number'&&Number.isFinite(row[field])&&!Number.isNaN(Date.parse(row.scan_at)))
+  .map(row=>({at:Date.parse(row.scan_at),value:row[field]*scale,scan_at:row.scan_at,row})).sort((a,b)=>a.at-b.at);
+ const direction=seriesDirection(data,'value');
  if(!data.length)return <span className="plot-unavailable">无有效数值快照</span>;
- const w=compact?164:680,h=compact?53:242;
- const left=compact?5:56,right=compact?5:24,top=compact?7:17,bottom=compact?7:43;
+ const w=compact?154:460,h=compact?60:208;
+ const left=compact?6:49,right=compact?6:17,top=compact?9:25,bottom=compact?9:39;
  const values=data.map(x=>x.value);
- let low=bounds?bounds[0]:Math.min(...values);
- let high=bounds?bounds[1]:Math.max(...values);
- if(!bounds){const spread=high-low;const pad=Math.max(spread*.20,Math.max(Math.abs(high),Math.abs(low),1)*.012);low-=pad;high+=pad}
+ let low=bounds?bounds[0]:Math.min(...values),high=bounds?bounds[1]:Math.max(...values);
+ if(!bounds){const spread=high-low;const pad=Math.max(spread*.20,Math.max(Math.abs(high),Math.abs(low),1)*.018);low-=pad;high+=pad}
  if(high<=low){low-=1;high+=1}
  const xMin=data[0].at,xMax=data.at(-1).at;
  const xp=item=>xMax===xMin?(left+w-right)/2:left+(item.at-xMin)/(xMax-xMin)*(w-left-right);
@@ -66,15 +63,30 @@ function SnapshotPlot({rows,field,label,unit='%',scale=1,bounds=null,compact=fal
  const path=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(2)+' '+p[1].toFixed(2)).join(' ');
  const area=path+' L'+pts.at(-1)[0].toFixed(2)+' '+(h-bottom)+' L'+pts[0][0].toFixed(2)+' '+(h-bottom)+' Z';
  const display=value=>fixed(value,unit==='元'?2:1)+unit;
- return <div className={compact?'plot plot-compact':'plot plot-large'}>
-  {!compact&&<div className="plot-head"><strong>{label}</strong><span>{data.length} 轮有效快照 · 最新 {display(data.at(-1).value)}</span></div>}
-  <svg viewBox={'0 0 '+w+' '+h} preserveAspectRatio="xMidYMid meet" role="img" aria-label={label+'：'+data.map(d=>fmtTime(d.scan_at)+' '+display(d.value)).join('，')}>
-   <defs><linearGradient id={id} x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor={color==='amber'?'#d0b18a':'#9ecbb0'} stopOpacity=".15"/><stop offset="100%" stopColor={color==='amber'?'#d0b18a':'#9ecbb0'} stopOpacity="0"/></linearGradient></defs>
-   {!compact&&[0,.5,1].map((t,i)=><g key={i}><line x1={left} y1={top+t*(h-top-bottom)} x2={w-right} y2={top+t*(h-top-bottom)} className="plot-grid"/><text x={left-12} y={top+t*(h-top-bottom)+4} textAnchor="end" className="plot-axis">{display(high-t*(high-low))}</text></g>)}
-   {data.length>=2&&<path d={area} fill={'url(#'+id+')'}/>}
-   {data.length>=2&&<path className={'plot-line plot-line-'+color} d={path} fill="none" strokeWidth={compact?2.2:2.65} strokeLinecap="round" strokeLinejoin="round"/>}
-   {data.map((d,i)=><g key={d.scan_at}><circle cx={pts[i][0]} cy={pts[i][1]} r={compact?3.25:4.6} className={'plot-point plot-point-'+color}/><title>{fmtTime(d.scan_at)+' · '+display(d.value)}</title>{!compact&&<text x={pts[i][0]} y={h-14} className="plot-axis plot-time" textAnchor="middle">{new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(d.at))}</text>}</g>)}
-  </svg>
+ const net=data.length>1?data.at(-1).value-data[0].value:null;
+ const directionText=net==null?'仅一轮':net>0?'上涨':net<0?'下跌':'持平';
+ const toneColor=direction==='rise'?'#e68178':direction==='fall'?'#6cb897':'#b6c3bd';
+ const hoveredIndex=hovered&&data[hovered.idx]?.scan_at===hovered.at&&data[hovered.idx]?.value===hovered.value?hovered.idx:null;
+ const hItem=hoveredIndex!=null?data[hoveredIndex]:null;
+ return <div className={compact?'plot plot-compact plot-'+direction:'plot plot-large plot-'+direction}>
+  {!compact&&<div className="plot-head"><strong>{label}</strong><span className={'plot-head-change plot-head-'+direction}>{directionText}{net!=null?' '+(net>0?'+':'')+display(net):''}<small> · {data.length} 轮真实快照</small></span></div>}
+  <div className="plot-canvas" onMouseLeave={()=>setHovered(null)}>
+   <svg viewBox={'0 0 '+w+' '+h} preserveAspectRatio="xMidYMid meet" role="img" aria-label={label+'：'+data.map(d=>fmtTime(d.scan_at)+' '+display(d.value)).join('，')}>
+    <defs><linearGradient id={id} x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor={toneColor} stopOpacity=".22"/><stop offset="100%" stopColor={toneColor} stopOpacity="0"/></linearGradient></defs>
+    {!compact&&[0,.5,1].map((t,i)=><g key={i}><line x1={left} y1={top+t*(h-top-bottom)} x2={w-right} y2={top+t*(h-top-bottom)} className="plot-grid"/><text x={left-8} y={top+t*(h-top-bottom)+4} textAnchor="end" className="plot-axis">{display(high-t*(high-low))}</text></g>)}
+    {data.length>=2&&<path d={area} fill={'url(#'+id+')'}/>}
+    {data.length>=2&&<path className={'plot-line plot-line-'+direction} d={path} fill="none" strokeWidth={compact?2.3:2.5} strokeLinecap="round" strokeLinejoin="round"/>}
+    {data.map((d,i)=><g key={d.scan_at} onMouseEnter={()=>setHovered({idx:i,at:d.scan_at,value:d.value})}>
+      {hoveredIndex===i&&!compact&&<line x1={pts[i][0]} y1={top} x2={pts[i][0]} y2={h-bottom} className="plot-cursor"/>}
+      <circle cx={pts[i][0]} cy={pts[i][1]} r={compact?3.4:4.25} className={'plot-point plot-point-'+direction}/>
+      <circle cx={pts[i][0]} cy={pts[i][1]} r={compact?10:12} fill="transparent" stroke="none" onClick={compact?undefined:e=>{e.stopPropagation();setHovered(hoveredIndex===i?null:{idx:i,at:d.scan_at,value:d.value})}}/>
+      <title>{fmtTime(d.scan_at)+' · '+display(d.value)}</title>
+      {!compact&&<text x={pts[i][0]+(i===0?2:i===data.length-1?-2:0)} y={Math.max(top+12,pts[i][1]-11)} className={'plot-point-label '+(i===data.length-1?'plot-point-label-last':'')} textAnchor={i===0?'start':i===data.length-1?'end':'middle'}>{display(d.value)}</text>}
+      {!compact&&<text x={pts[i][0]} y={h-13} className="plot-axis plot-time" textAnchor="middle">{new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(d.at))}</text>}
+    </g>)}
+   </svg>
+   {compact?<span className={'plot-compact-value plot-head-'+direction}>{display(data.at(-1).value)}</span>:hItem&&<div className="plot-tooltip" role="status"><span className="plot-tooltip-time">{fmtTime(hItem.scan_at)}</span><strong>{display(hItem.value)}</strong><span className={direction==='rise'?'plot-positive':direction==='fall'?'plot-negative':''}>{hoveredIndex===0?'首轮基准': '相对首轮 '+signed(hItem.value-data[0].value,unit==='元'?2:1)+unit}</span>{(hItem.row.current_state||hItem.row.price_behavior)&&<small>监测状态 · {hItem.row.current_state||hItem.row.price_behavior}</small>}</div>}
+  </div>
  </div>;
 }
 function SnapshotTimeline({rows,kind='sector'}){
@@ -171,7 +183,7 @@ function Overview({registry,trendHandoff,buy,monitor,portfolio,status,onSection,
   </section>
   <section className="decision-panel decision-opportunity"><div className="decision-panel-top"><div><span className="decision-step">04 / ENTRY SETUPS</span><h2>正式买点机会</h2><p>只把 READY 列为待核对机会，WAIT 保留在完整榜单中。</p></div><button className="text-link" onClick={()=>onSection('buy')}>全部买点 <ArrowRight size={14}/></button></div>
    {status.buyHandoff!=='OK'?<div className="decision-empty">买点正式结果尚不可用。</div>:ready.length?<div className="decision-rows decision-entries">
-    {ready.slice(0,3).map(item=><button key={item.code} className="decision-row" onClick={()=>{setSelectedBuy(item);onSection('buy')}}><div className="decision-row-main"><strong>{item.company_name}</strong><small>{item.code} · {item.trend_name}</small></div><Badge variant="good">READY</Badge><div className="decision-row-meta"><span>{Array.isArray(item.entry_zone)?fixed(item.entry_zone[0])+' – '+fixed(item.entry_zone[1]):'等待入场计划'}</span><small>正式发布 · 非实时指令</small></div><ChevronRight size={15}/></button>)}
+    {ready.slice(0,3).map(item=><button key={item.code} className="decision-row" onClick={()=>{setSelectedBuy(item);onSection('buy')}}><div className="decision-row-main"><strong>{item.company_name}</strong><small>{item.code} · {item.trend_name}</small></div><Badge variant="ready">READY</Badge><div className="decision-row-meta"><span>{Array.isArray(item.entry_zone)?fixed(item.entry_zone[0])+' – '+fixed(item.entry_zone[1]):'等待入场计划'}</span><small>正式发布 · 非实时指令</small></div><ChevronRight size={15}/></button>)}
     </div>:<div className="decision-no-ready"><span className="decision-no-icon"><ShieldCheck size={20}/></span><div><strong>目前没有 READY 买点</strong><p>{waitCount} 只候选处于 WAIT，暂不将等待信号突出为机会。</p></div></div>}
   </section>
   <div className="decision-bottom"><span>图表均来自已发布快照：非分时行情，不自动推导买卖动作。</span><button onClick={()=>onSection('trends')}>查看完整研究池 <ArrowRight size={14}/></button></div>
@@ -236,7 +248,7 @@ function Monitor({monitor,status}){
  <div className="decision-bottom"><span>状态由既有盘中监测任务输出；曲线不产生额外买卖或结构失效判断。</span></div>
  </>}</>;
 }
-function Portfolio({data,status,monitor}){const {positions,recordCount,invalidCount}=data;const ok=status.airtable==='OK';return <><PageIntro code="04 / PERSONAL RISK DESK" title="个人持仓记录" desc="Airtable 仅用于核验登记交易与退出规则，不作为实时市场行情源。"/><div className="monitor-note privacy-note"><LockKeyhole size={18}/><div><strong>个人数据仅经受保护的服务端接口读取</strong><p>不会写入公开 GitHub 仓库；未取得行情与收盘确认时，不计算实时收益或自动给出卖出指令。</p></div></div>{!ok?<section className="panel monitor-empty"><Empty title="Airtable 尚未接通网站" detail={status.airtable==='NOT_CONFIGURED'?'在 Vercel 设置 AIRTABLE_TOKEN、AIRTABLE_BASE_ID、AIRTABLE_TABLE_ID 后即可读取。':`当前状态：${formatSource(status.airtable)}；不会将读取失败解释为没有持仓。`} icon={Database}/></section>:<><div className="metrics-grid portfolio-metrics"><Metric label="记录交易" value={recordCount} icon={Database} meta="Airtable 原始条目"/><Metric label="登记在持" value={positions.filter(p=>p.verified).length} icon={Wallet} accent="green" meta="可核实净持仓 > 0"/><Metric label="待核对记录" value={invalidCount+positions.filter(p=>!p.verified).length} icon={ShieldAlert} accent="amber" meta="不可据此生成交易动作"/><Metric label="行情联动" value={monitor?.result_kind==='a_share_intraday_monitor_state'?'有监测数据':'尚未就绪'} icon={Activity} accent="purple" meta="仅已发布的盘中快照"/></div><section className="panel"><PanelHead label="AIRTABLE · TRADE LEDGER" title="登记持仓清单" aside={<span className="count-chip">{positions.length} 条待关注</span>}/>{positions.length?<div className="portfolio-grid">{positions.map(p=><article key={p.code} className="position-card"><div className="position-heading"><div><div className="eyebrow">{p.code}</div><h3>{p.name}</h3></div><Badge variant={p.verified?'good':'warn'}>{p.verified?'已核实股数':'待核验'}</Badge></div><div className="position-numbers"><div><span>登记股数</span><strong>{p.shares==null?'待确认':p.shares.toLocaleString('zh-CN')}</strong></div><div><span>剩余均价估算</span><strong>{fixed(p.avgCost,3)}</strong></div><div><span>剩余成本估算</span><strong>{fixed(p.costValue)}</strong></div></div><div className="position-rule"><span><ShieldAlert size={14}/> 记录的失效条件</span><p>{p.conditions.length===1?p.conditions[0]:p.conditions.length>1?'存在多条不同条件，需人工核验':'尚未记录明确失效条件'}</p></div>{p.issues.length>0&&<div className="issue-text">{p.issues.join('；')}</div>}<div className="position-foot">最后登记交易日 <b>{p.lastDate||'—'}</b><span>共 {p.recordCount} 条成交记录</span></div></article>)}</div>:<Empty title="没有可核实的在持股票" detail={invalidCount?'仍有代码缺失的记录需要人工核验。':'已成功读取 Airtable，目前无可核实净持仓。'} icon={Wallet}/>}</section></>}</>}
+function Portfolio({data,status,monitor}){const {positions,recordCount,invalidCount}=data;const ok=status.airtable==='OK';return <><PageIntro code="04 / PERSONAL RISK DESK" title="个人持仓记录" desc="Airtable 仅用于核验登记交易与退出规则，不作为实时市场行情源。"/><div className="monitor-note privacy-note"><LockKeyhole size={18}/><div><strong>个人数据仅经受保护的服务端接口读取</strong><p>不会写入公开 GitHub 仓库；未取得行情与收盘确认时，不计算实时收益或自动给出卖出指令。</p></div></div>{!ok?<section className="panel monitor-empty"><Empty title="Airtable 尚未接通网站" detail={status.airtable==='NOT_CONFIGURED'?'在 Vercel 设置 AIRTABLE_TOKEN、AIRTABLE_BASE_ID、AIRTABLE_TABLE_ID 后即可读取。':`当前状态：${formatSource(status.airtable)}；不会将读取失败解释为没有持仓。`} icon={Database}/></section>:<><div className="metrics-grid portfolio-metrics"><Metric label="记录交易" value={recordCount} icon={Database} meta="Airtable 原始条目"/><Metric label="登记在持" value={positions.filter(p=>p.verified).length} icon={Wallet} accent="green" meta="可核实净持仓 > 0"/><Metric label="待核对记录" value={invalidCount+positions.filter(p=>!p.verified).length} icon={ShieldAlert} accent="amber" meta="不可据此生成交易动作"/><Metric label="行情联动" value={monitor?.result_kind==='a_share_intraday_monitor_state'?'有监测数据':'尚未就绪'} icon={Activity} accent="purple" meta="仅已发布的盘中快照"/></div><section className="panel"><PanelHead label="AIRTABLE · TRADE LEDGER" title="登记持仓清单" aside={<span className="count-chip">{positions.length} 条待关注</span>}/>{positions.length?<div className="portfolio-grid">{positions.map(p=><article key={p.code} className="position-card"><div className="position-heading"><div><div className="eyebrow">{p.code}</div><h3>{p.name}</h3></div><Badge variant={p.verified?'verified':'caution'}>{p.verified?'已核实股数':'待核验'}</Badge></div><div className="position-numbers"><div><span>登记股数</span><strong>{p.shares==null?'待确认':p.shares.toLocaleString('zh-CN')}</strong></div><div><span>剩余均价估算</span><strong>{fixed(p.avgCost,3)}</strong></div><div><span>剩余成本估算</span><strong>{fixed(p.costValue)}</strong></div></div><div className="position-rule"><span><ShieldAlert size={14}/> 记录的失效条件</span><p>{p.conditions.length===1?p.conditions[0]:p.conditions.length>1?'存在多条不同条件，需人工核验':'尚未记录明确失效条件'}</p></div>{p.issues.length>0&&<div className="issue-text">{p.issues.join('；')}</div>}<div className="position-foot">最后登记交易日 <b>{p.lastDate||'—'}</b><span>共 {p.recordCount} 条成交记录</span></div></article>)}</div>:<Empty title="没有可核实的在持股票" detail={invalidCount?'仍有代码缺失的记录需要人工核验。':'已成功读取 Airtable，目前无可核实净持仓。'} icon={Wallet}/>}</section></>}</>}
 function Login({login,loading,error,setupError}){const [password,setPassword]=useState('');return <div className="login-screen"><div className="login-glow"/><div className="login-shell"><div className="login-brand"><div className="brand-mark"><TrendingUp size={25}/></div><span>岚图 <small>LAN TU</small></span></div><div className="login-eyebrow">PRIVATE MARKET WORKSPACE</div><h1>看清趋势，<br/><span>从容决策。</span></h1><p className="login-description">你的 A 股市场研究与个人持仓决策工作台。一个页面，掌握所有重要信息。</p><form onSubmit={e=>{e.preventDefault();login(password)}}><label htmlFor="pass">访问密码</label><div className="password-control"><LockKeyhole size={19}/><input id="pass" value={password} onChange={e=>setPassword(e.target.value)} placeholder="输入看板访问密码" type="password" autoComplete="current-password" minLength={1} required/></div>{error&&<p className="login-error"><CircleAlert size={15}/>{error}</p>}<button type="submit" className="primary-btn" disabled={loading||!!setupError}>{loading?'验证中...':'进入工作台'} <ArrowRight size={17}/></button></form>{setupError&&<div className="setup-warning">站点尚未配置密码或会话密钥。请先配置 Vercel 环境变量。</div>}<div className="login-footer"><ShieldCheck size={15}/> READ ONLY · PRIVATE BY DESIGN</div></div><div className="login-art"><div className="login-art-box"><div className="login-art-title"><span className="live-indicator"/> SIGNAL DISCIPLINE</div><div className="login-art-line">OBSERVE <span>→</span> VERIFY <span>→</span> DECIDE</div><div className="login-art-graph"><svg viewBox="0 0 440 190" preserveAspectRatio="none"><defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#68d5bb" stopOpacity=".26"/><stop offset="1" stopColor="#68d5bb" stopOpacity="0"/></linearGradient></defs><path d="M0 150 L40 144 L75 148 L110 104 L151 111 L187 83 L223 101 L253 68 L282 73 L322 44 L363 55 L399 23 L440 12 L440 190 L0 190Z" fill="url(#lg)"/><path d="M0 150 L40 144 L75 148 L110 104 L151 111 L187 83 L223 101 L253 68 L282 73 L322 44 L363 55 L399 23 L440 12" stroke="#67dcc0" strokeWidth="2.5" fill="none"/></svg></div><div className="art-bottom"><span>MARKET<br/>INTELLIGENCE</span><strong>01 — 05</strong></div></div><span className="mock-warning">装饰性图形 · 非实际行情</span></div></div>}
 export default function App(){
  const [authenticated,setAuthenticated]=useState(null),[setupError,setSetupError]=useState(false),[loginError,setLoginError]=useState(''),[loadingLogin,setLoadingLogin]=useState(false),[loading,setLoading]=useState(false),[payload,setPayload]=useState(null),[section,setSection]=useState('overview'),[menu,setMenu]=useState(false),[selectedTrend,setSelectedTrend]=useState(null),[selectedBuy,setSelectedBuy]=useState(null);
