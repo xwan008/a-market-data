@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {summarizeTrades,extractRecords,latestMonitorRecords,fixed,validSnapshots,snapshotChange,rankedTrendRows,seriesDirection,statusTone,trendEvents,archivedDays,assessHoldingRisk,evaluateExitCondition,normalizeRiskPlans,attachRiskPlans,selectRepresentativeStocks} from '../src/model.js';
+import {summarizeTrades,extractRecords,latestMonitorRecords,fixed,validSnapshots,snapshotChange,rankedTrendRows,rankedBuyRows,seriesDirection,statusTone,trendEvents,archivedDays,assessHoldingRisk,evaluateExitCondition,normalizeRiskPlans,attachRiskPlans,selectRepresentativeStocks} from '../src/model.js';
 
 function row(code,kind,qty,price,day,extras={}) {return {'股票代码':code,'操作类型':kind,'实际成交股数':qty,'价格（元）':price,'交易日期':day,'交易标的': '测试股票',...extras};}
 test('买入、加仓、卖出移动加权成本正确',()=>{
@@ -57,6 +57,32 @@ test('趋势顺序只认正式 rank，未上榜板块不虚构名次',()=>{
  assert.equal(moving[0].intradayDelta,-40);
 });
 
+
+
+test('板块趋势状态优先排序严格遵循确认、候选、观察、新异动、高潮衰退、失效，组内保留正式 rank',()=>{
+ const states=[
+  ['失效股','失效'],['新异动股','新异动'],['观察股','观察'],
+  ['高潮股','高潮/衰退'],['候选乙','候选趋势'],['趋势确认股','趋势确认'],
+  ['候选甲','候选趋势'],['未知股','待核对']
+ ];
+ const registry={trends:states.map(([trend_name,market_state])=>({trend_name,market_state}))};
+ const handoff={signals:[{trend_name:'候选乙',rank:1},{trend_name:'候选甲',rank:2},{trend_name:'趋势确认股',rank:3}]};
+ const sorted=rankedTrendRows(registry,handoff,{},'2026-10-12','state');
+ assert.deepEqual(sorted.map(x=>x.trend_name),['趋势确认股','候选乙','候选甲','观察股','新异动股','高潮股','失效股','未知股']);
+ assert.deepEqual(sorted.slice(0,3).map(x=>x.priorityRank),[3,1,2]);
+ assert.deepEqual(rankedTrendRows(registry,handoff,{},'2026-10-12','formal').slice(0,3).map(x=>x.trend_name),['候选乙','候选甲','趋势确认股']);
+});
+test('买点榜 READY 在 WAIT 之前，同状态内保留正式 rank，且不更改源数组',()=>{
+ const items=[
+  {code:'1',status:'WAIT',rank:1},{code:'2',status:'READY',rank:8},
+  {code:'3',status:'WAIT',rank:2},{code:'4',status:'READY',rank:3},
+  {code:'5',status:'OTHER',rank:0},{code:'6',status:'READY'}
+ ];
+ const ranked=rankedBuyRows(items);
+ assert.deepEqual(ranked.map(x=>x.code),['4','2','6','1','3','5']);
+ assert.deepEqual(items.map(x=>x.code),['1','2','3','4','5','6']);
+ assert.deepEqual(rankedBuyRows(null),[]);
+});
 
 test('A 股折线只按同指标首末有效点判断红涨绿跌',()=>{
  assert.equal(seriesDirection([{value:20},{value:21}]),'rise');
