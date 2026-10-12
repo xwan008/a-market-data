@@ -6,7 +6,7 @@ import {
  RefreshCw, Search, ShieldCheck, ShieldAlert, SlidersHorizontal,
  Sparkles, Target, Wallet, X, Zap, PanelLeftClose, ListFilter
 } from 'lucide-react';
-import {asArray, latestMonitorRecords, fixed, fmtTime, formatSource, pct, safeText, shanghaiDay, summarizeTrades, validSnapshots, snapshotChange, rankedTrendRows, seriesDirection, statusTone, trendEvents, archivedDays, assessHoldingRisk, attachRiskPlans} from './model.js';
+import {asArray, latestMonitorRecords, fixed, fmtTime, formatSource, pct, safeText, shanghaiDay, summarizeTrades, validSnapshots, snapshotChange, rankedTrendRows, seriesDirection, statusTone, trendEvents, archivedDays, assessHoldingRisk, attachRiskPlans, selectRepresentativeStocks} from './model.js';
 
 const sections = [
  {id:'overview',icon:BarChart3,title:'市场总览',en:'Overview'},
@@ -188,8 +188,7 @@ function TrendTable({trends,onSelect,selected,monitor,monitorDay,sortMode,onSort
  <div className="table-footer">展示 {filtered.length} / {trends.length} 个板块 <span>正式名次仅来自趋势 Handoff · 广度变化单位 pp（百分点）</span></div></>;
 }
 
-function Overview({registry,trendHandoff,buy,monitor,portfolio,status,onSection,setSelectedBuy}){
- const [focusSector,setFocusSector]=useState(null);
+function Overview({registry,trendHandoff,buy,monitor,portfolio,status,onSection,setSelectedBuy,monitorUi,setMonitorUi,openMonitor}){
  const monitorCurrent=status.monitor==='OK'&&monitor?.result_kind==='a_share_intraday_monitor_state'&&monitor?.trade_date===shanghaiDay();
  const monitorDay=monitorCurrent?monitor.trade_date:null;
  const history=monitorCurrent?monitor.industry_history:{};
@@ -199,8 +198,18 @@ function Overview({registry,trendHandoff,buy,monitor,portfolio,status,onSection,
   const scans=validSnapshots(historyRows,monitorDay);
   return {name,scans,delta:snapshotChange(scans,'up_ratio',100)};
  }).filter(x=>x.scans.length).sort((a,b)=>Math.abs(b.delta??0)-Math.abs(a.delta??0));
- const active=monitored.find(x=>x.name===focusSector)||monitored[0];
+ const active=monitored.find(x=>x.name===monitorUi.sector)||monitored[0];
  const industryLatest=active?.scans.at(-1);
+ const representatives=selectRepresentativeStocks(monitor,buy,monitorDay);
+ const observed=monitored.flatMap(sector=>representatives.filter(x=>x.trend_name===sector.name));
+ const selectedRepresentative=observed.find(x=>x.code===monitorUi.stock)||observed[0];
+ const selectedStockLast=selectedRepresentative?.last;
+ const openCurrentMonitor=()=>openMonitor({
+  tab:monitorUi.tab,
+  sector:active?.name||'',
+  stock:selectedRepresentative?.code||'',
+  group:monitorUi.tab==='stock'?(selectedRepresentative?.trend_name||'全部板块'):monitorUi.group
+ });
  const retreatSectors=monitored.filter(item=>item.scans.at(-1)?.current_state==='衰退预警');
  const disputeSectors=monitored.filter(item=>item.scans.at(-1)?.current_state==='分歧');
  const positions=[...portfolio.positions.filter(p=>!p.verified),...portfolio.positions.filter(p=>p.verified)].slice(0,4);
@@ -235,7 +244,7 @@ function Overview({registry,trendHandoff,buy,monitor,portfolio,status,onSection,
        <span className="overview-brief-timestamp">· {fmtTime(monitor.last_scan_at)}</span>
       </span>
       :<span className="overview-brief-signals">今日尚无有效盘中扫描</span>}
-    <button type="button" className="overview-brief-link" onClick={()=>onSection('monitor')}>查看监测 <ArrowRight size={13}/></button>
+    <button type="button" className="overview-brief-link" onClick={openCurrentMonitor}>查看监测 <ArrowRight size={13}/></button>
    </div>
   </div>
   <div className="decision-grid">
@@ -265,14 +274,27 @@ function Overview({registry,trendHandoff,buy,monitor,portfolio,status,onSection,
      })}</div>:<div className="decision-empty">本期没有正式排名的板块。</div>}
    </section>
   </div>
+
   <section className="decision-feature">
-   <div className="decision-panel-top"><div><h2>盘中真实变化</h2><p>按当天上涨家数占比变化绝对值排列观察对象；这是展示顺序，不是模型强弱评分。</p></div><button className="text-link" onClick={()=>onSection('monitor')}>查看全部监测 <ArrowRight size={14}/></button></div>
-   {!monitorCurrent||!active?<div className="decision-empty">今日尚无有效盘中快照；不会拿历史数据冒充实时曲线。</div>:<>
-    <div className="focus-switch">{monitored.map(item=><button key={item.name} className={item.name===active.name?'active':''} onClick={()=>setFocusSector(item.name)}>
+   <div className="decision-panel-top"><div><h2>盘中真实变化</h2><p>板块看整体广度，个股每个已覆盖板块只展示一只冻结研究排序靠前的代表观察股；不是龙头评选或买入信号。</p></div><button className="text-link" onClick={openCurrentMonitor}>查看详细监测 <ArrowRight size={14}/></button></div>
+   <div className="intraday-tab-switch" role="group" aria-label="市场总览盘中维度">
+    <button type="button" aria-pressed={monitorUi.tab==='sector'} className={monitorUi.tab==='sector'?'active':''} onClick={()=>setMonitorUi(prev=>({...prev,tab:'sector'}))}>板块</button>
+    <button type="button" aria-pressed={monitorUi.tab==='stock'} className={monitorUi.tab==='stock'?'active':''} onClick={()=>setMonitorUi(prev=>({...prev,tab:'stock'}))}>个股 · 每板块一只</button>
+   </div>
+   {!monitorCurrent?<div className="decision-empty">今日尚无有效盘中快照；不会用历史报价冒充当日变化。</div>:monitorUi.tab==='sector'?
+    !active?<div className="decision-empty">当天尚未发布有效板块扫描。</div>:<>
+     <div className="focus-switch">{monitored.map(item=><button key={item.name} className={item.name===active.name?'active':''} onClick={()=>setMonitorUi(prev=>({...prev,sector:item.name}))}>
       <strong>{item.name}</strong><span className={'focus-signal state-'+tone(item.scans.at(-1)?.current_state)}><span className="state-dot"/>{item.scans.at(-1)?.current_state||'未知'}</span><span className={item.delta==null?'':item.delta>0?'market-up':item.delta<0?'market-down':''}>{item.delta==null?'不足两轮':signed(item.delta,1)+' pp'}</span></button>)}</div>
-    <div className="feature-plot-grid"><div className="feature-main-plot"><SnapshotPlot rows={active.scans} field="up_ratio" label="上涨家数占比" scale={100} bounds={[0,100]}/></div><div className="feature-side-plot"><SnapshotPlot rows={active.scans} field="median_change_pct" label="成分涨跌幅中位数" /></div></div>
-    <div className="feature-caption"><span>{active.name} · 最新盘中状态 <b>{industryLatest?.current_state||'—'}</b> · 结构动量 <b>{industryLatest?.structure_momentum||'—'}</b></span><span>来源 {monitor.trade_date} · 已扫描 {active.scans.length} 轮</span></div>
-   </>}
+     <div className="feature-plot-grid"><div className="feature-main-plot"><SnapshotPlot rows={active.scans} field="up_ratio" label="上涨家数占比" scale={100} bounds={[0,100]}/></div><div className="feature-side-plot"><SnapshotPlot rows={active.scans} field="median_change_pct" label="成分涨跌幅中位数"/></div></div>
+     <div className="feature-caption"><span>{active.name} · 最新盘中状态 <b>{industryLatest?.current_state||'—'}</b> · 结构动量 <b>{industryLatest?.structure_momentum||'—'}</b></span><span>已扫描 {active.scans.length} 轮 · {fmtTime(monitor.last_scan_at)}</span></div>
+    </>:
+    !selectedRepresentative?<div className="decision-empty">当前板块尚无已发布的有效代表股快照；不会按涨幅临时选股。</div>:<>
+     <div className="focus-switch home-representative-switch">{observed.map(item=><button key={item.code} className={item.code===selectedRepresentative.code?'active':''} onClick={()=>setMonitorUi(prev=>({...prev,stock:item.code,group:item.trend_name}))}>
+      <strong>{item.trend_name}</strong><span>{item.company_name} · {item.code}</span>
+      <span className={typeof item.last.relative_to_industry_pct==='number'?(item.last.relative_to_industry_pct>0?'market-up':item.last.relative_to_industry_pct<0?'market-down':''):''}>{typeof item.last.relative_to_industry_pct==='number'?signed(item.last.relative_to_industry_pct,2)+' pp':'相对行业暂无数据'}</span></button>)}</div>
+     <div className="feature-plot-grid"><div className="feature-main-plot"><SnapshotPlot rows={selectedRepresentative.scans} field="price" label="盘中快照价格" unit="元"/></div><div className="feature-side-plot"><SnapshotPlot rows={selectedRepresentative.scans} field="relative_to_industry_pct" label="相对所属行业强度" unit=" pp"/></div></div>
+     <div className="feature-caption"><span>{selectedRepresentative.company_name} · {selectedRepresentative.trend_name} · 盘中行为 <b>{selectedStockLast?.price_behavior||'—'}</b></span><span>冻结研究排序选取 · {fmtTime(selectedStockLast?.scan_at)} · 非买点建议</span></div>
+    </>}
   </section>
   <section className="decision-panel decision-opportunity"><div className="decision-panel-top"><div><h2>正式买点机会</h2><p>只把 READY 列为待核对机会，WAIT 保留在完整榜单中。</p></div><button className="text-link" onClick={()=>onSection('buy')}>全部买点 <ArrowRight size={14}/></button></div>
    {status.buyHandoff!=='OK'?<div className="decision-empty">买点正式结果尚不可用。</div>:ready.length?<div className="decision-rows decision-entries">
@@ -341,28 +363,35 @@ function BuyInspector({item}){
 }
 function Buy({buy,selected,setSelected,status}){const items=asArray(buy?.items); const [filter,setFilter]=useState('全部');const [query,setQuery]=useState('');const [group,setGroup]=useState('全部板块');const markets=[...new Set(items.map(i=>i.trend_name).filter(Boolean))]; const shown=items.filter(i=>(filter==='全部'||i.status===filter)&&(group==='全部板块'||i.trend_name===group)&&`${i.company_name||''}${i.code||''}`.includes(query));const focus=items.find(i=>i.code===selected?.code)||shown[0];return <><PageIntro title="趋势买点观察" desc="READY 显示条件性入场计划；WAIT 只显示上一交易日观察参考，不代表当日可买。" date={buy?.trade_date}/><div className="buy-summary"><div><Badge>READY</Badge><strong>{items.filter(i=>i.status==='READY').length}</strong><span>条件满足候选</span></div><div><Badge>WAIT</Badge><strong>{items.filter(i=>i.status==='WAIT').length}</strong><span>等待确认</span></div><div><span className="muted">正式覆盖</span><strong>{items.length}</strong><span>已发布标的</span></div></div><div className="two-pane buy-workspace"><section className="panel"><PanelHead title="正式候选列表" aside={<span className="count-chip">{shown.length} 只</span>}/><div className="table-controls"><div className="search"><Search size={16}/><input placeholder="名称或股票代码" value={query} onChange={e=>setQuery(e.target.value)}/></div><div className="filter-select"><select value={filter} onChange={e=>setFilter(e.target.value)}><option>全部</option><option>READY</option><option>WAIT</option></select><ChevronDown size={13}/></div></div><div className="group-select"><SlidersHorizontal size={14}/><select value={group} onChange={e=>setGroup(e.target.value)}><option>全部板块</option>{markets.map(g=><option key={g}>{g}</option>)}</select></div>{items.length?<div className="table-wrap"><table className="data-table"><thead><tr><th>股票 / 代码</th><th>来源板块</th><th>参考价</th><th>信号</th><th/></tr></thead><tbody>{shown.map(item=><tr key={item.code} className={focus?.code===item.code?'row-selected':''} onClick={()=>setSelected(item)}><td><strong>{item.company_name}</strong><small className="mono">{item.code}</small></td><td className="soft-text">{item.trend_name}</td><td className="mono">{fixed(item.current_price)}</td><td><Badge>{item.status}</Badge></td><td><ChevronRight size={16}/></td></tr>)}</tbody></table>{!shown.length&&<Empty title="筛选后无候选" detail="尝试切换信号或板块" icon={Search}/>}</div>:<Empty title="买点榜尚未发布" detail={`数据状态：${formatSource(status.buyHandoff)}`}/>}<div className="table-footer">正式排名不因页面筛选而改变 <span>交易日 {buy?.trade_date||'—'}</span></div></section><section className="panel inspector inspector-tall" tabIndex={0} aria-label="趋势买点详情，可独立滚动"><BuyInspector item={focus}/></section></div></>}
 
-function Monitor({monitor,archive,status}){
- const [sectorName,setSectorName]=useState(''),[stockCode,setStockCode]=useState('');
- const valid=monitor?.result_kind==='a_share_intraday_monitor_state' && status.monitor==='OK';
+function Monitor({monitor,archive,status,monitorUi,setMonitorUi}){
+ const valid=monitor?.result_kind==='a_share_intraday_monitor_state'&&status.monitor==='OK';
  const day=valid?monitor.trade_date:null;
- const historical=day&&day!==shanghaiDay();
+ const historical=Boolean(day&&day!==shanghaiDay());
  const sectorNames=valid?Object.keys(monitor.industry_history||{}):[];
  const stockCodes=valid?Object.keys(monitor.stock_history||{}):[];
- const sector=sectorNames.includes(sectorName)?sectorName:sectorNames[0];
- const stock=stockCodes.includes(stockCode)?stockCode:stockCodes[0];
+ const sector=sectorNames.includes(monitorUi.sector)?monitorUi.sector:sectorNames[0];
+ const allSectors=sectorNames.map(name=>({name,rows:validSnapshots(monitor.industry_history[name],day)}));
+ const allStocks=stockCodes.map(code=>({code,rows:validSnapshots(monitor.stock_history[code],day)}));
+ const groupOptions=[...new Set(allStocks.map(item=>item.rows.at(-1)?.trend_name).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'zh-CN'));
+ const effectiveGroup=groupOptions.includes(monitorUi.group)?monitorUi.group:'全部板块';
+ const filteredStocks=allStocks.filter(item=>effectiveGroup==='全部板块'||item.rows.at(-1)?.trend_name===effectiveGroup);
+ const filteredStockCodes=filteredStocks.map(item=>item.code);
+ const stock=filteredStockCodes.includes(monitorUi.stock)?monitorUi.stock:filteredStockCodes[0];
  const sectorRows=validSnapshots(monitor?.industry_history?.[sector],day);
  const stockRows=validSnapshots(monitor?.stock_history?.[stock],day);
  const sectorLast=sectorRows.at(-1),stockLast=stockRows.at(-1);
- const allSectors=sectorNames.map(name=>({name,rows:validSnapshots(monitor.industry_history[name],day)}));
- const allStocks=stockCodes.map(code=>({code,rows:validSnapshots(monitor.stock_history[code],day)}));
- return <><PageIntro title="盘中监测 · 变化过程" desc="真实采样点逐轮连接，不将两轮补成四轮，不把盘中价格线当成分时行情。" date={day}/>
+ return <><PageIntro title="盘中监测 · 变化过程" desc="板块与个股切换查看已发布的真实盘中采样，不将离散快照视为分时行情。" date={day}/>
  {!valid?<section className="panel monitor-empty"><Empty title="暂无有效盘中监测" detail={'数据源状态：'+formatSource(status.monitor)+'，不推断买卖信号'} icon={Activity}/></section>:<>
  <div className="monitor-context"><span><Clock3 size={14}/> 最新扫描：{fmtTime(monitor.last_scan_at)}</span><span>行情快照：{fmtTime(monitor.snapshot_at)}</span><span className={historical?'monitor-history-label':''}>{historical?'历史交易日记录，非当前信号':'仅展示已发布的当日监测记录'}</span></div>
- <section className="panel monitor-chart-panel">
+ <div className="intraday-tab-switch monitor-tab-switch" role="group" aria-label="盘中监测对象类型">
+  <button type="button" aria-pressed={monitorUi.tab==='sector'} className={monitorUi.tab==='sector'?'active':''} onClick={()=>setMonitorUi(prev=>({...prev,tab:'sector'}))}>板块 <span>{sectorNames.length}</span></button>
+  <button type="button" aria-pressed={monitorUi.tab==='stock'} className={monitorUi.tab==='stock'?'active':''} onClick={()=>setMonitorUi(prev=>({...prev,tab:'stock'}))}>个股 <span>{stockCodes.length}</span></button>
+ </div>
+ {monitorUi.tab==='sector'&& <section className="panel monitor-chart-panel">
   <div className="monitor-chart-top"><div><h2>板块盘中结构</h2><p>上下两张曲线使用各自真实单位，便于看出板块广度与涨幅中位数是否同步变化。</p></div></div>
   <div className="monitor-selector">{sectorNames.map(name=>{
    const scans=validSnapshots(monitor.industry_history[name],day),last=scans.at(-1);
-   return <button key={name} className={sector===name?'active':''} onClick={()=>setSectorName(name)}><strong>{name}</strong><span className="monitor-selector-state">{last?.current_state?<Badge>{last.current_state}</Badge>:'未有效扫描'} <small>{scans.length} 轮</small></span></button>
+   return <button key={name} className={sector===name?'active':''} onClick={()=>setMonitorUi(prev=>({...prev,sector:name}))}><strong>{name}</strong><span className="monitor-selector-state">{last?.current_state?<Badge>{last.current_state}</Badge>:'未有效扫描'} <small>{scans.length} 轮</small></span></button>
   })}</div>
   <div className="monitor-chart-pair"><SnapshotPlot rows={sectorRows} field="up_ratio" label="上涨家数占比" scale={100} bounds={[0,100]}/><SnapshotPlot rows={sectorRows} field="median_change_pct" label="成分涨跌幅中位数" /></div>
   <div className="monitor-latest">{sectorLast?<><span>最新状态 <Badge>{sectorLast.current_state||'—'}</Badge></span><span>结构动量 <Badge>{safeText(sectorLast.structure_momentum)}</Badge></span><span>空仓观察 <strong>{safeText(sectorLast.entry_action)}</strong></span><span>持仓管理 <strong>{safeText(sectorLast.holding_action)}</strong></span></>:<span>暂无有效判断</span>}</div>
@@ -376,10 +405,13 @@ function Monitor({monitor,archive,status}){
    </div>}
   </details>
   <details className="monitor-expand"><summary>查看 {sector||'板块'} 每轮状态与判断依据 <ChevronDown size={15}/></summary><SnapshotTimeline rows={sectorRows} kind="sector"/></details>
- </section>
- <section className="panel monitor-chart-panel">
+ </section>}
+ {monitorUi.tab==='stock'&& <section className="panel monitor-chart-panel">
   <div className="monitor-chart-top"><div><h2>个股监测价格与相对强度</h2><p>价格只是当次快照报价；相对强度以相对行业百分点单独绘制。</p></div>
-  <div className="monitor-stock-select"><label htmlFor="monitored-stock">选择监测标的</label><select id="monitored-stock" value={stock||''} onChange={e=>setStockCode(e.target.value)}>{allStocks.map(item=><option key={item.code} value={item.code}>{item.rows.at(-1)?.company_name||item.code} · {item.code}</option>)}</select></div></div>
+  <div className="monitor-stock-filters">
+    <div className="monitor-stock-select"><label htmlFor="monitored-sector">按所属板块筛选</label><select id="monitored-sector" value={monitorUi.group||'全部板块'} onChange={e=>setMonitorUi(prev=>({...prev,group:e.target.value,stock:''}))}><option value="全部板块">全部板块</option>{groupOptions.map(group=><option value={group} key={group}>{group}</option>)}</select></div>
+    <div className="monitor-stock-select"><label htmlFor="monitored-stock">选择监测标的（{filteredStocks.length}）</label><select id="monitored-stock" value={stock||''} onChange={e=>setMonitorUi(prev=>({...prev,stock:e.target.value}))}>{filteredStocks.map(item=><option key={item.code} value={item.code}>{item.rows.at(-1)?.company_name||item.code} · {item.code}</option>)}</select></div>
+   </div></div>
   <div className="monitor-chart-pair"><SnapshotPlot rows={stockRows} field="price" label="盘中快照价" unit="元"/><SnapshotPlot rows={stockRows} field="relative_to_industry_pct" label="相对所属行业涨跌幅" unit=" pp" /></div>
   <div className="monitor-latest">{stockLast?<><span>个股 <strong>{stockLast.company_name||stock}</strong></span><span>行为 <Badge>{stockLast.price_behavior||'—'}</Badge></span><span>空仓观察 <strong>{safeText(stockLast.entry_action)}</strong></span><span>持仓管理 <strong>{safeText(stockLast.holding_action)}</strong></span></>:<span>该股票暂无有效快照</span>}</div>
   <CrossdayTimeline archive={archive} monitor={monitor} identifier={stock} kind="stock"/>
@@ -392,9 +424,8 @@ function Monitor({monitor,archive,status}){
    </div>}
   </details>
   <details className="monitor-expand"><summary>查看 {stockLast?.company_name||stock||'个股'} 每轮状态与判断依据 <ChevronDown size={15}/></summary><SnapshotTimeline rows={stockRows} kind="stock"/></details>
- </section>
- <details className="panel monitor-all-list"><summary>浏览所有已覆盖板块与个股 <ChevronDown size={16}/></summary><div className="monitor-coverage"><div><h3>板块（{allSectors.length}）</h3>{allSectors.map(item=><button key={item.name} onClick={()=>setSectorName(item.name)}><span>{item.name}</span><small>{item.rows.at(-1)?.current_state||'无记录'}</small></button>)}</div><div><h3>个股（{allStocks.length}）</h3>{allStocks.map(item=><button key={item.code} onClick={()=>setStockCode(item.code)}><span>{item.rows.at(-1)?.company_name||item.code}</span><small>{item.rows.at(-1)?.price_behavior||'无记录'}</small></button>)}</div></div></details>
- <div className="decision-bottom"><span>状态由既有盘中监测任务输出；曲线不产生额外买卖或结构失效判断。</span></div>
+ </section>}
+ <div className="decision-bottom"><span>榜单与状态来自已发布的盘中快照；切换 Tab 不改变监测结果、不生成新的交易信号。</span></div>
  </>}</>;
 }
 function HoldingRiskPanel({assessment}){
@@ -452,16 +483,18 @@ function Login({login,loading,error,setupError}) {
 }
 
 export default function App(){
- const [authenticated,setAuthenticated]=useState(null),[setupError,setSetupError]=useState(false),[loginError,setLoginError]=useState(''),[loadingLogin,setLoadingLogin]=useState(false),[loading,setLoading]=useState(false),[payload,setPayload]=useState(null),[section,setSection]=useState('overview'),[menu,setMenu]=useState(false),[selectedTrend,setSelectedTrend]=useState(null),[selectedBuy,setSelectedBuy]=useState(null);
+ const [authenticated,setAuthenticated]=useState(null),[setupError,setSetupError]=useState(false),[loginError,setLoginError]=useState(''),[loadingLogin,setLoadingLogin]=useState(false),[loading,setLoading]=useState(false),[payload,setPayload]=useState(null),[section,setSection]=useState('overview'),[menu,setMenu]=useState(false),[selectedTrend,setSelectedTrend]=useState(null),[selectedBuy,setSelectedBuy]=useState(null),
+ [monitorUi,setMonitorUi]=useState({tab:'sector',sector:'',stock:'',group:'全部板块'});
  const fetchData=useCallback(async()=>{setLoading(true);try{const response=await fetch('/api/data',{cache:'no-store'});if(response.status===401){setAuthenticated(false);setPayload(null);return;}if(!response.ok)throw new Error(`数据接口 HTTP ${response.status}`);setPayload(await response.json());}catch(e){setPayload(old=>old?{...old,fetchError:e.message}:{datasets:{},status:{},fetchError:e.message});}finally{setLoading(false)}},[]);
  useEffect(()=>{let live=true;fetch('/api/auth',{cache:'no-store'}).then(async r=>{const j=await r.json();if(live){setAuthenticated(Boolean(j.authenticated));setSetupError(j.error==='SITE_NOT_CONFIGURED');}}).catch(()=>{if(live)setAuthenticated(false)});return()=>{live=false}},[]);
  useEffect(()=>{if(authenticated)fetchData()},[authenticated,fetchData]);
  const login=async password=>{setLoadingLogin(true);setLoginError('');try{const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password})});if(!r.ok){setLoginError(r.status===503?'服务器尚未配置访问密钥':'密码错误或服务不可用');return;}setAuthenticated(true)}catch{setLoginError('服务暂时无法连接')}finally{setLoadingLogin(false)}};
  const logout=async()=>{try{await fetch('/api/auth',{method:'DELETE'})}finally{setAuthenticated(false);setPayload(null);setSection('overview')}};
+ const openMonitor=patch=>{setMonitorUi(prev=>({...prev,...patch}));setSection('monitor')};
  const datasets=payload?.datasets||{}, status=payload?.status||{};
  const ledger=useMemo(()=>summarizeTrades(datasets.airtable),[datasets.airtable]);
  const portfolio=useMemo(()=>attachRiskPlans(ledger,datasets.riskPlans,status.riskPlans),[ledger,datasets.riskPlans,status.riskPlans]);
  if(authenticated===null)return <div className="boot-screen"><img className="brand-mark" src="/favicon.svg" alt="" aria-hidden="true"/><img className="brand-wordmark" src="/wordmark.svg" alt="w.x."/><div className="spinner"/></div>;
  if(!authenticated)return <Login login={login} loading={loadingLogin} error={loginError} setupError={setupError}/>;
- return <div className="app-shell"><Sidebar section={section} onSection={setSection} openMenu={menu} setOpenMenu={setMenu} status={status}/><div className="main-shell"><Header section={section} refresh={fetchData} refreshing={loading} data={payload} openMenu={menu} setOpenMenu={setMenu} logout={logout}/><main className="main-content">{payload?.fetchError&&<div className="fetch-warning"><CircleAlert size={17}/>{payload.fetchError}，展示上次成功加载的数据。</div>}{!payload?<Skeleton/>:<div className="view-enter" key={section}>{section==='overview'&&<Overview registry={datasets.registry} trendHandoff={datasets.trendHandoff} buy={datasets.buyHandoff} monitor={datasets.monitor} portfolio={portfolio} status={status} onSection={setSection} setSelectedBuy={setSelectedBuy}/ >}{section==='trends'&&<Trends registry={datasets.registry} trendHandoff={datasets.trendHandoff} monitor={datasets.monitor} archive={datasets.crossdayArchive} selected={selectedTrend} setSelected={setSelectedTrend}/ >}{section==='buy'&&<Buy buy={datasets.buyHandoff} selected={selectedBuy} setSelected={setSelectedBuy} status={status}/ >}{section==='monitor'&&<Monitor monitor={datasets.monitor} archive={datasets.crossdayArchive} status={status}/ >}{section==='portfolio'&&<Portfolio data={portfolio} status={status} monitor={datasets.monitor}/>}</div>}<footer className="main-footer"><span>w.x. · 辨势</span><span>数据来自已发布的 GitHub 文件和私有 Airtable 记录 · 仅供研究参考，不构成交易建议</span><span>{payload?.receivedAt?`页面读取于 ${fmtTime(payload.receivedAt)}`:'等待同步'}</span></footer></main></div></div>;
+ return <div className="app-shell"><Sidebar section={section} onSection={setSection} openMenu={menu} setOpenMenu={setMenu} status={status}/><div className="main-shell"><Header section={section} refresh={fetchData} refreshing={loading} data={payload} openMenu={menu} setOpenMenu={setMenu} logout={logout}/><main className="main-content">{payload?.fetchError&&<div className="fetch-warning"><CircleAlert size={17}/>{payload.fetchError}，展示上次成功加载的数据。</div>}{!payload?<Skeleton/>:<div className="view-enter" key={section}>{section==='overview'&&<Overview registry={datasets.registry} trendHandoff={datasets.trendHandoff} buy={datasets.buyHandoff} monitor={datasets.monitor} portfolio={portfolio} status={status} onSection={setSection} setSelectedBuy={setSelectedBuy} monitorUi={monitorUi} setMonitorUi={setMonitorUi} openMonitor={openMonitor}/ >}{section==='trends'&&<Trends registry={datasets.registry} trendHandoff={datasets.trendHandoff} monitor={datasets.monitor} archive={datasets.crossdayArchive} selected={selectedTrend} setSelected={setSelectedTrend}/ >}{section==='buy'&&<Buy buy={datasets.buyHandoff} selected={selectedBuy} setSelected={setSelectedBuy} status={status}/ >}{section==='monitor'&&<Monitor monitor={datasets.monitor} archive={datasets.crossdayArchive} status={status} monitorUi={monitorUi} setMonitorUi={setMonitorUi}/ >}{section==='portfolio'&&<Portfolio data={portfolio} status={status} monitor={datasets.monitor}/>}</div>}<footer className="main-footer"><span>w.x. · 辨势</span><span>数据来自已发布的 GitHub 文件和私有 Airtable 记录 · 仅供研究参考，不构成交易建议</span><span>{payload?.receivedAt?`页面读取于 ${fmtTime(payload.receivedAt)}`:'等待同步'}</span></footer></main></div></div>;
 }
