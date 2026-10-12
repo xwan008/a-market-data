@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {summarizeTrades,extractRecords,latestMonitorRecords,fixed,validSnapshots,snapshotChange,rankedTrendRows,seriesDirection,statusTone,trendEvents,archivedDays,assessHoldingRisk,evaluateExitCondition,normalizeRiskPlans,attachRiskPlans} from '../src/model.js';
+import {summarizeTrades,extractRecords,latestMonitorRecords,fixed,validSnapshots,snapshotChange,rankedTrendRows,seriesDirection,statusTone,trendEvents,archivedDays,assessHoldingRisk,evaluateExitCondition,normalizeRiskPlans,attachRiskPlans,selectRepresentativeStocks} from '../src/model.js';
 
 function row(code,kind,qty,price,day,extras={}) {return {'股票代码':code,'操作类型':kind,'实际成交股数':qty,'价格（元）':price,'交易日期':day,'交易标的': '测试股票',...extras};}
 test('买入、加仓、卖出移动加权成本正确',()=>{
@@ -289,4 +289,58 @@ test('持仓详情只展示登记流水中可核验的成交字段，不推断�
  assert.equal(pending.verified,false);
  assert.equal(pending.trades[0].kind,null);
  assert.equal(pending.trades[0].price,null);
+});
+
+const sampleScan=(day,code,trend,rank,time='09:48',extra={})=>({
+ scan_at:day+'T'+time+':00+08:00',data_quality:'READY',rank,code,trend_name:trend,
+ company_name:'样本'+code,price:10,change_pct:0,relative_to_industry_pct:0,...extra
+});
+test('代表股每板块仅一只，以冻结正式顺位选取而不按盘中涨幅或强弱更换',()=>{
+ const day='2026-10-12';
+ const monitor={
+  result_kind:'a_share_intraday_monitor_state',trade_date:day,
+  industry_history:{煤炭:[sampleScan(day,'000001','煤炭',null)],黄金:[sampleScan(day,'000002','黄金',null)]},
+  stock_history:{
+   '600001':[sampleScan(day,'600001','煤炭',5,'09:48'),sampleScan(day,'600001','煤炭',999,'14:39',{change_pct:20})],
+   '600002':[sampleScan(day,'600002','煤炭',2,'09:48'),sampleScan(day,'600002','煤炭',2,'14:39',{change_pct:-8})],
+   '600003':[sampleScan(day,'600003','黄金',6)],
+   '600004':[sampleScan(day,'600004','黄金',7,'09:48',{change_pct:15})]
+  }
+ };
+ const out=selectRepresentativeStocks(monitor,null,day);
+ assert.equal(out.length,2);
+ assert.equal(out.find(x=>x.trend_name==='煤炭').code,'600002');
+ assert.equal(out.find(x=>x.trend_name==='黄金').code,'600003');
+ assert.equal(out.find(x=>x.trend_name==='煤炭').rank,2);
+ assert.equal(out[0].source,'frozen_monitor_pool');
+});
+test('代表股必须有同日READY个股与板块快照，缺失时不会扩池或借旧日数据',()=>{
+ const day='2026-10-12';
+ const valid=sampleScan(day,'600001','煤炭',1);
+ const monitor={result_kind:'a_share_intraday_monitor_state',trade_date:day,
+  industry_history:{煤炭:[valid],黄金:[valid]},
+  stock_history:{
+   '600001':[sampleScan(day,'600001','煤炭',1,'09:48',{data_quality:'DEGRADED'})],
+   '600002':[sampleScan('2026-10-09','600002','煤炭',2)],
+   '600003':[sampleScan(day,'600003','黄金',3)]
+  }
+ };
+ assert.deepEqual(selectRepresentativeStocks(monitor,null,day).map(x=>x.code),['600003']);
+ assert.deepEqual(selectRepresentativeStocks({...monitor,trade_date:'2026-10-09'},null,day),[]);
+ assert.deepEqual(selectRepresentativeStocks(null,null,day),[]);
+});
+test('冻结名次不存在时按同板块正式结果回退，仍保持代码确定性',()=>{
+ const day='2026-10-12';
+ const monitor={result_kind:'a_share_intraday_monitor_state',trade_date:day,
+  industry_history:{'固态电池':[sampleScan(day,'999999','固态电池',null)]},
+  stock_history:{
+   '000049':[sampleScan(day,'000049','固态电池',null)],
+   '002125':[sampleScan(day,'002125','固态电池',null)]
+  }};
+ const buy={trade_date:'2026-10-09',items:[
+  {code:'000049',trend_name:'固态电池',rank:4},
+  {code:'002125',trend_name:'固态电池',rank:1}
+ ]};
+ assert.equal(selectRepresentativeStocks(monitor,buy,day)[0].code,'002125');
+ assert.equal(selectRepresentativeStocks(monitor,null,day)[0].code,'000049');
 });
