@@ -114,7 +114,7 @@ function TrendTable({trends,onSelect,selected,monitor,monitorDay,sortMode,onSort
   <td><strong>{t.trend_name}</strong><small>{safeText(t.trend_state)} · {asArray(t.industry_names).slice(0,1).join(' / ')||'正式趋势池'}</small></td>
   <td><Badge>{t.market_state}</Badge></td>
   {!compact&&<td><SnapshotPlot rows={rows} field="up_ratio" label="上涨占比" scale={100} bounds={[0,100]} compact/></td>}
-  {!compact&&<td><span className={'trend-delta '+(delta!=null&&delta<0?'trend-down':'')}>{delta==null?'—':signed(delta,1)+' pp'}</span><small>{rows.length?'采样 '+rows.length+' 轮':'未覆盖'}</small></td>}
+  {!compact&&<td><span className={'trend-delta '+(delta==null?'':delta>0?'trend-up':delta<0?'trend-down':'')}>{delta==null?'—':signed(delta,1)+' pp'}</span><small>{rows.length?'采样 '+rows.length+' 轮':'未覆盖'}</small></td>}
   <td className="mono soft-text">{safeText(t.last_verified_trade_date)}</td><td className="arrow-col"><ChevronRight size={16}/></td>
  </tr>})}</tbody></table>{!filtered.length&&<Empty title="没有匹配板块" detail="调整搜索条件再试" icon={Search}/>}</div>
  <div className="table-footer">展示 {filtered.length} / {trends.length} 个板块 <span>正式名次仅来自趋势 Handoff · 广度变化单位 pp（百分点）</span></div></>;
