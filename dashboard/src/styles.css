@@ -932,3 +932,27 @@ button{transition:color .2s var(--studio-ease),background-color .2s var(--studio
 @media(prefers-reduced-motion:reduce){
  .overview-kpi{transition:none}
 }
+
+/* Verified holding + real intraday observations — low-noise, non-trading assessment. */
+.holding-risk-brief{display:block;font-size:11px;font-weight:600;line-height:1.6;color:#c9d5cb}
+.holding-risk-brief.risk-caution{color:#d9b27b}
+.holding-risk-brief.risk-fall{color:#8fcbab}
+.holding-assessment{margin:14px 0 0;padding:16px 0 6px;border-top:1px solid var(--studio-line);font-size:11px}
+.holding-assessment-title{display:flex;align-items:center;justify-content:space-between;gap:9px 12px;flex-wrap:wrap}
+.holding-assessment-title>span{display:inline-flex;align-items:center;gap:7px;font-weight:600;color:#a8baad}
+.holding-assessment-title svg{stroke-width:1.6;color:#859b8d}
+.holding-assessment-title strong{font-size:11px;font-weight:600;color:#c9d4cb}
+.holding-assessment-caution .holding-assessment-title strong{color:#d9b27b}
+.holding-assessment-fall .holding-assessment-title strong{color:#8fcbab}
+.holding-rule{padding:11px 0;border-bottom:1px solid var(--studio-line)}
+.holding-rule>span{color:#d0dcd2;font-size:11px;font-weight:600}
+.holding-rule p{font-size:10px;line-height:1.85;color:#9aada0;margin:5px 0 0}
+.holding-evidence{margin:11px 0 7px;padding-left:17px;display:grid;gap:6px;color:#adbcaf}
+.holding-evidence li{font-size:10px;line-height:1.75;padding-left:1px}
+.holding-evidence li::marker{color:#879b8d}
+.holding-assessment-foot{font-size:9px;line-height:1.8;color:#7e9486;margin-top:11px}
+@media(max-width:760px){
+ .holding-assessment{padding-top:13px}
+ .holding-assessment-title{align-items:flex-start}
+ .holding-risk-brief{font-size:10px}
+}
