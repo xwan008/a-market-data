@@ -56,3 +56,23 @@ test('趋势顺序只认正式 rank，未上榜板块不虚构名次',()=>{
  assert.deepEqual(moving.map(x=>x.trend_name),['甲','乙','丙']);
  assert.equal(moving[0].intradayDelta,-40);
 });
+
+
+test('A 股折线只按同指标首末有效点判断红涨绿跌',()=>{
+ assert.equal(seriesDirection([{value:20},{value:21}]),'rise');
+ assert.equal(seriesDirection([{value:20},{value:19}]),'fall');
+ assert.equal(seriesDirection([{value:20},{value:20}]),'neutral');
+ assert.equal(seriesDirection([{value:20}]),'neutral');
+ assert.equal(seriesDirection([{value:null},{value:20}]),'neutral');
+ assert.equal(seriesDirection([{ratio:.43},{ratio:.61}],'ratio'),'rise');
+});
+test('研究状态分别对应确认、候选、观察、扩散和衰弱语义',()=>{
+ assert.equal(statusTone('趋势确认'),'rise');
+ assert.equal(statusTone('趋势扩散'),'rise');
+ assert.equal(statusTone('候选趋势'),'candidate');
+ assert.equal(statusTone('观察'),'watch');
+ assert.equal(statusTone('分歧'),'caution');
+ assert.equal(statusTone('减弱'),'fall');
+ assert.equal(statusTone('READY'),'ready');
+ assert.equal(statusTone('WAIT'),'neutral');
+});
