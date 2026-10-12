@@ -262,7 +262,7 @@ export function evaluateExitCondition(conditions, price) {
   return {state:'review',label:'退出规则待复核',detail:'盘中价格观察条件并非明确的退出动作。',levels};
  return {state:price<threshold?'intraday_touched':'intraday_not_touched',
   label:price<threshold?'预设盘中退出线'+fixed(threshold)+'已触及':'盘中退出线'+fixed(threshold)+'未触及',
-  detail:price<threshold?'有效盘中快照价低于明确预设的盘中硬止损线，仅提示观察，不代表已经成交。':'最新有效盘中快照价未低于预设盘中退出线。',
+  detail:price<threshold?'有效盘中快照价低于明确预设的盘中硬止损线，仅提示观察，不代表已成交。':'最新有效盘中快照价未低于预设盘中退出线。',
   levels,threshold,basis:'intraday'};
 }
 
