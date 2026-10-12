@@ -18,14 +18,7 @@ const sections = [
 const tone = statusTone;
 const stageLabel = s => ({T1:'T1 · 早期趋势',T2:'T2 · 产业阶段',T3:'T3 · 成熟阶段'}[s]||safeText(s));
 function Badge({children,variant}) {
- const value=String(children??'');
- const risk=/衰退预警|高潮\/衰退|失效|破位|退化/.test(value);
- const dispute=/分歧/.test(value);
- const confirmed=/趋势确认|趋势扩散/.test(value);
- const emphasis=risk?'badge-emphasis-risk':dispute?'badge-emphasis-dispute':confirmed?'badge-emphasis-confirmed':'';
- return <span className={`badge badge-${variant||tone(children)} ${emphasis}`}>
-  {risk?<ShieldAlert size={12} aria-hidden="true"/>:dispute?<CircleAlert size={12} aria-hidden="true"/>:confirmed?<TrendingUp size={12} aria-hidden="true"/>:<span className="badge-dot"/>}{children}
- </span>;
+ return <span className={`badge badge-${variant||tone(children)}`}><span className="badge-dot" aria-hidden="true"/>{children}</span>;
 }
 function MiniDot({active=false}) {return <span className={`mini-dot ${active?'mini-dot-active':''}`}/>}
 function PanelHead({label,title,aside,children}) {return <div className="panel-head"><div><div className="eyebrow">{label}</div><h3>{title}</h3>{children}</div>{aside}</div>}
@@ -102,12 +95,12 @@ function SnapshotPlot({rows,field,label,unit='%',scale=1,bounds=null,compact=fal
      const latest=i===data.length-1;
      return <g key={d.scan_at} onMouseEnter={()=>setHovered({idx:i,at:d.scan_at,value:d.value})}>
       {hoveredIndex===i&&!compact&&<line x1={pts[i][0]} y1={top} x2={pts[i][0]} y2={h-bottom} className="plot-cursor"/>}
-      {latest&&<><circle cx={pts[i][0]} cy={pts[i][1]} r={compact?10:15} className={'plot-latest-halo plot-latest-halo-'+direction}/><circle cx={pts[i][0]} cy={pts[i][1]} r={compact?6.2:8} className={'plot-latest-ring plot-latest-ring-'+direction}/></>}
-      <circle cx={pts[i][0]} cy={pts[i][1]} r={latest?(compact?4.3:5.4):(compact?3.4:4.25)} className={'plot-point plot-point-'+direction+(latest?' plot-point-current':'')}/>
+      {latest&&<circle cx={pts[i][0]} cy={pts[i][1]} r={compact?6.5:7} className="plot-latest-ring"/>}
+      <circle cx={pts[i][0]} cy={pts[i][1]} r={latest?(compact?3.35:3.7):(compact?2.4:3)} className={'plot-point plot-point-'+direction+(latest?' plot-point-current':'')}/>
       <circle cx={pts[i][0]} cy={pts[i][1]} r={compact?10:12} fill="transparent" stroke="none" onClick={compact?undefined:e=>{e.stopPropagation();setHovered(hoveredIndex===i?null:{idx:i,at:d.scan_at,value:d.value})}}/>
       <title>{fmtTime(d.scan_at)+' · '+display(d.value)+(latest?' · 最新已发布快照':'')}</title>
       {!compact&&<text x={pts[i][0]+(i===0?2:latest?-2:0)} y={Math.max(top+12,pts[i][1]-12)} className={'plot-point-label '+(latest?'plot-point-label-last':'')} textAnchor={i===0?'start':latest?'end':'middle'}>{display(d.value)}</text>}
-      {!compact&&latest&&<text x={Math.min(w-right-3,Math.max(left+22,pts[i][0]-4))} y={Math.min(h-bottom-8,pts[i][1]+25)} className="plot-latest-caption" textAnchor="end">最新快照</text>}
+      {!compact&&latest&&<text x={Math.min(w-right-3,Math.max(left+22,pts[i][0]-4))} y={Math.min(h-bottom-8,pts[i][1]+25)} className="plot-latest-caption" textAnchor="end">最新</text>}
       {!compact&&<text x={pts[i][0]} y={h-13} className="plot-axis plot-time" textAnchor="middle">{new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(d.at))}</text>}
      </g>;
     })}
@@ -172,9 +165,9 @@ function TrendTable({trends,onSelect,selected,monitor,monitorDay,sortMode,onSort
  const rows=validSnapshots(monitor?.[t.trend_name],monitorDay);
  const delta=snapshotChange(rows,'up_ratio',100);
  return <tr key={t.trend_name} className={selected?.trend_name===t.trend_name?'row-selected':''} onClick={()=>onSelect(t)}>
-  <td><div className="rank-column"><span className={t.priorityRank!=null?'official-rank':'unranked'}>{t.priorityRank!=null?String(t.priorityRank).padStart(2,'0'):'—'}</span>{t.priorityRank!=null&&<span className="rank-priority-chip">正式优先</span>}</div></td>
+  <td><div className="rank-column"><span className={t.priorityRank!=null?'official-rank':'unranked'}>{t.priorityRank!=null?String(t.priorityRank).padStart(2,'0'):'—'}</span>{t.priorityRank!=null&&<span className="rank-priority-chip">优先</span>}</div></td>
   <td><strong>{t.trend_name}</strong><small>{safeText(t.trend_state)} · {asArray(t.industry_names).slice(0,1).join(' / ')||'正式趋势池'}</small></td>
-  <td><div className="trend-state-stack"><Badge>{t.market_state}</Badge>{rows.length>0&&rows.at(-1)?.current_state&&<span className="trend-scan-status" title={'最近监测日 '+monitorDay}><span>最近扫描</span><Badge>{rows.at(-1).current_state}</Badge></span>}</div></td>
+  <td><div className="trend-state-stack"><span className="trend-research-state" title="正式研究状态">{t.market_state||'—'}</span>{rows.length>0&&rows.at(-1)?.current_state&&<span className={'trend-scan-status state-'+tone(rows.at(-1).current_state)} title={'盘中扫描 · '+monitorDay}><span className="state-dot"/><span>盘中 {rows.at(-1).current_state}</span></span>}</div></td>
   {!compact&&<td><SnapshotPlot rows={rows} field="up_ratio" label="上涨占比" scale={100} bounds={[0,100]} compact/></td>}
   {!compact&&<td><span className={'trend-delta '+(delta==null?'':delta>0?'trend-up':delta<0?'trend-down':'')}>{delta==null?'—':signed(delta,1)+' pp'}</span><small>{rows.length?'采样 '+rows.length+' 轮':'未覆盖'}</small></td>}
   <td className="mono soft-text">{safeText(t.last_verified_trade_date)}</td><td className="arrow-col"><ChevronRight size={16}/></td>
@@ -197,10 +190,6 @@ function Overview({registry,trendHandoff,buy,monitor,portfolio,status,onSection,
  const industryLatest=active?.scans.at(-1);
  const retreatSectors=monitored.filter(item=>item.scans.at(-1)?.current_state==='衰退预警');
  const disputeSectors=monitored.filter(item=>item.scans.at(-1)?.current_state==='分歧');
- const leadKind=!monitorCurrent?'unavailable':retreatSectors.length?'risk':disputeSectors.length?'watch':'calm';
- const leadCount=!monitorCurrent?'—':retreatSectors.length||disputeSectors.length||monitored.length;
- const leadTitle=!monitorCurrent?'今日盘中监测尚未发布':retreatSectors.length?'个板块出现衰退预警':disputeSectors.length?'个板块出现分歧':'个板块已完成监测';
- const leadNames=!monitorCurrent?'不会把历史数据作为今日信号':retreatSectors.length?retreatSectors.map(x=>x.name).join(' · '):disputeSectors.length?disputeSectors.map(x=>x.name).join(' · '):'当前无已发布的分歧或衰退预警';
  const positions=[...portfolio.positions.filter(p=>!p.verified),...portfolio.positions.filter(p=>p.verified)].slice(0,4);
  const formalItems=asArray(buy?.items);
  const ready=formalItems.filter(i=>i.status==='READY').slice().sort((a,b)=>(a.rank||999)-(b.rank||999));
@@ -208,26 +197,32 @@ function Overview({registry,trendHandoff,buy,monitor,portfolio,status,onSection,
  return <div className="decision-home new-home">
   <div className="decision-heading"><div><div className="eyebrow">LAN TU / TODAY'S BRIEF</div><h1>今日决策摘要</h1><p>持仓风险优先，趋势变化其次，只有明确的机会才进入视野。</p></div>
    <div className="decision-date"><Clock3 size={14}/><span>趋势研究日 {registry?.trade_date||'—'}<br/>{monitorCurrent?'盘中扫描 '+fmtTime(monitor.last_scan_at):'当前无今日盘中扫描'}</span></div></div>
-  <div className="decision-command-grid" aria-label="今日重点摘要">
-   <button type="button" className={'decision-lead decision-lead-'+leadKind} onClick={()=>onSection('monitor')}>
-    <div className="decision-lead-top"><span><Activity size={15}/> 盘中焦点 <em>MONITORING FOCUS</em></span><span className="decision-lead-asof">{monitorCurrent?'最新 '+fmtTime(monitor.last_scan_at):'等待今日数据'}</span></div>
-    <div className="decision-lead-core"><strong>{leadCount}</strong><div className="decision-lead-message">
-     {leadKind==='risk'?<Badge>衰退预警</Badge>:leadKind==='watch'?<Badge>分歧</Badge>:null}
-     <span>{leadTitle}</span>
-    </div></div>
-    <div className="decision-lead-foot"><span title={leadNames}>{leadNames}</span><span className="decision-lead-action">查看监测 <ArrowRight size={16}/></span></div>
-   </button>
-   <div className="decision-side-column">
-    <button className="decision-side-stat" type="button" onClick={()=>onSection('portfolio')}>
-     <div className="decision-side-head"><span>我的持仓</span><Wallet size={17}/></div>
-     <div className="decision-side-value"><strong>{status.airtable==='OK'?portfolio.positions.filter(x=>x.verified).length:'—'}</strong><span>已核实</span></div>
-     <div className="decision-side-foot"><span>{status.airtable==='OK'?'按 Airtable 已登记净持仓':'持仓源暂不可用'}</span><ArrowRight size={14}/></div>
+  <div className="overview-brief" aria-label="今日重点摘要">
+   <div className="overview-kpis">
+    <button className="overview-kpi" type="button" onClick={()=>onSection('portfolio')} aria-label="查看已核实持仓">
+     <span className="overview-kpi-label">已核实持仓</span>
+     <span className="overview-kpi-body"><strong>{status.airtable==='OK'?portfolio.positions.filter(x=>x.verified).length:'—'}</strong><span>只</span></span>
     </button>
-    <button className="decision-side-stat decision-side-ready" type="button" onClick={()=>onSection('buy')}>
-     <div className="decision-side-head"><span>正式买点</span><Target size={17}/></div>
-     <div className="decision-side-value"><strong>{status.buyHandoff==='OK'?ready.length:'—'}</strong><span>READY</span></div>
-     <div className="decision-side-foot"><span>{status.buyHandoff==='OK'?waitCount+' 只 WAIT · 正式优先 '+official.length:'等待正式榜单'}</span><ArrowRight size={14}/></div>
+    <button className="overview-kpi" type="button" onClick={()=>onSection('trends')} aria-label="查看正式优先板块">
+     <span className="overview-kpi-label">正式优先板块</span>
+     <span className="overview-kpi-body"><strong>{status.trendHandoff==='OK'?official.length:'—'}</strong><span>个</span></span>
     </button>
+    <button className="overview-kpi" type="button" onClick={()=>onSection('buy')} aria-label="查看正式 READY 买点">
+     <span className="overview-kpi-label">正式 READY</span>
+     <span className="overview-kpi-body"><strong>{status.buyHandoff==='OK'?ready.length:'—'}</strong><span>只</span></span>
+    </button>
+   </div>
+   <div className="overview-brief-monitor">
+    <span className="overview-brief-label"><Activity size={13}/>盘中观察</span>
+    {monitorCurrent?
+      <span className="overview-brief-signals">
+       {retreatSectors.length>0&&<span className="signal-text signal-fall">衰退预警 {retreatSectors.length}</span>}
+       {disputeSectors.length>0&&<span className="signal-text signal-caution">分歧 {disputeSectors.length}</span>}
+       {!retreatSectors.length&&!disputeSectors.length&&<span>未发现已发布的衰退预警或分歧</span>}
+       <span className="overview-brief-timestamp">· {fmtTime(monitor.last_scan_at)}</span>
+      </span>
+      :<span className="overview-brief-signals">今日尚无有效盘中扫描</span>}
+    <button type="button" className="overview-brief-link" onClick={()=>onSection('monitor')}>查看监测 <ArrowRight size={13}/></button>
    </div>
   </div>
   <div className="decision-grid">
@@ -250,9 +245,9 @@ function Overview({registry,trendHandoff,buy,monitor,portfolio,status,onSection,
        const d=snapshotChange(scans,'up_ratio',100);
        return <button className="decision-row home-sector" key={item.trend_name} onClick={()=>onSection('trends')}>
         <span className="decision-rank">{String(item.priorityRank).padStart(2,'0')}</span>
-        <div className="decision-row-main"><strong>{item.trend_name}</strong><span className="home-sector-state"><Badge>{item.market_state}</Badge><small>{item.trend_state}</small></span></div>
+        <div className="decision-row-main"><strong>{item.trend_name}</strong><span className="home-sector-state"><span className="home-study-text">{item.market_state}</span><small>{item.trend_state}</small></span></div>
         <div className="home-mini-chart">{scans.length>=2?<SnapshotPlot rows={scans} field="up_ratio" label="上涨家数占比" bounds={[0,100]} scale={100} compact/>:<span className="plot-unavailable">等待盘中扫描</span>}</div>
-        <div className="decision-row-meta home-sector-evidence">{scans.length?<div className="home-alert-state"><Badge>{scans.at(-1).current_state||'未定'}</Badge></div>:<span className="muted">暂无今日监测</span>}<small className={d==null?'':d>0?'market-up':d<0?'market-down':''}>{d==null?'正式研究排序':changeWord(d)+' '+signed(d,1)+' pp'}</small></div><ChevronRight size={15}/>
+        <div className="decision-row-meta home-sector-evidence">{scans.length?<div className={'home-alert-state state-'+tone(scans.at(-1).current_state)}><span className="state-dot"/>{scans.at(-1).current_state||'未定'}</div>:<span className="muted">暂无今日监测</span>}<small className={d==null?'':d>0?'market-up':d<0?'market-down':''}>{d==null?'正式研究排序':changeWord(d)+' '+signed(d,1)+' pp'}</small></div><ChevronRight size={15}/>
        </button>
      })}</div>:<div className="decision-empty">本期没有正式排名的板块。</div>}
    </section>
@@ -261,9 +256,9 @@ function Overview({registry,trendHandoff,buy,monitor,portfolio,status,onSection,
    <div className="decision-panel-top"><div><span className="decision-step">03 / SNAPSHOT MOVEMENT</span><h2>盘中真实变化</h2><p>按当天上涨家数占比变化绝对值排列观察对象；这是展示顺序，不是模型强弱评分。</p></div><button className="text-link" onClick={()=>onSection('monitor')}>查看全部监测 <ArrowRight size={14}/></button></div>
    {!monitorCurrent||!active?<div className="decision-empty">今日尚无有效盘中快照；不会拿历史数据冒充实时曲线。</div>:<>
     <div className="focus-switch">{monitored.map(item=><button key={item.name} className={item.name===active.name?'active':''} onClick={()=>setFocusSector(item.name)}>
-      <strong>{item.name}</strong><span className="focus-signal"><Badge>{item.scans.at(-1)?.current_state||'未知'}</Badge></span><span className={item.delta==null?'':item.delta>0?'market-up':item.delta<0?'market-down':''}>{item.delta==null?'不足两轮':signed(item.delta,1)+' pp'}</span></button>)}</div>
+      <strong>{item.name}</strong><span className={'focus-signal state-'+tone(item.scans.at(-1)?.current_state)}><span className="state-dot"/>{item.scans.at(-1)?.current_state||'未知'}</span><span className={item.delta==null?'':item.delta>0?'market-up':item.delta<0?'market-down':''}>{item.delta==null?'不足两轮':signed(item.delta,1)+' pp'}</span></button>)}</div>
     <div className="feature-plot-grid"><div className="feature-main-plot"><SnapshotPlot rows={active.scans} field="up_ratio" label="上涨家数占比" scale={100} bounds={[0,100]}/></div><div className="feature-side-plot"><SnapshotPlot rows={active.scans} field="median_change_pct" label="成分涨跌幅中位数" /></div></div>
-    <div className="feature-caption"><span>{active.name} · 最新监测 <Badge>{industryLatest?.current_state||'—'}</Badge> · 结构动量 <b>{industryLatest?.structure_momentum||'—'}</b></span><span>来源 {monitor.trade_date} · 已扫描 {active.scans.length} 轮</span></div>
+    <div className="feature-caption"><span>{active.name} · 最新盘中状态 <b>{industryLatest?.current_state||'—'}</b> · 结构动量 <b>{industryLatest?.structure_momentum||'—'}</b></span><span>来源 {monitor.trade_date} · 已扫描 {active.scans.length} 轮</span></div>
    </>}
   </section>
   <section className="decision-panel decision-opportunity"><div className="decision-panel-top"><div><span className="decision-step">04 / ENTRY SETUPS</span><h2>正式买点机会</h2><p>只把 READY 列为待核对机会，WAIT 保留在完整榜单中。</p></div><button className="text-link" onClick={()=>onSection('buy')}>全部买点 <ArrowRight size={14}/></button></div>
