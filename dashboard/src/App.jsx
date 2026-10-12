@@ -118,7 +118,8 @@ function CrossdayTimeline({archive,monitor,identifier,kind='sector'}){
       <small>{kind==='sector'?'上涨家数占比':'盘中末次快照价'}</small>
     </div>;
   })}</div>:<p className="crossday-unavailable">暂无可核验的跨日历史快照。</p>}
-  {count===0&&<p className="history-disclaimer">跨日存档尚无历史交易日记录，当前仅能展示当日数据。后续产生真实归档后这里会自动增加。</p>}
+  {!archive&&<p className="history-disclaimer">跨日存档暂不可用；当前只显示已核验的盘中数据。</p>}
+  {archive&&count===0&&<p className="history-disclaimer">跨日存档尚无历史交易日记录，当前仅能展示当日数据。后续产生真实归档后这里会自动增加。</p>}
   {count>0&&rows.length<5&&<p className="history-disclaimer">当前只有 {count} 个已归档交易日；不足 5 日不填充缺失值。</p>}
  </div>;
 }
