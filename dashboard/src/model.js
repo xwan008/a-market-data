@@ -132,3 +132,37 @@ export function statusTone(raw) {
   if (value==='WAIT'||value==='暂停') return 'neutral';
   return 'neutral';
 }
+
+
+// 研究账本中的 3-5 个历史事件：这是独立于盘中快照的状态核验序列，缺失交易日不补值。
+export function trendEvents(trend,limit=5){
+ const records=Array.isArray(trend?.state_history)?trend.state_history:[];
+ const byDay=new Map();
+ for(const record of records){
+  if(!record || !/^\d{4}-\d{2}-\d{2}$/.test(String(record.trade_date||'')))continue;
+  byDay.set(record.trade_date,{...record,market_state:record.to||null});
+ }
+ return [...byDay.values()].sort((a,b)=>a.trade_date.localeCompare(b.trade_date)).slice(-Math.max(1,Math.min(30,limit)));
+}
+
+// 盘中历史只来自已归档的最后一次盘中扫描，不能当作历史收盘价或重算走势。
+export function archivedDays(archive,monitor,identifier,kind='sector',limit=5){
+ const source=archive?.result_kind==='a_share_intraday_crossday_archive'&&Array.isArray(archive?.days)?archive.days:[];
+ const map=new Map();
+ const selector=kind==='stock'?'stocks':'trends';
+ for(const day of source){
+  const date=day?.trade_date;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(String(date||'')))continue;
+  const record=day[selector]?.[identifier];
+  if(!record || typeof record!=='object' || !record.scan_at?.startsWith(date))continue;
+  if(record.data_quality && record.data_quality!=='READY' && record.data_quality!=='DEGRADED')continue;
+  map.set(date,{trade_date:date,source:'archived_last_scan',...record});
+ }
+ const date=monitor?.trade_date;
+ if(monitor?.result_kind==='a_share_intraday_monitor_state'&&/^\d{4}-\d{2}-\d{2}$/.test(String(date||''))){
+  const rows=validSnapshots((kind==='stock'?monitor.stock_history:monitor.industry_history)?.[identifier],date);
+  const last=rows.at(-1);
+  if(last)map.set(date,{...last,trade_date:date,source:'today_scans'});
+ }
+ return [...map.values()].sort((a,b)=>a.trade_date.localeCompare(b.trade_date)).slice(-Math.max(1,Math.min(30,limit)));
+}
