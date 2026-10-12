@@ -1119,3 +1119,38 @@ button{transition:color .2s var(--studio-ease),background-color .2s var(--studio
 @media(prefers-reduced-motion:reduce){
  .login-screen--terminal .login-submit{transition:none}
 }
+
+/* Keep selected details visible while scrolling long ranking tables on wide screens.
+   Oversized details can be scrolled independently below the sticky 73px top bar. */
+@media (min-width:1011px){
+ .buy-workspace > .inspector{
+  position:sticky;
+  top:88px;
+  align-self:start;
+  max-height:calc(100vh - 104px);
+  max-height:calc(100dvh - 104px);
+  overflow-x:hidden;
+  overflow-y:auto;
+  overscroll-behavior-y:contain;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(148,169,155,.34) transparent;
+ }
+}
+@media (min-width:1201px){
+ .trend-workspace > .inspector{
+  position:sticky;
+  top:88px;
+  align-self:start;
+  max-height:calc(100vh - 104px);
+  max-height:calc(100dvh - 104px);
+  overflow-x:hidden;
+  overflow-y:auto;
+  overscroll-behavior-y:contain;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(148,169,155,.34) transparent;
+ }
+}
+.two-pane > .inspector:focus-visible{
+ outline:2px solid rgba(173,205,184,.58);
+ outline-offset:2px;
+}
