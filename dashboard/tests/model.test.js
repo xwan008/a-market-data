@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {summarizeTrades,extractRecords,latestMonitorRecords,fixed,validSnapshots,snapshotChange,rankedTrendRows,seriesDirection,statusTone,trendEvents,archivedDays} from '../src/model.js';
+import {summarizeTrades,extractRecords,latestMonitorRecords,fixed,validSnapshots,snapshotChange,rankedTrendRows,seriesDirection,statusTone,trendEvents,archivedDays,assessHoldingRisk,evaluateExitCondition} from '../src/model.js';
 
 function row(code,kind,qty,price,day,extras={}) {return {'股票代码':code,'操作类型':kind,'实际成交股数':qty,'价格（元）':price,'交易日期':day,'交易标的': '测试股票',...extras};}
 test('买入、加仓、卖出移动加权成本正确',()=>{
@@ -120,4 +120,71 @@ test('高优先级风险状态和分歧不会与正常状态混用',()=>{
  assert.equal(statusTone('分歧'),'caution');
  assert.equal(statusTone('趋势确认'),'rise');
  assert.equal(statusTone('候选趋势'),'candidate');
+});
+
+
+function holding(code='600988',conditions=['趋势失效条件暂未设置，待结合日K及风险预算确认。']) {
+ return {code,shares:400,verified:true,avgCost:40.475,conditions};
+}
+function monitoring(price=39.28,options={}) {
+ const day='2026-10-12';
+ return {result_kind:'a_share_intraday_monitor_state',trade_date:day,
+  stock_history:{'600988':[{
+   scan_at:day+'T14:39:54+08:00',data_quality:'READY',price,
+   price_behavior:'转弱',change_pct:-5.07,relative_to_industry_pct:-0.81,
+   latest_low:{price:36.83},trend_name:'黄金/贵金属',entry_action:'等待',holding_action:null,
+   ...options
+  }]},
+  industry_history:{'黄金/贵金属':[{scan_at:day+'T14:39:54+08:00',
+    data_quality:'READY',current_state:'衰退预警'}]}
+ };
+}
+test('已持有 WAIT 股票用真实净持仓和当日快照进行风险观察，不把空仓等待冒充持仓意见',()=>{
+ const result=assessHoldingRisk(holding(),monitoring(),'2026-10-12');
+ assert.equal(result.state,'watch');
+ assert.match(result.label,/盘中走弱/);
+ assert.equal(result.rule.state,'unconfirmed');
+ assert.equal(result.last.price,39.28);
+ assert.ok(result.evidence.some(x=>x.includes('相对所属行业')));
+ assert.ok(result.evidence.some(x=>x.includes('历史结构低点')));
+ assert.ok(result.evidence.some(x=>x.includes('衰退预警')));
+ assert.equal(result.evidence.some(x=>x.includes('卖出建议')),false);
+});
+test('没有明确退出线不能拿买点计划或历史结构低点自动做卖出阈值',()=>{
+ const r=assessHoldingRisk(holding(),monitoring(35,{history_break_state:'broken',
+  trend_entry_plan:{invalidation_price:51.21}}),'2026-10-12');
+ assert.equal(r.rule.state,'unconfirmed');
+ assert.notEqual(r.state,'triggered');
+ assert.ok(r.evidence.some(x=>x.includes('低于历史结构低点')));
+});
+test('盘中低于用户设定的收盘退出线，也只能等待有效收盘确认',()=>{
+ const r=assessHoldingRisk(holding('600988',['收盘价跌破40元时止损']),monitoring(39.28),'2026-10-12');
+ assert.equal(r.state,'pending');
+ assert.equal(r.rule.state,'close_pending');
+ assert.match(r.rule.detail,/收盘确认/);
+});
+test('只有明确的盘中硬止损规则被有效盘中快照跌破时才标示触及',()=>{
+ const rule=['盘中跌破40元立即止损'];
+ const touched=assessHoldingRisk(holding('600988',rule),monitoring(39.28),'2026-10-12');
+ assert.equal(touched.rule.state,'intraday_touched');
+ assert.equal(touched.state,'triggered');
+ const safe=assessHoldingRisk(holding('600988',rule),monitoring(40.2),'2026-10-12');
+ assert.equal(safe.rule.state,'intraday_not_touched');
+ assert.notEqual(safe.state,'triggered');
+ assert.match(touched.rule.detail,/不代表已成交/);
+});
+test('不明确时间口径、多个退出价格和文字条件均不生成确定退出信号',()=>{
+ assert.equal(evaluateExitCondition(['跌破40元止损'],39.1).state,'review');
+ assert.equal(evaluateExitCondition(['盘中跌破40元止损，收盘确认再执行'],39.1).state,'review');
+ assert.equal(evaluateExitCondition(['盘中跌破40元止损，涨到45元止盈'],39.1).state,'review');
+ assert.equal(evaluateExitCondition(['盘中低于40元观察'],39.1).state,'review');
+ assert.equal(evaluateExitCondition(['盘中跌破40元止损','收盘跌破39元止损'],38).state,'review');
+});
+test('旧日快照、失效扫描、未覆盖股票和未核实股数都不能伪造持仓判断',()=>{
+ const old=monitoring();old.trade_date='2026-10-09';
+ assert.equal(assessHoldingRisk(holding(),old,'2026-10-12').state,'stale');
+ const degraded=monitoring();degraded.stock_history['600988'][0].data_quality='DEGRADED';
+ assert.equal(assessHoldingRisk(holding(),degraded,'2026-10-12').state,'not_covered');
+ assert.equal(assessHoldingRisk(holding('600985'),monitoring(),'2026-10-12').state,'not_covered');
+ assert.equal(assessHoldingRisk({...holding(),verified:false},monitoring(),'2026-10-12').state,'unverified');
 });
