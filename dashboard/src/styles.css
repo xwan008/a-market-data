@@ -735,3 +735,108 @@ button{transition:color .2s var(--studio-ease),background-color .2s var(--studio
 }
 
 .trend-delta.trend-up{color:var(--market-up)}
+
+
+/* Evidence-driven historical context — quiet past, distinct current day. */
+.trend-history{margin-top:3px}
+.trend-history-rail{display:grid;grid-template-columns:repeat(auto-fit,minmax(102px,1fr));gap:7px}
+.trend-history-event{
+ min-width:0;position:relative;
+ display:flex;flex-direction:column;align-items:flex-start;gap:9px;
+ padding:13px 10px 14px;border:1px solid rgba(182,211,189,.09);
+ border-radius:9px;background:rgba(169,197,173,.028);
+ opacity:.75;transition:opacity .22s,background .22s,border-color .22s
+}
+.trend-history-event:hover,.trend-history-event:focus-within{opacity:1;border-color:rgba(180,212,188,.20)}
+.trend-history-event.is-latest{opacity:.93}
+.trend-history-event.is-today{
+ opacity:1;background:rgba(230,129,120,.09);
+ border-color:rgba(230,129,120,.37);box-shadow:inset 0 1px rgba(236,170,155,.06)
+}
+.trend-history-date{
+ display:flex;gap:5px;align-items:center;flex-wrap:wrap;
+ color:#a0b1a4;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums
+}
+.trend-history-date b,.crossday-date span{
+ font-size:9px;font-weight:650;letter-spacing:.1px;color:#e99d93;
+ border:1px solid rgba(231,139,128,.30);border-radius:4px;
+ background:rgba(232,137,124,.075);padding:2px 5px
+}
+.trend-history-state{display:block;min-height:21px}
+.trend-history-state .badge{font-size:9px;white-space:normal}
+.trend-history-kind{font-size:9px;color:#7d9284;line-height:1.5}
+.trend-history-reason{font-size:10px;color:#afc3af;width:100%;line-height:1.6}
+.trend-history-reason summary{cursor:pointer;font-size:10px;list-style:disclosure-closed}
+.trend-history-reason[open] summary{list-style:disclosure-open}
+.trend-history-reason p{margin:6px 0 1px;color:#bcc9bc;line-height:1.8;white-space:normal;overflow-wrap:anywhere}
+.history-disclaimer{font-size:10px;color:#788e7e;line-height:1.75;margin:11px 0 2px}
+/* Cross-day scan archive is daily last scan, not official close. */
+.crossday-view{border-top:1px solid rgba(189,214,192,.11);padding:19px 0 12px;margin-top:10px}
+.crossday-head{display:flex;justify-content:space-between;gap:8px 14px;align-items:baseline;flex-wrap:wrap;margin-bottom:14px}
+.crossday-head strong{font-size:12px;font-weight:600;color:#d1ddd2}
+.crossday-head small{font-size:10px;color:#7c927f}
+.crossday-rail{display:grid;grid-template-columns:repeat(auto-fit,minmax(108px,1fr));gap:9px}
+.crossday-card{
+ min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:8px;
+ padding:13px 12px 12px;border:1px solid rgba(178,204,182,.095);
+ border-radius:10px;background:rgba(193,218,198,.03);
+ opacity:.72;transition:opacity .24s,border-color .24s,background .24s
+}
+.crossday-card:hover{opacity:1;border-color:rgba(183,215,190,.25)}
+.crossday-card.crossday-today{
+ opacity:1;background:linear-gradient(125deg,rgba(226,135,124,.105),rgba(220,137,130,.04));
+ border:1px solid rgba(233,144,129,.29)
+}
+.crossday-date{display:flex;align-items:center;gap:7px;color:#aabaaa;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
+.crossday-value{font-size:20px;font-weight:550;letter-spacing:-.3px;font-variant-numeric:tabular-nums;color:#e7eee5}
+.crossday-card.crossday-today .crossday-value{color:#f0d5ce}
+.crossday-card .badge{font-size:9px;padding:4px 7px}
+.crossday-card>small{font-size:9px;color:#8a9c8b;line-height:1.6}
+.crossday-unavailable,.monitor-more-none{font-size:11px;line-height:1.8;color:#849789}
+.sector-chart-inset .crossday-view{padding-bottom:4px}
+.sector-chart-inset .crossday-rail{grid-template-columns:repeat(auto-fit,minmax(92px,1fr))}
+.sector-chart-inset .crossday-card{padding:10px 8px}
+.sector-chart-inset .crossday-value{font-size:16px}
+/* Secondary evidence is progressive disclosure, keeping chart area dominant. */
+.monitor-more{border-top:1px solid rgba(192,218,198,.10)}
+.monitor-more>summary{
+ display:flex;align-items:center;justify-content:space-between;
+ padding:17px 1px;gap:13px;cursor:pointer;list-style:none;
+ font-size:12px;color:#b2cbb6;font-weight:600
+}
+.monitor-more>summary::-webkit-details-marker{display:none}
+.monitor-more[open]>summary svg{transform:rotate(180deg)}
+.monitor-more>summary svg{transition:transform .24s var(--studio-ease)}
+.seven-context{
+ display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
+ gap:13px;border:1px solid rgba(180,207,183,.09);border-radius:12px;
+ background:rgba(181,207,185,.035);padding:19px;margin:2px 0 17px
+}
+.seven-context>div{display:flex;flex-direction:column;gap:9px}
+.seven-context small,.monitor-stat-pairs small{font-size:10px;line-height:1.6;color:#8fa592}
+.seven-context strong{font:550 20px 'DM Sans','Noto Sans SC',sans-serif;color:#dde9db;font-variant-numeric:tabular-nums}
+.seven-context p{
+ grid-column:1/-1;font-size:10px;color:#809786;line-height:1.85;
+ padding:12px 0 0;margin:0;border-top:1px solid rgba(186,212,193,.08)
+}
+.monitor-stat-pairs{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:16px;margin:8px 0 19px}
+.monitor-stat-pairs>div{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+.monitor-stat-pairs strong{color:#e1ebe0;font-size:13px;font-weight:600;line-height:1.7}
+@media(max-width:760px){
+ .trend-history-rail{grid-template-columns:repeat(auto-fit,minmax(105px,1fr))}
+ .trend-history-event{padding:10px 8px}
+ .crossday-rail{grid-template-columns:repeat(auto-fit,minmax(100px,1fr))}
+ .crossday-head{align-items:flex-start}
+ .crossday-head small{font-size:9px}
+ .crossday-card{padding:10px 9px}
+ .crossday-value{font-size:18px}
+ .seven-context{grid-template-columns:repeat(2,minmax(0,1fr));padding:13px}
+ .monitor-stat-pairs{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:430px){
+ .crossday-rail{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .trend-history-rail{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(prefers-reduced-motion:reduce){
+ .trend-history-event,.crossday-card,.monitor-more summary svg{transition:none!important}
+}

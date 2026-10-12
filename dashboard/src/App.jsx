@@ -6,7 +6,7 @@ import {
  RefreshCw, Search, ShieldCheck, ShieldAlert, SlidersHorizontal,
  Sparkles, Target, TrendingUp, Wallet, X, Zap, PanelLeftClose, ListFilter
 } from 'lucide-react';
-import {asArray, latestMonitorRecords, fixed, fmtTime, formatSource, pct, safeText, shanghaiDay, summarizeTrades, validSnapshots, snapshotChange, rankedTrendRows, seriesDirection, statusTone} from './model.js';
+import {asArray, latestMonitorRecords, fixed, fmtTime, formatSource, pct, safeText, shanghaiDay, summarizeTrades, validSnapshots, snapshotChange, rankedTrendRows, seriesDirection, statusTone, trendEvents, archivedDays} from './model.js';
 
 const sections = [
  {id:'overview',icon:BarChart3,title:'市场总览',en:'Overview'},
@@ -32,7 +32,20 @@ function Sidebar({section,onSection,openMenu,setOpenMenu,status}){
 }
 function Metric({label,value,meta,icon:Icon,accent='blue',hint}) {return <div className="metric-card"><div className="metric-top"><span>{label}</span><span className={`metric-icon metric-${accent}`}><Icon size={18}/></span></div><div className="metric-number">{value}</div><div className="metric-meta">{hint && <span className="metric-hint">{hint}</span>}{meta}</div></div>}
 function TrendFocus({item,rank}) {return <div className="focus-row"><div className="focus-rank">{String(rank).padStart(2,'0')}</div><div className="focus-details"><strong>{item.trend_name}</strong><div><span>{safeText(item.trend_state)}</span><span className="tiny-sep">·</span><span>{safeText(item.industry_names?.[0])}</span></div></div><Badge>{item.market_state}</Badge></div>}
-function HistoryStrip({events}) {const list=asArray(events).slice(-6);return list.length?<div className="history-strip">{list.map((e,i)=><div className="history-node" key={`${e.trade_date}-${i}`} title={`${e.trade_date} · ${e.to||e.event||'历史观察'}`}><span className={i===list.length-1?'history-node-current':''}/><small>{String(e.trade_date||'').slice(5)}</small></div>)}</div>:<span className="muted">暂无状态历史</span>}
+
+function HistoryStrip({events}){
+ const list=trendEvents({state_history:events},5),today=shanghaiDay();
+ if(!list.length)return <p className="muted">尚无可核验的历史状态事件。</p>;
+ return <div className="trend-history">
+  <div className="trend-history-rail">{list.map((e,i)=>{const isToday=e.trade_date===today;return <div key={e.trade_date} className={'trend-history-event '+(isToday?'is-today':'')+(i===list.length-1?' is-latest':'')}>
+   <span className="trend-history-date">{e.trade_date.slice(5)}{isToday&&<b>今日</b>}</span>
+   <span className="trend-history-state">{e.market_state?<Badge>{e.market_state}</Badge>:<span className="muted">历史观察</span>}</span>
+   <span className="trend-history-kind">{i===list.length-1?'最新记录':e.event==='market_state_change'||e.event==='market_downgrade'?'状态迁移':'已记录'}</span>
+   {e.reason&&<details className="trend-history-reason"><summary>本轮依据</summary><p>{e.reason}</p></details>}
+  </div>})}</div>
+  <p className="history-disclaimer">近 {list.length} 次已发布核验事件 · 未记录交易日不补值 · 历史研究判断不等于今日行情</p>
+ </div>;
+}
 function TrendInspector({item}) {
  if(!item) return <Empty title="选择一个板块" detail="查看产业状态、支持证据与失效条件"/>;
  const evidence=asArray(item.supporting_evidence).slice(-2).reverse();
@@ -87,6 +100,41 @@ function SnapshotPlot({rows,field,label,unit='%',scale=1,bounds=null,compact=fal
    </svg>
    {compact?<span className={'plot-compact-value plot-head-'+direction}>{display(data.at(-1).value)}</span>:hItem&&<div className="plot-tooltip" role="status"><span className="plot-tooltip-time">{fmtTime(hItem.scan_at)}</span><strong>{display(hItem.value)}</strong><span className={direction==='rise'?'plot-positive':direction==='fall'?'plot-negative':''}>{hoveredIndex===0?'首轮基准': '相对首轮 '+signed(hItem.value-data[0].value,unit==='元'?2:1)+unit}</span>{(hItem.row.current_state||hItem.row.price_behavior)&&<small>监测状态 · {hItem.row.current_state||hItem.row.price_behavior}</small>}</div>}
   </div>
+ </div>;
+}
+
+function CrossdayTimeline({archive,monitor,identifier,kind='sector'}){
+ const rows=archivedDays(archive,monitor,identifier,kind,5),today=shanghaiDay();
+ const count=rows.filter(row=>row.source==='archived_last_scan').length;
+ return <div className="crossday-view">
+  <div className="crossday-head"><strong>近 5 个可追溯交易日</strong><small>历史来自当日末次盘中扫描，不代表收盘价</small></div>
+  {rows.length?<div className="crossday-rail">{rows.map(row=>{const isToday=row.trade_date===today;
+    const state=kind==='sector'?(row.current_state||row.last_intraday_state):(row.price_behavior||row.relative_strength);
+    const value=kind==='sector'?(typeof row.up_ratio==='number'?fixed(row.up_ratio*100,1)+'%':'—'):(typeof row.price==='number'?fixed(row.price,2)+' 元':'—');
+    return <div className={'crossday-card '+(isToday?'crossday-today':'')} key={row.trade_date}>
+      <div className="crossday-date">{row.trade_date.slice(5)}{isToday&&<span>今日</span>}</div>
+      <strong className="crossday-value">{value}</strong>
+      <div className="crossday-state">{state?<Badge>{state}</Badge>:<span>无状态</span>}</div>
+      <small>{kind==='sector'?'上涨家数占比':'盘中末次快照价'}</small>
+    </div>;
+  })}</div>:<p className="crossday-unavailable">暂无可核验的跨日历史快照。</p>}
+  {!archive&&<p className="history-disclaimer">跨日存档暂不可用；当前只显示已核验的盘中数据。</p>}
+  {archive&&count===0&&<p className="history-disclaimer">跨日存档尚无历史交易日记录，当前仅能展示当日数据。后续产生真实归档后这里会自动增加。</p>}
+  {count>0&&rows.length<5&&<p className="history-disclaimer">当前只有 {count} 个已归档交易日；不足 5 日不填充缺失值。</p>}
+ </div>;
+}
+function SevenSessionContext({sector,stock}){
+ const context=sector?.seven_day||stock?.seven_day;
+ if(!context)return <div className="monitor-more-none">暂未提供七日背景数据。</div>;
+ const sectorMode=!!sector;
+ const available=context.status==='available';
+ const value=sectorMode?context.median_constituent_return_pct:context.close_change_7d_pct;
+ const sourceDate=context.source_trade_date||context.baseline_trade_date||'未注明';
+ return <div className="seven-context">
+  <div><small>{sectorMode?'7 个完整交易时段 · 成分股收益中位数':'7 个完整交易时段 · 个股收盘涨跌幅'}</small><strong className={typeof value==='number'?(value>0?'market-up':value<0?'market-down':''):''}>{available&&typeof value==='number'?pct(value):'数据不足'}</strong></div>
+  {sectorMode&&<div><small>区间内正收益成分股比例</small><strong>{typeof context.positive_constituent_ratio==='number'?fixed(context.positive_constituent_ratio*100,1)+'%':'—'}</strong></div>}
+  <div><small>历史口径与样本</small><strong>{sectorMode?safeText(context.sample_count)+' / '+safeText(context.target_count):safeText(context.observation_count)+' 个有效收盘价'}</strong></div>
+  <p>截至 {sourceDate} · {context.status==='available'?'覆盖可用':'数据覆盖不完整'} · 这是截至历史基准日的累计背景，不是逐日曲线，也不是今天的实时信号。</p>
  </div>;
 }
 function SnapshotTimeline({rows,kind='sector'}){
@@ -190,7 +238,7 @@ function Overview({registry,trendHandoff,buy,monitor,portfolio,status,onSection,
  </div>;
 }
 
-function Trends({registry,trendHandoff,monitor,selected,setSelected}){
+function Trends({registry,trendHandoff,monitor,archive,selected,setSelected}){
  const [sortMode,setSortMode]=useState('formal');
  const day=monitor?.result_kind==='a_share_intraday_monitor_state'?monitor.trade_date:null;
  const rows=rankedTrendRows(registry,trendHandoff,monitor?.industry_history,day,sortMode);
@@ -202,7 +250,7 @@ function Trends({registry,trendHandoff,monitor,selected,setSelected}){
   <div className="two-pane trend-workspace"><section className="panel"><PanelHead label="OFFICIAL RANK · REAL SNAPSHOTS" title="板块排序" aside={<span className="count-chip">{rows.length} 个方向</span>}/>
    {rows.length?<TrendTable trends={rows} onSelect={setSelected} selected={focus} monitor={monitor?.industry_history} monitorDay={day} sortMode={sortMode} onSort={setSortMode}/>:<Empty title="暂无趋势数据" detail="等待正式趋势池发布"/>}
   </section>
-  <section className="panel inspector inspector-tall"><div className="sector-chart-inset"><div className="eyebrow">SECTOR BREADTH / 已发布快照</div><strong>{focus?.trend_name||'选择板块'}</strong><p>上涨家数占比 · {day||'尚未发布盘中监测'}</p><SnapshotPlot rows={plotRows} field="up_ratio" label="上涨家数占比" scale={100} bounds={[0,100]}/></div><TrendInspector item={focus}/></section>
+  <section className="panel inspector inspector-tall"><div className="sector-chart-inset"><div className="eyebrow">SECTOR BREADTH / 已发布快照</div><strong>{focus?.trend_name||'选择板块'}</strong><p>上涨家数占比 · {day||'尚未发布盘中监测'}</p><SnapshotPlot rows={plotRows} field="up_ratio" label="上涨家数占比" scale={100} bounds={[0,100]}/><CrossdayTimeline archive={archive} monitor={monitor} identifier={focus?.trend_name} kind="sector"/></div><TrendInspector item={focus}/></section>
   </div>
  </>;
 }
@@ -210,7 +258,7 @@ function PageIntro({code,title,desc,date}){return <div className="page-intro"><d
 function BuyInspector({item}){if(!item)return <Empty title="选择一只候选股票" detail="查看已发布入场条件、结构失效计划与风险"/>;return <div className="detail-content buy-inspector"><div className="detail-hero"><div className="eyebrow">ENTRY PROFILE / 交易计划</div><h2>{item.company_name}<span className="company-code">{item.code}</span></h2><div className="detail-badges"><Badge>{item.status}</Badge><Badge>{item.market_state}</Badge></div></div><div className="data-pair"><div><span>历史收盘参考价</span><strong className="big-number">{fixed(item.current_price)}</strong></div><div><span>形态类型</span><strong>{safeText(item.setup_type)}</strong></div></div><div className="detail-section"><div className="small-heading"><Target size={15}/> 计划入场区间</div><div className="entry-range">{Array.isArray(item.entry_zone)? `${fixed(item.entry_zone[0],3)} – ${fixed(item.entry_zone[1],3)}`:'尚未形成有效入场区间'}</div><p className="hint-text">入场触发：{safeText(item.entry_trigger)}</p></div><div className="data-pair"><div><span>最大入场价</span><strong>{fixed(item.max_entry_price,3)}</strong></div><div><span>结构失效参考</span><strong>{fixed(item.invalidation_price,3)}</strong></div></div><div className="detail-section"><div className="small-heading"><CircleAlert size={15}/> 当前判断</div><p className="reason-paragraph">{safeText(item.decision_reason)}</p></div><div className="invalidation"><span>失效规则</span><p>{safeText(item.invalidation_rule)}</p></div><div className="disclaimer">READY / WAIT 是正式研究结果，不代表实时成交指令。无当日行情确认时不得据此执行。</div></div>}
 function Buy({buy,selected,setSelected,status}){const items=asArray(buy?.items); const [filter,setFilter]=useState('全部');const [query,setQuery]=useState('');const [group,setGroup]=useState('全部板块');const markets=[...new Set(items.map(i=>i.trend_name).filter(Boolean))]; const shown=items.filter(i=>(filter==='全部'||i.status===filter)&&(group==='全部板块'||i.trend_name===group)&&`${i.company_name||''}${i.code||''}`.includes(query));const focus=items.find(i=>i.code===selected?.code)||shown[0];return <><PageIntro code="02 / ENTRY SIGNALS" title="趋势买点观察" desc="优先呈现正式 READY / WAIT 结果，保留原始入场计划和风险条件。" date={buy?.trade_date}/><div className="buy-summary"><div><Badge>READY</Badge><strong>{items.filter(i=>i.status==='READY').length}</strong><span>条件满足候选</span></div><div><Badge>WAIT</Badge><strong>{items.filter(i=>i.status==='WAIT').length}</strong><span>等待确认</span></div><div><span className="muted">正式覆盖</span><strong>{items.length}</strong><span>已发布标的</span></div></div><div className="two-pane"><section className="panel"><PanelHead label="BUY-POINT HANDOFF · V2" title="正式候选列表" aside={<span className="count-chip">{shown.length} 只</span>}/><div className="table-controls"><div className="search"><Search size={16}/><input placeholder="名称或股票代码" value={query} onChange={e=>setQuery(e.target.value)}/></div><div className="filter-select"><select value={filter} onChange={e=>setFilter(e.target.value)}><option>全部</option><option>READY</option><option>WAIT</option></select><ChevronDown size={13}/></div></div><div className="group-select"><SlidersHorizontal size={14}/><select value={group} onChange={e=>setGroup(e.target.value)}><option>全部板块</option>{markets.map(g=><option key={g}>{g}</option>)}</select></div>{items.length?<div className="table-wrap"><table className="data-table"><thead><tr><th>股票 / 代码</th><th>来源板块</th><th>参考价</th><th>信号</th><th/></tr></thead><tbody>{shown.map(item=><tr key={item.code} className={focus?.code===item.code?'row-selected':''} onClick={()=>setSelected(item)}><td><strong>{item.company_name}</strong><small className="mono">{item.code}</small></td><td className="soft-text">{item.trend_name}</td><td className="mono">{fixed(item.current_price)}</td><td><Badge>{item.status}</Badge></td><td><ChevronRight size={16}/></td></tr>)}</tbody></table>{!shown.length&&<Empty title="筛选后无候选" detail="尝试切换信号或板块" icon={Search}/>}</div>:<Empty title="买点榜尚未发布" detail={`数据状态：${formatSource(status.buyHandoff)}`}/>}<div className="table-footer">正式排名不因页面筛选而改变 <span>交易日 {buy?.trade_date||'—'}</span></div></section><section className="panel inspector inspector-tall"><BuyInspector item={focus}/></section></div></>}
 
-function Monitor({monitor,status}){
+function Monitor({monitor,archive,status}){
  const [sectorName,setSectorName]=useState(''),[stockCode,setStockCode]=useState('');
  const valid=monitor?.result_kind==='a_share_intraday_monitor_state' && status.monitor==='OK';
  const day=valid?monitor.trade_date:null;
@@ -235,6 +283,15 @@ function Monitor({monitor,status}){
   })}</div>
   <div className="monitor-chart-pair"><SnapshotPlot rows={sectorRows} field="up_ratio" label="上涨家数占比" scale={100} bounds={[0,100]}/><SnapshotPlot rows={sectorRows} field="median_change_pct" label="成分涨跌幅中位数" /></div>
   <div className="monitor-latest">{sectorLast?<><span>最新状态 <Badge>{sectorLast.current_state||'—'}</Badge></span><span>结构动量 <Badge>{safeText(sectorLast.structure_momentum)}</Badge></span><span>空仓观察 <strong>{safeText(sectorLast.entry_action)}</strong></span><span>持仓管理 <strong>{safeText(sectorLast.holding_action)}</strong></span></>:<span>暂无有效判断</span>}</div>
+  <CrossdayTimeline archive={archive} monitor={monitor} identifier={sector} kind="sector"/>
+  <details className="monitor-more"><summary>更多板块数据 · 7 日累计背景、广度与覆盖率 <ChevronDown size={15}/></summary>
+   <SevenSessionContext sector={sectorLast}/>
+   {sectorLast&&<div className="monitor-stat-pairs">
+     <div><small>上涨 / 下跌 / 平盘家数</small><strong>{safeText(sectorLast.up_count)} / {safeText(sectorLast.down_count)} / {safeText(sectorLast.flat_count)}</strong></div>
+     <div><small>盘中报价覆盖率</small><strong>{typeof sectorLast.coverage_ratio==='number'?fixed(sectorLast.coverage_ratio*100,1)+'%':'—'}</strong></div>
+     <div><small>最新结构动量</small><Badge>{sectorLast.structure_momentum||'—'}</Badge></div>
+   </div>}
+  </details>
   <details className="monitor-expand"><summary>查看 {sector||'板块'} 每轮状态与判断依据 <ChevronDown size={15}/></summary><SnapshotTimeline rows={sectorRows} kind="sector"/></details>
  </section>
  <section className="panel monitor-chart-panel">
@@ -242,6 +299,15 @@ function Monitor({monitor,status}){
   <div className="monitor-stock-select"><label htmlFor="monitored-stock">选择监测标的</label><select id="monitored-stock" value={stock||''} onChange={e=>setStockCode(e.target.value)}>{allStocks.map(item=><option key={item.code} value={item.code}>{item.rows.at(-1)?.company_name||item.code} · {item.code}</option>)}</select></div></div>
   <div className="monitor-chart-pair"><SnapshotPlot rows={stockRows} field="price" label="盘中快照价" unit="元"/><SnapshotPlot rows={stockRows} field="relative_to_industry_pct" label="相对所属行业涨跌幅" unit=" pp" /></div>
   <div className="monitor-latest">{stockLast?<><span>个股 <strong>{stockLast.company_name||stock}</strong></span><span>行为 <Badge>{stockLast.price_behavior||'—'}</Badge></span><span>空仓观察 <strong>{safeText(stockLast.entry_action)}</strong></span><span>持仓管理 <strong>{safeText(stockLast.holding_action)}</strong></span></>:<span>该股票暂无有效快照</span>}</div>
+  <CrossdayTimeline archive={archive} monitor={monitor} identifier={stock} kind="stock"/>
+  <details className="monitor-more"><summary>更多个股数据 · 7 日累计背景、结构高低点 <ChevronDown size={15}/></summary>
+   <SevenSessionContext stock={stockLast}/>
+   {stockLast&&<div className="monitor-stat-pairs">
+    <div><small>最近结构高点</small><strong>{typeof stockLast.latest_high?.price==='number'?fixed(stockLast.latest_high.price)+' 元':'—'}</strong></div>
+    <div><small>最近结构低点</small><strong>{typeof stockLast.latest_low?.price==='number'?fixed(stockLast.latest_low.price)+' 元':'—'}</strong></div>
+    <div><small>历史结构趋势 / 破位</small><strong>{safeText(stockLast.history_trend_state)} / {safeText(stockLast.history_break_state)}</strong></div>
+   </div>}
+  </details>
   <details className="monitor-expand"><summary>查看 {stockLast?.company_name||stock||'个股'} 每轮状态与判断依据 <ChevronDown size={15}/></summary><SnapshotTimeline rows={stockRows} kind="stock"/></details>
  </section>
  <details className="panel monitor-all-list"><summary>浏览所有已覆盖板块与个股 <ChevronDown size={16}/></summary><div className="monitor-coverage"><div><h3>板块（{allSectors.length}）</h3>{allSectors.map(item=><button key={item.name} onClick={()=>setSectorName(item.name)}><span>{item.name}</span><small>{item.rows.at(-1)?.current_state||'无记录'}</small></button>)}</div><div><h3>个股（{allStocks.length}）</h3>{allStocks.map(item=><button key={item.code} onClick={()=>setStockCode(item.code)}><span>{item.rows.at(-1)?.company_name||item.code}</span><small>{item.rows.at(-1)?.price_behavior||'无记录'}</small></button>)}</div></div></details>
@@ -261,5 +327,5 @@ export default function App(){
  const portfolio=useMemo(()=>summarizeTrades(datasets.airtable),[datasets.airtable]);
  if(authenticated===null)return <div className="boot-screen"><div className="brand-mark"><TrendingUp size={29}/></div><span>LAN TU</span><div className="spinner"/></div>;
  if(!authenticated)return <Login login={login} loading={loadingLogin} error={loginError} setupError={setupError}/>;
- return <div className="app-shell"><Sidebar section={section} onSection={setSection} openMenu={menu} setOpenMenu={setMenu} status={status}/><div className="main-shell"><Header section={section} refresh={fetchData} refreshing={loading} data={payload} openMenu={menu} setOpenMenu={setMenu} logout={logout}/><main className="main-content">{payload?.fetchError&&<div className="fetch-warning"><CircleAlert size={17}/>{payload.fetchError}，展示上次成功加载的数据。</div>}{!payload?<Skeleton/>:<div className="view-enter" key={section}>{section==='overview'&&<Overview registry={datasets.registry} trendHandoff={datasets.trendHandoff} buy={datasets.buyHandoff} monitor={datasets.monitor} portfolio={portfolio} status={status} onSection={setSection} setSelectedBuy={setSelectedBuy}/ >}{section==='trends'&&<Trends registry={datasets.registry} trendHandoff={datasets.trendHandoff} monitor={datasets.monitor} selected={selectedTrend} setSelected={setSelectedTrend}/ >}{section==='buy'&&<Buy buy={datasets.buyHandoff} selected={selectedBuy} setSelected={setSelectedBuy} status={status}/ >}{section==='monitor'&&<Monitor monitor={datasets.monitor} status={status}/ >}{section==='portfolio'&&<Portfolio data={portfolio} status={status} monitor={datasets.monitor}/>}</div>}<footer className="main-footer"><span>LAN TU MARKET DESK</span><span>数据来自已发布的 GitHub 文件和私有 Airtable 记录 · 仅供研究参考，不构成交易建议</span><span>{payload?.receivedAt?`页面读取于 ${fmtTime(payload.receivedAt)}`:'等待同步'}</span></footer></main></div></div>;
+ return <div className="app-shell"><Sidebar section={section} onSection={setSection} openMenu={menu} setOpenMenu={setMenu} status={status}/><div className="main-shell"><Header section={section} refresh={fetchData} refreshing={loading} data={payload} openMenu={menu} setOpenMenu={setMenu} logout={logout}/><main className="main-content">{payload?.fetchError&&<div className="fetch-warning"><CircleAlert size={17}/>{payload.fetchError}，展示上次成功加载的数据。</div>}{!payload?<Skeleton/>:<div className="view-enter" key={section}>{section==='overview'&&<Overview registry={datasets.registry} trendHandoff={datasets.trendHandoff} buy={datasets.buyHandoff} monitor={datasets.monitor} portfolio={portfolio} status={status} onSection={setSection} setSelectedBuy={setSelectedBuy}/ >}{section==='trends'&&<Trends registry={datasets.registry} trendHandoff={datasets.trendHandoff} monitor={datasets.monitor} archive={datasets.crossdayArchive} selected={selectedTrend} setSelected={setSelectedTrend}/ >}{section==='buy'&&<Buy buy={datasets.buyHandoff} selected={selectedBuy} setSelected={setSelectedBuy} status={status}/ >}{section==='monitor'&&<Monitor monitor={datasets.monitor} archive={datasets.crossdayArchive} status={status}/ >}{section==='portfolio'&&<Portfolio data={portfolio} status={status} monitor={datasets.monitor}/>}</div>}<footer className="main-footer"><span>LAN TU MARKET DESK</span><span>数据来自已发布的 GitHub 文件和私有 Airtable 记录 · 仅供研究参考，不构成交易建议</span><span>{payload?.receivedAt?`页面读取于 ${fmtTime(payload.receivedAt)}`:'等待同步'}</span></footer></main></div></div>;
 }

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {summarizeTrades,extractRecords,latestMonitorRecords,fixed,validSnapshots,snapshotChange,rankedTrendRows,seriesDirection,statusTone} from '../src/model.js';
+import {summarizeTrades,extractRecords,latestMonitorRecords,fixed,validSnapshots,snapshotChange,rankedTrendRows,seriesDirection,statusTone,trendEvents,archivedDays} from '../src/model.js';
 
 function row(code,kind,qty,price,day,extras={}) {return {'股票代码':code,'操作类型':kind,'实际成交股数':qty,'价格（元）':price,'交易日期':day,'交易标的': '测试股票',...extras};}
 test('买入、加仓、卖出移动加权成本正确',()=>{
@@ -75,4 +75,41 @@ test('研究状态分别对应确认、候选、观察、扩散和衰弱语义',
  assert.equal(statusTone('减弱'),'fall');
  assert.equal(statusTone('READY'),'ready');
  assert.equal(statusTone('WAIT'),'neutral');
+});
+
+
+test('近五次趋势核验按交易日排序、不补缺失日期、末次同日记录优先',()=>{
+ const rows=trendEvents({state_history:[
+ {trade_date:'2026-10-09',to:'观察',reason:'收盘维持'},
+ {trade_date:'2026-09-30',to:'趋势确认'},
+ {trade_date:'2026-10-09',to:'候选趋势',reason:'最新核验'},
+ {trade_date:'invalid',to:'趋势确认'},
+ {trade_date:'2026-10-08',to:'候选趋势'}]},5);
+ assert.deepEqual(rows.map(x=>x.trade_date),['2026-09-30','2026-10-08','2026-10-09']);
+ assert.equal(rows.at(-1).market_state,'候选趋势');
+ assert.equal(rows.at(-1).reason,'最新核验');
+});
+test('跨日快照仅使用真实的归档最后扫描，同日盘中覆盖同日归档',()=>{
+ const archive={result_kind:'a_share_intraday_crossday_archive',days:[
+  {trade_date:'2026-10-08',trends:{'煤炭':{scan_at:'2026-10-08T14:36:00+08:00',up_ratio:.48}}},
+  {trade_date:'2026-10-09',trends:{'煤炭':{scan_at:'2026-10-09T14:36:00+08:00',up_ratio:.52}}},
+  {trade_date:'2026-10-12',trends:{'煤炭':{scan_at:'2026-10-12T09:45:00+08:00',up_ratio:.1}}}
+ ]};
+ const monitor={result_kind:'a_share_intraday_monitor_state',trade_date:'2026-10-12',industry_history:{'煤炭':[
+  {scan_at:'2026-10-12T09:46:00+08:00',up_ratio:.43,data_quality:'READY'},
+  {scan_at:'2026-10-12T10:45:00+08:00',up_ratio:.29,data_quality:'READY'}
+ ]}};
+ const rows=archivedDays(archive,monitor,'煤炭');
+ assert.deepEqual(rows.map(x=>x.trade_date),['2026-10-08','2026-10-09','2026-10-12']);
+ assert.equal(rows.at(-1).up_ratio,.29);
+ assert.equal(rows.at(-1).source,'today_scans');
+ assert.equal(rows[1].source,'archived_last_scan');
+ assert.deepEqual(archivedDays({result_kind:'unexpected',days:archive.days},null,'煤炭'),[]);
+});
+test('空跨日归档仅有今日真实监测，不捏造历史交易日',()=>{
+ const rows=archivedDays({result_kind:'a_share_intraday_crossday_archive',days:[]},{result_kind:'a_share_intraday_monitor_state',trade_date:'2026-10-12',stock_history:{'600001':[{
+ scan_at:'2026-10-12T10:10:00+08:00',data_quality:'READY',price:12.3
+ }] }},'600001','stock');
+ assert.equal(rows.length,1);
+ assert.equal(rows[0].price,12.3);
 });
