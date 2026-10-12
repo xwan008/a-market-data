@@ -168,123 +168,142 @@ export function archivedDays(archive,monitor,identifier,kind='sector',limit=5){
 }
 
 
-// 网站只读关联 Airtable 净持仓与公开盘中快照；不修改记录，也不制造买卖动作。
-// 名称锚定：只识别明确写作“退出线/失效线/预警线”的人民币价格，不将日期、成本、历史高低点误作止损价。
-export function extractExitLevels(conditions) {
- const list=[...new Set((Array.isArray(conditions)?conditions:[]).map(x=>String(x??'').trim()).filter(Boolean))];
- if(!list.length || list.some(x=>/暂未设置|尚未设置|待设置|未明确|尚无明确/.test(x)))
-  return {state:'unconfirmed',levels:[],basis:null};
- const names={'预警线':'warning','核心退出线':'exit','首要退出线':'exit','第一道退出线':'exit','最终失效线':'final'};
- const matches=[];
- for(const rule of list){
-  for(const m of rule.matchAll(/(预警线|核心退出线|首要退出线|第一道退出线|最终失效线)\s*[:：]?\s*(\d{1,5}(?:\.\d{1,3})?)\s*元/g)){
-   const price=Number(m[2]);
-   if(price>0 && Number.isFinite(price))matches.push({name:m[1],kind:names[m[1]],price});
+// 结构化风控计划契约：价格/股数/判断时点仅来自 Airtable typed fields。
+// "策略说明"和历史交易记录的"失效条件"都只用于人工阅读，决不解析成数值规则。
+const selectName = raw => typeof raw==='object'&&raw!==null?raw.name:raw;
+const money = value => typeof value==='number'&&Number.isFinite(value)&&value>0?value:null;
+const sixDigit = value => /^\d{6}$/.test(String(value??'').trim());
+const validDay = value => /^\d{4}-\d{2}-\d{2}$/.test(String(value??''));
+
+export function normalizeRiskPlans(rawPlans, today=shanghaiDay()){
+ if(!Array.isArray(rawPlans))return new Map();
+ const byCode=new Map();
+ for(const row of rawPlans){
+  const code=String(row?.['股票代码']??'').trim();
+  if(!sixDigit(code))continue;
+  const status=String(selectName(row['计划状态'])??'');
+  const day=String(row['生效日期']??'');
+  const plan={
+   id:row.id??null,code,name:String(row['股票名称']??code),
+   status,effectiveDate:day,warningPrice:money(row['预警价格']),
+   firstPrice:money(row['首道退出价格']),firstAction:String(selectName(row['首道退出动作'])??''),
+   firstQuantity:row['首道减仓股数']??null,
+   finalPrice:money(row['最终退出价格']),finalAction:String(selectName(row['最终退出动作'])??''),
+   basis:String(selectName(row['触发依据'])??''),
+   notes:String(row['策略说明']??'')
+  };
+  if(!byCode.has(code))byCode.set(code,[]);
+  byCode.get(code).push(plan);
+ }
+ const resolved=new Map();
+ for(const [code,list] of byCode){
+  const active=list.filter(x=>x.status==='生效');
+  if(active.length>1){
+   resolved.set(code,{state:'invalid',issue:'同一股票存在多条生效计划，请停用旧版本。',plan:null});
+   continue;
   }
+  if(!active.length){
+   resolved.set(code,{state:'missing',issue:'尚无生效的结构化退出计划。',plan:null});
+   continue;
+  }
+  const p=active[0],issues=[];
+  if(!validDay(p.effectiveDate))issues.push('生效日期缺失或格式无效');
+  else if(p.effectiveDate>today)issues.push('生效日期尚未到达');
+  if(!p.firstPrice)issues.push('首道退出价格必须为正数');
+  if(!['减仓','清仓剩余'].includes(p.firstAction))issues.push('首道退出动作未指定');
+  if(p.firstAction==='减仓'&&(!Number.isInteger(p.firstQuantity)||p.firstQuantity<=0))
+   issues.push('首道减仓股数必须为正整数');
+  if(p.firstAction==='清仓剩余'&&p.firstQuantity!=null)
+   issues.push('清仓剩余时不应填写减仓股数');
+  if((p.finalPrice===null)!==(p.finalAction===''))
+   issues.push('最终退出价格与动作需要同时填写');
+  if(p.finalPrice!==null){
+   if(p.firstPrice!==null&&p.finalPrice>=p.firstPrice)issues.push('最终退出价须低于首道退出价');
+   if(p.firstAction==='清仓剩余')issues.push('首道已清仓，不能继续设置最终退出');
+   if(p.finalAction!=='清仓剩余')issues.push('当前最终退出只支持清仓剩余');
+  }
+  if(p.warningPrice!==null&&p.firstPrice!==null&&p.warningPrice<=p.firstPrice)
+   issues.push('预警价应高于首道退出价');
+  if(!['日线收盘','盘中'].includes(p.basis))issues.push('触发依据必须选择日线收盘或盘中');
+  resolved.set(code,{state:issues.length?'invalid':'ready',issue:issues.join('；'),plan:p});
  }
- if(!matches.length)return {state:'unstructured',levels:[],basis:null};
- const dedup=new Map();
- for(const item of matches){
-  const prev=dedup.get(item.name);
-  if(prev && prev.price!==item.price)return {state:'conflict',levels:[],basis:null};
-  dedup.set(item.name,item);
- }
- const levels=[...dedup.values()];
- // 一段解释文字中出现“仅盘中短破不算收盘确认”不意味着规则既是盘中又是收盘触发。
- const whole=list.join(' ');
- const basis=/日线收盘|收盘价严格低于|收盘价低于|收盘确认/.test(whole)?'close':null;
- if(!basis)return {state:'ambiguous',levels,basis:null};
- return {state:'structured',levels,basis};
+ return resolved;
 }
 
-export function evaluateExitCondition(conditions, price) {
- const list=(Array.isArray(conditions)?conditions:[]).map(x=>String(x||'').trim()).filter(Boolean);
- const extracted=extractExitLevels(list);
- const usable=typeof price==='number'&&Number.isFinite(price)&&price>0;
- if(extracted.state==='structured'){
-  const levels=extracted.levels.map(level=>({...level,
-   observation:usable?(price<level.price?'below':'not_below'):'no_quote'}));
-  const exitLevels=levels.filter(x=>x.kind!=='warning');
-  const warning=levels.filter(x=>x.kind==='warning'&&x.observation==='below');
-  const breached=exitLevels.filter(x=>x.observation==='below');
-  const printed=levels.map(x=>x.name+fixed(x.price)+'元').join(' · ');
-  const first=exitLevels[0];
-  if(!first)return {state:'review',label:'仅有预警线，尚无明确退出线',
-   detail:'已保存 '+printed+'；无法将预警线自动升级为退出指令。',
-   levels,threshold:null,basis:'close'};
-  if(!usable)return {state:'await_price',label:'退出计划已记录 · 待有效盘中行情',
-   detail:printed+'。条件需日线收盘严格低于相应价格才可确认，当前没有可用于核验的当日有效盘中报价。',
-   levels,threshold:first.price,basis:'close'};
-  if(breached.length){
-   return {state:'close_pending',label:'盘中低于'+breached.map(x=>x.name+fixed(x.price)).join('、')+' · 待收盘确认',
-    detail:'已发布的盘中快照价 '+fixed(price)+' 元低于 '+breached.map(x=>x.name+' '+fixed(x.price)+' 元').join('、')+
-     '。这些退出条件要求有效日线收盘确认；不能把盘中触及当作已经触发卖出或完成减仓。',
-    levels,threshold:first.price,basis:'close'};
-  }
-  if(warning.length){
-   return {state:'warning_only',label:'盘中低于预警线'+fixed(warning[0].price)+' · 退出线待核验',
-    detail:'盘中快照价 '+fixed(price)+' 元低于'+warning.map(x=>x.name+fixed(x.price)+'元').join('、')+
-     '；但尚未低于已记录的退出线。所有正式退出条件仍须日线收盘确认。',
-    levels,threshold:first.price,basis:'close'};
-  }
-  return {state:'close_not_yet',label:first.name+fixed(first.price)+' · 待收盘核验',
-   detail:'盘中快照价 '+fixed(price)+' 元尚未低于已记录的退出线；是否满足日线退出条件，仍须依据有效收盘价格判断。',
-   levels,threshold:first.price,basis:'close'};
+export function attachRiskPlans(portfolio,rawPlans,sourceStatus='OK',today=shanghaiDay()){
+ const records=normalizeRiskPlans(rawPlans,today);
+ return {...portfolio,positions:portfolio.positions.map(position=>{
+  if(sourceStatus!=='OK')return {...position,riskPlan:null,planState:'unavailable',planIssue:'风控计划数据源暂不可用（'+formatSource(sourceStatus)+'）。'};
+  const entry=records.get(position.code);
+  if(!entry)return {...position,riskPlan:null,planState:'missing',planIssue:'尚未在「持仓风控计划」录入生效规则。'};
+  if(entry.state!=='ready')return {...position,riskPlan:null,planState:entry.state,planIssue:entry.issue};
+  const p=entry.plan;
+  if(p.firstAction==='减仓'&&p.firstQuantity>position.shares)
+   return {...position,riskPlan:null,planState:'invalid',planIssue:'首道拟减仓股数超过已核实净持仓，请核对交易记录和计划。'};
+  return {...position,riskPlan:p,planState:'ready',planIssue:null};
+ })};
+}
+
+export function evaluateExitCondition(positionOrPlan,price){
+ const position=positionOrPlan?.riskPlan!==undefined?positionOrPlan:{riskPlan:positionOrPlan,planState:positionOrPlan?'ready':'missing'};
+ const plan=position.riskPlan;
+ const hasQuote=typeof price==='number'&&Number.isFinite(price)&&price>0;
+ if(position.planState!=='ready'||!plan)return {state:'no_plan',
+  label:position.planState==='unavailable'?'风控计划数据源不可用':
+   position.planState==='invalid'?'退出计划待核对':'退出计划待录入',
+  detail:position.planIssue||'请在 Airtable「持仓风控计划」填写结构化字段，文字备注不用于解析退出线。',
+  levels:[],basis:null};
+ const basis=plan.basis==='日线收盘'?'close':'intraday';
+ const levels=[
+  ...(plan.warningPrice!==null?[{name:'预警价',kind:'warning',price:plan.warningPrice,action:null,quantity:null}]:[]),
+  {name:'首道退出价',kind:'exit',price:plan.firstPrice,action:plan.firstAction,
+   quantity:plan.firstAction==='减仓'?plan.firstQuantity:null},
+  ...(plan.finalPrice!==null?[{name:'最终退出价',kind:'final',price:plan.finalPrice,
+   action:plan.finalAction,quantity:null}]:[])
+ ].map(x=>({...x,observation:hasQuote?(price<x.price?'below':'not_below'):'no_quote'}));
+ const exit=levels.filter(x=>x.kind!=='warning'&&x.observation==='below');
+ const warning=levels.find(x=>x.kind==='warning'&&x.observation==='below');
+ const primary=levels.find(x=>x.kind==='exit');
+ const describe=line=>line.name+fixed(line.price)+'元';
+ if(!hasQuote)return {state:'await_price',label:'退出计划已记录 · 待有效行情',
+  detail:levels.map(describe).join(' · ')+'；未取得有效同日行情，不计算退出条件是否触及。',
+  levels,basis};
+ if(exit.length){
+  const highest=exit.at(-1);
+  const action=highest.action==='减仓'?'拟减仓 '+highest.quantity+' 股':'拟清仓剩余';
+  return {state:basis==='close'?'close_pending':'intraday_touched',
+   label:(basis==='close'?'盘中低于':'已触及')+describe(highest)+(basis==='close'?' · 待收盘确认':' · 盘中条件'),
+   detail:'已发布盘中快照价 '+fixed(price)+' 元低于 '+describe(highest)+'（'+action+'）。'+
+    (basis==='close'?'此规则要求有效日线收盘严格低于退出线，盘中触及不等于正式触发。':
+     '仅表示盘中快照观察到越线，不代表已委托或成交。'),
+   levels,basis};
  }
- if(extracted.state==='unconfirmed')return {state:'unconfirmed',label:'退出条件未明确',
-  detail:'Airtable 尚无可核验的具体退出规则。不能用买点计划或历史结构低点自行替代。',
-  levels:[]};
- if(extracted.state==='conflict')return {state:'review',label:'退出规则存在冲突',
-  detail:'同名退出线出现不同价格，请先核实 Airtable 的规则版本。',levels:[]};
- if(extracted.state==='ambiguous')return {state:'review',label:'退出时点待核验',
-  detail:'已记录 '+extracted.levels.map(x=>x.name+fixed(x.price)+'元').join(' · ')+'，但尚无明确收盘或盘中判定口径。',
-  levels:extracted.levels.map(x=>({...x,observation:'unverified'}))};
- // 兼容此前的简单单线规则，其他复合文本保守地退回人工核验。
- if(list.length!==1)return {state:'review',label:'退出规则待复核',
-  detail:'存在多条无法统一解析的退出条件，需确认顺序和生效口径。',levels:[]};
- const rule=list[0];
- const matches=[...rule.matchAll(/(?:跌破|低于|小于)\s*(?:人民币|[¥￥])?\s*(\d{1,5}(?:\.\d{1,3})?)\s*(?:元)?/g)];
- const threshold=matches.length===1?Number(matches[0][1]):null;
- if(!(threshold>0)||!Number.isFinite(threshold)||
-   /止盈|上穿|高于|涨到|达到|区间|或者|或低于|\/|－|～/.test(rule))
-  return {state:'review',label:'退出规则待复核',detail:'文本存在多目标或复杂条件，暂无法自动核验。',levels:[]};
- const close=/收盘|收市|日线/.test(rule),intraday=/盘中|实时|即时/.test(rule);
- if((close&&intraday)||(!close&&!intraday))
-  return {state:'review',label:'退出时点待核验',detail:'不能用盘中报价替代收盘确认。',levels:[]};
- const levels=[{name:'预设退出线',kind:'exit',price:threshold,observation:usable?(price<threshold?'below':'not_below'):'no_quote'}];
- if(!usable)return {state:'await_price',label:'退出线'+fixed(threshold)+' · 待行情',
-  detail:'已记录退出条件，但缺少有效当日报价；不推断是否触发。',levels,threshold,basis:close?'close':'intraday'};
- if(close)return {state:price<threshold?'close_pending':'close_not_yet',
-  label:price<threshold?'盘中低于退出线'+fixed(threshold)+' · 待收盘确认':'退出线'+fixed(threshold)+' · 待收盘核验',
-  detail:price<threshold?'盘中报价已低于预设退出线，但须有效收盘确认，不构成已触发退出。':'盘中报价未低于预设退出线；仍需有效收盘确认。',
-  levels,threshold,basis:'close'};
- if(!/止损|退出|卖出|清仓|减仓|硬止损/.test(rule))
-  return {state:'review',label:'退出规则待复核',detail:'盘中价格观察条件并非明确的退出动作。',levels};
- return {state:price<threshold?'intraday_touched':'intraday_not_touched',
-  label:price<threshold?'预设盘中退出线'+fixed(threshold)+'已触及':'盘中退出线'+fixed(threshold)+'未触及',
-  detail:price<threshold?'有效盘中快照价低于明确预设的盘中硬止损线，仅提示观察，不代表已成交。':'最新有效盘中快照价未低于预设盘中退出线。',
-  levels,threshold,basis:'intraday'};
+ if(warning)return {state:'warning_only',label:'盘中低于'+describe(warning)+' · 关注退出线',
+  detail:'已发布盘中快照价 '+fixed(price)+' 元低于预警价，但尚未低于退出价。'+
+    (basis==='close'?'正式退出仍须日线收盘确认。':'预警不等于退出条件。'),
+  levels,basis};
+ return {state:basis==='close'?'close_not_yet':'intraday_not_touched',
+  label:describe(primary)+(basis==='close'?' · 待收盘核验':' · 未触及'),
+  detail:'最新有效盘中快照价 '+fixed(price)+' 元尚未低于已登记的退出价。'+
+   (basis==='close'?'是否满足退出条件仍以有效日线收盘为准。':'本轮盘中条件未触及。'),
+  levels,basis};
 }
 
 export function assessHoldingRisk(position,monitor,today=shanghaiDay()){
- const original=Array.isArray(position?.conditions)?position.conditions:[];
- const ruleBase=evaluateExitCondition(original,null);
- const base={state:'unavailable',tone:'neutral',label:'暂无可核验风险判断',rule:ruleBase,evidence:[],last:null,marketDay:null};
- if(!position?.verified || !Number.isInteger(position.shares) || position.shares<=0)
-  return {...base,state:'unverified',label:'持仓待核验',rule:{...ruleBase,detail:'持仓股数尚未核实；'+ruleBase.detail}};
+ const ruleBase=evaluateExitCondition(position,null);
+ const base={state:'unavailable',tone:'neutral',label:ruleBase.label,rule:ruleBase,evidence:[],last:null,marketDay:null};
+ if(!position?.verified||!Number.isInteger(position.shares)||position.shares<=0)
+  return {...base,state:'unverified',label:'持仓待核验',
+   rule:{...ruleBase,detail:'持仓股数尚未核实；'+ruleBase.detail}};
  if(monitor?.result_kind!=='a_share_intraday_monitor_state'||monitor?.trade_date!==today)
-  return {...base,state:'stale',label:ruleBase.state==='await_price'?ruleBase.label:'暂无当日持仓评估',
-   rule:ruleBase,note:'未获取当日有效盘中扫描；不会拿历史行情核验今日退出条件。'};
+  return {...base,state:'stale',note:'无当日有效盘中扫描，不能用历史价格判定今天的退出条件。'};
  const scans=validSnapshots(monitor.stock_history?.[position.code],today);
  if(!scans.length)return {...base,state:'not_covered',marketDay:today,
-  label:ruleBase.state==='await_price'?ruleBase.label:'本轮未覆盖持仓',
-  rule:ruleBase,note:'当日冻结监测股票池未提供该股票的有效扫描。'};
+  note:'该持仓未进入当日冻结个股监测池；仍可查看结构化退出规则。'};
  const last=scans.at(-1);
  if(typeof last.price!=='number'||!Number.isFinite(last.price)||last.price<=0)
-  return {...base,state:'no_price',marketDay:today,last,
-   label:ruleBase.state==='await_price'?ruleBase.label:'盘中报价不足',
-   rule:ruleBase,note:'没有有效盘中快照价，退出线仅作为已登记计划展示。'};
- const rule=evaluateExitCondition(original,last.price);
+  return {...base,state:'no_price',marketDay:today,last,note:'无有效当日报价，退出规则仅展示，不计算是否触及。'};
+ const rule=evaluateExitCondition(position,last.price);
  const evidence=[];
  if(typeof last.change_pct==='number'&&Number.isFinite(last.change_pct))
   evidence.push('盘中快照涨跌幅 '+pct(last.change_pct)+'（非有效收盘）');
@@ -301,14 +320,10 @@ export function assessHoldingRisk(position,monitor,today=shanghaiDay()){
  const weak=last.price_behavior==='转弱'||
   (typeof last.change_pct==='number'&&last.change_pct<0&&
    typeof last.relative_to_industry_pct==='number'&&last.relative_to_industry_pct<0);
- const exitFocus=['intraday_touched','close_pending','warning_only','close_not_yet','intraday_not_touched','review','await_price'].includes(rule.state);
- const label=exitFocus?rule.label:
-  rule.state==='unconfirmed'?(weak?'退出条件待明确 · 盘中走弱':'退出条件待明确'):
-  rule.label;
+ if(weak)evidence.push('盘中走弱是辅助证据，不能替代预设退出价格与触发依据。');
  const state=rule.state==='intraday_touched'?'triggered':rule.state==='close_pending'?'pending':
-  rule.state==='warning_only'?'warning':weak?'watch':'observing';
+  rule.state==='warning_only'?'warning':rule.state==='no_plan'?'missing':weak?'watch':'observing';
  const tone=state==='triggered'?'fall':state==='pending'||state==='warning'?'caution':weak?'caution':'neutral';
- if(weak)evidence.push('盘中走弱仅作为辅助风险信息，不能单独替代退出规则。');
- return {state,tone,label,rule,evidence,last,marketDay:today,
-  note:'基于 Airtable 登记与当日已发布盘中快照；若需有效收盘确认，不代表已触发退出或自动成交。'};
+ return {state,tone,label:rule.label,rule,evidence,last,marketDay:today,
+  note:'只比较 Airtable 结构化价格与同日已发布行情；需要收盘确认的条件不代表已触发退出，更不代表自动成交。'};
 }
