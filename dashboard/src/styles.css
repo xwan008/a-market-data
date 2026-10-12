@@ -1210,3 +1210,87 @@ button{transition:color .2s var(--studio-ease),background-color .2s var(--studio
  .sector-detail-head{padding:17px 16px 13px}
  .sector-detail-content{padding:17px 16px 19px}
 }
+
+
+/* Login v4 — approved light landscape & trend artwork, unobstructed and balanced.
+   The artwork is cropped to exclude the mock login card; authentication remains real HTML. */
+.login-screen--terminal{
+ background:
+ radial-gradient(ellipse at 85% 12%,rgba(155,216,229,.26),transparent 62%),
+ linear-gradient(113deg,#a8c9ce 0%,#6a9ead 55%,#3e7181 100%);
+}
+.login-screen--terminal .login-visual{
+ position:absolute;left:0;top:0;bottom:0;width:73%;z-index:0;
+ background-image:url('/login-market-light.webp');
+ background-size:cover;background-position:center center;
+ opacity:1;
+ -webkit-mask-image:linear-gradient(90deg,#000 0%,#000 82%,rgba(0,0,0,.70) 90%,transparent 100%);
+ mask-image:linear-gradient(90deg,#000 0%,#000 82%,rgba(0,0,0,.70) 90%,transparent 100%);
+}
+.login-screen--terminal:before{
+ z-index:1;background:linear-gradient(90deg,transparent 0%,transparent 61%,rgba(48,91,103,.11) 70%,rgba(25,58,74,.18) 100%);
+}
+.login-screen--terminal .login-panel-wrap{
+ width:min(40%,675px);padding:24px clamp(26px,4.5vw,76px) 24px 12px;
+ position:relative;z-index:2;
+}
+.login-screen--terminal .login-panel{
+ max-width:520px;min-height:min(69vh,650px);
+ padding:42px clamp(29px,2.55vw,42px) 46px;
+ background:linear-gradient(150deg,rgba(33,74,88,.56),rgba(32,69,79,.60) 55%,rgba(43,86,96,.53));
+ border:1px solid rgba(191,251,218,.74);border-radius:18px;
+ -webkit-backdrop-filter:blur(17px);backdrop-filter:blur(17px);
+ box-shadow:0 18px 66px rgba(20,52,61,.13),inset 0 1px rgba(232,255,241,.18);
+}
+.login-screen--terminal .login-panel-top{min-height:38px}
+.login-screen--terminal .login-panel-brand img:first-child{width:31px;height:31px}
+.login-screen--terminal .login-panel-brand img:last-child{width:74px;height:32px}
+.login-screen--terminal .login-panel-name{font-size:13px;color:#e3f0ee}
+.login-screen--terminal .login-panel-rule{margin:19px 0 clamp(56px,7vh,80px);background:rgba(226,252,241,.28)}
+.login-screen--terminal .login-panel-title{
+ font-size:clamp(26px,2.1vw,34px);line-height:1.7;font-weight:500;
+ color:#f1f8f4;letter-spacing:.6px;margin:0 0 clamp(50px,6vh,66px);
+ text-shadow:0 1px 8px rgba(11,38,50,.12)
+}
+.login-screen--terminal .login-panel-title span{color:#a7f0d1}
+.login-screen--terminal .login-input{
+ height:66px;background:rgba(33,62,76,.30);
+ border:1px solid rgba(227,250,247,.41);border-radius:11px;
+ color:#e4f5ee
+}
+.login-screen--terminal .login-input input{color:#fff;font-size:14px}
+.login-screen--terminal .login-input input::placeholder{color:rgba(244,252,249,.74)}
+.login-screen--terminal .login-toggle-password{color:#dfefea}
+.login-screen--terminal .login-submit{
+ height:68px;background:linear-gradient(109deg,#b3f4d1,#8ee8ce);
+ font-size:17px;font-weight:650;color:#173f40;
+ box-shadow:0 8px 19px rgba(29,84,80,.10)
+}
+.login-screen--terminal .login-submit:hover:not(:disabled){
+ background:linear-gradient(109deg,#cef8df,#9aefd7);
+ box-shadow:0 10px 24px rgba(20,75,76,.16)
+}
+.login-screen--terminal .login-form{gap:22px}
+@media(max-width:1080px){
+ .login-screen--terminal{
+  background:linear-gradient(140deg,#7faeb7,#4b818e)
+ }
+ .login-screen--terminal .login-visual{
+  width:100%;background-position:center center;opacity:.73;
+  -webkit-mask-image:none;mask-image:none
+ }
+ .login-screen--terminal:before{
+  background:rgba(25,59,70,.26)
+ }
+ .login-screen--terminal .login-panel-wrap{
+  width:100%;padding:30px 24px;justify-content:center
+ }
+ .login-screen--terminal .login-panel{min-height:0;max-width:510px}
+}
+@media(max-width:520px){
+ .login-screen--terminal .login-panel{padding:27px 22px 34px;border-radius:15px}
+ .login-screen--terminal .login-panel-rule{margin:16px 0 48px}
+ .login-screen--terminal .login-panel-title{font-size:clamp(23px,6vw,30px);margin-bottom:42px}
+ .login-screen--terminal .login-input{height:56px}
+ .login-screen--terminal .login-submit{height:57px;font-size:15px}
+}

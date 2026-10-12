@@ -446,12 +446,6 @@ function Login({login,loading,error,setupError}) {
      </button>
     </form>
     {setupError&&<div className="setup-warning" role="alert">站点尚未配置密码或会话密钥。请先配置 Vercel 环境变量。</div>}
-    <div className="login-panel-footer">
-     <span className="login-panel-footer-line"/>
-     <ShieldCheck size={13} aria-hidden="true"/>
-     <span>仅限受邀用户访问</span>
-     <span className="login-panel-footer-line"/>
-    </div>
    </section>
   </main>
  </div>;
