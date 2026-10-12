@@ -580,3 +580,156 @@ button{transition:color .2s var(--studio-ease),background-color .2s var(--studio
 @media(prefers-reduced-motion:reduce){
  .focus-switch button,.monitor-selector button,.monitor-coverage button{transition:none!important}
 }
+
+
+/* Financial semantics v2 — A-share red ↑ / green ↓, with independent research status palette. */
+:root{
+ --market-up:#e68178;
+ --market-up-soft:rgba(230,129,120,.11);
+ --market-down:#6fbd99;
+ --market-down-soft:rgba(111,189,153,.10);
+ --research-candidate:#d9b578;
+ --research-watch:#a4b6cd;
+}
+.badge.badge-rise,.badge.badge-ready,.badge.badge-good{
+ color:#eea29b;background:rgba(221,112,105,.105);border-color:rgba(222,125,116,.23)
+}
+.badge.badge-rise .badge-dot,.badge.badge-ready .badge-dot{background:var(--market-up)}
+.badge.badge-candidate{
+ color:#e9c78f;background:rgba(209,165,96,.095);border-color:rgba(211,173,109,.23)
+}
+.badge.badge-watch{
+ color:#b9c8da;background:rgba(151,174,200,.095);border-color:rgba(151,174,200,.21)
+}
+.badge.badge-caution,.badge.badge-warn{
+ color:#e7bb91;background:rgba(209,151,99,.095);border-color:rgba(209,151,99,.19)
+}
+.badge.badge-fall,.badge.badge-bad{
+ color:#9ad9b7;background:rgba(111,185,147,.10);border-color:rgba(111,185,147,.20)
+}
+.badge.badge-neutral,.badge.badge-verified{
+ color:#a8bcb0;background:rgba(158,183,164,.07);border-color:rgba(158,183,164,.15)
+}
+.market-up,.focus-switch button .market-up{color:var(--market-up)}
+.market-down,.focus-switch button .market-down{color:var(--market-down)}
+/* The line and marker reflect first-to-last real snapshot movement, never signal strength. */
+.plot{--plot-stroke:#aebcb4}
+.plot-rise{--plot-stroke:var(--market-up)}
+.plot-fall{--plot-stroke:var(--market-down)}
+.plot-line-rise{stroke:var(--market-up);filter:drop-shadow(0 1px 4px rgba(230,129,120,.12))}
+.plot-line-fall{stroke:var(--market-down);filter:drop-shadow(0 1px 4px rgba(111,189,153,.12))}
+.plot-line-neutral{stroke:#a9b9af;filter:none}
+.plot-point-rise{fill:#231b1b;stroke:var(--market-up);stroke-width:2}
+.plot-point-fall{fill:#15251e;stroke:var(--market-down);stroke-width:2}
+.plot-point-neutral{fill:#19221d;stroke:#9eafa3;stroke-width:2}
+.plot-canvas{position:relative;min-width:0}
+.plot-line{transition:stroke .24s ease}
+.plot-head{margin:0 3px 15px;align-items:center}
+.plot-head strong{font-size:12px;letter-spacing:.1px;color:#dce7de}
+.plot-head-change{font-weight:650;font-size:12px;font-variant-numeric:tabular-nums;white-space:normal;text-align:right}
+.plot-head-rise,.plot-positive{color:var(--market-up)!important}
+.plot-head-fall,.plot-negative{color:var(--market-down)!important}
+.plot-head-neutral{color:#a8b7ad!important}
+.plot-head-change small{font-weight:400;color:#81948b;font-size:10px}
+.plot-axis{font-size:11.5px;fill:#82978a}
+.plot-time{font-size:11px;fill:#a4b4aa}
+.plot-point-label{fill:#9baea1;font-size:11px;font-weight:550;pointer-events:none}
+.plot-point-label-last{fill:var(--plot-stroke);font-size:12px;font-weight:700}
+.plot-cursor{stroke:var(--plot-stroke);stroke-width:1;stroke-dasharray:4 5;opacity:.38}
+.plot-tooltip{
+ position:absolute;top:36px;right:12px;z-index:5;min-width:160px;max-width:215px;
+ padding:12px 14px;border-radius:11px;
+ background:rgba(22,30,29,.96);border:1px solid rgba(194,215,198,.19);
+ box-shadow:0 18px 42px rgba(0,0,0,.28);backdrop-filter:blur(16px);
+ display:flex;flex-direction:column;gap:5px;pointer-events:none;
+ animation:studio-soft .16s ease both
+}
+.plot-tooltip-time{font-size:10px;color:#9bad9e}
+.plot-tooltip strong{font-size:21px;font-weight:600;color:var(--plot-stroke);letter-spacing:-.35px;font-variant-numeric:tabular-nums}
+.plot-tooltip>span:not(.plot-tooltip-time){font-size:11px;color:#b6c7b7}
+.plot-tooltip small{font-size:10px;color:#92a499;border-top:1px solid rgba(193,209,192,.09);padding-top:8px;margin-top:3px}
+.plot-compact .plot-canvas{min-height:36px}
+.plot-compact .plot-compact-value{
+ position:absolute;right:0;top:-4px;background:rgba(22,30,28,.80);
+ border-radius:3px;font-size:10px;font-weight:650;padding:1px 3px;
+ font-variant-numeric:tabular-nums;pointer-events:none;
+}
+.plot-compact .plot-point{stroke-width:1.7}
+.trend-delta{color:#a8b9ab}
+.trend-delta.trend-down{color:var(--market-down)}
+.trend-delta:not(.trend-down):not(:empty){font-variant-numeric:tabular-nums}
+/* Compact editorial page heading. Numbers and charts, not the headline, should command attention. */
+.new-home .decision-heading{
+ padding:3px 1px 5px;gap:26px;align-items:center
+}
+.new-home .decision-heading .eyebrow{font-size:9px;letter-spacing:2.2px;color:#8eaa99}
+.new-home .decision-heading h1{
+ font-size:26px;line-height:1.32;letter-spacing:-.55px;font-weight:600;
+ margin:7px 0 5px
+}
+.new-home .decision-heading p{font-size:11px;color:#8b9e92;line-height:1.6}
+.new-home .decision-date{font-size:10px;line-height:1.8;min-width:180px}
+.new-home .decision-home{gap:22px}
+/* Replace generic stat cards with a measured, borderless information ribbon. */
+.new-home .decision-strip{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;
+ background:transparent;border:0;border-radius:0;box-shadow:none;overflow:visible;
+ border-top:1px solid rgba(193,217,199,.16);border-bottom:1px solid rgba(193,217,199,.10);
+}
+.new-home .decision-strip>.decision-stat{
+ min-width:0;padding:19px 25px 21px;display:grid;grid-template-columns:auto 1fr;
+ grid-template-rows:auto auto;align-items:center;column-gap:16px;row-gap:7px;
+ background:transparent;box-shadow:none;border:none;
+ border-right:1px solid rgba(193,217,199,.09);
+}
+.new-home .decision-strip>.decision-stat:first-child{padding-left:5px}
+.new-home .decision-strip>.decision-stat:last-child{padding-right:5px;border-right:0}
+.decision-stat-label{display:flex;align-items:center;gap:9px;grid-column:1/-1}
+.decision-stat-label em{
+ font:500 10px 'IBM Plex Mono',monospace;font-style:normal;
+ letter-spacing:.3px;color:#6f8a79
+}
+.new-home .decision-strip>.decision-stat .decision-stat-label span{
+ font-size:11px;color:#b5c7b8;font-weight:550;letter-spacing:.15px
+}
+.new-home .decision-strip>.decision-stat strong{
+ font:500 29px 'DM Sans','Noto Sans SC',sans-serif;
+ letter-spacing:-1px;color:#e6ebe3;line-height:1.15
+}
+.new-home .decision-strip>.decision-stat small{
+ align-self:end;margin:0 0 4px;white-space:normal;font-size:10px;
+ color:#788c7d;line-height:1.4
+}
+.home-sector-state{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:4px}
+.home-sector-state .badge{padding:3px 6px;font-size:9px}
+.home-sector-state small{margin:0;color:#879d8d;font-size:10px}
+.new-home .decision-row-meta .market-up{color:var(--market-up)}
+.new-home .decision-row-meta .market-down{color:var(--market-down)}
+.new-home .focus-switch .market-up{color:var(--market-up)}
+.new-home .focus-switch .market-down{color:var(--market-down)}
+/* Quality and accessibility: focus doesn't rely only on color, reduced motion stays honored. */
+@media(max-width:760px){
+ .new-home .decision-heading h1{font-size:23px;margin:6px 0}
+ .new-home .decision-heading p{font-size:11px}
+ .new-home .decision-date{min-width:0}
+ .new-home .decision-strip>.decision-stat{padding:14px 10px 16px;column-gap:3px;row-gap:7px}
+ .new-home .decision-strip>.decision-stat:first-child{padding-left:3px}
+ .new-home .decision-strip>.decision-stat:last-child{padding-right:3px}
+ .new-home .decision-strip>.decision-stat strong{font-size:25px}
+ .new-home .decision-strip>.decision-stat small{font-size:9px;margin:0;align-self:center}
+ .new-home .decision-strip>.decision-stat .decision-stat-label span{font-size:10px}
+ .decision-stat-label{gap:5px}
+ .plot-tooltip{right:7px;top:37px;padding:10px 11px;min-width:145px}
+ .plot-head-change{font-size:11px}
+ .plot-head-change small{display:block;font-size:9px}
+}
+@media(max-width:430px){
+ .new-home .decision-strip>.decision-stat{display:flex;flex-direction:column;align-items:flex-start;gap:7px}
+ .new-home .decision-strip>.decision-stat strong{font-size:24px}
+ .new-home .decision-strip>.decision-stat small{font-size:8.5px}
+ .new-home .decision-heading h1{font-size:22px}
+ .home-sector-state .badge{font-size:8px}
+}
+@media(prefers-reduced-motion:reduce){
+ .plot-line,.plot-tooltip{transition:none!important;animation:none!important}
+}
