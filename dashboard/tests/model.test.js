@@ -113,3 +113,11 @@ test('空跨日归档仅有今日真实监测，不捏造历史交易日',()=>{
  assert.equal(rows.length,1);
  assert.equal(rows[0].price,12.3);
 });
+
+test('高优先级风险状态和分歧不会与正常状态混用',()=>{
+ assert.equal(statusTone('衰退预警'),'fall');
+ assert.equal(statusTone('高潮/衰退'),'fall');
+ assert.equal(statusTone('分歧'),'caution');
+ assert.equal(statusTone('趋势确认'),'rise');
+ assert.equal(statusTone('候选趋势'),'candidate');
+});
