@@ -178,7 +178,7 @@ export function evaluateExitCondition(conditions, price) {
  if(list.length!==1)return {state:'review',label:'退出规则待复核',detail:'存在多条退出条件，需确认适用顺序及触发口径。'};
  const rule=list[0];
  // 不解析多目标区间、止盈止损混用或无明确时间口径的文字；宁可提示待复核。
- const matches=[...rule.matchAll(/(?:跌破|低于|小于)\\s*(?:人民币|[¥￥])?\\s*(\\d{1,5}(?:\\.\\d{1,3})?)\\s*(?:元)?/g)];
+ const matches=[...rule.matchAll(/(?:跌破|低于|小于)\s*(?:人民币|[¥￥])?\s*(\d{1,5}(?:\.\d{1,3})?)\s*(?:元)?/g)];
  const threshold=matches.length===1?Number(matches[0][1]):null;
  if(!(threshold>0) || !Number.isFinite(threshold) ||
    /止盈|上穿|高于|涨到|达到|区间|或者|或低于|\/|－|～/.test(rule)){
