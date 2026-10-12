@@ -397,20 +397,118 @@ function Monitor({monitor,archive,status}){
  <div className="decision-bottom"><span>状态由既有盘中监测任务输出；曲线不产生额外买卖或结构失效判断。</span></div>
  </>}</>;
 }
-function HoldingRiskPanel({assessment}){
- return <section className={'holding-assessment holding-assessment-'+assessment.tone} aria-label="持仓风险评估">
-  <div className="holding-assessment-title"><span><Activity size={14}/> 持仓风险评估</span><strong>{assessment.label}</strong></div>
-  <div className="holding-rule"><span>{assessment.rule.label}</span>
-   {assessment.rule.levels?.length>0&&<div className="holding-levels">{assessment.rule.levels.map((line,i)=><div className="holding-level" key={line.name+'-'+i}>
-     <span>{line.name}</span><strong>{fixed(line.price,2)} 元</strong>
-     <small>{line.action?(line.action==='减仓'?'计划减仓 '+line.quantity+' 股':'计划清仓剩余')+' · ':''}{line.observation==='below'?(line.kind==='warning'?'盘中低于预警线':assessment.rule.basis==='close'?'盘中低于 · 待收盘确认':'盘中条件触及'):line.observation==='not_below'?'盘中未低于':'等待有效当日行情'}</small>
-   </div>)}</div>}
-   <p>{assessment.rule.detail}</p></div>
-  {assessment.evidence.length>0&&<ul className="holding-evidence">{assessment.evidence.map((fact,i)=><li key={i}>{fact}</li>)}</ul>}
-  <div className="holding-assessment-foot">{assessment.last?'已发布盘中快照 '+fmtTime(assessment.last.scan_at):'当日有效行情尚未齐备'} · {assessment.note||'不使用旧日行情生成今日交易判断'}</div>
- </section>;
+// Order by actionable evidence first, while keeping missing data distinct from safe observations.
+const portfolioPriority = {triggered:0,pending:1,warning:2,watch:3,missing:4,unverified:4,stale:5,not_covered:5,no_price:5,unavailable:5,observing:6};
+const portfolioAttention = new Set(['triggered','pending','warning','watch']);
+const portfolioUnknown = new Set(['missing','unverified','stale','not_covered','no_price','unavailable']);
+function portfolioStatus(assessment){
+ const labels={triggered:'盘中条件触及',pending:'待收盘确认',warning:'低于预警价',watch:'盘中转弱',missing:'退出计划待完善',unverified:'持仓待核验',stale:'无当日扫描',not_covered:'未覆盖监测',no_price:'缺少有效报价',unavailable:'暂无有效数据',observing:'继续观察'};
+ return {label:labels[assessment.state]||'暂不可判定',tone:portfolioAttention.has(assessment.state)?'caution':portfolioUnknown.has(assessment.state)?'unknown':'normal'};
 }
-function Portfolio({data,status,monitor}){const {positions,recordCount,invalidCount}=data;const ok=status.airtable==='OK';return <><PageIntro title="个人持仓记录" desc="Airtable 成交流水核算净持仓，结构化风控计划提供退出价格和动作。"/><div className="monitor-note privacy-note"><LockKeyhole size={18}/><div><strong>个人数据仅经受保护的服务端接口读取</strong><p>不会写入公开 GitHub 仓库；未取得行情与收盘确认时，不计算实时收益或自动给出卖出指令。</p></div></div>{!ok?<section className="panel monitor-empty"><Empty title="Airtable 尚未接通网站" detail={status.airtable==='NOT_CONFIGURED'?'在 Vercel 设置 AIRTABLE_TOKEN、AIRTABLE_BASE_ID、AIRTABLE_TABLE_ID 后即可读取。':`当前状态：${formatSource(status.airtable)}；不会将读取失败解释为没有持仓。`} icon={Database}/></section>:<><div className="metrics-grid portfolio-metrics"><Metric label="记录交易" value={recordCount} icon={Database} meta="Airtable 原始条目"/><Metric label="登记在持" value={positions.filter(p=>p.verified).length} icon={Wallet} accent="green" meta="可核实净持仓 > 0"/><Metric label="待核对记录" value={invalidCount+positions.filter(p=>!p.verified).length} icon={ShieldAlert} accent="amber" meta="不可据此生成交易动作"/><Metric label="行情联动" value={monitor?.result_kind==='a_share_intraday_monitor_state'?'有监测数据':'尚未就绪'} icon={Activity} accent="purple" meta="仅已发布的盘中快照"/></div><section className="panel"><PanelHead title="登记持仓清单" aside={<span className="count-chip">{positions.length} 条待关注</span>}/>{positions.length?<div className="portfolio-grid">{positions.map(p=>{const assessment=assessHoldingRisk(p,status.monitor==='OK'?monitor:null,shanghaiDay());return <article key={p.code} className="position-card"><div className="position-heading"><div><div className="eyebrow">{p.code}</div><h3>{p.name}</h3></div><Badge variant={p.verified?'verified':'caution'}>{p.verified?'已核实股数':'待核验'}</Badge></div><div className="position-numbers"><div><span>登记股数</span><strong>{p.shares==null?'待确认':p.shares.toLocaleString('zh-CN')}</strong></div><div><span>剩余均价估算</span><strong>{fixed(p.avgCost,3)}</strong></div><div><span>剩余成本估算</span><strong>{fixed(p.costValue)}</strong></div></div><div className="position-rule"><span><ShieldAlert size={14}/> 结构化退出计划</span><p>{p.riskPlan?.notes||p.planIssue||'尚未录入生效的结构化退出计划。'}{p.riskPlan&&<small> · 生效日期 {p.riskPlan.effectiveDate} · {p.riskPlan.basis}触发</small>}</p></div>{p.issues.length>0&&<div className="issue-text">{p.issues.join('；')}</div>}<HoldingRiskPanel assessment={assessment}/><div className="position-foot">最后登记交易日 <b>{p.lastDate||'—'}</b><span>共 {p.recordCount} 条成交记录</span></div></article>})}</div>:<Empty title="没有可核实的在持股票" detail={invalidCount?'仍有代码缺失的记录需要人工核验。':'已成功读取 Airtable，目前无可核实净持仓。'} icon={Wallet}/>}</section></>}</>}
+function PortfolioPlan({position,assessment}){
+ const levels=assessment.rule?.levels||[];
+ return <div className="portfolio-tab-content">
+  <div className="portfolio-signal"><span>最新规则状态</span><strong>{assessment.label}</strong></div>
+  {levels.length>0?<div className="portfolio-levels">{levels.map((line,i)=>{
+   const observation=line.observation==='below'?(line.kind==='warning'?'盘中低于预警线':assessment.rule.basis==='close'?'盘中低于 · 待收盘确认':'盘中条件触及'):line.observation==='not_below'?'盘中未低于':'等待有效当日行情';
+   const action=line.action?(line.action==='减仓'?'计划减仓 '+line.quantity+' 股':'计划清仓剩余'):null;
+   return <div className="portfolio-level-row" key={line.name+'-'+i}>
+    <div><span>{line.name}</span><strong>{fixed(line.price,2)} <small>元</small></strong></div>
+    <div><span>{action||'观察阈值'}</span><small>{observation}</small></div>
+   </div>;
+  })}</div>:<div className="portfolio-empty-rule"><ShieldAlert size={17}/><span>{position.planIssue||'尚无可用的结构化退出规则。'}</span></div>}
+  <p className="portfolio-rule-description">{assessment.rule?.detail||'当前无可判定的结构化退出条件。'}</p>
+  {position.riskPlan&&<div className="portfolio-plan-meta">
+   <span>生效 {position.riskPlan.effectiveDate||'—'}</span><span>依据 {position.riskPlan.basis||'—'}触发</span>
+  </div>}
+  {position.riskPlan?.notes&&<div className="portfolio-plan-note"><strong>计划备注</strong><p>{position.riskPlan.notes}</p></div>}
+ </div>;
+}
+function PortfolioEvidence({position,assessment}){
+ return <div className="portfolio-tab-content">
+  <div className="portfolio-signal"><span>当前评估状态</span><strong>{assessment.label}</strong></div>
+  {assessment.evidence.length>0?<ul className="portfolio-evidence-list">{assessment.evidence.map((e,i)=><li key={i}>{e}</li>)}</ul>:<div className="portfolio-no-evidence"><CircleAlert size={17}/><span>暂无可核验的当日盘中证据，不能据此判断风险已经解除。</span></div>}
+  {position.issues.length>0&&<div className="portfolio-evidence-issue"><strong>成交数据待核对</strong><p>{position.issues.join('；')}</p></div>}
+  {position.planIssue&&<div className="portfolio-evidence-issue"><strong>风控计划状态</strong><p>{position.planIssue}</p></div>}
+  <div className="portfolio-evidence-foot">
+   <span>{assessment.last?'最近有效盘中快照：'+fmtTime(assessment.last.scan_at):'尚无该股票当日有效盘中快照'}</span>
+   <p>{assessment.note||'风险提示仅依据已发布的同日行情，不等于自动交易指令。'}</p>
+  </div>
+ </div>;
+}
+function PortfolioTrades({position}){
+ const trades=position.trades||[];
+ return <div className="portfolio-tab-content">
+  <div className="portfolio-trade-summary"><span>已登记成交流水</span><strong>共 {position.recordCount} 条</strong></div>
+  {trades.length?<div className="portfolio-trades">{trades.slice().reverse().map((trade,index)=><div className="portfolio-trade" key={String(trade.date)+'-'+index}>
+   <div><strong>{trade.date||'日期待核对'}</strong><small className={trade.kind==='buy'?'portfolio-buy':trade.kind==='sell'?'portfolio-sell':''}>{trade.kind==='buy'?'买入':trade.kind==='sell'?'卖出':'类型待核对'}</small></div>
+   <div><strong>{trade.quantity==null?'股数待核对':trade.quantity.toLocaleString('zh-CN')+' 股'}</strong><small>成交价 {fixed(trade.price,3)} 元</small></div>
+  </div>)}</div>:<div className="portfolio-no-evidence">暂无可显示的已登记成交记录。</div>}
+  <p className="portfolio-trades-foot">按登记交易日期倒序展示，不推断同日交易先后；成本与持仓股数仍由原有核算逻辑计算。</p>
+ </div>;
+}
+function Portfolio({data,status,monitor}){
+ const {positions,recordCount,invalidCount}=data;
+ const ok=status.airtable==='OK';
+ const [selectedCode,setSelectedCode]=useState(null);
+ const [detailTab,setDetailTab]=useState('exit');
+ const [listFilter,setListFilter]=useState('all');
+ const today=shanghaiDay();
+ const rows=useMemo(()=>positions.map(position=>({
+  position,assessment:assessHoldingRisk(position,status.monitor==='OK'?monitor:null,today)
+ })).sort((a,b)=>(portfolioPriority[a.assessment.state]??5)-(portfolioPriority[b.assessment.state]??5)),[positions,monitor,status.monitor,today]);
+ const attentionCount=rows.filter(row=>portfolioAttention.has(row.assessment.state)).length;
+ const unverifiedCount=invalidCount+positions.filter(position=>!position.verified).length;
+ const filtered=rows.filter(row=>listFilter==='attention'?portfolioAttention.has(row.assessment.state):listFilter==='verify'?portfolioUnknown.has(row.assessment.state):true);
+ const selected=filtered.find(row=>row.position.code===selectedCode)||filtered[0];
+ const tabs=[{id:'exit',label:'退出计划'},{id:'evidence',label:'风险依据'},{id:'trades',label:'成交记录'}];
+ const changeFilter=value=>{setListFilter(value);setDetailTab('exit')};
+ return <div className="portfolio-page">
+  <PageIntro title="我的持仓" desc="先识别需要关注的持仓，再查看退出规则与证据。"/>
+  {!ok?<section className="panel monitor-empty"><Empty title="Airtable 尚未接通网站" detail={status.airtable==='NOT_CONFIGURED'?'在 Vercel 设置 AIRTABLE_TOKEN、AIRTABLE_BASE_ID、AIRTABLE_TABLE_ID 后即可读取。':'当前状态：'+formatSource(status.airtable)+'；不会将读取失败解释为没有持仓。'} icon={Database}/></section>:<>
+   <div className="portfolio-overview" aria-label="持仓概况">
+    <div><span>已核实在持</span><strong>{positions.filter(p=>p.verified).length}</strong><small>可核实净持仓大于 0</small></div>
+    <div><span>风险关注</span><strong>{attentionCount}</strong><small>依据已发布的同日监测</small></div>
+    <div><span>数据待核验</span><strong>{unverifiedCount}</strong><small>异常记录或持仓股数</small></div>
+   </div>
+   <div className="portfolio-data-note"><LockKeyhole size={14}/><span>Airtable 私有成交流水 · 共 {recordCount} 条登记 · {monitor?.result_kind==='a_share_intraday_monitor_state'?'已获取盘中监测数据':'暂无有效盘中监测'} · 不展示未经核实的实时收益</span></div>
+   {positions.length?<div className="portfolio-workspace">
+    <section className="portfolio-list-panel" aria-label="持仓列表">
+     <div className="portfolio-list-head"><div><h2>持仓列表</h2><small>按风险关注优先排列</small></div><span>{rows.length} 只</span></div>
+     <div className="portfolio-filters" role="group" aria-label="持仓筛选">
+      <button type="button" className={listFilter==='all'?'is-active':''} aria-pressed={listFilter==='all'} onClick={()=>changeFilter('all')}>全部</button>
+      <button type="button" className={listFilter==='attention'?'is-active':''} aria-pressed={listFilter==='attention'} onClick={()=>changeFilter('attention')}>风险关注 {attentionCount}</button>
+      <button type="button" className={listFilter==='verify'?'is-active':''} aria-pressed={listFilter==='verify'} onClick={()=>changeFilter('verify')}>无法判断 {rows.filter(row=>portfolioUnknown.has(row.assessment.state)).length}</button>
+     </div>
+     {filtered.length?<div className="portfolio-list">
+      {filtered.map(row=>{
+       const p=row.position,state=portfolioStatus(row.assessment);
+       return <button type="button" key={p.code} className={'portfolio-list-row'+(selected?.position.code===p.code?' is-selected':'')} aria-pressed={selected?.position.code===p.code} onClick={()=>{setSelectedCode(p.code);setDetailTab('exit')}}>
+        <div className="portfolio-row-top"><div className="portfolio-row-name"><strong>{p.name}</strong><span>{p.code}</span></div><span className={'portfolio-status portfolio-status-'+state.tone}>{state.label}</span></div>
+        <div className="portfolio-row-bottom"><span>持仓 <strong>{p.shares==null?'待核验':p.shares.toLocaleString('zh-CN')+' 股'}</strong></span><span>均价 <strong>{fixed(p.avgCost,3)} 元</strong></span><ChevronRight size={15}/></div>
+       </button>;
+      })}
+     </div>:<div className="portfolio-list-empty">当前筛选下暂无持仓记录。</div>}
+    </section>
+    {selected?<section className="portfolio-detail-panel" aria-label={selected.position.name+'持仓详情'}>
+     <div className="portfolio-detail-head"><div><span>持仓详情 · {selected.position.code}</span><h2>{selected.position.name}</h2></div><span className={'portfolio-status portfolio-status-'+portfolioStatus(selected.assessment).tone}>{portfolioStatus(selected.assessment).label}</span></div>
+     <div className="portfolio-position-stats">
+      <div><span>登记股数</span><strong>{selected.position.shares==null?'待核验':selected.position.shares.toLocaleString('zh-CN')+' 股'}</strong></div>
+      <div><span>剩余均价估算</span><strong>{fixed(selected.position.avgCost,3)} <small>元</small></strong></div>
+      <div><span>剩余成本估算</span><strong>{fixed(selected.position.costValue)} <small>元</small></strong></div>
+     </div>
+     <div className="portfolio-detail-tabs" role="tablist" aria-label="持仓详情分类">
+      {tabs.map(tab=><button type="button" role="tab" key={tab.id} id={'portfolio-tab-'+tab.id} aria-controls={'portfolio-panel-'+tab.id} aria-selected={detailTab===tab.id} className={detailTab===tab.id?'is-active':''} onClick={()=>setDetailTab(tab.id)}>{tab.label}</button>)}
+     </div>
+     <div className="portfolio-detail-body" role="tabpanel" id={'portfolio-panel-'+detailTab} aria-labelledby={'portfolio-tab-'+detailTab} key={selected.position.code+'-'+detailTab}>
+      {detailTab==='exit'?<PortfolioPlan position={selected.position} assessment={selected.assessment}/>:detailTab==='evidence'?<PortfolioEvidence position={selected.position} assessment={selected.assessment}/>:<PortfolioTrades position={selected.position}/>}
+     </div>
+     <div className="portfolio-detail-foot"><span>最后登记交易日 {selected.position.lastDate||'—'}</span><span>已登记 {selected.position.recordCount} 笔成交</span></div>
+    </section>:<section className="portfolio-detail-panel portfolio-detail-empty">该筛选下没有需要展示的持仓详情。</section>}
+   </div>:<section className="panel"><Empty title="没有可核实的在持股票" detail={invalidCount?'仍有代码缺失的记录需要人工核验。':'已成功读取 Airtable，目前无可核实净持仓。'} icon={Wallet}/></section>}
+  </>}
+ </div>;
+}
 
 function Login({login,loading,error,setupError}) {
  const [password,setPassword]=useState('');

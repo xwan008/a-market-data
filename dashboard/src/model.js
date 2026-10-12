@@ -66,7 +66,18 @@ export function summarizeTrades(rawRecords) {
     const last = rows.at(-1) || {};
     const name = rows.findLast?.(row=>row['交易标的'])?.['交易标的'] || code;
     const conditions = [...new Set(rows.map(row=>String(row['失效条件']||'').trim()).filter(Boolean))];
-    positions.push({code,name,shares:valid?shares:null,avgCost:valid && costKnown && shares > 0 ? cost/shares:null,costValue:valid && costKnown && shares > 0 ? cost:null,verified:valid,issues:[...new Set(reasons)],conditions,lastDate:last['交易日期']||null,recordCount:rows.length});
+    // 仅映射现有成交流水字段用于持仓详情，缺失值保留为 null，不推断成交。
+    const trades = rows.map(row => {
+      const quantity = Number(row['实际成交股数']);
+      const price = Number(row['价格（元）']);
+      return {
+        date: row['交易日期'] || null,
+        kind: operation(row['操作类型']),
+        quantity: Number.isInteger(quantity) && quantity > 0 ? quantity : null,
+        price: Number.isFinite(price) && price > 0 ? price : null,
+      };
+    });
+    positions.push({code,name,shares:valid?shares:null,avgCost:valid && costKnown && shares > 0 ? cost/shares:null,costValue:valid && costKnown && shares > 0 ? cost:null,verified:valid,issues:[...new Set(reasons)],conditions,lastDate:last['交易日期']||null,recordCount:rows.length,trades});
   }
   positions.sort((a,b)=>Number(b.verified)-Number(a.verified) || b.shares-a.shares || a.code.localeCompare(b.code));
   return {positions,invalidCount,recordCount:rawRecords.length};
