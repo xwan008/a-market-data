@@ -287,7 +287,7 @@ test('代表股每板块仅一只，以冻结正式顺位选取而不按盘中�
    '600001':[sampleScan(day,'600001','煤炭',5,'09:48'),sampleScan(day,'600001','煤炭',999,'14:39',{change_pct:20})],
    '600002':[sampleScan(day,'600002','煤炭',2,'09:48'),sampleScan(day,'600002','煤炭',2,'14:39',{change_pct:-8})],
    '600003':[sampleScan(day,'600003','黄金',6)],
-   '600004':[sampleScan(day,'600004','黄金',7,{change_pct:15})]
+   '600004':[sampleScan(day,'600004','黄金',7,'09:48',{change_pct:15})]
   }
  };
  const out=selectRepresentativeStocks(monitor,null,day);
