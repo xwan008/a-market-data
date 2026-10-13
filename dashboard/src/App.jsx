@@ -229,6 +229,21 @@ function TrendTable({trends,onSelect,selected,monitor,monitorDay,sortMode,onSort
  <div className="table-footer">展示 {filtered.length} / {trends.length} 个板块 <span>正式名次仅来自趋势 Handoff · 广度变化单位 pp（百分点）</span></div></>;
 }
 
+// 概览页展示当日有效行情的价格行为，不把收盘退出规则误当作盘中状态。
+function holdingIntradayPresentation(assessment){
+ const last=assessment?.last;
+ if(!last)return {
+  label:assessment?.state==='unverified'?'持仓待核验':'暂无有效盘中状态',
+  detail:'等待同日有效盘中快照'
+ };
+ const behavior=typeof last.price_behavior==='string'?last.price_behavior.trim():'';
+ const change=typeof last.change_pct==='number'&&Number.isFinite(last.change_pct)?last.change_pct:null;
+ return {
+  label:behavior?'盘中状态 · '+behavior:change===null?'盘中状态待判定':'盘中'+(change>0?'上涨':change<0?'下跌':'平盘'),
+  detail:'盘中快照 '+fmtTime(last.scan_at)+(change===null?' · 价格 '+fixed(last.price)+' 元':' · 涨跌 '+pct(change))
+ };
+}
+
 function Overview({registry,trendHandoff,buy,monitor,holdingSnapshot,holdingCharts,portfolio,status,onSection,setSelectedBuy,monitorUi,setMonitorUi,openMonitor}){
  const monitorCurrent=status.monitor==='OK'&&monitor?.result_kind==='a_share_intraday_monitor_state'&&monitor?.trade_date===shanghaiDay();
  const monitorDay=monitorCurrent?monitor.trade_date:null;
@@ -299,13 +314,14 @@ function Overview({registry,trendHandoff,buy,monitor,holdingSnapshot,holdingChar
       const independent=holdingCharts?.trade_date===shanghaiDay()?asArray(chart?.intraday_points).filter(x=>x?.scan_at?.startsWith(holdingCharts.trade_date)):[]; 
       const dayScans=independent.length?independent:scans;
       const assessment=assessHoldingRisk(p,status.monitor==='OK'?monitor:null,shanghaiDay(),status.holdingSnapshot==='OK'?holdingSnapshot:null);
+      const intraday=holdingIntradayPresentation(assessment);
       return <button className="decision-row home-holding" key={p.code} onClick={()=>onSection('portfolio')}>
        <div className="decision-row-main"><strong>{p.name}</strong><small>{p.code} · {p.verified?p.shares+' 股':'持仓待核验'}</small></div>
        <div className="home-mini-chart home-holding-charts" title="左：最近5个完整交易日日K；右：今日真实盘中快照（非收盘价）">
         <div className="home-holding-chart"><span>近 5 日 K 线</span><MiniHoldingCandles bars={candles}/></div>
         <div className="home-holding-chart"><span>今日 {dayScans.length}/4</span><MiniHoldingIntraday rows={dayScans}/></div>
        </div>
-       <div className="decision-row-meta"><span className={'holding-risk-brief risk-'+assessment.tone}>{assessment.label}</span><small>{assessment.last?'盘中快照 '+fmtTime(assessment.last.scan_at)+(assessment.rule.basis==='close'?' · 收盘确认制':''):'规则来自 Airtable · 等待有效行情'}</small></div><ChevronRight size={15}/>
+       <div className="decision-row-meta"><span className="holding-risk-brief">{intraday.label}</span><small>{intraday.detail}</small></div><ChevronRight size={15}/>
       </button>
      })}</div>:<div className="decision-empty">暂无可核实的登记持仓。</div>}
    </section>
