@@ -1,0 +1,235 @@
+/* 识势 | Light Research Workspace preview v1
+   Only the Market Overview and Sector Trends views are affected.
+   No data, ranking, signal or monitoring logic is altered. */
+:root:has(.app-shell :is(.new-home,.trend-workspace)){
+  color-scheme:light;
+  --bg:#f4f7f5;
+  --surface:#ffffff;
+  --surface2:#f5f8f6;
+  --surface3:#edf4ef;
+  --border:#e2e9e4;
+  --studio-line:#e2e9e4;
+  --text:#26332e;
+  --subtle:#536b5e;
+  --muted:#64766a;
+  --read-primary:#26332e;
+  --read-secondary:#53675c;
+  --read-muted:#64776b;
+  --mint:#39866a;
+  --blue:#397a79;
+  --amber:#a97828;
+  --red:#c6524d;
+  --market-up:#c6524d;
+  --market-down:#23836b;
+  background:var(--bg);
+}
+:root:has(.app-shell :is(.new-home,.trend-workspace)) body{
+  background:var(--bg);
+}
+.app-shell:has(:is(.new-home,.trend-workspace)){
+  min-height:100vh;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,'DM Sans','PingFang SC','Microsoft YaHei','Noto Sans SC',sans-serif;
+}
+.app-shell:has(:is(.new-home,.trend-workspace)) .sidebar{
+  --read-primary:#eef5ee;
+  --read-secondary:#d1e0d4;
+  --read-muted:#aabfb1;
+  background:#20312d;
+  border-color:#29423a;
+  box-shadow:10px 0 28px rgba(24,45,36,.055);
+}
+.app-shell:has(:is(.new-home,.trend-workspace)) .sidebar .side-status{border-color:rgba(224,239,225,.17)}
+.app-shell:has(:is(.new-home,.trend-workspace)) .sidebar .side-group-label,
+.app-shell:has(:is(.new-home,.trend-workspace)) .sidebar .side-footer,
+.app-shell:has(:is(.new-home,.trend-workspace)) .sidebar .side-status-row{color:#b4cbbd}
+.app-shell:has(:is(.new-home,.trend-workspace)) .sidebar .side-status-head{color:#e4eee5}
+.app-shell:has(:is(.new-home,.trend-workspace)) .sidebar .side-status-tag{color:#b9d9c3;border-color:#688575}
+.app-shell:has(:is(.new-home,.trend-workspace)) .sidebar .status-good{color:#9cdec0}
+.app-shell:has(:is(.new-home,.trend-workspace)) .sidebar .status-dim{color:#efc78e}
+.app-shell:has(:is(.new-home,.trend-workspace)) .nav-item{color:#d6e4d9}
+.app-shell:has(:is(.new-home,.trend-workspace)) .nav-item:hover{color:#fff;background:#33483f}
+.app-shell:has(:is(.new-home,.trend-workspace)) .nav-item.selected{
+  color:#f8fdf9;background:#3c5549;
+}
+.app-shell:has(:is(.new-home,.trend-workspace)) .nav-active-line{background:#b8d9c5}
+.app-shell:has(:is(.new-home,.trend-workspace)) .topbar{
+  background:rgba(250,252,250,.95);
+  border-bottom:1px solid #e2e9e4;
+  box-shadow:0 1px 0 rgba(31,57,43,.02);
+}
+.app-shell:has(:is(.new-home,.trend-workspace)) .top-left strong{color:#26332e}
+.app-shell:has(:is(.new-home,.trend-workspace)) :is(.breadcrumb-muted,.breadcrumb-chevron,.top-date,.icon-button){color:#617569}
+.app-shell:has(:is(.new-home,.trend-workspace)) .header-btn{
+  color:#2d4938;background:#fff;border:1px solid #dbe6de;
+  box-shadow:0 1px 3px rgba(30,60,44,.035);
+}
+.app-shell:has(:is(.new-home,.trend-workspace)) .header-btn:hover,
+.app-shell:has(:is(.new-home,.trend-workspace)) .icon-button:hover{background:#eaf3ec;color:#2b674d}
+.app-shell:has(:is(.new-home,.trend-workspace)) .main-footer{
+  color:#697b6e;border-color:#dce7df;
+}
+.app-shell:has(:is(.new-home,.trend-workspace)) .main-footer span:first-child{color:#4c735c}
+.app-shell:has(:is(.new-home,.trend-workspace)) button:focus-visible,
+.app-shell:has(:is(.new-home,.trend-workspace)) input:focus-visible,
+.app-shell:has(:is(.new-home,.trend-workspace)) select:focus-visible{
+  outline-color:#39866a;
+}
+/* Typography and gentle surfaces */
+.app-shell:has(:is(.new-home,.trend-workspace)) :is(.decision-heading h1,.page-intro h1){
+  color:#23362d;font-size:26px;line-height:1.4;letter-spacing:-.55px;font-weight:650;
+}
+.app-shell:has(:is(.new-home,.trend-workspace)) :is(.decision-heading p,.page-intro p){
+  color:#647669;font-size:13px;line-height:1.85;
+}
+.app-shell:has(:is(.new-home,.trend-workspace)) :is(.decision-date,.asof,.asof strong){color:#61786a}
+.app-shell:has(:is(.new-home,.trend-workspace)) :is(.decision-panel-top h2,.panel-head h3){color:#293c31;font-size:20px;font-weight:650}
+.app-shell:has(:is(.new-home,.trend-workspace)) :is(.decision-panel-top p,.sector-chart-inset>p,.ranking-explainer,.count-chip,.panel-note){
+  color:#64776b;font-size:12px;line-height:1.8;
+}
+.app-shell:has(:is(.new-home,.trend-workspace)) :is(.panel,.decision-feature,.decision-opportunity){
+  background:#fff;border:1px solid #e1e9e3;border-radius:13px;
+  box-shadow:0 5px 25px rgba(27,65,39,.035),0 1px 3px rgba(27,65,39,.025);
+}
+.app-shell:has(:is(.new-home,.trend-workspace)) :is(.count-chip,.badge-neutral){color:#567063}
+/* Overview: clear card rhythm without changing the existing decision grid */
+.app-shell:has(.new-home) .new-home.decision-home{gap:23px}
+.app-shell:has(.new-home) .new-home .decision-heading{padding:5px 0 0}
+.app-shell:has(.new-home) .overview-brief{
+  border:1px solid #e1e9e3;border-radius:12px;background:#fff;
+  box-shadow:0 4px 20px rgba(28,66,42,.025);overflow:hidden;
+}
+.app-shell:has(.new-home) .overview-kpi{padding:18px 23px;border-color:#e4ece6}
+.app-shell:has(.new-home) .overview-kpi:first-child{padding-left:23px}
+.app-shell:has(.new-home) .overview-kpi:last-child{padding-right:23px}
+.app-shell:has(.new-home) .overview-kpi:hover{background:#f0f7f1}
+.app-shell:has(.new-home) .overview-kpi-label{color:#64766a;font-size:12px}
+.app-shell:has(.new-home) .overview-kpi-body strong{color:#263a30;font-size:28px;font-weight:650}
+.app-shell:has(.new-home) .overview-kpi-body>span{color:#61786a}
+.app-shell:has(.new-home) .overview-brief-monitor{
+  color:#5f7465;background:#fbfcfb;border-color:#e4ece6;padding:11px 23px;
+}
+.app-shell:has(.new-home) :is(.overview-brief-label,.overview-brief-timestamp,.overview-brief-signals,.overview-brief-link){
+  color:#5e7566;font-size:12px;
+}
+.app-shell:has(.new-home) :is(.overview-brief-link,.text-link){color:#327658;font-weight:600}
+.app-shell:has(.new-home) :is(.overview-brief-link,.text-link):hover{color:#215b42}
+.app-shell:has(.new-home) .new-home .today-leader{
+  background:#fff;border:1px solid #e0e9e2;border-radius:12px;
+  box-shadow:0 3px 17px rgba(34,67,44,.035);padding:11px 17px;
+}
+.app-shell:has(.new-home) .today-leader-heading{color:#435b4c}
+.app-shell:has(.new-home) .today-leader-identity strong{color:#25382e}
+.app-shell:has(.new-home) :is(.today-leader-identity small,.today-leader-waiting,.today-leader-return small,.today-leader-plot-head,.today-leader-plot-head small){color:#61796b}
+.app-shell:has(.new-home) .today-leader-visual{border-color:#e3eae5}
+.app-shell:has(.new-home) .new-home .decision-grid{gap:18px}
+.app-shell:has(.new-home) .new-home :is(.decision-portfolio,.decision-market){
+  background:#fff;border:1px solid #e1e9e3;border-radius:13px;
+  box-shadow:0 5px 25px rgba(27,65,39,.032);padding:22px 23px 10px;
+}
+.app-shell:has(.new-home) .new-home .decision-market::before{content:none}
+.app-shell:has(.new-home) .new-home .decision-panel-top{padding-bottom:14px}
+.app-shell:has(.new-home) .new-home .decision-panel-top .text-link{margin-top:19px}
+.app-shell:has(.new-home) .decision-row{border-color:#e7eee8}
+.app-shell:has(.new-home) .decision-row:hover,
+.app-shell:has(.new-home) .decision-row:focus-visible{background:#f3f8f4}
+.app-shell:has(.new-home) .decision-row-main strong{color:#2b3b30;font-size:14px}
+.app-shell:has(.new-home) .new-home .home-holding .decision-row-main small,
+.app-shell:has(.new-home) .new-home .home-holding .decision-row-meta small,
+.app-shell:has(.new-home) .new-home .home-holding-chart>span:first-child,
+.app-shell:has(.new-home) .decision-row-main small,
+.app-shell:has(.new-home) .decision-row-meta small{color:#657b6c;font-size:11px}
+.app-shell:has(.new-home) :is(.decision-row-meta span,.decision-rank,.decision-row>svg,.home-study-text,.home-sector-state){color:#526c5c}
+.app-shell:has(.new-home) .decision-feature{padding:24px 25px 18px}
+.app-shell:has(.new-home) .feature-caption{color:#657a6a;border-color:#e3ece5}
+.app-shell:has(.new-home) .feature-caption b{color:#3d5845}
+.app-shell:has(.new-home) .focus-switch button{
+  background:#fafcfa;border:1px solid #e0e8e2;color:#526c5c;
+}
+.app-shell:has(.new-home) .focus-switch button.active{
+  background:#e8f1eb;border-color:#b9d2c0;
+}
+.app-shell:has(.new-home) .focus-switch button strong{color:#354e3b}
+.app-shell:has(.new-home) .focus-switch button.active strong{color:#226746}
+.app-shell:has(.new-home) .focus-switch button span{color:#557665}
+.app-shell:has(.new-home) .intraday-tab-switch{
+  background:#f6f9f6;border-color:#dfebe2;
+}
+.app-shell:has(.new-home) .intraday-tab-switch button{color:#607869}
+.app-shell:has(.new-home) .intraday-tab-switch button.active{color:#276849;background:#e4efe6}
+.app-shell:has(.new-home) .intraday-tab-switch button:hover{color:#255f46;background:#edf5ef}
+.app-shell:has(.new-home) .decision-no-ready strong{color:#324a39}
+.app-shell:has(.new-home) :is(.decision-no-ready p,.decision-empty,.decision-bottom,.decision-no-ready .text-link){color:#63786a}
+.app-shell:has(.new-home) .decision-no-icon{color:#3c8564;background:#eaf3eb;border-color:#d5e6da}
+/* Trends: research table feels like a crisp sheet of paper */
+.app-shell:has(.trend-workspace) .ranking-explainer b{color:#2c4736}
+.app-shell:has(.trend-workspace) .ranking-explainer span{border-color:#dce6df}
+.app-shell:has(.trend-workspace) .data-table thead{background:#f5f8f5}
+.app-shell:has(.trend-workspace) .data-table th{
+  color:#5f7467;background:#f5f8f5;border-color:#e0e9e2;
+  font-size:12px;letter-spacing:.15px;font-weight:600;
+}
+.app-shell:has(.trend-workspace) .data-table td{
+  color:#43584a;border-color:#e7eee8;font-size:13px;
+}
+.app-shell:has(.trend-workspace) .data-table td strong{color:#2c3f32;font-size:13px}
+.app-shell:has(.trend-workspace) :is(.trend-ranked-table td small,.data-table td small,.rank-priority-chip,.unranked){color:#6d806f;font-size:11px}
+.app-shell:has(.trend-workspace) .data-table tbody tr:hover{background:#f4f8f4}
+.app-shell:has(.trend-workspace) .data-table tbody tr.row-selected{background:#eaf3eb}
+.app-shell:has(.trend-workspace) .rank-column .official-rank{color:#344d3b;font-weight:600}
+.app-shell:has(.trend-workspace) .trend-delta{color:#9b6433}
+.app-shell:has(.trend-workspace) .trend-delta.trend-down{color:var(--market-down)}
+.app-shell:has(.trend-workspace) :is(.search,.filter-select,.group-select){
+  background:#fbfcfb;border:1px solid #dbe6dd;
+}
+.app-shell:has(.trend-workspace) :is(.search input,.filter-select select,.group-select select){color:#31473a}
+.app-shell:has(.trend-workspace) .search input::placeholder{color:#7a8a7e}
+.app-shell:has(.trend-workspace) .search:focus-within{border-color:#39866a}
+.app-shell:has(.trend-workspace) .sector-detail-head strong{color:#2e4034}
+.app-shell:has(.trend-workspace) .sector-detail-head>div>span{color:#6d806f;font-size:12px}
+.app-shell:has(.trend-workspace) .sector-detail-tabs{
+  background:#f5f8f5;border-color:#e0e8e2;
+}
+.app-shell:has(.trend-workspace) .sector-detail-tabs button{color:#64786b}
+.app-shell:has(.trend-workspace) .sector-detail-tabs button:hover{background:#eaf3ec;color:#2e6749}
+.app-shell:has(.trend-workspace) .sector-detail-tabs button.active{background:#e2efe6;color:#2a6f4c}
+.app-shell:has(.trend-workspace) .sector-detail-tabs button:focus-visible{outline-color:#39866a}
+.app-shell:has(.trend-workspace) :is(.sector-chart-inset>p,.detail-section p,.sector-detail-content,.hint-text,.history-disclaimer){color:#5b7362}
+.app-shell:has(.trend-workspace) :is(.data-pair strong,.detail-hero h2,.small-heading,.crossday-value){color:#304637}
+.app-shell:has(.trend-workspace) :is(.data-pair span,.crossday-card>small,.trend-history-date,.trend-history-kind){color:#637c6c}
+.app-shell:has(.trend-workspace) :is(.crossday-card,.trend-history-event,.seven-context){background:#f7faf7;border-color:#e1eae3}
+.app-shell:has(.trend-workspace) .trend-history-reason p{color:#5f7665}
+/* Shared charts: keep A-share red-up/green-down, improve ink and low-contrast metadata */
+.app-shell:has(:is(.new-home,.trend-workspace)) .plot-grid{stroke:#dbe5dd}
+.app-shell:has(:is(.new-home,.trend-workspace)) :is(.plot-axis,.plot-time,.plot-point-label){fill:#63796a}
+.app-shell:has(:is(.new-home,.trend-workspace)) .plot-point-label-last{fill:var(--plot-stroke)}
+.app-shell:has(:is(.new-home,.trend-workspace)) .plot-head strong{color:#32493b;font-size:13px}
+.app-shell:has(:is(.new-home,.trend-workspace)) :is(.plot-head span,.plot-head-change small,.plot-head-neutral,.plot-unavailable){color:#62786a}
+.app-shell:has(:is(.new-home,.trend-workspace)) :is(.plot-point-rise,.plot-point-fall,.plot-point-neutral){fill:#fff}
+.app-shell:has(:is(.new-home,.trend-workspace)) .plot-line-neutral{stroke:#819e8a}
+.app-shell:has(:is(.new-home,.trend-workspace)) .plot-compact .plot-compact-value{background:rgba(250,252,250,.94)}
+.app-shell:has(:is(.new-home,.trend-workspace)) .plot-tooltip{
+  background:rgba(255,255,255,.98);border-color:#d9e7dc;
+  box-shadow:0 12px 35px rgba(35,60,42,.11);
+}
+.app-shell:has(:is(.new-home,.trend-workspace)) .plot-tooltip strong{color:#2c4a38}
+.app-shell:has(:is(.new-home,.trend-workspace)) :is(.plot-tooltip-time,.plot-tooltip small,.plot-tooltip>span:not(.plot-tooltip-time)){color:#5d7665}
+.app-shell:has(:is(.new-home,.trend-workspace)) .research-state.state-candidate{color:#94691e}
+.app-shell:has(:is(.new-home,.trend-workspace)) .research-state.state-caution{color:#9d7025}
+.app-shell:has(:is(.new-home,.trend-workspace)) .research-state.state-rise{color:#bd5450}
+.app-shell:has(:is(.new-home,.trend-workspace)) .research-state.state-fall{color:#247f61}
+.app-shell:has(:is(.new-home,.trend-workspace)) .research-state.state-watch{color:#4e6c79}
+.app-shell:has(:is(.new-home,.trend-workspace)) .rank-priority-chip{color:#65796a}
+@media(max-width:760px){
+  .app-shell:has(.new-home) .overview-kpi{padding:13px 11px}
+  .app-shell:has(.new-home) .overview-kpi:first-child{padding-left:11px}
+  .app-shell:has(.new-home) .overview-kpi:last-child{padding-right:11px}
+  .app-shell:has(.new-home) .overview-brief-monitor{padding:10px 12px}
+  .app-shell:has(.new-home) .new-home :is(.decision-portfolio,.decision-market){padding:17px 15px 8px}
+  .app-shell:has(.new-home) .decision-feature{padding:19px 16px 14px}
+  .app-shell:has(:is(.new-home,.trend-workspace)) :is(.decision-heading h1,.page-intro h1){font-size:23px}
+}
+@media(prefers-reduced-motion:reduce){
+  .app-shell:has(:is(.new-home,.trend-workspace)) .view-enter{animation:none}
+}
