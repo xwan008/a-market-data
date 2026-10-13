@@ -233,6 +233,75 @@ def compile_results(base=BASE) -> dict:
         }
         trends.append(record)
 
+    # The priority/handoff list includes confirmed AND candidate trends.
+    # A one-day recommendation disappearing from priority is different from
+    # either loss of confirmation or formal thesis invalidation.
+    recommendations, active_recommendations = [], {}
+    for day, folder in days:
+        today = registry_by_day[day]
+        handoff_file = folder / "trend_handoff.json"
+        included = (load(handoff_file).get("signals", []) if handoff_file.exists() else [])
+        recommended = {r.get("trend_name") for r in included if r.get("trend_name")}
+        for name in sorted(set(active_recommendations) | recommended):
+            prior = active_recommendations.get(name)
+            record = today.get(name)
+            if prior:
+                consecutive = (prior["last_date"] in calendar and day in calendar and
+                               calendar.index(day) == calendar.index(prior["last_date"]) + 1)
+                if not consecutive or record is None or not handoff_file.exists():
+                    prior["end_date"] = prior["last_date"]
+                    prior["ending"] = "censored_data_gap"
+                    active_recommendations.pop(name)
+                elif name not in recommended:
+                    prior["end_date"] = prior["last_date"]
+                    prior["first_removed_date"] = day
+                    prior["ending"] = "left_priority_not_failure"
+                    active_recommendations.pop(name)
+            if name in recommended and record is not None:
+                if name not in active_recommendations:
+                    entry = {
+                        "trend_name": name, "start_date": day, "last_date": day,
+                        "recommended_sessions": 1, "end_date": None,
+                        "first_removed_date": None, "ending": "right_censored",
+                        "initial_market_state": record.get("market_state"),
+                        "constituents": record["constituents"] if record.get("constituents_usable") else [],
+                        "universe_issues": record.get("universe_issues", [])
+                    }
+                    recommendations.append(entry)
+                    active_recommendations[name] = entry
+                elif active_recommendations[name]["start_date"] != day:
+                    active_recommendations[name]["last_date"] = day
+                    active_recommendations[name]["recommended_sessions"] += 1
+
+    def trace_lifecycle(ep):
+        name = ep["trend_name"]
+        trail = [{"date": d, "market_state": rows[name].get("market_state"),
+                  "lifecycle_status": rows[name].get("lifecycle_status")}
+                 for d, rows in registry_by_day.items()
+                 if d >= ep["start_date"] and name in rows]
+        first_invalid = next((item["date"] for item in trail
+                              if item["market_state"] == "失效" or
+                              item["lifecycle_status"] == "已失效"), None)
+        return {"state_timeline": trail, "first_invalidated_date": first_invalid}
+
+    recommendation_rows = []
+    for ep in recommendations:
+        row = {k: v for k, v in ep.items() if k != "constituents"}
+        row["frozen_constituent_count"] = len(ep["constituents"])
+        row["one_day_recommendation"] = (
+            ep["recommended_sessions"] == 1
+            if ep["ending"] == "left_priority_not_failure" else None)
+        row.update(trace_lifecycle(ep))
+        row["horizons"] = {
+            str(h): basket_result(ep["constituents"], ep["start_date"], h,
+                                  snapshots, calendar, last_price_day)
+            if last_price_day else {"state": "pending"} for h in HORIZONS
+        }
+        recommendation_rows.append(row)
+
+    for row in trends:
+        row.update(trace_lifecycle(row))
+
     stock_signals = []
     for day, folder in days:
         formal = load(folder / "trend_buy_formal_result.json")
@@ -268,6 +337,7 @@ def compile_results(base=BASE) -> dict:
         if r["horizons"][str(horizon)]["state"] == "matured"
     ]
     closed = [r for r in trends if r["ending"] == "lost_confirmation"]
+    closed_rec = [r for r in recommendation_rows if r["ending"] == "left_priority_not_failure"]
     summary = {
         "schema_version": 1,
         "status": "AVAILABLE",
@@ -276,6 +346,12 @@ def compile_results(base=BASE) -> dict:
         "last_archived_trade_date": dates[-1],
         "archive_days": len(days),
         "trend_episodes": len(trends),
+        "recommendation_episodes": len(recommendation_rows),
+        "closed_recommendations": len(closed_rec),
+        "one_day_recommendations": sum(x["one_day_recommendation"] is True for x in closed_rec),
+        "one_day_recommendation_pct": (round(
+            100 * sum(x["one_day_recommendation"] is True for x in closed_rec) / len(closed_rec), 2)
+            if closed_rec else None),
         "closed_confirmations": len(closed),
         "one_day_confirmations": sum(r["one_day_confirmation"] is True for r in closed),
         "one_day_confirmation_pct": (round(
@@ -296,7 +372,8 @@ def compile_results(base=BASE) -> dict:
         }
     }
     write(base / "results" / "summary.json", summary)
-    write(base / "results" / "trends.json", {"schema_version": 1, "items": trends})
+    write(base / "results" / "trends.json", {"schema_version": 1, "items": trends,
+                                          "recommendations": recommendation_rows})
     write(base / "results" / "stocks.json", {"schema_version": 1, "items": stock_signals})
     print("VALIDATION_RESULTS_GENERATED", len(trends), len(stock_signals))
     return summary
