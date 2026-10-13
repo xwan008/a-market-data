@@ -1516,34 +1516,49 @@ button{transition:color .2s var(--studio-ease),background-color .2s var(--studio
 }
 
 
-/* Holding overview: one glance at completed-session context and today's four scans. */
-.new-home .decision-portfolio{grid-column:1/-1}
+/* Holding overview: preserve the original two-column decision grid.
+   Both compact charts share the existing single chart cell. */
+.new-home .decision-portfolio{grid-column:auto}
 .new-home .home-holding{
- display:grid;grid-template-columns:minmax(125px,.9fr) minmax(280px,2.4fr) minmax(155px,1fr) 15px;
- align-items:center;gap:18px;min-width:0;padding:15px 10px
+ display:grid;
+ grid-template-columns:minmax(78px,.9fr) minmax(158px,1.8fr) minmax(78px,.85fr) 13px;
+ align-items:center;gap:8px;min-width:0;padding:12px 7px
 }
-.new-home .home-holding .decision-row-main,.new-home .home-holding .decision-row-meta{
- flex:none;min-width:0
+.new-home .home-holding .decision-row-main,
+.new-home .home-holding .decision-row-meta{flex:none;min-width:0}
+.new-home .home-holding .decision-row-main strong{font-size:12px;line-height:1.4}
+.new-home .home-holding .decision-row-main small{font-size:9px}
+.new-home .home-holding .decision-row-meta span{font-size:10px}
+.new-home .home-holding .decision-row-meta small{font-size:9px;line-height:1.4}
+.new-home .home-holding .home-holding-charts{
+ flex:none;min-width:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ align-items:center;gap:6px
 }
-.home-holding-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;min-width:0;align-items:center}
-.home-holding-chart{min-width:0;display:flex;flex-direction:column;justify-content:center;gap:3px}
-.home-holding-chart>span:first-child{color:#b6c8b9;font-size:10px;font-weight:600;white-space:nowrap}
-.home-holding-chart>small{color:#82988b;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.home-holding-chart .plot-compact{max-width:none;min-width:0;margin:0;width:100%}
-.home-holding-chart .plot-compact svg,.home-candle-svg{display:block;width:100%;height:auto;max-height:69px}
-.home-holding-chart .plot-unavailable{display:flex;align-items:center;min-height:49px;line-height:1.45;white-space:normal}
-@media(max-width:850px){
+.new-home .home-holding-chart{min-width:0;display:flex;flex-direction:column;justify-content:center;gap:3px}
+.new-home .home-holding-chart>span:first-child{
+ color:#aebfb2;font-size:9px;font-weight:600;line-height:1.5;white-space:nowrap
+}
+.new-home .home-holding-chart svg{
+ display:block;width:100%;height:44px;max-height:44px;margin:0
+}
+.new-home .home-holding-chart .plot-unavailable{
+ display:flex;align-items:center;min-height:44px;
+ font-size:9px;line-height:1.5;white-space:normal
+}
+.new-home .home-holding-chart+.home-holding-chart{
+ border-left:1px solid rgba(190,216,196,.12);padding-left:5px
+}
+@media(max-width:560px){
  .new-home .home-holding{
-  grid-template-columns:minmax(0,1fr) 15px;gap:8px 12px
+  grid-template-columns:minmax(0,1fr) minmax(95px,.85fr) 13px;
+  gap:6px 10px
  }
  .new-home .home-holding .decision-row-main{grid-column:1;grid-row:1}
- .new-home .home-holding>svg{grid-column:2;grid-row:1}
- .new-home .home-holding .home-holding-charts{grid-column:1/-1;grid-row:2;gap:12px}
- .new-home .home-holding .decision-row-meta{grid-column:1/-1;grid-row:3;text-align:left}
- .new-home .home-holding .decision-row-meta small{margin-top:3px}
- .home-holding-chart>span:first-child{font-size:10px}
-}
-@media(max-width:360px){
- .home-holding-charts{gap:7px}
- .home-holding-chart>span:first-child{font-size:9px}
+ .new-home .home-holding .decision-row-meta{grid-column:2;grid-row:1;text-align:right}
+ .new-home .home-holding>svg{grid-column:3;grid-row:1}
+ .new-home .home-holding .home-holding-charts{
+  grid-column:1/-1;grid-row:2;gap:12px;max-width:250px;
+  padding-top:6px
+ }
+ .new-home .home-holding-chart svg{height:50px;max-height:50px}
 }
