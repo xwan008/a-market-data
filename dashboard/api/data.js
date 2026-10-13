@@ -7,10 +7,7 @@ const FILES = {
   monitor: ['research/intraday_monitor_state.json','a_share_intraday_monitor_state'],
   holdingSnapshot: ['research/intraday_market_snapshot.json','a_share_intraday_market_snapshot'],
   holdingCharts: ['research/holding_chart_data.json','a_share_holding_charts'],
-  crossdayArchive: ['research/intraday_crossday_archive.json','a_share_intraday_crossday_archive'],
-  validationSummary: ['validation/results/summary.json',null],
-  validationTrends: ['validation/results/trends.json',null],
-  validationStocks: ['validation/results/stocks.json',null]
+  crossdayArchive: ['research/intraday_crossday_archive.json','a_share_intraday_crossday_archive']
 };
 const TIMEOUT_MS = 12000;
 const FIELDS = ['股票代码','交易标的','操作类型','价格（元）','实际成交股数','金额（元）','交易日期','记录日期','失效条件','复盘备注'];
