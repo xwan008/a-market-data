@@ -1,251 +1,318 @@
 {
   "schema_version": 1,
   "result_kind": "a_share_trend_registry",
-  "trade_date": "2026-10-12",
-  "generated_at": "2026-10-13T06:46:32+08:00",
+  "trade_date": "2026-10-13",
+  "generated_at": "2026-10-13T18:40:40+08:00",
   "timezone": "Asia/Shanghai",
   "status": "COMPLETE",
   "scan_audit": {
-    "mode": "early_incremental",
-    "full_market_scan_completed": false,
+    "mode": "full_close",
+    "full_market_scan_completed": true,
     "previous_registry_trade_date": "2026-10-12",
     "previous_trend_count": 17,
     "previous_trend_rechecked_count": 17,
     "recheck_queue_rechecked_count": 0,
-    "new_trend_count": 0,
+    "new_trend_count": 4,
     "pending_revalidation_count": 2,
     "invalidated_count": 0,
     "carried_invalidated_history_count": 4,
     "new_position_count": 3,
-    "evidence_cutoff_trade_date": "2026-10-12",
-    "market_data_trade_date": "2026-10-12",
+    "evidence_cutoff_trade_date": "2026-10-13",
+    "market_data_trade_date": "2026-10-13",
     "market_data_completed": true,
     "baseline_registry_status": "COMPLETE",
-    "baseline_registry_blob_sha": "a4673a4b93ca5a6553f3f3fae19592e7496abaa8",
-    "scan_scope": "06:40隔夜增量复核；未执行10月13日A股全市场收盘扫描，未把尚未开盘的10月13日冒充完整行情。逐项复核10月12日正式registry的17个方向，仅检查隔夜商品、海外同业、市场风险与新增产业信息。",
-    "market_summary": "截至10月12日A股正式收盘，沪指-0.43%、深成指-2.03%、创业板指-2.61%，两市成交约1.54万亿元且超过4300股下跌。隔夜美股道指+0.38%、标普-0.06%、纳指-0.44%，半导体指数-2.7%；布伦特原油升至约106.5—107.2美元/桶，现货黄金下跌约0.6%，美元指数升至约18个月高位。",
-    "overnight_evidence": [
-      {
-        "direction": "油气/石油、航运/港口",
-        "observation": "中东供应扰动推动布伦特与WTI隔夜上涨，油气商品第一锚增强；但高油价同时增加航运燃油成本，且没有新的A股板块广度与承接数据。",
-        "source": "https://www.reuters.com/world/china/global-markets-wrapup-1-2026-10-12/",
-        "observed_at": "2026-10-13T06:46:32+08:00",
-        "disposition": "油气维持T1/高潮衰退，航运维持T0/观察；均不恢复或新增新仓资格。"
-      },
-      {
-        "direction": "黄金/贵金属",
-        "observation": "现货金与美国黄金期货均下跌约0.6%，美元指数升至18个月高位，实际利率与美元风险仍构成反证。",
-        "source": "https://www.reuters.com/world/india/gold-gains-weaker-oil-dollar-us-inflation-data-focus-2026-10-12/",
-        "observed_at": "2026-10-13T06:46:32+08:00",
-        "disposition": "维持T1/观察，不升级。"
-      },
-      {
-        "direction": "半导体设备/材料、CPO/光模块及市场风险",
-        "observation": "美股半导体指数隔夜下跌2.7%，纳指下跌0.44%，市场广度偏弱；该海外风险线索不能替代A股板块结构。",
-        "source": "https://www.reuters.com/business/us-stock-futures-muted-oil-stays-above-100-ahead-earnings-2026-10-12/",
-        "observed_at": "2026-10-13T06:46:32+08:00",
-        "disposition": "不撤销10月12日已失效记录；其余A股趋势不因海外单日波动迁移。"
-      }
-    ],
+    "baseline_registry_blob_sha": "0a6143d623880e4f60fe97b0c9d96127e97f2687",
+    "scan_scope": "全行业331个申万三级行业、17个既有策划主题、131个基础分类组，以及政策、商品、供需、订单与盈利线索；概念板块覆盖不可用已记录，不把基础行业与主题重叠视为独立证据。",
+    "market_summary": "上证指数3800.86点、+0.10%；深证成指-0.25%、创业板指-0.18%、科创综指-0.08%；两市成交约1.68万亿元，约2904股上涨、2482股下跌。军工装备、冰雪旅游、PCB、通信等领涨，保险、电池、风电、生物制品、能源金属和光伏偏弱。",
+    "overnight_evidence": "不适用：本轮为2026-10-13完整收盘版。",
     "trend_dispositions": [
       {
         "trend_name": "固态电池",
-        "baseline_trade_date": "2026-10-12",
-        "baseline_trend_state": "T1",
-        "baseline_market_state": "候选趋势",
-        "lifecycle_status": "有效",
-        "disposition": "状态不迁移",
-        "reason": "隔夜没有足够新增产业证据，且尚无10月13日A股市场结构，保留10月12日正式状态与验证日期。"
+        "result": "已复核",
+        "current_trend_state": "T1",
+        "current_market_state": "高潮/衰退",
+        "reason": "10月13日核心样本单日中位数-3.056%、上涨广度仅8.33%、相对市场-3.274个百分点，且成交量比升至1.907，弱势扩散并出现放量分歧，候选趋势降为高潮/衰退；产业T1尚未被新证据推翻。"
       },
       {
         "trend_name": "CRO/医疗研发外包",
-        "baseline_trade_date": "2026-10-12",
-        "baseline_trend_state": "T2",
-        "baseline_market_state": "观察",
-        "lifecycle_status": "有效",
-        "disposition": "状态不迁移",
-        "reason": "隔夜没有足够新增产业证据，且尚无10月13日A股市场结构，保留10月12日正式状态与验证日期。"
+        "result": "已复核",
+        "current_trend_state": "T2",
+        "current_market_state": "观察",
+        "reason": "10月13日医疗研发外包样本单日中位数-0.611%、3日-3.15%、单日上涨广度0%，市场链仍弱；既有订单及盈利修复证据未被新事实证伪，产业T2维持但仅观察。"
       },
       {
         "trend_name": "风电设备",
-        "baseline_trade_date": "2026-10-12",
-        "baseline_trend_state": "T1",
-        "baseline_market_state": "候选趋势",
-        "lifecycle_status": "有效",
-        "disposition": "状态不迁移",
-        "reason": "隔夜没有足够新增产业证据，且尚无10月13日A股市场结构，保留10月12日正式状态与验证日期。"
+        "result": "已复核",
+        "current_trend_state": "T1",
+        "current_market_state": "观察",
+        "reason": "10月13日风电核心样本单日中位数-0.766%、3日-3.95%，1/3/5日上涨广度22.22%/33.33%/33.33%，分歧承接与中票扩散不再满足候选标准，降为观察；产业T1不变。"
       },
       {
         "trend_name": "PCB/CCL",
-        "baseline_trade_date": "2026-10-12",
-        "baseline_trend_state": "T1",
-        "baseline_market_state": "失效",
-        "lifecycle_status": "已失效",
-        "disposition": "状态不迁移",
-        "reason": "隔夜没有满足恢复为有效趋势的产业与A股市场双链证据，保留失效审计。"
+        "result": "维持失效",
+        "current_trend_state": "T1",
+        "current_market_state": "失效",
+        "reason": "10月13日虽单日中位数+4.48%、上涨广度95.83%，但3日/5日仍为-3.3%/-9.23%，3日/5日广度仅25%/8.33%；单日修复未满足失效后恢复所需的连续广度与结构确认，维持失效。"
       },
       {
         "trend_name": "半导体设备/材料",
-        "baseline_trade_date": "2026-10-12",
-        "baseline_trend_state": "T1",
-        "baseline_market_state": "失效",
-        "lifecycle_status": "已失效",
-        "disposition": "状态不迁移",
-        "reason": "海外半导体走弱未提供恢复证据，保留10月12日失效审计。"
+        "result": "维持失效",
+        "current_trend_state": "T1",
+        "current_market_state": "失效",
+        "reason": "10月13日半导体设备单日仅小幅修复而5日仍-6.04%，半导体材料单日-0.506%、3日-4.89%、5日-12.465%；无足以推翻既有失效判定的市场连续性证据。"
       },
       {
         "trend_name": "CPO/光模块",
-        "baseline_trade_date": "2026-10-12",
-        "baseline_trend_state": "T2",
-        "baseline_market_state": "失效",
-        "lifecycle_status": "已失效",
-        "disposition": "状态不迁移",
-        "reason": "海外半导体走弱未提供恢复证据，保留10月12日失效审计。"
+        "result": "维持失效",
+        "current_trend_state": "T2",
+        "current_market_state": "失效",
+        "reason": "10月13日相关申万行业单日中位数+0.343%、广度61.54%，但3日/5日仍-4.43%/-9.25%；没有连续量价与中票扩散，维持失效。"
       },
       {
         "trend_name": "煤炭",
-        "baseline_trade_date": "2026-10-12",
-        "baseline_trend_state": "T2",
-        "baseline_market_state": "观察",
-        "lifecycle_status": "有效",
-        "disposition": "状态不迁移",
-        "reason": "隔夜没有足够新增产业证据，且尚无10月13日A股市场结构，保留10月12日正式状态与验证日期。"
+        "result": "已复核",
+        "current_trend_state": "T2",
+        "current_market_state": "观察",
+        "reason": "动力煤与焦煤10月13日单日分别+0.457%/+0.599%，广度80%/72.73%，但3日均为负；商品与权益未形成同步加速，产业T2、市场观察维持。"
       },
       {
         "trend_name": "铜/有色",
-        "baseline_trade_date": "2026-10-12",
-        "baseline_trend_state": "T2",
-        "baseline_market_state": "观察",
-        "lifecycle_status": "有效",
-        "disposition": "状态不迁移",
-        "reason": "隔夜没有足够新增产业证据，且尚无10月13日A股市场结构，保留10月12日正式状态与验证日期。"
+        "result": "已复核",
+        "current_trend_state": "T2",
+        "current_market_state": "观察",
+        "reason": "10月13日铜行业单日中位数+0.7%、广度62.5%，但3日/5日为-1.655%/-1.495%、成交量比0.61；商品第一锚未转弱到足以推翻T2，但A股结构不足以升级。"
       },
       {
         "trend_name": "房地产",
-        "baseline_trade_date": "2026-10-12",
-        "baseline_trend_state": "T0",
-        "baseline_market_state": "失效",
-        "lifecycle_status": "已失效",
-        "disposition": "状态不迁移",
-        "reason": "隔夜没有满足恢复为有效趋势的产业与A股市场双链证据，保留失效审计。"
+        "result": "维持失效",
+        "current_trend_state": "T0",
+        "current_market_state": "失效",
+        "reason": "10月13日住宅开发、商业地产及物业管理等主要子组1/3/5日结构仍偏弱，未取得销售、价格或信用链条的新改善证据，维持失效。"
       },
       {
         "trend_name": "机器人",
-        "baseline_trade_date": "2026-10-12",
-        "baseline_trend_state": "T0",
-        "baseline_market_state": "观察",
-        "lifecycle_status": "待复核",
-        "disposition": "状态不迁移",
-        "reason": "隔夜没有足够新增产业与市场证据，保留原状态、原验证日期并继续待复核。"
+        "result": "待复核",
+        "current_trend_state": "T0",
+        "current_market_state": "观察",
+        "reason": "10月13日机器人样本单日中位数-0.368%、3日-0.565%、5日-4.235%，未取得订单、排产或利润传导新证据；保留2026-10-08原核验日期并继续待复核。"
       },
       {
         "trend_name": "油气/石油",
-        "baseline_trade_date": "2026-10-12",
-        "baseline_trend_state": "T1",
-        "baseline_market_state": "高潮/衰退",
-        "lifecycle_status": "有效",
-        "disposition": "状态不迁移",
-        "reason": "原油第一锚隔夜增强，但缺少新的A股广度、中票扩散和分歧承接，不足以退出高潮/衰退。"
+        "result": "已复核",
+        "current_trend_state": "T1",
+        "current_market_state": "高潮/衰退",
+        "reason": "10月13日国际油价回落约2%，油气开采与油服3日中位数仍为负；地缘溢价与高油价第一锚尚在，但A股扩散不足，维持高潮/衰退。"
       },
       {
         "trend_name": "航运/港口",
-        "baseline_trade_date": "2026-10-12",
-        "baseline_trend_state": "T0",
-        "baseline_market_state": "观察",
-        "lifecycle_status": "有效",
-        "disposition": "状态不迁移",
-        "reason": "供应扰动为运价风险提供催化，同时高油价抬升燃油成本；缺少可核验运价和A股扩散证据。"
+        "result": "已复核",
+        "current_trend_state": "T0",
+        "current_market_state": "观察",
+        "reason": "10月13日航运单日中位数+1.622%、广度88.89%，港口+0.294%、广度56.25%，但两组3日收益均约-0.46%；红海与运价第一锚尚需更新，维持T0观察。"
       },
       {
         "trend_name": "黄金/贵金属",
-        "baseline_trade_date": "2026-10-12",
-        "baseline_trend_state": "T1",
-        "baseline_market_state": "观察",
-        "lifecycle_status": "有效",
-        "disposition": "状态不迁移",
-        "reason": "金价下跌且美元走强，未满足由观察升级的条件。"
+        "result": "已复核",
+        "current_trend_state": "T1",
+        "current_market_state": "候选趋势",
+        "reason": "10月13日现货金约升0.4%至4186.91美元/盎司，A股黄金样本单日+1.696%、3日+2.41%、5日+1.89%，广度88.89%/77.78%/66.67%，商品第一锚与权益结构同步，观察升为候选。"
       },
       {
         "trend_name": "文化传媒/影视院线",
-        "baseline_trade_date": "2026-10-12",
-        "baseline_trend_state": "T1",
-        "baseline_market_state": "候选趋势",
-        "lifecycle_status": "有效",
-        "disposition": "状态不迁移",
-        "reason": "隔夜没有足够新增产业证据，且尚无10月13日A股市场结构，保留10月12日正式状态与验证日期。"
+        "result": "已复核",
+        "current_trend_state": "T1",
+        "current_market_state": "候选趋势",
+        "reason": "影视动漫制作3日/5日中位数+9.05%/+9.75%，出版+7.45%/+5.17%，市场趋势延续；但10月13日院线单日转负且内部出现分化，维持候选而不升级确认。"
       },
       {
         "trend_name": "银行",
-        "baseline_trade_date": "2026-10-12",
-        "baseline_trend_state": "T1",
-        "baseline_market_state": "趋势确认",
-        "lifecycle_status": "有效",
-        "disposition": "状态不迁移",
-        "reason": "隔夜没有足够新增产业证据，且尚无10月13日A股市场结构，保留10月12日正式状态与验证日期。"
+        "result": "已复核",
+        "current_trend_state": "T1",
+        "current_market_state": "候选趋势",
+        "reason": "国有大行10月13日仍+0.713%、3日+2.07%、5日+4.255%，但股份行-0.827%、城商行-1.406%、农商行-1.438%，中票扩散明显收缩，趋势确认降为候选；红利和资产质量逻辑未被推翻。"
       },
       {
         "trend_name": "电网设备/特高压",
-        "baseline_trade_date": "2026-10-12",
-        "baseline_trend_state": "T1",
-        "baseline_market_state": "新异动",
-        "lifecycle_status": "有效",
-        "disposition": "状态不迁移",
-        "reason": "隔夜没有足够新增产业证据，且尚无10月13日A股市场结构，保留10月12日正式状态与验证日期。"
+        "result": "已复核",
+        "current_trend_state": "T1",
+        "current_market_state": "观察",
+        "reason": "10月13日输变电、配电、电网自动化和仪表四个子组单日中位数均偏弱或接近零，广度不足；新异动未形成持续扩散，降为观察，产业T1维持。"
       },
       {
         "trend_name": "线下药店",
-        "baseline_trade_date": "2026-10-12",
-        "baseline_trend_state": "待核验",
-        "baseline_market_state": "新异动",
-        "lifecycle_status": "待复核",
-        "disposition": "状态不迁移",
-        "reason": "隔夜没有足够新增产业与市场证据，保留原状态、原验证日期并继续待复核。"
+        "result": "待复核",
+        "current_trend_state": "待核验",
+        "current_market_state": "候选趋势",
+        "reason": "10月13日线下药店单日+1.036%、3日+5.385%、5日+8.38%，广度83.33%，市场由新异动升为候选；仍缺同店、客流与利润修复证据，保留2026-10-12原核验日期及产业待核验状态。"
       }
     ],
-    "state_migrations": [],
-    "priority_changes": [],
-    "funds_observation": "无同口径新增A股板块资金数据；隔夜只使用商品、海外行业表现与宏观风险作辅助，不把资金或ETF涨跌作为产业证明。",
-    "python_auxiliary_status": "COMPLETE_BASELINE_REUSED",
-    "python_auxiliary_trade_date": "2026-10-12",
+    "state_migrations": [
+      {
+        "trend_name": "固态电池",
+        "from": "候选趋势",
+        "to": "高潮/衰退",
+        "reason": "10月13日核心样本单日中位数-3.056%、上涨广度仅8.33%、相对市场-3.274个百分点，且成交量比升至1.907，弱势扩散并出现放量分歧，候选趋势降为高潮/衰退；产业T1尚未被新证据推翻。"
+      },
+      {
+        "trend_name": "风电设备",
+        "from": "候选趋势",
+        "to": "观察",
+        "reason": "10月13日风电核心样本单日中位数-0.766%、3日-3.95%，1/3/5日上涨广度22.22%/33.33%/33.33%，分歧承接与中票扩散不再满足候选标准，降为观察；产业T1不变。"
+      },
+      {
+        "trend_name": "黄金/贵金属",
+        "from": "观察",
+        "to": "候选趋势",
+        "reason": "10月13日现货金约升0.4%至4186.91美元/盎司，A股黄金样本单日+1.696%、3日+2.41%、5日+1.89%，广度88.89%/77.78%/66.67%，商品第一锚与权益结构同步，观察升为候选。"
+      },
+      {
+        "trend_name": "银行",
+        "from": "趋势确认",
+        "to": "候选趋势",
+        "reason": "国有大行10月13日仍+0.713%、3日+2.07%、5日+4.255%，但股份行-0.827%、城商行-1.406%、农商行-1.438%，中票扩散明显收缩，趋势确认降为候选；红利和资产质量逻辑未被推翻。"
+      },
+      {
+        "trend_name": "电网设备/特高压",
+        "from": "新异动",
+        "to": "观察",
+        "reason": "10月13日输变电、配电、电网自动化和仪表四个子组单日中位数均偏弱或接近零，广度不足；新异动未形成持续扩散，降为观察，产业T1维持。"
+      },
+      {
+        "trend_name": "线下药店",
+        "from": "新异动",
+        "to": "候选趋势",
+        "reason": "10月13日线下药店单日+1.036%、3日+5.385%、5日+8.38%，广度83.33%，市场由新异动升为候选；仍缺同店、客流与利润修复证据，保留2026-10-12原核验日期及产业待核验状态。"
+      }
+    ],
+    "priority_changes": [
+      {
+        "trend_name": "黄金/贵金属",
+        "change": "加入",
+        "reason": "商品第一锚与A股1/3/5日广度同步，T1+候选且未过热。"
+      },
+      {
+        "trend_name": "文化传媒/影视院线",
+        "change": "保留",
+        "reason": "3/5日趋势仍强，但内部有分化，维持候选。"
+      },
+      {
+        "trend_name": "银行",
+        "change": "保留但降级",
+        "reason": "国有大行延续而其他银行分化，降为候选后仍以防御属性列第3。"
+      },
+      {
+        "trend_name": "风电设备",
+        "change": "退出",
+        "reason": "1/3/5日广度均弱，市场降为观察；退出新仓不等于产业失效。"
+      }
+    ],
+    "funds_observation": "未取得同口径、可交叉验证的全市场主力资金净流数据；不以单一资金口径决策，仅使用成交量比、板块广度与相对强度作辅助。",
+    "python_auxiliary_status": "COMPLETE_VALID",
+    "python_auxiliary_trade_date": "2026-10-13",
     "python_scan_summary": {
-      "industry_universe_count": 331,
-      "themes_evaluated": 17,
-      "taxonomy_groups_evaluated": 131,
-      "taxonomy_covered_level3_industries": 331,
-      "research_themes_with_eligible_quant_signals": 2,
-      "taxonomy_groups_with_eligible_quant_signals": 11,
-      "themes_with_eligible_quant_signals": 2,
-      "research_candidates_returned": 12,
-      "curated_candidates_returned": 2,
-      "taxonomy_candidates_returned": 10,
-      "research_candidates_deferred": 1,
-      "tracked_alert_count": 11,
-      "unmapped_industry_alert_count": 8,
-      "unmapped_eligible_industry_count": 11,
-      "unknown_tracked_themes": [],
-      "invalid_or_low_sample_themes": 0,
-      "sector_audit_status": "MATCHED",
-      "registry_baseline_trade_date": "2026-10-09",
-      "all_theme_detail_retention": "computed_in_memory_not_persisted"
+      "sw_l3_total": 331,
+      "sw_l3_covered": 331,
+      "curated_themes": 17,
+      "taxonomy_groups": 131,
+      "research_candidates": 12,
+      "tracked_theme_alerts": 3,
+      "unmapped_industry_alerts": 8,
+      "concept_coverage": "unavailable"
     },
-    "python_auxiliary_note": "同交易日10月12日快照已验证schema、COMPLETE、auxiliary_only、no_trade_signal、decision_authority与point_in_time_eligible；早间不重新生成研究候选，只复核上次收盘记录。",
+    "python_auxiliary_note": "Python快照仅用于量价交叉验证和查漏。PCB、元件合并为同一产业证据；百货/超市与一般零售合并；焦炭并入煤炭；油品贸易并入油气。渔业、水泥、通信线缆因缺独立产业盈利驱动而排除。程序候选均已逐项核验。",
+    "discovery_attribution": {
+      "method": "DECLARED_IN_RUN",
+      "frozen_at": "2026-10-13T18:39:00+08:00",
+      "independent_new_candidates": [
+        "军工装备/航空航天",
+        "冰雪旅游/冰雪经济",
+        "染料/涂料",
+        "零售"
+      ],
+      "recovery_candidates": [
+        "PCB/CCL",
+        "CPO/光模块"
+      ],
+      "post_program_additions": [],
+      "note": "独立研究清单在解析Python候选前声明；Python随后用于确认、补充量价和排除重叠。"
+    },
+    "program_candidate_dispositions": [
+      {
+        "lead": "PCB/CCL、元件",
+        "decision": "维持失效",
+        "reason": "单日修复但3/5日趋势及广度仍不满足恢复标准，重叠样本不重复计证据。"
+      },
+      {
+        "lead": "商贸零售、一般零售",
+        "decision": "纳入T0+候选趋势",
+        "reason": "政策与1/3/5日广度同向，合并为一个产业方向。"
+      },
+      {
+        "lead": "黄金/贵金属",
+        "decision": "升级为T1+候选趋势",
+        "reason": "商品第一锚与A股结构同步。"
+      },
+      {
+        "lead": "航运/港口",
+        "decision": "维持T0+观察",
+        "reason": "单日反弹但3日仍负。"
+      },
+      {
+        "lead": "航海/地面/航空装备",
+        "decision": "合并纳入军工装备/航空航天T0+候选趋势",
+        "reason": "三子行业同步扩散，订单盈利仍待确认。"
+      },
+      {
+        "lead": "焦炭",
+        "decision": "并入煤炭观察",
+        "reason": "不作为独立趋势重复计证据。"
+      },
+      {
+        "lead": "旅游及景区",
+        "decision": "纳入冰雪旅游T0+候选趋势",
+        "reason": "政策与量价交叉通过，季节订单待确认。"
+      },
+      {
+        "lead": "渔业",
+        "decision": "排除",
+        "reason": "样本小且未核实共同产业盈利驱动。"
+      },
+      {
+        "lead": "纺织化学制品",
+        "decision": "纳入染料/纺织化学品T1+新异动",
+        "reason": "产品价格第一锚成立，市场仅单日扩散。"
+      },
+      {
+        "lead": "水泥制品",
+        "decision": "排除",
+        "reason": "未发现价格、库存、需求与权益结构的多源共振。"
+      },
+      {
+        "lead": "油品贸易",
+        "decision": "并入油气/石油",
+        "reason": "不单列重复方向。"
+      },
+      {
+        "lead": "通信线缆及配套",
+        "decision": "排除",
+        "reason": "单日异动不足以证明独立产业驱动，且CPO恢复条件未满足。"
+      }
+    ],
     "official_trade_day_gate": {
-      "today": "2026-10-13",
-      "is_official_trade_day": true,
-      "evidence": "上交所与深交所2026年休市安排均载明国庆节10月1日至7日休市、10月8日起照常开市；10月13日为星期二且不在公告休市区间。",
-      "sse_source": "https://www.sse.com.cn/disclosure/dealinstruc/closed/c/c_20251222_10802510.shtml",
-      "szse_source": "https://www.szse.cn/disclosure/notice/general/t20251222_618087.html"
+      "status": "PASS",
+      "date": "2026-10-13",
+      "basis": "上交所、深交所2026年国庆休市公告明确10月8日起照常开市；10月13日有正式完整收盘行情。"
     },
-    "publication_note": "trade_date继续为previous_trade_date 2026-10-12；本轮仅更新隔夜增量审计，不生成或冒充2026-10-13完整收盘结论。"
+    "publication_note": "完成独立全市场研究、17个旧方向逐项复核及Python辅助查漏；registry含全部有效、待复核与已失效审计，handoff仅含当期新仓优先方向。"
   },
   "trends": [
     {
       "trend_name": "固态电池",
       "trend_state": "T1",
-      "market_state": "候选趋势",
+      "market_state": "高潮/衰退",
       "lifecycle_status": "有效",
       "first_seen_trade_date": "2026-09-29",
-      "last_verified_trade_date": "2026-10-12",
+      "last_verified_trade_date": "2026-10-13",
       "industry_codes": [
         "S630701",
         "S630702",
@@ -303,10 +370,15 @@
           "description": "Python辅助快照显示核心样本单日中位数-2.05%、广度25%、相对市场-0.462个百分点，成交量比2.079，属于放量弱广度。",
           "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
           "trade_date": "2026-10-12"
+        },
+        {
+          "description": "Python辅助快照显示固态电池核心样本单日中位数-3.056%、3日-3.785%，1/3/5日上涨广度8.33%/29.17%/41.67%，相对市场-3.274个百分点，成交量比1.907。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
         }
       ],
       "invalidation_condition": "政策催化后板块广度持续收缩、核心与中票同步破位，且排产或价格传导证据转弱。",
-      "change_reason": "10月12日高成交回撤且仅25%样本上涨，趋势确认降为候选；产业化设备与政策线索仍在，未证实产业失效。",
+      "change_reason": "10月13日核心样本单日中位数-3.056%、上涨广度仅8.33%、相对市场-3.274个百分点，且成交量比升至1.907，弱势扩散并出现放量分歧，候选趋势降为高潮/衰退；产业T1尚未被新证据推翻。",
       "state_history": [
         {
           "trade_date": "2026-09-29",
@@ -342,6 +414,13 @@
           "to": "候选趋势",
           "event": "market_state_change",
           "reason": "10月12日高成交回撤且仅25%样本上涨，趋势确认降为候选；产业化设备与政策线索仍在，未证实产业失效。"
+        },
+        {
+          "trade_date": "2026-10-13",
+          "from": "候选趋势",
+          "to": "高潮/衰退",
+          "event": "market_state_change",
+          "reason": "10月13日核心样本单日中位数-3.056%、上涨广度仅8.33%、相对市场-3.274个百分点，且成交量比升至1.907，弱势扩散并出现放量分歧，候选趋势降为高潮/衰退；产业T1尚未被新证据推翻。"
         }
       ]
     },
@@ -351,7 +430,7 @@
       "market_state": "观察",
       "lifecycle_status": "有效",
       "first_seen_trade_date": "2026-09-17",
-      "last_verified_trade_date": "2026-10-12",
+      "last_verified_trade_date": "2026-10-13",
       "industry_codes": [
         "S370603"
       ],
@@ -396,10 +475,15 @@
           "description": "10月12日全市场风险偏好收缩，未获得CRO板块独立扩散及成交承接证据。",
           "source": "https://stcn.com/article/detail/4212211.html",
           "trade_date": "2026-10-12"
+        },
+        {
+          "description": "医疗研发外包样本单日中位数-0.611%、3日-3.15%、5日-2.06%，单日上涨广度0%，相对市场-0.829个百分点。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
         }
       ],
       "invalidation_condition": "节后CRO广度快速回落且订单、BD或盈利兑现不及预期，市场相对强度重新转弱。",
-      "change_reason": "产业订单与BD逻辑未见否定证据，但当日无板块广度或相对强度支持升级。",
+      "change_reason": "10月13日医疗研发外包样本单日中位数-0.611%、3日-3.15%、单日上涨广度0%，市场链仍弱；既有订单及盈利修复证据未被新事实证伪，产业T2维持但仅观察。",
       "state_history": [
         {
           "trade_date": "2026-09-28",
@@ -435,16 +519,23 @@
           "to": "观察",
           "event": "verified_maintained",
           "reason": "产业订单与BD逻辑未见否定证据，但当日无板块广度或相对强度支持升级。"
+        },
+        {
+          "trade_date": "2026-10-13",
+          "from": "观察",
+          "to": "观察",
+          "event": "verified_maintained",
+          "reason": "10月13日医疗研发外包样本单日中位数-0.611%、3日-3.15%、单日上涨广度0%，市场链仍弱；既有订单及盈利修复证据未被新事实证伪，产业T2维持但仅观察。"
         }
       ]
     },
     {
       "trend_name": "风电设备",
       "trend_state": "T1",
-      "market_state": "候选趋势",
+      "market_state": "观察",
       "lifecycle_status": "有效",
       "first_seen_trade_date": "2026-09-17",
-      "last_verified_trade_date": "2026-10-12",
+      "last_verified_trade_date": "2026-10-13",
       "industry_codes": [
         "S630601",
         "S630602"
@@ -453,7 +544,7 @@
         "风电整机",
         "风电零部件"
       ],
-      "in_new_position_priority": true,
+      "in_new_position_priority": false,
       "supporting_evidence": [
         {
           "description": "2026年1—8月国内风电项目招标71.1GW、同比增长15.9%，6—7月新增装机同比高增。",
@@ -491,10 +582,15 @@
           "description": "Python快照显示风电样本近3日中位收益-1.96%、加速度为负，修复仍未形成连续确认。",
           "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
           "trade_date": "2026-10-12"
+        },
+        {
+          "description": "风电核心样本单日中位数-0.766%、3日-3.95%、5日-1.26%，上涨广度22.22%/33.33%/33.33%，成交量比1.182。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
         }
       ],
       "invalidation_condition": "招标或装机兑现转弱，同时板块相对强度与广度连续退出候选区。",
-      "change_reason": "招标规模、开标价格与板块广度交叉成立，解除历史待复核；3日收益仍为负，暂不升级趋势确认。",
+      "change_reason": "10月13日风电核心样本单日中位数-0.766%、3日-3.95%，1/3/5日上涨广度22.22%/33.33%/33.33%，分歧承接与中票扩散不再满足候选标准，降为观察；产业T1不变。",
       "state_history": [
         {
           "trade_date": "2026-09-29",
@@ -530,9 +626,15 @@
           "to": "候选趋势",
           "event": "verified_maintained",
           "reason": "招标规模、开标价格与板块广度交叉成立，解除历史待复核；3日收益仍为负，暂不升级趋势确认。"
+        },
+        {
+          "trade_date": "2026-10-13",
+          "from": "候选趋势",
+          "to": "观察",
+          "event": "market_state_change",
+          "reason": "10月13日风电核心样本单日中位数-0.766%、3日-3.95%，1/3/5日上涨广度22.22%/33.33%/33.33%，分歧承接与中票扩散不再满足候选标准，降为观察；产业T1不变。"
         }
-      ],
-      "priority_rank": 2
+      ]
     },
     {
       "trend_name": "PCB/CCL",
@@ -540,7 +642,7 @@
       "market_state": "失效",
       "lifecycle_status": "已失效",
       "first_seen_trade_date": "2026-09-17",
-      "last_verified_trade_date": "2026-10-12",
+      "last_verified_trade_date": "2026-10-13",
       "industry_codes": [
         "S270202"
       ],
@@ -558,6 +660,11 @@
           "description": "AI-PCB订单强劲、满产扩产与覆铜板供给偏紧的产业线索仍在，T1暂未被推翻。",
           "source": "https://stock.jrj.com.cn/2026/10/08150558631949.shtml",
           "trade_date": "2026-10-08"
+        },
+        {
+          "description": "PCB/CCL核心样本单日中位数+4.48%、上涨广度95.83%、相对市场+4.262个百分点，出现失效后反弹线索。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
         }
       ],
       "contrary_evidence": [
@@ -585,10 +692,15 @@
           "description": "Python辅助快照：单日中位-4.465%、3日-10.82%、广度12.5%，持续破坏相对强度。",
           "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
           "trade_date": "2026-10-12"
+        },
+        {
+          "description": "PCB/CCL核心样本3日/5日中位数仍为-3.3%/-9.23%，3日/5日上涨广度仅25%/8.33%，成交量比0.926，尚无连续恢复。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
         }
       ],
       "invalidation_condition": "PCB相对强度与广度连续无法修复，同时CCL提价或下游订单传导被证伪。",
-      "change_reason": "单日中位-4.465%、3日-10.82%、广度12.5%，持续破坏相对强度。 产业状态作为历史记录保留，退出有效趋势与新仓池。",
+      "change_reason": "10月13日虽单日中位数+4.48%、上涨广度95.83%，但3日/5日仍为-3.3%/-9.23%，3日/5日广度仅25%/8.33%；单日修复未满足失效后恢复所需的连续广度与结构确认，维持失效。",
       "state_history": [
         {
           "trade_date": "2026-09-29",
@@ -624,6 +736,13 @@
           "to": "失效",
           "event": "trend_invalidated",
           "reason": "单日中位-4.465%、3日-10.82%、广度12.5%，持续破坏相对强度。 产业状态作为历史记录保留，退出有效趋势与新仓池。"
+        },
+        {
+          "trade_date": "2026-10-13",
+          "from": "失效",
+          "to": "失效",
+          "event": "invalid_status_maintained",
+          "reason": "10月13日虽单日中位数+4.48%、上涨广度95.83%，但3日/5日仍为-3.3%/-9.23%，3日/5日广度仅25%/8.33%；单日修复未满足失效后恢复所需的连续广度与结构确认，维持失效。"
         }
       ]
     },
@@ -633,7 +752,7 @@
       "market_state": "失效",
       "lifecycle_status": "已失效",
       "first_seen_trade_date": "2026-09-17",
-      "last_verified_trade_date": "2026-10-12",
+      "last_verified_trade_date": "2026-10-13",
       "industry_codes": [
         "S270108",
         "S270103"
@@ -675,10 +794,15 @@
           "description": "Python辅助快照：单日中位-1.824%、3日-6.72%、广度18.18%，此前退潮未获得修复。",
           "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
           "trade_date": "2026-10-12"
+        },
+        {
+          "description": "半导体设备5日中位数-6.04%；半导体材料单日/3日/5日中位数-0.506%/-4.89%/-12.465%，恢复条件未满足。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
         }
       ],
       "invalidation_condition": "设备订单交付或晶圆厂扩产明显下修，且市场相对强度持续弱于大盘。",
-      "change_reason": "单日中位-1.824%、3日-6.72%、广度18.18%，此前退潮未获得修复。 产业状态作为历史记录保留，退出有效趋势与新仓池。",
+      "change_reason": "10月13日半导体设备单日仅小幅修复而5日仍-6.04%，半导体材料单日-0.506%、3日-4.89%、5日-12.465%；无足以推翻既有失效判定的市场连续性证据。",
       "state_history": [
         {
           "trade_date": "2026-09-24",
@@ -714,6 +838,13 @@
           "to": "失效",
           "event": "trend_invalidated",
           "reason": "单日中位-1.824%、3日-6.72%、广度18.18%，此前退潮未获得修复。 产业状态作为历史记录保留，退出有效趋势与新仓池。"
+        },
+        {
+          "trade_date": "2026-10-13",
+          "from": "失效",
+          "to": "失效",
+          "event": "invalid_status_maintained",
+          "reason": "10月13日半导体设备单日仅小幅修复而5日仍-6.04%，半导体材料单日-0.506%、3日-4.89%、5日-12.465%；无足以推翻既有失效判定的市场连续性证据。"
         }
       ]
     },
@@ -723,7 +854,7 @@
       "market_state": "失效",
       "lifecycle_status": "已失效",
       "first_seen_trade_date": "2026-09-17",
-      "last_verified_trade_date": "2026-10-12",
+      "last_verified_trade_date": "2026-10-13",
       "industry_codes": [
         "S730204"
       ],
@@ -741,6 +872,11 @@
           "description": "头部云厂商资本开支与1.6T光模块订单能见度仍延续至2027年以后，产业T2未失效。",
           "source": "https://finance.eastmoney.com/a/202610083889412044.html",
           "trade_date": "2026-10-08"
+        },
+        {
+          "description": "通信网络设备及器件样本单日中位数+0.343%、上涨广度61.54%，出现弱修复。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
         }
       ],
       "contrary_evidence": [
@@ -763,10 +899,15 @@
           "description": "Python辅助快照：单日中位-3.48%、3日-9.21%，1/3/5日广度均为0，市场趋势失效。",
           "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
           "trade_date": "2026-10-12"
+        },
+        {
+          "description": "同组3日/5日中位数-4.43%/-9.25%，未达到失效后连续恢复标准。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
         }
       ],
       "invalidation_condition": "订单能见度或扩产兑现下修，且板块反弹不能恢复广度并继续破位。",
-      "change_reason": "单日中位-3.48%、3日-9.21%，1/3/5日广度均为0，市场趋势失效。 产业状态作为历史记录保留，退出有效趋势与新仓池。",
+      "change_reason": "10月13日相关申万行业单日中位数+0.343%、广度61.54%，但3日/5日仍-4.43%/-9.25%；没有连续量价与中票扩散，维持失效。",
       "state_history": [
         {
           "trade_date": "2026-09-17",
@@ -802,6 +943,13 @@
           "to": "失效",
           "event": "trend_invalidated",
           "reason": "单日中位-3.48%、3日-9.21%，1/3/5日广度均为0，市场趋势失效。 产业状态作为历史记录保留，退出有效趋势与新仓池。"
+        },
+        {
+          "trade_date": "2026-10-13",
+          "from": "失效",
+          "to": "失效",
+          "event": "invalid_status_maintained",
+          "reason": "10月13日相关申万行业单日中位数+0.343%、广度61.54%，但3日/5日仍-4.43%/-9.25%；没有连续量价与中票扩散，维持失效。"
         }
       ]
     },
@@ -811,7 +959,7 @@
       "market_state": "观察",
       "lifecycle_status": "有效",
       "first_seen_trade_date": "2026-09-17",
-      "last_verified_trade_date": "2026-10-12",
+      "last_verified_trade_date": "2026-10-13",
       "industry_codes": [
         "S740101",
         "S740102"
@@ -846,6 +994,11 @@
           "description": "秦皇岛港动力煤现货较节前上涨，口岸与矿山供应偏紧提供价格支撑。",
           "source": "https://stock.finance.sina.com.cn/stock/go.php/vReport_Show/kind/search/rptid/845133342902/index.phtml",
           "trade_date": "2026-10-12"
+        },
+        {
+          "description": "动力煤与焦煤单日中位数分别+0.457%/+0.599%，上涨广度80%/72.73%。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
         }
       ],
       "contrary_evidence": [
@@ -873,10 +1026,15 @@
           "description": "核心样本单日中位-2.513%、广度15.38%；焦炭二轮提降且终端需求仍弱。",
           "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
           "trade_date": "2026-10-12"
+        },
+        {
+          "description": "动力煤与焦煤3日中位数分别-1.07%/-1.54%，市场扩散仍缺连续性。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
         }
       ],
       "invalidation_condition": "煤价与价差持续下行、库存累积，且A股煤炭相对强度无法修复。",
-      "change_reason": "动力煤供给与冬储支撑仍在，但焦炭提降、需求偏弱及A股广度15.38%共同使市场由候选降为观察。",
+      "change_reason": "动力煤与焦煤10月13日单日分别+0.457%/+0.599%，广度80%/72.73%，但3日均为负；商品与权益未形成同步加速，产业T2、市场观察维持。",
       "state_history": [
         {
           "trade_date": "2026-09-17",
@@ -912,6 +1070,13 @@
           "to": "观察",
           "event": "market_state_change",
           "reason": "动力煤供给与冬储支撑仍在，但焦炭提降、需求偏弱及A股广度15.38%共同使市场由候选降为观察。"
+        },
+        {
+          "trade_date": "2026-10-13",
+          "from": "观察",
+          "to": "观察",
+          "event": "verified_maintained",
+          "reason": "动力煤与焦煤10月13日单日分别+0.457%/+0.599%，广度80%/72.73%，但3日均为负；商品与权益未形成同步加速，产业T2、市场观察维持。"
         }
       ]
     },
@@ -921,7 +1086,7 @@
       "market_state": "观察",
       "lifecycle_status": "有效",
       "first_seen_trade_date": "2026-09-17",
-      "last_verified_trade_date": "2026-10-12",
+      "last_verified_trade_date": "2026-10-13",
       "industry_codes": [
         "S240302"
       ],
@@ -939,6 +1104,11 @@
           "description": "LME铜升至每吨14600美元以上，中国基建刺激预期与智利矿山供应风险形成商品第一锚。",
           "source": "https://www.wsj.com/finance/commodities-futures/gold-rises-as-markets-weigh-oil-pullback-2c0301c2",
           "trade_date": "2026-10-12"
+        },
+        {
+          "description": "铜行业单日中位数+0.7%、上涨广度62.5%。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
         }
       ],
       "contrary_evidence": [
@@ -961,10 +1131,15 @@
           "description": "A股铜样本单日中位-3.277%、广度0、相对市场-1.689个百分点，商品与权益明显背离。",
           "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
           "trade_date": "2026-10-12"
+        },
+        {
+          "description": "铜行业3日/5日中位数-1.655%/-1.495%，成交量比0.61，权益持续性不足。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
         }
       ],
       "invalidation_condition": "铜价跌破中期供需支撑、库存持续累积，并伴随A股有色结构确认失效。",
-      "change_reason": "LME铜受中国刺激预期与矿山供应风险走强，产业第一锚得到更新；但A股铜样本全线下跌，市场仅定为观察。",
+      "change_reason": "10月13日铜行业单日中位数+0.7%、广度62.5%，但3日/5日为-1.655%/-1.495%、成交量比0.61；商品第一锚未转弱到足以推翻T2，但A股结构不足以升级。",
       "state_history": [
         {
           "trade_date": "2026-09-17",
@@ -1000,6 +1175,13 @@
           "to": "观察",
           "event": "market_state_change",
           "reason": "LME铜受中国刺激预期与矿山供应风险走强，产业第一锚得到更新；但A股铜样本全线下跌，市场仅定为观察。"
+        },
+        {
+          "trade_date": "2026-10-13",
+          "from": "观察",
+          "to": "观察",
+          "event": "verified_maintained",
+          "reason": "10月13日铜行业单日中位数+0.7%、广度62.5%，但3日/5日为-1.655%/-1.495%、成交量比0.61；商品第一锚未转弱到足以推翻T2，但A股结构不足以升级。"
         }
       ]
     },
@@ -1009,7 +1191,7 @@
       "market_state": "失效",
       "lifecycle_status": "已失效",
       "first_seen_trade_date": "2026-09-29",
-      "last_verified_trade_date": "2026-10-12",
+      "last_verified_trade_date": "2026-10-13",
       "industry_codes": [
         "S430101",
         "S430102",
@@ -1062,10 +1244,15 @@
           "description": "政策T0未转化为连续市场承接，样本单日中位-2.817%、3日-3.94%、广度仅6.59%，市场趋势失效。",
           "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
           "trade_date": "2026-10-12"
+        },
+        {
+          "description": "房地产主要申万三级子组1/3/5日量价结构仍偏弱，未出现覆盖开发与服务链的恢复。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/sector_discovery_audit.json",
+          "trade_date": "2026-10-13"
         }
       ],
       "invalidation_condition": "政策落地后销售与融资数据未改善，且板块分歧承接失败、相对强度回落。",
-      "change_reason": "政策T0未转化为连续市场承接，样本单日中位-2.817%、3日-3.94%、广度仅6.59%，市场趋势失效。",
+      "change_reason": "10月13日住宅开发、商业地产及物业管理等主要子组1/3/5日结构仍偏弱，未取得销售、价格或信用链条的新改善证据，维持失效。",
       "state_history": [
         {
           "trade_date": "2026-09-30",
@@ -1094,6 +1281,13 @@
           "to": "失效",
           "event": "trend_invalidated",
           "reason": "政策T0未转化为连续市场承接，样本单日中位-2.817%、3日-3.94%、广度仅6.59%，市场趋势失效。"
+        },
+        {
+          "trade_date": "2026-10-13",
+          "from": "失效",
+          "to": "失效",
+          "event": "invalid_status_maintained",
+          "reason": "10月13日住宅开发、商业地产及物业管理等主要子组1/3/5日结构仍偏弱，未取得销售、价格或信用链条的新改善证据，维持失效。"
         }
       ]
     },
@@ -1143,10 +1337,15 @@
           "description": "Python快照显示机器人当日广度0、近3日中位-3.085%，政策催化尚未转为市场扩散。",
           "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
           "trade_date": "2026-10-12"
+        },
+        {
+          "description": "机器人样本单日/3日/5日中位数-0.368%/-0.565%/-4.235%，单日上涨广度33.33%。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
         }
       ],
       "invalidation_condition": "后续无中票扩散或产业订单验证，且龙头断板后板块快速回吐。",
-      "change_reason": "政策与展会催化存在，但样本单日中位-1.917%、广度0，且无新增订单盈利证据；保留10月8日T0/观察与原验证日期，继续待复核。",
+      "change_reason": "10月13日机器人样本单日中位数-0.368%、3日-0.565%、5日-4.235%，未取得订单、排产或利润传导新证据；保留2026-10-08原核验日期并继续待复核。",
       "state_history": [
         {
           "trade_date": "2026-09-30",
@@ -1175,6 +1374,13 @@
           "to": "观察",
           "event": "revalidation_pending",
           "reason": "政策与展会催化存在，但样本单日中位-1.917%、广度0，且无新增订单盈利证据；保留10月8日T0/观察与原验证日期，继续待复核。"
+        },
+        {
+          "trade_date": "2026-10-13",
+          "from": "观察",
+          "to": "观察",
+          "event": "revalidation_pending",
+          "reason": "10月13日机器人样本单日中位数-0.368%、3日-0.565%、5日-4.235%，未取得订单、排产或利润传导新证据；保留2026-10-08原核验日期并继续待复核。"
         }
       ],
       "last_known_trend_state": "T0",
@@ -1187,7 +1393,7 @@
       "market_state": "高潮/衰退",
       "lifecycle_status": "有效",
       "first_seen_trade_date": "2026-10-08",
-      "last_verified_trade_date": "2026-10-12",
+      "last_verified_trade_date": "2026-10-13",
       "industry_codes": [
         "S750101",
         "S750201"
@@ -1217,6 +1423,11 @@
           "description": "布伦特约104美元且中东航运风险仍提供上行尾部风险。",
           "source": "https://www.reuters.com/world/china/global-markets-wrapup-1-2026-10-12/",
           "trade_date": "2026-10-12"
+        },
+        {
+          "description": "油气开采样本单日中位数+1.068%、上涨广度100%，油价绝对水平仍处高位。",
+          "source": "https://www.reuters.com/business/energy/oil-prices-fall-investors-weigh-supply-risks-demand-outlook-2026-10-13/",
+          "trade_date": "2026-10-13"
         }
       ],
       "contrary_evidence": [
@@ -1234,10 +1445,15 @@
           "description": "A股油气单日中位-3.142%、广度18.18%，原油高位与权益继续背离。",
           "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
           "trade_date": "2026-10-12"
+        },
+        {
+          "description": "10月13日原油价格回落约2%；油气开采与油田服务3日中位数分别-0.915%/-2.48%。",
+          "source": "https://www.reuters.com/business/energy/oil-prices-fall-investors-weigh-supply-risks-demand-outlook-2026-10-13/",
+          "trade_date": "2026-10-13"
         }
       ],
       "invalidation_condition": "布伦特持续跌回供给冲击前区间、库存转为连续累积，且A股油气广度与中票承接同步消失。",
-      "change_reason": "布伦特仍处高位但回落，A股油气单日中位-3.142%、相对市场-1.554个百分点，连续背离使市场降为高潮/衰退。",
+      "change_reason": "10月13日国际油价回落约2%，油气开采与油服3日中位数仍为负；地缘溢价与高油价第一锚尚在，但A股扩散不足，维持高潮/衰退。",
       "state_history": [
         {
           "trade_date": "2026-10-08",
@@ -1259,6 +1475,13 @@
           "to": "高潮/衰退",
           "event": "market_state_change",
           "reason": "布伦特仍处高位但回落，A股油气单日中位-3.142%、相对市场-1.554个百分点，连续背离使市场降为高潮/衰退。"
+        },
+        {
+          "trade_date": "2026-10-13",
+          "from": "高潮/衰退",
+          "to": "高潮/衰退",
+          "event": "verified_maintained",
+          "reason": "10月13日国际油价回落约2%，油气开采与油服3日中位数仍为负；地缘溢价与高油价第一锚尚在，但A股扩散不足，维持高潮/衰退。"
         }
       ]
     },
@@ -1268,7 +1491,7 @@
       "market_state": "观察",
       "lifecycle_status": "有效",
       "first_seen_trade_date": "2026-10-08",
-      "last_verified_trade_date": "2026-10-12",
+      "last_verified_trade_date": "2026-10-13",
       "industry_codes": [
         "S421101",
         "S421102"
@@ -1288,6 +1511,11 @@
           "description": "原油运输价格仍处高位，前一交易日航运链条获得商品与运价催化。",
           "source": "https://www.xincai.com/article/niuphnx7629080",
           "trade_date": "2026-10-09"
+        },
+        {
+          "description": "航运单日中位数+1.622%、上涨广度88.89%、成交量比1.092；港口单日+0.294%。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
         }
       ],
       "contrary_evidence": [
@@ -1305,10 +1533,15 @@
           "description": "航运/港口样本单日中位-1.043%、广度32.35%、成交量比0.904，缺少放量扩散。",
           "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
           "trade_date": "2026-10-12"
+        },
+        {
+          "description": "航运与港口3日中位数分别-0.49%/-0.46%，单日反弹尚未形成连续趋势。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
         }
       ],
       "invalidation_condition": "运价与附加费未能持续、航运板块次日后迅速失去广度，且燃油成本侵蚀利润。",
-      "change_reason": "中东航运风险仍是T0催化，A股样本相对市场略强但绝对收益为负，未达到候选趋势。",
+      "change_reason": "10月13日航运单日中位数+1.622%、广度88.89%，港口+0.294%、广度56.25%，但两组3日收益均约-0.46%；红海与运价第一锚尚需更新，维持T0观察。",
       "state_history": [
         {
           "trade_date": "2026-10-08",
@@ -1330,23 +1563,30 @@
           "to": "观察",
           "event": "verified_maintained",
           "reason": "中东航运风险仍是T0催化，A股样本相对市场略强但绝对收益为负，未达到候选趋势。"
+        },
+        {
+          "trade_date": "2026-10-13",
+          "from": "观察",
+          "to": "观察",
+          "event": "verified_maintained",
+          "reason": "10月13日航运单日中位数+1.622%、广度88.89%，港口+0.294%、广度56.25%，但两组3日收益均约-0.46%；红海与运价第一锚尚需更新，维持T0观察。"
         }
       ]
     },
     {
       "trend_name": "黄金/贵金属",
       "trend_state": "T1",
-      "market_state": "观察",
+      "market_state": "候选趋势",
       "lifecycle_status": "有效",
       "first_seen_trade_date": "2026-10-09",
-      "last_verified_trade_date": "2026-10-12",
+      "last_verified_trade_date": "2026-10-13",
       "industry_codes": [
         "S240401"
       ],
       "industry_names": [
         "黄金"
       ],
-      "in_new_position_priority": false,
+      "in_new_position_priority": true,
       "supporting_evidence": [
         {
           "description": "现货黄金上涨约1.4%至每盎司4189.99美元，美元走弱与油价回落形成商品第一锚。",
@@ -1362,6 +1602,16 @@
           "description": "现货黄金在一周高位附近，约4177美元/盎司，避险需求仍在。",
           "source": "https://www.reuters.com/world/india/gold-gains-weaker-oil-dollar-us-inflation-data-focus-2026-10-12/",
           "trade_date": "2026-10-12"
+        },
+        {
+          "description": "现货黄金10月13日约升0.4%至4186.91美元/盎司，油价和美元回落、通胀数据前避险需求支撑商品第一锚。",
+          "source": "https://www.reuters.com/world/india/gold-eases-firm-dollar-spotlight-us-inflation-data-2026-10-13/",
+          "trade_date": "2026-10-13"
+        },
+        {
+          "description": "A股黄金样本单日/3日/5日中位数+1.696%/+2.41%/+1.89%，上涨广度88.89%/77.78%/66.67%。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
         }
       ],
       "contrary_evidence": [
@@ -1374,10 +1624,15 @@
           "description": "A股黄金样本单日中位-4.075%、广度0、相对市场-2.487个百分点。",
           "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
           "trade_date": "2026-10-12"
+        },
+        {
+          "description": "黄金样本成交量比0.948，未出现显著放量；若美元和实际利率上行，商品与权益可能同步回撤。",
+          "source": "https://www.reuters.com/world/india/gold-eases-firm-dollar-spotlight-us-inflation-data-2026-10-13/",
+          "trade_date": "2026-10-13"
         }
       ],
       "invalidation_condition": "金价跌破本轮修复区间、美元与实际利率同步上行，同时A股黄金板块广度和中票承接消失。",
-      "change_reason": "国际金价仅小幅回落，但A股黄金样本单日中位-4.075%、广度0，商品与权益背离使市场由候选降为观察。",
+      "change_reason": "10月13日现货金约升0.4%至4186.91美元/盎司，A股黄金样本单日+1.696%、3日+2.41%、5日+1.89%，广度88.89%/77.78%/66.67%，商品第一锚与权益结构同步，观察升为候选。",
       "state_history": [
         {
           "trade_date": "2026-10-09",
@@ -1392,8 +1647,16 @@
           "to": "观察",
           "event": "market_state_change",
           "reason": "国际金价仅小幅回落，但A股黄金样本单日中位-4.075%、广度0，商品与权益背离使市场由候选降为观察。"
+        },
+        {
+          "trade_date": "2026-10-13",
+          "from": "观察",
+          "to": "候选趋势",
+          "event": "market_state_change",
+          "reason": "10月13日现货金约升0.4%至4186.91美元/盎司，A股黄金样本单日+1.696%、3日+2.41%、5日+1.89%，广度88.89%/77.78%/66.67%，商品第一锚与权益结构同步，观察升为候选。"
         }
-      ]
+      ],
+      "priority_rank": 1
     },
     {
       "trend_name": "文化传媒/影视院线",
@@ -1401,7 +1664,7 @@
       "market_state": "候选趋势",
       "lifecycle_status": "有效",
       "first_seen_trade_date": "2026-10-09",
-      "last_verified_trade_date": "2026-10-12",
+      "last_verified_trade_date": "2026-10-13",
       "industry_codes": [
         "S720601",
         "S720602",
@@ -1435,6 +1698,11 @@
           "description": "PineDrama上线约9个月累计下载量突破1亿、日活约700万，AI短剧出海与广告变现提供收入增长线索。",
           "source": "https://finance.eastmoney.com/a/202610123892730929.html",
           "trade_date": "2026-10-12"
+        },
+        {
+          "description": "影视动漫制作3日/5日中位数+9.05%/+9.75%、成交量比1.505；大众出版3日/5日+7.45%/+5.17%。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
         }
       ],
       "contrary_evidence": [
@@ -1447,10 +1715,15 @@
           "description": "多只龙头连续涨停且全市场普跌，板块存在一致性过热；短剧用户增长尚未等同上市公司利润兑现。",
           "source": "https://stcn.com/article/detail/4212211.html",
           "trade_date": "2026-10-12"
+        },
+        {
+          "description": "10月13日院线单日中位数-0.471%，板块内部开始分化且短期涨幅偏大，不满足趋势确认。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
         }
       ],
       "invalidation_condition": "涨停扩散迅速消失、成交回落，且票房、广告或内容订单未形成持续改善。",
-      "change_reason": "短剧海外用户增长、AI内容合作与激励政策形成未来季度收入线索；传媒连续两日扩散，产业升T1、市场升候选，但龙头加速和票房分化阻止升级确认。",
+      "change_reason": "影视动漫制作3日/5日中位数+9.05%/+9.75%，出版+7.45%/+5.17%，市场趋势延续；但10月13日院线单日转负且内部出现分化，维持候选而不升级确认。",
       "state_history": [
         {
           "trade_date": "2026-10-09",
@@ -1465,17 +1738,24 @@
           "to": "候选趋势",
           "event": "market_state_change",
           "reason": "短剧海外用户增长、AI内容合作与激励政策形成未来季度收入线索；传媒连续两日扩散，产业升T1、市场升候选，但龙头加速和票房分化阻止升级确认。"
+        },
+        {
+          "trade_date": "2026-10-13",
+          "from": "候选趋势",
+          "to": "候选趋势",
+          "event": "verified_maintained",
+          "reason": "影视动漫制作3日/5日中位数+9.05%/+9.75%，出版+7.45%/+5.17%，市场趋势延续；但10月13日院线单日转负且内部出现分化，维持候选而不升级确认。"
         }
       ],
-      "priority_rank": 3
+      "priority_rank": 2
     },
     {
       "trend_name": "银行",
       "trend_state": "T1",
-      "market_state": "趋势确认",
+      "market_state": "候选趋势",
       "lifecycle_status": "有效",
       "first_seen_trade_date": "2026-10-12",
-      "last_verified_trade_date": "2026-10-12",
+      "last_verified_trade_date": "2026-10-13",
       "industry_codes": [
         "S480201",
         "S480301",
@@ -1489,7 +1769,6 @@
         "农商行Ⅲ"
       ],
       "in_new_position_priority": true,
-      "priority_rank": 1,
       "supporting_evidence": [
         {
           "description": "2026年上半年上市银行营收同比增长7.4%、归母净利润同比增长1.5%，较2025年明显改善，净息差企稳及分红提升构成未来季度盈利与回报支撑。",
@@ -1500,6 +1779,11 @@
           "description": "四类银行样本当日广度均为100%，单日中位收益1.379%—2.815%，近3日与5日收益均为正，市场扩散跨大行、股份行、城商行和农商行。",
           "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
           "trade_date": "2026-10-12"
+        },
+        {
+          "description": "国有大行样本单日+0.713%、3日+2.07%、5日+4.255%，成交量比1.20。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
         }
       ],
       "contrary_evidence": [
@@ -1507,10 +1791,15 @@
           "description": "当日全市场超4300股下跌，银行上涨包含明显防御抱团成分；融资需求偏弱和高位拥挤可能压制后续收益。",
           "source": "https://stcn.com/article/detail/4212211.html",
           "trade_date": "2026-10-12"
+        },
+        {
+          "description": "股份行、城商行、农商行单日中位数分别-0.827%/-1.406%/-1.438%，对应上涨广度11.11%/0%/0%，内部扩散显著收缩。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
         }
       ],
       "invalidation_condition": "三季报未验证息差或利润改善，资产质量转弱，同时银行各子板块广度与相对强度连续回落。",
-      "change_reason": "全市场扫描新增T1趋势；盈利筑底、分红与跨子板块多日市场结构交叉成立，市场定为趋势确认并列新仓Rank 1。",
+      "change_reason": "国有大行10月13日仍+0.713%、3日+2.07%、5日+4.255%，但股份行-0.827%、城商行-1.406%、农商行-1.438%，中票扩散明显收缩，趋势确认降为候选；红利和资产质量逻辑未被推翻。",
       "state_history": [
         {
           "trade_date": "2026-10-12",
@@ -1518,16 +1807,24 @@
           "to": "趋势确认",
           "event": "new_trend_detected",
           "reason": "产业盈利改善与银行全子板块多日扩散同步成立"
+        },
+        {
+          "trade_date": "2026-10-13",
+          "from": "趋势确认",
+          "to": "候选趋势",
+          "event": "market_state_change",
+          "reason": "国有大行10月13日仍+0.713%、3日+2.07%、5日+4.255%，但股份行-0.827%、城商行-1.406%、农商行-1.438%，中票扩散明显收缩，趋势确认降为候选；红利和资产质量逻辑未被推翻。"
         }
-      ]
+      ],
+      "priority_rank": 3
     },
     {
       "trend_name": "电网设备/特高压",
       "trend_state": "T1",
-      "market_state": "新异动",
+      "market_state": "观察",
       "lifecycle_status": "有效",
       "first_seen_trade_date": "2026-10-12",
-      "last_verified_trade_date": "2026-10-12",
+      "last_verified_trade_date": "2026-10-13",
       "industry_codes": [
         "S630801",
         "S630802",
@@ -1558,10 +1855,15 @@
           "description": "Python候选未显示电网设备形成全行业强势信号，当前更像局部设备扩散；原材料成本与招标竞争仍可能压缩利润。",
           "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
           "trade_date": "2026-10-12"
+        },
+        {
+          "description": "输变电、配电、电网自动化与仪表单日中位数分别-0.443%/-0.196%/-1.143%/-0.028%，上涨广度43.75%/35.71%/30%/50%。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
         }
       ],
       "invalidation_condition": "电网投资招标与交付不及预期，且局部异动未扩散到主要设备子行业并快速回吐。",
-      "change_reason": "资本开支和订单锚明确，但市场仅局部异动，定为T1/新异动，不进入新仓优先榜。",
+      "change_reason": "10月13日输变电、配电、电网自动化和仪表四个子组单日中位数均偏弱或接近零，广度不足；新异动未形成持续扩散，降为观察，产业T1维持。",
       "state_history": [
         {
           "trade_date": "2026-10-12",
@@ -1569,13 +1871,20 @@
           "to": "新异动",
           "event": "new_trend_detected",
           "reason": "电网投资锚与局部市场异动首次交叉"
+        },
+        {
+          "trade_date": "2026-10-13",
+          "from": "新异动",
+          "to": "观察",
+          "event": "market_state_change",
+          "reason": "10月13日输变电、配电、电网自动化和仪表四个子组单日中位数均偏弱或接近零，广度不足；新异动未形成持续扩散，降为观察，产业T1维持。"
         }
       ]
     },
     {
       "trend_name": "线下药店",
       "trend_state": "待核验",
-      "market_state": "新异动",
+      "market_state": "候选趋势",
       "lifecycle_status": "待复核",
       "first_seen_trade_date": "2026-10-12",
       "last_verified_trade_date": "2026-10-12",
@@ -1591,6 +1900,11 @@
           "description": "Python行业扫描显示6只样本全部上涨，单日中位+3.127%、相对市场+4.715个百分点、成交量比2.335，出现STRONG+EMERGING线索。",
           "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
           "trade_date": "2026-10-12"
+        },
+        {
+          "description": "线下药店样本单日/3日/5日中位数+1.036%/+5.385%/+8.38%，单日上涨广度83.33%、成交量比2.052。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
         }
       ],
       "contrary_evidence": [
@@ -1598,10 +1912,15 @@
           "description": "未取得覆盖全行业的处方流转、客流、同店增长或利润修复证据，单日量价不能证明未来1—2季度景气改善。",
           "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
           "trade_date": "2026-10-12"
+        },
+        {
+          "description": "尚未取得同店增长、处方外流、客流或利润修复的行业级新证据，市场强势不能单独确认产业T0/T1。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
         }
       ],
       "invalidation_condition": "后续无客流、同店或政策盈利传导验证，且板块广度在1—2个交易日内消失。",
-      "change_reason": "程序新增线索经筛查后产业证据不足，保留待核验/新异动，不进入新仓榜。",
+      "change_reason": "10月13日线下药店单日+1.036%、3日+5.385%、5日+8.38%，广度83.33%，市场由新异动升为候选；仍缺同店、客流与利润修复证据，保留2026-10-12原核验日期及产业待核验状态。",
       "state_history": [
         {
           "trade_date": "2026-10-12",
@@ -1609,6 +1928,203 @@
           "to": "新异动",
           "event": "new_pending_research",
           "reason": "量价线索有效但产业盈利驱动未核实"
+        },
+        {
+          "trade_date": "2026-10-13",
+          "from": "新异动",
+          "to": "候选趋势",
+          "event": "revalidation_pending",
+          "reason": "10月13日线下药店单日+1.036%、3日+5.385%、5日+8.38%，广度83.33%，市场由新异动升为候选；仍缺同店、客流与利润修复证据，保留2026-10-12原核验日期及产业待核验状态。"
+        }
+      ]
+    },
+    {
+      "trend_name": "商贸零售",
+      "trend_state": "T0",
+      "market_state": "候选趋势",
+      "lifecycle_status": "有效",
+      "first_seen_trade_date": "2026-10-13",
+      "last_verified_trade_date": "2026-10-13",
+      "industry_codes": [
+        "S450301",
+        "S450302"
+      ],
+      "industry_names": [
+        "百货",
+        "超市"
+      ],
+      "in_new_position_priority": false,
+      "supporting_evidence": [
+        {
+          "description": "商务部等9部门发布加快零售业创新发展意见，明确发挥零售业扩大内需作用，并部署场景、设施与业态创新。",
+          "source": "https://www.mofcom.gov.cn/zfxxgk/fdzdgknr/ztfl/gnmygl/art/2026/art_8262ebcc8cf045d9bab632146c3e5ff2.html",
+          "trade_date": "2026-10-13"
+        },
+        {
+          "description": "百货与超市合并样本单日/3日/5日中位数+2.473%/+3.93%/+4.43%，上涨广度92.59%/88.89%/88.89%。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
+        }
+      ],
+      "contrary_evidence": [
+        {
+          "description": "零售样本成交量比0.833，且尚未取得行业同店、客单价或利润率改善的高频确认，产业只定T0。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
+        }
+      ],
+      "invalidation_condition": "若政策促销后1—2周广度跌破40%，且同店、客流或利润率无改善证据，则降级或失效。",
+      "change_reason": "政策支持与1/3/5日宽广度量价同步，形成T0+候选趋势；盈利传导尚未确认，不上调T1。",
+      "state_history": [
+        {
+          "trade_date": "2026-10-13",
+          "from": null,
+          "to": "候选趋势",
+          "event": "new_verified_trend",
+          "reason": "政策支持与1/3/5日宽广度量价同步，形成T0+候选趋势；盈利传导尚未确认，不上调T1。"
+        }
+      ]
+    },
+    {
+      "trend_name": "军工装备/航空航天",
+      "trend_state": "T0",
+      "market_state": "候选趋势",
+      "lifecycle_status": "有效",
+      "first_seen_trade_date": "2026-10-13",
+      "last_verified_trade_date": "2026-10-13",
+      "industry_codes": [
+        "S650201",
+        "S650301",
+        "S650401"
+      ],
+      "industry_names": [
+        "航空装备Ⅲ",
+        "地面兵装Ⅲ",
+        "航海装备Ⅲ"
+      ],
+      "in_new_position_priority": false,
+      "supporting_evidence": [
+        {
+          "description": "第十六届中国航展官方于10月13日更新活动信息，航空航天装备进入事件催化窗口。",
+          "source": "https://www.airshow.com.cn/Default.aspx",
+          "trade_date": "2026-10-13"
+        },
+        {
+          "description": "航空装备、地面兵装、航海装备单日中位数分别+2.487%/+3.287%/+4.661%，三组上涨广度均100%。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
+        }
+      ],
+      "contrary_evidence": [
+        {
+          "description": "航展属于事件催化；地面兵装3日仅+0.92%、5日-0.97%，且尚未取得覆盖行业的订单或盈利上修证据。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
+        }
+      ],
+      "invalidation_condition": "航展催化后2—3个交易日板块广度跌破40%，且订单/合同负债/交付数据无改善，则降为观察或失效。",
+      "change_reason": "三大装备子行业同步100%广度并有官方航展催化，进入T0候选；订单盈利未确认，不能上调T1。",
+      "state_history": [
+        {
+          "trade_date": "2026-10-13",
+          "from": null,
+          "to": "候选趋势",
+          "event": "new_verified_trend",
+          "reason": "三大装备子行业同步100%广度并有官方航展催化，进入T0候选；订单盈利未确认，不能上调T1。"
+        }
+      ]
+    },
+    {
+      "trend_name": "冰雪旅游",
+      "trend_state": "T0",
+      "market_state": "候选趋势",
+      "lifecycle_status": "有效",
+      "first_seen_trade_date": "2026-10-13",
+      "last_verified_trade_date": "2026-10-13",
+      "industry_codes": [
+        "S461002",
+        "S461003",
+        "S461004"
+      ],
+      "industry_names": [
+        "人工景区",
+        "自然景区",
+        "旅游综合"
+      ],
+      "in_new_position_priority": false,
+      "supporting_evidence": [
+        {
+          "description": "国务院冰雪经济政策提出到2027年冰雪经济总规模达到1.2万亿元、2030年达到1.5万亿元。",
+          "source": "https://app.www.gov.cn/govdata/gov/202411/06/521379/article.html",
+          "trade_date": "2026-10-13"
+        },
+        {
+          "description": "旅游景区相关样本单日/3日/5日中位数+2.357%/+1.8%/+0.745%，上涨广度95.45%/90.91%/63.64%。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
+        }
+      ],
+      "contrary_evidence": [
+        {
+          "description": "样本成交量比0.727，且当前尚缺2026—2027雪季预订、客单价与上市板块利润传导确认，季节性兑现存在不确定性。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
+        }
+      ],
+      "invalidation_condition": "雪季预订和客流未兑现、量价广度连续两日跌破40%，或暖冬显著压缩运营期，则降级或失效。",
+      "change_reason": "政策与上一雪季需求基线叠加多日市场扩散，形成T0候选；缺本雪季订单和盈利确认。",
+      "state_history": [
+        {
+          "trade_date": "2026-10-13",
+          "from": null,
+          "to": "候选趋势",
+          "event": "new_verified_trend",
+          "reason": "政策与上一雪季需求基线叠加多日市场扩散，形成T0候选；缺本雪季订单和盈利确认。"
+        }
+      ]
+    },
+    {
+      "trend_name": "染料/纺织化学品",
+      "trend_state": "T1",
+      "market_state": "新异动",
+      "lifecycle_status": "有效",
+      "first_seen_trade_date": "2026-10-13",
+      "last_verified_trade_date": "2026-10-13",
+      "industry_codes": [
+        "S220308"
+      ],
+      "industry_names": [
+        "纺织化学制品"
+      ],
+      "in_new_position_priority": false,
+      "supporting_evidence": [
+        {
+          "description": "9月以来分散染料价格维持30元/千克、较6月低点涨逾30%；活性染料涨约55%，H酸涨约138%，产品与中间体价格构成第一锚。",
+          "source": "https://www.cls.cn/detail/2493930",
+          "trade_date": "2026-10-13"
+        },
+        {
+          "description": "纺织化学制品样本单日中位数+3.147%、上涨广度87.5%，出现权益端新异动。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
+        }
+      ],
+      "contrary_evidence": [
+        {
+          "description": "当前权益证据主要是单日扩散，且价格上涨部分由中间体成本推动；若下游印染需求承接不足，价差和利润可能不改善。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
+        }
+      ],
+      "invalidation_condition": "染料—中间体价差收窄、下游印染开工或订单转弱，且板块广度在2个交易日内跌破40%，则降级或失效。",
+      "change_reason": "产品价格与供给约束支持T1，A股仅单日扩散，市场状态定为新异动而非候选。",
+      "state_history": [
+        {
+          "trade_date": "2026-10-13",
+          "from": null,
+          "to": "新异动",
+          "event": "new_verified_trend",
+          "reason": "产品价格与供给约束支持T1，A股仅单日扩散，市场状态定为新异动而非候选。"
         }
       ]
     }
