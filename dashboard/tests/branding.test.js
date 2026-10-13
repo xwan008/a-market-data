@@ -30,3 +30,13 @@ test('brand artwork remains w.x. but accessible logo names say 识势',()=>{
  }
  assert.match(read('src/App.jsx'),/alt="识势 w\.x\."/);
 });
+
+test('refresh loading screen has one w.x. wordmark without separate W icon',()=>{
+ const source=read('src/App.jsx');
+ const boot=source.match(/if\(authenticated===null\)return <div className="boot-screen">([^\n]+)<\/div>;/)?.[1]||'';
+ assert.match(boot,/className="brand-wordmark" src="\/wordmark\.svg"/);
+ assert.match(boot,/className="spinner"/);
+ assert.doesNotMatch(boot,/className="brand-mark"/);
+ assert.doesNotMatch(boot,/src="\/favicon\.svg"/);
+ assert.match(read('index.html'),/rel="icon"[^>]+href="\/favicon\.svg"/);
+});
