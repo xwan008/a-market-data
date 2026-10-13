@@ -82,9 +82,9 @@ function MiniHoldingCandles({bars}) {
  const pad=Math.max((rawMax-rawMin)*.12,Math.abs(rawMax)*.006,.001);
  const low=rawMin-pad,high=rawMax+pad,range=high-low;
  const y=value=>7+(high-value)/range*45;
- return <svg className="home-candle-svg" viewBox="0 0 102 54" preserveAspectRatio="xMinYMid meet" role="img" aria-label={'最近'+valid.length+'个完成交易日日 K，'+valid.map(b=>b.date+' 开盘'+fixed(b.open)+' 收盘'+fixed(b.close)).join('，')}>
+ return <svg className="home-candle-svg" viewBox="0 0 102 54" preserveAspectRatio="xMidYMid meet" role="img" aria-label={'最近'+valid.length+'个完成交易日日 K，'+valid.map(b=>b.date+' 开盘'+fixed(b.open)+' 收盘'+fixed(b.close)).join('，')}>
   {[0,.5,1].map(t=><line key={t} x1="0" x2="100" y1={7+t*45} y2={7+t*45} stroke="currentColor" strokeOpacity=".09" strokeDasharray="3 4"/>)}
-  {valid.map((b,i)=>{const x=6+i*17,rise=b.close>=b.open,color=rise?'#e68178':'#6cb897',top=Math.min(y(b.open),y(b.close)),height=Math.max(1.7,Math.abs(y(b.open)-y(b.close)));return <g key={b.date}>
+  {valid.map((b,i)=>{const x=16+i*17,rise=b.close>=b.open,color=rise?'#e68178':'#6cb897',top=Math.min(y(b.open),y(b.close)),height=Math.max(1.7,Math.abs(y(b.open)-y(b.close)));return <g key={b.date}>
    <line x1={x} x2={x} y1={y(b.high)} y2={y(b.low)} stroke={color} strokeWidth="1.5"/>
    <rect x={x-5} y={top} width="10" height={height} rx=".8" fill={color}/>
    <title>{b.date+' · 开 '+fixed(b.open)+' / 高 '+fixed(b.high)+' / 低 '+fixed(b.low)+' / 收 '+fixed(b.close)}</title>
@@ -106,7 +106,7 @@ function MiniHoldingIntraday({rows}) {
  }).join(' ');
  const direction=data.length>=2?Math.sign(prices.at(-1)-prices[0]):0;
  const color=direction>0?'#e68178':direction<0?'#6cb897':'#b6c3bd';
- return <svg viewBox="0 0 102 54" className="home-sparkline-svg" preserveAspectRatio="xMinYMid meet" role="img" aria-label={'今日已发布 '+data.length+' 次盘中报价：'+data.map(d=>fmtTime(d.scan_at)+' '+fixed(d.price)+'元').join('，')}>
+ return <svg viewBox="0 0 102 54" className="home-sparkline-svg" preserveAspectRatio="xMidYMid meet" role="img" aria-label={'今日已发布 '+data.length+' 次盘中报价：'+data.map(d=>fmtTime(d.scan_at)+' '+fixed(d.price)+'元').join('，')}>
   {[10,30,49].map(v=><line key={v} x1="0" x2="100" y1={v} y2={v} stroke="currentColor" strokeOpacity=".09" strokeDasharray="3 4"/>)}
   {data.length>=2&&<path d={path} stroke={color} strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>}
   {coords.map((d,i)=><g key={d.item.scan_at}><circle cx={d.x} cy={d.y} r={i===coords.length-1?3.2:2.6} fill={color}/><title>{fmtTime(d.item.scan_at)+' · '+fixed(d.item.price)+' 元'}</title></g>)}

@@ -59,3 +59,15 @@ test('概览持仓两张小图使用正中分隔线而非贴靠今日标签的�
  assert.doesNotMatch(styles,/\.new-home \.home-holding-chart\+\.home-holding-chart\s*\{[^}]*border-left/);
  assert.match(styles,/@media\(max-width:560px\)\{[\s\S]*?\.home-holding \.home-holding-charts\{[\s\S]*?gap:12px/);
 });
+
+test('概览持仓：图表与标题统一中心轴，分隔线处在两个图表正中',()=>{
+ const styles=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
+ const candles=overview.match(/<svg className="home-candle-svg"[^>]+>/)?.[0]||'';
+ const intraday=overview.match(/<svg viewBox="0 0 102 54" className="home-sparkline-svg"[^>]+>/)?.[0]||'';
+ assert.match(candles,/preserveAspectRatio="xMidYMid meet"/);
+ assert.match(intraday,/preserveAspectRatio="xMidYMid meet"/);
+ assert.match(overview,/const x=16\+i\*17,rise=b\.close>=b\.open/);
+ assert.match(styles,/\.new-home \.home-holding-chart svg\{[^}]*max-width:112px[^}]*margin:0 auto/);
+ assert.match(styles,/\.new-home \.home-holding \.home-holding-charts::before\{[^}]*left:50%/);
+ assert.match(styles,/\.new-home \.home-holding-chart\{[^}]*align-items:center;text-align:center/);
+});
