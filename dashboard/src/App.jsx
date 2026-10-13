@@ -89,6 +89,27 @@ function MiniHoldingCandles({bars}) {
  </svg>;
 }
 
+function MiniHoldingIntraday({rows}) {
+ const data=asArray(rows).filter(item=>typeof item?.price==='number'&&Number.isFinite(item.price)&&item.price>0&&typeof item?.scan_at==='string'&&!Number.isNaN(Date.parse(item.scan_at))).slice(0,4);
+ if(!data.length)return <span className="plot-unavailable">等待快照</span>;
+ const prices=data.map(item=>item.price),min=Math.min(...prices),max=Math.max(...prices);
+ const padding=Math.max((max-min)*.18,Math.abs(max)*.0015,.001);
+ const low=min-padding,high=max+padding;
+ const y=value=>6+(high-value)/(high-low)*39;
+ const coords=data.map((item,i)=>({x:11+Math.min(3,Number.isInteger(item.slot)?item.slot-1:i)*29,y:y(item.price),item}));
+ const path=coords.map((cur,i)=>{
+   const prev=coords[i-1];
+   return (prev&&cur.x-prev.x<=29.5&&cur.x>prev.x?'L':'M')+cur.x.toFixed(1)+' '+cur.y.toFixed(1);
+ }).join(' ');
+ const direction=data.length>=2?Math.sign(prices.at(-1)-prices[0]):0;
+ const color=direction>0?'#e68178':direction<0?'#6cb897':'#b6c3bd';
+ return <svg viewBox="0 0 110 54" className="home-sparkline-svg" preserveAspectRatio="xMidYMid meet" role="img" aria-label={'今日已发布 '+data.length+' 次盘中报价：'+data.map(d=>fmtTime(d.scan_at)+' '+fixed(d.price)+'元').join('，')}>
+  {[10,30,49].map(v=><line key={v} x1="5" x2="106" y1={v} y2={v} stroke="currentColor" strokeOpacity=".09" strokeDasharray="3 4"/>)}
+  {data.length>=2&&<path d={path} stroke={color} strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>}
+  {coords.map((d,i)=><g key={d.item.scan_at}><circle cx={d.x} cy={d.y} r={i===coords.length-1?3.2:2.6} fill={color}/><title>{fmtTime(d.item.scan_at)+' · '+fixed(d.item.price)+' 元'}</title></g>)}
+ </svg>;
+}
+
 function SnapshotPlot({rows,field,label,unit='%',scale=1,bounds=null,compact=false}){
  const id=React.useId().replace(/:/g,'');
  const [hovered,setHovered]=useState(null);
@@ -276,9 +297,9 @@ function Overview({registry,trendHandoff,buy,monitor,holdingSnapshot,holdingChar
       const assessment=assessHoldingRisk(p,status.monitor==='OK'?monitor:null,shanghaiDay(),status.holdingSnapshot==='OK'?holdingSnapshot:null);
       return <button className="decision-row home-holding" key={p.code} onClick={()=>onSection('portfolio')}>
        <div className="decision-row-main"><strong>{p.name}</strong><small>{p.code} · {p.verified?p.shares+' 股':'持仓待核验'}</small></div>
-       <div className="home-holding-charts">
-        <div className="home-holding-chart"><span>近 5 日 K 线</span><MiniHoldingCandles bars={candles}/><small>{chart?.daily_last_date?'截至 '+chart.daily_last_date.slice(5)+(chart.daily_basis==='qfq'?' · 前复权':''):'等待日线数据'}</small></div>
-        <div className="home-holding-chart"><span>今日 4 节点 · {dayScans.length}/4</span>{dayScans.length?<SnapshotPlot rows={dayScans} field="price" label="当日价格快照" unit="元" compact/>:<span className="plot-unavailable">等待今日盘中快照</span>}<small>非收盘价 · 不补缺失节点</small></div>
+       <div className="home-mini-chart home-holding-charts" title="左：最近5个完整交易日日K；右：今日真实盘中快照（非收盘价）">
+        <div className="home-holding-chart"><span>近 5 日 K 线</span><MiniHoldingCandles bars={candles}/></div>
+        <div className="home-holding-chart"><span>今日 {dayScans.length}/4</span><MiniHoldingIntraday rows={dayScans}/></div>
        </div>
        <div className="decision-row-meta"><span className={'holding-risk-brief risk-'+assessment.tone}>{assessment.label}</span><small>{assessment.last?'盘中快照 '+fmtTime(assessment.last.scan_at)+(assessment.rule.basis==='close'?' · 收盘确认制':''):'规则来自 Airtable · 等待有效行情'}</small></div><ChevronRight size={15}/>
       </button>
