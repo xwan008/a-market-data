@@ -334,7 +334,7 @@ function Overview({registry,trendHandoff,buy,monitor,holdingSnapshot,holdingChar
     !active?<div className="decision-empty">当天尚未发布有效板块扫描。</div>:<>
      <div className="focus-switch">{monitored.map(item=><button key={item.name} className={item.name===active.name?'active':''} onClick={()=>setMonitorUi(prev=>({...prev,sector:item.name}))}>
       <strong>{item.name}</strong><span className={'focus-signal state-'+tone(item.scans.at(-1)?.current_state)}><span className="state-dot"/>{item.scans.at(-1)?.current_state||'未知'}</span><span className={item.delta==null?'':item.delta>0?'market-up':item.delta<0?'market-down':''}>{item.delta==null?'不足两轮':signed(item.delta,1)+' pp'}</span></button>)}</div>
-     <div className="feature-plot-grid"><div className="feature-main-plot"><SnapshotPlot rows={active.scans} field="up_ratio" label="上涨家数占比" scale={100} bounds={[0,100]}/></div><div className="feature-side-plot"><SnapshotPlot rows={active.scans} field="median_change_pct" label="成分涨跌幅中位数"/></div></div>
+     <div className="feature-plot-grid"><div className="feature-main-plot"><SnapshotPlot rows={active.scans} field="up_ratio" label="上涨广度" scale={100} bounds={[0,100]}/></div><div className="feature-side-plot"><SnapshotPlot rows={active.scans} field="median_change_pct" label="内部涨跌强度"/></div></div>
      <div className="feature-caption"><span>{active.name} · 最新盘中状态 <b>{industryLatest?.current_state||'—'}</b> · 结构动量 <b>{industryLatest?.structure_momentum||'—'}</b></span><span>已扫描 {active.scans.length} 轮 · {fmtTime(monitor.last_scan_at)}</span></div>
     </>:
     !selectedRepresentative?<div className="decision-empty">当前板块尚无已发布的有效代表股快照；不会按涨幅临时选股。</div>:<>
