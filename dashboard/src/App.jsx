@@ -6,6 +6,7 @@ import {
  RefreshCw, Search, ShieldCheck, ShieldAlert, SlidersHorizontal,
  Sparkles, Target, Wallet, X, Zap, PanelLeftClose, ListFilter
 } from 'lucide-react';
+import TodayLeader from './components/TodayLeader.jsx';
 import {asArray, latestMonitorRecords, fixed, fmtTime, formatSource, pct, safeText, shanghaiDay, summarizeTrades, validSnapshots, snapshotChange, rankedTrendRows, rankedBuyRows, seriesDirection, statusTone, trendEvents, archivedDays, assessHoldingRisk, attachRiskPlans, selectRepresentativeStocks} from './model.js';
 
 const sections = [
@@ -285,7 +286,8 @@ function Overview({registry,trendHandoff,buy,monitor,holdingSnapshot,holdingChar
     <button type="button" className="overview-brief-link" onClick={openCurrentMonitor}>查看监测 <ArrowRight size={13}/></button>
    </div>
   </div>
-  <div className="decision-grid">
+  <TodayLeader monitor={monitor} buy={buy} portfolio={portfolio} holdingCharts={holdingCharts} holdingSnapshot={holdingSnapshot} status={status} tradeDate={shanghaiDay()}/>
+   <div className="decision-grid">
    <section className="decision-panel decision-portfolio"><div className="decision-panel-top"><div><h2>我的持仓</h2><p>只对已发布并被监测覆盖的持仓显示盘中价格快照。</p></div><button className="text-link" onClick={()=>onSection('portfolio')}>全部持仓 <ArrowRight size={14}/></button></div>
     {status.airtable!=='OK'?<div className="decision-empty">Airtable 当前不可用；不能确认持仓。</div>:positions.length?
      <div className="decision-rows">{positions.map(p=>{
