@@ -179,8 +179,11 @@ def compile_results(base=BASE) -> dict:
         return {"status": "COLLECTING", "archive_days": 0, "trend_episodes": 0, "stock_signals": 0}
 
     latest_prices = snapshots[max(snapshots)] if snapshots else {}
-    calendar = latest_prices.get("expected_market_calendar") or sorted(snapshots)
-    calendar = sorted(set(calendar))
+    # Merge historical trading calendars so old matured signals do not disappear
+    # from evaluation after the source 65-bar window rolls forward.
+    calendar = sorted(set(d for price in snapshots.values()
+                          for d in price.get("expected_market_calendar", [])
+                          if d <= max(snapshots))) if snapshots else []
     last_price_day = max(snapshots) if snapshots else None
     registry_by_day = {day: load(folder / "universe.json") for day, folder in days}
     dates = [d for d, _ in days]
