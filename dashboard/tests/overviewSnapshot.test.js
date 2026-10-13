@@ -50,3 +50,12 @@ test('概览持仓展示紧凑盘中状态、红涨绿跌，并保留退出规�
  assert.match(styles,/holding-intraday-change\.market-up/);
  assert.match(styles,/holding-intraday-change\.market-down/);
 });
+
+test('概览持仓两张小图使用正中分隔线而非贴靠今日标签的左边框',()=>{
+ const styles=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
+ assert.match(styles,/\.new-home \.home-holding \.home-holding-charts::before\{/);
+ assert.match(styles,/content:"";position:absolute;left:50%;top:4px;bottom:4px;width:1px/);
+ assert.match(styles,/\.new-home \.home-holding-chart\{[^}]*align-items:center;text-align:center/);
+ assert.doesNotMatch(styles,/\.new-home \.home-holding-chart\+\.home-holding-chart\s*\{[^}]*border-left/);
+ assert.match(styles,/@media\(max-width:560px\)\{[\s\S]*?\.home-holding \.home-holding-charts\{[\s\S]*?gap:12px/);
+});
