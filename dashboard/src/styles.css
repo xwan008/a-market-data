@@ -1514,3 +1514,36 @@ button{transition:color .2s var(--studio-ease),background-color .2s var(--studio
  .monitor-stock-filters .monitor-stock-select{flex:1 1 145px}
  .home-representative-switch button{min-width:155px}
 }
+
+
+/* Holding overview: one glance at completed-session context and today's four scans. */
+.new-home .decision-portfolio{grid-column:1/-1}
+.new-home .home-holding{
+ display:grid;grid-template-columns:minmax(125px,.9fr) minmax(280px,2.4fr) minmax(155px,1fr) 15px;
+ align-items:center;gap:18px;min-width:0;padding:15px 10px
+}
+.new-home .home-holding .decision-row-main,.new-home .home-holding .decision-row-meta{
+ flex:none;min-width:0
+}
+.home-holding-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;min-width:0;align-items:center}
+.home-holding-chart{min-width:0;display:flex;flex-direction:column;justify-content:center;gap:3px}
+.home-holding-chart>span:first-child{color:#b6c8b9;font-size:10px;font-weight:600;white-space:nowrap}
+.home-holding-chart>small{color:#82988b;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.home-holding-chart .plot-compact{max-width:none;min-width:0;margin:0;width:100%}
+.home-holding-chart .plot-compact svg,.home-candle-svg{display:block;width:100%;height:auto;max-height:69px}
+.home-holding-chart .plot-unavailable{display:flex;align-items:center;min-height:49px;line-height:1.45;white-space:normal}
+@media(max-width:850px){
+ .new-home .home-holding{
+  grid-template-columns:minmax(0,1fr) 15px;gap:8px 12px
+ }
+ .new-home .home-holding .decision-row-main{grid-column:1;grid-row:1}
+ .new-home .home-holding>svg{grid-column:2;grid-row:1}
+ .new-home .home-holding .home-holding-charts{grid-column:1/-1;grid-row:2;gap:12px}
+ .new-home .home-holding .decision-row-meta{grid-column:1/-1;grid-row:3;text-align:left}
+ .new-home .home-holding .decision-row-meta small{margin-top:3px}
+ .home-holding-chart>span:first-child{font-size:10px}
+}
+@media(max-width:360px){
+ .home-holding-charts{gap:7px}
+ .home-holding-chart>span:first-child{font-size:9px}
+}
