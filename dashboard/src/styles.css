@@ -1610,3 +1610,271 @@ button{transition:color .2s var(--studio-ease),background-color .2s var(--studio
  .today-leader-visual svg{width:105px;height:26px;max-height:26px}
  .today-leader-chart-empty{height:26px;font-size:9px}
 }
+
+/* Readability system v1
+   Dark sage remains unchanged. Primary/secondary/metadata are explicit readable
+   roles; status and market red/green retain their existing semantics.
+   Minimum contrast is measured against #202527 (the lightest dark surface). */
+:root{
+ --text:#edf3ed;
+ --subtle:#c5d3c8;
+ --muted:#adbfaf;
+ --read-primary:#edf3ed;
+ --read-secondary:#c5d3c8;
+ --read-muted:#a9bdad;
+}
+body,.main-content{color:var(--read-primary)}
+
+/* Global navigation and chrome */
+.side-group-label,
+.side-status-row,
+.side-footer,
+.breadcrumb-muted,
+.breadcrumb-chevron,
+.main-footer,
+.main-footer span:first-child,
+.top-date,
+.side-status-tag,
+.icon-button{color:var(--read-muted)}
+
+/* Navigation active bodies */
+.nav-item,
+.side-status-head{color:var(--read-secondary)}
+
+/* Overview secondary copy */
+.decision-heading p,
+.new-home .decision-heading p,
+.decision-panel-top p,
+.new-home .decision-panel-top p,
+.decision-date,
+.new-home .decision-date,
+.decision-step,
+.decision-row-main small,
+.decision-row-meta small,
+.decision-rank,
+.decision-empty,
+.decision-bottom,
+.decision-no-ready p,
+.home-study-text,
+.overview-kpi-label,
+.overview-brief-monitor,
+.overview-brief-timestamp,
+.overview-brief-signals,
+.overview-brief-link,
+.feature-caption{color:var(--read-muted)}
+
+/* Overview readable labels */
+.decision-row-meta span,
+.decision-no-ready strong,
+.overview-brief-label,
+.overview-kpi-body>span{color:var(--read-secondary)}
+
+/* Tiny holding summaries */
+.new-home .home-holding .decision-row-main small,
+.new-home .home-holding .decision-row-meta small,
+.new-home .home-holding-chart>span:first-child{color:var(--read-muted)}
+
+/* Current holding risks */
+.new-home .home-holding .decision-row-meta span{color:var(--read-secondary)}
+
+/* Leaderboard meta */
+.today-leader-waiting,
+.today-leader-identity small,
+.today-leader-return small,
+.today-leader-plot-head,
+.today-leader-plot-head small,
+.today-leader-chart-empty{color:var(--read-muted)}
+
+/* Leaderboard label */
+.new-home .today-leader-heading strong{color:var(--read-secondary)}
+
+/* Research table metadata */
+.panel-note,
+.count-chip,
+.metric-top,
+.metric-meta,
+.data-table th,
+.data-table td small,
+.table-footer,
+.table-footer span,
+.evidence-date,
+.page-intro p,
+.asof,
+.asof strong,
+.trend-ranked-table td small,
+.rank-priority-chip,
+.sector-chart-inset>p,
+.unranked,
+.chart-empty,
+.ranking-explainer span,
+.plot-unavailable,
+.data-table .arrow-col,
+.decision-row>svg{color:var(--read-muted)}
+
+/* Table body */
+.data-table td{color:var(--read-secondary)}
+
+/* Table strong values */
+.data-table td strong{color:var(--read-primary)}
+
+/* Inputs */
+.filter-select select,
+.group-select select,
+.search input,
+.monitor-stock-select select{color:var(--read-primary)}
+
+/* Placeholders */
+.search input::placeholder,
+.login-input input::placeholder{color:var(--read-muted)}
+
+/* Chart labels */
+.plot-head span,
+.plot-head-change small,
+.plot-head-neutral,
+.plot-tooltip-time,
+.plot-tooltip small,
+.plot-tooltip>span:not(.plot-tooltip-time),
+.plot-unavailable,
+.plot-compact-value{color:var(--read-muted)}
+
+/* Historical secondary */
+.trend-history-date,
+.trend-history-kind,
+.trend-history-reason,
+.history-disclaimer,
+.crossday-date,
+.crossday-card>small,
+.crossday-unavailable,
+.monitor-more-none,
+.crossday-head small{color:var(--read-muted)}
+
+/* Historical descriptions */
+.trend-history-reason p{color:var(--read-secondary)}
+
+/* Monitoring labels */
+.monitor-context,
+.monitor-chart-top p,
+.monitor-latest,
+.monitor-stock-select label,
+.snapshot-event-head,
+.snapshot-event-figures,
+.snapshot-details,
+.monitor-coverage button small,
+.seven-context small,
+.seven-context p,
+.monitor-stat-pairs small,
+.focus-switch button,
+.monitor-selector button,
+.focus-switch button span,
+.monitor-selector button span,
+.feature-caption,
+.ranking-explainer,
+.monitor-tab-switch button span,
+.intraday-tab-switch button:not(.active){color:var(--read-muted)}
+
+/* Monitoring key facts */
+.focus-switch button strong,
+.monitor-selector button strong,
+.snapshot-event-head strong,
+.monitor-latest strong,
+.monitor-coverage button,
+.snapshot-details p{color:var(--read-secondary)}
+
+/* Monitoring stock names */
+.focus-switch button strong,
+.monitor-selector button strong{color:var(--read-primary)}
+
+/* Portfolio metadata */
+.portfolio-overview span,
+.portfolio-overview small,
+.portfolio-data-note,
+.portfolio-list-head small,
+.portfolio-list-head>span,
+.portfolio-filters button,
+.portfolio-row-name>span,
+.portfolio-row-bottom>span,
+.portfolio-detail-head>div>span,
+.portfolio-position-stats span,
+.portfolio-position-stats strong small,
+.portfolio-detail-tabs button,
+.portfolio-list-empty,
+.portfolio-tab-content,
+.portfolio-signal>span,
+.portfolio-level-row>div:first-child>span,
+.portfolio-level-row>div:first-child>strong small,
+.portfolio-level-row>div:last-child>small,
+.portfolio-rule-description,
+.portfolio-empty-rule,
+.portfolio-no-evidence,
+.portfolio-plan-meta,
+.portfolio-plan-note p,
+.portfolio-evidence-issue p,
+.portfolio-evidence-foot,
+.portfolio-evidence-foot p,
+.portfolio-trade-summary,
+.portfolio-trade small:not(.portfolio-buy):not(.portfolio-sell),
+.portfolio-trades-foot,
+.portfolio-detail-foot,
+.portfolio-detail-empty,
+.holding-assessment-title>span,
+.holding-rule p,
+.holding-evidence,
+.holding-assessment-foot,
+.holding-level small,
+.portfolio-row-bottom svg{color:var(--read-muted)}
+
+/* Portfolio value annotations */
+.portfolio-row-bottom>span strong,
+.portfolio-list-head>span,
+.portfolio-level-row>div:last-child>span,
+.portfolio-tab-content{color:var(--read-secondary)}
+
+/* Portfolio positions */
+.portfolio-list-row .portfolio-row-name strong,
+.portfolio-detail-head h2,
+.portfolio-detail-tabs button.is-active,
+.portfolio-filters button.is-active{color:var(--read-primary)}
+
+/* Login meta */
+.login-toggle-password,
+.login-panel-footer,
+.login-panel-name{color:var(--read-muted)}
+
+/* Actual values retain visual priority. Navigation icons should not fade. */
+.nav-item.selected,.nav-item:hover,.decision-row-main strong{color:var(--read-primary)}
+.nav-item svg{opacity:1}
+.side-status-row,.table-footer,.panel-note,.count-chip{font-size:11px;line-height:1.7}
+.side-group-label{font-size:11px}
+.overview-kpi-label{font-weight:600}
+.overview-brief-timestamp{font-weight:500}
+.decision-panel-top p,.decision-row-main small,.decision-row-meta small,
+.new-home .decision-heading p,.page-intro p,.metric-top,.metric-meta,
+.sector-chart-inset>p{font-size:11px;line-height:1.65}
+.decision-date,.decision-bottom,.overview-brief-monitor{font-size:11px}
+.new-home .home-holding .decision-row-main small,
+.new-home .home-holding .decision-row-meta small,
+.new-home .home-holding-chart>span:first-child{font-size:10px;line-height:1.55}
+.data-table th{font-size:11px;letter-spacing:.28px;font-weight:650}
+.search input::placeholder,.login-input input::placeholder{opacity:1}
+.plot-axis,.plot-time,.plot-point-label{fill:var(--read-muted)}
+.plot-head span,.plot-head-change small,.plot-tooltip small,.plot-tooltip-time,.plot-unavailable{font-size:11px}
+.plot-point-label-last{font-weight:700}
+/* Historical evidence is no longer artificially darkened by parent opacity. */
+.trend-history-event,.trend-history-event.is-latest,.crossday-card{opacity:1}
+.trend-history-event:not(.is-today),.crossday-card:not(.crossday-today){
+ border-color:rgba(182,211,189,.13)
+}
+.trend-history-kind,.crossday-card>small,.history-disclaimer{font-size:10px}
+.monitor-stock-select label,.snapshot-details,.monitor-coverage button small,
+.seven-context small,.monitor-stat-pairs small{font-size:11px}
+.intraday-tab-switch button{font-size:12px;font-weight:600}
+.portfolio-overview small,.portfolio-list-head small,.portfolio-row-name>span,
+.portfolio-row-bottom>span,.portfolio-detail-head>div>span,
+.portfolio-position-stats span,.portfolio-detail-tabs button,
+.portfolio-level-row>div:first-child>span,.portfolio-level-row>div:last-child>small,
+.portfolio-plan-meta,.portfolio-evidence-foot,.portfolio-trade small,
+.portfolio-trades-foot,.portfolio-detail-foot,.holding-assessment-foot{
+ font-size:10.5px;line-height:1.55
+}
+/* Price signals, risk colors, selected state badges and vivid focus outlines
+   intentionally keep their canonical, semantic colors. */
