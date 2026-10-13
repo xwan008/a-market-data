@@ -13,7 +13,7 @@
 
 ## 调度
 
-独立的 .github/workflows/validation-archive.yml 在北京时间工作日约 21:35 运行，并可在 GitHub Actions 手动执行。GitHub 定时运行可能延迟；本模块绝不调用原正式研究工作流、也不修改原研究文件。
+独立的 .github/workflows/validation-archive.yml 在 main 分支的 research/trend_buy_handoff.json 正式交接文件被提交时尝试自动运行（push/path 触发）；工作日北京时间约 20:10 的 cron 仅用于兜底，并可在 GitHub Actions 手动执行。GitHub 定时运行可能延迟；本模块不修改原正式研究工作流，也不修改原研究文件。若上游由 Actions 默认 GITHUB_TOKEN 提交而未产生 push 触发，20:10 兜底仍会尝试执行。
 
 ## 验证口径（第一版）
 
