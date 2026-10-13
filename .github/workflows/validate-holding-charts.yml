@@ -1,0 +1,31 @@
+name: Validate Holding Overview Charts
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/build_holding_chart_data.py'
+      - 'tests/test_holding_chart_data.py'
+      - 'dashboard/src/App.jsx'
+      - 'dashboard/src/styles.css'
+      - 'dashboard/api/data.js'
+      - '.github/workflows/update-intraday-snapshot.yml'
+      - '.github/workflows/validate-holding-charts.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  holding-charts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Test five completed-session bars and intraday snapshot slots
+        run: python -m unittest discover -s tests -p 'test_holding_chart_data.py' -v
+      - name: Validate holding chart script syntax
+        run: python -m py_compile scripts/build_holding_chart_data.py
