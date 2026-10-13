@@ -40,6 +40,8 @@ class ValidationTests(unittest.TestCase):
                 folder = base / "archive" / day
                 save(folder / "manifest.json", {"trade_date": day})
                 save(folder / "trend_registry.json", {"trade_date": day})
+                save(folder / "trend_handoff.json", {"trade_date": day,
+                     "signals": [{"trend_name": "板块A"}] if day == start else []})
                 save(folder / "universe.json", {"板块A": {
                     "market_state": state, "constituents": ["000001"],
                     "constituents_usable": True, "universe_issues": []}})
@@ -55,6 +57,8 @@ class ValidationTests(unittest.TestCase):
             result = compile_results(base)
             self.assertEqual(result["closed_confirmations"], 1)
             self.assertEqual(result["one_day_confirmations"], 1)
+            self.assertEqual(result["closed_recommendations"], 1)
+            self.assertEqual(result["one_day_recommendations"], 1)
             events = json.loads((base / "results" / "trends.json").read_text())["items"]
             self.assertEqual(events[0]["first_downgrade_date"], next_day)
             self.assertEqual(events[0]["ending"], "lost_confirmation")
