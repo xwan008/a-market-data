@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {CalendarDays, Clock3, ShieldCheck, AlertCircle} from 'lucide-react';
 
 const num = x => typeof x === 'number' && Number.isFinite(x) ? x.toLocaleString('zh-CN') : '—';
@@ -26,7 +26,23 @@ function Stat({label, value, note}) {
   </div>;
 }
 
-export default function TrendValidation({summary, trends, stocks, status}) {
+export default function TrendValidation() {
+  const [response, setResponse] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    fetch('/api/validation', {cache:'no-store'})
+      .then(async result => {
+        if (!result.ok) throw new Error('数据接口 HTTP ' + result.status);
+        return result.json();
+      })
+      .then(result => { if (alive) setResponse(result); })
+      .catch(error => { if (alive) setResponse({status:{},datasets:{},error:error.message}); });
+    return () => { alive = false; };
+  }, []);
+  const {datasets={}, status={}} = response || {};
+  const summary = datasets.validationSummary;
+  const trends = datasets.validationTrends;
+  const stocks = datasets.validationStocks;
   const [tab, setTab] = useState('trend');
   const [trendMode, setTrendMode] = useState('recommendation');
   const [horizon, setHorizon] = useState('5');
@@ -65,7 +81,7 @@ export default function TrendValidation({summary, trends, stocks, status}) {
     {!ok ? <section className="panel" style={{padding:30}}>
       <div className="empty"><AlertCircle size={23}/>
         <strong>验证结果正在积累</strong>
-        <p>独立归档在首个完整收盘研究完成后生成；不会用未经核实的历史数据填充结果。</p>
+        <p>{response?.error || '独立归档在首个完整收盘研究完成后生成；不会用未经核实的历史数据填充结果。'}</p>
         <small>归档 {status?.validationSummary || '待发布'} · 趋势 {status?.validationTrends || '待发布'} · 个股 {status?.validationStocks || '待发布'}</small>
       </div>
     </section> : <>
