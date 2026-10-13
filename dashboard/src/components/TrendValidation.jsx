@@ -150,6 +150,11 @@ export default function TrendValidation() {
                   {tab === 'trend'
                     ? <span>{trendMode === 'recommendation' ? '推荐始于' : '确认始于'} {row.start_date} · 最后在榜 {row.last_date} · {trendMode === 'recommendation' ? '首次退出榜单 ' + (row.first_removed_date || '未观察到') : '首次降级 ' + (row.first_downgrade_date || '未观察到')} · 正式失效 {row.first_invalidated_date || '未观察到'} · 冻结成分股 {row.frozen_constituent_count} 只</span>
                     : <span>研究日期 {row.trade_date} · 源 run_id {row.source_run_id} · 相对冻结板块超额 {percent(r?.excess_vs_sector_pct)}</span>}
+                  {tab === 'trend' && Array.isArray(row.state_timeline) && <div style={{display:'flex',gap:8,flexWrap:'wrap',margin:'6px 0'}} aria-label="按交易日归档的真实状态">
+                    {row.state_timeline.slice(-25).map(x => <span key={x.date} className="muted" style={{fontSize:12,padding:'2px 6px',border:'1px solid var(--border)',borderRadius:5}}>
+                      {x.date.slice(5)} · {x.market_state || '未核验'}
+                    </span>)}
+                  </div>}
                   <div>观察收益 {percent(r?.return_pct)} · 市场基准 {percent(r?.market_return_pct)} · 对照日期 {r?.target_date || '尚未满足窗口'}</div>
                   <small className="muted"><Clock3 size={12}/> 状态：{r?.state || 'unavailable'}。READY 尚未模拟交易触发和止损，不代表实际可得收益。</small>
                 </div>
