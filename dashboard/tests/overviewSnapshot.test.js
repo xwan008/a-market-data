@@ -33,3 +33,20 @@ test('两轮后才产生实际广度变化，不能将首轮变化虚构为零',
  assert.equal(scans.length,2);
  assert.ok(Math.abs(snapshotChange(scans,'up_ratio',100)-6.62)<1e-9);
 });
+
+test('概览持仓展示紧凑盘中状态、红涨绿跌，并保留退出规则在详情页',()=>{
+ const holding=overview.slice(overview.indexOf('<h2>我的持仓</h2>'),overview.indexOf('<h2>正式趋势优先榜</h2>'));
+ assert.match(overview,/const behaviorTone=\/转弱\|走弱/);
+ assert.match(overview,/changeTone=change>0\?'market-up':change<0\?'market-down'/);
+ assert.match(holding,/className=\{'holding-risk-brief '\+intraday\.tone\}/);
+ assert.match(holding,/className="holding-intraday-meta"/);
+ assert.match(holding,/\{intraday\.time\}/);
+ assert.match(holding,/pct\(intraday\.change\)/);
+ assert.doesNotMatch(holding,/\{intraday\.detail\}/);
+ assert.doesNotMatch(holding,/assessment\.label/);
+ const styles=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
+ assert.match(styles,/holding-risk-brief\.market-up/);
+ assert.match(styles,/holding-risk-brief\.market-down/);
+ assert.match(styles,/holding-intraday-change\.market-up/);
+ assert.match(styles,/holding-intraday-change\.market-down/);
+});

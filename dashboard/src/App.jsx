@@ -234,13 +234,19 @@ function holdingIntradayPresentation(assessment){
  const last=assessment?.last;
  if(!last)return {
   label:assessment?.state==='unverified'?'持仓待核验':'暂无有效盘中状态',
-  detail:'等待同日有效盘中快照'
+  tone:'',time:'—',change:null,changeTone:''
  };
  const behavior=typeof last.price_behavior==='string'?last.price_behavior.trim():'';
  const change=typeof last.change_pct==='number'&&Number.isFinite(last.change_pct)?last.change_pct:null;
+ const changeTone=change>0?'market-up':change<0?'market-down':'';
+ // 走势语义与当日涨跌幅分别着色；例如转弱但日涨幅仍为正，两者不能混淆。
+ const behaviorTone=/转弱|走弱|偏弱|下跌|回落|下行|走低|弱势|疲弱|破位|跌/.test(behavior)?'market-down':
+  /转强|走强|偏强|上涨|上行|回升|走高|强势|拉升|涨/.test(behavior)?'market-up':'';
  return {
   label:behavior?'盘中状态 · '+behavior:change===null?'盘中状态待判定':'盘中'+(change>0?'上涨':change<0?'下跌':'平盘'),
-  detail:'盘中快照 '+fmtTime(last.scan_at)+(change===null?' · 价格 '+fixed(last.price)+' 元':' · 涨跌 '+pct(change))
+  tone:behavior?behaviorTone:changeTone,
+  time:fmtTime(last.scan_at),
+  change,changeTone
  };
 }
 
@@ -321,7 +327,7 @@ function Overview({registry,trendHandoff,buy,monitor,holdingSnapshot,holdingChar
         <div className="home-holding-chart"><span>近 5 日 K 线</span><MiniHoldingCandles bars={candles}/></div>
         <div className="home-holding-chart"><span>今日 {dayScans.length}/4</span><MiniHoldingIntraday rows={dayScans}/></div>
        </div>
-       <div className="decision-row-meta"><span className="holding-risk-brief">{intraday.label}</span><small>{intraday.detail}</small></div><ChevronRight size={15}/>
+       <div className="decision-row-meta"><span className={'holding-risk-brief '+intraday.tone}>{intraday.label}</span><small className="holding-intraday-meta">{intraday.time}{intraday.change!==null&&<strong className={'holding-intraday-change '+intraday.changeTone}>{' '+pct(intraday.change)}</strong>}</small></div><ChevronRight size={15}/>
       </button>
      })}</div>:<div className="decision-empty">暂无可核实的登记持仓。</div>}
    </section>
