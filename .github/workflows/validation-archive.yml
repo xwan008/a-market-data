@@ -1,11 +1,16 @@
 name: Independent trend validation archive and metrics
 
 on:
+  # The final formal buy handoff is the downstream publication boundary.
+  # Does not alter or depend on the production writer.
+  push:
+    branches: [main]
+    paths:
+      - "research/trend_buy_handoff.json"
   workflow_dispatch:
   schedule:
-    # 21:35 Beijing, Mon-Fri, after formal 18:40/19:00 research publishes.
-    # GitHub schedule can be delayed; a missed run must remain a data gap.
-    - cron: "35 13 * * 1-5"
+    # Fallback only: 20:10 Beijing, Mon-Fri. GitHub schedule may be delayed.
+    - cron: "10 12 * * 1-5"
 
 permissions:
   contents: write
