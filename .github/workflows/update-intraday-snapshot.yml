@@ -161,9 +161,17 @@ jobs:
         if: steps.handoff.outputs.ready == 'true' && steps.freshness.outputs.skip != 'true'
         run: python -m unittest discover -s tests -p 'test_holding_watchlist.py'
 
+      - name: Test holding candle and four-slot continuity
+        if: steps.handoff.outputs.ready == 'true' && steps.freshness.outputs.skip != 'true'
+        run: python -m unittest discover -s tests -p 'test_holding_chart_data.py' -v
+
       - name: Build intraday snapshot
         if: steps.handoff.outputs.ready == 'true' && steps.freshness.outputs.skip != 'true'
         run: python scripts/build_intraday_snapshot.py
+
+      - name: Build holding overview chart data
+        if: steps.handoff.outputs.ready == 'true' && steps.freshness.outputs.skip != 'true'
+        run: python scripts/build_holding_chart_data.py
 
       - name: Validate snapshot
         if: steps.handoff.outputs.ready == 'true' && steps.freshness.outputs.skip != 'true'
@@ -190,6 +198,14 @@ jobs:
           holdings = json.loads(Path("research/holding_watchlist.json").read_text(encoding="utf-8"))
           holding_codes = {item["code"] for item in holdings["stocks"]}
           assert set(payload.get("holding_stocks") or {}) == holding_codes
+          charts = json.loads(Path("research/holding_chart_data.json").read_text(encoding="utf-8"))
+          assert charts.get("result_kind") == "a_share_holding_charts"
+          assert charts.get("trade_date") == today
+          assert charts.get("source_snapshot_at") == payload.get("captured_at")
+          assert set(charts.get("stocks") or {}) == holding_codes
+          assert all(len(value["daily_bars"]) <= 5 and len(value["intraday_points"]) <= 4
+                     and all(bar["date"] < today for bar in value["daily_bars"])
+                     for value in charts["stocks"].values())
           assert validation.get("holding_stock_count") == len(holding_codes)
           handoff = json.loads(Path("research/trend_buy_handoff.json").read_text(encoding="utf-8"))
           assert handoff.get("status") == "COMPLETE"
@@ -252,16 +268,16 @@ jobs:
           }, ensure_ascii=False))
           PY
 
-      - name: Commit intraday snapshot only
+      - name: Commit intraday snapshot and holding charts
         if: steps.handoff.outputs.ready == 'true' && steps.freshness.outputs.skip != 'true'
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add research/intraday_market_snapshot.json research/intraday_crossday_archive.json research/holding_watchlist.json
+          git add research/intraday_market_snapshot.json research/intraday_crossday_archive.json research/holding_watchlist.json research/holding_chart_data.json
 
-          if git diff --cached --quiet -- research/intraday_market_snapshot.json research/intraday_crossday_archive.json research/holding_watchlist.json; then
+          if git diff --cached --quiet -- research/intraday_market_snapshot.json research/intraday_crossday_archive.json research/holding_watchlist.json research/holding_chart_data.json; then
             echo "intraday snapshot unchanged"
             exit 0
           fi
