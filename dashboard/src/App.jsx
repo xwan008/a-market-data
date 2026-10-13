@@ -315,8 +315,8 @@ function Overview({registry,trendHandoff,buy,monitor,holdingSnapshot,holdingChar
        return <button className="decision-row home-sector" key={item.trend_name} onClick={()=>onSection('trends')}>
         <span className="decision-rank">{String(item.priorityRank).padStart(2,'0')}</span>
         <div className="decision-row-main"><strong>{item.trend_name}</strong><span className="home-sector-state"><ResearchState value={item.market_state}/><small>{item.trend_state}</small></span></div>
-        <div className="home-mini-chart">{scans.length>=2?<SnapshotPlot rows={scans} field="up_ratio" label="上涨家数占比" bounds={[0,100]} scale={100} compact/>:<span className="plot-unavailable">等待盘中扫描</span>}</div>
-        <div className="decision-row-meta home-sector-evidence">{scans.length?<div className={'home-alert-state state-'+tone(scans.at(-1).current_state)}><span className="state-dot"/>{scans.at(-1).current_state||'未定'}</div>:<span className="muted">暂无今日监测</span>}<small className={'intraday-breadth-change '+(d==null?'':d>0?'market-up':d<0?'market-down':'')}>{d==null?'—':signed(d,1)+' pp'}</small></div><ChevronRight size={15}/>
+        <div className="home-mini-chart">{scans.length>=1?<SnapshotPlot rows={scans} field="up_ratio" label="上涨家数占比" bounds={[0,100]} scale={100} compact/>:<span className="plot-unavailable">等待盘中扫描</span>}</div>
+        <div className="decision-row-meta home-sector-evidence">{scans.length?<div className={'home-alert-state state-'+tone(scans.at(-1).current_state)}><span className="state-dot"/>{scans.at(-1).current_state||'未定'}</div>:<span className="muted">暂无今日监测</span>}<small className={'intraday-breadth-change '+(d==null?'':d>0?'market-up':d<0?'market-down':'')}>{d==null?(scans.length===1?'首轮':'—'):signed(d,1)+' pp'}</small></div><ChevronRight size={15}/>
        </button>
      })}</div>:<div className="decision-empty">本期没有正式排名的板块。</div>}
    </section>
