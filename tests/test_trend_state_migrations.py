@@ -103,6 +103,33 @@ class MigrationGateTests(unittest.TestCase):
         self.assertIn("银行:unverifiable_evidence_metadata",
                       m.validate(old, new, SHA))
 
+    def test_gold_single_day_rebound_cannot_restore_candidate(self):
+        old, new = fixture()
+        old["trends"][0]["market_state"] = "观察"
+        new["trends"][0]["market_state"] = "候选趋势"
+        new["trends"][0]["state_history"].append(
+            {"trade_date": "2026-10-13", "from": "观察", "to": "候选趋势"})
+        review = new["scan_audit"]["state_migration_gate"]["reviews"][0]
+        review["previous_market_state"] = "观察"
+        review["proposed_market_state"] = "候选趋势"
+        review["decision"] = "CHANGE"
+        rebound = e("MARKET_BREADTH")
+        rebound["direction"] = "SUPPORT"
+        review["evidence"] = [rebound]
+        self.assertIn("银行:reclassification_without_multiday_or_critical_support",
+                      m.validate(old, new, SHA))
+
+    def test_unresearched_new_theme_blocked(self):
+        old, new = fixture()
+        new["trends"].append({
+            "trend_name": "没有证据的新增主题",
+            "first_seen_trade_date": "2026-10-13",
+            "market_state": "新异动", "trend_state": "T0",
+            "lifecycle_status": "有效",
+            "state_history": [{"trade_date": "2026-10-13", "from": None, "to": "新异动"}]})
+        self.assertIn("没有证据的新增主题:new_trend_without_research_evidence",
+                      m.validate(old, new, SHA))
+
     def test_mapping_is_not_transition_evidence(self):
         old, new = fixture()
         r = downgrade(new)
