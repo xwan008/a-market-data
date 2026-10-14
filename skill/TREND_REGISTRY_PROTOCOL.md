@@ -5,7 +5,7 @@
 ## 0. 先读：六条不可互相替代的原则
 
 1. **当轮事实优先**：历史榜单是复核对象，不是当轮行情；基于真实时间戳、产业事实、行情和冻结的历史条件做独立判断。预测、量化辅助信号与资金估算不能伪装为已发生事实。
-2. **独立全市场研究优先**：模型在读取**本轮Python发现候选**之前，须完成独立全市场发现、全部旧主题复核和模型首轮名单冻结；Python只做交叉验证及查漏补缺，Top20绝不是正式发现、研究或新仓榜的上限。
+2. **无榜单锚定的独立发现优先**：18:40先只用当期中性市场/产业原始资料做全市场发现，并冻结首次候选；**冻结前不得读取上轮registry、handoff、旧优先榜、历史精选清单或本轮Python候选及其派生摘要**。冻结后再读旧账本逐项复核，最后用Python交叉查漏。旧主题不在首轮候选里，不构成该主题失效证据；Top20不是研究或新仓榜上限。
 3. **四个判断维度分离**：产业/商品的`trend_state`与`lifecycle_status`、A股板块的`market_state`、产业受益映射及当期新仓资格各有独立证据；没有合格买点、A股涨幅不如海外或映射不完整，不能据此人为降低产业等级。
 4. **抗噪声，不抗风险**：普通单日分歧不机械降级，普通单日反弹不机械升级；但板块当日集体下跌、关键结构被确认破坏或产业核心驱动被重大新事实证伪时，必须及时按规则迁移，不能机械“等明天”。
 5. **历史只能追加**：不为迎合今日结果改写旧交易日状态、首次出现时间、证据或预测；历史源缺失须标记未知，不制造历史。
@@ -23,14 +23,14 @@
 
 ### 1.2 18:40｜完整收盘研究：强制八步
 
-1. **收盘有效性Gate**：核实交易日、正式已完成收盘行情、日期/覆盖/数据质量；失败如实报告，不宣称完成研究。
-2. **冻结上次正式账本**：从main读取最近一次已提交并READBACK的完整`research/trend_registry.json`、真实Git blob SHA、交易日、所有主题、`state_history`、失效条件、待复核方向和审计，保存只读previous副本。不能用`trend_handoff.json`或Top3替代完整账本。
-3. **历史回溯及行情准备**：按完整状态历史追溯首次发现、确认、分歧、升级、降级、失效与恢复；正常仅需最新账本和必要的行情窗口。关键原证据缺失/冲突时，按旧Git SHA回读**当时冻结**的原记录。再单独核实同口径近1/3/5日、必要时10/20日及更长价格结构与支撑；重叠窗口不等于独立证据，严禁未来信息回填历史。
-4. **模型先独立研究**：先按政策、商品、供需、订单、盈利及A股市场结构，全市场发现新主题并逐项复核所有旧主题（含待核验历史方向），**冻结模型第一轮发现名单和证据来源/日期**。在这之前不得参考本轮Python发现候选或其衍生转述。
-5. **程序辅助互证**：再读取同交易日且校验有效的Python行业/主题发现清单，核实模型遗漏、程序独有线索、来源和行业路由；任何程序候选仍需按原产业研究标准独立核验，不能因程序高分直接确认趋势或改排名。
-6. **分层决策**：独立作出产业/商品第一锚、T0/T1/T2、A股market_state、产业受益映射及当期新仓/ETF资格判断，依据第2—5节区分正常波动、结构破坏及重大反证。
-7. **预提交审计及正式发布**：生成完整proposed registry但先不写正式文件，按第8节校验状态历史和客观证据；通过全部Gate后先提交registry、READBACK，再依原规则生成handoff、提交并READBACK。
-8. **完整中文报告**：依第9节展示完整趋势池、优先榜、趋势历史去向、失效条件、外部商品展望、证据缺口以及真实发布结果。
+1. **收盘有效性Gate**：核实交易日、正式已完成收盘行情、日期/覆盖/数据质量。此阶段只准读取原始全市场行情、客观分类/公司资料和公开产业事实；可读取本协议、校验程序及schema说明，**不得提前读取任何历史趋势榜、旧handoff/Top榜或本轮Python候选输出**。失败如实报告，不宣称完成研究。
+2. **无历史榜单的全市场独立发现**：仅依据本轮时点可得的政策、商品、供需、订单、盈利及全市场量价、结构，从全覆盖的行业/产业问题出发找候选；不能让昨日榜单确定扫描范围、查询词、研究预算或待选顺序。允许查看历史原始行情与公开产业资料，**不允许查看已经被旧趋势榜筛选/赋级的主题名单或结论**。记录真正扫描过的市场范围、缺口、来源与截止时点。
+3. **立即冻结第一轮发现结果**：在任何上轮registry/handoff/历史精选名单和本轮Python候选暴露前，冻结独立发现的规范方向、已核实行业代码、支持/反证、时点和候选/排除理由，包括当轮无新发现的事实（不可为了凑榜补造）。按第5.2节在`scan_audit.discovery_attribution`记录冻结与隔离声明；若真实预提交了独立快照，保存其路径、commit/blob SHA和READBACK。后续只能追加历史复核、Python查漏或合并解释，**不得修改冻结后的首轮名单并追认为独立发现**。
+4. **读取历史账本并逐项复核**：现在才从main读取最近一次正式提交并READBACK的完整`research/trend_registry.json`、真实Git blob SHA、交易日、全部旧趋势和`state_history`，保存只读previous副本。按各主题完整历史复核确认/退化/失效/恢复条件；关键历史证据缺口才回读旧Git提交及当时冻结数据，结合当期可比1/3/5日和必要的10/20日及更长行情结构。**历史记录只用于旧主题生命周期复核，不得倒写第3步独立名单；旧趋势首轮未命中不等于失效**。
+5. **本轮Python查漏与证据交叉**：完成旧趋势复核后，读取同日有效的Python行业/主题发现清单；核实模型首轮遗漏、旧主题异常、程序独有线索、行业路由及实际发现来源。Python分数和Top20不能代替产业研究、直接改变正式市场状态或抢占新仓优先级。
+6. **合并去重并分层决策**：合并第3步冻结的首轮发现、第4步复核的全部历史主题及第5步核实的Python补充线索，按真实产业身份去重；分别判断产业/商品第一锚及T等级、A股market_state、受益映射和当期新仓/ETF资格。历史独有主题归入`recovery_candidates`/既有趋势复核审计，**不可算作本轮“模型独立首发”**；历史完整池不得因首轮漏扫而被删减。依据第2—5节区分正常波动、真实结构破位及研究缺口。
+7. **预提交审计及正式发布**：生成完整proposed registry但先不写正式文件，按第8节校验状态历史和客观证据；通过全部Gate后先提交registry、READBACK，再按原规则生成handoff、提交并READBACK。
+8. **完整中文报告**：依第9节分开展示独立首轮发现、历史趋势去向、Python补充、完整趋势池、优先榜、失效条件、外部商品展望及真实发布结果。
 
 ## 2. 四层研究对象与数据含义
 
@@ -87,7 +87,7 @@
 
 ### 5.1 辅助程序的职责和质量
 
-- **先模型、后本轮Python**：模型先行清单含规范主题、已核实的申万三级代码、新旧主题标记、主要证据与截止日；按第1.2节冻结后才使用当日程序发现数据。读取前不能从同轮候选或转述泄漏程序发现结果给“模型首轮”。
+- **先无榜单独立扫描、再历史复核、后Python**：模型首轮名单仅来自第1.2节第2—3步，包含规范主题、已核实的申万三级代码、原始行情/产业证据、截止日期及覆盖缺口；读取它之前不能接触上轮registry、handoff、昨日精选榜、本轮Python候选或其转述。第4步历史复核独立记录`recovery_candidates`，不倒填第一轮名单；第5步再读Python。本轮Python候选不得提前泄漏给“首轮模型发现”。
 - `data/research/sector_discovery_snapshot.json`和`data/research/sector_discovery_audit.json`按实际交易日、schema、status、覆盖及来源校验：`model_research_candidates`通常Top20、`theme_research_budget`仅限制**程序辅助复核**；`candidate_overview`、`deferred_candidates`及`all_industry_metrics`用于补查。STRONG/EMERGING与Python分数是量价线索，不是趋势、排名或股票买点。
 - `research/theme_industry_catalog.json`是版本化主题—申万三级行业研究目录：`core`参与去重成分股量价聚合，`related`只作旁证，不自动交接。申万二级基础分组是统计分类而非独立产业主题；跨主题行业可重叠，同一主题内个股不得重复计数。某历史快照覆盖331个申万三级行业、131个基础组、17个研究主题，**这些是版本快照数量，不是永久阈值或发现上限**；以本轮真实分类版本及审计覆盖为准。
 - `data/research/theme_evidence_snapshot.json`仅为精简辅助快照。须核实同一`trade_date`、`schema_version=1`、`result_kind=a_share_theme_evidence_snapshot`、`status=COMPLETE`、`no_trade_signal=true`、`auxiliary_only=true`、`decision_authority=legacy_model_driven_trend_research`、`point_in_time_eligible=true`及研究目录时间口径。`research_candidates`是正向线索，`tracked_theme_alerts`是旧主题风险线索，`unmapped_industry_alerts`指未关联到独立研究主题的行业异动；`SW_L2_TAXONOMY`是分类统计组、`RESEARCH_THEME`是研究主题量价组，均须产业独立核验。
@@ -98,9 +98,9 @@
 
 `BOTH`：模型第一轮和同日Python正向候选都明确命中；`MODEL_ONLY`：模型第一轮命中，Python同日有效覆盖但未正向命中；`PYTHON_ONLY`：模型第一轮未发现、从同日Python正向候选进入本轮研究（即使最终排除也不改其来源）；`UNVERIFIED`：先后顺序、来源或行业身份无法核实。共同发现不代表两条独立产业事实；仅有`tracked_theme_alerts`不是首次发现；旧趋势未被Python命中不证明首次一定来自模型。
 
-在`scan_audit.discovery_attribution`保留`trade_date`、`method=MODEL_FIRST_THEN_PYTHON`、`model_first_pass_frozen`、`model_first_pass`、`python_snapshot_trade_date`、`python_snapshot_blob_shas`、去重并集`candidates`及`attribution_status`；candidate包括`direction`、`industry_codes`、`origin`、`model_first_pass_hit`、`python_positive_hit`、`python_source_types`、`disposition`（INCLUDED/PENDING/REJECTED/MERGED）、`canonical_trend_name`与`reason`；历史异常另记`recheck_alerts`。
+在`scan_audit.discovery_attribution`保留兼容字段`trade_date`、`method=MODEL_FIRST_THEN_PYTHON`（仅为**旧有发现来源字段标签**，完整执行顺序仍是“独立首扫→历史→Python”）、`model_first_pass_frozen`、`model_first_pass`、`python_snapshot_trade_date`、`python_snapshot_blob_shas`、去重并集`candidates`及`attribution_status`；candidate包括`direction`、`industry_codes`、`origin`、`model_first_pass_hit`、`python_positive_hit`、`python_source_types`、`disposition`（INCLUDED/PENDING/REJECTED/MERGED）、`canonical_trend_name`与`reason`；历史异常另记`recheck_alerts`。可在可扩展审计中增加`pre_history_scan`（冻结时点、资料截止日、扫描覆盖及缺口、`history_list_unread_at_freeze`声明、冻结名单快照的commit/blob SHA及READBACK状态），**只增加审计元数据，不改变schema_version或handoff**。原有`independent_new_candidates`仅记首轮真正独立候选；`recovery_candidates`只记读取历史后额外找回的主题；`post_program_additions`只记Python后经研究补充的主题。
 
-只有真正**在读取Python前独立Git提交名单、完成READBACK并留下SHA**才用`VERIFIED_PRECOMMIT`；同一最终JSON里声称先冻结仅是`DECLARED_IN_RUN`，证据不足为`UNVERIFIED`。无法证明先后不得为了填充标签增加假提交或阻断原本合格的研究。本规则上线前的历史首次来源，以及2026-10-12及以前无法核实者，不允许事后回填新来源。06:40不制作新的发现来源样本。报告必须向用户直接展示每条正式趋势的真实发现来源及无法核实说明，不只隐藏在JSON里。
+只有**独立扫描结果在读取历史账本与本轮Python候选之前已真实提交独立冻结快照、成功READBACK，并有可追溯的Git commit/blob SHA及运行顺序记录**，才可将这一轮先后顺序列作`VERIFIED_PRECOMMIT`；仅在同轮最终JSON中声明冻结属于`DECLARED_IN_RUN`（自述流程顺序，**不是独立隔离已经被外部证明**）；先后不可核实时为`UNVERIFIED`。Git快照本身也不能证明模型对旧主题没有来自先前会话的记忆，因此“完全隔离”必须依赖确实不含旧榜信息的独立上下文，不能凭程序命名或字段自报。来源无法验证不应强制新增Git提交或阻断其他已合格的原正式发布，但不得冒称已严格独立。本规则上线前的历史首次来源，以及2026-10-12及以前无法核实者，不能事后回填新来源。06:40不制作新的发现来源样本。报告应区分“首轮主动发现”“读取历史后找回”“Python新补充”“来源不明”，不只在JSON里留标签。
 
 ## 6. 资金流向与量价配合（纯辅助）
 
@@ -112,7 +112,7 @@
 
 ### 7.1 两份输出的分工
 
-- `research/trend_registry.json`：跨轮完整趋势池、全部旧主题去向、待复核与已失效历史、当期研究证据、`scan_audit`、`recheck_queue`；即使退出新仓榜也必须保留研究连续性。
+- `research/trend_registry.json`：跨轮完整趋势池、全部旧主题去向、待复核与已失效历史、当期研究证据、`scan_audit`、`recheck_queue`；即使退出新仓榜也必须保留研究连续性。**18:40此文件在独立首轮冻结后读取，不得将旧榜单当成首轮搜索输入。**
 - `research/trend_handoff.json`：沿用原`schema_version`及`signals`格式，仅保留符合原新仓资格、排序及数量的方向；其名称和顺序必须与当轮registry里`in_new_position_priority=true`主题一致。不因新的研究审计扩充下游公司池。
 - `research/theme_industry_catalog.json`只是研究目录。可用`scripts/validate_theme_handoff_routes.py`核对申万三级行业代码/名称、同日`data/low_risk/index.json`、有效非空公司池和manifest。代码路由通过不代表相关公司全体真正受益或已符合独立股票买点判断。
 
@@ -130,7 +130,7 @@
 
 ### 8.1 全量旧主题的迁移审计
 
-本轮生成未提交的完整proposed registry，并在`scan_audit.state_migration_gate`填`mode=full_close`、`previous_registry_trade_date`、`previous_registry_blob_sha`（真实40位Git blob SHA）、`current_trade_date`。对previous中**每一个trends条目**恰好一条`reviews`，包含`decision=HOLD/CHANGE`、旧新`market_state`和`trend_state`、`reason`与`evidence`；所有实际状态或生命周期变化，按校验程序要求在`state_history`追加日期、原态、目标态。
+本轮先完成“无榜单首扫及冻结→历史全量复核→Python查漏”，**然后**生成未提交的完整proposed registry，并在`scan_audit.state_migration_gate`填`mode=full_close`、`previous_registry_trade_date`、`previous_registry_blob_sha`（真实40位Git blob SHA）、`current_trade_date`。对previous中**每一个trends条目**恰好一条`reviews`，包含`decision=HOLD/CHANGE`、旧新`market_state`和`trend_state`、`reason`与`evidence`；所有实际状态或生命周期变化，按校验程序要求在`state_history`追加日期、原态、目标态。
 
 `evidence`至少用`dimension`、`direction=SUPPORT/COUNTER`、`impact=NORMAL/STRUCTURAL/CRITICAL`、`trade_date`、`source`、`finding`描述；多日结构注明`window_trading_days`。使用的维度为`COMMODITY_ANCHOR`、`INDUSTRY_FUNDAMENTALS`、`SUPPLY_DEMAND`、`MARKET_STRUCTURE`、`MARKET_BREADTH`、`RELATIVE_STRENGTH`、`MAJOR_CATALYST`。发生状态变化必须有日期晚于上一基线交易日的真实新证据。程序能检验日期、来源形式、历史前缀、覆盖和证据组合，但不能独立证明原始行情/产业事实为真；不能编造`CRITICAL`绕过独立核验。
 
@@ -163,15 +163,16 @@ python scripts/validate_trend_state_migrations.py \
 
 ## 9. 报告与历史回验
 
-当轮中文报告保持原有主要结构：**完整趋势池（含待复核、高潮/衰退和已失效去向）→当期新仓优先榜→ETF时机/失效条件→全部旧趋势状态变化→商品5/10日条件展望及上一轮回验→发现来源与补研缺口→真实GitHub持久化结果**。每个完整池和新仓榜条目直接标真实首发来源（模型/程序/共同/未核实），不能仅藏在scan_audit。分别展示产业是否有效、A股市场是否有效、映射覆盖和是否适合新仓。单日集体退潮发生时明确当前市场状态降级原因及产业第一锚是否仍在；辅助资金有数据才展示，不要求为空凑数。末尾列真实commit/content SHA和READBACK，若失败则列阻断阶段。
+当轮中文报告保持原有主要结构：**完整趋势池（含待复核、高潮/衰退和已失效去向）→当期新仓优先榜→ETF时机/失效条件→全部旧趋势状态变化→商品5/10日条件展望及上一轮回验→发现来源与补研缺口→真实GitHub持久化结果**。在发现来源部分明确列出**无榜单首轮独立发现、历史账本恢复的旧主题、Python补充方向**，并注明首轮“先于历史”的可验证程度；历史记录不能被追认为当轮模型首发。每个完整池和新仓榜条目直接标真实首发来源（模型/程序/共同/未核实），不能仅藏在scan_audit。分别展示产业是否有效、A股市场是否有效、映射覆盖和是否适合新仓。单日集体退潮发生时明确当前市场状态降级原因及产业第一锚是否仍在；辅助资金有数据才展示，不要求为空凑数。末尾列真实commit/content SHA和READBACK，若失败则列阻断阶段。
 
 严格历史回验：只能使用当时实际Git SHA冻结的`data/latest.json`、`data/research/company_industry_index.json`、`data/research/full_market_price_structure.json`及同交易日合格资料；日期不匹配或缺文件则该日期不可评价，不能拿未来分类和新闻补齐。衡量发现后及正式入榜后5/10/20个交易日表现、相对全市场变化、生命周期、1—3日状态反复、误降级和实际失效识别延迟，说明样本量、右删失、未上榜候选、重叠主题与市场环境。下一/下两个交易日均走弱的误报代理**不等于投资亏损率或炒作概率**。MODEL_ONLY/PYTHON_ONLY/BOTH来源标签只表示发现渠道，不能靠胜出个案得出因果；样本不够不宣称验证出预测优势。新阈值若要改须先独立回放、版本化协议及脚本并加测试，不能为银行、石油、黄金或粮食个案反向调参。
 
 ## 10. 一页执行检查表
 
 - [ ] 06:40只增量；18:40确为交易日和有效已收盘行情。
-- [ ] 最新完整账本及真实SHA已冻结；旧趋势完整状态链与必要的历史缺口已核实。
-- [ ] 模型先完成独立全市场发现、全部旧趋势复核和首轮清单冻结；之后才读本轮Python候选并记录来源。
+- [ ] 在接触旧registry/handoff/历史精选和本轮Python候选之前，先完成**无榜单全市场独立发现**并冻结首轮候选、证据时间、扫描覆盖；记录隔离/冻结的实际可验证程度。
+- [ ] 冻结后才读取最新完整账本及真实SHA，完成全部旧趋势状态复核；只在历史缺口时回溯旧Git版本。历史找回主题不能冒充首轮新发现。
+- [ ] 历史复核后才读取本轮Python候选，交叉查漏；合并三路结果且旧主题不因首轮未命中被遗漏或降级。
 - [ ] 产业/商品、A股市场、映射、新仓资格分别判断；正常噪声不改判，真实集体结构破位不延迟。
 - [ ] 外部商品预测、辅助资金与程序候选只作适当证据，不混同已发生事实。
 - [ ] 旧主题全覆盖HOLD/CHANGE审计，历史前缀不改，新主题有当轮可验证研究证据。
