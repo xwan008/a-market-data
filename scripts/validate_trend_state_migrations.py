@@ -44,7 +44,7 @@ def _positive_finite(value):
 def _same_day_collective_break(name, prior, review, evidence, day, before_day, sector_audit):
     """Require dated sector-wide decline + substantiated prior-support breaks.
 
-    The frozen same-day 331-industry audit independently supplies price/breadth
+    The frozen same-day complete industry audit supplies price/breadth
     observations; support references still require separate human/model source
     verification. Passing permits (not mandates) a MARKET_STATE downgrade.
     """
@@ -62,7 +62,14 @@ def _same_day_collective_break(name, prior, review, evidence, day, before_day, s
                 and e.get("trade_date") == day]
     dimensions = {e.get("dimension") for e in counters if
                   e.get("impact") in {"STRUCTURAL", "CRITICAL"}}
-    if not {"MARKET_STRUCTURE", "MARKET_BREADTH", "RELATIVE_STRENGTH"} <= dimensions:
+    if not {"MARKET_STRUCTURE", "MARKET_BREADTH"} <= dimensions:
+        return False
+    # Relative strength must be examined honestly; an absolute collapse can
+    # breach support even while the overall market drops still faster.
+    relative_reports = [e for e in evidence
+                        if e.get("trade_date") == day
+                        and e.get("dimension") == "RELATIVE_STRENGTH"]
+    if not relative_reports:
         return False
     codes = prior.get("industry_codes") or []
     # Only previously frozen, fully identified research coverage can support
@@ -71,7 +78,7 @@ def _same_day_collective_break(name, prior, review, evidence, day, before_day, s
         return False
     sector_by_id = {s.get("id"): s for s in sector_audit["sectors"]
                     if isinstance(s, dict) and isinstance(s.get("id"), str)}
-    if len(sector_by_id) != 331:
+    if len(sector_by_id) != sector_count:
         return False
     selected = []
     for code in codes:
@@ -89,14 +96,20 @@ def _same_day_collective_break(name, prior, review, evidence, day, before_day, s
     if members < 5:
         return False
     severe = []
+    relative_weighted = 0.0
     for code, metric, count in selected:
         breadth = metric.get("advance_ratio")
         median = metric.get("median_1d_pct")
         relative = metric.get("relative_1d_vs_market_median_pct")
-        if all(isinstance(v, (float, int)) and not isinstance(v, bool)
-               and math.isfinite(v) for v in (breadth, median, relative)):
-            if 0 <= breadth <= .25 and median <= -1.0 and relative < 0:
-                severe.append((code, count))
+        if not all(isinstance(v, (float, int)) and not isinstance(v, bool)
+                   and math.isfinite(v) for v in (breadth, median, relative)):
+            return False
+        relative_weighted += relative * count
+        if 0 <= breadth <= .25 and median <= -1.0:
+            severe.append((code, count))
+    relative_direction = "COUNTER" if relative_weighted < 0 else "SUPPORT"
+    if not any(e.get("direction") == relative_direction for e in relative_reports):
+        return False
     # Majority of mapped company coverage must genuinely be in severe retreat.
     if sum(n for _, n in severe) / members < .7:
         return False
@@ -233,7 +246,7 @@ def validate(previous, proposed, baseline_sha, snapshot=None, sector_audit=None)
                            for e in relevant)
             emergency_market_break = (
                 market_down and not industry_down and not lifecycle_invalidated
-                and _same_day_collective_break(name, prior, review, relevant, after_day, before_day, sector_audit)
+                and _same_day_collective_break(name, prior, review, qualified, after_day, before_day, sector_audit)
             )
             # Equity-wide price damage alone does NOT invalidate a commodity or
             # an industry thesis. Those two layers require primary-driver facts.
