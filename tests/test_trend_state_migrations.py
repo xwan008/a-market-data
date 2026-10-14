@@ -130,6 +130,68 @@ class MigrationGateTests(unittest.TestCase):
         self.assertIn("没有证据的新增主题:new_trend_without_research_evidence",
                       m.validate(old, new, SHA))
 
+    def setup_same_day_collapse(self):
+        old, new = fixture()
+        codes = ["S480201", "S480301"]
+        for registry in (old, new):
+            registry["trends"][0]["industry_codes"] = codes
+        review = downgrade(new)
+        review["evidence"] = [
+            e("MARKET_STRUCTURE", "CRITICAL", 1),
+            e("MARKET_BREADTH", "STRUCTURAL", 1),
+            e("RELATIVE_STRENGTH", "STRUCTURAL", 1)]
+        review["same_day_collective_breakdown"] = {
+            "trade_date": "2026-10-13",
+            "support_breaks": [
+                {"industry_code": code, "reference_trade_date": "2026-10-12",
+                 "support_level": 100, "observed_close": 94,
+                 "source": "https://example.org/pricehistory"} for code in codes]}
+        sectors = [
+            {"id": "industry:" + code, "member_count": 6, "usable_count": 6,
+             "advance_ratio": 0.1, "median_1d_pct": -3.0,
+             "relative_1d_vs_market_median_pct": -1.4} for code in codes]
+        sectors.extend({"id": f"industry:S{i:06d}", "member_count": 3,
+                        "usable_count": 3, "advance_ratio": .5, "median_1d_pct": 0,
+                        "relative_1d_vs_market_median_pct": 0} for i in range(329))
+        audit = {"trade_date": "2026-10-13", "industry_count": 331,
+                 "sectors": sectors}
+        return old, new, audit
+
+    def test_same_day_collective_breakdown_accepted(self):
+        old, new, audit = self.setup_same_day_collapse()
+        self.assertEqual(m.validate(old, new, SHA, sector_audit=audit), [])
+
+    def test_collective_breakdown_requires_frozen_sector_audit(self):
+        old, new, audit = self.setup_same_day_collapse()
+        self.assertIn("银行:downgrade_without_structural_or_critical_counterevidence",
+                      m.validate(old, new, SHA))
+        audit["trade_date"] = "2026-10-12"
+        self.assertIn("银行:downgrade_without_structural_or_critical_counterevidence",
+                      m.validate(old, new, SHA, sector_audit=audit))
+
+    def test_single_sector_or_marketwide_but_not_relative_breakdown_blocked(self):
+        old, new, audit = self.setup_same_day_collapse()
+        audit["sectors"][0]["advance_ratio"] = .6
+        self.assertIn("银行:downgrade_without_structural_or_critical_counterevidence",
+                      m.validate(old, new, SHA, sector_audit=audit))
+        audit["sectors"][0]["advance_ratio"] = .1
+        audit["sectors"][1]["relative_1d_vs_market_median_pct"] = .5
+        self.assertIn("银行:downgrade_without_structural_or_critical_counterevidence",
+                      m.validate(old, new, SHA, sector_audit=audit))
+
+    def test_collective_breakdown_requires_confirmed_prior_support(self):
+        old, new, audit = self.setup_same_day_collapse()
+        b = new["scan_audit"]["state_migration_gate"]["reviews"][0]["same_day_collective_breakdown"]
+        b["support_breaks"][0]["observed_close"] = 101
+        b["support_breaks"][1]["observed_close"] = 101
+        self.assertIn("银行:downgrade_without_structural_or_critical_counterevidence",
+                      m.validate(old, new, SHA, sector_audit=audit))
+
+    def test_collective_market_break_does_not_erase_industry_trend(self):
+        old, new, audit = self.setup_same_day_collapse()
+        self.assertEqual(new["trends"][0]["trend_state"], "T1")
+        self.assertEqual(m.validate(old, new, SHA, sector_audit=audit), [])
+
     def test_mapping_is_not_transition_evidence(self):
         old, new = fixture()
         r = downgrade(new)
