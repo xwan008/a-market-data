@@ -187,6 +187,24 @@ class MigrationGateTests(unittest.TestCase):
         self.assertIn("银行:downgrade_without_structural_or_critical_counterevidence",
                       m.validate(old, new, SHA, sector_audit=audit))
 
+    def test_market_collapse_cannot_invalidate_industry_without_primary_evidence(self):
+        old, new, audit = self.setup_same_day_collapse()
+        new["trends"][0]["trend_state"] = "T0"
+        new["trends"][0]["state_history"].append(
+            {"trade_date": "2026-10-13", "from": "T1", "to": "T0"})
+        review = new["scan_audit"]["state_migration_gate"]["reviews"][0]
+        review["proposed_trend_state"] = "T0"
+        self.assertIn("银行:industry_or_lifecycle_downgrade_without_primary_counterevidence",
+                      m.validate(old, new, SHA, sector_audit=audit))
+
+    def test_market_collapse_cannot_invalidate_lifecycle_without_primary_evidence(self):
+        old, new, audit = self.setup_same_day_collapse()
+        new["trends"][0]["lifecycle_status"] = "已失效"
+        new["trends"][0]["state_history"].append(
+            {"trade_date": "2026-10-13", "from": "有效", "to": "已失效"})
+        self.assertIn("银行:industry_or_lifecycle_downgrade_without_primary_counterevidence",
+                      m.validate(old, new, SHA, sector_audit=audit))
+
     def test_collective_market_break_does_not_erase_industry_trend(self):
         old, new, audit = self.setup_same_day_collapse()
         self.assertEqual(new["trends"][0]["trend_state"], "T1")
