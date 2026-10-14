@@ -20,8 +20,16 @@ class TrendCohortTests(unittest.TestCase):
         self.assertEqual(out["themes"][0]["prospective_baseline_date"], "2026-10-13")
         self.assertEqual(out["themes"][0]["historical_first_seen_trade_date"], "2026-10-01")
         self.assertIsNone(out["themes"][0]["returns"])
+        self.assertFalse(out["prospective_only"])
+        self.assertEqual(out["cohort_origin"], "RETROSPECTIVE_BASELINE_REFERENCE_ONLY")
         self.assertFalse(out["source_dates_verified"])
         self.assertTrue(out["source_date_verification_required_before_returns"])
+
+    def test_same_day_archive_still_requires_timestamp_proof(self):
+        j = {"trade_date": "2026-10-13", "status": "COMPLETE", "trends": []}
+        out = m.build(j, SHA, SHA, SHA, "2026-10-13")
+        self.assertTrue(out["prospective_only"])
+        self.assertEqual(out["cohort_origin"], "SAME_DAY_ARCHIVED_REQUIRES_TIMESTAMP_VERIFICATION")
 
     def test_reject_fabricated_sha(self):
         with self.assertRaises(ValueError):
