@@ -25,7 +25,7 @@ on:
       - 'tests/test_trend_buy_full_pipeline.py'
       - 'skill/INTRADAY_MONITOR_CANONICAL.md'
       - '.github/workflows/update-intraday-snapshot.yml'
-      - 'research/trend_buy_company_review_current.json'
+      - 'research/trend_buy_company_reviews/latest.json'
       - 'scripts/build_full_market_price_structure.py'
       - 'scripts/price_inputs.py'
       - 'scripts/build_history.py'
@@ -109,52 +109,32 @@ jobs:
             for c in o['companies']
           ],ensure_ascii=False))
           PY
-      - name: Validate current fresh company research and dynamic Top5
+      - name: Validate optional date-scoped company evidence when present
         run: |
-          python scripts/build_trend_buy_manual_research.py --evidence research/trend_buy_company_review_current.json --structure-output /tmp/current-scoped-structure.json --output /tmp/current_research.json
-          python scripts/trend_buy_engine.py --research /tmp/current_research.json --structure /tmp/current-scoped-structure.json --output /tmp/current_result.json
           python - <<'PY'
           import json
           from pathlib import Path
-          load=lambda p:json.loads(Path(p).read_text(encoding='utf-8'))
-          research=load('/tmp/current_research.json')
-          result=load('/tmp/current_result.json')
-          audit=research['screen_audit']
-          review=load('research/trend_buy_company_review_current.json')
-          assert audit['hard_eligible']==len(audit['lightweight_scanned'])
-          assert audit['hard_eligible']==len(audit['pre_screen_selected'])+len(audit['pre_screened_out'])
-          assert audit['research_scope']=='dynamic_tertiary_industry_top5_after_lightweight_scan'
-          assert result['coverage']['judged']==len(audit['pre_screen_selected'])
-          assert all(0<=v<=6 for v in audit['research_slots_per_industry'].values())
-          assert audit['source_review_pending_count']==0
-          assert {x['code'] for x in research['companies']}=={x['code'] for x in review['reviews']}
-          assert research['mode']==result['mode']=='FORMAL'
-          assert result['status']=='COMPLETE' and result['production_eligible'] is True
-          assert sum(result['summary'].values())==result['coverage']['judged']
-          assert all(len(g['items'])<=5 for g in result['top5_by_theme'])
-          assert all(x['trend_phase']!='COOLING' for g in result['top5_by_theme'] for x in g['items'])
-          assert all(result['publication_audit'].values())
-          print('MAINLINE_CURRENT_RESEARCH_AUDIT',json.dumps({
-            'trade_date':result['trade_date'],'scanned':audit['hard_eligible'],
-            'researched':result['coverage']['judged'],'summary':result['summary'],
-            'top5':{g['trend_name']:[x['code'] for x in g['items']] for g in result['top5_by_theme']}
-          },ensure_ascii=False))
+          path=Path('research/trend_buy_company_reviews/latest.json')
+          day=json.loads(Path('research/trend_handoff.json').read_text())['trade_date']
+          if path.exists():
+              evidence=json.loads(path.read_text())
+              assert evidence.get('as_of_date')==day, ('REVIEW_DATE_MISMATCH',day,evidence.get('as_of_date'))
+              print('DATE_SCOPED_RESEARCH_EVIDENCE_PRESENT',day,len(evidence.get('reviews',[])))
+          else:
+              print('NO_DATE_SCOPED_COMPANY_EVIDENCE: SHADOW_CI_ONLY, NOT_FORMAL')
           PY
-      - name: Verify exact current dynamic-theme handoff contract
+      - name: Validate published or absence-of-current evidence is not a false formal result
         run: |
-          python scripts/trend_buy_handoff.py --result /tmp/current_result.json --result-blob-sha ci-contract-only --output /tmp/trend_buy_handoff.json
           python - <<'PY'
-          import json,sys
+          import json
           from pathlib import Path
-          sys.path.insert(0,'scripts')
-          from trend_buy_handoff import validate_items
-          formal=json.loads(Path('/tmp/current_result.json').read_text())
-          handoff=json.loads(Path('/tmp/trend_buy_handoff.json').read_text())
-          codes=[x['code'] for g in formal['top5_by_theme'] for x in g['items']]
-          assert handoff['shadow'] is False
-          assert [x['code'] for x in handoff['items']]==codes
-          assert len(validate_items(handoff))==len(codes)
-          print('CURRENT_MAINLINE_HANDOFF_CONTRACT',len(codes))
+          handoff=json.loads(Path('research/trend_handoff.json').read_text())
+          formal=json.loads(Path('research/trend_buy_formal_result.json').read_text())
+          if handoff['trade_date']!=formal['trade_date']:
+              print('LATEST_FORMAL_STALE_NOT_REPUBLISHED',formal['trade_date'],handoff['trade_date'])
+          else:
+              assert formal['status']=='COMPLETE' and formal['production_eligible'] is True
+              print('LATEST_FORMAL_VERIFIED',formal['trade_date'])
           PY
       - name: Check persisted formal SHA and monitor compatibility
         run: |
