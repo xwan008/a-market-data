@@ -14,6 +14,7 @@ import sys
 STATES = {"失效": 0, "高潮/衰退": 1, "观察": 2, "新异动": 2,
           "候选趋势": 3, "趋势确认": 4}
 T_STATES = {"T0", "T1", "T2", "待核验"}
+T_STATE_RANK = {"待核验": 0, "T0": 1, "T1": 2, "T2": 3}
 DIMENSIONS = {"COMMODITY_ANCHOR", "INDUSTRY_FUNDAMENTALS", "MARKET_STRUCTURE",
               "MARKET_BREADTH", "RELATIVE_STRENGTH", "SUPPLY_DEMAND",
               "MAJOR_CATALYST"}
@@ -131,20 +132,36 @@ def validate(previous, proposed, baseline_sha, snapshot=None):
             errors.append(f"{name}:no_new_dated_evidence")
         # Mapping gaps and single-day breadth declines are not independent
         # evidence of market structure invalidation.
-        downgrade = (m0 != m1 and STATES[m1] < STATES[m0]) or (l1 == "已失效" and l0 != l1)
-        if downgrade:
-            counters = [e for e in qualified if e["direction"] == "COUNTER" and e["trade_date"] > before_day]
+        downgrade = ((m0 != m1 and STATES[m1] < STATES[m0])
+                     or (t0 != t1 and T_STATE_RANK[t1] < T_STATE_RANK[t0])
+                     or (l1 == "已失效" and l0 != l1))
+        # A one-day rebound also cannot restore a downgraded trend.
+        market_reclassify = m0 != m1
+        if downgrade or market_reclassify:
+            direction = "COUNTER" if downgrade else "SUPPORT"
+            relevant = [e for e in qualified if e["direction"] == direction and e["trade_date"] > before_day]
             critical = any(e["impact"] == "CRITICAL" and e["dimension"] in
                            {"COMMODITY_ANCHOR", "INDUSTRY_FUNDAMENTALS", "SUPPLY_DEMAND", "MAJOR_CATALYST", "MARKET_STRUCTURE"}
-                           for e in counters)
+                           for e in relevant)
             structural = any(e["dimension"] == "MARKET_STRUCTURE" and e["impact"] in {"STRUCTURAL", "CRITICAL"}
                              and isinstance(e.get("window_trading_days"), int) and e["window_trading_days"] >= 3
-                             for e in counters)
-            independent = len({e["dimension"] for e in counters}) >= 2
+                             for e in relevant)
+            independent = len({e["dimension"] for e in relevant}) >= 2
             if not (critical or (structural and independent)):
-                errors.append(f"{name}:downgrade_without_structural_or_critical_counterevidence")
+                suffix = ("downgrade_without_structural_or_critical_counterevidence" if downgrade
+                          else "reclassification_without_multiday_or_critical_support")
+                errors.append(f"{name}:{suffix}")
         if changed and not qualified:
             errors.append(f"{name}:transition_without_evidence")
+    for name, entry in new.items():
+        if name in old:
+            continue
+        if entry.get("first_seen_trade_date") != after_day or not any(
+            h.get("trade_date") == after_day for h in entry.get("state_history", []) if isinstance(h, dict)
+        ):
+            errors.append(f"{name}:new_trend_unfrozen_or_backdated")
+        if not isinstance(entry.get("supporting_evidence"), list) or not entry["supporting_evidence"]:
+            errors.append(f"{name}:new_trend_without_research_evidence")
     return errors
 
 
