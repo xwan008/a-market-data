@@ -11,7 +11,7 @@
  --border:#E5E7EB;--studio-line:#E5E7EB;
  --mint:#5266A8;--blue:#5266A8;--amber:#A56E2B;--red:#C75852;
  --market-up:#C75852;--market-up-soft:rgba(199,88,82,.09);
- --market-down:#416FB6;--market-down-soft:rgba(65,111,182,.09);
+ --market-down:#1C805B;--market-down-soft:rgba(28,128,91,.10);
  --research-candidate:#A56E2B;--research-watch:#66758B;
  background:var(--bg);color:var(--text);
 }
@@ -232,7 +232,7 @@
 .app-shell .holding-level{background:#F6F7F9}
 .app-shell :is(.portfolio-row-bottom svg,.portfolio-level-row svg){color:#79859A}
 
-/* Charts: paper grids + blue negative values, never green */
+/* Charts: paper grids; A-share market up is red and down is green. */
 .app-shell .plot-grid{stroke:#DFE3EA}
 .app-shell :is(.plot-axis,.plot-time,.plot-point-label){fill:#647184}
 .app-shell .plot-point-label-last{fill:var(--plot-stroke)}
@@ -250,7 +250,7 @@
 .app-shell .plot-tooltip{background:#FFFFFF;border:1px solid #DFE3EB;box-shadow:0 12px 30px rgba(35,47,68,.10)}
 .app-shell .plot-tooltip strong{color:#36435A}
 .app-shell :is(.plot-tooltip-time,.plot-tooltip small,.plot-tooltip>span:not(.plot-tooltip-time)){color:#657184}
-.app-shell .plot-fall stop:first-child{stop-color:#416FB6}
+.app-shell .plot-fall stop:first-child{stop-color:var(--market-down)}
 .app-shell .plot-rise stop:first-child{stop-color:#C75852}
 
 /* Color semantics: status separate from price direction */
@@ -376,3 +376,15 @@
 .login-screen--terminal .login-panel::before{
  box-shadow:0 0 16px rgba(153,169,211,.16),0 0 36px rgba(112,133,183,.11);
 }
+
+/* Protect market semantics from historical high-specificity typography rules. */
+.app-shell .today-leader-return.market-down strong,
+.app-shell .market-down,
+.app-shell .focus-switch button .market-down,
+.app-shell .new-home .home-holding .holding-intraday-change.market-down,
+.app-shell .new-home .decision-row-meta small.intraday-breadth-change.market-down{color:var(--market-down)}
+.app-shell .today-leader-return.market-up strong,
+.app-shell .market-up,
+.app-shell .focus-switch button .market-up,
+.app-shell .new-home .home-holding .holding-intraday-change.market-up,
+.app-shell .new-home .decision-row-meta small.intraday-breadth-change.market-up{color:var(--market-up)}
