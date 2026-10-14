@@ -178,13 +178,36 @@ class MigrationGateTests(unittest.TestCase):
         self.assertIn("银行:downgrade_without_structural_or_critical_counterevidence",
                       m.validate(old, new, SHA, sector_audit=audit))
 
-    def test_single_sector_or_marketwide_but_not_relative_breakdown_blocked(self):
+    def test_single_sector_or_normal_breadth_is_not_collective_collapse(self):
         old, new, audit = self.setup_same_day_collapse()
         audit["sectors"][0]["advance_ratio"] = .6
         self.assertIn("银行:downgrade_without_structural_or_critical_counterevidence",
                       m.validate(old, new, SHA, sector_audit=audit))
         audit["sectors"][0]["advance_ratio"] = .1
-        audit["sectors"][1]["relative_1d_vs_market_median_pct"] = .5
+        audit["sectors"][1]["median_1d_pct"] = -0.2
+        self.assertIn("银行:downgrade_without_structural_or_critical_counterevidence",
+                      m.validate(old, new, SHA, sector_audit=audit))
+
+    def test_absolute_break_even_if_market_drops_faster(self):
+        old, new, audit = self.setup_same_day_collapse()
+        for item in audit["sectors"][:2]:
+            item["relative_1d_vs_market_median_pct"] = 1.0
+        review = new["scan_audit"]["state_migration_gate"]["reviews"][0]
+        for item in review["evidence"]:
+            if item["dimension"] == "RELATIVE_STRENGTH":
+                item["direction"] = "SUPPORT"
+        self.assertEqual(m.validate(old, new, SHA, sector_audit=audit), [])
+
+    def test_relative_evidence_direction_cannot_contradict_market_data(self):
+        old, new, audit = self.setup_same_day_collapse()
+        for item in audit["sectors"][:2]:
+            item["relative_1d_vs_market_median_pct"] = 1.0
+        self.assertIn("银行:downgrade_without_structural_or_critical_counterevidence",
+                      m.validate(old, new, SHA, sector_audit=audit))
+
+    def test_duplicate_sector_ids_cannot_pass_full_universe(self):
+        old, new, audit = self.setup_same_day_collapse()
+        audit["sectors"][-1] = dict(audit["sectors"][0])
         self.assertIn("银行:downgrade_without_structural_or_critical_counterevidence",
                       m.validate(old, new, SHA, sector_audit=audit))
 
