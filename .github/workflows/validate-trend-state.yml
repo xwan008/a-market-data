@@ -5,12 +5,20 @@ on:
     branches: [main]
     paths:
       - 'scripts/validate_trend_state_migrations.py'
+      - 'tests/test_trend_lifecycle_semantics.py'
+      - 'tests/test_trend_publication_pair.py'
+      - 'scripts/audit_trend_lifecycle_semantics.py'
+      - 'scripts/validate_trend_publication_pair.py'
       - 'tests/test_trend_state_migrations.py'
       - 'skill/TREND_REGISTRY_PROTOCOL.md'
       - '.github/workflows/validate-trend-state.yml'
   pull_request:
     paths:
       - 'scripts/validate_trend_state_migrations.py'
+      - 'tests/test_trend_lifecycle_semantics.py'
+      - 'tests/test_trend_publication_pair.py'
+      - 'scripts/audit_trend_lifecycle_semantics.py'
+      - 'scripts/validate_trend_publication_pair.py'
       - 'tests/test_trend_state_migrations.py'
       - 'skill/TREND_REGISTRY_PROTOCOL.md'
       - '.github/workflows/validate-trend-state.yml'
@@ -29,6 +37,10 @@ jobs:
         with:
           python-version: '3.11'
       - name: Run lifecycle continuity and anti-noise regression tests
-        run: python -m unittest discover -s tests -p 'test_trend_state_migrations.py' -v
+        run: python -m unittest discover -s tests -p 'test_trend_*.py' -v
       - name: Validate source compiles
-        run: python -m py_compile scripts/validate_trend_state_migrations.py
+        run: python -m py_compile scripts/validate_trend_state_migrations.py scripts/validate_trend_publication_pair.py scripts/audit_trend_lifecycle_semantics.py
+      - name: Smoke test latest frozen registry and handoff consistency (historical mode only)
+        run: python scripts/validate_trend_publication_pair.py --registry research/trend_registry.json --handoff research/trend_handoff.json --historical-baseline-only
+      - name: Audit past lifecycle classification without modifying official registry
+        run: python scripts/audit_trend_lifecycle_semantics.py --registry research/trend_registry.json --registry-blob-sha legacy-snapshot
