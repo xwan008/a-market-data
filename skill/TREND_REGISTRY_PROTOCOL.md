@@ -1,6 +1,6 @@
 # A股板块趋势榜｜正式研究与趋势生命周期协议
 
-> 本文件是「A股板块趋势榜」定时任务的**唯一完整业务协议**。定时任务Prompt负责入口与执行顺序；本文件负责研究和发布规则；仓库现行校验脚本负责可程序验证的字段、阈值及数据一致性。本文仅整理既有规则，不改变原有T0/T1/T2、市场状态、ETF时机、优先榜资格/排序/数量、行业路由和下游JSON契约。
+> 本文件是「A股板块趋势榜」的**完整生命周期业务协议**。18:40首次扫描**先单独读取**不含历史主题案例的 `skill/TREND_DISCOVERY_NEUTRAL.md`，完成并冻结独立发现后，才读取本文件、历史账本与Python候选；06:40可以直接读取本文件。定时任务Prompt负责入口与执行顺序；本文件负责研究和发布规则；仓库现行校验脚本负责可程序验证的字段、阈值及数据一致性。本文仅整理既有规则，不改变原有T0/T1/T2、市场状态、ETF时机、优先榜资格/排序/数量、行业路由和下游JSON契约。
 
 ## 0. 先读：六条不可互相替代的原则
 
@@ -23,10 +23,10 @@
 
 ### 1.2 18:40｜完整收盘研究：强制八步
 
-1. **收盘有效性Gate**：核实交易日、正式已完成收盘行情、日期/覆盖/数据质量。此阶段只准读取原始全市场行情、客观分类/公司资料和公开产业事实；可读取本协议、校验程序及schema说明，**不得提前读取任何历史趋势榜、旧handoff/Top榜或本轮Python候选输出**。失败如实报告，不宣称完成研究。
+1. **收盘有效性Gate**：只先读取 `skill/TREND_DISCOVERY_NEUTRAL.md` 和中性schema/行情质量检查规则；核实交易日、完整收盘行情、日期、覆盖和质量。这时只准用原始全市场行情、未筛选行业/公司资料和公开产业事实；**不得提前读取本生命周期协议（其中含有具名历史板块案例）、旧registry/handoff/Top榜或本轮Python候选输出**。失败如实报告，不宣称完成研究。
 2. **无历史榜单的全市场独立发现**：仅依据本轮时点可得的政策、商品、供需、订单、盈利及全市场量价、结构，从全覆盖的行业/产业问题出发找候选；不能让昨日榜单确定扫描范围、查询词、研究预算或待选顺序。允许查看历史原始行情与公开产业资料，**不允许查看已经被旧趋势榜筛选/赋级的主题名单或结论**。记录真正扫描过的市场范围、缺口、来源与截止时点。
-3. **立即冻结第一轮发现结果**：在任何上轮registry/handoff/历史精选名单和本轮Python候选暴露前，冻结独立发现的规范方向、已核实行业代码、支持/反证、时点和候选/排除理由，包括当轮无新发现的事实（不可为了凑榜补造）。按第5.2节在`scan_audit.discovery_attribution`记录冻结与隔离声明；若真实预提交了独立快照，保存其路径、commit/blob SHA和READBACK。后续只能追加历史复核、Python查漏或合并解释，**不得修改冻结后的首轮名单并追认为独立发现**。
-4. **读取历史账本并逐项复核**：现在才从main读取最近一次正式提交并READBACK的完整`research/trend_registry.json`、真实Git blob SHA、交易日、全部旧趋势和`state_history`，保存只读previous副本。按各主题完整历史复核确认/退化/失效/恢复条件；关键历史证据缺口才回读旧Git提交及当时冻结数据，结合当期可比1/3/5日和必要的10/20日及更长行情结构。**历史记录只用于旧主题生命周期复核，不得倒写第3步独立名单；旧趋势首轮未命中不等于失效**。
+3. **立即冻结第一轮发现结果**：在读取本完整生命周期协议、上轮registry/handoff/历史精选名单和本轮Python候选之前，按中性规范冻结独立发现的规范方向、已核实行业代码、支持/反证、真实截止时点和候选/排除理由，包括当轮无新发现的事实。可使用 `scripts/validate_trend_discovery_checkpoint.py` 做第一阶段文件结构检查；独立预提交快照需留真实Git SHA与READBACK。**结构校验与模型自述均不证明认知隔离**；如未真正技术隔离，标声明式或UNVERIFIED。此后才加载本文件，进入历史全量复核；后续不得倒填首轮结果。
+4. **加载完整协议、读取历史账本并逐项复核**：第一轮冻结完成后才读取 `skill/TREND_REGISTRY_PROTOCOL.md` 全文及正式校验程序，然后从main读取最近一次正式提交并READBACK的完整`research/trend_registry.json`、真实Git blob SHA、交易日、全部旧趋势和`state_history`，保存只读previous副本。按各主题完整历史复核确认/退化/失效/恢复条件；关键历史证据缺口才回读旧Git提交及当时冻结数据，结合当期可比1/3/5日和必要的10/20日及更长行情结构。**历史记录只用于旧主题生命周期复核，不得倒写第3步独立名单；旧趋势首轮未命中不等于失效**。
 5. **本轮Python查漏与证据交叉**：完成旧趋势复核后，读取同日有效的Python行业/主题发现清单；核实模型首轮遗漏、旧主题异常、程序独有线索、行业路由及实际发现来源。Python分数和Top20不能代替产业研究、直接改变正式市场状态或抢占新仓优先级。
 6. **合并去重并分层决策**：合并第3步冻结的首轮发现、第4步复核的全部历史主题及第5步核实的Python补充线索，按真实产业身份去重；分别判断产业/商品第一锚及T等级、A股market_state、受益映射和当期新仓/ETF资格。历史独有主题归入`recovery_candidates`/既有趋势复核审计，**不可算作本轮“模型独立首发”**；历史完整池不得因首轮漏扫而被删减。依据第2—5节区分正常波动、真实结构破位及研究缺口。
 7. **预提交审计及正式发布**：生成完整proposed registry但先不写正式文件，按第8节校验状态历史和客观证据；通过全部Gate后先提交registry、READBACK，再按原规则生成handoff、提交并READBACK。
@@ -87,7 +87,7 @@
 
 ### 5.1 辅助程序的职责和质量
 
-- **先无榜单独立扫描、再历史复核、后Python**：模型首轮名单仅来自第1.2节第2—3步，包含规范主题、已核实的申万三级代码、原始行情/产业证据、截止日期及覆盖缺口；读取它之前不能接触上轮registry、handoff、昨日精选榜、本轮Python候选或其转述。第4步历史复核独立记录`recovery_candidates`，不倒填第一轮名单；第5步再读Python。本轮Python候选不得提前泄漏给“首轮模型发现”。
+- **先无榜单独立扫描、再历史复核、后Python**：先读中性 `skill/TREND_DISCOVERY_NEUTRAL.md`，模型首轮名单仅来自第1.2节第2—3步，包含规范主题、已核实的申万三级代码、原始行情/产业证据、截止日期及覆盖缺口；读取它之前不能接触上轮registry、handoff、昨日精选榜、本轮Python候选或其转述。第4步历史复核独立记录`recovery_candidates`，不倒填第一轮名单；第5步再读Python。本轮Python候选不得提前泄漏给“首轮模型发现”。
 - `data/research/sector_discovery_snapshot.json`和`data/research/sector_discovery_audit.json`按实际交易日、schema、status、覆盖及来源校验：`model_research_candidates`通常Top20、`theme_research_budget`仅限制**程序辅助复核**；`candidate_overview`、`deferred_candidates`及`all_industry_metrics`用于补查。STRONG/EMERGING与Python分数是量价线索，不是趋势、排名或股票买点。
 - `research/theme_industry_catalog.json`是版本化主题—申万三级行业研究目录：`core`参与去重成分股量价聚合，`related`只作旁证，不自动交接。申万二级基础分组是统计分类而非独立产业主题；跨主题行业可重叠，同一主题内个股不得重复计数。某历史快照覆盖331个申万三级行业、131个基础组、17个研究主题，**这些是版本快照数量，不是永久阈值或发现上限**；以本轮真实分类版本及审计覆盖为准。
 - `data/research/theme_evidence_snapshot.json`仅为精简辅助快照。须核实同一`trade_date`、`schema_version=1`、`result_kind=a_share_theme_evidence_snapshot`、`status=COMPLETE`、`no_trade_signal=true`、`auxiliary_only=true`、`decision_authority=legacy_model_driven_trend_research`、`point_in_time_eligible=true`及研究目录时间口径。`research_candidates`是正向线索，`tracked_theme_alerts`是旧主题风险线索，`unmapped_industry_alerts`指未关联到独立研究主题的行业异动；`SW_L2_TAXONOMY`是分类统计组、`RESEARCH_THEME`是研究主题量价组，均须产业独立核验。
@@ -155,11 +155,17 @@ python scripts/validate_trend_state_migrations.py \
 # 当日集体退潮通道必须附加 --sector-audit <同日行业审计文件>
 ~~~
 
-只有**真实退出码0、status=PASS**，且原独立研究、交易日、行情/行业覆盖、JSON结构/身份等Gate全部通过时，才：
-1. 提交`research/trend_registry.json`，取得真实新commit/content SHA，重新FETCH及完整JSON解析，核对日期、历史/审计、全部趋势去重和新SHA；
-2. 确认registry READBACK成功后，按既有资格/排序/数量生成`research/trend_handoff.json`，提交并READBACK，核对当期交易日、`signals`和registry优先方向的名称/顺序及身份。
+在本轮任何正式写入前，除上述状态迁移Gate外，还应在工作目录中生成**尚未发布的完整handoff草案**，运行 `scripts/validate_trend_publication_pair.py --registry <proposed_registry> --handoff <proposed_handoff>`，检查真实同一交易日、优先榜主题名称和顺序、产业/市场状态及行业路由一致。此pair Gate的历史回放开关 `--historical-baseline-only` **仅供旧榜无迁移审计的历史检测，禁止用于新正式发布**。
 
-程序阻断或无法实际执行为`STATE_MIGRATION_GATE_BLOCKED`；独立研究/覆盖不足报告`REGISTRY_INCOMPLETE`，写入/回读失败报告`REGISTRY_WRITE_FAILED`/`REGISTRY_READBACK_FAILED`及实际阶段。本轮不得发布宣称成功的新榜单、绕过安全拒绝、另走未批准写入通道或把草稿充当已落库数据。如果只成功提交registry而handoff失败，须如实说明哪些文件已持久化、哪些未完成，不声称两份原子提交成功。
+只有上述**状态迁移Gate和pair Gate都真实退出码0且status=PASS**，且原独立研究、交易日、行情/行业覆盖、JSON结构/身份等Gate全部通过时，才：
+1. 首选在同一GitHub **Git tree/commit**中原子提交两份已经预校验的proposed文件，并用**不强制覆盖**的分支HEAD比较/快速前进提交；HEAD已经改变时重新冻结基线并重新校验，不可force覆盖别人提交。
+2. 在同一新commit下分别FETCH、完整解析并READBACK `research/trend_registry.json` 和 `research/trend_handoff.json`，核对日期、主题去重/历史/审计、优先榜实际资格和名称顺序、行业路由及新blob SHA。若当前可用执行工具暂时无法安全完成原子提交，应保留原先registry先提交、READBACK、再提交**预先校验过的**handoff并READBACK的降级路径；中途失败必须报告**非原子部分成功**，不得假冒完整成功。切换原子写入方式应先通过不修改main的演练。
+
+状态迁移程序或pair程序阻断/无法实际执行时分别报告`STATE_MIGRATION_GATE_BLOCKED`或`PUBLICATION_PAIR_GATE_BLOCKED`；独立研究/覆盖不足报告`REGISTRY_INCOMPLETE`，写入/回读失败报告`REGISTRY_WRITE_FAILED`/`REGISTRY_READBACK_FAILED`及实际阶段。本轮不得发布宣称成功的新榜单、绕过安全拒绝、另走未批准写入通道或把草稿充当已落库数据。如果只成功提交registry而handoff失败，须如实说明哪些文件已持久化、哪些未完成，不声称两份原子提交成功。
+
+### 8.4 旧账本产业与市场失效语义审计（不自动改历史）
+
+使用 `scripts/audit_trend_lifecycle_semantics.py` 只读检查既有 `lifecycle_status=已失效` 是否留有商品/供需/订单/产业基本面等**结构化原始反证**。输出 `REVIEW_REQUIRED` 仅代表历史证据链不够清晰，不能证明原判断错误，更不能在未研究、未通过迁移Gate时静默把过去 `已失效` 改写成有效。2026-10-13的只读审计快照保存在 `research/audits/2026-10-13_lifecycle_semantics.json`；后续研究根据新事实对今日状态按正常迁移规则重新判断，旧结果只能保留并追加解释。含 `blob/main` 的历史证据链接不是不可变快照，回放时要查对应旧Git SHA，未来审计新证据优先记录不可变源码版本及内容SHA。
 
 ## 9. 报告与历史回验
 
@@ -169,7 +175,7 @@ python scripts/validate_trend_state_migrations.py \
 
 ## 10. 一页执行检查表
 
-- [ ] 06:40只增量；18:40确为交易日和有效已收盘行情。
+- [ ] 06:40直接按正式协议增量；18:40先读**中性发现规范**并验证交易日，在首轮冻结之后才读完整生命周期协议与历史榜。
 - [ ] 在接触旧registry/handoff/历史精选和本轮Python候选之前，先完成**无榜单全市场独立发现**并冻结首轮候选、证据时间、扫描覆盖；记录隔离/冻结的实际可验证程度。
 - [ ] 冻结后才读取最新完整账本及真实SHA，完成全部旧趋势状态复核；只在历史缺口时回溯旧Git版本。历史找回主题不能冒充首轮新发现。
 - [ ] 历史复核后才读取本轮Python候选，交叉查漏；合并三路结果且旧主题不因首轮未命中被遗漏或降级。
@@ -177,6 +183,6 @@ python scripts/validate_trend_state_migrations.py \
 - [ ] 外部商品预测、辅助资金与程序候选只作适当证据，不混同已发生事实。
 - [ ] 旧主题全覆盖HOLD/CHANGE审计，历史前缀不改，新主题有当轮可验证研究证据。
 - [ ] 集体退潮通道经同日行业快照、此前确认的结构支撑和真实收盘验证。
-- [ ] 所有研究/数据/状态迁移Gate真实PASS；先registry提交+READBACK，再handoff提交+READBACK；失败明确说明。
+- [ ] 所有研究/数据/状态迁移Gate和**双文件pair Gate**真实PASS；优先原子提交两份草稿并分别READBACK，不具备原子写入条件时完整报告逐文件提交/失败状态。
 
 **维护原则**：新增规则只在本协议对应唯一章节修改，字段/阈值的具体实现同步至程序及测试；定时任务入口只负责调用，不重复堆叠这份文档。
