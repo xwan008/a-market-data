@@ -215,9 +215,10 @@ def validate(previous, proposed, baseline_sha, snapshot=None, sector_audit=None)
             errors.append(f"{name}:no_new_dated_evidence")
         # Mapping gaps and single-day breadth declines are not independent
         # evidence of market structure invalidation.
-        downgrade = ((m0 != m1 and STATES[m1] < STATES[m0])
-                     or (t0 != t1 and T_STATE_RANK[t1] < T_STATE_RANK[t0])
-                     or (l1 == "已失效" and l0 != l1))
+        industry_down = t0 != t1 and T_STATE_RANK[t1] < T_STATE_RANK[t0]
+        lifecycle_invalidated = l1 == "已失效" and l0 != l1
+        market_down = m0 != m1 and STATES[m1] < STATES[m0]
+        downgrade = market_down or industry_down or lifecycle_invalidated
         # A one-day rebound also cannot restore a downgraded trend.
         market_reclassify = m0 != m1
         if downgrade or market_reclassify:
@@ -227,9 +228,21 @@ def validate(previous, proposed, baseline_sha, snapshot=None, sector_audit=None)
                            {"COMMODITY_ANCHOR", "INDUSTRY_FUNDAMENTALS", "SUPPLY_DEMAND", "MAJOR_CATALYST"}
                            for e in relevant)
             emergency_market_break = (
-                downgrade and m0 != m1 and STATES[m1] < STATES[m0]
+                market_down and not industry_down and not lifecycle_invalidated
                 and _same_day_collective_break(name, prior, review, relevant, after_day, sector_audit)
             )
+            # Equity-wide price damage alone does NOT invalidate a commodity or
+            # an industry thesis. Those two layers require primary-driver facts.
+            if industry_down or lifecycle_invalidated:
+                primary_counter = any(e["direction"] == "COUNTER"
+                                      and e["trade_date"] > before_day
+                                      and e["dimension"] in {"COMMODITY_ANCHOR",
+                                          "INDUSTRY_FUNDAMENTALS", "SUPPLY_DEMAND",
+                                          "MAJOR_CATALYST"}
+                                      and e["impact"] in {"STRUCTURAL", "CRITICAL"}
+                                      for e in qualified)
+                if not primary_counter:
+                    errors.append(f"{name}:industry_or_lifecycle_downgrade_without_primary_counterevidence")
             structural = any(e["dimension"] == "MARKET_STRUCTURE" and e["impact"] in {"STRUCTURAL", "CRITICAL"}
                              and isinstance(e.get("window_trading_days"), int) and e["window_trading_days"] >= 3
                              for e in relevant)
