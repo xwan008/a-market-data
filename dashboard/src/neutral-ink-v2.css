@@ -417,11 +417,12 @@
  background:linear-gradient(90deg,transparent 0%,transparent 61%,rgba(48,91,103,.11) 70%,rgba(25,58,74,.18) 100%);
 }
 
-/* 2. All six workspaces: increase usable width and reduce left/right gutters. */
+/* 2. All six workspaces: keep equal 42px gutters on desktop. */
 .app-shell .main-content{
  max-width:1740px;
- padding-left:26px;
- padding-right:26px;
+ padding-top:42px;
+ padding-left:42px;
+ padding-right:42px;
 }
 
 /* 3. Overview: the white *outer* summary card owns the horizontal inset. */
@@ -513,7 +514,7 @@
 }
 
 @media(max-width:1250px){
- .app-shell .main-content{padding-left:20px;padding-right:20px}
+ .app-shell .main-content{padding-left:42px;padding-right:42px}
 }
 @media(max-width:1080px){
  .login-screen--terminal{
@@ -528,7 +529,7 @@
  }
 }
 @media(max-width:760px){
- .app-shell .main-content{padding-left:14px;padding-right:14px}
+ .app-shell .main-content{padding-top:24px;padding-left:14px;padding-right:14px}
  .app-shell .new-home .overview-brief{padding-left:14px;padding-right:14px}
  .app-shell .new-home .overview-kpi{
   padding:14px 7px;

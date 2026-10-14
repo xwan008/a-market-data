@@ -12,9 +12,10 @@ test('login keeps original colorful artwork on desktop and mobile',()=>{
  assert.match(css,/linear-gradient\(113deg,#A8C9CE 0%,#6A9EAD 55%,#3E7181 100%\)/);
 });
 
-test('all-page gutters are reduced including mobile layouts',()=>{
- assert.match(css,/\.app-shell \.main-content\{\s*max-width:1740px;\s*padding-left:26px;\s*padding-right:26px;/);
- assert.match(css,/@media\(max-width:760px\)\{[\s\S]*?\.app-shell \.main-content\{padding-left:14px;padding-right:14px\}/);
+test('workspaces use equal 42px content gutters on desktop and retain mobile spacing',()=>{
+ assert.match(css,/\.app-shell \.main-content\{\s*max-width:1740px;\s*padding-top:42px;\s*padding-left:42px;\s*padding-right:42px;/);
+ assert.match(css,/@media\(max-width:1250px\)\{\s*\.app-shell \.main-content\{padding-left:42px;padding-right:42px\}/);
+ assert.match(css,/@media\(max-width:760px\)\{[\s\S]*?\.app-shell \.main-content\{padding-top:24px;padding-left:14px;padding-right:14px\}/);
 });
 
 test('overview white parent card pads its full KPI and monitoring areas',()=>{
