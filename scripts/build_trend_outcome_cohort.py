@@ -54,10 +54,13 @@ def build(registry, registry_sha, quote_sha, industry_sha):
         },
         "prospective_only": True,
         "future_data_not_used": True,
+        "source_dates_verified": False,
+        "source_date_verification_required_before_returns": True,
         "cohort_size": len(themes),
         "themes": themes,
         "limitations": [
             "No 5/10/20-day performance claim until actual future completed quotes.",
+            "Dates of underlying quote and company-index snapshots must be separately verified before evaluation.",
             "Fixed company membership and baseline prices must be recovered "
             "from the frozen source versions before computing outcomes.",
             "Discovery timeliness cannot be inferred from historical first_seen alone.",
