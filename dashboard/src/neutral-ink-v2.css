@@ -398,3 +398,164 @@
  line-height:1.45;white-space:nowrap;
  box-shadow:none;
 }
+
+
+/* 2026-10-14 UI polish: original login artwork, content gutters, overview ribbon,
+   loading placeholders and buy-signal summaries. No trading logic changes. */
+
+/* 1. Show the original approved full-color login artwork without a grey filter. */
+.login-screen--terminal{
+ background:
+  radial-gradient(ellipse at 85% 12%,rgba(155,216,229,.26),transparent 62%),
+  linear-gradient(113deg,#A8C9CE 0%,#6A9EAD 55%,#3E7181 100%);
+}
+.login-screen--terminal .login-visual{
+ filter:none;
+ opacity:1;
+}
+.login-screen--terminal::before{
+ background:linear-gradient(90deg,transparent 0%,transparent 61%,rgba(48,91,103,.11) 70%,rgba(25,58,74,.18) 100%);
+}
+
+/* 2. All six workspaces: increase usable width and reduce left/right gutters. */
+.app-shell .main-content{
+ max-width:1740px;
+ padding-left:26px;
+ padding-right:26px;
+}
+
+/* 3. Overview: the white *outer* summary card owns the horizontal inset. */
+.app-shell .new-home .overview-brief{
+ padding-left:18px;
+ padding-right:18px;
+}
+.app-shell .new-home .overview-kpi{
+ padding:17px 12px;
+}
+.app-shell .new-home .overview-kpi:first-child{
+ padding-left:0;
+}
+.app-shell .new-home .overview-kpi:last-child{
+ padding-right:0;
+}
+.app-shell .new-home .overview-brief-monitor{
+ padding:12px 0;
+ min-height:42px;
+ border-top:1px solid #E7EAF0;
+}
+.app-shell .new-home .overview-brief-link{
+ margin-left:auto;
+}
+
+/* 4. Neutral skeletons are shown only while data is loading (existing React gate). */
+.app-shell .skeleton{
+ background:linear-gradient(95deg,#E8ECF3 0%,#F7F9FC 50%,#E8ECF3 100%);
+ background-size:200% 100%;
+ border:1px solid #E1E6EF;
+ box-shadow:none;
+ animation:shimmer 1.8s ease-in-out infinite;
+}
+
+/* 5. Buy summary: old '.buy-summary span:last-child {width:100%}' accidentally
+   matched the nested badge dot, producing the oval over READY/WAIT on mobile. */
+.app-shell .buy-summary{
+ grid-template-columns:repeat(3,minmax(0,1fr));
+}
+.app-shell .buy-summary>div{
+ min-width:0;
+ display:grid;
+ grid-template-columns:minmax(0,1fr) auto;
+ align-content:center;
+ align-items:center;
+ column-gap:8px;
+ row-gap:10px;
+ padding:16px 14px;
+}
+.app-shell .buy-summary>div:first-child{padding-left:6px}
+.app-shell .buy-summary>div:last-child{padding-right:6px}
+.app-shell .buy-summary>div>.badge,
+.app-shell .buy-summary>div>.muted{
+ grid-column:1;
+ grid-row:1;
+ width:max-content;
+ max-width:100%;
+ white-space:nowrap;
+}
+.app-shell .buy-summary>div>strong{
+ grid-column:2;
+ grid-row:1;
+ font-variant-numeric:tabular-nums;
+ line-height:1.2;
+ color:#293244;
+}
+.app-shell .buy-summary>div>span:last-child{
+ grid-column:1/-1;
+ grid-row:2;
+ width:auto;
+ min-width:0;
+ color:#667386;
+ font-size:11px;
+ line-height:1.5;
+}
+.app-shell .buy-summary .badge .badge-dot{
+ flex:0 0 4px;
+ width:4px;
+ height:4px;
+ border-radius:50%;
+ background:currentColor;
+ opacity:.8;
+}
+.app-shell .buy-summary .badge{
+ min-height:24px;
+ padding:4px 7px;
+ font-size:11px;
+ line-height:1.3;
+}
+
+@media(max-width:1250px){
+ .app-shell .main-content{padding-left:20px;padding-right:20px}
+}
+@media(max-width:1080px){
+ .login-screen--terminal{
+  background:linear-gradient(140deg,#7FAEB7,#4B818E);
+ }
+ .login-screen--terminal .login-visual{
+  filter:none;
+  opacity:.73;
+ }
+ .login-screen--terminal::before{
+  background:rgba(25,59,70,.22);
+ }
+}
+@media(max-width:760px){
+ .app-shell .main-content{padding-left:14px;padding-right:14px}
+ .app-shell .new-home .overview-brief{padding-left:14px;padding-right:14px}
+ .app-shell .new-home .overview-kpi{
+  padding:14px 7px;
+  gap:5px;
+ }
+ .app-shell .new-home .overview-kpi:first-child{padding-left:0}
+ .app-shell .new-home .overview-kpi:last-child{padding-right:0}
+ .app-shell .new-home .overview-brief-monitor{
+  padding:12px 0;
+  gap:8px 10px;
+ }
+ .app-shell .buy-summary>div{
+  padding:12px 7px;
+  column-gap:4px;
+  row-gap:8px;
+  min-height:90px;
+ }
+ .app-shell .buy-summary>div:first-child{padding-left:2px}
+ .app-shell .buy-summary>div:last-child{padding-right:2px}
+ .app-shell .buy-summary>div>strong{font-size:21px}
+ .app-shell .buy-summary .badge{font-size:10px;padding:3px 5px}
+ .app-shell .buy-summary>div>span:last-child{font-size:10px}
+}
+@media(max-width:400px){
+ .app-shell .main-content{padding-left:12px;padding-right:12px}
+ .app-shell .new-home .overview-brief{padding-left:12px;padding-right:12px}
+}
+@media(prefers-reduced-motion:reduce){
+ .app-shell .skeleton{animation:none;background:#E8ECF3}
+}
