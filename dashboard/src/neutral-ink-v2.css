@@ -284,3 +284,74 @@
 @media(prefers-reduced-motion:reduce){
  .app-shell .view-enter{animation:none}
 }
+
+/* Cleanup audit: remove legacy green from interactive corners */
+.app-shell .decision-row:hover>svg{color:#5266A8}
+.app-shell .brand-home:focus-visible,
+.app-shell .portfolio-list-row:focus-visible,
+.app-shell .portfolio-filters button:focus-visible,
+.app-shell .portfolio-detail-tabs button:focus-visible,
+.app-shell .intraday-tab-switch button:focus-visible,
+.app-shell .sector-detail-tabs button:focus-visible{
+ outline:2px solid #5266A8;outline-offset:2px;
+}
+.app-shell :is(.portfolio-list-row.is-selected,.portfolio-filters button.is-active,.portfolio-detail-tabs button.is-active){
+ box-shadow:none;
+}
+.app-shell .portfolio-list-row.is-selected::before{background:#5266A8}
+.app-shell .signal-text.signal-caution{color:#996526}
+.app-shell .signal-text.signal-fall{color:#416FB6}
+.app-shell :is(.badge-ready,.badge-good){
+ color:#425B9E;background:#EEF1FA;border-color:#D3DCEE;
+}
+.app-shell .badge-rise{color:#B7534E;background:#FDF1F0;border-color:#F1D5D2}
+.app-shell .metric-green{background:#EEF1F8;color:#5266A8}
+.app-shell .metric-amber{background:#FFF6EA;color:#A56E2B}
+.app-shell .metric-purple{background:#F3F0F8;color:#746294}
+.app-shell .decision-portfolio .home-holding-charts::before{background:#E3E6ED}
+.app-shell .portfolio-evidence-list li::marker{color:#697CA7}
+.app-shell :is(.portfolio-plan-note,.holding-assessment,.portfolio-evidence-issue){border-color:#E6E8EE}
+
+/* Unauthenticated entrance is part of the brand: use ink/cool blue, not mint */
+.login-screen--terminal{
+ background:linear-gradient(115deg,#C9D0DD 0%,#8593B5 52%,#394562 100%);
+ color:#FFFFFF;
+}
+.login-screen--terminal .login-visual{
+ /* Keep original artwork, render it neutral so no green survives in artwork. */
+ filter:grayscale(1) contrast(.93) brightness(.88);
+ opacity:.68;
+}
+.login-screen--terminal .login-panel{
+ background:linear-gradient(146deg,rgba(30,40,62,.94),rgba(20,29,48,.96));
+ border:1px solid rgba(196,208,232,.50);
+ box-shadow:0 24px 70px rgba(18,29,53,.22),0 0 0 1px rgba(195,206,232,.09);
+}
+.login-screen--terminal .login-panel::after{
+ background:linear-gradient(133deg,rgba(240,243,255,.82),rgba(151,173,219,.22) 45%,rgba(210,220,246,.65));
+}
+.login-screen--terminal :is(.login-panel-title,.login-panel-name){color:#F6F7FE}
+.login-screen--terminal .login-panel-title span{color:#BECBEC}
+.login-screen--terminal .login-panel-rule{background:rgba(212,222,243,.22)}
+.login-screen--terminal :is(.login-panel-footer,.login-form label,.login-toggle-password){color:#C7D0E3}
+.login-screen--terminal .login-input{
+ background:rgba(37,49,74,.84);border:1px solid #626E87;color:#D8E0F2;
+}
+.login-screen--terminal .login-input:focus-within{
+ border-color:#A2B3E0;box-shadow:0 0 0 3px rgba(151,170,221,.14);
+}
+.login-screen--terminal .login-input input{color:#F5F7FE}
+.login-screen--terminal .login-input input::placeholder{color:#ADB9D2}
+.login-screen--terminal :is(.login-toggle-password:hover,.login-toggle-password:focus-visible){
+ background:rgba(175,190,230,.12);color:#FFFFFF;
+}
+.login-screen--terminal .login-submit{
+ background:#D9E1F6;color:#233450;border:1px solid #E3E9FA;
+ box-shadow:0 5px 18px rgba(11,23,50,.10);
+}
+.login-screen--terminal .login-submit:hover:not(:disabled){
+ background:#C6D3F1;box-shadow:0 8px 22px rgba(27,42,79,.16);color:#263A61;
+}
+.login-screen--terminal .login-submit:focus-visible{outline:2px solid #E3EAFD}
+.login-screen--terminal .setup-warning{color:#F0D5A7;border-color:#AB8249}
+.boot-screen{background:#232B3D;color:#F6F7FD}
