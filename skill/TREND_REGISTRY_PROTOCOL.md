@@ -65,6 +65,44 @@
 - **正式报告直显**：有黄金趋势时，在完整趋势池的“黄金/贵金属”条目旁简述“国际金价结构→未来5/10日基准情景→关键变盘条件→置信度→A股映射及独立市场状态→上轮预测回验”；资料不足直言不足，不用空泛“看涨/看跌”替代证据。其他国际商品如原油依同样原则建立展望，但黄金作为本次复盘的首要实测对象。
 - **兼容与安全**：本节不新增定时任务、行情爬虫、Python替代策略、第二套正式榜单或自动下单；不变更`research/trend_handoff.json`、趋势买点榜或盘中监控的数据契约与Gate。研究结论预测性、可推翻、可检验；趋势实际状态只由已发生的事实证据驱动。
 
+## 0.3 历史回溯与状态迁移 Gate｜18:40 正式写入前强制执行
+
+**适用范围**：仅「A股板块趋势榜」18:40 的正式完整收盘研究和发布。06:40 沿用隔夜增量观察，绝不使用本 Gate 伪造当日收盘或提交新 handoff。既有模型全市场独立发现、产业T0/T1/T2、市场状态、资格/排序数量、历史归档、交易日/行情/发布Gate全部仍有效；本节只添加**状态历史不可篡改与迁移证据的预提交核验**。
+
+### 历史输入及顺序
+
+1. **唯一上一轮正式基线**：先从仓库 main 读取最近一次已正式提交并 READBACK 的完整 \`research/trend_registry.json\`，保存本轮本地只读副本（例如临时工作目录的 \`previous_registry.json\`）、真实Git blob SHA、\`trade_date\` 和全部趋势\`state_history\`。不得从当前 handoff/Top3 推断全量历史，也不得将初始旧榜排名当作有效的当日判断。
+2. **跨轮历史与事实分开**：通过当前完整\`state_history\`追溯每个主题的首次出现、升级、分歧、降级、恢复和历史失效条件；缺少关键旧证据、链条断裂或历史版本冲突时，可按该主题既有正式Git commit/SHA溯源与读取当时已冻结的数据，**不以后来交易日的行情回填历史证据**。当前无必要不必每天重新下载全部旧JSON。
+3. **当前行情与研究**：在18:40有效收盘时间Gate通过后，独立研究今日全市场并复核上期所有主题；对结构延续性使用同一行情口径下的近1/3/5日数据，必要时检查10/20日及更长的历史价格结构与关键支撑，所用数据源、截至日期及覆盖需记录。近1/3/5日是嵌套窗口，不能冒充三份独立证据。外部金、油、铜等商品的5/10日展望与实际已发生证据分离，预测不能直接触发状态迁移。
+4. **生成本轮尚未提交的 proposed registry**：每个上轮已存在主题均有\`scan_audit.state_migration_gate.reviews\`一条审计，包括保持状态者。新增主题沿用原发现/产业证据Gate；不能以历史未出现为由禁止真正新发现。旧主题历史必须原样继承并只追加本轮事件，禁止改写\`first_seen_trade_date\`、旧state_history或事后重新解释旧日期状态。
+
+### 独立程序 Gate（正式前置）
+
+仓库程序为 \`scripts/validate_trend_state_migrations.py\`，配套 \`tests/test_trend_state_migrations.py\`。在写入任何本轮正式registry/handoff之前，使用同一轮工作目录中**真实已经冻结的文件**执行：
+
+\`\`\`bash
+python scripts/validate_trend_state_migrations.py \
+  --previous /tmp/previous_registry.json \
+  --proposed /tmp/proposed_registry.json \
+  --previous-blob-sha <从GitHub读取的真实40位blob_SHA> \
+  --snapshot data/research/theme_evidence_snapshot.json
+\`\`\`
+
+只有同一交易日、时点有效且可读的Python研究快照才传\`--snapshot\`；辅助快照缺失时省略此可选参数，不反向替代原模型研究。不得用当前proposed文件作为previous，不得伪造命令执行结果、blob SHA、测试通过或缺失的行情。命令需真实退出码0且报告\`status=PASS\`才可进入既有正式registry提交及READBACK，之后方可更新handoff。命令报\`BLOCKED\`、无法执行或未核实则报告\`STATE_MIGRATION_GATE_BLOCKED\`，本轮不写新正式registry/handoff；可修正真实研究证据后重新构造proposal并复核，不能跳过Gate。
+
+\`scan_audit.state_migration_gate\`至少包括：
+- \`mode="full_close"\`, \`previous_registry_trade_date\`, \`previous_registry_blob_sha\`, \`current_trade_date\`。
+- \`reviews\`：对上轮每条\`trends\`均有且仅有一条（按\`trend_name\`）；包含\`decision\` (\`HOLD\`/\`CHANGE\`)、\`previous_market_state\`/\`proposed_market_state\`、\`previous_trend_state\`/\`proposed_trend_state\`、\`reason\` 和\`evidence\`。若市场/产业/lifecycle状态改变，必须为新交易日追加对得上的\`state_history\`事件。
+- \`evidence\`：至少以\`dimension\`、\`direction\`(\`SUPPORT\`/\`COUNTER\`)、\`impact\`(\`NORMAL\`/\`STRUCTURAL\`/\`CRITICAL\`)、\`trade_date\`、\`source\`、\`finding\`描述；若用多日价格结构，还注明\`window_trading_days\`。推荐维度\`COMMODITY_ANCHOR\`、\`INDUSTRY_FUNDAMENTALS\`、\`SUPPLY_DEMAND\`、\`MARKET_STRUCTURE\`、\`MARKET_BREADTH\`、\`RELATIVE_STRENGTH\`、\`MAJOR_CATALYST\`。已有状态不变时可保留此前有效证据而在\`reason\`解释短期分歧；状态变化必须有日期晚于上一基线交易日的有效新证据。
+
+**Gate机制**：状态下降一般须「至少一项可核验多日价格结构恶化 + 另一独立反向证据」；重大关键驱动/供需/基本面证伪或明确结构性破坏可当日触发（必须记录真实来源及独立核验，不得仅给文字打上\`CRITICAL\`规避审计）。状态恢复/升级同样不能由单日反弹启动，需要多日结构与独立支持或重大新事实。对于原油、黄金、银行，单日跟涨不足、某分支疲软、未映射股票或程序未命中只记风险/研究缺口；市场实际恶化的证据仍可以按既定原规则触发迁移。代码是结构/时间/审计**底线**，不能证明研究来源事实正确，模型仍须独立核对原始行情和产业事实，已存原始研究Gate依然不可省略。未经历史回测，不得将此处的参考多日窗口冒充已验证的盈利阈值。
+
+### 复核与归档
+
+- 每轮记录上期基线SHA、本轮完整状态池和迁移/保持数量、被Gate拒绝的理由、当前A股映射是否充分与尚未核实方向。不能只展示新仓优先榜；市场状态下调不自动修改商品/产业有效性。
+- 比较过去5/10/20个交易日的固定时点样本延续、误降级与真正失效的识别滞后；保留历史真实Git版，不倒写10月12/13日旧数据。所有阶段性验证只作为未来规则调整证据。
+- 严格不改\`trend_handoff.json\` schema、不读取或修改「识势」网站、不改19:00趋势买点榜和盘中监测、不添加第二套生产榜单或新定时任务。
+
 ## 1. 两份输出与职责边界
 
 - `research/trend_registry.json`：完整趋势状态账本，仅供下一轮**趋势榜**复核；保存新仓优先榜以内、以外的全部已发现且未证实失效的趋势，以及待复核的历史趋势。不能仅根据当期优先榜反推完整趋势池。
