@@ -51,10 +51,12 @@ def _same_day_collective_break(name, prior, review, evidence, day, before_day, s
     report = review.get("same_day_collective_breakdown")
     if not isinstance(report, dict) or not isinstance(sector_audit, dict):
         return False
+    sector_count = sector_audit.get("industry_count")
+    sectors = sector_audit.get("sectors")
     if (report.get("trade_date") != day or sector_audit.get("trade_date") != day
-            or sector_audit.get("industry_count") != 331
-            or not isinstance(sector_audit.get("sectors"), list)
-            or len(sector_audit["sectors"]) != 331):
+            or not isinstance(sector_count, int) or isinstance(sector_count, bool)
+            or sector_count <= 0 or not isinstance(sectors, list)
+            or len(sectors) != sector_count):
         return False
     counters = [e for e in evidence if e.get("direction") == "COUNTER"
                 and e.get("trade_date") == day]
