@@ -5,6 +5,11 @@ on:
     branches: [main]
     paths:
       - 'scripts/validate_trend_state_migrations.py'
+      - 'skill/TREND_DISCOVERY_NEUTRAL.md'
+      - 'tests/test_trend_outcome_cohort.py'
+      - 'tests/test_trend_discovery_checkpoint.py'
+      - 'scripts/build_trend_outcome_cohort.py'
+      - 'scripts/validate_trend_discovery_checkpoint.py'
       - 'tests/test_trend_lifecycle_semantics.py'
       - 'tests/test_trend_publication_pair.py'
       - 'scripts/audit_trend_lifecycle_semantics.py'
@@ -15,6 +20,11 @@ on:
   pull_request:
     paths:
       - 'scripts/validate_trend_state_migrations.py'
+      - 'skill/TREND_DISCOVERY_NEUTRAL.md'
+      - 'tests/test_trend_outcome_cohort.py'
+      - 'tests/test_trend_discovery_checkpoint.py'
+      - 'scripts/build_trend_outcome_cohort.py'
+      - 'scripts/validate_trend_discovery_checkpoint.py'
       - 'tests/test_trend_lifecycle_semantics.py'
       - 'tests/test_trend_publication_pair.py'
       - 'scripts/audit_trend_lifecycle_semantics.py'
@@ -39,7 +49,7 @@ jobs:
       - name: Run lifecycle continuity and anti-noise regression tests
         run: python -m unittest discover -s tests -p 'test_trend_*.py' -v
       - name: Validate source compiles
-        run: python -m py_compile scripts/validate_trend_state_migrations.py scripts/validate_trend_publication_pair.py scripts/audit_trend_lifecycle_semantics.py
+        run: python -m py_compile scripts/validate_trend_state_migrations.py scripts/validate_trend_publication_pair.py scripts/audit_trend_lifecycle_semantics.py scripts/validate_trend_discovery_checkpoint.py scripts/build_trend_outcome_cohort.py
       - name: Smoke test latest frozen registry and handoff consistency (historical mode only)
         run: python scripts/validate_trend_publication_pair.py --registry research/trend_registry.json --handoff research/trend_handoff.json --historical-baseline-only
       - name: Audit past lifecycle classification without modifying official registry
