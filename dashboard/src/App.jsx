@@ -84,7 +84,7 @@ function MiniHoldingCandles({bars}) {
  const y=value=>7+(high-value)/range*45;
  return <svg className="home-candle-svg" viewBox="0 0 102 54" preserveAspectRatio="xMidYMid meet" role="img" aria-label={'最近'+valid.length+'个完成交易日日 K，'+valid.map(b=>b.date+' 开盘'+fixed(b.open)+' 收盘'+fixed(b.close)).join('，')}>
   {[0,.5,1].map(t=><line key={t} x1="0" x2="100" y1={7+t*45} y2={7+t*45} stroke="currentColor" strokeOpacity=".09" strokeDasharray="3 4"/>)}
-  {valid.map((b,i)=>{const x=16+i*17,rise=b.close>=b.open,color=rise?'#C75852':'#416FB6',top=Math.min(y(b.open),y(b.close)),height=Math.max(1.7,Math.abs(y(b.open)-y(b.close)));return <g key={b.date}>
+  {valid.map((b,i)=>{const x=16+i*17,rise=b.close>=b.open,color=rise?'#C75852':'#1C805B',top=Math.min(y(b.open),y(b.close)),height=Math.max(1.7,Math.abs(y(b.open)-y(b.close)));return <g key={b.date}>
    <line x1={x} x2={x} y1={y(b.high)} y2={y(b.low)} stroke={color} strokeWidth="1.5"/>
    <rect x={x-5} y={top} width="10" height={height} rx=".8" fill={color}/>
    <title>{b.date+' · 开 '+fixed(b.open)+' / 高 '+fixed(b.high)+' / 低 '+fixed(b.low)+' / 收 '+fixed(b.close)}</title>
@@ -105,7 +105,7 @@ function MiniHoldingIntraday({rows}) {
    return (prev&&cur.x-prev.x<=30.5&&cur.x>prev.x?'L':'M')+cur.x.toFixed(1)+' '+cur.y.toFixed(1);
  }).join(' ');
  const direction=data.length>=2?Math.sign(prices.at(-1)-prices[0]):0;
- const color=direction>0?'#C75852':direction<0?'#416FB6':'#8490A5';
+ const color=direction>0?'#C75852':direction<0?'#1C805B':'#8490A5';
  return <svg viewBox="0 0 102 54" className="home-sparkline-svg" preserveAspectRatio="xMidYMid meet" role="img" aria-label={'今日已发布 '+data.length+' 次盘中报价：'+data.map(d=>fmtTime(d.scan_at)+' '+fixed(d.price)+'元').join('，')}>
   {[10,30,49].map(v=><line key={v} x1="0" x2="100" y1={v} y2={v} stroke="currentColor" strokeOpacity=".09" strokeDasharray="3 4"/>)}
   {data.length>=2&&<path d={path} stroke={color} strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>}
@@ -135,7 +135,7 @@ function SnapshotPlot({rows,field,label,unit='%',scale=1,bounds=null,compact=fal
  const display=value=>fixed(value,unit==='元'?2:1)+unit;
  const net=data.length>1?data.at(-1).value-data[0].value:null;
  const directionText=net==null?'仅一轮':net>0?'上涨':net<0?'下跌':'持平';
- const toneColor=direction==='rise'?'#C75852':direction==='fall'?'#416FB6':'#8490A5';
+ const toneColor=direction==='rise'?'#C75852':direction==='fall'?'#1C805B':'#8490A5';
  const hoveredIndex=hovered&&data[hovered.idx]?.scan_at===hovered.at&&data[hovered.idx]?.value===hovered.value?hovered.idx:null;
  const hItem=hoveredIndex!=null?data[hoveredIndex]:null;
  return <div className={compact?'plot plot-compact plot-'+direction:'plot plot-large plot-'+direction}>
