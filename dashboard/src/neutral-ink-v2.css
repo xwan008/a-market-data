@@ -1,0 +1,378 @@
+/* 识势 · Neutral Ink / V2
+ * Chromatic roles: warm paper, graphite ink, indigo brand, neutral grey interaction.
+ * Up = coral-red; down = blue (all directional values keep explicit +/- labels).
+ * All 6 authenticated pages share this theme. Styling only; no strategy or data changes.
+ */
+:root:has(.app-shell){
+ color-scheme:light;
+ --bg:#F6F5F2;--surface:#FFFFFF;--surface2:#F7F8FA;--surface3:#EEF0F5;
+ --text:#293244;--subtle:#4E596B;--muted:#647081;
+ --read-primary:#293244;--read-secondary:#505E70;--read-muted:#667386;
+ --border:#E5E7EB;--studio-line:#E5E7EB;
+ --mint:#5266A8;--blue:#5266A8;--amber:#A56E2B;--red:#C75852;
+ --market-up:#C75852;--market-up-soft:rgba(199,88,82,.09);
+ --market-down:#416FB6;--market-down-soft:rgba(65,111,182,.09);
+ --research-candidate:#A56E2B;--research-watch:#66758B;
+ background:var(--bg);color:var(--text);
+}
+:root:has(.app-shell) body{background:var(--bg);color:var(--text)}
+:root:has(.app-shell) ::selection{background:#DDE3F6;color:#263650}
+.app-shell{
+ min-height:100vh;background:var(--bg);color:var(--text);
+ font-family:Inter,'DM Sans','PingFang SC','Microsoft YaHei','Noto Sans SC',sans-serif;
+ font-size:14px;letter-spacing:0;
+}
+.app-shell .main-content{color:var(--text)}
+.app-shell :is(.main-footer,.panel-note,.count-chip,.asof,.top-date,.breadcrumb-muted,.breadcrumb-chevron){
+ color:#687486;
+}
+.app-shell .main-footer{border-color:var(--studio-line)}
+.app-shell .main-footer span:first-child{color:#58678B}
+.app-shell :is(.page-intro h1,.decision-heading h1){color:#273246;font-size:26px;font-weight:650;line-height:1.4;letter-spacing:-.6px}
+.app-shell :is(.page-intro p,.decision-heading p){color:#657184;font-size:13px;line-height:1.8}
+.app-shell :is(.decision-panel-top h2,.panel-head h3,.monitor-chart-top h2,.portfolio-list-head h2,.portfolio-detail-head h2){color:#2E3849;font-weight:650}
+.app-shell :is(.decision-panel-top p,.monitor-chart-top p,.sector-chart-inset>p,.detail-section p){color:#657184;font-size:12px;line-height:1.75}
+.app-shell :is(.asof strong,.ranking-explainer b,.overview-brief-label){color:#39485D}
+.app-shell :is(button,a,input,select,summary):focus-visible{outline:2px solid #5266A8;outline-offset:2px}
+
+/* Navigation: dark graphite, not sage */
+.app-shell .sidebar{
+ --read-primary:#FFFFFF;--read-secondary:#D6DEEA;--read-muted:#ADB8C9;
+ background:#232B3D;border-right:1px solid #303A4D;
+ box-shadow:8px 0 26px rgba(27,39,60,.045);
+}
+.app-shell .sidebar :is(.side-group-label,.side-footer,.side-status-row){color:#B2BCCD}
+.app-shell .sidebar :is(.side-status-head,.nav-item){color:#DAE1EB}
+.app-shell .sidebar :is(.side-status-tag,.side-status-row strong.status-good){color:#C9D5F3}
+.app-shell .sidebar .side-status-tag{border-color:#5E6A82}
+.app-shell .sidebar .side-status{border-color:rgba(223,230,243,.15)}
+.app-shell .sidebar :is(.nav-item:hover,.nav-item:focus-visible){background:#323D51;color:#FFFFFF}
+.app-shell .sidebar .nav-item.selected{background:#3A4660;color:#FFFFFF}
+.app-shell .sidebar .nav-active-line{background:#C1CBED}
+.app-shell .sidebar .live-indicator{background:#AEBADB;box-shadow:0 0 0 3px rgba(174,186,219,.14)}
+.app-shell .sidebar .nav-signal{background:#D3A568}
+.app-shell .sidebar .status-dim{color:#E1B882}
+
+/* Header: nearly-white rather than washed-out pale green */
+.app-shell .topbar{
+ background:rgba(253,253,254,.96);
+ border-bottom:1px solid #E5E7EB;box-shadow:0 1px 1px rgba(35,44,64,.015);
+}
+.app-shell .top-left strong{color:#263145}
+.app-shell :is(.topbar .icon-button,.topbar .top-date){color:#657388}
+.app-shell .header-btn{
+ background:#FFFFFF;border:1px solid #DDE2E9;color:#36435A;
+ box-shadow:0 1px 2px rgba(35,44,64,.035);
+}
+.app-shell :is(.header-btn:hover,.topbar .icon-button:hover){background:#EEF0F4;color:#36435A;border-color:#D9DEE8}
+
+/* Consistent paper cards and content hierarchy */
+.app-shell :is(.panel,.metric-card,.decision-feature,.decision-opportunity,.portfolio-list-panel,.portfolio-detail-panel){
+ background:#FFFFFF;border:1px solid #E4E7EC;border-radius:13px;
+ box-shadow:0 4px 22px rgba(35,47,68,.032),0 1px 2px rgba(35,47,68,.02);
+}
+.app-shell .metric-card:hover{background:#FCFCFD;border-color:#D6DBE5}
+.app-shell :is(.metric-number,.metric-top,.metric-meta){color:#354257}
+.app-shell :is(.decision-row-main strong,.data-table td strong,.focus-switch button strong,.monitor-selector button strong){
+ color:#2F3A4F;
+}
+.app-shell :is(.text-link,.overview-brief-link,.decision-bottom button){color:#5266A8}
+.app-shell :is(.text-link:hover,.overview-brief-link:hover,.decision-bottom button:hover){color:#384E92}
+.app-shell :is(.count-chip,.ranking-explainer,.page-intro .asof,.decision-date){color:#637084}
+.app-shell :is(.decision-row-meta small,.decision-row-main small,.panel-note,.feature-caption,.table-footer,.evidence-date,.soft-text,.muted){
+ color:#657184;
+}
+.app-shell :is(.home-sector-state,.home-study-text,.decision-rank,.decision-step){color:#56677F}
+.app-shell :is(.decision-row>svg,.table-footer svg){color:#7A8497}
+.app-shell .decision-row{border-color:#E9EBF0}
+.app-shell :is(.decision-row:hover,.decision-row:focus-visible){background:#F2F3F6}
+.app-shell .decision-no-icon{background:#F0F2F7;border-color:#E0E4EE;color:#6476A8}
+.app-shell :is(.decision-empty,.decision-no-ready p,.decision-bottom){color:#667184}
+.app-shell .decision-no-ready strong{color:#333F54}
+.app-shell .feature-caption{border-color:#E6E8ED}
+.app-shell .feature-caption b{color:#404F66}
+
+/* Home: distinct white cards instead of large empty tinted surfaces */
+.app-shell .new-home.decision-home{gap:23px}
+.app-shell .new-home .decision-heading{padding:5px 0 0}
+.app-shell .overview-brief{background:#FFFFFF;border:1px solid #E5E7EC;border-radius:13px;overflow:hidden;box-shadow:0 3px 18px rgba(35,47,68,.025)}
+.app-shell .overview-kpi{border-color:#E6E8ED}
+.app-shell .overview-kpi:hover,.app-shell .overview-kpi:focus-visible{background:#F2F3F6}
+.app-shell .overview-kpi-label{color:#626D80;font-size:12px}
+.app-shell .overview-kpi-body strong{color:#283347;font-weight:650;font-size:28px}
+.app-shell .overview-kpi-body>span{color:#6E7889}
+.app-shell .overview-brief-monitor{background:#FAFAFC;border-color:#E8EAF0}
+.app-shell :is(.overview-brief-label,.overview-brief-signals,.overview-brief-timestamp){color:#637085}
+.app-shell .new-home .today-leader{
+ background:#FFFFFF;border:1px solid #E5E7EC;border-radius:12px;
+ box-shadow:0 3px 15px rgba(35,47,68,.025);
+}
+.app-shell :is(.today-leader-identity strong,.today-leader-heading){color:#354156}
+.app-shell :is(.today-leader-identity small,.today-leader-return small,.today-leader-plot-head,.today-leader-plot-head small,.today-leader-waiting){color:#68758A}
+.app-shell .today-leader-visual{border-color:#E4E7EC}
+.app-shell .new-home .decision-grid{gap:19px}
+.app-shell .new-home :is(.decision-portfolio,.decision-market){
+ background:#FFFFFF;border:1px solid #E5E7EC;border-radius:13px;
+ padding:22px 23px 10px;box-shadow:0 4px 22px rgba(35,47,68,.026);
+}
+.app-shell .new-home .decision-market::before{content:none}
+.app-shell .new-home .decision-panel-top{padding-bottom:14px}
+.app-shell .new-home .decision-panel-top .text-link{margin-top:20px}
+.app-shell .new-home .home-holding .decision-row-main small,
+.app-shell .new-home .home-holding .decision-row-meta small,
+.app-shell .new-home .home-holding-chart>span:first-child{color:#657184}
+.app-shell .new-home .decision-row-meta span:not(.holding-intraday-change):not(.holding-risk-brief){color:#526077}
+.app-shell :is(.holding-risk-brief:not(.market-up):not(.market-down),.home-alert-state){color:#58667D}
+
+/* Inputs, tables and selected rows */
+.app-shell :is(.search,.filter-select,.group-select){
+ background:#FFFFFF;border:1px solid #DDE2E9;border-radius:9px;color:#667184;
+}
+.app-shell .search:focus-within{border-color:#7E91C2;box-shadow:0 0 0 3px rgba(82,102,168,.10)}
+.app-shell :is(.search input,.filter-select select,.group-select select,.monitor-stock-select select){color:#354154;background:transparent}
+.app-shell .search input::placeholder{color:#8993A3}
+.app-shell .group-select{color:#68758A}
+.app-shell .data-table thead,.app-shell .data-table th{background:#F6F7F9}
+.app-shell .data-table th{
+ color:#667184;border-color:#E4E7ED;letter-spacing:.1px;font-size:12px;font-weight:600;
+}
+.app-shell .data-table td{color:#4B576C;border-color:#ECEEF2;font-size:13px}
+.app-shell .data-table td strong{font-size:13px;color:#303B4F}
+.app-shell .data-table td small{color:#6A7587;font-size:11px}
+.app-shell .data-table tbody tr:hover{background:#F2F3F6}
+.app-shell .data-table tbody tr.row-selected{background:#E9EDF7}
+.app-shell :is(.rank-column .official-rank,.official-rank){color:#39485F}
+.app-shell :is(.rank-priority-chip,.unranked,.trend-ranked-table td small){color:#6B768A}
+.app-shell .ranking-explainer span{border-color:#DFE3EA}
+.app-shell :is(.trend-delta:not(.trend-down),.trend-delta.trend-up){color:#B46A3F}
+.app-shell .trend-delta.trend-down{color:var(--market-down)}
+
+/* Control states: neutral grey Hover; indigo selection */
+.app-shell :is(.intraday-tab-switch,.sector-detail-tabs,.portfolio-detail-tabs){
+ background:#F5F6F8;border:1px solid #E1E4EA;border-radius:9px;
+}
+.app-shell :is(.intraday-tab-switch button,.sector-detail-tabs button,.portfolio-detail-tabs button,.portfolio-filters button){color:#697587}
+.app-shell :is(.intraday-tab-switch button:hover,.sector-detail-tabs button:hover,.portfolio-detail-tabs button:hover,.portfolio-filters button:hover){
+ background:#ECEEF3;color:#354359;
+}
+.app-shell :is(.intraday-tab-switch button.active,.sector-detail-tabs button.active,.portfolio-detail-tabs button.is-active,.portfolio-filters button.is-active){
+ background:#E4E9F5;color:#3D5395;font-weight:650;
+}
+.app-shell :is(.focus-switch button,.monitor-selector button,.monitor-coverage button){
+ background:#FFFFFF;border:1px solid #E0E4EB;color:#556176;
+}
+.app-shell :is(.focus-switch button strong,.monitor-selector button strong,.monitor-coverage button){color:#3A465A}
+.app-shell :is(.focus-switch button span,.monitor-selector button span,.monitor-coverage button small){color:#6D7889}
+.app-shell :is(.focus-switch button:hover,.monitor-selector button:hover,.monitor-coverage button:hover){background:#F2F3F6;border-color:#D5DCE7}
+.app-shell :is(.focus-switch button.active,.monitor-selector button.active){background:#E9EDF7;border-color:#B8C4E2;box-shadow:none}
+.app-shell :is(.focus-switch button.active strong,.monitor-selector button.active strong){color:#3C5295}
+
+/* Research inspector, supporting evidence and timeline */
+.app-shell .sector-detail-head strong{color:#2E394E}
+.app-shell .sector-detail-head>div>span{color:#667387}
+.app-shell :is(.sector-chart-inset>p,.sector-detail-content,.hint-text,.reason-paragraph,.history-disclaimer,.disclaimer){color:#667184}
+.app-shell :is(.data-pair,.seven-context,.monitor-stat-pairs,.holding-level,.portfolio-level-row){
+ background:#F6F7F9;border:1px solid #E5E8EF;
+}
+.app-shell :is(.data-pair span,.sector-detail-content .detail-section p,.crossday-card>small){color:#667184}
+.app-shell :is(.data-pair strong,.detail-hero h2,.small-heading,.crossday-value,.entry-range,.big-number){color:#303D54}
+.app-shell :is(.invalidation,.portfolio-plan-note,.portfolio-evidence-issue){
+ background:#FFF8EE;border-color:#EFDFC5;color:#765223;
+}
+.app-shell .invalidation p{color:#805D31}
+.app-shell :is(.crossday-card,.trend-history-event){
+ background:#F8F9FB;border:1px solid #E6E9EF;opacity:1;
+}
+.app-shell :is(.crossday-card:hover,.trend-history-event:hover){background:#F2F4F8;border-color:#CED6E3}
+.app-shell :is(.crossday-card.crossday-today,.trend-history-event.is-today){background:#EEF1F8;border-color:#C7D0E6}
+.app-shell .crossday-card.crossday-today .crossday-value{color:#3B5391}
+.app-shell :is(.crossday-date,.trend-history-date,.trend-history-kind,.trend-history-reason,.crossday-head small,.crossday-unavailable,.monitor-more-none){color:#647187}
+.app-shell .trend-history-reason p{color:#505E72}
+.app-shell .trend-history-reason summary{color:#5268A8}
+.app-shell .monitor-more{border-color:#E4E7ED}
+.app-shell .monitor-more>summary{color:#4E5D73}
+.app-shell .snapshot-event::before{border-color:#DBE0EA}
+.app-shell .snapshot-marker{background:#EEF1F7;border-color:#D8DFEC;color:#465C92}
+.app-shell :is(.snapshot-event-head,.snapshot-event-figures,.snapshot-details,.monitor-context,.monitor-latest,.monitor-stock-select label){color:#667387}
+.app-shell .snapshot-event-head strong{color:#36445C}
+.app-shell .monitor-coverage h3{color:#38465E}
+.app-shell .seven-context :is(strong,span){color:#354259}
+.app-shell .monitor-stat-pairs strong{color:#354259}
+.app-shell :is(.monitor-more summary:hover,.snapshot-details summary:hover){color:#425A9E}
+
+/* Portfolio: neutral focus and risk-alert hierarchy */
+.app-shell .portfolio-overview{border-color:#E2E5EC}
+.app-shell .portfolio-overview>div{border-color:#E5E7ED}
+.app-shell .portfolio-overview strong{color:#29364A}
+.app-shell :is(.portfolio-overview span,.portfolio-overview small,.portfolio-data-note,.portfolio-list-head small,.portfolio-list-head>span){color:#657184}
+.app-shell :is(.portfolio-list-head h2,.portfolio-detail-head h2,.portfolio-row-name strong){color:#303D51}
+.app-shell .portfolio-list-row{border-color:#E9EBF0}
+.app-shell .portfolio-list-row:hover{background:#F1F3F6}
+.app-shell .portfolio-list-row.is-selected{background:#E9EDF7}
+.app-shell .portfolio-list-row.is-selected::before{background:#5B70B1}
+.app-shell .portfolio-filters button{color:#657184}
+.app-shell .portfolio-filters button.is-active{border-color:#BEC8E1}
+.app-shell :is(.portfolio-row-bottom,.portfolio-row-name>span,.portfolio-row-bottom>span,.portfolio-detail-head>div>span){color:#667285}
+.app-shell .portfolio-row-bottom>span strong{color:#354357}
+.app-shell .portfolio-position-stats{border-color:#E5E8EE}
+.app-shell .portfolio-position-stats>div{border-color:#E5E8EE}
+.app-shell .portfolio-position-stats span{color:#677386}
+.app-shell .portfolio-position-stats strong{color:#2D394E}
+.app-shell .portfolio-position-stats strong small{color:#677386}
+.app-shell .portfolio-detail-tabs button.is-active{color:#3D5395}
+.app-shell :is(.portfolio-detail-foot,.portfolio-plan-meta,.portfolio-trades-foot,.portfolio-trade-summary,.portfolio-rule-description,.portfolio-evidence-foot,.portfolio-tab-content,.portfolio-level-row>div:first-child>span){color:#667387}
+.app-shell :is(.portfolio-level-row strong,.holding-level strong,.holding-rule>span){color:#334258}
+.app-shell :is(.portfolio-signal>span,.portfolio-level-row>div:last-child>span,.portfolio-trade strong){color:#364258}
+.app-shell :is(.portfolio-plan-note p,.portfolio-evidence-issue p){color:#735932}
+.app-shell .portfolio-status-normal{color:#3E5F9F;background:#EEF1FA;border-color:#CED6EC}
+.app-shell .portfolio-status-unknown{color:#667387;background:#F0F1F4;border-color:#DCE1E8}
+.app-shell .portfolio-status-caution{color:#996224;background:#FFF4E4;border-color:#EDD5AF}
+.app-shell .holding-assessment-title strong{color:#344359}
+.app-shell .holding-rule{border-color:#E7EAF0}
+.app-shell .holding-level{background:#F6F7F9}
+.app-shell :is(.portfolio-row-bottom svg,.portfolio-level-row svg){color:#79859A}
+
+/* Charts: paper grids + blue negative values, never green */
+.app-shell .plot-grid{stroke:#DFE3EA}
+.app-shell :is(.plot-axis,.plot-time,.plot-point-label){fill:#647184}
+.app-shell .plot-point-label-last{fill:var(--plot-stroke)}
+.app-shell .plot-head strong{color:#344257}
+.app-shell :is(.plot-head span,.plot-head-change small,.plot-unavailable){color:#667387}
+.app-shell .plot-head-neutral{color:#69768A!important}
+.app-shell .plot{--plot-stroke:#7181A3}
+.app-shell .plot-rise{--plot-stroke:var(--market-up)}
+.app-shell .plot-fall{--plot-stroke:var(--market-down)}
+.app-shell .plot-line-rise{stroke:var(--market-up);filter:none}
+.app-shell .plot-line-fall{stroke:var(--market-down);filter:none}
+.app-shell .plot-line-neutral{stroke:#8090AC;filter:none}
+.app-shell :is(.plot-point-rise,.plot-point-fall,.plot-point-neutral){fill:#FFFFFF}
+.app-shell .plot-compact .plot-compact-value{background:rgba(255,255,255,.94)}
+.app-shell .plot-tooltip{background:#FFFFFF;border:1px solid #DFE3EB;box-shadow:0 12px 30px rgba(35,47,68,.10)}
+.app-shell .plot-tooltip strong{color:#36435A}
+.app-shell :is(.plot-tooltip-time,.plot-tooltip small,.plot-tooltip>span:not(.plot-tooltip-time)){color:#657184}
+.app-shell .plot-fall stop:first-child{stop-color:#416FB6}
+.app-shell .plot-rise stop:first-child{stop-color:#C75852}
+
+/* Color semantics: status separate from price direction */
+.app-shell :is(.market-up,.plot-head-rise,.plot-positive){color:var(--market-up)}
+.app-shell :is(.market-down,.plot-head-fall,.plot-negative){color:var(--market-down)}
+.app-shell .research-state.state-rise,.app-shell .state-rise{color:#B7534E}
+.app-shell .research-state.state-fall,.app-shell .state-fall{color:#416FB6}
+.app-shell .research-state.state-candidate,.app-shell .state-candidate,
+.app-shell .research-state.state-caution,.app-shell .state-caution{color:#9A692C}
+.app-shell .research-state.state-watch,.app-shell .state-watch{color:#5B6C8B}
+.app-shell .research-state.state-neutral,.app-shell .state-neutral{color:#6E7989}
+.app-shell :is(.signal-fall,.holding-risk-brief.risk-fall,.signal-text.signal-fall){color:#416FB6}
+.app-shell :is(.signal-caution,.holding-risk-brief.risk-caution,.signal-text.signal-caution){color:#9A692C}
+.app-shell .badge{color:#5E6980;background:#F0F2F6;border:1px solid #E2E5EC}
+.app-shell :is(.badge-candidate,.badge-warn,.badge-caution){color:#9A692C;background:#FFF6EA;border-color:#EEDFC8}
+.app-shell :is(.badge-fall,.badge-bad){color:#416FB6;background:#EFF3FA;border-color:#D7E0F0}
+.app-shell :is(.badge-rise,.badge-ready,.badge-good){color:#B7534E;background:#FDF1F0;border-color:#F1D5D2}
+.app-shell :is(.badge-watch,.badge-neutral,.badge-verified){color:#5F6E82;background:#F0F2F6;border-color:#E0E5EC}
+.app-shell .state-dot{background:currentColor}
+.app-shell .plot-point{stroke:var(--plot-stroke)}
+.app-shell .plot-point-amber{fill:#FFF;stroke:#B9853D}
+
+/* Responsive: keep existing grids and behavior */
+@media(max-width:760px){
+ .app-shell :is(.page-intro h1,.decision-heading h1){font-size:23px}
+ .app-shell .new-home :is(.decision-portfolio,.decision-market){padding:17px 15px 8px}
+ .app-shell .overview-kpi{padding:13px 11px}
+ .app-shell .overview-kpi:first-child{padding-left:11px}
+ .app-shell .overview-kpi:last-child{padding-right:11px}
+}
+@media(prefers-reduced-motion:reduce){
+ .app-shell .view-enter{animation:none}
+}
+
+/* Cleanup audit: remove legacy green from interactive corners */
+.app-shell .decision-row:hover>svg{color:#5266A8}
+.app-shell .brand-home:focus-visible,
+.app-shell .portfolio-list-row:focus-visible,
+.app-shell .portfolio-filters button:focus-visible,
+.app-shell .portfolio-detail-tabs button:focus-visible,
+.app-shell .intraday-tab-switch button:focus-visible,
+.app-shell .sector-detail-tabs button:focus-visible{
+ outline:2px solid #5266A8;outline-offset:2px;
+}
+.app-shell :is(.portfolio-list-row.is-selected,.portfolio-filters button.is-active,.portfolio-detail-tabs button.is-active){
+ box-shadow:none;
+}
+.app-shell .portfolio-list-row.is-selected::before{background:#5266A8}
+.app-shell .signal-text.signal-caution{color:#996526}
+.app-shell .signal-text.signal-fall{color:#416FB6}
+.app-shell :is(.badge-ready,.badge-good){
+ color:#425B9E;background:#EEF1FA;border-color:#D3DCEE;
+}
+.app-shell .badge-rise{color:#B7534E;background:#FDF1F0;border-color:#F1D5D2}
+.app-shell .metric-green{background:#EEF1F8;color:#5266A8}
+.app-shell .metric-amber{background:#FFF6EA;color:#A56E2B}
+.app-shell .metric-purple{background:#F3F0F8;color:#746294}
+.app-shell .decision-portfolio .home-holding-charts::before{background:#E3E6ED}
+.app-shell .portfolio-evidence-list li::marker{color:#697CA7}
+.app-shell :is(.portfolio-plan-note,.holding-assessment,.portfolio-evidence-issue){border-color:#E6E8EE}
+
+/* Unauthenticated entrance is part of the brand: use ink/cool blue, not mint */
+.login-screen--terminal{
+ background:linear-gradient(115deg,#C9D0DD 0%,#8593B5 52%,#394562 100%);
+ color:#FFFFFF;
+}
+.login-screen--terminal .login-visual{
+ /* Keep original artwork, render it neutral so no green survives in artwork. */
+ filter:grayscale(1) contrast(.93) brightness(.88);
+ opacity:.68;
+}
+.login-screen--terminal .login-panel{
+ background:linear-gradient(146deg,rgba(30,40,62,.94),rgba(20,29,48,.96));
+ border:1px solid rgba(196,208,232,.50);
+ box-shadow:0 24px 70px rgba(18,29,53,.22),0 0 0 1px rgba(195,206,232,.09);
+}
+.login-screen--terminal .login-panel::after{
+ background:linear-gradient(133deg,rgba(240,243,255,.82),rgba(151,173,219,.22) 45%,rgba(210,220,246,.65));
+}
+.login-screen--terminal :is(.login-panel-title,.login-panel-name){color:#F6F7FE}
+.login-screen--terminal .login-panel-title span{color:#BECBEC}
+.login-screen--terminal .login-panel-rule{background:rgba(212,222,243,.22)}
+.login-screen--terminal :is(.login-panel-footer,.login-form label,.login-toggle-password){color:#C7D0E3}
+.login-screen--terminal .login-input{
+ background:rgba(37,49,74,.84);border:1px solid #626E87;color:#D8E0F2;
+}
+.login-screen--terminal .login-input:focus-within{
+ border-color:#A2B3E0;box-shadow:0 0 0 3px rgba(151,170,221,.14);
+}
+.login-screen--terminal .login-input input{color:#F5F7FE}
+.login-screen--terminal .login-input input::placeholder{color:#ADB9D2}
+.login-screen--terminal :is(.login-toggle-password:hover,.login-toggle-password:focus-visible){
+ background:rgba(175,190,230,.12);color:#FFFFFF;
+}
+.login-screen--terminal .login-submit{
+ background:#D9E1F6;color:#233450;border:1px solid #E3E9FA;
+ box-shadow:0 5px 18px rgba(11,23,50,.10);
+}
+.login-screen--terminal .login-submit:hover:not(:disabled){
+ background:#C6D3F1;box-shadow:0 8px 22px rgba(27,42,79,.16);color:#263A61;
+}
+.login-screen--terminal .login-submit:focus-visible{outline:2px solid #E3EAFD}
+.login-screen--terminal .setup-warning{color:#F0D5A7;border-color:#AB8249}
+.boot-screen{background:#232B3D;color:#F6F7FD}
+
+/* Final token sweep: low-level legacy accents in otherwise unchanged markup */
+.app-shell :is(.page-intro .eyebrow,.decision-heading .eyebrow,.new-home .decision-heading .eyebrow,.new-home .decision-step){color:#7382AB}
+.app-shell :is(.decision-date svg,.small-heading svg,.portfolio-data-note svg,.metric-icon){color:#667EB3}
+.app-shell :is(.evidence a,.decision-empty button,.monitor-expand){color:#5266A8}
+.app-shell .evidence::before{background:#8DA2D8}
+.app-shell .focus-row:first-child .focus-rank{color:#536EAF}
+.app-shell .metric-icon{background:#EFF1F7}
+.app-shell .data-table .arrow-col{color:#7C89A0}
+.app-shell .decision-opportunity .decision-row{border-color:#E4E8EE}
+.app-shell .crossday-view{border-color:#E4E7ED}
+.app-shell .seven-context p{color:#69758A;border-color:#DFE4EB}
+.app-shell .portfolio-level-row>div:last-child>small{color:#68758A}
+.app-shell .trend-history-event:not(.is-today),
+.app-shell .crossday-card:not(.crossday-today){border-color:#E4E8EF}
+.app-shell .new-home .home-holding .home-holding-charts::before{background:#E4E7ED}
+.app-shell .badge.badge-fall,.app-shell .badge.badge-bad{color:#416FB6}
+.boot-screen .spinner{border-color:#566584;border-top-color:#C9D5F2}
+.login-screen--terminal .login-panel::before{
+ box-shadow:0 0 16px rgba(153,169,211,.16),0 0 36px rgba(112,133,183,.11);
+}
