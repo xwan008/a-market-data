@@ -1,0 +1,90 @@
+name: One-time trend-buy prescreen recovery 2026-10-14
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/trend-buy-prescreen-recovery-20261014.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  prescreen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Assert the precise completed 2026-10-14 data day
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          trend=json.loads(Path('research/trend_handoff.json').read_text())
+          index=json.loads(Path('data/low_risk/index.json').read_text())
+          assert trend['trade_date']==index['trade_date']=='2026-10-14'
+          assert index['validation']['status']=='passed'
+          assert all(s['market_state']=='候选趋势' for s in trend['signals'])
+          Path('/tmp/empty-reviews.json').write_text(json.dumps({'as_of_date':'2026-10-14','reviews':[],'origin':'UNREVIEWED_CURRENT_SESSION'},ensure_ascii=False))
+          print('INPUTS_DATE_GATE_PASSED',trend['trade_date'])
+          PY
+      - name: Rebuild same-day quote history bridge and frozen dynamic Top5 prescreen
+        run: |
+          python scripts/build_history.py
+          python scripts/build_bridge.py
+          python scripts/build_trend_buy_manual_research.py --evidence /tmp/empty-reviews.json --structure-output /tmp/recovery-scoped-structure.json --output /tmp/recovery-shadow-research.json
+      - name: Publish NON-TRADABLE prescreen candidates and complete audit
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/recovery-shadow-research.json').read_text())
+          s=json.loads(Path('/tmp/recovery-scoped-structure.json').read_text())
+          a=r['screen_audit']
+          assert r['trade_date']=='2026-10-14'
+          assert a['hard_eligible']==len(a['lightweight_scanned'])==len(a['pre_screen_selected'])+len(a['pre_screened_out'])
+          assert r['mode']=='SHADOW'
+          selected=[]
+          for item in r['companies']:
+              code=item['code']
+              technical=s['companies'].get(code) or {}
+              audit=next((x for x in a['pre_screen_selected'] if x['code']==code),{})
+              selected.append({
+                'code':code,'name':item['company_name'],'industry_code':item['industry_code'],
+                'industry_name':item['industry_name'],'trend_name':item['trend_name'],
+                'market_state':item['market_state'],'asof_price':item['asof_price'],
+                'combined_score':audit.get('combined_score'),
+                'fundamental_score':audit.get('fundamental_score'),
+                'opportunity':audit.get('opportunity'),
+                'trend_phase':technical.get('trend_phase'),
+                'technical_date':technical.get('data_date'),
+                'price_structure_verified':technical.get('data_status')=='verified',
+              })
+          payload={
+            'schema_version':'trend_buy_prescreen_audit_v1',
+            'trade_date':'2026-10-14',
+            'mode':'SHADOW_NOT_FORMAL',
+            'publication_eligible':False,
+            'review_status':'FRESH_ISSUER_RESEARCH_REQUIRED',
+            'audit':a,
+            'selected_candidates':selected,
+            'selected_count':len(selected),
+            'notes':'Temporary prescreen evidence only. Not a buy list or trading handoff.'
+          }
+          out=Path('research/audits/2026-10-14_trend_buy_prescreen.json')
+          out.parent.mkdir(parents=True,exist_ok=True)
+          out.write_text(json.dumps(payload,ensure_ascii=False,indent=2)+'\n')
+          print('SCREEN_AUDIT',json.dumps({'universe':a['universe'],'eligible':a['hard_eligible'],'selected':len(selected),'candidates':[(x['code'],x['name']) for x in selected]},ensure_ascii=False))
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/audits/2026-10-14_trend_buy_prescreen.json
+          git commit -m "audit: 2026-10-14 verified date-scoped shadow prescreen"
+          git push origin HEAD:main
+          git fetch origin main
+          git show origin/main:research/audits/2026-10-14_trend_buy_prescreen.json | cmp - research/audits/2026-10-14_trend_buy_prescreen.json
+          echo "SHADOW_PRE_SCREEN_READBACK_OK"
