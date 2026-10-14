@@ -1,14 +1,14 @@
 /* 识势 · Neutral Ink / V2
- * Chromatic roles: warm paper, graphite ink, indigo brand, neutral grey interaction.
- * Up = coral-red; down = blue (all directional values keep explicit +/- labels).
+ * Chromatic roles: cool-grey canvas, graphite ink, indigo brand, neutral interaction.
+ * Market semantics: A-share red-up and green-down; research status remains independent.
  * All 6 authenticated pages share this theme. Styling only; no strategy or data changes.
  */
 :root:has(.app-shell){
  color-scheme:light;
- --bg:#F6F5F2;--surface:#FFFFFF;--surface2:#F7F8FA;--surface3:#EEF0F5;
- --text:#293244;--subtle:#4E596B;--muted:#647081;
- --read-primary:#293244;--read-secondary:#505E70;--read-muted:#667386;
- --border:#E5E7EB;--studio-line:#E5E7EB;
+ --bg:#F0F2F5;--surface:#FFFFFF;--surface2:#F6F8FA;--surface3:#EEF1F6;
+ --text:#1F2A3D;--subtle:#46556B;--muted:#566478;
+ --read-primary:#1F2A3D;--read-secondary:#45556B;--read-muted:#566478;
+ --border:#D5DCE6;--studio-line:#D5DCE6;
  --mint:#5266A8;--blue:#5266A8;--amber:#A56E2B;--red:#C75852;
  --market-up:#C75852;--market-up-soft:rgba(199,88,82,.09);
  --market-down:#1C805B;--market-down-soft:rgba(28,128,91,.10);
@@ -559,4 +559,164 @@
 }
 @media(prefers-reduced-motion:reduce){
  .app-shell .skeleton{animation:none;background:#E8ECF3}
+}
+
+/* 2026-10-14 · High-contrast light financial workspace.
+   Visual-only pass. All existing layout breakpoints, 42px desktop content gutters,
+   login artwork and red-up/green-down market semantics stay untouched. */
+
+/* Structured cool-grey canvas and confidently edged white cards. */
+.app-shell :is(.panel,.metric-card,.decision-feature,.decision-opportunity,
+ .portfolio-list-panel,.portfolio-detail-panel,
+ .new-home .decision-portfolio,.new-home .decision-market,
+ .new-home .today-leader,.overview-brief){
+ background:#FFFFFF;
+ border-color:#D5DCE6;
+ box-shadow:0 1px 3px rgba(29,42,64,.055),0 8px 24px rgba(29,42,64,.035);
+}
+.app-shell .topbar{
+ background:rgba(255,255,255,.97);
+ border-bottom-color:#D5DCE6;
+}
+.app-shell :is(.overview-kpi,.portfolio-overview>div,.portfolio-position-stats>div){
+ border-color:#D9DFE8;
+}
+.app-shell :is(.overview-brief-monitor,.decision-row,.portfolio-list-row,
+ .monitor-more,.portfolio-position-stats,.portfolio-overview,
+ .decision-feature .feature-caption){
+ border-color:#E0E5EC;
+}
+
+/* Data-first typography: stronger titles, company names, values and ranked items. */
+.app-shell :is(.page-intro h1,.decision-heading h1){
+ color:#1F2A3D;
+ font-weight:700;
+}
+.app-shell :is(.decision-panel-top h2,.panel-head h3,
+ .monitor-chart-top h2,.portfolio-list-head h2,
+ .portfolio-detail-head h2,.sector-detail-head strong){
+ color:#253249;
+ font-weight:700;
+}
+.app-shell .new-home .decision-panel-top h2{font-size:20px}
+.app-shell :is(.page-intro p,.decision-heading p,
+ .decision-panel-top p,.panel-head p,.sector-chart-inset>p){
+ color:#566478;
+}
+.app-shell :is(.decision-row-main strong,.data-table td strong,
+ .portfolio-row-name strong,.today-leader-identity strong){
+ color:#1F2A3D;
+ font-weight:650;
+}
+.app-shell .new-home .home-holding .decision-row-main strong{
+ font-size:14px;
+ line-height:1.45;
+}
+.app-shell .new-home .decision-market .decision-row-main strong{font-size:14px}
+.app-shell .new-home .decision-row-main small,
+.app-shell .new-home .decision-row-meta small{
+ color:#566478;
+ font-size:11px;
+}
+.app-shell .new-home .home-holding .decision-row-main small,
+.app-shell .new-home .home-holding .decision-row-meta small{
+ color:#647187;
+ font-size:10.5px;
+}
+.app-shell .decision-rank{
+ color:#465873;
+ font-weight:700;
+}
+.app-shell .overview-kpi-label{
+ color:#536176;
+ font-weight:600;
+}
+.app-shell .overview-kpi-body strong{
+ color:#1F2A3D;
+ font-weight:700;
+ font-size:29px;
+}
+.app-shell :is(.metric-number,.portfolio-overview strong,
+ .portfolio-position-stats strong,.buy-summary>div>strong){
+ color:#1F2A3D;
+ font-weight:700;
+ font-variant-numeric:tabular-nums;
+}
+.app-shell :is(.metric-top,.metric-meta,
+ .portfolio-overview span,.portfolio-position-stats span,
+ .overview-brief-label,.overview-brief-timestamp,
+ .decision-row-meta span:not(.market-up):not(.market-down)){
+ color:#566478;
+}
+.app-shell :is(.page-intro .asof,.decision-date,.table-footer,.panel-note,
+ .count-chip,.home-study-text,.today-leader-identity small,
+ .today-leader-plot-head,.decision-row-main small){
+ color:#59697E;
+}
+
+/* Crisp table hierarchy and neutral hover; do not overwrite market colors. */
+.app-shell .data-table thead,
+.app-shell .data-table th{
+ background:#F0F3F7;
+ border-color:#D5DCE6;
+}
+.app-shell .data-table th{
+ color:#506078;
+ font-weight:700;
+}
+.app-shell .data-table td{
+ color:#45556B;
+ border-color:#E0E5EC;
+}
+.app-shell :is(.data-table tbody tr:hover,.decision-row:hover,
+ .decision-row:focus-visible,.portfolio-list-row:hover){
+ background:#EEF1F6;
+}
+.app-shell :is(.data-table tbody tr.row-selected,
+ .portfolio-list-row.is-selected){
+ background:#E7ECF6;
+}
+.app-shell :is(.search,.filter-select,.group-select){
+ border-color:#CDD5E1;
+}
+.app-shell :is(.search input,.filter-select select,.group-select select){
+ color:#253249;
+}
+.app-shell :is(.search input::placeholder,.group-select select:disabled){
+ color:#69788D;
+}
+
+/* Charts and secondary analysis panels should read as evidence, not decoration. */
+.app-shell .plot-grid{stroke:#DAE0E9}
+.app-shell :is(.plot-axis,.plot-time,.plot-point-label){fill:#566478}
+.app-shell .plot-head strong{color:#253249;font-weight:700}
+.app-shell .plot-head span,
+.app-shell .plot-head-change small,
+.app-shell .plot-unavailable{color:#566478}
+.app-shell :is(.data-pair,.seven-context,.monitor-stat-pairs,
+ .holding-level,.portfolio-level-row,.crossday-card,.trend-history-event){
+ background:#F6F8FA;
+ border-color:#DDE3EB;
+}
+.app-shell :is(.data-pair strong,.monitor-stat-pairs strong,
+ .portfolio-level-row strong,.holding-level strong){
+ color:#253249;
+}
+.app-shell .today-leader-visual{border-color:#DCE2EB}
+.app-shell .count-chip{
+ background:#E9EDF4;
+ color:#41536F;
+ border-color:#D4DCE9;
+}
+
+/* Protect real price-direction colors from the stronger generic text styles. */
+.app-shell .market-up{color:var(--market-up)}
+.app-shell .market-down{color:var(--market-down)}
+.app-shell .plot-head-rise{color:var(--market-up)!important}
+.app-shell .plot-head-fall{color:var(--market-down)!important}
+
+@media(max-width:760px){
+ .app-shell .new-home .home-holding .decision-row-main strong{font-size:13px}
+ .app-shell .new-home .decision-market .decision-row-main strong{font-size:13px}
+ .app-shell .overview-kpi-body strong{font-size:22px}
 }
