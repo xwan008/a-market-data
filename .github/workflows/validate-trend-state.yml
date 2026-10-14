@@ -1,0 +1,34 @@
+name: Validate A-share trend lifecycle gate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/validate_trend_state_migrations.py'
+      - 'tests/test_trend_state_migrations.py'
+      - 'skill/TREND_REGISTRY_PROTOCOL.md'
+      - '.github/workflows/validate-trend-state.yml'
+  pull_request:
+    paths:
+      - 'scripts/validate_trend_state_migrations.py'
+      - 'tests/test_trend_state_migrations.py'
+      - 'skill/TREND_REGISTRY_PROTOCOL.md'
+      - '.github/workflows/validate-trend-state.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  migration-gate-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run lifecycle continuity and anti-noise regression tests
+        run: python -m unittest discover -s tests -p 'test_trend_state_migrations.py' -v
+      - name: Validate source compiles
+        run: python -m py_compile scripts/validate_trend_state_migrations.py
