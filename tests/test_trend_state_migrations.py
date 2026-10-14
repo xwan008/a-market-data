@@ -161,6 +161,15 @@ class MigrationGateTests(unittest.TestCase):
         old, new, audit = self.setup_same_day_collapse()
         self.assertEqual(m.validate(old, new, SHA, sector_audit=audit), [])
 
+    def test_sector_universe_can_change_without_blocking_valid_collapse(self):
+        old, new, audit = self.setup_same_day_collapse()
+        audit["sectors"].pop()
+        audit["industry_count"] = len(audit["sectors"])
+        self.assertEqual(m.validate(old, new, SHA, sector_audit=audit), [])
+        audit["industry_count"] += 1
+        self.assertIn("银行:downgrade_without_structural_or_critical_counterevidence",
+                      m.validate(old, new, SHA, sector_audit=audit))
+
     def test_collective_breakdown_requires_frozen_sector_audit(self):
         old, new, audit = self.setup_same_day_collapse()
         self.assertIn("银行:downgrade_without_structural_or_critical_counterevidence",
