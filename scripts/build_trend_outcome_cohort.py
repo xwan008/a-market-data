@@ -12,7 +12,7 @@ from pathlib import Path
 SHA = re.compile(r"^[0-9a-f]{40}$")
 
 
-def build(registry, registry_sha, quote_sha, industry_sha):
+def build(registry, registry_sha, quote_sha, industry_sha, archive_created_trade_date=None):
     if not all(isinstance(x, str) and SHA.fullmatch(x)
                for x in (registry_sha, quote_sha, industry_sha)):
         raise ValueError("All frozen source blob SHA values must be real 40-char hex")
@@ -21,6 +21,7 @@ def build(registry, registry_sha, quote_sha, industry_sha):
     day = registry.get("trade_date")
     if not isinstance(day, str):
         raise ValueError("trade_date missing")
+    same_day_freeze = archive_created_trade_date == day
     themes = []
     seen = set()
     for t in registry.get("trends", []):
@@ -52,13 +53,17 @@ def build(registry, registry_sha, quote_sha, industry_sha):
             "quotes_blob_sha": quote_sha,
             "company_industry_index_blob_sha": industry_sha,
         },
-        "prospective_only": True,
+        "prospective_only": same_day_freeze,
+        "cohort_origin": ("SAME_DAY_ARCHIVED_REQUIRES_TIMESTAMP_VERIFICATION"
+                          if same_day_freeze else "RETROSPECTIVE_BASELINE_REFERENCE_ONLY"),
+        "archive_created_trade_date": archive_created_trade_date,
         "future_data_not_used": True,
         "source_dates_verified": False,
         "source_date_verification_required_before_returns": True,
         "cohort_size": len(themes),
         "themes": themes,
         "limitations": [
+            "Historical first_seen or retroactive archive creation does not establish a genuinely prospective sample.",
             "No 5/10/20-day performance claim until actual future completed quotes.",
             "Dates of underlying quote and company-index snapshots must be separately verified before evaluation.",
             "Fixed company membership and baseline prices must be recovered "
@@ -75,12 +80,14 @@ def main():
     p.add_argument("--registry-blob-sha", required=True)
     p.add_argument("--quotes-blob-sha", required=True)
     p.add_argument("--industry-index-blob-sha", required=True)
+    p.add_argument("--archive-created-trade-date", help="Actual date the snapshot archive is created")
     p.add_argument("--output")
     args = p.parse_args()
     try:
         registry = json.loads(Path(args.registry).read_text(encoding="utf-8"))
         result = build(registry, args.registry_blob_sha,
-                       args.quotes_blob_sha, args.industry_index_blob_sha)
+                       args.quotes_blob_sha, args.industry_index_blob_sha,
+                       args.archive_created_trade_date)
     except (OSError, ValueError, TypeError) as exc:
         print(json.dumps({"status": "BLOCKED", "error": str(exc)}, ensure_ascii=False))
         return 1
