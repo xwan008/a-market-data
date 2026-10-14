@@ -4,8 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - ".github/workflows/run-trend-buy-formal.yml"
-      - "research/trend_buy_company_review_current.json"
+      - "research/trend_buy_company_reviews/latest.json"
 
 permissions:
   contents: write
@@ -35,7 +34,7 @@ jobs:
           from pathlib import Path
           handoff=json.loads(Path('research/trend_handoff.json').read_text(encoding='utf-8'))
           idx=json.loads(Path('data/low_risk/index.json').read_text(encoding='utf-8'))
-          evidence=json.loads(Path('research/trend_buy_company_review_current.json').read_text(encoding='utf-8'))
+          evidence=json.loads(Path('research/trend_buy_company_reviews/latest.json').read_text(encoding='utf-8'))
           day=handoff['trade_date']
           assert day==idx['trade_date']==evidence['as_of_date'], 'TRADING_DAY_OR_REVIEW_DATE_MISMATCH'
           assert idx['validation']['status']=='passed', 'COMPANY_INPUT_NOT_VALIDATED'
@@ -61,7 +60,7 @@ jobs:
       - name: Fresh dynamic industry Top5 and selected company research
         run: |
           python scripts/build_trend_buy_manual_research.py \
-            --evidence research/trend_buy_company_review_current.json \
+            --evidence research/trend_buy_company_reviews/latest.json \
             --structure-output /tmp/mainline-scoped-structure.json \
             --output /tmp/mainline-fresh-research.json
 
@@ -82,7 +81,7 @@ jobs:
           research=src('/tmp/mainline-fresh-research.json')
           technical=src('/tmp/mainline-scoped-structure.json')
           handoff=src('research/trend_handoff.json')
-          evidence=src('research/trend_buy_company_review_current.json')
+          evidence=src('research/trend_buy_company_reviews/latest.json')
           day=handoff['trade_date']
           audit=research['screen_audit']
           assert res['trade_date']==research['trade_date']==technical['reference_trade_date']==day
@@ -110,7 +109,7 @@ jobs:
               'old_formal_or_replay_used_as_input':False,
               'industry_handoff_sha':subprocess.check_output(['git','rev-parse','HEAD:research/trend_handoff.json'],text=True).strip(),
               'frozen_company_index_sha':subprocess.check_output(['git','rev-parse','HEAD:data/low_risk/index.json'],text=True).strip(),
-              'company_review_sha':subprocess.check_output(['git','rev-parse','HEAD:research/trend_buy_company_review_current.json'],text=True).strip(),
+              'company_review_sha':subprocess.check_output(['git','rev-parse','HEAD:research/trend_buy_company_reviews/latest.json'],text=True).strip(),
               'research_selected_company_count':research['selected_company_count'],
               'lightweight_scanned':audit['hard_eligible'],
               'technical_rebuilt_at':technical['generated_at'],
