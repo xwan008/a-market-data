@@ -10,7 +10,7 @@ function FourNodeChart({points,change}) {
  const pad=Math.max((high-low)*.18,high*.002,.001);
  const x=slot=>10+(slot-1)*53;
  const y=price=>5+(high+pad-price)/(high-low+pad*2)*30;
- const color=change>0?'#e68178':change<0?'#6cb897':'#b6c3bd';
+ const color=change>0?'#C75852':change<0?'#416FB6':'#8490A5';
  return <svg viewBox="0 0 180 40" preserveAspectRatio="xMidYMid meet" role="img"
   aria-label={'今日四节点价格：'+rows.map(p=>fmtTime(p.scan_at)+' '+fixed(p.price)+'元').join('，')}>
   <line x1="8" y1="36" x2="172" y2="36" stroke="currentColor" strokeOpacity=".10"/>
@@ -22,7 +22,7 @@ function FourNodeChart({points,change}) {
     :null;
   })}
   {rows.map(point=><g key={point.slot}>
-   <circle cx={x(point.slot)} cy={y(point.price)} r="3" fill={color} stroke="#16201b" strokeWidth="1"/>
+   <circle cx={x(point.slot)} cy={y(point.price)} r="3" fill={color} stroke="#273449" strokeWidth="1"/>
    <title>{fmtTime(point.scan_at)+' · '+fixed(point.price)+'元'}</title>
   </g>)}
  </svg>;
