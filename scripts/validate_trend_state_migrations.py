@@ -41,7 +41,7 @@ def _positive_finite(value):
             and math.isfinite(value) and value > 0)
 
 
-def _same_day_collective_break(name, prior, review, evidence, day, sector_audit):
+def _same_day_collective_break(name, prior, review, evidence, day, before_day, sector_audit):
     """Require dated sector-wide decline + substantiated prior-support breaks.
 
     The frozen same-day 331-industry audit independently supplies price/breadth
@@ -69,6 +69,8 @@ def _same_day_collective_break(name, prior, review, evidence, day, sector_audit)
         return False
     sector_by_id = {s.get("id"): s for s in sector_audit["sectors"]
                     if isinstance(s, dict) and isinstance(s.get("id"), str)}
+    if len(sector_by_id) != 331:
+        return False
     selected = []
     for code in codes:
         metric = sector_by_id.get("industry:" + code)
@@ -107,7 +109,7 @@ def _same_day_collective_break(name, prior, review, evidence, day, sector_audit)
         url = item.get("source")
         if (code not in codes or code in actual
                 or not isinstance(refdate, str) or not DAY.fullmatch(refdate)
-                or refdate >= day or not isinstance(url, str) or not SOURCE.fullmatch(url)
+                or refdate > before_day or not isinstance(url, str) or not SOURCE.fullmatch(url)
                 or not _positive_finite(item.get("support_level"))
                 or not _positive_finite(item.get("observed_close"))
                 or not item["observed_close"] < item["support_level"]):
@@ -229,7 +231,7 @@ def validate(previous, proposed, baseline_sha, snapshot=None, sector_audit=None)
                            for e in relevant)
             emergency_market_break = (
                 market_down and not industry_down and not lifecycle_invalidated
-                and _same_day_collective_break(name, prior, review, relevant, after_day, sector_audit)
+                and _same_day_collective_break(name, prior, review, relevant, after_day, before_day, sector_audit)
             )
             # Equity-wide price damage alone does NOT invalidate a commodity or
             # an industry thesis. Those two layers require primary-driver facts.
