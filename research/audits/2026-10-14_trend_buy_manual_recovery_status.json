@@ -1,0 +1,52 @@
+{
+  "schema_version": "trend_buy_manual_recovery_audit_v1",
+  "target_trade_date": "2026-10-14",
+  "task": "A股趋势买点榜",
+  "branch": "main",
+  "publication_status": "BLOCKED_NOT_PUBLISHED",
+  "current_inputs": {
+    "trend_handoff": {
+      "path": "research/trend_handoff.json",
+      "trade_date": "2026-10-14",
+      "blob_sha": "f9ab43a5875c117a80a866529cdf377cd48975f5"
+    },
+    "low_risk_index": {
+      "path": "data/low_risk/index.json",
+      "trade_date": "2026-10-14",
+      "validation_status": "passed",
+      "blob_sha": "9d98f9e5ba36a27455cd013d14fa19092227c94d"
+    },
+    "company_review": {
+      "path": "research/trend_buy_company_review_current.json",
+      "as_of_date": "2026-10-09",
+      "blob_sha": "24f0af3cede1613c17a043a46e1170a27efc26f0",
+      "issue": "Missing independent date-scoped deep research for newly selected 2026-10-14 candidates."
+    }
+  },
+  "expected_date_gate": "handoff.trade_date == index.trade_date == review.as_of_date",
+  "date_gate_status": "FAILED",
+  "expected_error": "TRADING_DAY_OR_REVIEW_DATE_MISMATCH in .github/workflows/run-trend-buy-formal.yml; asof_date_mismatch in scripts/build_trend_buy_manual_research.py",
+  "known_final_outputs": {
+    "formal_result": {
+      "path": "research/trend_buy_formal_result.json",
+      "trade_date": "2026-10-13",
+      "blob_sha": "ca31ac7f5fd9b35bcc9b03e621244bc318acee27",
+      "updated_in_this_attempt": false
+    },
+    "handoff": {
+      "path": "research/trend_buy_handoff.json",
+      "trade_date": "2026-10-13",
+      "blob_sha": "f561ac026f529259f0448b07feb431ab90f134b6",
+      "updated_in_this_attempt": false
+    }
+  },
+  "audit_findings": {
+    "date_scoped_research_missing": true,
+    "this_attempt_executed_formal_pipeline": false,
+    "this_attempt_generated_valid_formal_result": false,
+    "must_not_use_stale_formal_as_2026_10_15_monitor_handoff": true,
+    "direct_github_write_test": "This audit file only; not a formal publication."
+  },
+  "next_required_step": "New 2026-10-14 dynamic Top5 based on verified 65-bar structures, then independent issuer evidence for every selected company, all publication Gates, two sequential commits and readback.",
+  "no_trade_instruction": true
+}
