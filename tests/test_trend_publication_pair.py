@@ -1,0 +1,75 @@
+import copy
+import importlib.util
+import pathlib
+import unittest
+
+SCRIPT = pathlib.Path(__file__).resolve().parents[1] / "scripts" / "validate_trend_publication_pair.py"
+spec = importlib.util.spec_from_file_location("publish_pair", SCRIPT)
+m = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(m)
+
+
+def fixture():
+    registry = {
+        "schema_version": 1, "result_kind": "a_share_trend_registry",
+        "status": "COMPLETE", "trade_date": "2026-10-13",
+        "scan_audit": {"state_migration_gate": {
+            "mode": "full_close", "current_trade_date": "2026-10-13"}},
+        "trends": [
+            {"trend_name": "黄金", "in_new_position_priority": True,
+             "market_state": "候选趋势", "trend_state": "T1",
+             "lifecycle_status": "有效",
+             "industry_codes": ["S240401"], "industry_names": ["黄金"]},
+            {"trend_name": "其他", "in_new_position_priority": False,
+             "market_state": "观察", "trend_state": "T1",
+             "lifecycle_status": "有效",
+             "industry_codes": ["S000000"], "industry_names": ["示例"]}
+        ]
+    }
+    handoff = {
+        "schema_version": 1, "result_kind": "a_share_trend_handoff",
+        "trade_date": "2026-10-13",
+        "signals": [
+            {"rank": 1, "trend_name": "黄金", "market_state": "候选趋势",
+             "trend_state": "T1", "industry_codes": ["S240401"],
+             "industry_names": ["黄金"]}
+        ]
+    }
+    return registry, handoff
+
+
+class PublicationPairTests(unittest.TestCase):
+    def test_valid_pair(self):
+        self.assertEqual(m.validate(*fixture()), [])
+
+    def test_old_handoff_is_rejected(self):
+        r, h = fixture()
+        h["trade_date"] = "2026-10-12"
+        self.assertIn("trade_date_mismatch", m.validate(r, h))
+
+    def test_ranking_and_route_are_consistent(self):
+        r, h = fixture()
+        h["signals"][0]["industry_codes"] = ["S999999"]
+        self.assertIn("黄金:industry_codes_mismatch", m.validate(r, h))
+        h["signals"][0]["rank"] = 2
+        self.assertIn("黄金:nonsequential_rank", m.validate(r, h))
+
+    def test_priority_inclusion_and_order(self):
+        r, h = fixture()
+        r["trends"][0]["in_new_position_priority"] = False
+        self.assertIn("priority_names_or_order_mismatch", m.validate(r, h))
+
+    def test_invalidated_industry_never_handed_off(self):
+        r, h = fixture()
+        r["trends"][0]["lifecycle_status"] = "已失效"
+        self.assertIn("黄金:invalidated_theme_handed_off", m.validate(r, h))
+
+    def test_prepublication_migration_gate_required(self):
+        r, h = fixture()
+        del r["scan_audit"]["state_migration_gate"]
+        self.assertIn("migration_gate_missing", m.validate(r, h))
+        self.assertEqual(m.validate(r, h, require_migration=False), [])
+
+
+if __name__ == "__main__":
+    unittest.main()
