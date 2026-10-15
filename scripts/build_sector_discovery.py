@@ -133,6 +133,12 @@ def build(latest, industry_index, structure, concept_payload=None, review_cap=20
         r3 = [f["r3"] for f in available if f["r3"] is not None]
         r5 = [f["r5"] for f in available if f["r5"] is not None]
         vols = [f["volume"] for f in available if f["volume"] is not None and f["volume"] > 0]
+        # Historical participation means stock-level cumulative returns > 0,
+        # not a median industry return or a count of separate up-days.
+        enough3 = usable > 0 and len(r3) >= max(3, math.ceil(.8 * usable))
+        enough5 = usable > 0 and len(r5) >= max(3, math.ceil(.8 * usable))
+        breadth3 = pct(sum(x > 0 for x in r3), len(r3)) if enough3 else None
+        breadth5 = pct(sum(x > 0 for x in r5), len(r5)) if enough5 else None
         med3 = median(r3) if len(r3) >= max(3, usable // 2) else None
         med5 = median(r5) if len(r5) >= max(3, usable // 2) else None
         medvolume = median(vols) if len(vols) >= max(3, usable // 2) else None
@@ -151,8 +157,10 @@ def build(latest, industry_index, structure, concept_payload=None, review_cap=20
             "coverage": coverage, "sample_quality": quality,
             "median_1d_pct": round(med1, 3) if med1 is not None else None,
             "relative_1d_vs_market_median_pct": rs1,
-            "advance_ratio": breadth, "median_3d_pct": med3,
-            "median_5d_pct": med5, "acceleration_3d_vs_5d": acceleration,
+            "advance_ratio": breadth, "breadth_3d": breadth3, "breadth_5d": breadth5,
+            "usable_3d_count": len(r3), "usable_5d_count": len(r5),
+            "median_3d_pct": med3, "median_5d_pct": med5,
+            "acceleration_3d_vs_5d": acceleration,
             "median_volume_ratio_vs_20d": medvolume, "score": score,
             "channels": channels,
             "reason": "ELIGIBLE" if channels else

@@ -170,7 +170,11 @@ def _same_day_fast_confirmation(entry, evidence, day, sector_audit):
     codes = entry.get("industry_codes")
     if not isinstance(codes, list) or not codes or len(set(codes)) != len(codes):
         return False
-    total, qualifying, breadth_sum, relative_sum = 0, 0, 0.0, 0.0
+    total, qualifying, breadth_sum, relative_sum, daily_median_sum = 0, 0, 0.0, 0.0, 0.0
+    # Keep the existing strict impulse path. A staircase may instead confirm
+    # cross-stock cumulative participation over an already observed 3/5d window.
+    stairs = {n: {"valid": True, "breadth_sum": 0.0, "supporting": 0}
+              for n in (3, 5)}
     for code in codes:
         s = industry_rows.get("industry:" + code) if isinstance(code, str) else None
         if not isinstance(s, dict):
@@ -192,10 +196,42 @@ def _same_day_fast_confirmation(entry, evidence, day, sector_audit):
         total += usable
         breadth_sum += breadth * usable
         relative_sum += relative * usable
+        daily_median_sum += median * usable
         if breadth >= .6 and median >= .5 and relative >= .8 and volume >= 1.15:
             qualifying += usable
-    return (total >= 8 and qualifying / total >= .7
-            and breadth_sum / total >= .7 and relative_sum / total >= .8)
+        for window in (3, 5):
+            state = stairs[window]
+            count_window = s.get(f"usable_{window}d_count")
+            breadth_window = s.get(f"breadth_{window}d")
+            median_window = s.get(f"median_{window}d_pct")
+            if (not isinstance(count_window, int) or isinstance(count_window, bool)
+                    or count_window < math.ceil(.8 * usable) or count_window > usable
+                    or count_window < 3
+                    or not isinstance(breadth_window, (int, float))
+                    or isinstance(breadth_window, bool) or not math.isfinite(breadth_window)
+                    or not 0 <= breadth_window <= 1
+                    or not isinstance(median_window, (int, float))
+                    or isinstance(median_window, bool) or not math.isfinite(median_window)):
+                state["valid"] = False
+                continue
+            state["breadth_sum"] += breadth_window * usable
+            # At least a majority of company coverage must sit in genuinely
+            # participating industry groups, not only one isolated leader.
+            if breadth_window > .5 and median_window > 0 and volume >= 1.0:
+                state["supporting"] += usable
+    if total < 8 or relative_sum / total < .8:
+        return False
+    impulse = qualifying / total >= .7 and breadth_sum / total >= .7
+    # No unconditional daily breadth threshold: already-observed cumulative
+    # participation can show rotated, stepwise leadership. Reject a session
+    # whose falling median and minority participation both signal retreat.
+    not_broad_retreat = not (breadth_sum / total < .5 and daily_median_sum / total < 0)
+    staircase = not_broad_retreat and any(
+        state["valid"] and state["breadth_sum"] / total > .5
+        and state["supporting"] / total > .5
+        for state in stairs.values()
+    )
+    return impulse or staircase
 
 
 def validate(previous, proposed, baseline_sha, snapshot=None, sector_audit=None):

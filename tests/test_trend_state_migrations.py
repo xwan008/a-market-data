@@ -304,6 +304,72 @@ class MigrationGateTests(unittest.TestCase):
         self.assertIn("银行:reclassification_without_multiday_or_critical_support",
                       m.validate(old, new, SHA, sector_audit=audit))
 
+    def test_staircase_breadth_below_70_can_confirm(self):
+        old, new, audit = self.setup_fast_confirmation()
+        for sector in audit["sectors"]:
+            sector.update({
+                "advance_ratio": .5, "median_1d_pct": .3,
+                "relative_1d_vs_market_median_pct": 1.1,
+                "median_volume_ratio_vs_20d": 1.1,
+                "breadth_3d": .8333, "usable_3d_count": 6,
+                "median_3d_pct": 2.2,
+                "breadth_5d": .8333, "usable_5d_count": 6,
+                "median_5d_pct": 3.1,
+            })
+        self.assertEqual(m.validate(old, new, SHA, sector_audit=audit), [])
+
+    def test_staircase_rejects_weak_cumulative_participation(self):
+        old, new, audit = self.setup_fast_confirmation()
+        for sector in audit["sectors"]:
+            sector.update({
+                "advance_ratio": .5, "median_1d_pct": .3,
+                "relative_1d_vs_market_median_pct": 1.1,
+                "median_volume_ratio_vs_20d": 1.1,
+                "breadth_3d": .3333, "usable_3d_count": 6,
+                "median_3d_pct": -1,
+                "breadth_5d": .3333, "usable_5d_count": 6,
+                "median_5d_pct": -2,
+            })
+        expected = "银行:reclassification_without_multiday_or_critical_support"
+        self.assertIn(expected, m.validate(old, new, SHA, sector_audit=audit))
+
+    def test_staircase_rejects_missing_multiday_quote_coverage(self):
+        old, new, audit = self.setup_fast_confirmation()
+        for sector in audit["sectors"]:
+            sector.update({
+                "advance_ratio": .5, "median_1d_pct": .3,
+                "relative_1d_vs_market_median_pct": 1.1,
+                "median_volume_ratio_vs_20d": 1.1,
+                "breadth_3d": .8333, "usable_3d_count": 4,
+                "median_3d_pct": 2.2,
+                "breadth_5d": .8333, "usable_5d_count": 4,
+                "median_5d_pct": 3.1,
+            })
+        expected = "银行:reclassification_without_multiday_or_critical_support"
+        self.assertIn(expected, m.validate(old, new, SHA, sector_audit=audit))
+
+    def test_staircase_rejects_low_volume_or_broad_same_day_retreat(self):
+        old, new, audit = self.setup_fast_confirmation()
+        for sector in audit["sectors"]:
+            sector.update({
+                "advance_ratio": .5, "median_1d_pct": .3,
+                "relative_1d_vs_market_median_pct": 1.1,
+                "median_volume_ratio_vs_20d": 1.1,
+                "breadth_3d": .8333, "usable_3d_count": 6,
+                "median_3d_pct": 2.2,
+                "breadth_5d": .8333, "usable_5d_count": 6,
+                "median_5d_pct": 3.1,
+            })
+        expected = "银行:reclassification_without_multiday_or_critical_support"
+        for sector in audit["sectors"]:
+            sector["median_volume_ratio_vs_20d"] = .75
+        self.assertIn(expected, m.validate(old, new, SHA, sector_audit=audit))
+        for sector in audit["sectors"]:
+            sector["median_volume_ratio_vs_20d"] = 1.1
+            sector["advance_ratio"] = .3333
+            sector["median_1d_pct"] = -.5
+        self.assertIn(expected, m.validate(old, new, SHA, sector_audit=audit))
+
     def test_fast_confirmation_needs_material_industry_driver(self):
         old, new, audit = self.setup_fast_confirmation()
         review = new["scan_audit"]["state_migration_gate"]["reviews"][0]

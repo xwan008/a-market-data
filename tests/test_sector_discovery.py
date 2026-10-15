@@ -27,11 +27,27 @@ def inputs():
 
 
 class SectorDiscoveryTests(unittest.TestCase):
+    def test_missing_historical_participation_does_not_invent_breadth(self):
+        latest, industry, structure = inputs()
+        for code in ("000001", "000002"):
+            structure["companies"][code]["phase_evidence"]["return_3d_pct"] = None
+            structure["companies"][code]["phase_evidence"]["return_5d_pct"] = None
+        _, audit = build(latest, industry, structure)
+        hot = next(x for x in audit["sectors"] if x["id"] == "industry:S100101")
+        self.assertEqual(hot["usable_3d_count"], 4)
+        self.assertIsNone(hot["breadth_3d"])
+        self.assertIsNone(hot["breadth_5d"])
+
     def test_industry_only_does_not_claim_concept_coverage(self):
         snap, audit = build(*inputs())
         self.assertEqual(snap["status"], "INDUSTRY_ONLY_PARTIAL")
         self.assertEqual(audit["industry_count"], 2)
         self.assertEqual(audit["concept_coverage_status"], "UNAVAILABLE_NO_MEMBERSHIP")
+        hot = next(x for x in audit["sectors"] if x["id"] == "industry:S100101")
+        self.assertEqual(hot["breadth_3d"], 1.0)
+        self.assertEqual(hot["breadth_5d"], 1.0)
+        self.assertEqual(hot["usable_3d_count"], 6)
+        self.assertEqual(hot["usable_5d_count"], 6)
         self.assertEqual(len(snap["model_research_candidates"]), 1)
         self.assertEqual(snap["model_research_candidates"][0]["name"], "Sample hot")
         self.assertEqual(snap["model_research_candidates"][0]["channels"], ["STRONG", "EMERGING"])
