@@ -36,211 +36,59 @@ def _name_map(items, label, errors):
     return {x["trend_name"]: x for x in items}
 
 
-def _positive_finite(value):
-    return (isinstance(value, (float, int)) and not isinstance(value, bool)
-            and math.isfinite(value) and value > 0)
+def _valid_evidence(e, after_day):
+    """Verify provenance/shape, not the truth of external market claims."""
+    if not isinstance(e, dict):
+        return False
+    day = e.get("trade_date")
+    window = e.get("window_trading_days")
+    return (
+        e.get("dimension") in DIMENSIONS
+        and e.get("direction") in {"SUPPORT", "COUNTER"}
+        and e.get("impact") in {"NORMAL", "STRUCTURAL", "CRITICAL"}
+        and isinstance(day, str) and DAY.fullmatch(day) is not None
+        and day <= after_day
+        and isinstance(e.get("source"), str) and SOURCE.fullmatch(e["source"]) is not None
+        and isinstance(e.get("finding"), str) and len(e["finding"].strip()) >= 10
+        and (window is None or (isinstance(window, int) and not isinstance(window, bool) and window > 0))
+    )
 
 
-def _same_day_collective_break(name, prior, review, evidence, day, before_day, sector_audit):
-    """Require dated sector-wide decline + substantiated prior-support breaks.
+def _market_state_evidence(evidence, direction, since, require_confirmation=False):
+    """One evidence-quality rule, independent of elapsed trading-day count.
 
-    The frozen same-day complete industry audit supplies price/breadth
-    observations; support references still require separate human/model source
-    verification. Passing permits (not mandates) a MARKET_STATE downgrade.
+    Market structure must be material; breadth and relative strength provide
+    independent corroboration. Industry news cannot substitute for A-share
+    participation. Data verification and contradiction appraisal remain model
+    research responsibilities, not promises of this metadata gate.
     """
-    report = review.get("same_day_collective_breakdown")
-    if not isinstance(report, dict) or not isinstance(sector_audit, dict):
-        return False
-    sector_count = sector_audit.get("industry_count")
-    sectors = sector_audit.get("sectors")
-    if (report.get("trade_date") != day or sector_audit.get("trade_date") != day
-            or not isinstance(sector_count, int) or isinstance(sector_count, bool)
-            or sector_count <= 0 or not isinstance(sectors, list)
-            or len(sectors) != sector_count):
-        return False
-    counters = [e for e in evidence if e.get("direction") == "COUNTER"
-                and e.get("trade_date") == day]
-    dimensions = {e.get("dimension") for e in counters if
-                  e.get("impact") in {"STRUCTURAL", "CRITICAL"}}
-    if not {"MARKET_STRUCTURE", "MARKET_BREADTH"} <= dimensions:
-        return False
-    # Relative strength must be examined honestly; an absolute collapse can
-    # breach support even while the overall market drops still faster.
-    relative_reports = [e for e in evidence
-                        if e.get("trade_date") == day
-                        and e.get("dimension") == "RELATIVE_STRENGTH"]
-    if not relative_reports:
-        return False
-    codes = prior.get("industry_codes") or []
-    # Only previously frozen, fully identified research coverage can support
-    # the emergency shortcut. An unresolved mapping cannot be a selloff signal.
-    if (not isinstance(codes, list) or not codes or len(set(codes)) != len(codes)):
-        return False
-    sector_by_id = {s.get("id"): s for s in sector_audit["sectors"]
-                    if isinstance(s, dict) and isinstance(s.get("id"), str)}
-    if len(sector_by_id) != sector_count:
-        return False
-    selected = []
-    for code in codes:
-        metric = sector_by_id.get("industry:" + code)
-        if not isinstance(metric, dict):
-            return False
-        count = metric.get("usable_count")
-        total = metric.get("member_count")
-        if (not isinstance(count, int) or isinstance(count, bool)
-                or not isinstance(total, int) or isinstance(total, bool)
-                or count <= 0 or total < count or count / total < .8):
-            return False
-        selected.append((code, metric, count))
-    members = sum(x[2] for x in selected)
-    if members < 5:
-        return False
-    severe = []
-    relative_weighted = 0.0
-    for code, metric, count in selected:
-        breadth = metric.get("advance_ratio")
-        median = metric.get("median_1d_pct")
-        relative = metric.get("relative_1d_vs_market_median_pct")
-        if not all(isinstance(v, (float, int)) and not isinstance(v, bool)
-                   and math.isfinite(v) for v in (breadth, median, relative)):
-            return False
-        relative_weighted += relative * count
-        if 0 <= breadth <= .25 and median <= -1.0:
-            severe.append((code, count))
-    relative_direction = "COUNTER" if relative_weighted < 0 else "SUPPORT"
-    if not any(e.get("direction") == relative_direction for e in relative_reports):
-        return False
-    # Majority of mapped company coverage must genuinely be in severe retreat.
-    if sum(n for _, n in severe) / members < .7:
-        return False
-    references = report.get("support_breaks")
-    if not isinstance(references, list) or not references:
-        return False
-    actual = set()
-    for item in references:
-        if not isinstance(item, dict):
-            return False
-        code, refdate = item.get("industry_code"), item.get("reference_trade_date")
-        url = item.get("source")
-        if (code not in codes or code in actual
-                or not isinstance(refdate, str) or not DAY.fullmatch(refdate)
-                or refdate > before_day or not isinstance(url, str) or not SOURCE.fullmatch(url)
-                or not _positive_finite(item.get("support_level"))
-                or not _positive_finite(item.get("observed_close"))
-                or not item["observed_close"] < item["support_level"]):
-            return False
-        actual.add(code)
-    return (sum(n for code, n in severe if code in actual)
-            / members >= .5)
+    fresh = [e for e in evidence if e["direction"] == direction and e["trade_date"] > since]
+    structural = any(e["dimension"] == "MARKET_STRUCTURE"
+                     and e["impact"] in {"STRUCTURAL", "CRITICAL"} for e in fresh)
+    breadth = any(e["dimension"] == "MARKET_BREADTH" for e in fresh)
+    relative = any(e["dimension"] == "RELATIVE_STRENGTH" for e in fresh)
+    return structural and breadth and relative if require_confirmation else structural and (breadth or relative)
 
 
-def _same_day_fast_confirmation(entry, evidence, day, sector_audit):
-    """Evidence-quality exception to the normal >=3-day window.
-
-    An auditable completed-close sector snapshot verifies breadth, relative
-    strength and median turnover; model research must separately verify actual
-    business transmission, price structure and post-divergence absorption.
-    Passing this guard only permits review, never automatically classifies.
-    """
-    if entry.get("market_state") != "趋势确认" or entry.get("trend_state") not in {"T1", "T2"}:
+def _optional_sector_audit_valid(sector_audit, day):
+    """Optional audit quality check; no hard breadth or turnover threshold."""
+    if not isinstance(sector_audit, dict) or sector_audit.get("trade_date") != day:
         return False
-    if entry.get("lifecycle_status") != "有效" or not isinstance(sector_audit, dict):
-        return False
-    if sector_audit.get("trade_date") != day:
-        return False
-    sectors = sector_audit.get("sectors")
-    count = sector_audit.get("industry_count")
-    if not isinstance(sectors, list) or not isinstance(count, int) or isinstance(count, bool) or count <= 0:
+    sectors, count = sector_audit.get("sectors"), sector_audit.get("industry_count")
+    if not isinstance(sectors, list) or not isinstance(count, int) or isinstance(count, bool) or count < 0:
         return False
     ids = [s.get("id") for s in sectors if isinstance(s, dict)]
-    if len(ids) != len(sectors) or len(set(ids)) != len(ids):
-        return False
-    # Audit may also contain concept rows: the industry_count covers industry rows.
-    industry_rows = {s["id"]: s for s in sectors if s["id"].startswith("industry:")}
-    if len(industry_rows) != count:
-        return False
-    supports = [e for e in evidence if e.get("direction") == "SUPPORT" and e.get("trade_date") == day]
-    dimensions = {e["dimension"] for e in supports if e.get("impact") in {"STRUCTURAL", "CRITICAL"}}
-    if not {"MARKET_STRUCTURE", "MARKET_BREADTH", "RELATIVE_STRENGTH"} <= dimensions:
-        return False
-    primary = {"INDUSTRY_FUNDAMENTALS", "SUPPLY_DEMAND", "COMMODITY_ANCHOR"}
-    if not any(e.get("dimension") in primary and e.get("impact") in {"STRUCTURAL", "CRITICAL"}
-               for e in supports):
-        return False
-    codes = entry.get("industry_codes")
-    if not isinstance(codes, list) or not codes or len(set(codes)) != len(codes):
-        return False
-    total, qualifying, breadth_sum, relative_sum, daily_median_sum = 0, 0, 0.0, 0.0, 0.0
-    # Keep the existing strict impulse path. A staircase may instead confirm
-    # cross-stock cumulative participation over an already observed 3/5d window.
-    stairs = {n: {"valid": True, "breadth_sum": 0.0, "supporting": 0}
-              for n in (3, 5)}
-    for code in codes:
-        s = industry_rows.get("industry:" + code) if isinstance(code, str) else None
-        if not isinstance(s, dict):
-            return False
-        usable, members = s.get("usable_count"), s.get("member_count")
-        if (not isinstance(usable, int) or isinstance(usable, bool)
-                or not isinstance(members, int) or isinstance(members, bool)
-                or usable <= 0 or members < usable or usable / members < 0.8):
-            return False
-        vals = [s.get(k) for k in ("advance_ratio", "median_1d_pct",
-                                   "relative_1d_vs_market_median_pct",
-                                   "median_volume_ratio_vs_20d")]
-        if not all(isinstance(v, (int, float)) and not isinstance(v, bool)
-                   and math.isfinite(v) for v in vals):
-            return False
-        breadth, median, relative, volume = vals
-        if not 0 <= breadth <= 1 or volume <= 0:
-            return False
-        total += usable
-        breadth_sum += breadth * usable
-        relative_sum += relative * usable
-        daily_median_sum += median * usable
-        if breadth >= .6 and median >= .5 and relative >= .8 and volume >= 1.15:
-            qualifying += usable
-        for window in (3, 5):
-            state = stairs[window]
-            count_window = s.get(f"usable_{window}d_count")
-            breadth_window = s.get(f"breadth_{window}d")
-            median_window = s.get(f"median_{window}d_pct")
-            if (not isinstance(count_window, int) or isinstance(count_window, bool)
-                    or count_window < math.ceil(.8 * usable) or count_window > usable
-                    or count_window < 3
-                    or not isinstance(breadth_window, (int, float))
-                    or isinstance(breadth_window, bool) or not math.isfinite(breadth_window)
-                    or not 0 <= breadth_window <= 1
-                    or not isinstance(median_window, (int, float))
-                    or isinstance(median_window, bool) or not math.isfinite(median_window)):
-                state["valid"] = False
-                continue
-            state["breadth_sum"] += breadth_window * usable
-            # At least a majority of company coverage must sit in genuinely
-            # participating industry groups, not only one isolated leader.
-            if breadth_window > .5 and median_window > 0 and volume >= 1.0:
-                state["supporting"] += usable
-    if total < 8 or relative_sum / total < .8:
-        return False
-    impulse = qualifying / total >= .7 and breadth_sum / total >= .7
-    # No unconditional daily breadth threshold: already-observed cumulative
-    # participation can show rotated, stepwise leadership. Reject a session
-    # whose falling median and minority participation both signal retreat.
-    not_broad_retreat = not (breadth_sum / total < .5 and daily_median_sum / total < 0)
-    staircase = not_broad_retreat and any(
-        state["valid"] and state["breadth_sum"] / total > .5
-        and state["supporting"] / total > .5
-        for state in stairs.values()
-    )
-    return impulse or staircase
+    return (len(ids) == len(sectors) and all(isinstance(i, str) and i for i in ids)
+            and len(set(ids)) == len(ids)
+            and sum(i.startswith("industry:") for i in ids) == count)
 
 
 def validate(previous, proposed, baseline_sha, snapshot=None, sector_audit=None):
     """Return blocking errors; [] means structurally safe to publish.
 
-    Downgrades admit (a) multiday structural counterevidence, (b) genuinely
-    critical external driver reversal, or (c) confirmed same-day sector-wide
-    structural collapse using a frozen same-day industry audit. Metadata and
-    price consistency checks do not replace external research verification.
+    A single evidence-quality rule checks both new and old market states.
+    Industry and market conclusions stay independent. No elapsed-days, breadth
+    ratio or turnover multiple automatically establishes or rejects a trend.
     """
     errors = []
     if previous.get("schema_version") != 1 or proposed.get("schema_version") != 1:
@@ -257,6 +105,8 @@ def validate(previous, proposed, baseline_sha, snapshot=None, sector_audit=None)
     if snapshot is not None:
         if snapshot.get("trade_date") != after_day or snapshot.get("point_in_time_eligible") is not True or snapshot.get("auxiliary_only") is not True:
             errors.append("snapshot_date_or_point_in_time_invalid")
+    if sector_audit is not None and not _optional_sector_audit_valid(sector_audit, after_day):
+        errors.append("sector_audit_metadata_invalid")
     old = _name_map(previous.get("trends"), "previous_trends", errors)
     new = _name_map(proposed.get("trends"), "proposed_trends", errors)
     audit = proposed.get("scan_audit") or {}
@@ -316,65 +166,32 @@ def validate(previous, proposed, baseline_sha, snapshot=None, sector_audit=None)
             evidence = []
         qualified = []
         for e in evidence:
-            if not isinstance(e, dict):
-                errors.append(f"{name}:invalid_evidence_entry")
-                continue
-            date = e.get("trade_date")
-            if (e.get("dimension") not in DIMENSIONS or e.get("direction") not in {"SUPPORT", "COUNTER"}
-                or e.get("impact") not in {"NORMAL", "STRUCTURAL", "CRITICAL"}
-                or not isinstance(date, str) or not DAY.fullmatch(date) or date > after_day
-                or not isinstance(e.get("source"), str) or not SOURCE.fullmatch(e["source"])
-                or not isinstance(e.get("finding"), str) or len(e["finding"].strip()) < 10):
+            if not _valid_evidence(e, after_day):
                 errors.append(f"{name}:unverifiable_evidence_metadata")
                 continue
             qualified.append(e)
         if changed and not any(e["trade_date"] > before_day for e in qualified):
             errors.append(f"{name}:no_new_dated_evidence")
-        # Mapping gaps and single-day breadth declines are not independent
-        # evidence of market structure invalidation.
         industry_down = t0 != t1 and T_STATE_RANK[t1] < T_STATE_RANK[t0]
         lifecycle_invalidated = l1 == "已失效" and l0 != l1
-        market_down = m0 != m1 and STATES[m1] < STATES[m0]
-        downgrade = market_down or industry_down or lifecycle_invalidated
-        # A one-day rebound also cannot restore a downgraded trend.
-        market_reclassify = m0 != m1
-        if downgrade or market_reclassify:
-            direction = "COUNTER" if downgrade else "SUPPORT"
-            relevant = [e for e in qualified if e["direction"] == direction and e["trade_date"] > before_day]
-            critical = any(e["impact"] == "CRITICAL" and e["dimension"] in
-                           {"COMMODITY_ANCHOR", "INDUSTRY_FUNDAMENTALS", "SUPPLY_DEMAND", "MAJOR_CATALYST"}
-                           for e in relevant)
-            emergency_market_break = (
-                market_down and not industry_down and not lifecycle_invalidated
-                and _same_day_collective_break(name, prior, review, qualified, after_day, before_day, sector_audit)
+        if industry_down or lifecycle_invalidated:
+            # A-share price weakness can never by itself invalidate industry
+            # drivers; require new primary-driver counterevidence.
+            primary_counter = any(
+                e["direction"] == "COUNTER" and e["trade_date"] > before_day
+                and e["dimension"] in {"COMMODITY_ANCHOR", "INDUSTRY_FUNDAMENTALS",
+                                       "SUPPLY_DEMAND", "MAJOR_CATALYST"}
+                and e["impact"] in {"STRUCTURAL", "CRITICAL"} for e in qualified
             )
-            # Equity-wide price damage alone does NOT invalidate a commodity or
-            # an industry thesis. Those two layers require primary-driver facts.
-            if industry_down or lifecycle_invalidated:
-                primary_counter = any(e["direction"] == "COUNTER"
-                                      and e["trade_date"] > before_day
-                                      and e["dimension"] in {"COMMODITY_ANCHOR",
-                                          "INDUSTRY_FUNDAMENTALS", "SUPPLY_DEMAND",
-                                          "MAJOR_CATALYST"}
-                                      and e["impact"] in {"STRUCTURAL", "CRITICAL"}
-                                      for e in qualified)
-                if not primary_counter:
-                    errors.append(f"{name}:industry_or_lifecycle_downgrade_without_primary_counterevidence")
-            structural = any(e["dimension"] == "MARKET_STRUCTURE" and e["impact"] in {"STRUCTURAL", "CRITICAL"}
-                             and isinstance(e.get("window_trading_days"), int) and e["window_trading_days"] >= 3
-                             for e in relevant)
-            independent = len({e["dimension"] for e in relevant}) >= 2
-            upgrade_to_confirmed = m1 == "趋势确认" and STATES[m1] > STATES[m0]
-            if upgrade_to_confirmed:
-                # A CRITICAL industry headline alone cannot verify A-share participation.
-                permitted = ((structural and independent)
-                             or _same_day_fast_confirmation(latest, relevant, after_day, sector_audit))
-            else:
-                permitted = critical or (structural and independent) or emergency_market_break
-            if not permitted:
-                suffix = ("downgrade_without_structural_or_critical_counterevidence" if downgrade
-                          else "reclassification_without_multiday_or_critical_support")
-                errors.append(f"{name}:{suffix}")
+            if not primary_counter:
+                errors.append(f"{name}:industry_or_lifecycle_downgrade_without_primary_counterevidence")
+        if m0 != m1:
+            market_direction = "COUNTER" if STATES[m1] < STATES[m0] else "SUPPORT"
+            # Neither CRITICAL industry headlines nor an old 3-day window is a
+            # shortcut. Fresh market structure + independent participation evidence.
+            if not _market_state_evidence(qualified, market_direction, before_day,
+                                          require_confirmation=m1 == "趋势确认"):
+                errors.append(f"{name}:market_change_without_independent_evidence")
         if changed and not qualified:
             errors.append(f"{name}:transition_without_evidence")
     for name, entry in new.items():
@@ -386,7 +203,8 @@ def validate(previous, proposed, baseline_sha, snapshot=None, sector_audit=None)
             errors.append(f"{name}:new_trend_unfrozen_or_backdated")
         if not isinstance(entry.get("supporting_evidence"), list) or not entry["supporting_evidence"]:
             errors.append(f"{name}:new_trend_without_research_evidence")
-        # The first-day classification must not bypass the same promotion gate.
+        # First-time trend confirmation uses precisely the same market test as
+        # a promotion of an existing theme. Industry evidence can predate today.
         if entry.get("market_state") == "趋势确认":
             review = reviews.get(name)
             if not isinstance(review, dict) or not isinstance(review.get("evidence"), list):
@@ -394,28 +212,13 @@ def validate(previous, proposed, baseline_sha, snapshot=None, sector_audit=None)
                 continue
             qualified = []
             for e in review["evidence"]:
-                if (not isinstance(e, dict) or e.get("dimension") not in DIMENSIONS
-                        or e.get("direction") != "SUPPORT"
-                        or e.get("impact") not in {"NORMAL", "STRUCTURAL", "CRITICAL"}
-                        or not isinstance(e.get("trade_date"), str)
-                        or not DAY.fullmatch(e["trade_date"]) or e["trade_date"] > after_day
-                        or not isinstance(e.get("source"), str)
-                        or not SOURCE.fullmatch(e["source"])
-                        or not isinstance(e.get("finding"), str)
-                        or len(e["finding"].strip()) < 10):
+                if not _valid_evidence(e, after_day):
                     errors.append(f"{name}:unverifiable_new_confirmation_evidence")
-                    continue
-                qualified.append(e)
-            current = [e for e in qualified if e["trade_date"] == after_day]
-            structural = any(e["dimension"] == "MARKET_STRUCTURE"
-                             and e["impact"] in {"STRUCTURAL", "CRITICAL"}
-                             and isinstance(e.get("window_trading_days"), int)
-                             and not isinstance(e["window_trading_days"], bool)
-                             and e["window_trading_days"] >= 3 for e in current)
-            independent = len({e["dimension"] for e in current}) >= 2
-            if not ((structural and independent)
-                    or _same_day_fast_confirmation(entry, current, after_day, sector_audit)):
-                errors.append(f"{name}:new_confirmation_without_multiday_or_fast_support")
+                else:
+                    qualified.append(e)
+            if not _market_state_evidence(qualified, "SUPPORT", before_day,
+                                          require_confirmation=True):
+                errors.append(f"{name}:new_confirmation_without_independent_market_evidence")
     return errors
 
 
@@ -425,7 +228,7 @@ def main(argv=None):
     p.add_argument("--proposed", required=True)
     p.add_argument("--previous-blob-sha", required=True)
     p.add_argument("--snapshot", help="Optional same-day auxiliary research snapshot")
-    p.add_argument("--sector-audit", help="Frozen full-sector audit for same-day collective-breakdown path")
+    p.add_argument("--sector-audit", help="Optional dated sector audit for input-quality cross-checking; never a trend bypass")
     args = p.parse_args(argv)
     try:
         def load(path):
