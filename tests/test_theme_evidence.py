@@ -243,11 +243,11 @@ class ThemeEvidenceTests(unittest.TestCase):
     def test_regression_flags_model_first_protocol_and_source(self):
         protocol = (Path(__file__).resolve().parents[1]
                     / "skill/TREND_REGISTRY_PROTOCOL.md").read_text(encoding="utf-8")
-        self.assertIn("Python不产生另一套正式趋势榜", protocol)
-        self.assertIn("theme_evidence_snapshot.json", protocol)
-        self.assertIn("不允许程序借静态主题目录替代旧版模型", protocol)
-        self.assertIn("131个", protocol)
-        self.assertIn("base_industry_groups", protocol)
+        self.assertIn("Python只负责客观行情计算和必要技术校验", protocol)
+        self.assertIn("不作为第二个趋势发现者", protocol)
+        self.assertIn("全行业及主要概念板块客观数据", protocol)
+        self.assertIn("不能因旧池或热门板块限制扫描范围", protocol)
+        self.assertIn("状态不是必须逐级经过的机械序列", protocol)
 
 
 if __name__ == "__main__":
