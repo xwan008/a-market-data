@@ -66,10 +66,10 @@ class SectorDiscoveryTests(unittest.TestCase):
     def test_protocol_preserves_original_model_decision_priority(self):
         protocol = (Path(__file__).resolve().parents[1]
                     / "skill/TREND_REGISTRY_PROTOCOL.md").read_text(encoding="utf-8")
-        self.assertIn("旧版模型驱动的独立全市场产业研究", protocol)
-        self.assertIn("Python不产生另一套正式趋势榜", protocol)
-        self.assertIn("辅助文件缺失本身不得阻断旧版正式研究及发布", protocol)
-        self.assertIn("程序候选补充研究工作量", protocol)
+        self.assertIn("模型独立发现 → 全部旧趋势复核 → 合并判断、校验发布", protocol)
+        self.assertIn("Python只负责客观行情计算和必要技术校验", protocol)
+        self.assertIn("不作为第二个趋势发现者", protocol)
+        self.assertIn("数据缺失或无法核实时应如实说明", protocol)
 
     def test_verified_concept_and_future_prevention(self):
         latest, index, structure = inputs()
