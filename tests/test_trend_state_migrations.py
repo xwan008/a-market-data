@@ -249,6 +249,95 @@ class MigrationGateTests(unittest.TestCase):
         self.assertIn("银行:downgrade_without_structural_or_critical_counterevidence",
                       m.validate(old, new, SHA))
 
+    def setup_fast_confirmation(self):
+        old, new = fixture()
+        codes = ["S480201", "S480301"]
+        for reg in (old, new):
+            reg["trends"][0]["industry_codes"] = codes
+            reg["trends"][0]["state_history"][0]["to"] = "候选趋势"
+        old["trends"][0]["market_state"] = "候选趋势"
+        new["trends"][0]["state_history"].append(
+            {"trade_date": "2026-10-13", "from": "候选趋势", "to": "趋势确认"})
+        review = new["scan_audit"]["state_migration_gate"]["reviews"][0]
+        review["decision"] = "CHANGE"
+        review["previous_market_state"] = "候选趋势"
+        def pos(dim, impact="STRUCTURAL", window=1):
+            return dict(e(dim, impact, window), direction="SUPPORT")
+        review["evidence"] = [pos("MARKET_STRUCTURE"), pos("MARKET_BREADTH"),
+                              pos("RELATIVE_STRENGTH"), pos("INDUSTRY_FUNDAMENTALS")]
+        sectors = [
+            {"id": "industry:" + code, "member_count": 6, "usable_count": 6,
+             "advance_ratio": .8333, "median_1d_pct": 1.4,
+             "relative_1d_vs_market_median_pct": 1.9,
+             "median_volume_ratio_vs_20d": 1.4} for code in codes
+        ]
+        audit = {"trade_date": "2026-10-13", "industry_count": 2,
+                 "sectors": sectors}
+        return old, new, audit
+
+    def test_fast_confirmation_with_industry_and_broad_market_support(self):
+        old, new, audit = self.setup_fast_confirmation()
+        self.assertEqual(m.validate(old, new, SHA, sector_audit=audit), [])
+
+    def test_single_critical_headline_cannot_confirm_market(self):
+        old, new, audit = self.setup_fast_confirmation()
+        review = new["scan_audit"]["state_migration_gate"]["reviews"][0]
+        review["evidence"] = [dict(e("INDUSTRY_FUNDAMENTALS", "CRITICAL"),
+                                   direction="SUPPORT")]
+        self.assertIn("银行:reclassification_without_multiday_or_critical_support",
+                      m.validate(old, new, SHA, sector_audit=audit))
+
+    def test_fast_confirmation_requires_frozen_same_day_audit(self):
+        old, new, audit = self.setup_fast_confirmation()
+        expected = "银行:reclassification_without_multiday_or_critical_support"
+        self.assertIn(expected, m.validate(old, new, SHA))
+        audit["trade_date"] = "2026-10-12"
+        self.assertIn(expected, m.validate(old, new, SHA, sector_audit=audit))
+
+    def test_fast_confirmation_rejects_narrow_or_weak_market(self):
+        old, new, audit = self.setup_fast_confirmation()
+        audit["sectors"][0]["advance_ratio"] = .1
+        self.assertIn("银行:reclassification_without_multiday_or_critical_support",
+                      m.validate(old, new, SHA, sector_audit=audit))
+        audit["sectors"][0]["advance_ratio"] = .8333
+        audit["sectors"][1]["median_volume_ratio_vs_20d"] = 1.0
+        self.assertIn("银行:reclassification_without_multiday_or_critical_support",
+                      m.validate(old, new, SHA, sector_audit=audit))
+
+    def test_fast_confirmation_needs_material_industry_driver(self):
+        old, new, audit = self.setup_fast_confirmation()
+        review = new["scan_audit"]["state_migration_gate"]["reviews"][0]
+        review["evidence"] = review["evidence"][:3]
+        self.assertIn("银行:reclassification_without_multiday_or_critical_support",
+                      m.validate(old, new, SHA, sector_audit=audit))
+
+    def test_multiday_confirmation_still_works_without_sector_audit(self):
+        old, new, audit = self.setup_fast_confirmation()
+        review = new["scan_audit"]["state_migration_gate"]["reviews"][0]
+        review["evidence"] = [dict(e("MARKET_STRUCTURE", "STRUCTURAL", 3),
+                                   direction="SUPPORT"),
+                              dict(e("MARKET_BREADTH"), direction="SUPPORT")]
+        self.assertEqual(m.validate(old, new, SHA), [])
+
+    def test_new_theme_first_day_confirm_requires_evidence_review(self):
+        old, new, audit = self.setup_fast_confirmation()
+        new_theme = {"trend_name": "新主题", "first_seen_trade_date": "2026-10-13",
+                     "market_state": "趋势确认", "trend_state": "T1",
+                     "lifecycle_status": "有效", "industry_codes": ["S480201", "S480301"],
+                     "state_history": [{"trade_date": "2026-10-13",
+                                        "from": None, "to": "趋势确认"}],
+                     "supporting_evidence": [{"description": "已核实的行业供需改善",
+                                              "source": "https://example.org/report",
+                                              "trade_date": "2026-10-13"}]}
+        new["trends"].append(new_theme)
+        self.assertIn("新主题:new_confirmation_without_evidence_review",
+                      m.validate(old, new, SHA, sector_audit=audit))
+        fast_review = copy.deepcopy(
+            new["scan_audit"]["state_migration_gate"]["reviews"][0])
+        fast_review["trend_name"] = "新主题"
+        new["scan_audit"]["state_migration_gate"]["reviews"].append(fast_review)
+        self.assertEqual(m.validate(old, new, SHA, sector_audit=audit), [])
+
 
 if __name__ == "__main__":
     unittest.main()
