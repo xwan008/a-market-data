@@ -4,6 +4,7 @@ import {
   CalendarDays, CheckCircle2, ChevronDown, CircleDotDashed, Clock3,
   GitBranch, Layers3, Search, ShieldCheck, TrendingUp
 } from 'lucide-react';
+import SelectMenu from './SelectMenu.jsx';
 
 const num = value => typeof value === 'number' && Number.isFinite(value)
   ? value.toLocaleString('zh-CN') : '—';
@@ -117,28 +118,10 @@ export default function TrendValidation(){
   },[tab,search,signalFilter,trendRows,stockRows]);
 
   return <div className="validation-page">
-    <section className="validation-hero">
-      <div className="validation-hero-inner">
-        <div className="validation-hero-copy">
-          <div className="validation-hero-eyebrow"><span className="validation-live-dot"/> X / VALIDATION LAB <span className="validation-eyebrow-separator"/> 历史信号审计</div>
-          <h1>一条趋势，<br/><em>究竟能走多远？</em></h1>
-          <p>追踪正式信号从出现、持续到结束的真实轨迹；用发布后的行情检验，而非事后挑选成功案例。</p>
-          <div className="validation-hero-caption"><CalendarDays size={15}/><span>数据截至 {summary.as_of_trade_date||'尚无完成样本'}</span><span className="validation-hero-caption-dot"/> 不参与当前选股</div>
-        </div>
-        <div className="validation-hero-graphic" aria-hidden="true">
-          <span className="validation-graph-orbit orbit-a"/><span className="validation-graph-orbit orbit-b"/>
-          <svg viewBox="0 0 380 218" fill="none" preserveAspectRatio="xMidYMid meet">
-            <path d="M8 180 L55 153 L100 161 L143 113 L186 129 L232 73 L276 90 L330 38 L372 54" stroke="#7DE4C3" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M8 180 L55 153 L100 161 L143 113 L186 129 L232 73 L276 90 L330 38 L372 54 L372 218 L8 218Z" fill="url(#v-fill)"/>
-            <path d="M8 210 H372 M8 155 H372 M8 100 H372 M8 45 H372" stroke="#C5D5F1" strokeOpacity=".11" strokeDasharray="3 7"/>
-            <circle cx="143" cy="113" r="5" fill="#DCE8FE"/><circle cx="232" cy="73" r="5" fill="#DCE8FE"/><circle cx="330" cy="38" r="7" fill="#7DE4C3" stroke="#244E5C" strokeWidth="5"/>
-            <defs><linearGradient id="v-fill" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#4DDCB6" stopOpacity=".19"/><stop offset="1" stopColor="#4DDCB6" stopOpacity="0"/></linearGradient></defs>
-          </svg>
-          <span className="validation-graph-label label-a">SIGNAL</span><span className="validation-graph-label label-b">OBSERVE</span><span className="validation-graph-label label-c">VERIFY</span>
-        </div>
-      </div>
-      <div className="validation-hero-foot"><ShieldCheck size={15}/><span>数据规则：仅使用信号发布后的行情；断档不算失败，未成熟样本不计算成功率。</span><span className="validation-hero-foot-id">RESEARCH INTEGRITY / 01</span></div>
-    </section>
+    <header className="validation-page-heading">
+      <div><span className="eyebrow">SIGNAL VALIDATION</span><h1>趋势验证</h1><p>用信号发布后的真实行情检验趋势表现，不将断档与未成熟样本计入成功率。</p></div>
+      <span className="validation-page-asof"><CalendarDays size={15}/> 数据截至 {summary.as_of_trade_date||'尚无完成样本'}</span>
+    </header>
 
     {!ok?<section className="validation-empty-state">
       <div className="validation-empty-icon"><CircleDotDashed size={27}/></div>
@@ -183,7 +166,7 @@ export default function TrendValidation(){
             <button type="button" aria-pressed={trendMode==='confirmed'} className={trendMode==='confirmed'?'active':''} onClick={()=>{setTrendMode('confirmed');setExpanded(null)}}>确认区间 · {confirmedRows.length}</button>
           </div>}
           <div className="validation-search"><Search size={16}/><input value={search} onChange={event=>setSearch(event.target.value)} aria-label="搜索验证记录" placeholder={tab==='trend'?'搜索趋势名称':'搜索股票、代码或板块'}/></div>
-          {tab==='stock'&&<div className="validation-filter"><select aria-label="按信号状态筛选" value={signalFilter} onChange={event=>setSignalFilter(event.target.value)}><option value="ALL">全部状态</option><option value="READY">READY</option><option value="WAIT">WAIT</option><option value="UNCERTAIN">UNCERTAIN</option><option value="DROP">DROP</option></select><ChevronDown size={14}/></div>}
+          {tab==='stock'&&<SelectMenu label="按信号状态筛选" value={signalFilter} onChange={setSignalFilter} className="ui-select--compact" options={[{value:'ALL',label:'全部状态'},'READY','WAIT','UNCERTAIN','DROP']}/>}
         </div>
         <div className="validation-list">
           <div className="validation-list-head" aria-hidden="true"><span>信号与归属</span><span>起始交易日</span><span>{tab==='trend'?'持续天数':'正式状态'}</span><span>未来 {horizon} 日超额</span><span>验证进度</span><span/></div>

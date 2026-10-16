@@ -4,6 +4,7 @@ import {readFileSync} from 'node:fs';
 
 const app=readFileSync(new URL('../src/App.jsx',import.meta.url),'utf8');
 const validation=readFileSync(new URL('../src/components/TrendValidation.jsx',import.meta.url),'utf8');
+const selectMenu=readFileSync(new URL('../src/components/SelectMenu.jsx',import.meta.url),'utf8');
 const refreshCss=readFileSync(new URL('../src/experience-refresh.css',import.meta.url),'utf8');
 const main=readFileSync(new URL('../src/main.jsx',import.meta.url),'utf8');
 
@@ -14,9 +15,9 @@ test('概览盘中变化保留广度与强度双折线图，并移除买点机�
  const feature=overview.slice(overview.indexOf('<section className="decision-feature intraday-simple"'),overview.indexOf('<div className="decision-bottom">'));
  assert.match(feature,/aria-pressed=\{monitorUi\.tab==='sector'\}/);
  assert.match(feature,/aria-pressed=\{monitorUi\.tab==='stock'\}/);
- assert.match(feature,/select aria-label=\{monitorUi\.tab==='sector'\?'选择趋势':'选择个股'\}/);
- assert.match(feature,/trendOptions\.map\(item=><option/);
- assert.match(feature,/stockOptions\.map\(item=><option/);
+ assert.match(feature,/<SelectMenu className="ui-select--intraday"/);
+ assert.match(feature,/trendOptions\.map\(item=>\(\{value:item\.name,label:item\.name\}\)\)/);
+ assert.match(feature,/stockOptions\.map\(item=>\(\{value:item\.code/);
  assert.match(feature,/<SnapshotPlot rows=\{active\.scans\} field="up_ratio"/);
  assert.match(feature,/<SnapshotPlot rows=\{active\.scans\} field="median_change_pct" label="盘中板块强度"/);
  assert.match(feature,/<SnapshotPlot rows=\{selectedStock\.scans\} field="price"/);
@@ -40,6 +41,19 @@ test('持仓首页展示登记成本与风控状态，不推算未核验实时�
  assert.doesNotMatch(portfolio,/实时盈亏|浮动盈亏|盈亏率/);
 });
 
+test('展开持仓以退出价格和计划动作为主，冗长规则与备注收进依据折叠区',()=>{
+ const plan=app.slice(app.indexOf('function PortfolioPlan({'),app.indexOf('function PortfolioTrades({'));
+ const portfolio=app.slice(app.indexOf('function Portfolio({'),app.indexOf('function Login({'));
+ assert.match(plan,/portfolio-plan-compact/);
+ assert.match(plan,/fixed\(line\.price,2\)/);
+ assert.match(plan,/计划减仓/);
+ assert.match(plan,/portfolio-plan-meta/);
+ assert.match(plan,/portfolio-rule-description/);
+ assert.match(portfolio,/规则依据与说明/);
+ assert.doesNotMatch(portfolio,/剩余成本估算 \{fixed\(p\.costValue\)\}/);
+ assert.doesNotMatch(portfolio,/portfolio-inline-foot/);
+});
+
 test('趋势验证的强调数字仍来自发布结果，未成熟和断档不会冒充成功率',()=>{
  assert.match(validation,/summary\.horizon_stats\?\.\[horizon\]/);
  assert.match(validation,/matured\.trend_avg_excess_vs_market_pct/);
@@ -49,11 +63,26 @@ test('趋势验证的强调数字仍来自发布结果，未成熟和断档不�
  assert.match(validation,/state_timeline/);
  assert.match(validation,/尚无成熟结果/);
  assert.doesNotMatch(validation,/胜率[^。]*\d+%/);
+ assert.match(validation,/className="validation-page-heading"/);
+ assert.doesNotMatch(validation,/className="validation-hero"|validation-hero-graphic|SIGNAL<\/span>/);
+});
+
+test('全站可见筛选统一使用有键盘交互的自定义菜单',()=>{
+ assert.match(selectMenu,/aria-haspopup="listbox"/);
+ assert.match(selectMenu,/role="option"/);
+ assert.match(selectMenu,/ArrowDown/);
+ assert.match(selectMenu,/Escape/);
+ assert.match(selectMenu,/pointerdown/);
+ assert.match(app,/className="ui-select--group"/);
+ assert.match(validation,/<SelectMenu label="按信号状态筛选"/);
+ assert.match(refreshCss,/\.ui-select-trigger:focus-visible[\s\S]*?outline:none/);
+ assert.match(refreshCss,/\.new-home \.overview-brief-monitor\{background:transparent\}/);
+ assert.match(refreshCss,/\.data-table thead,\.app-shell \.data-table th\{background:#E6ECF5/);
 });
 
 test('新的桌面与移动布局主题加载在既有 neutral ink 之后',()=>{
  assert.match(main,/neutral-ink-v2\.css';\s*import '\.\/experience-refresh\.css'/);
  assert.match(refreshCss,/\.portfolio-grid-row/);
- assert.match(refreshCss,/\.validation-hero/);
+ assert.match(refreshCss,/\.validation-page-heading/);
  assert.match(refreshCss,/@media\(max-width:760px\)/);
 });

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import TodayLeader from './components/TodayLeader.jsx';
 import TrendValidation from './components/TrendValidation.jsx';
+import SelectMenu from './components/SelectMenu.jsx';
 import {asArray, fixed, fmtTime, formatSource, pct, safeText, shanghaiDay, summarizeTrades, validSnapshots, snapshotChange, rankedTrendRows, rankedBuyRows, seriesDirection, statusTone, trendEvents, archivedDays, assessHoldingRisk, attachRiskPlans} from './model.js';
 
 const sections = [
@@ -212,8 +213,8 @@ function TrendTable({trends,onSelect,selected,monitor,monitorDay,sortMode,onSort
  const filtered=useMemo(()=>trends.filter(t=>(t.trend_name||'').includes(query)&&(state==='全部'||t.market_state===state)),[trends,query,state]);
  const options=[...new Set(trends.map(t=>t.market_state).filter(Boolean))];
  return <><div className="table-controls trend-controls"><div className="search"><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="搜索板块名称…"/></div>
- <div className="filter-select"><select value={state} onChange={e=>setState(e.target.value)} aria-label="按市场状态筛选"><option>全部</option>{options.map(s=><option key={s}>{s}</option>)}</select><ChevronDown size={13}/></div>
- {onSort&&<div className="filter-select"><select value={sortMode} onChange={e=>onSort(e.target.value)} aria-label="排序方式"><option value="state">市场状态优先</option><option value="formal">正式优先名次</option><option value="change">当日广度变化幅度</option></select><ChevronDown size={13}/></div>}</div>
+ <SelectMenu className="ui-select--compact" value={state} onChange={setState} label="按市场状态筛选" options={['全部',...options]}/>
+ {onSort&&<SelectMenu className="ui-select--sort" value={sortMode} onChange={onSort} label="趋势排序方式" options={[{value:'state',label:'市场状态优先'},{value:'formal',label:'正式优先名次'},{value:'change',label:'当日广度变化幅度'}]}/>}</div>
  <div className="table-wrap"><table className="data-table trend-ranked-table"><thead><tr><th>正式名次</th><th>板块方向</th><th>市场状态</th>{!compact&&<th>盘中上涨占比</th>}{!compact&&<th>当日广度变化</th>}<th>核验日</th><th/></tr></thead><tbody>{filtered.map(t=>{
  const rows=validSnapshots(monitor?.[t.trend_name],monitorDay);
  const delta=snapshotChange(rows,'up_ratio',100);
@@ -347,13 +348,7 @@ function Overview({registry,trendHandoff,buy,monitor,holdingSnapshot,holdingChar
       <button type="button" aria-pressed={monitorUi.tab==='sector'} className={monitorUi.tab==='sector'?'active':''} onClick={()=>setMonitorUi(prev=>({...prev,tab:'sector'}))}>趋势</button>
       <button type="button" aria-pressed={monitorUi.tab==='stock'} className={monitorUi.tab==='stock'?'active':''} onClick={()=>setMonitorUi(prev=>({...prev,tab:'stock'}))}>个股</button>
      </div>
-     <label className="intraday-simple-picker">
-      <span className="sr-only">{monitorUi.tab==='sector'?'选择趋势':'选择个股'}</span>
-      <select aria-label={monitorUi.tab==='sector'?'选择趋势':'选择个股'} disabled={!monitorCurrent||(monitorUi.tab==='sector'?!active:!selectedStock)} value={monitorUi.tab==='sector'?active?.name||'':selectedStock?.code||''} onChange={e=>setMonitorUi(prev=>({...prev,[prev.tab==='sector'?'sector':'stock']:e.target.value}))}>
-       {monitorUi.tab==='sector'?trendOptions.map(item=><option key={item.name} value={item.name}>{item.name}</option>):stockOptions.map(item=><option key={item.code} value={item.code}>{item.name} · {item.code}</option>)}
-      </select>
-      <ChevronDown size={15} aria-hidden="true"/>
-     </label>
+     <SelectMenu className="ui-select--intraday" label={monitorUi.tab==='sector'?'选择趋势':'选择个股'} disabled={!monitorCurrent||(monitorUi.tab==='sector'?!active:!selectedStock)} value={monitorUi.tab==='sector'?active?.name||'':selectedStock?.code||''} onChange={value=>setMonitorUi(prev=>({...prev,[prev.tab==='sector'?'sector':'stock']:value}))} options={monitorUi.tab==='sector'?trendOptions.map(item=>({value:item.name,label:item.name})):stockOptions.map(item=>({value:item.code,label:item.name+' · '+item.code}))}/>
     </div>
    </div>
    {!monitorCurrent?<div className="decision-empty">今日尚无有效盘中快照。</div>:monitorUi.tab==='sector'?
@@ -426,7 +421,33 @@ function BuyInspector({item}){
   <div className="disclaimer">{waiting?'WAIT 不提供可执行入场计划，也不提供持仓止损指令。':'READY 仅为条件性计划，须核对最新有效行情，不是实时成交指令。'}</div>
  </div>
 }
-function Buy({buy,selected,setSelected,status}){const items=rankedBuyRows(asArray(buy?.items)); const [filter,setFilter]=useState('全部');const [query,setQuery]=useState('');const [group,setGroup]=useState('全部板块');const markets=[...new Set(items.map(i=>i.trend_name).filter(Boolean))]; const shown=items.filter(i=>(filter==='全部'||i.status===filter)&&(group==='全部板块'||i.trend_name===group)&&`${i.company_name||''}${i.code||''}`.includes(query));const focus=shown.find(i=>i.code===selected?.code)||shown[0];return <><PageIntro title="趋势买点观察" desc="READY 显示条件性入场计划；WAIT 只显示上一交易日观察参考，不代表当日可买。" date={buy?.trade_date}/><div className="buy-summary"><div><Badge>READY</Badge><strong>{items.filter(i=>i.status==='READY').length}</strong><span>条件满足候选</span></div><div><Badge>WAIT</Badge><strong>{items.filter(i=>i.status==='WAIT').length}</strong><span>等待确认</span></div><div><span className="muted">正式覆盖</span><strong>{items.length}</strong><span>已发布标的</span></div></div><div className="two-pane buy-workspace"><section className="panel"><PanelHead title="正式候选列表" aside={<span className="count-chip">{shown.length} 只</span>}/><div className="table-controls"><div className="search"><Search size={16}/><input placeholder="名称或股票代码" value={query} onChange={e=>setQuery(e.target.value)}/></div><div className="filter-select"><select value={filter} onChange={e=>setFilter(e.target.value)}><option>全部</option><option>READY</option><option>WAIT</option></select><ChevronDown size={13}/></div></div><div className="group-select"><SlidersHorizontal size={14}/><select value={group} onChange={e=>setGroup(e.target.value)}><option>全部板块</option>{markets.map(g=><option key={g}>{g}</option>)}</select></div>{items.length?<div className="table-wrap"><table className="data-table"><thead><tr><th>股票 / 代码</th><th>来源板块</th><th>参考价</th><th>信号</th><th/></tr></thead><tbody>{shown.map(item=><tr key={item.code} className={focus?.code===item.code?'row-selected':''} onClick={()=>setSelected(item)}><td><strong>{item.company_name}</strong><small className="mono">{item.code}</small></td><td className="soft-text">{item.trend_name}</td><td className="mono">{fixed(item.current_price)}</td><td><Badge>{item.status}</Badge></td><td><ChevronRight size={16}/></td></tr>)}</tbody></table>{!shown.length&&<Empty title="筛选后无候选" detail="尝试切换信号或板块" icon={Search}/>}</div>:<Empty title="买点榜尚未发布" detail={`数据状态：${formatSource(status.buyHandoff)}`}/>}<div className="table-footer">READY 优先，WAIT 其次；同状态按正式 rank 排序，原始名次不变 <span>交易日 {buy?.trade_date||'—'}</span></div></section><section className="panel inspector inspector-tall" tabIndex={0} aria-label="趋势买点详情，可独立滚动"><BuyInspector item={focus}/></section></div></>}
+function Buy({buy,selected,setSelected,status}){
+ const items=rankedBuyRows(asArray(buy?.items));
+ const [filter,setFilter]=useState('全部'),[query,setQuery]=useState(''),[group,setGroup]=useState('全部板块');
+ const markets=[...new Set(items.map(i=>i.trend_name).filter(Boolean))];
+ const shown=items.filter(i=>(filter==='全部'||i.status===filter)&&(group==='全部板块'||i.trend_name===group)&&`${i.company_name||''}${i.code||''}`.includes(query));
+ const focus=shown.find(i=>i.code===selected?.code)||shown[0];
+ return <>
+  <PageIntro title="趋势买点观察" desc="READY 显示条件性入场计划；WAIT 只显示上一交易日观察参考，不代表当日可买。" date={buy?.trade_date}/>
+  <div className="buy-summary"><div><Badge>READY</Badge><strong>{items.filter(i=>i.status==='READY').length}</strong><span>条件满足候选</span></div><div><Badge>WAIT</Badge><strong>{items.filter(i=>i.status==='WAIT').length}</strong><span>等待确认</span></div><div><span className="muted">正式覆盖</span><strong>{items.length}</strong><span>已发布标的</span></div></div>
+  <div className="two-pane buy-workspace">
+   <section className="panel">
+    <PanelHead title="正式候选列表" aside={<span className="count-chip">{shown.length} 只</span>}/>
+    <div className="table-controls">
+     <div className="search"><Search size={16}/><input placeholder="名称或股票代码" value={query} onChange={e=>setQuery(e.target.value)}/></div>
+     <SelectMenu value={filter} onChange={setFilter} label="按买点信号筛选" options={['全部','READY','WAIT']} className="ui-select--compact"/>
+    </div>
+    <div className="buy-trend-filter">
+     <div className="buy-trend-filter-title"><SlidersHorizontal size={16}/><strong>切换板块</strong><span>{group==='全部板块'?'查看全部趋势买点':'已按板块筛选'} · {shown.length} 只</span></div>
+     <SelectMenu value={group} onChange={setGroup} label="选择趋势板块" options={['全部板块',...markets]} className="ui-select--group" leadingIcon={Layers}/>
+    </div>
+    {items.length?<div className="table-wrap"><table className="data-table"><thead><tr><th>股票 / 代码</th><th>来源板块</th><th>参考价</th><th>信号</th><th/></tr></thead><tbody>{shown.map(item=><tr key={item.code} className={focus?.code===item.code?'row-selected':''} onClick={()=>setSelected(item)}><td><strong>{item.company_name}</strong><small className="mono">{item.code}</small></td><td className="soft-text">{item.trend_name}</td><td className="mono">{fixed(item.current_price)}</td><td><Badge>{item.status}</Badge></td><td><ChevronRight size={16}/></td></tr>)}</tbody></table>{!shown.length&&<Empty title="筛选后无候选" detail="尝试切换信号或板块" icon={Search}/>}</div>:<Empty title="买点榜尚未发布" detail={`数据状态：${formatSource(status.buyHandoff)}`}/>}
+    <div className="table-footer">READY 优先，WAIT 其次；同状态按正式 rank 排序，原始名次不变 <span>交易日 {buy?.trade_date||'—'}</span></div>
+   </section>
+   <section className="panel inspector inspector-tall" tabIndex={0} aria-label="趋势买点详情，可独立滚动"><BuyInspector item={focus}/></section>
+  </div>
+ </>;
+}
 
 function Monitor({monitor,archive,status,monitorUi,setMonitorUi,embedded=false}){
  const valid=monitor?.result_kind==='a_share_intraday_monitor_state'&&status.monitor==='OK';
@@ -474,8 +495,8 @@ function Monitor({monitor,archive,status,monitorUi,setMonitorUi,embedded=false})
  {monitorUi.tab==='stock'&& <section className="panel monitor-chart-panel">
   <div className="monitor-chart-top"><div><h2>个股监测价格与相对强度</h2><p>价格只是当次快照报价；相对强度以相对行业百分点单独绘制。</p></div>
   <div className="monitor-stock-filters">
-    <div className="monitor-stock-select"><label htmlFor="monitored-sector">按所属板块筛选</label><select id="monitored-sector" value={monitorUi.group||'全部板块'} onChange={e=>setMonitorUi(prev=>({...prev,group:e.target.value,stock:''}))}><option value="全部板块">全部板块</option>{groupOptions.map(group=><option value={group} key={group}>{group}</option>)}</select></div>
-    <div className="monitor-stock-select"><label htmlFor="monitored-stock">选择监测标的（{filteredStocks.length}）</label><select id="monitored-stock" value={stock||''} onChange={e=>setMonitorUi(prev=>({...prev,stock:e.target.value}))}>{filteredStocks.map(item=><option key={item.code} value={item.code}>{item.rows.at(-1)?.company_name||item.code} · {item.code}</option>)}</select></div>
+    <div className="monitor-stock-select"><span className="monitor-stock-select-label">按所属板块筛选</span><SelectMenu value={effectiveGroup} label="按所属板块筛选" onChange={value=>setMonitorUi(prev=>({...prev,group:value,stock:''}))} options={['全部板块',...groupOptions]}/></div>
+    <div className="monitor-stock-select"><span className="monitor-stock-select-label">选择监测标的（{filteredStocks.length}）</span><SelectMenu value={stock||''} label="选择监测标的" onChange={value=>setMonitorUi(prev=>({...prev,stock:value}))} options={filteredStocks.map(item=>({value:item.code,label:(item.rows.at(-1)?.company_name||item.code)+' · '+item.code}))}/></div>
    </div></div>
   <div className="monitor-chart-pair"><SnapshotPlot rows={stockRows} field="price" label="盘中快照价" unit="元"/><SnapshotPlot rows={stockRows} field="relative_to_industry_pct" label="相对所属行业涨跌幅" unit=" pp" /></div>
   <div className="monitor-latest">{stockLast?<><span>个股 <strong>{stockLast.company_name||stock}</strong></span><span>行为 <Badge>{stockLast.price_behavior||'—'}</Badge></span><span>空仓观察 <strong>{safeText(stockLast.entry_action)}</strong></span><span>持仓管理 <strong>{safeText(stockLast.holding_action)}</strong></span></>:<span>该股票暂无有效快照</span>}</div>
@@ -503,8 +524,8 @@ function portfolioStatus(assessment){
 }
 function PortfolioPlan({position,assessment}){
  const levels=assessment.rule?.levels||[];
- return <div className="portfolio-tab-content">
-  <div className="portfolio-signal"><span>最新规则状态</span><strong>{assessment.label}</strong></div>
+ return <div className="portfolio-tab-content portfolio-plan-compact">
+  <div className="portfolio-signal"><span>当前判断</span><strong>{assessment.label}</strong></div>
   {levels.length>0?<div className="portfolio-levels">{levels.map((line,i)=>{
    const observation=line.observation==='below'?(line.kind==='warning'?'盘中低于预警线':assessment.rule.basis==='close'?'盘中低于 · 待收盘确认':'盘中条件触及'):line.observation==='not_below'?'盘中未低于':'等待有效当日行情';
    const action=line.action?(line.action==='减仓'?'计划减仓 '+line.quantity+' 股':'计划清仓剩余'):null;
@@ -513,17 +534,16 @@ function PortfolioPlan({position,assessment}){
     <div><span>{action||'观察阈值'}</span><small>{observation}</small></div>
    </div>;
   })}</div>:<div className="portfolio-empty-rule"><ShieldAlert size={17}/><span>{position.planIssue||'尚无可用的结构化退出规则。'}</span></div>}
-  <p className="portfolio-rule-description">{assessment.rule?.detail||'当前无可判定的结构化退出条件。'}</p>
   {position.riskPlan&&<div className="portfolio-plan-meta">
-   <span>生效 {position.riskPlan.effectiveDate||'—'}</span><span>依据 {position.riskPlan.basis||'—'}触发</span>
+   <span>生效 {position.riskPlan.effectiveDate||'—'}</span><span>判断依据 · {position.riskPlan.basis==='close'?'日线收盘':position.riskPlan.basis||'待核验'}</span>
   </div>}
-  {position.riskPlan?.notes&&<div className="portfolio-plan-note"><strong>计划备注</strong><p>{position.riskPlan.notes}</p></div>}
  </div>;
 }
 function PortfolioEvidence({position,assessment}){
  return <div className="portfolio-tab-content">
-  <div className="portfolio-signal"><span>当前评估状态</span><strong>{assessment.label}</strong></div>
   {assessment.evidence.length>0?<ul className="portfolio-evidence-list">{assessment.evidence.map((e,i)=><li key={i}>{e}</li>)}</ul>:<div className="portfolio-no-evidence"><CircleAlert size={17}/><span>暂无可核验的当日盘中证据，不能据此判断风险已经解除。</span></div>}
+  {assessment.rule?.detail&&<p className="portfolio-rule-description">{assessment.rule.detail}</p>}
+  {position.riskPlan?.notes&&<div className="portfolio-plan-note"><strong>计划备注</strong><p>{position.riskPlan.notes}</p></div>}
   {position.issues.length>0&&<div className="portfolio-evidence-issue"><strong>成交数据待核对</strong><p>{position.issues.join('；')}</p></div>}
   {position.planIssue&&<div className="portfolio-evidence-issue"><strong>风控计划状态</strong><p>{position.planIssue}</p></div>}
   <div className="portfolio-evidence-foot">
@@ -591,13 +611,12 @@ function Portfolio({data,status,monitor,holdingSnapshot}){
         <span className="portfolio-row-toggle">{open?<ChevronUp size={17}/>:<ChevronDown size={17}/>}</span>
        </button>
        {open&&<div className="portfolio-inline-detail" id={'holding-detail-'+p.code}>
-        <div className="portfolio-inline-head"><div><span className="eyebrow">EXIT DISCIPLINE</span><h3>{p.name} · 退出规则</h3></div><span>剩余成本估算 {fixed(p.costValue)} 元</span></div>
+        <div className="portfolio-inline-head"><h3>退出计划</h3></div>
         <PortfolioPlan position={p} assessment={assessment}/>
         <div className="portfolio-secondary-accordions">
-         <details><summary><ShieldAlert size={16}/> 判断依据与数据质量 <ChevronDown size={15}/></summary><PortfolioEvidence position={p} assessment={assessment}/></details>
+         <details><summary><ShieldAlert size={16}/> 规则依据与说明 <ChevronDown size={15}/></summary><PortfolioEvidence position={p} assessment={assessment}/></details>
          <details><summary><Clock3 size={16}/> 成交记录 · {p.recordCount} 笔 <ChevronDown size={15}/></summary><PortfolioTrades position={p}/></details>
         </div>
-        <div className="portfolio-inline-foot"><span>最后登记交易日 {p.lastDate||'—'}</span><span>规则不是自动交易指令 · 请核对有效交易日</span></div>
        </div>}
       </div>;
      })}

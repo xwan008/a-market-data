@@ -8,18 +8,7 @@
 .app-shell .intraday-simple-controls{display:flex;align-items:center;gap:10px;min-width:0;flex-wrap:wrap}
 .app-shell .intraday-simple .intraday-tab-switch{margin:0;flex:0 0 auto}
 .app-shell .intraday-simple .intraday-tab-switch button{padding:9px 18px}
-.app-shell .intraday-simple-picker{display:block;position:relative;min-width:240px;max-width:320px}
-.app-shell .intraday-simple-picker .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-.app-shell .intraday-simple-picker select{
-  width:100%;min-height:41px;appearance:none;outline:0;
-  border:1px solid #DFE4ED;border-radius:9px;background:#FFF;
-  color:#34445F;font-size:12px;font-weight:600;padding:9px 38px 9px 14px;
-  cursor:pointer;text-overflow:ellipsis;
-}
-.app-shell .intraday-simple-picker select:hover{border-color:#B9C5DE;background:#FBFCFE}
-.app-shell .intraday-simple-picker select:focus-visible{outline:2px solid #8FA3D1;outline-offset:2px}
-.app-shell .intraday-simple-picker select:disabled{opacity:.55;cursor:not-allowed}
-.app-shell .intraday-simple-picker svg{position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;color:#7886A0}
+.app-shell .intraday-simple .ui-select--intraday{width:310px;max-width:100%}
 .app-shell .intraday-simple-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:30px;padding:20px 0 0;border-top:1px solid #EDF0F5;margin-top:19px}
 .app-shell .intraday-simple-chart{min-width:0}
 .app-shell .intraday-simple-chart .plot{width:100%;margin:0}
@@ -160,63 +149,8 @@
   margin-top:23px;padding-top:14px;font-size:10px;color:#8B97A7;
 }
 
-/* Validation editorial cover */
+/* Validation observations and evidence workspace */
 .app-shell .validation-page{max-width:1550px;margin:auto;min-width:0}
-.app-shell .validation-hero{
-  color:#E7EEFA;background:radial-gradient(ellipse at 73% 20%,#304B69 0%,transparent 52%),
-   linear-gradient(120deg,#182438 0%,#26354E 50%,#1D2C42 100%);
-  border:1px solid #263C58;border-radius:17px;overflow:hidden;position:relative;
-  box-shadow:0 18px 36px rgba(38,55,83,.12);margin:2px 0 21px;
-}
-.app-shell .validation-hero:before{
-  content:"";position:absolute;inset:0;opacity:.13;
-  background-image:linear-gradient(#B3D0E8 1px,transparent 1px),linear-gradient(90deg,#B3D0E8 1px,transparent 1px);
-  background-size:54px 54px;pointer-events:none;
-}
-.app-shell .validation-hero-inner{
-  display:grid;grid-template-columns:minmax(0,1.05fr) minmax(270px,.95fr);gap:12px;
-  align-items:center;padding:44px 44px 39px;min-height:333px;position:relative;
-}
-.app-shell .validation-hero-copy{z-index:1}
-.app-shell .validation-hero-eyebrow{
-  font:650 10px 'IBM Plex Mono','Noto Sans SC',monospace;letter-spacing:1.75px;
-  color:#A4B8D2;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
-}
-.app-shell .validation-live-dot{width:7px;height:7px;display:inline-block;border-radius:50%;background:#6FD5BC;box-shadow:0 0 0 4px rgba(111,213,188,.12)}
-.app-shell .validation-eyebrow-separator{height:11px;width:1px;background:#607089}
-.app-shell .validation-hero h1{font-size:clamp(30px,3vw,44px);line-height:1.3;letter-spacing:-1.3px;font-weight:720;margin:23px 0 15px;color:#F5F7FC}
-.app-shell .validation-hero h1 em{font-style:normal;color:#9FE1D0}
-.app-shell .validation-hero-copy>p{font-size:12px;color:#ABBBD1;line-height:1.95;max-width:455px;margin:0}
-.app-shell .validation-hero-caption{
-  display:flex;align-items:center;gap:9px;font-size:10px;color:#A9BAD1;margin-top:23px;flex-wrap:wrap;
-}
-.app-shell .validation-hero-caption-dot{width:3px;height:3px;border-radius:50%;background:#7990AE;margin:0 4px}
-.app-shell .validation-hero-graphic{
-  position:relative;min-width:0;max-width:470px;height:255px;display:flex;
-  align-items:center;justify-content:center;transform:translateX(6px);
-}
-.app-shell .validation-hero-graphic svg{width:100%;position:relative;z-index:1;filter:drop-shadow(0 11px 20px rgba(0,0,0,.12))}
-.app-shell .validation-graph-orbit{
-  position:absolute;width:250px;height:250px;border:1px solid rgba(139,185,197,.16);border-radius:50%;
-}
-.app-shell .validation-graph-orbit.orbit-b{width:340px;height:340px;border-style:dashed;opacity:.45}
-.app-shell .validation-graph-label{
-  position:absolute;font:600 9px 'IBM Plex Mono',monospace;letter-spacing:1.2px;
-  color:#B2C9DD;border:1px solid #526C81;background:#2B4659;
-  padding:7px 9px;border-radius:5px;z-index:2;
-}
-.app-shell .validation-graph-label.label-a{left:1%;bottom:36px}
-.app-shell .validation-graph-label.label-b{left:44%;top:58px}
-.app-shell .validation-graph-label.label-c{right:3%;top:5px;color:#ACF2DB}
-.app-shell .validation-hero-foot{
-  position:relative;display:flex;gap:9px;align-items:center;padding:14px 44px;
-  border-top:1px solid rgba(188,211,237,.16);background:rgba(10,20,40,.19);
-  color:#B3C2D5;font-size:10px;line-height:1.7;
-}
-.app-shell .validation-hero-foot svg{color:#A0DDD0;flex:none}
-.app-shell .validation-hero-foot-id{
-  margin-left:auto;color:#8499B2;white-space:nowrap;font:550 9px 'IBM Plex Mono',monospace;letter-spacing:1px;
-}
 
 .app-shell .validation-observations{
   display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:34px;
@@ -391,8 +325,6 @@
 
 @media(max-width:1140px){
   .app-shell .portfolio-grid-labels,.app-shell .portfolio-grid-row{gap:9px;padding-left:18px;padding-right:18px}
-  .app-shell .validation-hero-inner{padding:35px 30px}
-  .app-shell .validation-hero-foot{padding:13px 30px}
   .app-shell .validation-history-controls{gap:8px}
 }
 @media(max-width:950px){
@@ -413,7 +345,7 @@
   .app-shell .intraday-simple-controls{width:100%;gap:9px}
   .app-shell .intraday-simple .intraday-tab-switch{width:auto;flex:0 0 auto}
   .app-shell .intraday-simple .intraday-tab-switch button{padding:9px 13px}
-  .app-shell .intraday-simple-picker{flex:1 1 180px;min-width:0;max-width:none}
+  .app-shell .intraday-simple .ui-select--intraday{flex:1 1 180px;min-width:0;width:auto;max-width:none}
   .app-shell .intraday-simple-charts{grid-template-columns:1fr;gap:22px;padding-top:17px;margin-top:17px}
   .app-shell .intraday-simple-chart .plot-head{align-items:flex-start;gap:6px;flex-wrap:wrap}
   .app-shell .portfolio-title-row{align-items:flex-start;flex-direction:column;margin-bottom:18px}
@@ -431,13 +363,6 @@
   .app-shell .portfolio-inline-detail{padding:19px 16px}
   .app-shell .portfolio-inline-head{align-items:flex-start;flex-direction:column}
   .app-shell .portfolio-secondary-accordions{grid-template-columns:1fr}
-  .app-shell .validation-hero-inner{display:block;padding:35px 23px 28px;min-height:0}
-  .app-shell .validation-hero h1{font-size:31px}
-  .app-shell .validation-hero-graphic{height:160px;max-width:380px;margin:15px auto -10px;opacity:.8}
-  .app-shell .validation-hero-graphic svg{max-height:180px}
-  .app-shell .validation-graph-label{display:none}
-  .app-shell .validation-hero-foot{padding:13px 22px}
-  .app-shell .validation-hero-foot-id{display:none}
   .app-shell .validation-section-head{align-items:flex-start;flex-direction:column}
   .app-shell .validation-section-head h2{font-size:20px}
   .app-shell .validation-horizon{width:100%}
@@ -468,12 +393,152 @@
   .app-shell .portfolio-grid-row{padding:17px 15px}
   .app-shell .portfolio-row-toggle{right:13px;bottom:16px}
   .app-shell .portfolio-inline-detail .portfolio-levels{grid-template-columns:1fr}
-  .app-shell .validation-hero-eyebrow{font-size:9px}
-  .app-shell .validation-hero h1{font-size:28px}
-  .app-shell .validation-hero-graphic{height:120px}
   .app-shell .validation-outcome{padding:19px}
   .app-shell .validation-record-facts{grid-template-columns:1fr}
 }
 @media(prefers-reduced-motion:reduce){
   .app-shell .portfolio-grid-row,.app-shell .validation-record-trigger{transition:none}
+}
+
+/* One custom dropdown language across Overview, Trend Radar, Buy and Validation. */
+.app-shell .ui-select{position:relative;display:block;min-width:120px;z-index:1}
+.app-shell .ui-select.is-open{z-index:60}
+.app-shell .ui-select-trigger{
+  display:flex;align-items:center;gap:10px;width:100%;min-height:42px;
+  padding:10px 13px;border:1px solid #D4DCE9;border-radius:10px;
+  background:#FFF;color:#30415C;text-align:left;font-size:12px;font-weight:650;
+  transition:background .15s,border-color .15s;box-shadow:none;
+}
+.app-shell .ui-select-trigger:hover{background:#F7F9FC;border-color:#BBC8DC}
+.app-shell .ui-select-trigger:focus-visible,.app-shell .ui-select.is-open .ui-select-trigger{
+  outline:none;border-color:#9CACCC;box-shadow:inset 0 0 0 1px #9CACCC;background:#F8FAFE;
+}
+.app-shell .ui-select-trigger:disabled{opacity:.55}
+.app-shell .ui-select-value{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.app-shell .ui-select-chevron{flex:none;color:#7789A8;transition:transform .16s}
+.app-shell .ui-select.is-open .ui-select-chevron{transform:rotate(180deg)}
+.app-shell .ui-select-leading{flex:none;color:#536DB2}
+.app-shell .ui-select-options{
+  position:absolute;top:calc(100% + 6px);left:0;width:max(100%,210px);
+  max-width:min(345px,calc(100vw - 40px));max-height:288px;overflow-y:auto;
+  padding:5px;border-radius:12px;border:1px solid #D4DDEA;background:#FFF;
+  box-shadow:0 15px 36px rgba(32,45,69,.16),0 3px 8px rgba(32,45,69,.05);
+  outline:none;scrollbar-width:thin;
+}
+.app-shell .ui-select-option{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  width:100%;min-height:38px;padding:9px 11px;border:0;border-radius:7px;
+  background:transparent;color:#475874;text-align:left;font-size:12px;
+  font-weight:540;line-height:1.4;
+}
+.app-shell .ui-select-option>span{min-width:0;overflow-wrap:anywhere}
+.app-shell .ui-select-option.is-highlighted{background:#F0F3F9;color:#304E83}
+.app-shell .ui-select-option.is-selected{background:#E8EEF9;color:#3D5699;font-weight:700}
+.app-shell .ui-select-option svg{flex:none;color:#526FBB}
+.app-shell .ui-select--compact{width:126px;flex:none}
+.app-shell .ui-select--sort{min-width:185px}
+.app-shell .ui-select--intraday{flex:none}
+.app-shell .ui-select--group{flex:1;max-width:420px;min-width:210px}
+.app-shell .ui-select--group .ui-select-trigger{
+  min-height:44px;border-color:#C9D5EC;background:#FFF;color:#354F8D;font-weight:720;
+}
+.app-shell .ui-select--group .ui-select-trigger:hover{background:#F7F9FF;border-color:#9CB1DF}
+.app-shell .monitor-stock-select .ui-select{width:100%}
+.app-shell .monitor-stock-select-label{display:block;font-size:11px;color:#627189;margin-bottom:7px}
+
+/* The Buy sector switch is an intentional filter bar, not a faded text input. */
+.app-shell .buy-trend-filter{
+  display:flex;align-items:center;gap:15px;flex-wrap:wrap;
+  margin:0 23px 17px;padding:12px 14px;border:1px solid #DCE4F1;
+  border-radius:12px;background:#F3F6FC;
+}
+.app-shell .buy-trend-filter-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+.app-shell .buy-trend-filter-title svg{color:#5E78B3}
+.app-shell .buy-trend-filter-title strong{font-size:12px;color:#304665;white-space:nowrap}
+.app-shell .buy-trend-filter-title span{font-size:10px;color:#687A94;white-space:nowrap}
+.app-shell .buy-trend-filter .ui-select--group{margin-left:auto}
+
+/* Cleaner portfolio decision area: rule, price, action and the confirmation basis. */
+.app-shell .portfolio-inline-detail{padding:20px 27px 21px;background:#FAFBFE}
+.app-shell .portfolio-inline-head{margin-bottom:12px}
+.app-shell .portfolio-inline-head h3{font-size:16px;font-weight:730;margin:0;color:#273956}
+.app-shell .portfolio-plan-compact{max-width:none;min-height:0}
+.app-shell .portfolio-plan-compact .portfolio-signal{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  padding:11px 14px;margin-bottom:11px;border:1px solid #DAE3F1;
+  background:#EEF3FA;border-radius:10px;
+}
+.app-shell .portfolio-plan-compact .portfolio-signal>span{font-size:11px;color:#4F6482;font-weight:600}
+.app-shell .portfolio-plan-compact .portfolio-signal strong{font-size:12px;font-weight:750;color:#355995;text-align:right}
+.app-shell .portfolio-inline-detail .portfolio-levels{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.app-shell .portfolio-inline-detail .portfolio-level-row{
+  padding:16px 17px;gap:13px;border:1px solid #D9E2EE;border-radius:11px;
+  background:#FFF;display:flex;flex-direction:row;align-items:center;justify-content:space-between;
+}
+.app-shell .portfolio-inline-detail .portfolio-level-row>div:first-child>span{color:#5B6D88;font-size:11px;font-weight:650;margin-bottom:6px}
+.app-shell .portfolio-inline-detail .portfolio-level-row>div:first-child>strong{
+  color:#253653;font:750 23px 'DM Sans','Noto Sans SC',sans-serif;letter-spacing:-.4px;
+}
+.app-shell .portfolio-inline-detail .portfolio-level-row>div:first-child>strong small{color:#62738D;font-size:12px;font-weight:600}
+.app-shell .portfolio-inline-detail .portfolio-level-row>div:last-child{text-align:right}
+.app-shell .portfolio-inline-detail .portfolio-level-row>div:last-child>span{font-size:12px;font-weight:700;color:#344969}
+.app-shell .portfolio-inline-detail .portfolio-level-row>div:last-child>small{font-size:11px;color:#65748A}
+.app-shell .portfolio-plan-compact .portfolio-plan-meta{
+  margin-top:12px;padding:0;display:flex;gap:8px 22px;flex-wrap:wrap;
+  border:0;background:transparent;color:#63738C;font-size:11px;
+}
+.app-shell .portfolio-secondary-accordions{margin-top:15px;max-width:none}
+.app-shell .portfolio-secondary-accordions details{border-radius:10px;border-color:#DCE4EF}
+.app-shell .portfolio-secondary-accordions summary{font-size:12px;font-weight:680;color:#3F526F;padding:12px 15px}
+.app-shell .portfolio-secondary-accordions .portfolio-rule-description{margin:14px 0;color:#4F617B;font-size:12px}
+.app-shell .portfolio-secondary-accordions .portfolio-plan-note{background:#F7F9FD;border:1px solid #E3E9F2;border-radius:9px;padding:12px;margin-top:10px}
+.app-shell .portfolio-secondary-accordions .portfolio-plan-note strong{color:#4F6280}
+.app-shell .portfolio-secondary-accordions .portfolio-plan-note p{color:#53647D}
+
+/* Remove the decorative validation cover; data gets the first screen. */
+.app-shell .validation-page-heading{
+  display:flex;align-items:end;justify-content:space-between;gap:15px 30px;
+  margin:6px 0 23px;padding:5px 0 18px;border-bottom:1px solid #D9E0EB;
+}
+.app-shell .validation-page-heading .eyebrow{color:#6C81B3;letter-spacing:1.5px;font-size:10px}
+.app-shell .validation-page-heading h1{font-size:27px;letter-spacing:-.7px;color:#253652;margin:8px 0 6px}
+.app-shell .validation-page-heading p{color:#64758E;font-size:12px;margin:0;line-height:1.75}
+.app-shell .validation-page-asof{display:flex;align-items:center;gap:8px;color:#60718D;font-size:11px;white-space:nowrap}
+.app-shell .validation-page-asof svg{color:#7890BF}
+
+/* Shared table header contrast and softer corners. */
+.app-shell .new-home .overview-brief-monitor{background:transparent}
+.app-shell .data-table thead,.app-shell .data-table th{background:#E6ECF5;border-color:#D1DCEB}
+.app-shell .data-table th{color:#364B68;font-weight:750}
+.app-shell .table-wrap{border-radius:11px;overflow:auto}
+.app-shell :is(.data-pair,.portfolio-level-row,.validation-record-facts>div,.crossday-card){border-radius:10px}
+.app-shell .portfolio-grid-labels,.app-shell .validation-list-head{
+  background:#E6ECF5;border-color:#D1DCEB;color:#405472;font-weight:700;
+}
+.app-shell .portfolio-board,.app-shell .validation-history{border-radius:16px}
+.app-shell .portfolio-grid-row,.app-shell .validation-record-trigger{border-radius:9px}
+.app-shell :is(.search,.validation-search){border-radius:10px}
+
+@media(max-width:950px){
+  .app-shell .buy-trend-filter{align-items:stretch;flex-direction:column;gap:10px}
+  .app-shell .buy-trend-filter .ui-select--group{margin-left:0;max-width:none;width:100%}
+  .app-shell .portfolio-inline-detail .portfolio-level-row{flex-direction:column;align-items:flex-start}
+  .app-shell .portfolio-inline-detail .portfolio-level-row>div:last-child{text-align:left}
+}
+@media(max-width:760px){
+  .app-shell .ui-select--compact{width:116px}
+  .app-shell .ui-select--sort{min-width:160px}
+  .app-shell .intraday-simple .ui-select--intraday{width:auto;flex:1 1 180px}
+  .app-shell .buy-trend-filter{margin:0 14px 15px}
+  .app-shell .portfolio-inline-detail{padding:17px 16px}
+  .app-shell .portfolio-inline-detail .portfolio-levels{grid-template-columns:1fr}
+  .app-shell .portfolio-inline-detail .portfolio-level-row{flex-direction:row;align-items:center}
+  .app-shell .portfolio-inline-detail .portfolio-level-row>div:last-child{text-align:right}
+  .app-shell .validation-page-heading{flex-direction:column;align-items:flex-start;gap:12px;margin-top:0}
+  .app-shell .validation-page-heading h1{font-size:24px}
+  .app-shell .validation-page-asof{white-space:normal}
+}
+@media(max-width:420px){
+  .app-shell .portfolio-inline-detail .portfolio-level-row{flex-direction:column;align-items:flex-start}
+  .app-shell .portfolio-inline-detail .portfolio-level-row>div:last-child{text-align:left}
 }
