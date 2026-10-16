@@ -401,24 +401,23 @@ function BuyInspector({item}){
  const zone=waiting?reference?.reference_zone:item.entry_zone;
  const trigger=waiting?reference?.conditional_trigger:item.entry_trigger;
  const stop=waiting?reference?.invalidation_price:item.invalidation_price;
- return <div className="detail-content buy-inspector">
+ return <div className="detail-content buy-inspector buy-inspector--compact">
   <div className="detail-hero"><h2>{item.company_name}<span className="company-code">{item.code}</span></h2><div className="detail-badges"><Badge>{item.status}</Badge><ResearchState value={item.market_state}/></div></div>
-  <div className="data-pair">
-   <div><span>历史收盘参考价</span><strong className="big-number">{fixed(item.current_price)}</strong></div>
+  <div className="buy-inspector-reference">
+   <div><span>历史收盘参考价</span><strong>{fixed(item.current_price)}</strong></div>
    <div><span>{waiting?'观察形态':'形态类型'}</span><strong>{safeText(waiting?reference?.setup_mode:item.setup_type)}</strong></div>
   </div>
-  <div className="detail-section">
-   <div className="small-heading"><Target size={15}/>{waiting?'观察参考区间（非买点）':'计划入场区间'}</div>
-   <div className="entry-range">{Array.isArray(zone)? `${fixed(zone[0],3)} – ${fixed(zone[1],3)}`:waiting?'尚无可靠观察参考区间':'尚未形成有效入场区间'}</div>
-   <p className="hint-text">{waiting?'观察条件：':'入场触发：'}{safeText(trigger)}</p>
+  <div className="buy-inspector-focus">
+   <div className="buy-inspector-zone"><span>{waiting?'观察参考区间 · 非买点':'计划入场区间'}</span><strong>{Array.isArray(zone)? `${fixed(zone[0],3)} – ${fixed(zone[1],3)}`:waiting?'尚无可靠观察参考区间':'尚未形成有效入场区间'}</strong></div>
+   <div className="buy-inspector-levels">
+    <div><span>{waiting?'观察触发参考价':'最大入场价'}</span><strong>{fixed(waiting?reference?.reference_trigger_price:item.max_entry_price,3)}</strong></div>
+    <div><span>{waiting?'观察结构参考位':'结构失效参考'}</span><strong>{fixed(stop,3)}</strong></div>
+   </div>
   </div>
-  <div className="data-pair">
-   <div><span>{waiting?'观察触发参考价':'最大入场价'}</span><strong>{fixed(waiting?reference?.reference_trigger_price:item.max_entry_price,3)}</strong></div>
-   <div><span>{waiting?'观察结构参考位':'结构失效参考'}</span><strong>{fixed(stop,3)}</strong></div>
-  </div>
-  <div className="detail-section"><div className="small-heading"><CircleAlert size={15}/> 当前判断</div><p className="reason-paragraph">{safeText(item.decision_reason)}</p></div>
-  <div className="invalidation"><span>{waiting?'参考有效性':'失效规则'}</span><p>{waiting?`观察参考基于 ${item.trade_date||'上一交易日'} 的完成收盘数据；触及价位不等于买入，须重新确认行业状态、个股承接和风险。`:safeText(item.invalidation_rule)}</p></div>
-  <div className="disclaimer">{waiting?'WAIT 不提供可执行入场计划，也不提供持仓止损指令。':'READY 仅为条件性计划，须核对最新有效行情，不是实时成交指令。'}</div>
+  <div className="buy-inspector-explanation"><div className="buy-inspector-label"><Target size={14}/>{waiting?'观察条件':'入场触发'}</div><p>{safeText(trigger)}</p></div>
+  <div className="buy-inspector-explanation buy-inspector-judgement"><div className="buy-inspector-label"><CircleAlert size={14}/>当前判断</div><p>{safeText(item.decision_reason)}</p></div>
+  {waiting?<div className="buy-inspector-caution"><CircleAlert size={14}/><span>基于 {item.trade_date||'上一交易日'} 已完成收盘数据，仅供观察；WAIT 不可作为入场或止损指令，需重新核验。</span></div>
+   :<div className="buy-inspector-risk"><strong>失效规则</strong><p>{safeText(item.invalidation_rule)}</p><small>READY 为条件性计划，须核对最新行情，并非实时交易指令。</small></div>}
  </div>
 }
 function Buy({buy,selected,setSelected,status}){
@@ -444,7 +443,7 @@ function Buy({buy,selected,setSelected,status}){
     {items.length?<div className="table-wrap"><table className="data-table"><thead><tr><th>股票 / 代码</th><th>来源板块</th><th>参考价</th><th>信号</th><th/></tr></thead><tbody>{shown.map(item=><tr key={item.code} className={focus?.code===item.code?'row-selected':''} onClick={()=>setSelected(item)}><td><strong>{item.company_name}</strong><small className="mono">{item.code}</small></td><td className="soft-text">{item.trend_name}</td><td className="mono">{fixed(item.current_price)}</td><td><Badge>{item.status}</Badge></td><td><ChevronRight size={16}/></td></tr>)}</tbody></table>{!shown.length&&<Empty title="筛选后无候选" detail="尝试切换信号或板块" icon={Search}/>}</div>:<Empty title="买点榜尚未发布" detail={`数据状态：${formatSource(status.buyHandoff)}`}/>}
     <div className="table-footer">READY 优先，WAIT 其次；同状态按正式 rank 排序，原始名次不变 <span>交易日 {buy?.trade_date||'—'}</span></div>
    </section>
-   <section className="panel inspector inspector-tall" tabIndex={0} aria-label="趋势买点详情，可独立滚动"><BuyInspector item={focus}/></section>
+   <section className="panel inspector inspector-tall buy-detail-pane" aria-label="趋势买点详情"><BuyInspector item={focus}/></section>
   </div>
  </>;
 }

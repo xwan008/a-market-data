@@ -87,6 +87,20 @@ test('趋势与买点表格只强调表头，当前行仅用边缘标记；搜�
  assert.match(refreshCss,/\.search,\.validation-search\) input:focus-visible\{[\s\S]*?outline:none[\s\S]*?box-shadow:none/);
 });
 
+test('趋势买点详情改成跟随文档的粘性紧凑卡片，不再使用内部纵向滚动',()=>{
+ const inspector=app.slice(app.indexOf('function BuyInspector({'),app.indexOf('function Buy({'));
+ const buy=app.slice(app.indexOf('function Buy({'),app.indexOf('function Monitor({'));
+ assert.match(inspector,/buy-inspector--compact/);
+ assert.match(inspector,/buy-inspector-focus/);
+ assert.match(inspector,/观察参考区间 · 非买点/);
+ assert.match(inspector,/WAIT 不可作为入场或止损指令/);
+ assert.match(inspector,/safeText\(item\.invalidation_rule\)/);
+ assert.doesNotMatch(inspector,/className="invalidation"|className="disclaimer"/);
+ assert.match(buy,/className="panel inspector inspector-tall buy-detail-pane"/);
+ assert.doesNotMatch(buy,/独立滚动/);
+ assert.match(refreshCss,/\.buy-workspace>\.buy-detail-pane\{[\s\S]*?position:sticky;top:88px[\s\S]*?max-height:none;overflow:visible/);
+});
+
 test('新的桌面与移动布局主题加载在既有 neutral ink 之后',()=>{
  assert.match(main,/neutral-ink-v2\.css';\s*import '\.\/experience-refresh\.css'/);
  assert.match(refreshCss,/\.portfolio-grid-row/);
