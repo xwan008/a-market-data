@@ -517,7 +517,34 @@
 }
 .app-shell .portfolio-board,.app-shell .validation-history{border-radius:16px}
 .app-shell .portfolio-grid-row,.app-shell .validation-record-trigger{border-radius:9px}
-.app-shell :is(.search,.validation-search){border-radius:10px}
+
+/* A selected record is identified by its edge, not by a second header-colored band. */
+.app-shell .data-table tbody tr.row-selected{background:#FFF}
+.app-shell .data-table tbody tr.row-selected:hover{background:#F6F8FC}
+.app-shell .data-table tbody tr.row-selected td:first-child{
+  box-shadow:inset 3px 0 0 #7188BB;
+}
+
+/* Shared search-field chrome: one visual surface, matching our custom select. */
+.app-shell :is(.search,.validation-search){
+  height:42px;min-height:42px;border:1px solid #D4DCE9;border-radius:10px;
+  background:#FFF;color:#8897AC;box-shadow:none;
+  transition:border-color .16s ease,background-color .16s ease,box-shadow .16s ease;
+}
+.app-shell :is(.search,.validation-search):hover{border-color:#B8C6DB;background:#FBFCFF}
+.app-shell :is(.search,.validation-search):focus-within{
+  outline:none;border-color:#9CACCC;background:#F8FAFE;
+  box-shadow:inset 0 0 0 1px #9CACCC;
+}
+.app-shell :is(.search,.validation-search) input,
+.app-shell :is(.search,.validation-search) input:focus,
+.app-shell :is(.search,.validation-search) input:focus-visible{
+  display:block;flex:1;width:100%;min-width:0;height:100%;margin:0;padding:0;
+  border:0;border-radius:0;outline:none;outline-offset:0;box-shadow:none;
+  background:transparent;appearance:none;-webkit-appearance:none;
+  color:#30415C;font-size:12px;caret-color:#5472AA;
+}
+.app-shell :is(.search,.validation-search) input::placeholder{color:#8A97A9;opacity:1}
 
 @media(max-width:950px){
   .app-shell .buy-trend-filter{align-items:stretch;flex-direction:column;gap:10px}

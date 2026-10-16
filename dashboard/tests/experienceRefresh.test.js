@@ -80,6 +80,13 @@ test('全站可见筛选统一使用有键盘交互的自定义菜单',()=>{
  assert.match(refreshCss,/\.data-table thead,\.app-shell \.data-table th\{background:#E6ECF5/);
 });
 
+test('趋势与买点表格只强调表头，当前行仅用边缘标记；搜索输入框无内层聚焦描边',()=>{
+ assert.match(refreshCss,/\.data-table tbody tr\.row-selected\{background:#FFF\}/);
+ assert.match(refreshCss,/\.data-table tbody tr\.row-selected td:first-child\{[\s\S]*?box-shadow:inset 3px 0 0/);
+ assert.match(refreshCss,/\.search,\.validation-search\):focus-within\{[\s\S]*?box-shadow:inset 0 0 0 1px/);
+ assert.match(refreshCss,/\.search,\.validation-search\) input:focus-visible\{[\s\S]*?outline:none[\s\S]*?box-shadow:none/);
+});
+
 test('新的桌面与移动布局主题加载在既有 neutral ink 之后',()=>{
  assert.match(main,/neutral-ink-v2\.css';\s*import '\.\/experience-refresh\.css'/);
  assert.match(refreshCss,/\.portfolio-grid-row/);
