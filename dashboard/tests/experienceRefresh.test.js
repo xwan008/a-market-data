@@ -7,21 +7,25 @@ const validation=readFileSync(new URL('../src/components/TrendValidation.jsx',im
 const refreshCss=readFileSync(new URL('../src/experience-refresh.css',import.meta.url),'utf8');
 const main=readFileSync(new URL('../src/main.jsx',import.meta.url),'utf8');
 
-test('概览的盘中变化只有趋势或个股选择与一张真实快照折线图，没有完整记录入口',()=>{
+test('概览盘中变化保留广度与强度双折线图，并移除买点机会和完整监测详情',()=>{
  const nav=app.slice(app.indexOf('const sections ='),app.indexOf('const tone ='));
  assert.doesNotMatch(nav,/id:'monitor'/);
  const overview=app.slice(app.indexOf('function Overview({'),app.indexOf('function Trends({'));
- const feature=overview.slice(overview.indexOf('<section className="decision-feature intraday-simple"'),overview.indexOf('<section className="decision-panel decision-opportunity"'));
+ const feature=overview.slice(overview.indexOf('<section className="decision-feature intraday-simple"'),overview.indexOf('<div className="decision-bottom">'));
  assert.match(feature,/aria-pressed=\{monitorUi\.tab==='sector'\}/);
  assert.match(feature,/aria-pressed=\{monitorUi\.tab==='stock'\}/);
  assert.match(feature,/select aria-label=\{monitorUi\.tab==='sector'\?'选择趋势':'选择个股'\}/);
  assert.match(feature,/trendOptions\.map\(item=><option/);
  assert.match(feature,/stockOptions\.map\(item=><option/);
  assert.match(feature,/<SnapshotPlot rows=\{active\.scans\} field="up_ratio"/);
+ assert.match(feature,/<SnapshotPlot rows=\{active\.scans\} field="median_change_pct" label="盘中板块强度"/);
  assert.match(feature,/<SnapshotPlot rows=\{selectedStock\.scans\} field="price"/);
- assert.equal((feature.match(/<SnapshotPlot/g)||[]).length,2,'两个互斥分支各一张折线图');
+ assert.match(feature,/<SnapshotPlot rows=\{selectedStock\.scans\} field="relative_to_industry_pct"/);
+ assert.equal((feature.match(/<SnapshotPlot/g)||[]).length,4,'两个互斥分支各两张折线图');
+ assert.match(feature,/className="intraday-simple-charts"/);
  assert.match(overview,/stockOptions=Object\.entries\(monitorCurrent\?monitor\.stock_history/);
- assert.doesNotMatch(feature,/feature-plot-grid|feature-caption|focus-switch|relative_to_industry_pct|median_change_pct/);
+ assert.doesNotMatch(feature,/feature-caption|focus-switch|跨日追溯|详细监测/);
+ assert.doesNotMatch(overview,/decision-panel decision-opportunity|正式买点机会/);
  assert.doesNotMatch(overview,/完整监测|完整记录|monitorExpanded|<Monitor/);
  assert.doesNotMatch(app,/section==='monitor'/);
 });
