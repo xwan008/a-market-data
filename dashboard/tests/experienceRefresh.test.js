@@ -123,8 +123,13 @@ test('全站顶栏移除手动刷新按钮，但仍在登录成功时主动读�
  assert.match(app,/fetch\('\/api\/data',\{cache:'no-store'\}\)/);
 });
 
-test('买点、持仓和趋势验证的顶部指标统一采用紧凑、圆角的横向信息卡',()=>{
+test('板块趋势、买点、持仓和趋势验证的顶部指标统一采用紧凑、圆角的信息卡',()=>{
+ const trends=app.slice(app.indexOf('function Trends({'),app.indexOf('function PageIntro({'));
  const portfolio=app.slice(app.indexOf('function Portfolio({'),app.indexOf('function Login({'));
+ assert.match(trends,/className="buy-summary trend-summary"/);
+ assert.match(trends,/今日盘中有值/);
+ assert.match(trends,/来自正式趋势榜单名次/);
+ assert.doesNotMatch(trends,/className="ranking-explainer"/);
  assert.match(portfolio,/className="portfolio-summary-strip"/);
  assert.match(portfolio,/portfolio-summary-cost/);
  assert.match(portfolio,/<ShieldAlert size=\{14\}\/>需要关注/);
@@ -133,6 +138,20 @@ test('买点、持仓和趋势验证的顶部指标统一采用紧凑、圆角�
  assert.match(refreshCss,/\.portfolio-summary-strip>div\{[\s\S]*?min-height:86px/);
  assert.match(refreshCss,/\.validation-observation\{[\s\S]*?min-height:86px/);
  assert.match(refreshCss,/\.buy-stat-value\{[\s\S]*?grid-column:2;grid-row:1\/3/);
+});
+
+test('移除导航冗余英文，五页标题共用字号与基线，右上角对齐内容边线',()=>{
+ const sidebar=app.slice(app.indexOf('function Sidebar({'),app.indexOf('function Metric({'));
+ const portfolio=app.slice(app.indexOf('function Portfolio({'),app.indexOf('function Login({'));
+ assert.doesNotMatch(sidebar,/工作空间|PRIVATE INVESTOR DESK|side-footer|side-group-label/);
+ assert.doesNotMatch(portfolio,/PORTFOLIO \/ RISK DESK/);
+ assert.doesNotMatch(validation,/SIGNAL VALIDATION/);
+ assert.match(refreshCss,/\.topbar\{padding-left:42px;padding-right:42px\}/);
+ assert.match(refreshCss,/\.page-intro\{margin:0 0 20px\}/);
+ assert.match(refreshCss,/\.portfolio-title-row h1\{margin:0 0 6px\}/);
+ assert.match(refreshCss,/\.validation-page-heading h1\{margin:0 0 6px\}/);
+ assert.match(refreshCss,/\.page-intro h1,\.decision-heading h1,\.portfolio-title-row h1,\.validation-page-heading h1\)\{[\s\S]*?font-size:26px/);
+ assert.match(refreshCss,/@media\(max-width:760px\)\{[\s\S]*?\.topbar\{padding-left:14px;padding-right:14px\}/);
 });
 
 test('板块趋势把当日盘中覆盖与历史研究池分开呈现，缺值不视为异常',()=>{

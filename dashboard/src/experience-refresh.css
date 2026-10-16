@@ -816,3 +816,46 @@
   .app-shell .portfolio-inline-detail .portfolio-level-row{flex-direction:column;align-items:flex-start}
   .app-shell .portfolio-inline-detail .portfolio-level-row>div:last-child{text-align:left}
 }
+
+/* A single 42px desktop page grid for navigation, heading, and content. */
+.app-shell .topbar{padding-left:42px;padding-right:42px}
+.app-shell .sidebar .brand{margin-bottom:20px}
+.app-shell .page-intro{margin:0 0 20px}
+.app-shell .new-home .decision-heading{padding:0;gap:24px}
+.app-shell .new-home .decision-heading h1{margin:0 0 6px}
+.app-shell .portfolio-title-row{margin:0 0 20px}
+.app-shell .portfolio-title-row h1{margin:0 0 6px}
+.app-shell .validation-page-heading{margin:0 0 20px;padding:0 0 16px}
+.app-shell .validation-page-heading h1{margin:0 0 6px}
+.app-shell :is(.page-intro h1,.decision-heading h1,.portfolio-title-row h1,.validation-page-heading h1){
+  font-size:26px;line-height:1.4;letter-spacing:-.6px;font-weight:700;color:#1F2A3D;
+}
+
+/* Same compact metric-card vocabulary as the buying and holdings pages. */
+.app-shell .trend-summary{margin:0 0 17px}
+.app-shell .trend-summary .trend-stat-intraday{
+  --stat-accent:#6179AC;--stat-soft:#EDF2FA;
+}
+
+@media(max-width:760px){
+  .app-shell .topbar{padding-left:14px;padding-right:14px}
+  .app-shell :is(.page-intro h1,.decision-heading h1,.portfolio-title-row h1,.validation-page-heading h1){font-size:24px}
+  .app-shell .trend-summary{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .app-shell .trend-summary>div,
+  .app-shell .trend-summary>div:first-child,
+  .app-shell .trend-summary>div:last-child{padding:11px 9px;min-height:94px}
+  .app-shell .trend-summary .buy-stat-heading{min-height:0;gap:5px}
+  .app-shell .trend-summary .buy-stat-icon{display:none}
+  .app-shell .trend-summary .buy-stat-title{font-size:10px}
+  .app-shell .trend-summary .buy-stat-value strong{font-size:23px}
+  .app-shell .trend-summary>div p{font-size:9px}
+}
+@media(max-width:400px){
+  .app-shell .topbar{padding-left:12px;padding-right:12px}
+  .app-shell .trend-summary{gap:6px}
+  .app-shell .trend-summary>div,
+  .app-shell .trend-summary>div:first-child,
+  .app-shell .trend-summary>div:last-child{padding:10px 7px;grid-template-columns:1fr;grid-template-rows:auto auto auto;gap:4px}
+  .app-shell .trend-summary .buy-stat-value{grid-column:1;grid-row:2;justify-self:start}
+  .app-shell .trend-summary>div p{grid-column:1;grid-row:3}
+}

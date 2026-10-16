@@ -119,7 +119,7 @@ export default function TrendValidation(){
 
   return <div className="validation-page">
     <header className="validation-page-heading">
-      <div><span className="eyebrow">SIGNAL VALIDATION</span><h1>趋势验证</h1><p>用信号发布后的真实行情检验趋势表现，不将断档与未成熟样本计入成功率。</p></div>
+      <div><h1>趋势验证</h1><p>用信号发布后的真实行情检验趋势表现，不将断档与未成熟样本计入成功率。</p></div>
       <span className="validation-page-asof"><CalendarDays size={15}/> 数据截至 {summary.as_of_trade_date||'尚无完成样本'}</span>
     </header>
 
