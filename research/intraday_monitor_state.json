@@ -4,8 +4,8 @@
   "execution_schema_version": 2,
   "trade_date": "2026-10-16",
   "monitor_date": "2026-10-16",
-  "last_scan_at": "2026-10-16T10:47:50.000+08:00",
-  "snapshot_at": "2026-10-16T10:38:13.717373+08:00",
+  "last_scan_at": "2026-10-16T13:24:14.000+08:00",
+  "snapshot_at": "2026-10-16T13:18:12.353033+08:00",
   "frozen_trend_trade_date": "2026-10-15",
   "frozen_trend_buy_trade_date": "2026-10-15",
   "frozen_trend_buy_handoff_run_id": "trend-buy-formal-main-38724687257-asof-2026-10-15",
@@ -117,6 +117,42 @@
         "previous_holding_action": null,
         "holding_action": null,
         "reason": "相对09:41已成功落库首轮，上涨比例100.00%→40.00%、上涨家数5→2、下跌家数0→3，涨幅中位数+2.5113%→-0.1100%，广度与中位数两类同步实质恶化，故同日动量减弱。previous_trade_day为空，路径B不可用；七日历史有效且覆盖100%，七日中位数-3.8342%、正收益占比40.00%，本轮上涨比例40.00%且中位数为负，并已在同日两轮中出现广度与中位数同步恶化，满足较低置信度路径C，故从正常升级为衰退预警并暂停买入。该预警只表示盘中风险升高，不是上游T2/候选趋势失效确认；七日累计并未单独触发状态。快照无ETF代码，不猜测具体ETF。",
+        "data_quality": "READY"
+      },
+      {
+        "scan_at": "2026-10-16T13:24:14.000+08:00",
+        "trend_name": "CRO/医疗研发外包",
+        "trend_state": "T2",
+        "market_state": "候选趋势",
+        "previous_state": "衰退预警",
+        "current_state": "衰退预警",
+        "previous_structure_momentum": "减弱",
+        "structure_momentum": "减弱",
+        "up_ratio": 0.2,
+        "median_change_pct": -0.8414,
+        "max_change_pct": 2.1354,
+        "min_change_pct": -3.5685,
+        "up_count": 1,
+        "down_count": 4,
+        "flat_count": 0,
+        "quoted_count": 5,
+        "coverage_ratio": 1,
+        "seven_day": {
+          "window_sessions": 7,
+          "sample_count": 5,
+          "target_count": 5,
+          "coverage_ratio": 1,
+          "status": "available",
+          "median_constituent_return_pct": -3.8342,
+          "positive_constituent_ratio": 0.4,
+          "source_trade_date": "2026-10-15",
+          "baseline_trade_date": "2026-10-15"
+        },
+        "previous_entry_action": "暂停买入",
+        "entry_action": "暂停买入",
+        "previous_holding_action": null,
+        "holding_action": null,
+        "reason": "相对10:47已成功落库轮次，上涨比例40.00%→20.00%、上涨家数2→1、下跌家数3→4，涨幅中位数-0.1100%→-0.8414%，最弱端-3.0705%→-3.5685%，广度与中位数继续同步实质恶化，故同日动量维持减弱。previous_trade_day仍为空，路径B不可用；七日历史有效且覆盖100%，七日中位数-3.8342%、正收益占比40.00%，当前上涨比例20.00%、中位数为负，且今日三轮截面已形成连续弱化序列，较低置信度路径C继续成立，维持衰退预警与暂停买入。该预警不是上游T2/候选趋势失效确认，也不产生持仓卖出动作；快照无ETF代码，不猜测具体ETF。",
         "data_quality": "READY"
       }
     ]
@@ -247,6 +283,69 @@
         "holding_action": null,
         "trend_in_current_handoff": true,
         "reason": "正式WAIT且trend_entry_plan未发布。相对行业由-0.9345→-2.9605个百分点，现价11.68元、涨幅-3.0705%，判相对强度减弱、价格行为转弱；WAIT仅等待确认，不发布买入或卖出动作。七日-6.9498%及medium/transition/transition仅作背景，不能单独触发买卖。",
+        "data_quality": "READY"
+      },
+      {
+        "scan_at": "2026-10-16T13:24:14.000+08:00",
+        "rank": 1,
+        "code": "600721",
+        "company_name": "百花医药",
+        "trend_name": "CRO/医疗研发外包",
+        "industry_code": "S370603",
+        "industry_name": "医疗研发外包",
+        "formal_status": "WAIT",
+        "wait_reason": "WAIT_CONFIRMATION",
+        "price": 11.62,
+        "change_pct": -3.5685,
+        "industry_median_change_pct": -0.8414,
+        "relative_to_industry_pct": -2.7271,
+        "seven_day": {
+          "source_trade_date": "2026-10-15",
+          "window_sessions": 7,
+          "status": "available",
+          "observation_count": 8,
+          "close_change_7d_pct": -6.9498,
+          "basis": "eight_valid_completed_session_closes"
+        },
+        "history_context_status": "available",
+        "history_confidence": "medium",
+        "history_trend_state": "transition",
+        "history_break_state": "transition",
+        "latest_high": {
+          "date": "2026-09-30",
+          "type": "high",
+          "price": 13.65,
+          "label": "LH"
+        },
+        "latest_low": {
+          "date": "2026-09-28",
+          "type": "low",
+          "price": 11.9,
+          "label": "HL"
+        },
+        "invalidation": null,
+        "trend_entry_plan": {
+          "setup_type": null,
+          "entry_zone": null,
+          "entry_trigger": null,
+          "max_entry_price": null,
+          "invalidation_price": null,
+          "invalidation_rule": null,
+          "initial_risk_pct": null,
+          "upside_to_resistance_R": null,
+          "exit_plan": null
+        },
+        "entry_zone_relation": "entry_plan_unavailable",
+        "previous_relative_strength": "减弱",
+        "relative_strength": "稳定",
+        "previous_price_behavior": "转弱",
+        "price_behavior": "转弱",
+        "previous_entry_action": "等待",
+        "entry_action": "等待",
+        "previous_holding_action": null,
+        "holding_action": null,
+        "trend_in_current_handoff": true,
+        "reason": "正式WAIT且trend_entry_plan未发布。相对行业由-2.9605→-2.7271个百分点，变化不足以确认新的增强或减弱，故相对强度为稳定；现价11.62元、涨幅-3.5685%，价格行为转弱。WAIT仅等待确认，不发布买入或卖出动作。七日-6.9498%及medium/transition/transition仅作背景，不能单独触发买卖。",
         "data_quality": "READY"
       }
     ],
@@ -382,6 +481,72 @@
         "trend_in_current_handoff": true,
         "reason": "正式WAIT且trend_entry_plan未发布。相对行业由+0.6279→-0.1862个百分点，现价50.50元、涨幅-0.2962%，判相对强度减弱、价格行为震荡；WAIT仅等待确认，不发布买入或卖出动作。七日+13.0076%及medium/bullish/intact仅作背景，不能单独触发买卖。",
         "data_quality": "READY"
+      },
+      {
+        "scan_at": "2026-10-16T13:24:14.000+08:00",
+        "rank": 2,
+        "code": "603127",
+        "company_name": "昭衍新药",
+        "trend_name": "CRO/医疗研发外包",
+        "industry_code": "S370603",
+        "industry_name": "医疗研发外包",
+        "formal_status": "WAIT",
+        "wait_reason": "WAIT_CONFIRMATION",
+        "price": 50.05,
+        "change_pct": -1.1846,
+        "industry_median_change_pct": -0.8414,
+        "relative_to_industry_pct": -0.3432,
+        "seven_day": {
+          "source_trade_date": "2026-10-15",
+          "window_sessions": 7,
+          "status": "available",
+          "observation_count": 8,
+          "close_change_7d_pct": 13.0076,
+          "basis": "eight_valid_completed_session_closes"
+        },
+        "history_context_status": "available",
+        "history_confidence": "medium",
+        "history_trend_state": "bullish",
+        "history_break_state": "intact",
+        "latest_high": {
+          "date": "2026-10-12",
+          "type": "high",
+          "price": 55.17,
+          "label": "HH"
+        },
+        "latest_low": {
+          "date": "2026-09-30",
+          "type": "low",
+          "price": 44.24,
+          "label": "HL"
+        },
+        "invalidation": {
+          "direction": "below",
+          "price": 44.24
+        },
+        "trend_entry_plan": {
+          "setup_type": null,
+          "entry_zone": null,
+          "entry_trigger": null,
+          "max_entry_price": null,
+          "invalidation_price": null,
+          "invalidation_rule": null,
+          "initial_risk_pct": null,
+          "upside_to_resistance_R": null,
+          "exit_plan": null
+        },
+        "entry_zone_relation": "entry_plan_unavailable",
+        "previous_relative_strength": "减弱",
+        "relative_strength": "稳定",
+        "previous_price_behavior": "震荡",
+        "price_behavior": "震荡",
+        "previous_entry_action": "等待",
+        "entry_action": "等待",
+        "previous_holding_action": null,
+        "holding_action": null,
+        "trend_in_current_handoff": true,
+        "reason": "正式WAIT且trend_entry_plan未发布。相对行业由-0.1862→-0.3432个百分点，变化不足以确认新的增强或减弱，故相对强度为稳定；现价50.05元、涨幅-1.1846%，价格行为震荡。WAIT仅等待确认，不发布买入或卖出动作。七日+13.0076%及medium/bullish/intact仅作背景，不能单独触发买卖。",
+        "data_quality": "READY"
       }
     ],
     "603456": [
@@ -515,6 +680,72 @@
         "holding_action": null,
         "trend_in_current_handoff": true,
         "reason": "正式WAIT且trend_entry_plan未发布。相对行业由+0.6004→+2.6115个百分点，现价16.80元、涨幅+2.5015%，判相对强度增强、价格行为强化；WAIT仅等待确认，不发布买入或卖出动作。七日+0.7995%及medium/bullish/intact仅作背景，不能单独触发买卖。",
+        "data_quality": "READY"
+      },
+      {
+        "scan_at": "2026-10-16T13:24:14.000+08:00",
+        "rank": 3,
+        "code": "603456",
+        "company_name": "九洲药业",
+        "trend_name": "CRO/医疗研发外包",
+        "industry_code": "S370603",
+        "industry_name": "医疗研发外包",
+        "formal_status": "WAIT",
+        "wait_reason": "WAIT_CONFIRMATION",
+        "price": 16.74,
+        "change_pct": 2.1354,
+        "industry_median_change_pct": -0.8414,
+        "relative_to_industry_pct": 2.9768,
+        "seven_day": {
+          "source_trade_date": "2026-10-15",
+          "window_sessions": 7,
+          "status": "available",
+          "observation_count": 8,
+          "close_change_7d_pct": 0.7995,
+          "basis": "eight_valid_completed_session_closes"
+        },
+        "history_context_status": "available",
+        "history_confidence": "medium",
+        "history_trend_state": "bullish",
+        "history_break_state": "intact",
+        "latest_high": {
+          "date": "2026-10-12",
+          "type": "high",
+          "price": 17.05,
+          "label": "HH"
+        },
+        "latest_low": {
+          "date": "2026-10-09",
+          "type": "low",
+          "price": 15.85,
+          "label": "HL"
+        },
+        "invalidation": {
+          "direction": "below",
+          "price": 15.85
+        },
+        "trend_entry_plan": {
+          "setup_type": null,
+          "entry_zone": null,
+          "entry_trigger": null,
+          "max_entry_price": null,
+          "invalidation_price": null,
+          "invalidation_rule": null,
+          "initial_risk_pct": null,
+          "upside_to_resistance_R": null,
+          "exit_plan": null
+        },
+        "entry_zone_relation": "entry_plan_unavailable",
+        "previous_relative_strength": "增强",
+        "relative_strength": "稳定",
+        "previous_price_behavior": "强化",
+        "price_behavior": "强化",
+        "previous_entry_action": "等待",
+        "entry_action": "等待",
+        "previous_holding_action": null,
+        "holding_action": null,
+        "trend_in_current_handoff": true,
+        "reason": "正式WAIT且trend_entry_plan未发布。相对行业由+2.6115→+2.9768个百分点，变化不足以确认新的增强或减弱，故相对强度为稳定；现价16.74元、涨幅+2.1354%，价格行为强化。WAIT仅等待确认，不发布买入或卖出动作。七日+0.7995%及medium/bullish/intact仅作背景，不能单独触发买卖。",
         "data_quality": "READY"
       }
     ]
