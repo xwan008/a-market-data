@@ -114,6 +114,27 @@ test('没有可靠区间的股票使用小字号提示，买点统计显示独�
  assert.match(refreshCss,/border:1px solid #DEE5F0;border-radius:13px/);
 });
 
+test('全站顶栏移除手动刷新按钮，但仍在登录成功时主动读取发布数据',()=>{
+ const header=app.slice(app.indexOf('function Header({'),app.indexOf('function Sidebar({'));
+ assert.doesNotMatch(header,/刷新数据|RefreshCw|onClick=\{refresh\}/);
+ assert.match(header,/className="top-date"/);
+ assert.match(header,/className="icon-button logout"/);
+ assert.match(app,/if\(authenticated\)fetchData\(\)/);
+ assert.match(app,/fetch\('\/api\/data',\{cache:'no-store'\}\)/);
+});
+
+test('买点、持仓和趋势验证的顶部指标统一采用紧凑、圆角的横向信息卡',()=>{
+ const portfolio=app.slice(app.indexOf('function Portfolio({'),app.indexOf('function Login({'));
+ assert.match(portfolio,/className="portfolio-summary-strip"/);
+ assert.match(portfolio,/portfolio-summary-cost/);
+ assert.match(portfolio,/<ShieldAlert size=\{14\}\/>需要关注/);
+ assert.match(validation,/className="validation-observations"/);
+ assert.match(refreshCss,/\.buy-summary>div:last-child\{[\s\S]*?min-height:86px/);
+ assert.match(refreshCss,/\.portfolio-summary-strip>div\{[\s\S]*?min-height:86px/);
+ assert.match(refreshCss,/\.validation-observation\{[\s\S]*?min-height:86px/);
+ assert.match(refreshCss,/\.buy-stat-value\{[\s\S]*?grid-column:2;grid-row:1\/3/);
+});
+
 test('新的桌面与移动布局主题加载在既有 neutral ink 之后',()=>{
  assert.match(main,/neutral-ink-v2\.css';\s*import '\.\/experience-refresh\.css'/);
  assert.match(refreshCss,/\.portfolio-grid-row/);

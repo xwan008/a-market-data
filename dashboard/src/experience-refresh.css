@@ -31,24 +31,44 @@
   padding:8px 10px;border:1px solid #DEE3EC;border-radius:7px;background:#FFF;white-space:nowrap;
 }
 .app-shell .portfolio-summary-strip{
-  display:grid;grid-template-columns:.85fr .85fr 1.35fr;gap:0;
-  border:1px solid #E0E5EC;background:#FFF;border-radius:14px;overflow:hidden;
-  box-shadow:0 5px 24px rgba(39,50,77,.035);margin-bottom:15px;
+  display:grid;grid-template-columns:.9fr .9fr 1.3fr;gap:11px;
+  border:0;background:transparent;border-radius:0;overflow:visible;
+  box-shadow:none;margin-bottom:12px;
 }
 .app-shell .portfolio-summary-strip>div{
-  min-width:0;padding:21px 25px 19px;border-right:1px solid #E7EBF1;position:relative;
+  min-width:0;min-height:86px;padding:14px 17px;position:relative;
+  display:grid;grid-template-columns:minmax(0,1fr) auto;
+  grid-template-rows:auto auto;align-content:center;align-items:center;gap:5px 12px;
+  border:1px solid #DEE5F0;border-radius:13px;
+  background:linear-gradient(120deg,#FFF 72%,#F8FAFD);
+  box-shadow:0 4px 16px rgba(42,57,87,.035);overflow:hidden;
 }
-.app-shell .portfolio-summary-strip>div:last-child{border-right:0}
+.app-shell .portfolio-summary-strip>div:last-child{border-right:1px solid #DEE5F0}
 .app-shell .portfolio-summary-strip>div.portfolio-summary-primary:before{
-  content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:#6478AD;
+  content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:#7187B9;
 }
-.app-shell .portfolio-summary-strip span{display:block;color:#718097;font-size:11px;font-weight:600}
+.app-shell .portfolio-summary-strip>div.portfolio-summary-alert:before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:#BC996B;
+}
+.app-shell .portfolio-summary-strip>div.portfolio-summary-cost:before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:#A6B2C4;
+}
+.app-shell .portfolio-summary-strip span{
+  display:flex;align-items:center;gap:7px;grid-column:1;grid-row:1;
+  color:#566981;font-size:11px;font-weight:700;white-space:nowrap;
+}
+.app-shell .portfolio-summary-strip span svg{color:#8093B6;flex:none}
+.app-shell .portfolio-summary-strip .portfolio-summary-alert span svg{color:#B18C5D}
 .app-shell .portfolio-summary-strip strong{
-  display:block;color:#29374E;font:680 29px 'DM Sans','Noto Sans SC',sans-serif;
-  letter-spacing:-.6px;margin:10px 0 7px;font-variant-numeric:tabular-nums;
+  display:block;grid-column:2;grid-row:1/3;justify-self:end;white-space:nowrap;
+  color:#29374E;font:750 27px 'DM Sans','Noto Sans SC',sans-serif;
+  letter-spacing:-.6px;margin:0;font-variant-numeric:tabular-nums;
 }
-.app-shell .portfolio-summary-strip strong small{font-size:12px;color:#76849A;font-weight:500}
-.app-shell .portfolio-summary-strip p{font-size:10px;color:#8994A5;line-height:1.6;margin:0}
+.app-shell .portfolio-summary-strip .portfolio-summary-cost strong{font-size:24px}
+.app-shell .portfolio-summary-strip strong small{font-size:11px;color:#76849A;font-weight:500}
+.app-shell .portfolio-summary-strip p{
+  grid-column:1;grid-row:2;font-size:10px;color:#8795A8;line-height:1.5;margin:0;
+}
 .app-shell .portfolio-summary-strip .portfolio-summary-alert strong{color:#A66B2D}
 .app-shell .portfolio-page .portfolio-data-note{
   margin:0 0 23px;font-size:11px;color:#718098;gap:8px;line-height:1.7;
@@ -153,20 +173,34 @@
 .app-shell .validation-page{max-width:1550px;margin:auto;min-width:0}
 
 .app-shell .validation-observations{
-  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:34px;
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:25px;
 }
 .app-shell .validation-observation{
-  background:#FFF;border:1px solid #E2E6ED;border-radius:12px;padding:20px 21px;
-  box-shadow:0 3px 14px rgba(39,50,77,.025);min-width:0;
+  display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;
+  align-content:center;align-items:center;gap:6px 10px;position:relative;overflow:hidden;
+  min-height:86px;min-width:0;padding:14px 16px;
+  background:linear-gradient(120deg,#FFF 72%,#F8FAFD);
+  border:1px solid #DEE5F0;border-radius:13px;
+  box-shadow:0 4px 16px rgba(42,57,87,.035);
 }
-.app-shell .validation-observation.is-emphasis{background:#F4F6FC;border-color:#DCE3F1}
-.app-shell .validation-observation-label{display:flex;align-items:center;gap:8px;font-size:11px;color:#6C7A91}
-.app-shell .validation-observation-label svg{color:#7589B0}
+.app-shell .validation-observation:before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:#A6B4C9;
+}
+.app-shell .validation-observation.is-emphasis{background:linear-gradient(120deg,#FFF 65%,#F0F3FA);border-color:#D5DEED}
+.app-shell .validation-observation.is-emphasis:before{background:#7089B8}
+.app-shell .validation-observation-label{
+  grid-column:1;grid-row:1;display:flex;align-items:center;gap:7px;
+  font-size:11px;color:#5C6D86;font-weight:700;white-space:nowrap;
+}
+.app-shell .validation-observation-label svg{color:#8295B6;flex:none}
 .app-shell .validation-observation strong{
-  display:block;font:680 29px 'DM Sans',sans-serif;color:#293A55;
-  letter-spacing:-.7px;margin:15px 0 5px;font-variant-numeric:tabular-nums;
+  display:block;grid-column:2;grid-row:1/3;justify-self:end;
+  font:750 28px 'DM Sans',sans-serif;color:#293A55;
+  letter-spacing:-.7px;margin:0;font-variant-numeric:tabular-nums;
 }
-.app-shell .validation-observation small{color:#8793A5;font-size:10px;line-height:1.65}
+.app-shell .validation-observation small{
+  grid-column:1;grid-row:2;color:#8793A5;font-size:10px;line-height:1.5;
+}
 .app-shell .validation-section-head{
   display:flex;justify-content:space-between;align-items:end;gap:15px 30px;margin:0 0 20px;
 }
@@ -335,7 +369,7 @@
   .app-shell .portfolio-stock-id{grid-column:1/3}
   .app-shell .portfolio-cell::before{content:attr(data-label);font-size:9px;color:#9AA6B5}
   .app-shell .portfolio-row-toggle{position:absolute;right:20px;bottom:20px}
-  .app-shell .portfolio-summary-strip>div{padding:18px}
+  .app-shell .portfolio-summary-strip>div{padding:13px 14px}
   .app-shell .validation-observations{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(max-width:760px){
@@ -350,11 +384,11 @@
   .app-shell .intraday-simple-chart .plot-head{align-items:flex-start;gap:6px;flex-wrap:wrap}
   .app-shell .portfolio-title-row{align-items:flex-start;flex-direction:column;margin-bottom:18px}
   .app-shell .portfolio-title-row h1{font-size:25px}
-  .app-shell .portfolio-summary-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .app-shell .portfolio-summary-strip>div{border-bottom:1px solid #E8ECF2}
-  .app-shell .portfolio-summary-strip>div:nth-child(2){border-right:0}
-  .app-shell .portfolio-summary-strip>div:last-child{grid-column:1/-1;border-bottom:0}
+  .app-shell .portfolio-summary-strip{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .app-shell .portfolio-summary-strip>div{min-height:82px;border:1px solid #DEE5F0;padding:12px 13px}
+  .app-shell .portfolio-summary-strip>div:last-child{grid-column:1/-1;border:1px solid #DEE5F0}
   .app-shell .portfolio-summary-strip strong{font-size:23px}
+  .app-shell .portfolio-summary-strip .portfolio-summary-cost strong{font-size:23px}
   .app-shell .portfolio-board-heading{padding:20px 17px 15px}
   .app-shell .portfolio-board-toolbar{padding:0 14px 17px}
   .app-shell .portfolio-grid-row{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -368,8 +402,8 @@
   .app-shell .validation-horizon{width:100%}
   .app-shell .validation-horizon button{flex:1;min-width:0}
   .app-shell .validation-outcomes{grid-template-columns:1fr}
-  .app-shell .validation-observations{gap:9px;margin-bottom:28px}
-  .app-shell .validation-observation{padding:16px}
+  .app-shell .validation-observations{gap:8px;margin-bottom:23px}
+  .app-shell .validation-observation{min-height:83px;padding:12px 13px}
   .app-shell .validation-observation strong{font-size:24px}
   .app-shell .validation-history-head{padding:21px 17px 17px;flex-direction:row;align-items:start}
   .app-shell .validation-record-count{font-size:18px}
@@ -458,18 +492,19 @@
 .app-shell .buy-trend-filter-title span{font-size:10px;color:#687A94;white-space:nowrap}
 .app-shell .buy-trend-filter .ui-select--group{margin-left:auto}
 
-/* Buy overview: three small, distinct cards, consistent with the white dashboard panels. */
+/* Buy overview: compact horizontal gauges, not oversized KPI posters. */
 .app-shell .buy-summary{
-  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;
-  margin:2px 0 22px;padding:0;border:0;background:transparent;
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;
+  margin:2px 0 17px;padding:0;border:0;background:transparent;
 }
 .app-shell .buy-summary>div,
 .app-shell .buy-summary>div:first-child,
 .app-shell .buy-summary>div:last-child{
-  position:relative;display:flex;flex-direction:column;align-items:stretch;
-  gap:5px;min-width:0;min-height:120px;padding:17px 19px 15px;
+  position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;
+  grid-template-rows:auto auto;align-content:center;align-items:center;
+  gap:4px 12px;min-width:0;min-height:86px;padding:13px 17px;
   border:1px solid #DEE5F0;border-radius:13px;
-  background:linear-gradient(125deg,#FFF 68%,#F7F9FD);box-shadow:0 4px 16px rgba(42,57,87,.045);
+  background:linear-gradient(120deg,#FFF 72%,#F8FAFD);box-shadow:0 4px 16px rgba(42,57,87,.035);
   overflow:hidden;
 }
 .app-shell .buy-summary>div::before{
@@ -479,20 +514,25 @@
 .app-shell .buy-stat-ready{--stat-accent:#6B83B9;--stat-soft:#EDF2FD}
 .app-shell .buy-stat-wait{--stat-accent:#B99768;--stat-soft:#FAF3E9}
 .app-shell .buy-stat-covered{--stat-accent:#8696AC;--stat-soft:#EFF2F7}
-.app-shell .buy-stat-heading{display:flex;align-items:center;gap:8px;min-height:27px}
+.app-shell .buy-stat-heading{grid-column:1;grid-row:1;display:flex;align-items:center;gap:8px;min-height:25px}
 .app-shell .buy-stat-icon{
-  width:27px;height:27px;border-radius:9px;display:grid;place-items:center;
+  width:25px;height:25px;border-radius:8px;display:grid;place-items:center;
   background:var(--stat-soft);color:var(--stat-accent);flex:none;
 }
 .app-shell .buy-stat-heading .badge{font-size:10px;min-height:0;padding:3px 7px}
 .app-shell .buy-stat-title{color:#53637B;font-size:11px;font-weight:700}
-.app-shell .buy-stat-value{display:flex;align-items:baseline;gap:7px;margin-top:2px}
+.app-shell .buy-stat-value{
+  grid-column:2;grid-row:1/3;justify-self:end;
+  display:flex;align-items:baseline;gap:5px;margin-top:0;
+}
 .app-shell .buy-stat-value strong{
-  color:#2B3D58;font:750 29px 'DM Sans','Noto Sans SC',sans-serif;
+  color:#2B3D58;font:750 28px 'DM Sans','Noto Sans SC',sans-serif;
   font-variant-numeric:tabular-nums;letter-spacing:-.7px;line-height:1.15;
 }
 .app-shell .buy-stat-value small{font-size:10px;font-weight:600;color:#7E8CA1}
-.app-shell .buy-summary>div p{margin:0;font-size:10px;color:#6F7F95;line-height:1.5}
+.app-shell .buy-summary>div p{
+  grid-column:1;grid-row:2;margin:0;font-size:10px;color:#7B899E;line-height:1.5;
+}
 
 /* Buying inspector: a compact decision card with document scrolling only. */
 .app-shell .buy-inspector--compact{padding:21px 23px 19px}
@@ -659,16 +699,20 @@
   .app-shell .portfolio-inline-detail .portfolio-level-row>div:last-child{text-align:left}
 }
 @media(max-width:760px){
-  .app-shell .buy-summary{gap:8px;margin-bottom:17px}
+  .app-shell .buy-summary{gap:8px;margin-bottom:15px}
   .app-shell .buy-summary>div,
   .app-shell .buy-summary>div:first-child,
-  .app-shell .buy-summary>div:last-child{padding:12px 9px 11px;min-height:109px;gap:4px}
+  .app-shell .buy-summary>div:last-child{
+    display:flex;flex-direction:column;align-items:flex-start;justify-content:center;
+    padding:11px 10px;min-height:96px;gap:5px;
+  }
   .app-shell .buy-stat-heading{gap:4px}
   .app-shell .buy-stat-icon{width:24px;height:24px;border-radius:7px}
   .app-shell .buy-stat-heading .badge{font-size:9px;padding:2px 5px}
   .app-shell .buy-stat-title{font-size:10px}
-  .app-shell .buy-stat-value strong{font-size:26px}
-  .app-shell .buy-summary>div p{font-size:9px}
+  .app-shell .buy-stat-value{align-self:flex-start}
+  .app-shell .buy-stat-value strong{font-size:24px}
+  .app-shell .buy-summary>div p{font-size:9px;white-space:normal}
   .app-shell .ui-select--compact{width:116px}
   .app-shell .ui-select--sort{min-width:160px}
   .app-shell .intraday-simple .ui-select--intraday{width:auto;flex:1 1 180px}

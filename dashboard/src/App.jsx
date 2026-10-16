@@ -3,7 +3,7 @@ import {
  Activity, ArrowDownRight, ArrowLeft, ArrowRight, ArrowUpRight, BarChart3, CalendarDays,
  Check, ChevronDown, ChevronRight, CircleAlert, Clock3, Command, Database,
  ExternalLink, Eye, EyeOff, GitBranch, Layers, LockKeyhole, LogOut, Menu,
- RefreshCw, Search, ShieldCheck, ShieldAlert, SlidersHorizontal,
+ Search, ShieldCheck, ShieldAlert, SlidersHorizontal,
  Sparkles, Target, Wallet, X, Zap, PanelLeftClose, ListFilter, ChevronUp
 } from 'lucide-react';
 import TodayLeader from './components/TodayLeader.jsx';
@@ -31,9 +31,9 @@ function MiniDot({active=false}) {return <span className={`mini-dot ${active?'mi
 function PanelHead({title,aside,children}) {return <div className="panel-head"><div><h3>{title}</h3>{children}</div>{aside}</div>}
 function Empty({title,detail,icon:Icon=CircleAlert}) {return <div className="empty"><div className="empty-icon"><Icon size={23}/></div><strong>{title}</strong><p>{detail}</p></div>}
 function Skeleton(){return <div className="skeleton-page"><div className="skeleton skeleton-title"/><div className="skeleton-grid">{[1,2,3].map(n=><div className="skeleton skeleton-card" key={n}/>)}</div><div className="skeleton skeleton-panel"/></div>}
-function Header({section,refresh,refreshing,data,openMenu,setOpenMenu,logout}) {
+function Header({section,openMenu,setOpenMenu,logout}) {
  const active=sections.find(x=>x.id===section)||sections[0];
- return <header className="topbar"><div className="top-left"><button className="icon-button mobile-menu" onClick={()=>setOpenMenu(!openMenu)} aria-label="打开导航"><Menu size={20}/></button><span className="breadcrumb-muted">识势</span><ChevronRight size={14} className="breadcrumb-chevron"/><strong>{active.title}</strong></div><div className="top-right"><div className="top-date"><CalendarDays size={15}/><span>{shanghaiDay()} · 北京时间</span></div><button type="button" className="header-btn" onClick={refresh} disabled={refreshing} aria-label={refreshing?"正在刷新数据":"手动刷新数据"} title="读取最新发布的数据"><RefreshCw size={15} className={refreshing?'spin':''}/><span>刷新数据</span></button><button type="button" className="icon-button logout" onClick={logout} title="退出登录" aria-label="退出登录"><LogOut size={18}/></button></div></header>;
+ return <header className="topbar"><div className="top-left"><button className="icon-button mobile-menu" onClick={()=>setOpenMenu(!openMenu)} aria-label="打开导航"><Menu size={20}/></button><span className="breadcrumb-muted">识势</span><ChevronRight size={14} className="breadcrumb-chevron"/><strong>{active.title}</strong></div><div className="top-right"><div className="top-date"><CalendarDays size={15}/><span>{shanghaiDay()} · 北京时间</span></div><button type="button" className="icon-button logout" onClick={logout} title="退出登录" aria-label="退出登录"><LogOut size={18}/></button></div></header>;
 }
 function Sidebar({section,onSection,openMenu,setOpenMenu,status}){
  const navigate=id=>{onSection(id);setOpenMenu(false)};
@@ -598,9 +598,9 @@ function Portfolio({data,status,monitor,holdingSnapshot}){
   <div className="portfolio-title-row"><div><span className="eyebrow">PORTFOLIO / RISK DESK</span><h1>我的持仓</h1><p>先看风险，再看仓位。展开个股即可查看退出规则，记录和证据收在次级信息中。</p></div><div className="portfolio-title-asof"><ShieldCheck size={15}/> 私有成交记录 · 只读</div></div>
   {!ok?<section className="panel monitor-empty"><Empty title="Airtable 尚未接通网站" detail={status.airtable==='NOT_CONFIGURED'?'在 Vercel 设置 AIRTABLE_TOKEN、AIRTABLE_BASE_ID、AIRTABLE_TABLE_ID 后即可读取。':'当前状态：'+formatSource(status.airtable)+'；不会将读取失败解释为没有持仓。'} icon={Database}/></section>:<>
    <div className="portfolio-summary-strip" aria-label="持仓概况">
-    <div className="portfolio-summary-primary"><span>已核实持仓</span><strong>{positions.filter(p=>p.verified).length}<small> 只</small></strong><p>登记净持仓大于零</p></div>
-    <div className={attentionCount?'portfolio-summary-alert':''}><span>需要关注</span><strong>{attentionCount}<small> 只</small></strong><p>依据已发布的同日监测</p></div>
-    <div><span>登记剩余成本估算</span><strong>{costs.length?'¥ '+costs.reduce((a,b)=>a+b,0).toLocaleString('zh-CN',{maximumFractionDigits:0}):'—'}</strong><p>仅汇总可核实成本，非市值或盈亏</p></div>
+    <div className="portfolio-summary-primary"><span><Wallet size={14}/>已核实持仓</span><strong>{positions.filter(p=>p.verified).length}<small> 只</small></strong><p>登记净持仓大于零</p></div>
+    <div className={attentionCount?'portfolio-summary-alert':''}><span><ShieldAlert size={14}/>需要关注</span><strong>{attentionCount}<small> 只</small></strong><p>依据已发布的同日监测</p></div>
+    <div className="portfolio-summary-cost"><span><Database size={14}/>登记剩余成本估算</span><strong>{costs.length?'¥ '+costs.reduce((a,b)=>a+b,0).toLocaleString('zh-CN',{maximumFractionDigits:0}):'—'}</strong><p>非市值或盈亏</p></div>
    </div>
    <div className="portfolio-data-note"><LockKeyhole size={14}/><span>{recordCount} 条成交登记 · {unverifiedCount?unverifiedCount+' 条/只数据待核验 · ':''}{monitor?.result_kind==='a_share_intraday_monitor_state'?'监测按交易日核验':'暂无有效盘中监测'} · 不展示未经核实的实时收益</span></div>
    {positions.length?<section className="portfolio-board" aria-label="持仓清单">
@@ -683,8 +683,8 @@ function Login({login,loading,error,setupError}) {
 }
 
 export default function App(){
- const [authenticated,setAuthenticated]=useState(null),[setupError,setSetupError]=useState(false),[loginError,setLoginError]=useState(''),[loadingLogin,setLoadingLogin]=useState(false),[loading,setLoading]=useState(false),[payload,setPayload]=useState(null),[section,setSection]=useState('overview'),[menu,setMenu]=useState(false),[selectedTrend,setSelectedTrend]=useState(null),[selectedBuy,setSelectedBuy]=useState(null),[monitorUi,setMonitorUi]=useState({tab:'sector',sector:'',stock:'',group:'全部板块'});
- const fetchData=useCallback(async()=>{setLoading(true);try{const response=await fetch('/api/data',{cache:'no-store'});if(response.status===401){setAuthenticated(false);setPayload(null);return;}if(!response.ok)throw new Error(`数据接口 HTTP ${response.status}`);setPayload(await response.json());}catch(e){setPayload(old=>old?{...old,fetchError:e.message}:{datasets:{},status:{},fetchError:e.message});}finally{setLoading(false)}},[]);
+ const [authenticated,setAuthenticated]=useState(null),[setupError,setSetupError]=useState(false),[loginError,setLoginError]=useState(''),[loadingLogin,setLoadingLogin]=useState(false),[payload,setPayload]=useState(null),[section,setSection]=useState('overview'),[menu,setMenu]=useState(false),[selectedTrend,setSelectedTrend]=useState(null),[selectedBuy,setSelectedBuy]=useState(null),[monitorUi,setMonitorUi]=useState({tab:'sector',sector:'',stock:'',group:'全部板块'});
+ const fetchData=useCallback(async()=>{try{const response=await fetch('/api/data',{cache:'no-store'});if(response.status===401){setAuthenticated(false);setPayload(null);return;}if(!response.ok)throw new Error(`数据接口 HTTP ${response.status}`);setPayload(await response.json());}catch(e){setPayload(old=>old?{...old,fetchError:e.message}:{datasets:{},status:{},fetchError:e.message});}},[]);
  useEffect(()=>{let live=true;fetch('/api/auth',{cache:'no-store'}).then(async r=>{const j=await r.json();if(live){setAuthenticated(Boolean(j.authenticated));setSetupError(j.error==='SITE_NOT_CONFIGURED');}}).catch(()=>{if(live)setAuthenticated(false)});return()=>{live=false}},[]);
  useEffect(()=>{if(authenticated)fetchData()},[authenticated,fetchData]);
  const login=async password=>{setLoadingLogin(true);setLoginError('');try{const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password})});if(!r.ok){setLoginError(r.status===503?'服务器尚未配置访问密钥':'密码错误或服务不可用');return;}setAuthenticated(true)}catch{setLoginError('服务暂时无法连接')}finally{setLoadingLogin(false)}};
@@ -696,7 +696,7 @@ export default function App(){
  if(!authenticated)return <Login login={login} loading={loadingLogin} error={loginError} setupError={setupError}/>;
  return <div className="app-shell">
   <Sidebar section={section} onSection={setSection} openMenu={menu} setOpenMenu={setMenu} status={status}/>
-  <div className="main-shell"><Header section={section} refresh={fetchData} refreshing={loading} data={payload} openMenu={menu} setOpenMenu={setMenu} logout={logout}/>
+  <div className="main-shell"><Header section={section} openMenu={menu} setOpenMenu={setMenu} logout={logout}/>
    <main className="main-content">
     {payload?.fetchError&&<div className="fetch-warning"><CircleAlert size={17}/>{payload.fetchError}，展示上次成功加载的数据。</div>}
     {!payload?<Skeleton/>:<div className="view-enter" key={section}>
