@@ -1,26 +1,30 @@
 /* 识势 · editorial research workspace.
    Presentation only: historical validation and risk assessments retain source semantics. */
 
-/* Intraday detail is an on-demand continuation of the overview, not another destination. */
-.app-shell .overview-monitor-expanded{
-  padding:25px 27px 22px;background:#F8F9FC;border:1px solid #DDE3EE;
-  border-radius:15px;box-shadow:0 7px 22px rgba(36,51,78,.035);
-  scroll-margin-top:94px;
+/* Overview intraday: one selected series, one chart, no deep-dive panels. */
+.app-shell .intraday-simple{padding:23px 28px 19px}
+.app-shell .intraday-simple-header{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.app-shell .intraday-simple-header h2{margin:0;color:#29374D;font-size:19px;letter-spacing:-.45px;font-weight:700}
+.app-shell .intraday-simple-controls{display:flex;align-items:center;gap:10px;min-width:0;flex-wrap:wrap}
+.app-shell .intraday-simple .intraday-tab-switch{margin:0;flex:0 0 auto}
+.app-shell .intraday-simple .intraday-tab-switch button{padding:9px 18px}
+.app-shell .intraday-simple-picker{display:block;position:relative;min-width:240px;max-width:320px}
+.app-shell .intraday-simple-picker .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.app-shell .intraday-simple-picker select{
+  width:100%;min-height:41px;appearance:none;outline:0;
+  border:1px solid #DFE4ED;border-radius:9px;background:#FFF;
+  color:#34445F;font-size:12px;font-weight:600;padding:9px 38px 9px 14px;
+  cursor:pointer;text-overflow:ellipsis;
 }
-.app-shell .overview-monitor-expanded-head{
-  display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:19px;
-}
-.app-shell .overview-monitor-expanded-head h2{
-  font-size:21px;color:#29374D;letter-spacing:-.5px;margin:8px 0 6px;
-}
-.app-shell .overview-monitor-expanded-head p{color:#6A7688;font-size:12px;margin:0;line-height:1.8}
-.app-shell .overview-monitor-expanded-head button{
-  display:flex;align-items:center;gap:6px;padding:9px 12px;border:1px solid #D9E0EB;
-  border-radius:8px;background:#FFF;color:#556782;font-size:12px;white-space:nowrap;
-}
-.app-shell .overview-monitor-expanded .monitor-chart-panel{box-shadow:none}
-.app-shell .overview-monitor-expanded .monitor-context{margin-bottom:14px}
-.app-shell .overview-monitor-expanded .decision-bottom{margin-top:18px}
+.app-shell .intraday-simple-picker select:hover{border-color:#B9C5DE;background:#FBFCFE}
+.app-shell .intraday-simple-picker select:focus-visible{outline:2px solid #8FA3D1;outline-offset:2px}
+.app-shell .intraday-simple-picker select:disabled{opacity:.55;cursor:not-allowed}
+.app-shell .intraday-simple-picker svg{position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;color:#7886A0}
+.app-shell .intraday-simple-chart{padding:20px 0 0;border-top:1px solid #EDF0F5;margin-top:19px}
+.app-shell .intraday-simple-chart .plot{max-width:850px;margin:0 auto}
+.app-shell .intraday-simple-chart .plot-head{margin-bottom:15px}
+.app-shell .intraday-simple-chart .plot-head strong{font-size:12px;color:#52627D}
+.app-shell .intraday-simple .decision-empty{margin-top:18px}
 
 /* Portfolio: risk-first ledger. Numbers are recorded cost, not a fictitious live valuation. */
 .app-shell .portfolio-page{max-width:1550px;margin:auto}
@@ -401,8 +405,15 @@
   .app-shell .validation-observations{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(max-width:760px){
-  .app-shell .overview-monitor-expanded{padding:18px 15px}
-  .app-shell .overview-monitor-expanded-head{flex-wrap:wrap}
+  .app-shell .intraday-simple{padding:19px 16px 15px}
+  .app-shell .intraday-simple-header{align-items:stretch;gap:15px}
+  .app-shell .intraday-simple-header h2{font-size:18px}
+  .app-shell .intraday-simple-controls{width:100%;gap:9px}
+  .app-shell .intraday-simple .intraday-tab-switch{width:auto;flex:0 0 auto}
+  .app-shell .intraday-simple .intraday-tab-switch button{padding:9px 13px}
+  .app-shell .intraday-simple-picker{flex:1 1 180px;min-width:0;max-width:none}
+  .app-shell .intraday-simple-chart{padding-top:17px;margin-top:17px}
+  .app-shell .intraday-simple-chart .plot-head{align-items:flex-start;gap:6px;flex-wrap:wrap}
   .app-shell .portfolio-title-row{align-items:flex-start;flex-direction:column;margin-bottom:18px}
   .app-shell .portfolio-title-row h1{font-size:25px}
   .app-shell .portfolio-summary-strip{grid-template-columns:repeat(2,minmax(0,1fr))}

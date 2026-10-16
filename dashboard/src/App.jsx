@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import TodayLeader from './components/TodayLeader.jsx';
 import TrendValidation from './components/TrendValidation.jsx';
-import {asArray, latestMonitorRecords, fixed, fmtTime, formatSource, pct, safeText, shanghaiDay, summarizeTrades, validSnapshots, snapshotChange, rankedTrendRows, rankedBuyRows, seriesDirection, statusTone, trendEvents, archivedDays, assessHoldingRisk, attachRiskPlans, selectRepresentativeStocks} from './model.js';
+import {asArray, fixed, fmtTime, formatSource, pct, safeText, shanghaiDay, summarizeTrades, validSnapshots, snapshotChange, rankedTrendRows, rankedBuyRows, seriesDirection, statusTone, trendEvents, archivedDays, assessHoldingRisk, attachRiskPlans} from './model.js';
 
 const sections = [
  {id:'overview',icon:BarChart3,title:'市场总览',en:'Overview'},
@@ -249,11 +249,7 @@ function holdingIntradayPresentation(assessment){
  };
 }
 
-function Overview({registry,trendHandoff,buy,monitor,archive,holdingSnapshot,holdingCharts,portfolio,status,onSection,setSelectedBuy,monitorUi,setMonitorUi}){
- const [monitorExpanded,setMonitorExpanded]=useState(false);
- useEffect(()=>{
-  if(monitorExpanded)document.getElementById('overview-monitor-expanded')?.scrollIntoView({behavior:'smooth',block:'start'});
- },[monitorExpanded]);
+function Overview({registry,trendHandoff,buy,monitor,holdingSnapshot,holdingCharts,portfolio,status,onSection,setSelectedBuy,monitorUi,setMonitorUi}){
  const monitorCurrent=status.monitor==='OK'&&monitor?.result_kind==='a_share_intraday_monitor_state'&&monitor?.trade_date===shanghaiDay();
  const monitorDay=monitorCurrent?monitor.trade_date:null;
  const history=monitorCurrent?monitor.industry_history:{};
@@ -263,13 +259,14 @@ function Overview({registry,trendHandoff,buy,monitor,archive,holdingSnapshot,hol
   const scans=validSnapshots(historyRows,monitorDay);
   return {name,scans,delta:snapshotChange(scans,'up_ratio',100)};
  }).filter(x=>x.scans.length).sort((a,b)=>Math.abs(b.delta??0)-Math.abs(a.delta??0));
- const active=monitored.find(x=>x.name===monitorUi.sector)||monitored[0];
- const industryLatest=active?.scans.at(-1);
- const representatives=selectRepresentativeStocks(monitor,buy,monitorDay);
- const observed=monitored.flatMap(sector=>representatives.filter(x=>x.trend_name===sector.name));
- const selectedRepresentative=observed.find(x=>x.code===monitorUi.stock)||observed[0];
- const selectedStockLast=selectedRepresentative?.last;
- const openCurrentMonitor=()=>setMonitorExpanded(true);
+ const trendOptions=monitored.filter(item=>item.scans.some(row=>typeof row.up_ratio==='number'&&Number.isFinite(row.up_ratio)));
+ const active=trendOptions.find(x=>x.name===monitorUi.sector)||trendOptions[0];
+ const stockOptions=Object.entries(monitorCurrent?monitor.stock_history||{}:{}).map(([code,rows])=>{
+  const scans=validSnapshots(rows,monitorDay).filter(row=>typeof row.price==='number'&&Number.isFinite(row.price)&&row.price>0);
+  const latest=scans.at(-1);
+  return {code,scans,name:latest?.company_name||code,trend:latest?.trend_name||''};
+ }).filter(item=>item.scans.length).sort((a,b)=>a.name.localeCompare(b.name,'zh-CN')||a.code.localeCompare(b.code));
+ const selectedStock=stockOptions.find(x=>x.code===monitorUi.stock)||stockOptions[0];
  const retreatSectors=monitored.filter(item=>item.scans.at(-1)?.current_state==='衰退预警');
  const disputeSectors=monitored.filter(item=>item.scans.at(-1)?.current_state==='分歧');
  const positions=[...portfolio.positions.filter(p=>!p.verified),...portfolio.positions.filter(p=>p.verified)].slice(0,4);
@@ -304,7 +301,6 @@ function Overview({registry,trendHandoff,buy,monitor,archive,holdingSnapshot,hol
        <span className="overview-brief-timestamp">· {fmtTime(monitor.last_scan_at)}</span>
       </span>
       :<span className="overview-brief-signals">今日尚无有效盘中扫描</span>}
-    <button type="button" className="overview-brief-link" onClick={openCurrentMonitor}>展开完整监测 <ArrowRight size={13}/></button>
    </div>
   </div>
   <TodayLeader monitor={monitor} buy={buy} portfolio={portfolio} holdingCharts={holdingCharts} holdingSnapshot={holdingSnapshot} status={status} tradeDate={shanghaiDay()}/>
@@ -344,31 +340,27 @@ function Overview({registry,trendHandoff,buy,monitor,archive,holdingSnapshot,hol
    </section>
   </div>
 
-  <section className="decision-feature">
-   <div className="decision-panel-top"><div><h2>盘中真实变化</h2><p>板块看整体广度，个股每个已覆盖板块只展示一只冻结研究排序靠前的代表观察股；不是龙头评选或买入信号。</p></div><button className="text-link" onClick={()=>setMonitorExpanded(open=>!open)}>{monitorExpanded?'收起详细监测':'详细监测与跨日追溯'} {monitorExpanded?<ChevronUp size={14}/>:<ArrowRight size={14}/>}</button></div>
-   <div className="intraday-tab-switch" role="group" aria-label="市场总览盘中维度">
-    <button type="button" aria-pressed={monitorUi.tab==='sector'} className={monitorUi.tab==='sector'?'active':''} onClick={()=>setMonitorUi(prev=>({...prev,tab:'sector'}))}>板块</button>
-    <button type="button" aria-pressed={monitorUi.tab==='stock'} className={monitorUi.tab==='stock'?'active':''} onClick={()=>setMonitorUi(prev=>({...prev,tab:'stock'}))}>个股 · 每板块一只</button>
+  <section className="decision-feature intraday-simple" aria-label="盘中变化">
+   <div className="intraday-simple-header">
+    <h2>盘中变化</h2>
+    <div className="intraday-simple-controls">
+     <div className="intraday-tab-switch" role="group" aria-label="盘中变化对象类型">
+      <button type="button" aria-pressed={monitorUi.tab==='sector'} className={monitorUi.tab==='sector'?'active':''} onClick={()=>setMonitorUi(prev=>({...prev,tab:'sector'}))}>趋势</button>
+      <button type="button" aria-pressed={monitorUi.tab==='stock'} className={monitorUi.tab==='stock'?'active':''} onClick={()=>setMonitorUi(prev=>({...prev,tab:'stock'}))}>个股</button>
+     </div>
+     <label className="intraday-simple-picker">
+      <span className="sr-only">{monitorUi.tab==='sector'?'选择趋势':'选择个股'}</span>
+      <select aria-label={monitorUi.tab==='sector'?'选择趋势':'选择个股'} disabled={!monitorCurrent||(monitorUi.tab==='sector'?!active:!selectedStock)} value={monitorUi.tab==='sector'?active?.name||'':selectedStock?.code||''} onChange={e=>setMonitorUi(prev=>({...prev,[prev.tab==='sector'?'sector':'stock']:e.target.value}))}>
+       {monitorUi.tab==='sector'?trendOptions.map(item=><option key={item.name} value={item.name}>{item.name}</option>):stockOptions.map(item=><option key={item.code} value={item.code}>{item.name} · {item.code}</option>)}
+      </select>
+      <ChevronDown size={15} aria-hidden="true"/>
+     </label>
+    </div>
    </div>
-   {!monitorCurrent?<div className="decision-empty">今日尚无有效盘中快照；不会用历史报价冒充当日变化。</div>:monitorUi.tab==='sector'?
-    !active?<div className="decision-empty">当天尚未发布有效板块扫描。</div>:<>
-     <div className="focus-switch">{monitored.map(item=><button key={item.name} className={item.name===active.name?'active':''} onClick={()=>setMonitorUi(prev=>({...prev,sector:item.name}))}>
-      <strong>{item.name}</strong><span className={'focus-signal state-'+tone(item.scans.at(-1)?.current_state)}><span className="state-dot"/>{item.scans.at(-1)?.current_state||'未知'}</span><span className={item.delta==null?'':item.delta>0?'market-up':item.delta<0?'market-down':''}>{item.delta==null?'不足两轮':signed(item.delta,1)+' pp'}</span></button>)}</div>
-     <div className="feature-plot-grid"><div className="feature-main-plot"><SnapshotPlot rows={active.scans} field="up_ratio" label="上涨广度" scale={100} bounds={[0,100]}/></div><div className="feature-side-plot"><SnapshotPlot rows={active.scans} field="median_change_pct" label="内部涨跌强度"/></div></div>
-     <div className="feature-caption"><span>{active.name} · 最新盘中状态 <b>{industryLatest?.current_state||'—'}</b> · 结构动量 <b>{industryLatest?.structure_momentum||'—'}</b></span><span>已扫描 {active.scans.length} 轮 · {fmtTime(monitor.last_scan_at)}</span></div>
-    </>:
-    !selectedRepresentative?<div className="decision-empty">当前板块尚无已发布的有效代表股快照；不会按涨幅临时选股。</div>:<>
-     <div className="focus-switch home-representative-switch">{observed.map(item=><button key={item.code} className={item.code===selectedRepresentative.code?'active':''} onClick={()=>setMonitorUi(prev=>({...prev,stock:item.code,group:item.trend_name}))}>
-      <strong>{item.trend_name}</strong><span>{item.company_name} · {item.code}</span>
-      <span className={typeof item.last.relative_to_industry_pct==='number'?(item.last.relative_to_industry_pct>0?'market-up':item.last.relative_to_industry_pct<0?'market-down':''):''}>{typeof item.last.relative_to_industry_pct==='number'?signed(item.last.relative_to_industry_pct,2)+' pp':'相对行业暂无数据'}</span></button>)}</div>
-     <div className="feature-plot-grid"><div className="feature-main-plot"><SnapshotPlot rows={selectedRepresentative.scans} field="price" label="盘中快照价格" unit="元"/></div><div className="feature-side-plot"><SnapshotPlot rows={selectedRepresentative.scans} field="relative_to_industry_pct" label="相对所属行业强度" unit=" pp"/></div></div>
-     <div className="feature-caption"><span>{selectedRepresentative.company_name} · {selectedRepresentative.trend_name} · 盘中行为 <b>{selectedStockLast?.price_behavior||'—'}</b></span><span>冻结研究排序选取 · {fmtTime(selectedStockLast?.scan_at)} · 非买点建议</span></div>
-    </>}
+   {!monitorCurrent?<div className="decision-empty">今日尚无有效盘中快照。</div>:monitorUi.tab==='sector'?
+    active?<div className="intraday-simple-chart"><SnapshotPlot rows={active.scans} field="up_ratio" label="上涨家数占比" scale={100} bounds={[0,100]}/></div>:<div className="decision-empty">今日暂无可绘制的趋势快照。</div>:
+    selectedStock?<div className="intraday-simple-chart"><SnapshotPlot rows={selectedStock.scans} field="price" label="盘中快照价" unit="元"/></div>:<div className="decision-empty">今日暂无可绘制的个股快照。</div>}
   </section>
-  {monitorExpanded&&<section className="overview-monitor-expanded" id="overview-monitor-expanded" aria-label="完整盘中监测">
-   <div className="overview-monitor-expanded-head"><div><span className="eyebrow">INTRADAY / DEEP DIVE</span><h2>盘中监测 · 完整记录</h2><p>按板块或个股查看真实扫描、历史归档与每轮依据。</p></div><button type="button" onClick={()=>setMonitorExpanded(false)}>收起 <ChevronUp size={16}/></button></div>
-   <Monitor monitor={monitor} archive={archive} status={status} monitorUi={monitorUi} setMonitorUi={setMonitorUi} embedded/>
-  </section>}
   <section className="decision-panel decision-opportunity"><div className="decision-panel-top"><div><h2>正式买点机会</h2><p>只把 READY 列为待核对机会，WAIT 保留在完整榜单中。</p></div><button className="text-link" onClick={()=>onSection('buy')}>全部买点 <ArrowRight size={14}/></button></div>
    {status.buyHandoff!=='OK'?<div className="decision-empty">买点正式结果尚不可用。</div>:ready.length?<div className="decision-rows decision-entries">
     {ready.slice(0,3).map(item=><button key={item.code} className="decision-row" onClick={()=>{setSelectedBuy(item);onSection('buy')}}><div className="decision-row-main"><strong>{item.company_name}</strong><small>{item.code} · {item.trend_name}</small></div><Badge variant="ready">READY</Badge><div className="decision-row-meta"><span>{Array.isArray(item.entry_zone)?fixed(item.entry_zone[0])+' – '+fixed(item.entry_zone[1]):'等待入场计划'}</span><small>正式发布 · 非实时指令</small></div><ChevronRight size={15}/></button>)}
@@ -673,7 +665,7 @@ export default function App(){
    <main className="main-content">
     {payload?.fetchError&&<div className="fetch-warning"><CircleAlert size={17}/>{payload.fetchError}，展示上次成功加载的数据。</div>}
     {!payload?<Skeleton/>:<div className="view-enter" key={section}>
-     {section==='overview'&&<Overview registry={datasets.registry} trendHandoff={datasets.trendHandoff} buy={datasets.buyHandoff} monitor={datasets.monitor} archive={datasets.crossdayArchive} holdingSnapshot={datasets.holdingSnapshot} holdingCharts={datasets.holdingCharts} portfolio={portfolio} status={status} onSection={setSection} setSelectedBuy={setSelectedBuy} monitorUi={monitorUi} setMonitorUi={setMonitorUi}/>}
+     {section==='overview'&&<Overview registry={datasets.registry} trendHandoff={datasets.trendHandoff} buy={datasets.buyHandoff} monitor={datasets.monitor} holdingSnapshot={datasets.holdingSnapshot} holdingCharts={datasets.holdingCharts} portfolio={portfolio} status={status} onSection={setSection} setSelectedBuy={setSelectedBuy} monitorUi={monitorUi} setMonitorUi={setMonitorUi}/>}
      {section==='trends'&&<Trends registry={datasets.registry} trendHandoff={datasets.trendHandoff} monitor={datasets.monitor} archive={datasets.crossdayArchive} selected={selectedTrend} setSelected={setSelectedTrend}/>}
      {section==='buy'&&<Buy buy={datasets.buyHandoff} selected={selectedBuy} setSelected={setSelectedBuy} status={status}/>}
      {section==='portfolio'&&<Portfolio data={portfolio} status={status} monitor={datasets.monitor} holdingSnapshot={datasets.holdingSnapshot}/>}

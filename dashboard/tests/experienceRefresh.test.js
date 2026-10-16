@@ -7,11 +7,22 @@ const validation=readFileSync(new URL('../src/components/TrendValidation.jsx',im
 const refreshCss=readFileSync(new URL('../src/experience-refresh.css',import.meta.url),'utf8');
 const main=readFileSync(new URL('../src/main.jsx',import.meta.url),'utf8');
 
-test('盘中监测不再占用独立导航，完整记录保留在概览中按需展开',()=>{
+test('概览的盘中变化只有趋势或个股选择与一张真实快照折线图，没有完整记录入口',()=>{
  const nav=app.slice(app.indexOf('const sections ='),app.indexOf('const tone ='));
  assert.doesNotMatch(nav,/id:'monitor'/);
- assert.match(app,/monitorExpanded&&<section className="overview-monitor-expanded"/);
- assert.match(app,/<Monitor monitor={monitor} archive={archive} status={status}/);
+ const overview=app.slice(app.indexOf('function Overview({'),app.indexOf('function Trends({'));
+ const feature=overview.slice(overview.indexOf('<section className="decision-feature intraday-simple"'),overview.indexOf('<section className="decision-panel decision-opportunity"'));
+ assert.match(feature,/aria-pressed=\{monitorUi\.tab==='sector'\}/);
+ assert.match(feature,/aria-pressed=\{monitorUi\.tab==='stock'\}/);
+ assert.match(feature,/select aria-label=\{monitorUi\.tab==='sector'\?'选择趋势':'选择个股'\}/);
+ assert.match(feature,/trendOptions\.map\(item=><option/);
+ assert.match(feature,/stockOptions\.map\(item=><option/);
+ assert.match(feature,/<SnapshotPlot rows=\{active\.scans\} field="up_ratio"/);
+ assert.match(feature,/<SnapshotPlot rows=\{selectedStock\.scans\} field="price"/);
+ assert.equal((feature.match(/<SnapshotPlot/g)||[]).length,2,'两个互斥分支各一张折线图');
+ assert.match(overview,/stockOptions=Object\.entries\(monitorCurrent\?monitor\.stock_history/);
+ assert.doesNotMatch(feature,/feature-plot-grid|feature-caption|focus-switch|relative_to_industry_pct|median_change_pct/);
+ assert.doesNotMatch(overview,/完整监测|完整记录|monitorExpanded|<Monitor/);
  assert.doesNotMatch(app,/section==='monitor'/);
 });
 
