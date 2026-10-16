@@ -4,7 +4,7 @@ import {
  Check, ChevronDown, ChevronRight, CircleAlert, Clock3, Command, Database,
  ExternalLink, Eye, EyeOff, GitBranch, Layers, LockKeyhole, LogOut, Menu,
  RefreshCw, Search, ShieldCheck, ShieldAlert, SlidersHorizontal,
- Sparkles, Target, Wallet, X, Zap, PanelLeftClose, ListFilter
+ Sparkles, Target, Wallet, X, Zap, PanelLeftClose, ListFilter, ChevronUp
 } from 'lucide-react';
 import TodayLeader from './components/TodayLeader.jsx';
 import TrendValidation from './components/TrendValidation.jsx';
@@ -14,7 +14,6 @@ const sections = [
  {id:'overview',icon:BarChart3,title:'市场总览',en:'Overview'},
  {id:'trends',icon:Layers,title:'板块趋势',en:'Trend Radar'},
  {id:'buy',icon:Target,title:'趋势买点',en:'Entry Signals'},
- {id:'monitor',icon:Activity,title:'盘中监测',en:'Live Monitor'},
  {id:'portfolio',icon:Wallet,title:'我的持仓',en:'Portfolio'},
  {id:'validation',icon:BarChart3,title:'趋势验证',en:'Signal Validation'}
 ];
@@ -250,7 +249,11 @@ function holdingIntradayPresentation(assessment){
  };
 }
 
-function Overview({registry,trendHandoff,buy,monitor,holdingSnapshot,holdingCharts,portfolio,status,onSection,setSelectedBuy,monitorUi,setMonitorUi,openMonitor}){
+function Overview({registry,trendHandoff,buy,monitor,archive,holdingSnapshot,holdingCharts,portfolio,status,onSection,setSelectedBuy,monitorUi,setMonitorUi}){
+ const [monitorExpanded,setMonitorExpanded]=useState(false);
+ useEffect(()=>{
+  if(monitorExpanded)document.getElementById('overview-monitor-expanded')?.scrollIntoView({behavior:'smooth',block:'start'});
+ },[monitorExpanded]);
  const monitorCurrent=status.monitor==='OK'&&monitor?.result_kind==='a_share_intraday_monitor_state'&&monitor?.trade_date===shanghaiDay();
  const monitorDay=monitorCurrent?monitor.trade_date:null;
  const history=monitorCurrent?monitor.industry_history:{};
@@ -266,12 +269,7 @@ function Overview({registry,trendHandoff,buy,monitor,holdingSnapshot,holdingChar
  const observed=monitored.flatMap(sector=>representatives.filter(x=>x.trend_name===sector.name));
  const selectedRepresentative=observed.find(x=>x.code===monitorUi.stock)||observed[0];
  const selectedStockLast=selectedRepresentative?.last;
- const openCurrentMonitor=()=>openMonitor({
-  tab:monitorUi.tab,
-  sector:active?.name||'',
-  stock:selectedRepresentative?.code||'',
-  group:monitorUi.tab==='stock'?(selectedRepresentative?.trend_name||'全部板块'):monitorUi.group
- });
+ const openCurrentMonitor=()=>setMonitorExpanded(true);
  const retreatSectors=monitored.filter(item=>item.scans.at(-1)?.current_state==='衰退预警');
  const disputeSectors=monitored.filter(item=>item.scans.at(-1)?.current_state==='分歧');
  const positions=[...portfolio.positions.filter(p=>!p.verified),...portfolio.positions.filter(p=>p.verified)].slice(0,4);
@@ -306,7 +304,7 @@ function Overview({registry,trendHandoff,buy,monitor,holdingSnapshot,holdingChar
        <span className="overview-brief-timestamp">· {fmtTime(monitor.last_scan_at)}</span>
       </span>
       :<span className="overview-brief-signals">今日尚无有效盘中扫描</span>}
-    <button type="button" className="overview-brief-link" onClick={openCurrentMonitor}>查看监测 <ArrowRight size={13}/></button>
+    <button type="button" className="overview-brief-link" onClick={openCurrentMonitor}>展开完整监测 <ArrowRight size={13}/></button>
    </div>
   </div>
   <TodayLeader monitor={monitor} buy={buy} portfolio={portfolio} holdingCharts={holdingCharts} holdingSnapshot={holdingSnapshot} status={status} tradeDate={shanghaiDay()}/>
@@ -347,7 +345,7 @@ function Overview({registry,trendHandoff,buy,monitor,holdingSnapshot,holdingChar
   </div>
 
   <section className="decision-feature">
-   <div className="decision-panel-top"><div><h2>盘中真实变化</h2><p>板块看整体广度，个股每个已覆盖板块只展示一只冻结研究排序靠前的代表观察股；不是龙头评选或买入信号。</p></div><button className="text-link" onClick={openCurrentMonitor}>查看详细监测 <ArrowRight size={14}/></button></div>
+   <div className="decision-panel-top"><div><h2>盘中真实变化</h2><p>板块看整体广度，个股每个已覆盖板块只展示一只冻结研究排序靠前的代表观察股；不是龙头评选或买入信号。</p></div><button className="text-link" onClick={()=>setMonitorExpanded(open=>!open)}>{monitorExpanded?'收起详细监测':'详细监测与跨日追溯'} {monitorExpanded?<ChevronUp size={14}/>:<ArrowRight size={14}/>}</button></div>
    <div className="intraday-tab-switch" role="group" aria-label="市场总览盘中维度">
     <button type="button" aria-pressed={monitorUi.tab==='sector'} className={monitorUi.tab==='sector'?'active':''} onClick={()=>setMonitorUi(prev=>({...prev,tab:'sector'}))}>板块</button>
     <button type="button" aria-pressed={monitorUi.tab==='stock'} className={monitorUi.tab==='stock'?'active':''} onClick={()=>setMonitorUi(prev=>({...prev,tab:'stock'}))}>个股 · 每板块一只</button>
@@ -367,6 +365,10 @@ function Overview({registry,trendHandoff,buy,monitor,holdingSnapshot,holdingChar
      <div className="feature-caption"><span>{selectedRepresentative.company_name} · {selectedRepresentative.trend_name} · 盘中行为 <b>{selectedStockLast?.price_behavior||'—'}</b></span><span>冻结研究排序选取 · {fmtTime(selectedStockLast?.scan_at)} · 非买点建议</span></div>
     </>}
   </section>
+  {monitorExpanded&&<section className="overview-monitor-expanded" id="overview-monitor-expanded" aria-label="完整盘中监测">
+   <div className="overview-monitor-expanded-head"><div><span className="eyebrow">INTRADAY / DEEP DIVE</span><h2>盘中监测 · 完整记录</h2><p>按板块或个股查看真实扫描、历史归档与每轮依据。</p></div><button type="button" onClick={()=>setMonitorExpanded(false)}>收起 <ChevronUp size={16}/></button></div>
+   <Monitor monitor={monitor} archive={archive} status={status} monitorUi={monitorUi} setMonitorUi={setMonitorUi} embedded/>
+  </section>}
   <section className="decision-panel decision-opportunity"><div className="decision-panel-top"><div><h2>正式买点机会</h2><p>只把 READY 列为待核对机会，WAIT 保留在完整榜单中。</p></div><button className="text-link" onClick={()=>onSection('buy')}>全部买点 <ArrowRight size={14}/></button></div>
    {status.buyHandoff!=='OK'?<div className="decision-empty">买点正式结果尚不可用。</div>:ready.length?<div className="decision-rows decision-entries">
     {ready.slice(0,3).map(item=><button key={item.code} className="decision-row" onClick={()=>{setSelectedBuy(item);onSection('buy')}}><div className="decision-row-main"><strong>{item.company_name}</strong><small>{item.code} · {item.trend_name}</small></div><Badge variant="ready">READY</Badge><div className="decision-row-meta"><span>{Array.isArray(item.entry_zone)?fixed(item.entry_zone[0])+' – '+fixed(item.entry_zone[1]):'等待入场计划'}</span><small>正式发布 · 非实时指令</small></div><ChevronRight size={15}/></button>)}
@@ -434,7 +436,7 @@ function BuyInspector({item}){
 }
 function Buy({buy,selected,setSelected,status}){const items=rankedBuyRows(asArray(buy?.items)); const [filter,setFilter]=useState('全部');const [query,setQuery]=useState('');const [group,setGroup]=useState('全部板块');const markets=[...new Set(items.map(i=>i.trend_name).filter(Boolean))]; const shown=items.filter(i=>(filter==='全部'||i.status===filter)&&(group==='全部板块'||i.trend_name===group)&&`${i.company_name||''}${i.code||''}`.includes(query));const focus=shown.find(i=>i.code===selected?.code)||shown[0];return <><PageIntro title="趋势买点观察" desc="READY 显示条件性入场计划；WAIT 只显示上一交易日观察参考，不代表当日可买。" date={buy?.trade_date}/><div className="buy-summary"><div><Badge>READY</Badge><strong>{items.filter(i=>i.status==='READY').length}</strong><span>条件满足候选</span></div><div><Badge>WAIT</Badge><strong>{items.filter(i=>i.status==='WAIT').length}</strong><span>等待确认</span></div><div><span className="muted">正式覆盖</span><strong>{items.length}</strong><span>已发布标的</span></div></div><div className="two-pane buy-workspace"><section className="panel"><PanelHead title="正式候选列表" aside={<span className="count-chip">{shown.length} 只</span>}/><div className="table-controls"><div className="search"><Search size={16}/><input placeholder="名称或股票代码" value={query} onChange={e=>setQuery(e.target.value)}/></div><div className="filter-select"><select value={filter} onChange={e=>setFilter(e.target.value)}><option>全部</option><option>READY</option><option>WAIT</option></select><ChevronDown size={13}/></div></div><div className="group-select"><SlidersHorizontal size={14}/><select value={group} onChange={e=>setGroup(e.target.value)}><option>全部板块</option>{markets.map(g=><option key={g}>{g}</option>)}</select></div>{items.length?<div className="table-wrap"><table className="data-table"><thead><tr><th>股票 / 代码</th><th>来源板块</th><th>参考价</th><th>信号</th><th/></tr></thead><tbody>{shown.map(item=><tr key={item.code} className={focus?.code===item.code?'row-selected':''} onClick={()=>setSelected(item)}><td><strong>{item.company_name}</strong><small className="mono">{item.code}</small></td><td className="soft-text">{item.trend_name}</td><td className="mono">{fixed(item.current_price)}</td><td><Badge>{item.status}</Badge></td><td><ChevronRight size={16}/></td></tr>)}</tbody></table>{!shown.length&&<Empty title="筛选后无候选" detail="尝试切换信号或板块" icon={Search}/>}</div>:<Empty title="买点榜尚未发布" detail={`数据状态：${formatSource(status.buyHandoff)}`}/>}<div className="table-footer">READY 优先，WAIT 其次；同状态按正式 rank 排序，原始名次不变 <span>交易日 {buy?.trade_date||'—'}</span></div></section><section className="panel inspector inspector-tall" tabIndex={0} aria-label="趋势买点详情，可独立滚动"><BuyInspector item={focus}/></section></div></>}
 
-function Monitor({monitor,archive,status,monitorUi,setMonitorUi}){
+function Monitor({monitor,archive,status,monitorUi,setMonitorUi,embedded=false}){
  const valid=monitor?.result_kind==='a_share_intraday_monitor_state'&&status.monitor==='OK';
  const day=valid?monitor.trade_date:null;
  const historical=Boolean(day&&day!==shanghaiDay());
@@ -451,7 +453,7 @@ function Monitor({monitor,archive,status,monitorUi,setMonitorUi}){
  const sectorRows=validSnapshots(monitor?.industry_history?.[sector],day);
  const stockRows=validSnapshots(monitor?.stock_history?.[stock],day);
  const sectorLast=sectorRows.at(-1),stockLast=stockRows.at(-1);
- return <><PageIntro title="盘中监测 · 变化过程" desc="板块与个股切换查看已发布的真实盘中采样，不将离散快照视为分时行情。" date={day}/>
+ return <>{!embedded&&<PageIntro title="盘中监测 · 变化过程" desc="板块与个股切换查看已发布的真实盘中采样，不将离散快照视为分时行情。" date={day}/>}
  {!valid?<section className="panel monitor-empty"><Empty title="暂无有效盘中监测" detail={'数据源状态：'+formatSource(status.monitor)+'，不推断买卖信号'} icon={Activity}/></section>:<>
  <div className="monitor-context"><span><Clock3 size={14}/> 最新扫描：{fmtTime(monitor.last_scan_at)}</span><span>行情快照：{fmtTime(monitor.snapshot_at)}</span><span className={historical?'monitor-history-label':''}>{historical?'历史交易日记录，非当前信号':'仅展示已发布的当日监测记录'}</span></div>
  <div className="intraday-tab-switch monitor-tab-switch" role="group" aria-label="盘中监测对象类型">
@@ -552,62 +554,64 @@ function PortfolioTrades({position}){
 function Portfolio({data,status,monitor,holdingSnapshot}){
  const {positions,recordCount,invalidCount}=data;
  const ok=status.airtable==='OK';
- const [selectedCode,setSelectedCode]=useState(null);
- const [detailTab,setDetailTab]=useState('exit');
+ const [expandedCode,setExpandedCode]=useState(null);
  const [listFilter,setListFilter]=useState('all');
  const today=shanghaiDay();
  const rows=useMemo(()=>positions.map(position=>({
   position,assessment:assessHoldingRisk(position,status.monitor==='OK'?monitor:null,today,status.holdingSnapshot==='OK'?holdingSnapshot:null)
- })).sort((a,b)=>(portfolioPriority[a.assessment.state]??5)-(portfolioPriority[b.assessment.state]??5)),[positions,monitor,status.monitor,today]);
+ })).sort((a,b)=>(portfolioPriority[a.assessment.state]??5)-(portfolioPriority[b.assessment.state]??5)),[positions,monitor,holdingSnapshot,status.monitor,status.holdingSnapshot,today]);
  const attentionCount=rows.filter(row=>portfolioAttention.has(row.assessment.state)).length;
+ const unknownCount=rows.filter(row=>portfolioUnknown.has(row.assessment.state)).length;
  const unverifiedCount=invalidCount+positions.filter(position=>!position.verified).length;
  const filtered=rows.filter(row=>listFilter==='attention'?portfolioAttention.has(row.assessment.state):listFilter==='verify'?portfolioUnknown.has(row.assessment.state):true);
- const selected=filtered.find(row=>row.position.code===selectedCode)||filtered[0];
- const tabs=[{id:'exit',label:'退出计划'},{id:'evidence',label:'风险依据'},{id:'trades',label:'成交记录'}];
- const changeFilter=value=>{setListFilter(value);setDetailTab('exit')};
+ const costs=positions.filter(p=>p.verified&&typeof p.costValue==='number'&&Number.isFinite(p.costValue)).map(p=>p.costValue);
+ const changeFilter=value=>{setListFilter(value);setExpandedCode(null)};
  return <div className="portfolio-page">
-  <PageIntro title="我的持仓" desc="先识别需要关注的持仓，再查看退出规则与证据。"/>
+  <div className="portfolio-title-row"><div><span className="eyebrow">PORTFOLIO / RISK DESK</span><h1>我的持仓</h1><p>先看风险，再看仓位。展开个股即可查看退出规则，记录和证据收在次级信息中。</p></div><div className="portfolio-title-asof"><ShieldCheck size={15}/> 私有成交记录 · 只读</div></div>
   {!ok?<section className="panel monitor-empty"><Empty title="Airtable 尚未接通网站" detail={status.airtable==='NOT_CONFIGURED'?'在 Vercel 设置 AIRTABLE_TOKEN、AIRTABLE_BASE_ID、AIRTABLE_TABLE_ID 后即可读取。':'当前状态：'+formatSource(status.airtable)+'；不会将读取失败解释为没有持仓。'} icon={Database}/></section>:<>
-   <div className="portfolio-overview" aria-label="持仓概况">
-    <div><span>已核实在持</span><strong>{positions.filter(p=>p.verified).length}</strong><small>可核实净持仓大于 0</small></div>
-    <div><span>风险关注</span><strong>{attentionCount}</strong><small>依据已发布的同日监测</small></div>
-    <div><span>数据待核验</span><strong>{unverifiedCount}</strong><small>异常记录或持仓股数</small></div>
+   <div className="portfolio-summary-strip" aria-label="持仓概况">
+    <div className="portfolio-summary-primary"><span>已核实持仓</span><strong>{positions.filter(p=>p.verified).length}<small> 只</small></strong><p>登记净持仓大于零</p></div>
+    <div className={attentionCount?'portfolio-summary-alert':''}><span>需要关注</span><strong>{attentionCount}<small> 只</small></strong><p>依据已发布的同日监测</p></div>
+    <div><span>登记剩余成本估算</span><strong>{costs.length?'¥ '+costs.reduce((a,b)=>a+b,0).toLocaleString('zh-CN',{maximumFractionDigits:0}):'—'}</strong><p>仅汇总可核实成本，非市值或盈亏</p></div>
    </div>
-   <div className="portfolio-data-note"><LockKeyhole size={14}/><span>Airtable 私有成交流水 · 共 {recordCount} 条登记 · {monitor?.result_kind==='a_share_intraday_monitor_state'?'已获取盘中监测数据':'暂无有效盘中监测'} · 不展示未经核实的实时收益</span></div>
-   {positions.length?<div className="portfolio-workspace">
-    <section className="portfolio-list-panel" aria-label="持仓列表">
-     <div className="portfolio-list-head"><div><h2>持仓列表</h2><small>按风险关注优先排列</small></div><span>{rows.length} 只</span></div>
-     <div className="portfolio-filters" role="group" aria-label="持仓筛选">
-      <button type="button" className={listFilter==='all'?'is-active':''} aria-pressed={listFilter==='all'} onClick={()=>changeFilter('all')}>全部</button>
-      <button type="button" className={listFilter==='attention'?'is-active':''} aria-pressed={listFilter==='attention'} onClick={()=>changeFilter('attention')}>风险关注 {attentionCount}</button>
-      <button type="button" className={listFilter==='verify'?'is-active':''} aria-pressed={listFilter==='verify'} onClick={()=>changeFilter('verify')}>无法判断 {rows.filter(row=>portfolioUnknown.has(row.assessment.state)).length}</button>
-     </div>
-     {filtered.length?<div className="portfolio-list">
-      {filtered.map(row=>{
-       const p=row.position,state=portfolioStatus(row.assessment);
-       return <button type="button" key={p.code} className={'portfolio-list-row'+(selected?.position.code===p.code?' is-selected':'')} aria-pressed={selected?.position.code===p.code} onClick={()=>{setSelectedCode(p.code);setDetailTab('exit')}}>
-        <div className="portfolio-row-top"><div className="portfolio-row-name"><strong>{p.name}</strong><span>{p.code}</span></div><span className={'portfolio-status portfolio-status-'+state.tone}>{state.label}</span></div>
-        <div className="portfolio-row-bottom"><span>持仓 <strong>{p.shares==null?'待核验':p.shares.toLocaleString('zh-CN')+' 股'}</strong></span><span>均价 <strong>{fixed(p.avgCost,3)} 元</strong></span><ChevronRight size={15}/></div>
-       </button>;
-      })}
-     </div>:<div className="portfolio-list-empty">当前筛选下暂无持仓记录。</div>}
-    </section>
-    {selected?<section className="portfolio-detail-panel" aria-label={selected.position.name+'持仓详情'}>
-     <div className="portfolio-detail-head"><div><span>持仓详情 · {selected.position.code}</span><h2>{selected.position.name}</h2></div><span className={'portfolio-status portfolio-status-'+portfolioStatus(selected.assessment).tone}>{portfolioStatus(selected.assessment).label}</span></div>
-     <div className="portfolio-position-stats">
-      <div><span>登记股数</span><strong>{selected.position.shares==null?'待核验':selected.position.shares.toLocaleString('zh-CN')+' 股'}</strong></div>
-      <div><span>剩余均价估算</span><strong>{fixed(selected.position.avgCost,3)} <small>元</small></strong></div>
-      <div><span>剩余成本估算</span><strong>{fixed(selected.position.costValue)} <small>元</small></strong></div>
-     </div>
-     <div className="portfolio-detail-tabs" role="tablist" aria-label="持仓详情分类">
-      {tabs.map(tab=><button type="button" role="tab" key={tab.id} id={'portfolio-tab-'+tab.id} aria-controls={'portfolio-panel-'+tab.id} aria-selected={detailTab===tab.id} className={detailTab===tab.id?'is-active':''} onClick={()=>setDetailTab(tab.id)}>{tab.label}</button>)}
-     </div>
-     <div className="portfolio-detail-body" role="tabpanel" id={'portfolio-panel-'+detailTab} aria-labelledby={'portfolio-tab-'+detailTab} key={selected.position.code+'-'+detailTab}>
-      {detailTab==='exit'?<PortfolioPlan position={selected.position} assessment={selected.assessment}/>:detailTab==='evidence'?<PortfolioEvidence position={selected.position} assessment={selected.assessment}/>:<PortfolioTrades position={selected.position}/>}
-     </div>
-     <div className="portfolio-detail-foot"><span>最后登记交易日 {selected.position.lastDate||'—'}</span><span>已登记 {selected.position.recordCount} 笔成交</span></div>
-    </section>:<section className="portfolio-detail-panel portfolio-detail-empty">该筛选下没有需要展示的持仓详情。</section>}
-   </div>:<section className="panel"><Empty title="没有可核实的在持股票" detail={invalidCount?'仍有代码缺失的记录需要人工核验。':'已成功读取 Airtable，目前无可核实净持仓。'} icon={Wallet}/></section>}
+   <div className="portfolio-data-note"><LockKeyhole size={14}/><span>{recordCount} 条成交登记 · {unverifiedCount?unverifiedCount+' 条/只数据待核验 · ':''}{monitor?.result_kind==='a_share_intraday_monitor_state'?'监测按交易日核验':'暂无有效盘中监测'} · 不展示未经核实的实时收益</span></div>
+   {positions.length?<section className="portfolio-board" aria-label="持仓清单">
+    <div className="portfolio-board-heading"><div><h2>持仓清单</h2><p>优先显示需要处理的风险；选择股票展开计划。</p></div><span>{rows.length} 只在持</span></div>
+    <div className="portfolio-board-toolbar" role="group" aria-label="持仓筛选">
+     <button type="button" className={listFilter==='all'?'is-active':''} aria-pressed={listFilter==='all'} onClick={()=>changeFilter('all')}>全部 <b>{rows.length}</b></button>
+     <button type="button" className={listFilter==='attention'?'is-active':''} aria-pressed={listFilter==='attention'} onClick={()=>changeFilter('attention')}>风险关注 <b>{attentionCount}</b></button>
+     <button type="button" className={listFilter==='verify'?'is-active':''} aria-pressed={listFilter==='verify'} onClick={()=>changeFilter('verify')}>无法判断 <b>{unknownCount}</b></button>
+    </div>
+    <div className="portfolio-grid-labels" aria-hidden="true"><span>股票</span><span>登记股数</span><span>剩余均价</span><span>当日监测价</span><span>退出观察位</span><span>风险状态</span><span/></div>
+    <div className="portfolio-grid-list">
+     {filtered.map(({position:p,assessment})=>{
+      const state=portfolioStatus(assessment),open=expandedCode===p.code;
+      const level=assessment.rule?.levels?.find(x=>x.kind==='warning')||assessment.rule?.levels?.[0];
+      const price=typeof assessment.last?.price==='number'&&Number.isFinite(assessment.last.price)?assessment.last.price:null;
+      return <div className={'portfolio-grid-item'+(open?' is-open':'')} key={p.code}>
+       <button type="button" className="portfolio-grid-row" aria-expanded={open} aria-controls={'holding-detail-'+p.code} onClick={()=>setExpandedCode(open?null:p.code)}>
+        <span className="portfolio-stock-id"><strong>{p.name}</strong><small>{p.code}</small></span>
+        <span className="portfolio-cell" data-label="登记股数"><strong>{p.shares==null?'待核验':p.shares.toLocaleString('zh-CN')}</strong><small>{p.shares==null?'':'股'}</small></span>
+        <span className="portfolio-cell" data-label="剩余均价"><strong>{fixed(p.avgCost,3)}</strong><small>元</small></span>
+        <span className="portfolio-cell" data-label="当日监测价"><strong>{price==null?'—':fixed(price,2)}</strong><small>{price==null?'无有效快照':fmtTime(assessment.last.scan_at)}</small></span>
+        <span className="portfolio-cell portfolio-exit-preview" data-label="退出观察位"><strong>{level?fixed(level.price,2)+' 元':'待完善'}</strong><small>{level?.name||'未录入可判定规则'}</small></span>
+        <span className={'portfolio-status portfolio-status-'+state.tone}>{state.label}</span>
+        <span className="portfolio-row-toggle">{open?<ChevronUp size={17}/>:<ChevronDown size={17}/>}</span>
+       </button>
+       {open&&<div className="portfolio-inline-detail" id={'holding-detail-'+p.code}>
+        <div className="portfolio-inline-head"><div><span className="eyebrow">EXIT DISCIPLINE</span><h3>{p.name} · 退出规则</h3></div><span>剩余成本估算 {fixed(p.costValue)} 元</span></div>
+        <PortfolioPlan position={p} assessment={assessment}/>
+        <div className="portfolio-secondary-accordions">
+         <details><summary><ShieldAlert size={16}/> 判断依据与数据质量 <ChevronDown size={15}/></summary><PortfolioEvidence position={p} assessment={assessment}/></details>
+         <details><summary><Clock3 size={16}/> 成交记录 · {p.recordCount} 笔 <ChevronDown size={15}/></summary><PortfolioTrades position={p}/></details>
+        </div>
+        <div className="portfolio-inline-foot"><span>最后登记交易日 {p.lastDate||'—'}</span><span>规则不是自动交易指令 · 请核对有效交易日</span></div>
+       </div>}
+      </div>;
+     })}
+     {!filtered.length&&<div className="portfolio-list-empty">当前筛选下没有对应持仓。</div>}
+    </div>
+   </section>:<section className="panel"><Empty title="没有可核实的在持股票" detail={invalidCount?'仍有代码缺失的记录需要人工核验。':'已成功读取 Airtable，目前无可核实净持仓。'} icon={Wallet}/></section>}
   </>}
  </div>;
 }
@@ -658,11 +662,25 @@ export default function App(){
  useEffect(()=>{if(authenticated)fetchData()},[authenticated,fetchData]);
  const login=async password=>{setLoadingLogin(true);setLoginError('');try{const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password})});if(!r.ok){setLoginError(r.status===503?'服务器尚未配置访问密钥':'密码错误或服务不可用');return;}setAuthenticated(true)}catch{setLoginError('服务暂时无法连接')}finally{setLoadingLogin(false)}};
  const logout=async()=>{try{await fetch('/api/auth',{method:'DELETE'})}finally{setAuthenticated(false);setPayload(null);setSection('overview')}};
- const openMonitor=patch=>{setMonitorUi(prev=>({...prev,...patch}));setSection('monitor')};
  const datasets=payload?.datasets||{}, status=payload?.status||{};
  const ledger=useMemo(()=>summarizeTrades(datasets.airtable),[datasets.airtable]);
  const portfolio=useMemo(()=>attachRiskPlans(ledger,datasets.riskPlans,status.riskPlans),[ledger,datasets.riskPlans,status.riskPlans]);
  if(authenticated===null)return <div className="boot-screen"><img className="brand-wordmark" src="/wordmark.svg" alt="识势 w.x."/><div className="spinner"/></div>;
  if(!authenticated)return <Login login={login} loading={loadingLogin} error={loginError} setupError={setupError}/>;
- return <div className="app-shell"><Sidebar section={section} onSection={setSection} openMenu={menu} setOpenMenu={setMenu} status={status}/><div className="main-shell"><Header section={section} refresh={fetchData} refreshing={loading} data={payload} openMenu={menu} setOpenMenu={setMenu} logout={logout}/><main className="main-content">{payload?.fetchError&&<div className="fetch-warning"><CircleAlert size={17}/>{payload.fetchError}，展示上次成功加载的数据。</div>}{!payload?<Skeleton/>:<div className="view-enter" key={section}>{section==='overview'&&<Overview registry={datasets.registry} trendHandoff={datasets.trendHandoff} buy={datasets.buyHandoff} monitor={datasets.monitor} holdingSnapshot={datasets.holdingSnapshot} holdingCharts={datasets.holdingCharts} portfolio={portfolio} status={status} onSection={setSection} setSelectedBuy={setSelectedBuy} monitorUi={monitorUi} setMonitorUi={setMonitorUi} openMonitor={openMonitor}/ >}{section==='trends'&&<Trends registry={datasets.registry} trendHandoff={datasets.trendHandoff} monitor={datasets.monitor} archive={datasets.crossdayArchive} selected={selectedTrend} setSelected={setSelectedTrend}/ >}{section==='buy'&&<Buy buy={datasets.buyHandoff} selected={selectedBuy} setSelected={setSelectedBuy} status={status}/ >}{section==='monitor'&&<Monitor monitor={datasets.monitor} archive={datasets.crossdayArchive} status={status} monitorUi={monitorUi} setMonitorUi={setMonitorUi}/ >}{section==='portfolio'&&<Portfolio data={portfolio} status={status} monitor={datasets.monitor} holdingSnapshot={datasets.holdingSnapshot}/>}{section==='validation'&&<TrendValidation/>}</div>}<footer className="main-footer"><span>w.x. · 识势</span><span>数据来自已发布的 GitHub 文件和私有 Airtable 记录 · 仅供研究参考，不构成交易建议</span><span>{payload?.receivedAt?`页面读取于 ${fmtTime(payload.receivedAt)}`:'等待同步'}</span></footer></main></div></div>;
+ return <div className="app-shell">
+  <Sidebar section={section} onSection={setSection} openMenu={menu} setOpenMenu={setMenu} status={status}/>
+  <div className="main-shell"><Header section={section} refresh={fetchData} refreshing={loading} data={payload} openMenu={menu} setOpenMenu={setMenu} logout={logout}/>
+   <main className="main-content">
+    {payload?.fetchError&&<div className="fetch-warning"><CircleAlert size={17}/>{payload.fetchError}，展示上次成功加载的数据。</div>}
+    {!payload?<Skeleton/>:<div className="view-enter" key={section}>
+     {section==='overview'&&<Overview registry={datasets.registry} trendHandoff={datasets.trendHandoff} buy={datasets.buyHandoff} monitor={datasets.monitor} archive={datasets.crossdayArchive} holdingSnapshot={datasets.holdingSnapshot} holdingCharts={datasets.holdingCharts} portfolio={portfolio} status={status} onSection={setSection} setSelectedBuy={setSelectedBuy} monitorUi={monitorUi} setMonitorUi={setMonitorUi}/>}
+     {section==='trends'&&<Trends registry={datasets.registry} trendHandoff={datasets.trendHandoff} monitor={datasets.monitor} archive={datasets.crossdayArchive} selected={selectedTrend} setSelected={setSelectedTrend}/>}
+     {section==='buy'&&<Buy buy={datasets.buyHandoff} selected={selectedBuy} setSelected={setSelectedBuy} status={status}/>}
+     {section==='portfolio'&&<Portfolio data={portfolio} status={status} monitor={datasets.monitor} holdingSnapshot={datasets.holdingSnapshot}/>}
+     {section==='validation'&&<TrendValidation/>}
+    </div>}
+    <footer className="main-footer"><span>w.x. · 识势</span><span>数据来自已发布的 GitHub 文件和私有 Airtable 记录 · 仅供研究参考，不构成交易建议</span><span>{payload?.receivedAt?`页面读取于 ${fmtTime(payload.receivedAt)}`:'等待同步'}</span></footer>
+   </main>
+  </div>
+ </div>;
 }
