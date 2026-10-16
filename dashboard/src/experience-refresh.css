@@ -692,13 +692,100 @@
 }
 .app-shell :is(.search,.validation-search) input::placeholder{color:#8A97A9;opacity:1}
 
+/* Ranking density: the research pool and today's numeric coverage are different datasets. */
+.app-shell .trend-coverage-hint{
+  display:flex;align-items:flex-start;gap:8px;
+  margin:0;padding:0 22px 12px;color:#62748D;font-size:11px;line-height:1.6;
+}
+.app-shell .trend-coverage-hint svg{color:#7790B9;flex:none;margin-top:1px}
+.app-shell .ranking-explainer b{font-weight:760}
+.app-shell .trend-ranked-table{table-layout:fixed;width:100%}
+.app-shell .trend-ranked-table th:nth-child(1){width:11%}
+.app-shell .trend-ranked-table th:nth-child(2){width:35%}
+.app-shell .trend-ranked-table th:nth-child(3){width:24%}
+.app-shell .trend-ranked-table th:nth-child(4){width:24%}
+.app-shell .trend-ranked-table th:last-child{width:6%}
+.app-shell .trend-ranked-table th,
+.app-shell .trend-ranked-table td{padding-left:9px;padding-right:9px}
+.app-shell .trend-ranked-table td{height:76px;overflow:hidden}
+.app-shell .trend-ranked-table td:nth-child(2){min-width:0;white-space:normal}
+.app-shell .trend-ranked-table td:nth-child(2)>strong{
+  font-size:13px;line-height:1.4;overflow-wrap:anywhere;
+}
+.app-shell .trend-ranked-table .rank-column{min-width:0}
+.app-shell .trend-row-meta{
+  display:flex!important;align-items:center;justify-content:space-between;
+  gap:6px;min-width:0;margin-top:5px;font-size:11px!important;white-space:nowrap;
+}
+.app-shell .trend-row-meta>span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.app-shell .trend-row-meta time{flex:none;color:#8390A3;font-size:10px}
+.app-shell .trend-ranked-table .trend-state-stack{min-width:0;gap:5px}
+.app-shell .trend-ranked-table .research-state{font-size:12px}
+.app-shell .trend-ranked-table .trend-scan-status{font-size:10px;white-space:normal}
+.app-shell .trend-intraday-cell{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0}
+.app-shell .trend-ranked-table .trend-intraday-cell .plot{width:100%;max-width:112px;min-width:0;margin:0}
+.app-shell .trend-ranked-table .trend-intraday-cell .plot svg{width:100%;height:auto}
+.app-shell .trend-intraday-cell .trend-delta{display:block;font-size:11px;line-height:1.3;margin:0}
+.app-shell .trend-intraday-cell .trend-delta:not(.trend-up):not(.trend-down){color:#74839A}
+.app-shell .trend-no-snapshot{color:#A3AFC0;font-size:17px;line-height:1}
+.app-shell .trend-ranked-table .arrow-col{text-align:right;color:#8795AC}
+.app-shell .sector-chart-empty{
+  display:flex;flex-direction:column;align-items:flex-start;gap:9px;
+  padding:22px 23px 23px;min-height:180px;
+}
+.app-shell .sector-chart-empty-symbol{
+  width:30px;height:30px;border-radius:9px;
+  display:grid;place-items:center;background:#EEF2F8;color:#8297BA;
+}
+.app-shell .sector-chart-empty strong{color:#3A4A61;font-size:13px;font-weight:730}
+.app-shell .sector-chart-empty p{color:#697990;font-size:12px;line-height:1.65;margin:0;max-width:310px}
+.app-shell .sector-chart-empty button{
+  display:inline-flex;align-items:center;gap:6px;border:0;background:transparent;
+  color:#4E659A;font-size:12px;font-weight:720;padding:3px 0 0;
+}
+.app-shell .sector-chart-empty button:hover{color:#334C88}
+.app-shell .sector-chart-empty button:focus-visible{border-radius:3px;outline:2px solid #758BC0;outline-offset:3px}
+
+/* One readable type scale across the five research pages. */
+.app-shell :is(.page-intro p,.portfolio-title-row p,.validation-page-heading p){
+  color:#5B6B82;font-size:13px;line-height:1.75;
+}
+.app-shell :is(.panel-head h3,.portfolio-board-heading h2){font-size:18px;font-weight:730}
+.app-shell :is(.portfolio-board-heading p,.validation-section-head p,.decision-panel-top p){
+  font-size:12px;line-height:1.7;
+}
+.app-shell .data-table th{font-size:11px;letter-spacing:.12px}
+.app-shell .data-table td{font-size:13px}
+.app-shell .data-table td small{font-size:11px;line-height:1.45}
+.app-shell :is(.table-footer,.portfolio-page .portfolio-data-note,.portfolio-summary-strip p){
+  font-size:11px;line-height:1.6;
+}
+.app-shell :is(.buy-summary>div p,.validation-observation small){font-size:11px;line-height:1.5}
+.app-shell .buy-inspector-explanation p{font-size:12px;line-height:1.7}
+.app-shell :is(.buy-inspector-reference span,.buy-inspector-zone span,.buy-inspector-levels span){font-size:11px}
+.app-shell .portfolio-grid-labels{font-size:11px}
+.app-shell .portfolio-stock-id strong{font-size:14px}
+.app-shell .portfolio-stock-id small{font-size:11px}
+.app-shell .portfolio-cell strong{font-size:13px}
+.app-shell .portfolio-cell small{font-size:11px}
+.app-shell .portfolio-grid-row .portfolio-status{font-size:11px}
+.app-shell .validation-outcome p{font-size:11px;line-height:1.7}
+.app-shell .validation-outcome-foot{font-size:11px}
+.app-shell .validation-list-head{font-size:11px}
+.app-shell .validation-record-name strong{font-size:13px}
+.app-shell .validation-record-name small{font-size:11px}
+.app-shell .validation-record-date,.app-shell .validation-record-duration{font-size:12px}
+.app-shell .validation-record-state{font-size:11px}
+
 @media(max-width:950px){
+  .app-shell .trend-ranked-table{min-width:560px}
   .app-shell .buy-trend-filter{align-items:stretch;flex-direction:column;gap:10px}
   .app-shell .buy-trend-filter .ui-select--group{margin-left:0;max-width:none;width:100%}
   .app-shell .portfolio-inline-detail .portfolio-level-row{flex-direction:column;align-items:flex-start}
   .app-shell .portfolio-inline-detail .portfolio-level-row>div:last-child{text-align:left}
 }
 @media(max-width:760px){
+  .app-shell .trend-coverage-hint{padding:0 15px 12px}
   .app-shell .buy-summary{gap:8px;margin-bottom:15px}
   .app-shell .buy-summary>div,
   .app-shell .buy-summary>div:first-child,

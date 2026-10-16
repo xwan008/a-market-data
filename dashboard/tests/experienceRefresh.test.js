@@ -135,6 +135,29 @@ test('买点、持仓和趋势验证的顶部指标统一采用紧凑、圆角�
  assert.match(refreshCss,/\.buy-stat-value\{[\s\S]*?grid-column:2;grid-row:1\/3/);
 });
 
+test('板块趋势把当日盘中覆盖与历史研究池分开呈现，缺值不视为异常',()=>{
+ const table=app.slice(app.indexOf('function TrendTable({'),app.indexOf('function holdingIntradayPresentation('));
+ const trends=app.slice(app.indexOf('function Trends({'),app.indexOf('function PageIntro({'));
+ assert.match(table,/盘中数值只覆盖当日候选/);
+ assert.match(table,/hasBreadth\?<div className="trend-intraday-cell"/);
+ assert.match(table,/className="trend-no-snapshot"/);
+ assert.doesNotMatch(table,/未覆盖<\/small>|盘中上涨占比<\/th>|当日广度变化<\/th>/);
+ assert.match(table,/className="trend-row-meta"/);
+ assert.match(trends,/coveredCount=rows\.filter/);
+ assert.match(trends,/hasPlot\?<div className="sector-chart-inset/);
+ assert.match(trends,/本次没有盘中数值快照/);
+ assert.match(trends,/onClick=\{\(\)=>setDetailView\('summary'\)\}/);
+ assert.match(refreshCss,/\.trend-ranked-table\{table-layout:fixed;width:100%\}/);
+});
+
+test('关键标题、正文、表格及次级说明有一致的字号层级',()=>{
+ assert.match(refreshCss,/\.page-intro p,\.portfolio-title-row p,\.validation-page-heading p\)\{[\s\S]*?font-size:13px/);
+ assert.match(refreshCss,/\.data-table th\{font-size:11px/);
+ assert.match(refreshCss,/\.data-table td\{font-size:13px/);
+ assert.match(refreshCss,/\.portfolio-cell strong\{font-size:13px/);
+ assert.match(refreshCss,/\.validation-record-name strong\{font-size:13px/);
+});
+
 test('新的桌面与移动布局主题加载在既有 neutral ink 之后',()=>{
  assert.match(main,/neutral-ink-v2\.css';\s*import '\.\/experience-refresh\.css'/);
  assert.match(refreshCss,/\.portfolio-grid-row/);

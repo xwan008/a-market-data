@@ -215,18 +215,19 @@ function TrendTable({trends,onSelect,selected,monitor,monitorDay,sortMode,onSort
  return <><div className="table-controls trend-controls"><div className="search"><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="搜索板块名称…"/></div>
  <SelectMenu className="ui-select--compact" value={state} onChange={setState} label="按市场状态筛选" options={['全部',...options]}/>
  {onSort&&<SelectMenu className="ui-select--sort" value={sortMode} onChange={onSort} label="趋势排序方式" options={[{value:'state',label:'市场状态优先'},{value:'formal',label:'正式优先名次'},{value:'change',label:'当日广度变化幅度'}]}/>}</div>
- <div className="table-wrap"><table className="data-table trend-ranked-table"><thead><tr><th>正式名次</th><th>板块方向</th><th>市场状态</th>{!compact&&<th>盘中上涨占比</th>}{!compact&&<th>当日广度变化</th>}<th>核验日</th><th/></tr></thead><tbody>{filtered.map(t=>{
+ {!compact&&<p className="trend-coverage-hint"><Activity size={14}/><span>盘中数值只覆盖当日候选；“—”表示本次未提供快照，不代表研究数据异常。</span></p>}
+ <div className="table-wrap"><table className="data-table trend-ranked-table"><thead><tr><th>正式名次</th><th>板块方向</th><th>市场状态</th>{!compact&&<th>今日盘中</th>}<th/></tr></thead><tbody>{filtered.map(t=>{
  const rows=validSnapshots(monitor?.[t.trend_name],monitorDay);
  const delta=snapshotChange(rows,'up_ratio',100);
+ const hasBreadth=rows.some(row=>typeof row?.up_ratio==='number'&&Number.isFinite(row.up_ratio));
  return <tr key={t.trend_name} className={selected?.trend_name===t.trend_name?'row-selected':''} onClick={()=>onSelect(t)}>
   <td><div className="rank-column"><span className={t.priorityRank!=null?'official-rank':'unranked'}>{t.priorityRank!=null?String(t.priorityRank).padStart(2,'0'):'—'}</span>{t.priorityRank!=null&&<span className="rank-priority-chip">优先</span>}</div></td>
-  <td><strong>{t.trend_name}</strong><small>{safeText(t.trend_state)} · {asArray(t.industry_names).slice(0,1).join(' / ')||'正式趋势池'}</small></td>
+  <td><strong>{t.trend_name}</strong><small className="trend-row-meta"><span>{safeText(t.trend_state)} · {asArray(t.industry_names).slice(0,1).join(' / ')||'正式趋势池'}</span><time dateTime={t.last_verified_trade_date} title={'最近核验：'+safeText(t.last_verified_trade_date)}>{String(t.last_verified_trade_date||'—').slice(5).replace('-','/')}</time></small></td>
   <td><div className="trend-state-stack"><span title="正式研究状态"><ResearchState value={t.market_state}/></span>{rows.length>0&&rows.at(-1)?.current_state&&<span className={'trend-scan-status state-'+tone(rows.at(-1).current_state)} title={'盘中扫描 · '+monitorDay}><span className="state-dot"/><span>盘中 {rows.at(-1).current_state}</span></span>}</div></td>
-  {!compact&&<td><SnapshotPlot rows={rows} field="up_ratio" label="上涨占比" scale={100} bounds={[0,100]} compact/></td>}
-  {!compact&&<td><span className={'trend-delta '+(delta==null?'':delta>0?'trend-up':delta<0?'trend-down':'')}>{delta==null?'—':signed(delta,1)+' pp'}</span><small>{rows.length?'采样 '+rows.length+' 轮':'未覆盖'}</small></td>}
-  <td className="mono soft-text">{safeText(t.last_verified_trade_date)}</td><td className="arrow-col"><ChevronRight size={16}/></td>
+  {!compact&&<td>{hasBreadth?<div className="trend-intraday-cell"><SnapshotPlot rows={rows} field="up_ratio" label="上涨占比" scale={100} bounds={[0,100]} compact/><small className={'trend-delta '+(delta==null?'':delta>0?'trend-up':delta<0?'trend-down':'')}>{delta==null?'仅一轮':signed(delta,1)+' pp'}</small></div>:<span className="trend-no-snapshot" title="本次盘中监测无数值快照" aria-label="本次盘中监测无数值快照">—</span>}</td>}
+  <td className="arrow-col"><ChevronRight size={16}/></td>
  </tr>})}</tbody></table>{!filtered.length&&<Empty title="没有匹配板块" detail="调整搜索条件再试" icon={Search}/>}</div>
- <div className="table-footer">展示 {filtered.length} / {trends.length} 个板块 <span>正式名次仅来自趋势 Handoff · 广度变化单位 pp（百分点）</span></div></>;
+ <div className="table-footer">展示 {filtered.length} / {trends.length} 个板块 <span>正式名次仅来自趋势 Handoff · 盘中广度变化单位 pp</span></div></>;
 }
 
 // 概览页展示当日有效行情的价格行为，不把收盘退出规则误当作盘中状态。
@@ -373,9 +374,11 @@ function Trends({registry,trendHandoff,monitor,archive,selected,setSelected}){
  const officialCount=rows.filter(x=>x.priorityRank!=null).length;
  const focus=rows.find(i=>i.trend_name===selected?.trend_name)||rows[0];
  const plotRows=validSnapshots(monitor?.industry_history?.[focus?.trend_name],day);
+ const hasPlot=plotRows.some(row=>typeof row?.up_ratio==='number'&&Number.isFinite(row.up_ratio));
+ const coveredCount=rows.filter(row=>validSnapshots(monitor?.industry_history?.[row.trend_name],day).some(scan=>typeof scan?.up_ratio==='number'&&Number.isFinite(scan.up_ratio))).length;
  const detailTabs=[{id:'chart',label:'走势'},{id:'summary',label:'研判'},{id:'evidence',label:'证据'},{id:'history',label:'状态'},{id:'crossday',label:'跨日'}];
- return <><PageIntro title="板块趋势优先榜" desc="默认按市场状态排序，同状态内按正式 rank；也可切换正式名次或盘中广度变化。未上榜不虚构名次。" date={registry?.trade_date}/>
-  <div className="ranking-explainer"><span><b>{officialCount}</b> 个正式优先方向</span><span><b>{rows.length}</b> 个研究池板块</span><span>盘中快照 {day||'未发布'}</span></div>
+ return <><PageIntro title="板块趋势优先榜" desc="默认按市场状态排序，同状态内遵循正式名次；盘中数值仅覆盖当日候选。" date={registry?.trade_date}/>
+  <div className="ranking-explainer"><span><b>{officialCount}</b> 个正式优先方向</span><span><b>{rows.length}</b> 个研究池板块</span><span><b>{coveredCount}</b> 个方向有盘中数值 · {day||'未发布'}</span></div>
   <div className="two-pane trend-workspace"><section className="panel"><PanelHead title="板块排序" aside={<span className="count-chip">{rows.length} 个方向</span>}/>
    {rows.length?<TrendTable trends={rows} onSelect={setSelected} selected={focus} monitor={monitor?.industry_history} monitorDay={day} sortMode={sortMode} onSort={setSortMode}/>:<Empty title="暂无趋势数据" detail="等待正式趋势池发布"/>}
   </section>
@@ -385,7 +388,7 @@ function Trends({registry,trendHandoff,monitor,archive,selected,setSelected}){
     {detailTabs.map(tab=><button key={tab.id} type="button" className={detailView===tab.id?'active':''} aria-pressed={detailView===tab.id} onClick={()=>setDetailView(tab.id)}>{tab.label}</button>)}
    </div>
    <div className="sector-detail-body" role="region" aria-label={detailTabs.find(tab=>tab.id===detailView)?.label+'详情'}>
-    {detailView==='chart'&&<div className="sector-chart-inset sector-chart-focus"><p>上涨家数占比 · {day||'尚未发布盘中监测'}</p><SnapshotPlot rows={plotRows} field="up_ratio" label="上涨家数占比" scale={100} bounds={[0,100]}/></div>}
+    {detailView==='chart'&&(hasPlot?<div className="sector-chart-inset sector-chart-focus"><p>上涨家数占比 · {day||'尚未发布盘中监测'}</p><SnapshotPlot rows={plotRows} field="up_ratio" label="上涨家数占比" scale={100} bounds={[0,100]}/></div>:<div className="sector-chart-empty"><div className="sector-chart-empty-symbol"><Activity size={19}/></div><strong>本次没有盘中数值快照</strong><p>盘中监测只覆盖当日候选方向；历史研究仍可查看研判与状态依据。</p><button type="button" onClick={()=>setDetailView('summary')}>查看研究研判 <ArrowRight size={14}/></button></div>)}
     {(detailView==='summary'||detailView==='evidence'||detailView==='history')&&<TrendInspector item={focus} view={detailView}/>}
     {detailView==='crossday'&&<div className="sector-crossday-inset"><CrossdayTimeline archive={archive} monitor={monitor} identifier={focus?.trend_name} kind="sector"/></div>}
    </div>
