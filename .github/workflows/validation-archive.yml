@@ -7,6 +7,13 @@ on:
     branches: [main]
     paths:
       - "research/trend_buy_handoff.json"
+  # GITHUB_TOKEN commits from the formal workflow do not trigger push workflows.
+  # Observe the workflow completion instead; archive_signals.py independently
+  # verifies that all four official files form a complete same-day publication.
+  workflow_run:
+    workflows: ["A-share trend-buy formal mainline run"]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
   schedule:
     # Fallback only: 20:10 Beijing, Mon-Fri. GitHub schedule may be delayed.
