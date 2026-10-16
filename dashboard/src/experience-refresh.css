@@ -458,6 +458,42 @@
 .app-shell .buy-trend-filter-title span{font-size:10px;color:#687A94;white-space:nowrap}
 .app-shell .buy-trend-filter .ui-select--group{margin-left:auto}
 
+/* Buy overview: three small, distinct cards, consistent with the white dashboard panels. */
+.app-shell .buy-summary{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;
+  margin:2px 0 22px;padding:0;border:0;background:transparent;
+}
+.app-shell .buy-summary>div,
+.app-shell .buy-summary>div:first-child,
+.app-shell .buy-summary>div:last-child{
+  position:relative;display:flex;flex-direction:column;align-items:stretch;
+  gap:5px;min-width:0;min-height:120px;padding:17px 19px 15px;
+  border:1px solid #DEE5F0;border-radius:13px;
+  background:linear-gradient(125deg,#FFF 68%,#F7F9FD);box-shadow:0 4px 16px rgba(42,57,87,.045);
+  overflow:hidden;
+}
+.app-shell .buy-summary>div::before{
+  content:'';position:absolute;top:0;bottom:0;left:0;width:3px;
+  background:var(--stat-accent);
+}
+.app-shell .buy-stat-ready{--stat-accent:#6B83B9;--stat-soft:#EDF2FD}
+.app-shell .buy-stat-wait{--stat-accent:#B99768;--stat-soft:#FAF3E9}
+.app-shell .buy-stat-covered{--stat-accent:#8696AC;--stat-soft:#EFF2F7}
+.app-shell .buy-stat-heading{display:flex;align-items:center;gap:8px;min-height:27px}
+.app-shell .buy-stat-icon{
+  width:27px;height:27px;border-radius:9px;display:grid;place-items:center;
+  background:var(--stat-soft);color:var(--stat-accent);flex:none;
+}
+.app-shell .buy-stat-heading .badge{font-size:10px;min-height:0;padding:3px 7px}
+.app-shell .buy-stat-title{color:#53637B;font-size:11px;font-weight:700}
+.app-shell .buy-stat-value{display:flex;align-items:baseline;gap:7px;margin-top:2px}
+.app-shell .buy-stat-value strong{
+  color:#2B3D58;font:750 29px 'DM Sans','Noto Sans SC',sans-serif;
+  font-variant-numeric:tabular-nums;letter-spacing:-.7px;line-height:1.15;
+}
+.app-shell .buy-stat-value small{font-size:10px;font-weight:600;color:#7E8CA1}
+.app-shell .buy-summary>div p{margin:0;font-size:10px;color:#6F7F95;line-height:1.5}
+
 /* Buying inspector: a compact decision card with document scrolling only. */
 .app-shell .buy-inspector--compact{padding:21px 23px 19px}
 .app-shell .buy-inspector--compact .detail-hero{margin-bottom:14px}
@@ -485,6 +521,13 @@
   color:#354F83;font-size:22px;line-height:1.3;letter-spacing:-.45px;
   font-family:'DM Sans','Noto Sans SC',sans-serif;font-weight:760;overflow-wrap:anywhere;
 }
+.app-shell .buy-inspector-zone.is-unavailable{
+  display:flex;flex-direction:row;align-items:baseline;flex-wrap:wrap;gap:4px 9px;
+}
+.app-shell .buy-inspector-zone.is-unavailable strong{
+  color:#728199;font-size:12px;line-height:1.6;letter-spacing:0;font-weight:600;
+}
+.app-shell .buy-inspector-zone.is-unavailable+.buy-inspector-levels{margin-top:10px}
 .app-shell .buy-inspector-levels{
   display:grid;grid-template-columns:1fr 1fr;gap:14px;
   margin-top:14px;padding-top:12px;border-top:1px solid #DDE6F3;
@@ -616,6 +659,16 @@
   .app-shell .portfolio-inline-detail .portfolio-level-row>div:last-child{text-align:left}
 }
 @media(max-width:760px){
+  .app-shell .buy-summary{gap:8px;margin-bottom:17px}
+  .app-shell .buy-summary>div,
+  .app-shell .buy-summary>div:first-child,
+  .app-shell .buy-summary>div:last-child{padding:12px 9px 11px;min-height:109px;gap:4px}
+  .app-shell .buy-stat-heading{gap:4px}
+  .app-shell .buy-stat-icon{width:24px;height:24px;border-radius:7px}
+  .app-shell .buy-stat-heading .badge{font-size:9px;padding:2px 5px}
+  .app-shell .buy-stat-title{font-size:10px}
+  .app-shell .buy-stat-value strong{font-size:26px}
+  .app-shell .buy-summary>div p{font-size:9px}
   .app-shell .ui-select--compact{width:116px}
   .app-shell .ui-select--sort{min-width:160px}
   .app-shell .intraday-simple .ui-select--intraday{width:auto;flex:1 1 180px}

@@ -101,6 +101,19 @@ test('趋势买点详情改成跟随文档的粘性紧凑卡片，不再使用�
  assert.match(refreshCss,/\.buy-workspace>\.buy-detail-pane\{[\s\S]*?position:sticky;top:88px[\s\S]*?max-height:none;overflow:visible/);
 });
 
+test('没有可靠区间的股票使用小字号提示，买点统计显示独立圆角卡片',()=>{
+ const inspector=app.slice(app.indexOf('function BuyInspector({'),app.indexOf('function Buy({'));
+ const buy=app.slice(app.indexOf('function Buy({'),app.indexOf('function Monitor({'));
+ assert.match(inspector,/const hasZone=Array\.isArray\(zone\)/);
+ assert.match(inspector,/hasZone\?'buy-inspector-zone':'buy-inspector-zone is-unavailable'/);
+ assert.match(refreshCss,/\.buy-inspector-zone\.is-unavailable strong\{[\s\S]*?font-size:12px/);
+ assert.match(buy,/className="buy-stat-card buy-stat-ready"/);
+ assert.match(buy,/className="buy-stat-card buy-stat-wait"/);
+ assert.match(buy,/className="buy-stat-card buy-stat-covered"/);
+ assert.match(refreshCss,/\.buy-summary>div::before\{/);
+ assert.match(refreshCss,/border:1px solid #DEE5F0;border-radius:13px/);
+});
+
 test('新的桌面与移动布局主题加载在既有 neutral ink 之后',()=>{
  assert.match(main,/neutral-ink-v2\.css';\s*import '\.\/experience-refresh\.css'/);
  assert.match(refreshCss,/\.portfolio-grid-row/);

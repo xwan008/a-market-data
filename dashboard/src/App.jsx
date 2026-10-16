@@ -399,6 +399,7 @@ function BuyInspector({item}){
  const waiting=item.status==='WAIT';
  const reference=waiting?item.watch_reference:null;
  const zone=waiting?reference?.reference_zone:item.entry_zone;
+ const hasZone=Array.isArray(zone);
  const trigger=waiting?reference?.conditional_trigger:item.entry_trigger;
  const stop=waiting?reference?.invalidation_price:item.invalidation_price;
  return <div className="detail-content buy-inspector buy-inspector--compact">
@@ -408,7 +409,7 @@ function BuyInspector({item}){
    <div><span>{waiting?'观察形态':'形态类型'}</span><strong>{safeText(waiting?reference?.setup_mode:item.setup_type)}</strong></div>
   </div>
   <div className="buy-inspector-focus">
-   <div className="buy-inspector-zone"><span>{waiting?'观察参考区间 · 非买点':'计划入场区间'}</span><strong>{Array.isArray(zone)? `${fixed(zone[0],3)} – ${fixed(zone[1],3)}`:waiting?'尚无可靠观察参考区间':'尚未形成有效入场区间'}</strong></div>
+   <div className={hasZone?'buy-inspector-zone':'buy-inspector-zone is-unavailable'}><span>{waiting?'观察参考区间 · 非买点':'计划入场区间'}</span><strong>{hasZone? `${fixed(zone[0],3)} – ${fixed(zone[1],3)}`:waiting?'尚无可靠观察参考区间':'尚未形成有效入场区间'}</strong></div>
    <div className="buy-inspector-levels">
     <div><span>{waiting?'观察触发参考价':'最大入场价'}</span><strong>{fixed(waiting?reference?.reference_trigger_price:item.max_entry_price,3)}</strong></div>
     <div><span>{waiting?'观察结构参考位':'结构失效参考'}</span><strong>{fixed(stop,3)}</strong></div>
@@ -428,7 +429,23 @@ function Buy({buy,selected,setSelected,status}){
  const focus=shown.find(i=>i.code===selected?.code)||shown[0];
  return <>
   <PageIntro title="趋势买点观察" desc="READY 显示条件性入场计划；WAIT 只显示上一交易日观察参考，不代表当日可买。" date={buy?.trade_date}/>
-  <div className="buy-summary"><div><Badge>READY</Badge><strong>{items.filter(i=>i.status==='READY').length}</strong><span>条件满足候选</span></div><div><Badge>WAIT</Badge><strong>{items.filter(i=>i.status==='WAIT').length}</strong><span>等待确认</span></div><div><span className="muted">正式覆盖</span><strong>{items.length}</strong><span>已发布标的</span></div></div>
+  <div className="buy-summary" aria-label="趋势买点发布状态">
+   <div className="buy-stat-card buy-stat-ready">
+    <div className="buy-stat-heading"><span className="buy-stat-icon"><Check size={15}/></span><Badge>READY</Badge></div>
+    <div className="buy-stat-value"><strong>{items.filter(i=>i.status==='READY').length}</strong><small>只</small></div>
+    <p>条件满足候选</p>
+   </div>
+   <div className="buy-stat-card buy-stat-wait">
+    <div className="buy-stat-heading"><span className="buy-stat-icon"><Clock3 size={15}/></span><Badge>WAIT</Badge></div>
+    <div className="buy-stat-value"><strong>{items.filter(i=>i.status==='WAIT').length}</strong><small>只</small></div>
+    <p>等待结构确认</p>
+   </div>
+   <div className="buy-stat-card buy-stat-covered">
+    <div className="buy-stat-heading"><span className="buy-stat-icon"><Layers size={15}/></span><span className="buy-stat-title">正式覆盖</span></div>
+    <div className="buy-stat-value"><strong>{items.length}</strong><small>只</small></div>
+    <p>已发布研究标的</p>
+   </div>
+  </div>
   <div className="two-pane buy-workspace">
    <section className="panel">
     <PanelHead title="正式候选列表" aside={<span className="count-chip">{shown.length} 只</span>}/>
