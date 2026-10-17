@@ -23,7 +23,9 @@ def validate(registry, handoff, require_migration=True):
             registry.get("trade_date") != handoff.get("trade_date")):
         errors.append("trade_date_mismatch")
     gate = (registry.get("scan_audit") or {}).get("state_migration_gate") or {}
-    if require_migration and (gate.get("mode") != "full_close" or
+    valid_mode = gate.get("mode") == "full_close" or (
+        registry.get("schema_version") == 2 and gate.get("mode") == "v2_cutover")
+    if require_migration and (not valid_mode or
                               gate.get("current_trade_date") != registry.get("trade_date")):
         errors.append("migration_gate_missing")
     trends = registry.get("trends")
