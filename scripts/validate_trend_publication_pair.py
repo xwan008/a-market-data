@@ -11,7 +11,7 @@ from pathlib import Path
 
 def validate(registry, handoff, require_migration=True):
     errors = []
-    if registry.get("schema_version") != 1 or handoff.get("schema_version") != 1:
+    if registry.get("schema_version") not in (1, 2) or handoff.get("schema_version") != 1:
         errors.append("schema_version_mismatch")
     if registry.get("result_kind") != "a_share_trend_registry":
         errors.append("registry_result_kind_invalid")
@@ -35,6 +35,10 @@ def validate(registry, handoff, require_migration=True):
     names = [t.get("trend_name") for t in trends]
     if len(set(names)) != len(names):
         errors.append("duplicate_registry_trend")
+    if registry.get("schema_version") == 2:
+        ids = [t.get("episode_id") for t in trends]
+        if not all(isinstance(x, str) and x for x in ids) or len(set(ids)) != len(ids):
+            errors.append("duplicate_or_missing_episode_ids")
     priority = [t for t in trends if t.get("in_new_position_priority") is True]
     actual = [s.get("trend_name") for s in signals]
     expected = [t.get("trend_name") for t in priority]
@@ -60,6 +64,8 @@ def validate(registry, handoff, require_migration=True):
             errors.append(f"{name}:invalid_industry_route")
         if source.get("lifecycle_status") == "已失效":
             errors.append(f"{name}:invalidated_theme_handed_off")
+        if registry.get("schema_version") == 2 and source.get("market_state") not in {"趋势确认", "候选趋势"}:
+            errors.append(f"{name}:ineligible_v2_priority_state")
     return errors
 
 

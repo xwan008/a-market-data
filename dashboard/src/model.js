@@ -120,7 +120,9 @@ export function rankedTrendRows(registry, handoff, history, tradeDate, mode='for
   const priority=new Map((Array.isArray(handoff?.signals)?handoff.signals:[])
     .filter(x=>Number.isInteger(x?.rank)&&x.rank>0&&x.trend_name)
     .map(x=>[x.trend_name,x.rank]));
-  const items=(Array.isArray(registry?.trends)?registry.trends:[]).map((item,index)=>{
+  const items=(Array.isArray(registry?.trends)?registry.trends:[])
+    .filter(item=>['趋势确认','候选趋势','观察'].includes(item?.market_state)&&item?.lifecycle_status!=='已失效')
+    .map((item,index)=>{
     const records=validSnapshots(history?.[item.trend_name],tradeDate);
     return {...item,priorityRank:priority.get(item.trend_name)??null,
       intradayDelta:snapshotChange(records,'up_ratio',100),originalIndex:index};

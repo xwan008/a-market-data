@@ -83,13 +83,16 @@ def _optional_sector_audit_valid(sector_audit, day):
             and sum(i.startswith("industry:") for i in ids) == count)
 
 
-def validate(previous, proposed, baseline_sha, snapshot=None, sector_audit=None):
+def validate(previous, proposed, baseline_sha, snapshot=None, sector_audit=None, archive=None):
     """Return blocking errors; [] means structurally safe to publish.
 
     A single evidence-quality rule checks both new and old market states.
     Industry and market conclusions stay independent. No elapsed-days, breadth
     ratio or turnover multiple automatically establishes or rejects a trend.
     """
+    if proposed.get("schema_version") == 2:
+        from scripts.trend_registry_v2 import validate_v2
+        return validate_v2(previous, proposed, baseline_sha, archive, snapshot, sector_audit)
     errors = []
     if previous.get("schema_version") != 1 or proposed.get("schema_version") != 1:
         errors.append("schema_version_mismatch")
@@ -229,6 +232,7 @@ def main(argv=None):
     p.add_argument("--previous-blob-sha", required=True)
     p.add_argument("--snapshot", help="Optional same-day auxiliary research snapshot")
     p.add_argument("--sector-audit", help="Optional dated sector audit for input-quality cross-checking; never a trend bypass")
+    p.add_argument("--archive", help="V2: frozen legacy snapshot or same-day exit archive, required when exits exist")
     args = p.parse_args(argv)
     try:
         def load(path):
@@ -236,7 +240,8 @@ def main(argv=None):
                 return json.load(fh)
         failures = validate(load(args.previous), load(args.proposed), args.previous_blob_sha,
                             load(args.snapshot) if args.snapshot else None,
-                            load(args.sector_audit) if args.sector_audit else None)
+                            load(args.sector_audit) if args.sector_audit else None,
+            load(args.archive) if args.archive else None)
     except (OSError, ValueError, TypeError) as exc:
         failures = ["input_error:" + str(exc)]
     print(json.dumps({"status": "PASS" if not failures else "BLOCKED", "errors": failures}, ensure_ascii=False))
