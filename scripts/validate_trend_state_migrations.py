@@ -16,7 +16,6 @@ def main(argv=None):
     p.add_argument("--previous-blob-sha", required=True)
     p.add_argument("--snapshot")
     p.add_argument("--sector-audit")
-    p.add_argument("--archive")
     a = p.parse_args(argv)
     try:
         def load(path):
@@ -24,8 +23,7 @@ def main(argv=None):
                 return json.load(f)
         errors = validate(load(a.previous), load(a.proposed), a.previous_blob_sha,
                           snapshot=load(a.snapshot) if a.snapshot else None,
-                          sector_audit=load(a.sector_audit) if a.sector_audit else None,
-                          archive=load(a.archive) if a.archive else None)
+                          sector_audit=load(a.sector_audit) if a.sector_audit else None)
     except (OSError, ValueError, TypeError) as exc:
         errors = ["input_error:" + str(exc)]
     print(json.dumps({"status": "PASS" if not errors else "BLOCKED", "errors": errors}, ensure_ascii=False))

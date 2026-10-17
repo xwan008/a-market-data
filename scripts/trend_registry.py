@@ -1,13 +1,6 @@
 #!/usr/bin/env python3
-"""Canonical active trend continuity and cold exit validation.
-
-Archived episodes are not included in daily discovery or continuity input.
-"""
-import argparse
-import copy
-import json
+"""Active trend continuity and evidence-backed exit validation."""
 import re
-from pathlib import Path
 
 STATES = {"失效": 0, "高潮/衰退": 1, "观察": 2, "新异动": 2,
           "候选趋势": 3, "趋势确认": 4}
@@ -82,25 +75,8 @@ def episode_key(name, first_seen):
 
 
 
-def exit_archive(previous, proposed, source_sha):
-    """Freeze ALL previously non-tracked entries before they leave the live JSON."""
-    if previous.get("schema_version") != 2 or proposed.get("schema_version") != 2:
-        raise ValueError("CURRENT_REGISTRY_REQUIRED")
-    if not isinstance(source_sha, str) or not SHA.fullmatch(source_sha):
-        raise ValueError("REAL_SOURCE_BLOB_SHA_REQUIRED")
-    return {
-        "schema_version": 1,
-        "result_kind": "a_share_trend_exit_archive",
-        "source_registry_trade_date": previous["trade_date"],
-        "archive_trade_date": proposed["trade_date"],
-        "source_registry_blob_sha": source_sha,
-        "episodes": [copy.deepcopy(t) for t in previous["trends"] if not tracking(t)],
-    }
-
-
-
-def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None, archive=None):
-    """Fail closed on unverified state changes, silent exit or stale evidence."""
+def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
+    """Fail closed on unsupported updates or unreviewed exits."""
     errors = []
     before, day = previous.get("trade_date"), proposed.get("trade_date")
     if previous.get("schema_version") != 2 or proposed.get("schema_version") != 2:
@@ -119,7 +95,10 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None, a
         errors.append("snapshot_invalid")
     if sector_audit is not None and not _optional_sector_audit_valid(sector_audit, day):
         errors.append("sector_audit_invalid")
-    gate = (proposed.get("scan_audit") or {}).get("state_migration_gate") or {}
+    scan = proposed.get("scan_audit") or {}
+    if scan.get("full_market_scan_completed") is not True:
+        errors.append("full_market_scan_incomplete")
+    gate = scan.get("state_migration_gate") or {}
     if gate.get("previous_registry_blob_sha") != source_sha or gate.get("previous_registry_trade_date") != before or gate.get("current_trade_date") != day:
         errors.append("baseline_sha_or_date_not_frozen")
     if not isinstance(proposed.get("trends"), list) or not isinstance(previous.get("trends"), list):
@@ -139,21 +118,53 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None, a
     curr_by_id = {t.get("episode_id"): t for t in proposed["trends"]}
     if len(prior_by_id) != len(previous["trends"]):
         errors.append("duplicate_previous_episode_id")
+    if any(not tracking(item) for item in previous["trends"]):
+        errors.append("previous_contains_nontracking_theme")
     reviews = gate.get("reviews", [])
     if not isinstance(reviews, list) or not all(isinstance(r, dict) for r in reviews):
         return errors + ["reviews_not_list"]
     by_id = {r.get("episode_id"): r for r in reviews}
     if len(by_id) != len(reviews):
         errors.append("duplicate_review_episode_id")
-    continued = {t.get("episode_id") for t in previous["trends"] if tracking(t)}
+    exits = gate.get("exits", [])
+    if not isinstance(exits, list) or not all(isinstance(r, dict) for r in exits):
+        return errors + ["exits_not_list"]
+    by_exit = {r.get("episode_id"): r for r in exits}
+    if len(by_exit) != len(exits):
+        errors.append("duplicate_exit_episode_id")
+    prior_ids = set(prior_by_id)
+    continued = prior_ids & set(curr_by_id)
+    departing = prior_ids - set(curr_by_id)
     if set(by_id) != continued:
         errors.append("active_review_coverage_mismatch")
-    for episode in continued:
+    if set(by_exit) != departing:
+        errors.append("exit_review_coverage_mismatch")
+    for episode in departing:
         prior = prior_by_id[episode]
-        now = curr_by_id.get(episode)
-        if now is None:
+        review = by_exit.get(episode)
+        if review is None:
             errors.append(f"{episode}:active_silently_removed")
             continue
+        if (review.get("decision") != "EXIT" or
+                review.get("previous_market_state") != prior.get("market_state") or
+                review.get("previous_trend_state") != prior.get("trend_state")):
+            errors.append(f"{episode}:exit_review_state_mismatch")
+        if review.get("proposed_market_state") not in MARKET - TRACK:
+            errors.append(f"{episode}:exit_target_not_inactive")
+        if not isinstance(review.get("reason"), str) or len(review["reason"].strip()) < 12:
+            errors.append(f"{episode}:exit_reason_missing")
+        evidence = review.get("evidence")
+        if not isinstance(evidence, list):
+            evidence = []
+            errors.append(f"{episode}:exit_evidence_invalid")
+        valid = [f for f in evidence if _valid_evidence(f, day)]
+        if len(valid) != len(evidence):
+            errors.append(f"{episode}:exit_evidence_invalid")
+        if not _market_state_evidence(valid, "COUNTER", before):
+            errors.append(f"{episode}:exit_without_independent_market_counter")
+    for episode in continued:
+        prior = prior_by_id[episode]
+        now = curr_by_id[episode]
         review = by_id.get(episode) or {}
         name = prior.get("trend_name")
         if now.get("trend_name") != name or now.get("first_seen_trade_date") != prior.get("first_seen_trade_date"):
@@ -205,26 +216,16 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None, a
             direction = "COUNTER" if STATES[m1] < STATES[m0] else "SUPPORT"
             if not _market_state_evidence(qualified, direction, before, require_confirmation=m1 == "趋势确认"):
                 errors.append(f"{episode}:market_change_without_independent_evidence")
-    to_archive = [t for t in previous["trends"] if not tracking(t)]
-    archived = (archive or {}).get("episodes", []) if isinstance(archive, dict) else []
-    if to_archive:
-        if not isinstance(archive, dict) or archive.get("result_kind") != "a_share_trend_exit_archive" or archive.get("source_registry_blob_sha") != source_sha or archive.get("source_registry_trade_date") != before or archive.get("archive_trade_date") != day or archived != to_archive:
-            errors.append("missing_or_inexact_exit_archive")
-    elif archive is not None and (not isinstance(archived, list) or archived):
-        errors.append("unexpected_archive_entries")
-    if gate.get("archived_count") != len(to_archive):
-        errors.append("archive_count_mismatch")
-    for prior in to_archive:
-        if prior.get("episode_id") in curr_by_id:
-            errors.append(f"{prior.get('episode_id')}:nontracking_episode_carried")
     for item in proposed["trends"]:
         episode = item.get("episode_id")
-        if item.get("market_state") not in MARKET or item.get("trend_state") not in T_STATES:
+        if item.get("market_state") not in TRACK or item.get("lifecycle_status") == "已失效":
+            errors.append(f"{episode}:nontracking_persisted")
+        if item.get("trend_state") not in T_STATES:
             errors.append(f"{episode}:invalid_state")
         if episode in prior_by_id:
-            if episode not in continued:
-                errors.append(f"{episode}:old_nontracking_episode_reused")
             continue
+        if item.get("trend_name") in {t.get("trend_name") for t in previous["trends"]}:
+            errors.append(f"{episode}:active_cycle_restarted")
         name = item.get("trend_name")
         if (item.get("first_seen_trade_date") != day or
                 episode != episode_key(name, day) or
@@ -243,23 +244,3 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None, a
             if len(facts) != len(qualified) or not _market_state_evidence(qualified, "SUPPORT", before, True):
                 errors.append(f"{episode}:new_confirmation_without_independent_evidence")
     return errors
-
-
-def main():
-    p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--previous", required=True)
-    p.add_argument("--proposed", required=True)
-    p.add_argument("--previous-blob-sha", required=True)
-    p.add_argument("--archive-output", required=True)
-    a = p.parse_args()
-    def load(path):
-        return json.loads(Path(path).read_text(encoding="utf-8"))
-    archive = exit_archive(load(a.previous), load(a.proposed), a.previous_blob_sha)
-    dest = Path(a.archive_output)
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text(json.dumps(archive, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({"status": "PASS", "archived_count": len(archive["episodes"])}, ensure_ascii=False))
-
-
-if __name__ == "__main__":
-    main()

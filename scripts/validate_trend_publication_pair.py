@@ -22,7 +22,10 @@ def validate(registry, handoff):
     if (not registry.get("trade_date") or
             registry.get("trade_date") != handoff.get("trade_date")):
         errors.append("trade_date_mismatch")
-    gate = (registry.get("scan_audit") or {}).get("state_migration_gate") or {}
+    scan = registry.get("scan_audit") or {}
+    if scan.get("full_market_scan_completed") is not True:
+        errors.append("full_market_scan_incomplete")
+    gate = scan.get("state_migration_gate") or {}
     if gate.get("mode") != "full_close" or gate.get("current_trade_date") != registry.get("trade_date"):
         errors.append("migration_gate_missing")
     trends = registry.get("trends")
@@ -34,6 +37,8 @@ def validate(registry, handoff):
     names = [t.get("trend_name") for t in trends]
     if len(set(names)) != len(names):
         errors.append("duplicate_registry_trend")
+    if any(t.get("market_state") not in {"趋势确认","候选趋势"} or t.get("lifecycle_status") == "已失效" for t in trends):
+        errors.append("nontracking_persisted")
     ids = [t.get("episode_id") for t in trends]
     if not all(isinstance(x, str) and x for x in ids) or len(set(ids)) != len(ids):
         errors.append("duplicate_or_missing_episode_ids")
