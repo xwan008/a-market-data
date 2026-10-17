@@ -1,0 +1,809 @@
+{
+  "schema_version": 1,
+  "result_kind": "TREND_BUY_PRESCREEN_WEIGHT_SHADOW_REPLAY",
+  "research_date": "2026-10-17",
+  "production_effect": "NONE",
+  "weights_tested": {
+    "70/30": {
+      "opportunity": 0.7,
+      "fundamental": 0.3
+    },
+    "60/40": {
+      "opportunity": 0.6,
+      "fundamental": 0.4
+    },
+    "50/50": {
+      "opportunity": 0.5,
+      "fundamental": 0.5
+    },
+    "dual_channel": {
+      "opportunity": 0.7,
+      "fundamental": 0.3,
+      "reserved_fundamental_seats_per_industry": 2
+    }
+  },
+  "basis": {
+    "code_revision": "d698a29779bdc1f3bc8f063474aab037682fc4eb",
+    "formula": "scripts/build_trend_buy_manual_research.py:scores/compact_opportunity",
+    "structure": "historical daily OHLCV from data/history_shards, each series restricted to date <= asof; no forward returns passed into scoring",
+    "fundamental_sources": {
+      "2026-09-29": "research/low_risk_2026-09-29_frozen_facts_audit.json and SHA-pinned S630602 part blobs",
+      "2026-10-09": "research/shadow/screen_part_1_2026-10-09.json and screen_part_2_2026-10-09.json (new_score)",
+      "2026-10-14": "research/audits/2026-10-14_trend_buy_prescreen.json (fundamental_score)"
+    },
+    "price_comparison": "all tested eligible stocks verified against stored asof prices where available; sample historical Git revisions checked: 002487 asof 09-29, 002709 asof 10-09, 601288 asof 10-14, no differing common-day closes",
+    "slot_rule": "compute current 70/30 dynamic Top5 or close-sixth within 0.03, then FIX SAME PER-INDUSTRY SEATS across comparison variants",
+    "dual_rule": "for k research seats, first k-2 highest 70/30 combined score, then 2 highest fundamental-score companies among remaining structurally eligible",
+    "outcomes": "future close-to-close returns, equally weighted within each cohort; no transaction costs or trade triggers; missing horizons right censored"
+  },
+  "limitations": [
+    "Only 3 sector-date cohorts (wind, solid-state batteries, banks), with bank only 1d/2d observed; not sufficient to statistically optimize live weights.",
+    "Wind frozen universe includes only S630602 wind components, not all wind manufacturing industries.",
+    "Two battery symbols 002074 and 603906 fail current COOLING technical new-entry eligibility on 2026-10-09 and are not candidate seats.",
+    "Current bounded history shards are retroactively cropped to each signal date; three stocks were checked against exact original commits, not exhaustive historical blob equivalence for every symbol.",
+    "Time horizons and phase conditions differ by sample. Cohorts are not independent trades, and selected names may overlap across historical days.",
+    "No final issuer research/READY gate or actual execution simulated; portfolios are prescreen research queues."
+  ],
+  "cohorts": {
+    "wind": {
+      "asof": "2026-09-29",
+      "eligible": 9,
+      "dropped": [],
+      "k": {
+        "S630602": 5
+      },
+      "marketN": 3177,
+      "market20d": -3.329,
+      "auditMaxDelta": null,
+      "variants": [
+        {
+          "option": "70-30",
+          "selected": 5,
+          "others": 4,
+          "codes": [
+            "000809",
+            "002487",
+            "600072",
+            "603218",
+            "603985"
+          ],
+          "1d": {
+            "n": 5,
+            "avg": 3.6253,
+            "median": 1.1316,
+            "win": 0.8,
+            "loss3": 0
+          },
+          "3d": {
+            "n": 5,
+            "avg": 0.3774,
+            "median": -0.5764,
+            "win": 0.4,
+            "loss3": 1
+          },
+          "5d": {
+            "n": 5,
+            "avg": 1.2522,
+            "median": -0.3158,
+            "win": 0.4,
+            "loss3": 0
+          },
+          "8d": {
+            "n": 5,
+            "avg": -5.3213,
+            "median": -5.7895,
+            "win": 0.2,
+            "loss3": 4
+          },
+          "excluded_5d": {
+            "n": 4,
+            "avg": -5.4975,
+            "median": -7.729,
+            "win": 0.25,
+            "loss3": 3
+          }
+        },
+        {
+          "option": "dual-70-30",
+          "selected": 5,
+          "others": 4,
+          "codes": [
+            "000809",
+            "002487",
+            "600072",
+            "603218",
+            "603507"
+          ],
+          "1d": {
+            "n": 5,
+            "avg": 3.4786,
+            "median": 0.6316,
+            "win": 0.8,
+            "loss3": 0
+          },
+          "3d": {
+            "n": 5,
+            "avg": 0.3567,
+            "median": -0.5764,
+            "win": 0.4,
+            "loss3": 1
+          },
+          "5d": {
+            "n": 5,
+            "avg": 0.3062,
+            "median": -0.3158,
+            "win": 0.4,
+            "loss3": 1
+          },
+          "8d": {
+            "n": 5,
+            "avg": -5.5723,
+            "median": -5.7895,
+            "win": 0.2,
+            "loss3": 4
+          },
+          "excluded_5d": {
+            "n": 4,
+            "avg": -4.315,
+            "median": -5.364,
+            "win": 0.25,
+            "loss3": 2
+          }
+        },
+        {
+          "option": "60-40",
+          "selected": 5,
+          "others": 4,
+          "codes": [
+            "000809",
+            "002487",
+            "600072",
+            "603218",
+            "603985"
+          ],
+          "1d": {
+            "n": 5,
+            "avg": 3.6253,
+            "median": 1.1316,
+            "win": 0.8,
+            "loss3": 0
+          },
+          "3d": {
+            "n": 5,
+            "avg": 0.3774,
+            "median": -0.5764,
+            "win": 0.4,
+            "loss3": 1
+          },
+          "5d": {
+            "n": 5,
+            "avg": 1.2522,
+            "median": -0.3158,
+            "win": 0.4,
+            "loss3": 0
+          },
+          "8d": {
+            "n": 5,
+            "avg": -5.3213,
+            "median": -5.7895,
+            "win": 0.2,
+            "loss3": 4
+          },
+          "excluded_5d": {
+            "n": 4,
+            "avg": -5.4975,
+            "median": -7.729,
+            "win": 0.25,
+            "loss3": 3
+          }
+        },
+        {
+          "option": "50-50",
+          "selected": 5,
+          "others": 4,
+          "codes": [
+            "000809",
+            "002487",
+            "600072",
+            "603218",
+            "603985"
+          ],
+          "1d": {
+            "n": 5,
+            "avg": 3.6253,
+            "median": 1.1316,
+            "win": 0.8,
+            "loss3": 0
+          },
+          "3d": {
+            "n": 5,
+            "avg": 0.3774,
+            "median": -0.5764,
+            "win": 0.4,
+            "loss3": 1
+          },
+          "5d": {
+            "n": 5,
+            "avg": 1.2522,
+            "median": -0.3158,
+            "win": 0.4,
+            "loss3": 0
+          },
+          "8d": {
+            "n": 5,
+            "avg": -5.3213,
+            "median": -5.7895,
+            "win": 0.2,
+            "loss3": 4
+          },
+          "excluded_5d": {
+            "n": 4,
+            "avg": -5.4975,
+            "median": -7.729,
+            "win": 0.25,
+            "loss3": 3
+          }
+        }
+      ]
+    },
+    "battery": {
+      "asof": "2026-10-09",
+      "eligible": 40,
+      "dropped": [
+        [
+          "002074",
+          "NEW_ENTRY_COOLING"
+        ],
+        [
+          "603906",
+          "NEW_ENTRY_COOLING"
+        ]
+      ],
+      "k": {
+        "S630701": 5,
+        "S630702": 5,
+        "S630703": 1,
+        "S240603": 5,
+        "S240504": 5
+      },
+      "marketN": 3177,
+      "market20d": -1.759,
+      "auditMaxDelta": null,
+      "variants": [
+        {
+          "option": "70-30",
+          "selected": 21,
+          "others": 19,
+          "codes": [
+            "000049",
+            "000762",
+            "001283",
+            "002125",
+            "002182",
+            "002192",
+            "002428",
+            "002460",
+            "002466",
+            "002709",
+            "002978",
+            "600110",
+            "600152",
+            "600281",
+            "600301",
+            "600478",
+            "600884",
+            "603026",
+            "603032",
+            "603399",
+            "603659"
+          ],
+          "1d": {
+            "n": 21,
+            "avg": -3.2999,
+            "median": -2.8585,
+            "win": 0.095,
+            "loss3": 10
+          },
+          "3d": {
+            "n": 21,
+            "avg": -7.1195,
+            "median": -7.6421,
+            "win": 0.095,
+            "loss3": 17
+          },
+          "5d": {
+            "n": 21,
+            "avg": -10.1901,
+            "median": -10.4878,
+            "win": 0.095,
+            "loss3": 19
+          },
+          "8d": {
+            "n": 0,
+            "avg": null,
+            "median": null,
+            "win": null,
+            "loss3": 0
+          },
+          "excluded_5d": {
+            "n": 19,
+            "avg": -7.7608,
+            "median": -8.4024,
+            "win": 0.105,
+            "loss3": 16
+          }
+        },
+        {
+          "option": "dual-70-30",
+          "selected": 21,
+          "others": 19,
+          "codes": [
+            "000049",
+            "000762",
+            "000960",
+            "001283",
+            "002125",
+            "002182",
+            "002192",
+            "002460",
+            "002466",
+            "002709",
+            "002812",
+            "002850",
+            "002978",
+            "600110",
+            "600281",
+            "600301",
+            "600478",
+            "600884",
+            "603026",
+            "603032",
+            "603399"
+          ],
+          "1d": {
+            "n": 21,
+            "avg": -3.105,
+            "median": -2.7897,
+            "win": 0.095,
+            "loss3": 9
+          },
+          "3d": {
+            "n": 21,
+            "avg": -7.1007,
+            "median": -8.0602,
+            "win": 0.095,
+            "loss3": 17
+          },
+          "5d": {
+            "n": 21,
+            "avg": -9.8425,
+            "median": -10.3922,
+            "win": 0.095,
+            "loss3": 19
+          },
+          "8d": {
+            "n": 0,
+            "avg": null,
+            "median": null,
+            "win": null,
+            "loss3": 0
+          },
+          "excluded_5d": {
+            "n": 19,
+            "avg": -8.1451,
+            "median": -10.4484,
+            "win": 0.105,
+            "loss3": 16
+          }
+        },
+        {
+          "option": "60-40",
+          "selected": 21,
+          "others": 19,
+          "codes": [
+            "000049",
+            "000762",
+            "001283",
+            "002125",
+            "002182",
+            "002192",
+            "002428",
+            "002460",
+            "002466",
+            "002709",
+            "002978",
+            "600110",
+            "600152",
+            "600281",
+            "600301",
+            "600478",
+            "600884",
+            "603026",
+            "603032",
+            "603399",
+            "603659"
+          ],
+          "1d": {
+            "n": 21,
+            "avg": -3.2999,
+            "median": -2.8585,
+            "win": 0.095,
+            "loss3": 10
+          },
+          "3d": {
+            "n": 21,
+            "avg": -7.1195,
+            "median": -7.6421,
+            "win": 0.095,
+            "loss3": 17
+          },
+          "5d": {
+            "n": 21,
+            "avg": -10.1901,
+            "median": -10.4878,
+            "win": 0.095,
+            "loss3": 19
+          },
+          "8d": {
+            "n": 0,
+            "avg": null,
+            "median": null,
+            "win": null,
+            "loss3": 0
+          },
+          "excluded_5d": {
+            "n": 19,
+            "avg": -7.7608,
+            "median": -8.4024,
+            "win": 0.105,
+            "loss3": 16
+          }
+        },
+        {
+          "option": "50-50",
+          "selected": 21,
+          "others": 19,
+          "codes": [
+            "000049",
+            "000762",
+            "001283",
+            "002125",
+            "002182",
+            "002192",
+            "002428",
+            "002460",
+            "002466",
+            "002709",
+            "002812",
+            "002850",
+            "002978",
+            "600110",
+            "600281",
+            "600301",
+            "600478",
+            "600884",
+            "603026",
+            "603032",
+            "603399"
+          ],
+          "1d": {
+            "n": 21,
+            "avg": -3.2303,
+            "median": -2.7897,
+            "win": 0.095,
+            "loss3": 9
+          },
+          "3d": {
+            "n": 21,
+            "avg": -7.0258,
+            "median": -7.6421,
+            "win": 0.095,
+            "loss3": 17
+          },
+          "5d": {
+            "n": 21,
+            "avg": -9.6632,
+            "median": -10.3922,
+            "win": 0.095,
+            "loss3": 19
+          },
+          "8d": {
+            "n": 0,
+            "avg": null,
+            "median": null,
+            "win": null,
+            "loss3": 0
+          },
+          "excluded_5d": {
+            "n": 19,
+            "avg": -8.3432,
+            "median": -10.8674,
+            "win": 0.105,
+            "loss3": 16
+          }
+        }
+      ]
+    },
+    "bank": {
+      "asof": "2026-10-14",
+      "eligible": 42,
+      "dropped": [],
+      "k": {
+        "S480201": 5,
+        "S480301": 6,
+        "S480401": 6,
+        "S480501": 6
+      },
+      "marketN": 3177,
+      "market20d": -5.839,
+      "auditMaxDelta": 0.0013999999999999568,
+      "variants": [
+        {
+          "option": "70-30",
+          "selected": 23,
+          "others": 19,
+          "codes": [
+            "000001",
+            "001227",
+            "002142",
+            "002807",
+            "002839",
+            "002958",
+            "600015",
+            "600036",
+            "600928",
+            "601009",
+            "601077",
+            "601128",
+            "601166",
+            "601187",
+            "601288",
+            "601328",
+            "601398",
+            "601838",
+            "601860",
+            "601916",
+            "601939",
+            "601988",
+            "601998"
+          ],
+          "1d": {
+            "n": 23,
+            "avg": -0.7849,
+            "median": -1.1041,
+            "win": 0.261,
+            "loss3": 0
+          },
+          "3d": {
+            "n": 0,
+            "avg": null,
+            "median": null,
+            "win": null,
+            "loss3": 0
+          },
+          "5d": {
+            "n": 0,
+            "avg": null,
+            "median": null,
+            "win": null,
+            "loss3": 0
+          },
+          "8d": {
+            "n": 0,
+            "avg": null,
+            "median": null,
+            "win": null,
+            "loss3": 0
+          },
+          "excluded_5d": {
+            "n": 0,
+            "avg": null,
+            "median": null,
+            "win": null,
+            "loss3": 0
+          }
+        },
+        {
+          "option": "dual-70-30",
+          "selected": 23,
+          "others": 19,
+          "codes": [
+            "000001",
+            "001227",
+            "002142",
+            "002807",
+            "002839",
+            "002958",
+            "002966",
+            "600015",
+            "600016",
+            "600036",
+            "600908",
+            "601009",
+            "601077",
+            "601128",
+            "601187",
+            "601288",
+            "601328",
+            "601398",
+            "601838",
+            "601916",
+            "601939",
+            "601988",
+            "601998"
+          ],
+          "1d": {
+            "n": 23,
+            "avg": -0.8022,
+            "median": -1.1041,
+            "win": 0.217,
+            "loss3": 0
+          },
+          "3d": {
+            "n": 0,
+            "avg": null,
+            "median": null,
+            "win": null,
+            "loss3": 0
+          },
+          "5d": {
+            "n": 0,
+            "avg": null,
+            "median": null,
+            "win": null,
+            "loss3": 0
+          },
+          "8d": {
+            "n": 0,
+            "avg": null,
+            "median": null,
+            "win": null,
+            "loss3": 0
+          },
+          "excluded_5d": {
+            "n": 0,
+            "avg": null,
+            "median": null,
+            "win": null,
+            "loss3": 0
+          }
+        },
+        {
+          "option": "60-40",
+          "selected": 23,
+          "others": 19,
+          "codes": [
+            "000001",
+            "001227",
+            "002142",
+            "002807",
+            "002839",
+            "002958",
+            "600000",
+            "600015",
+            "600036",
+            "600908",
+            "601009",
+            "601077",
+            "601128",
+            "601187",
+            "601288",
+            "601328",
+            "601398",
+            "601838",
+            "601916",
+            "601939",
+            "601963",
+            "601988",
+            "601998"
+          ],
+          "1d": {
+            "n": 23,
+            "avg": -0.8415,
+            "median": -1.1041,
+            "win": 0.217,
+            "loss3": 0
+          },
+          "3d": {
+            "n": 0,
+            "avg": null,
+            "median": null,
+            "win": null,
+            "loss3": 0
+          },
+          "5d": {
+            "n": 0,
+            "avg": null,
+            "median": null,
+            "win": null,
+            "loss3": 0
+          },
+          "8d": {
+            "n": 0,
+            "avg": null,
+            "median": null,
+            "win": null,
+            "loss3": 0
+          },
+          "excluded_5d": {
+            "n": 0,
+            "avg": null,
+            "median": null,
+            "win": null,
+            "loss3": 0
+          }
+        },
+        {
+          "option": "50-50",
+          "selected": 23,
+          "others": 19,
+          "codes": [
+            "000001",
+            "001227",
+            "002142",
+            "002807",
+            "002839",
+            "002958",
+            "002966",
+            "600000",
+            "600015",
+            "600036",
+            "600908",
+            "601009",
+            "601077",
+            "601128",
+            "601187",
+            "601288",
+            "601328",
+            "601398",
+            "601916",
+            "601939",
+            "601963",
+            "601988",
+            "601998"
+          ],
+          "1d": {
+            "n": 23,
+            "avg": -0.8797,
+            "median": -1.2254,
+            "win": 0.217,
+            "loss3": 0
+          },
+          "3d": {
+            "n": 0,
+            "avg": null,
+            "median": null,
+            "win": null,
+            "loss3": 0
+          },
+          "5d": {
+            "n": 0,
+            "avg": null,
+            "median": null,
+            "win": null,
+            "loss3": 0
+          },
+          "8d": {
+            "n": 0,
+            "avg": null,
+            "median": null,
+            "win": null,
+            "loss3": 0
+          },
+          "excluded_5d": {
+            "n": 0,
+            "avg": null,
+            "median": null,
+            "win": null,
+            "loss3": 0
+          }
+        }
+      ]
+    }
+  },
+  "decision": {
+    "change_production_weights": false,
+    "reference": "70/30",
+    "recommendation": "Keep 70/30 live, continue blind-forward shadow replay for 60/40,50/50,dual with same industry quotas and 1/3/5-day risk outcomes."
+  }
+}
