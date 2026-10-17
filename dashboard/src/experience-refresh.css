@@ -864,7 +864,7 @@
 .login-minimal{
   min-height:100vh;min-height:100dvh;display:grid;
   grid-template-columns:minmax(0,58%) minmax(0,42%);
-  background:#F8FAFD;color:#25334A;
+  background:#F8FAFD;color:#25334A;overflow-x:clip;
   font-family:Inter,'DM Sans','PingFang SC','Microsoft YaHei','Noto Sans SC',sans-serif;
   -webkit-font-smoothing:antialiased;
 }
@@ -974,6 +974,10 @@
 .login-minimal-error{display:flex;align-items:flex-start;gap:8px;margin:12px 0 0;color:#B14B4A;font-size:12px;line-height:1.6}
 .login-minimal-error svg{flex:none;margin-top:2px}
 .login-minimal-warning{border:1px solid #E7CDB2;border-radius:10px;background:#FFF7EB;color:#815B37;font-size:12px;line-height:1.7;padding:13px 15px;margin-top:18px}
+@media(min-width:821px) and (min-height:620px){
+  .login-minimal{height:100dvh;min-height:0;overflow:hidden}
+  .login-minimal-visual,.login-minimal-panel{height:100%;min-height:0}
+}
 @media(max-width:1100px){
   .login-minimal{grid-template-columns:minmax(0,53%) minmax(0,47%)}
   .login-minimal-visual{padding:42px clamp(35px,4vw,70px) 55px}

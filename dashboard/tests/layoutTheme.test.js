@@ -28,6 +28,7 @@ test('login uses a designed two-layer card while keeping the existing left artwo
  assert.match(refreshCss,/\.login-minimal-card\{[\s\S]*?border-radius:25px;[\s\S]*?rgba\(100,127,188,\.11\)/);
  assert.match(refreshCss,/\.login-minimal-cardvisual\{[\s\S]*?height:155px;[\s\S]*?linear-gradient/);
  assert.match(refreshCss,/\.login-minimal-cardbody\{[\s\S]*?margin-top:-13px;[\s\S]*?border-radius:20px/);
+ assert.match(refreshCss,/@media\(min-width:821px\) and \(min-height:620px\)\{[\s\S]*?\.login-minimal\{height:100dvh;min-height:0;overflow:hidden\}/);
  assert.doesNotMatch(login,/研究有据|决策有序|识别市场结构|坚持决策纪律/);
 });
 
