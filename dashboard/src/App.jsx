@@ -380,7 +380,7 @@ function Trends({registry,trendHandoff,monitor,archive,selected,setSelected}){
  return <><PageIntro title="板块趋势优先榜" desc="默认按市场状态排序，同状态内遵循正式名次；盘中数值仅覆盖当日候选。" date={registry?.trade_date}/>
   <div className="buy-summary trend-summary" aria-label="板块趋势发布概况">
    <div className="buy-stat-card buy-stat-ready"><div className="buy-stat-heading"><span className="buy-stat-icon"><Target size={15}/></span><span className="buy-stat-title">正式优先</span></div><div className="buy-stat-value"><strong>{officialCount}</strong><small>个</small></div><p>来自正式趋势榜单名次</p></div>
-   <div className="buy-stat-card buy-stat-covered"><div className="buy-stat-heading"><span className="buy-stat-icon"><Layers size={15}/></span><span className="buy-stat-title">研究池方向</span></div><div className="buy-stat-value"><strong>{rows.length}</strong><small>个</small></div><p>包含历史观察方向</p></div>
+   <div className="buy-stat-card buy-stat-covered"><div className="buy-stat-heading"><span className="buy-stat-icon"><Layers size={15}/></span><span className="buy-stat-title">研究池方向</span></div><div className="buy-stat-value"><strong>{rows.length}</strong><small>个</small></div><p>仅含本轮研究方向</p></div>
    <div className="buy-stat-card trend-stat-intraday"><div className="buy-stat-heading"><span className="buy-stat-icon"><Activity size={15}/></span><span className="buy-stat-title">今日盘中有值</span></div><div className="buy-stat-value"><strong>{coveredCount}</strong><small>个</small></div><p>{day?`${day} 有效数值快照`:'当日数值尚未发布'}</p></div>
   </div>
   <div className="two-pane trend-workspace"><section className="panel"><PanelHead title="板块排序" aside={<span className="count-chip">{rows.length} 个方向</span>}/>
