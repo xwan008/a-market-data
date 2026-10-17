@@ -23,8 +23,10 @@ test('login keeps artwork on the left and avoids repeated graphics in the form c
  assert.match(login,/<h1 id="login-title">欢迎回来<\/h1>/);
  assert.doesNotMatch(login,/私人研究空间/);
  assert.doesNotMatch(login,/登录识势，继续研究。|识势 · W\.X\./);
- assert.match(refreshCss,/\.login-minimal-content::before\{[\s\S]*?radial-gradient\(ellipse at 50% 49%,rgba\(111,138,197,\.18\)/);
- assert.match(refreshCss,/\.login-minimal-card\{[\s\S]*?border-radius:24px;[\s\S]*?rgba\(100,127,188,\.10\)/);
+ assert.match(refreshCss,/\.login-minimal-content::before\{[\s\S]*?radial-gradient\(ellipse at 51% 48%,rgba\(117,148,215,\.17\)/);
+ const loginCardCss=refreshCss.match(/\.login-minimal-card\{([^}]+)\}/)?.[1]||'';
+ assert.match(loginCardCss,/border-radius:24px;[\s\S]*?0 23px 52px rgba\(40,59,92,\.065\)/);
+ assert.doesNotMatch(loginCardCss,/0 0 0 5px|0 0 46px/);
  assert.match(refreshCss,/\.login-minimal-cardbody\{[\s\S]*?padding:43px 39px 43px/);
  assert.match(refreshCss,/@media\(min-width:821px\) and \(min-height:620px\)\{[\s\S]*?\.login-minimal\{height:100dvh;min-height:0;overflow:hidden\}/);
  assert.doesNotMatch(login,/研究有据|决策有序|识别市场结构|坚持决策纪律/);
