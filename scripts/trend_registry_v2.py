@@ -83,9 +83,14 @@ def exit_archive(previous, proposed, source_sha):
 def validate_v2(previous, proposed, source_sha, archive=None,
                 snapshot=None, sector_audit=None):
     """Structural fail-closed V2 gate. External evidence truth is not asserted."""
-    from scripts.validate_trend_state_migrations import (
-        _valid_evidence, _market_state_evidence, _optional_sector_audit_valid,
-        STATES, T_STATES, T_STATE_RANK)
+    try:
+        from scripts.validate_trend_state_migrations import (
+            _valid_evidence, _market_state_evidence, _optional_sector_audit_valid,
+            STATES, T_STATES, T_STATE_RANK)
+    except ModuleNotFoundError:
+        from validate_trend_state_migrations import (
+            _valid_evidence, _market_state_evidence, _optional_sector_audit_valid,
+            STATES, T_STATES, T_STATE_RANK)
     errors = []
     before, day = previous.get("trade_date"), proposed.get("trade_date")
     if proposed.get("schema_version") != 2 or proposed.get("result_kind") != "a_share_trend_registry":

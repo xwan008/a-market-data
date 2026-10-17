@@ -52,6 +52,10 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_trend_*.py' -v
       - name: Validate source compiles
         run: python -m py_compile scripts/validate_trend_state_migrations.py scripts/validate_trend_publication_pair.py scripts/audit_trend_lifecycle_semantics.py scripts/validate_trend_discovery_checkpoint.py scripts/build_trend_outcome_cohort.py
+      - name: Verify real V2 cutover archive and published handoff
+        run: |
+          python scripts/validate_trend_state_migrations.py --previous research/trend_archive/2026-10-16_v1_snapshot.json --proposed research/trend_registry.json --previous-blob-sha d98dbd238aecd50ef68256b30f0a1f8aac4e12c5 --archive research/trend_archive/2026-10-16_v1_snapshot.json
+          python scripts/validate_trend_publication_pair.py --registry research/trend_registry.json --handoff research/trend_handoff.json
       - name: Smoke test latest frozen registry and handoff consistency (historical mode only)
         run: python scripts/validate_trend_publication_pair.py --registry research/trend_registry.json --handoff research/trend_handoff.json --historical-baseline-only
       - name: Audit past lifecycle classification without modifying official registry

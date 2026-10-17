@@ -35,7 +35,7 @@ def fixture():
 def later(previous):
     proposed = copy.deepcopy(previous)
     proposed["trade_date"] = DAY1
-    proposed["trends"] = [copy.deepcopy(t) for t in previous["trends"]]
+    proposed["trends"] = [copy.deepcopy(t) for t in previous["trends"] if v2.tracking(t)]
     proposed["scan_audit"]["state_migration_gate"] = {
         "mode": "full_close", "current_trade_date": DAY1,
         "previous_registry_trade_date": DAY0, "previous_registry_blob_sha": SHA,

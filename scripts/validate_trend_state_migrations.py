@@ -91,7 +91,10 @@ def validate(previous, proposed, baseline_sha, snapshot=None, sector_audit=None,
     ratio or turnover multiple automatically establishes or rejects a trend.
     """
     if proposed.get("schema_version") == 2:
-        from scripts.trend_registry_v2 import validate_v2
+        try:
+            from scripts.trend_registry_v2 import validate_v2
+        except ModuleNotFoundError:
+            from trend_registry_v2 import validate_v2
         return validate_v2(previous, proposed, baseline_sha, archive, snapshot, sector_audit)
     errors = []
     if previous.get("schema_version") != 1 or proposed.get("schema_version") != 1:
