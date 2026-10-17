@@ -11,16 +11,16 @@ spec.loader.exec_module(m)
 
 def fixture():
     registry = {
-        "schema_version": 1, "result_kind": "a_share_trend_registry",
+        "schema_version": 2, "result_kind": "a_share_trend_registry",
         "status": "COMPLETE", "trade_date": "2026-10-13",
         "scan_audit": {"state_migration_gate": {
             "mode": "full_close", "current_trade_date": "2026-10-13"}},
         "trends": [
-            {"trend_name": "黄金", "in_new_position_priority": True,
+            {"trend_name": "黄金", "episode_id": "黄金#2026-10-13", "in_new_position_priority": True,
              "market_state": "候选趋势", "trend_state": "T1",
              "lifecycle_status": "有效",
              "industry_codes": ["S240401"], "industry_names": ["黄金"]},
-            {"trend_name": "其他", "in_new_position_priority": False,
+            {"trend_name": "其他", "episode_id": "其他#2026-10-13", "in_new_position_priority": False,
              "market_state": "观察", "trend_state": "T1",
              "lifecycle_status": "有效",
              "industry_codes": ["S000000"], "industry_names": ["示例"]}
@@ -41,6 +41,11 @@ def fixture():
 class PublicationPairTests(unittest.TestCase):
     def test_valid_pair(self):
         self.assertEqual(m.validate(*fixture()), [])
+
+    def test_cutover_is_not_a_production_mode(self):
+        r, h = fixture()
+        r["scan_audit"]["state_migration_gate"]["mode"] = "v2_cutover"
+        self.assertIn("migration_gate_missing", m.validate(r, h))
 
     def test_old_handoff_is_rejected(self):
         r, h = fixture()
@@ -68,7 +73,8 @@ class PublicationPairTests(unittest.TestCase):
         r, h = fixture()
         del r["scan_audit"]["state_migration_gate"]
         self.assertIn("migration_gate_missing", m.validate(r, h))
-        self.assertEqual(m.validate(r, h, require_migration=False), [])
+        r["schema_version"] = 1
+        self.assertIn("schema_version_mismatch", m.validate(r, h))
 
 
 if __name__ == "__main__":

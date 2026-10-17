@@ -1,7 +1,7 @@
 import copy
 import unittest
 
-from scripts import trend_registry_v2 as v2
+from scripts import trend_registry as engine
 from scripts import validate_trend_state_migrations as gate
 from scripts import validate_trend_publication_pair as pair
 
@@ -22,20 +22,16 @@ def entry(name, state, day=DAY0):
 
 
 def fixture():
-    old = {
-        "schema_version": 1, "result_kind": "a_share_trend_registry",
-        "trade_date": DAY0, "status": "COMPLETE", "generated_at": DAY0,
-        "trends": [entry("A", "候选趋势"), entry("B", "观察"),
-                   entry("C", "失效")],
-    }
-    new = v2.cutover(old, SHA)
-    return old, new
+    old = {"schema_version": 2, "result_kind": "a_share_trend_registry",
+           "status": "COMPLETE", "trade_date": DAY0, "trends": [
+               dict(entry("A", "候选趋势"), episode_id="A#" + DAY0)]}
+    return old, copy.deepcopy(old)
 
 
 def later(previous):
     proposed = copy.deepcopy(previous)
     proposed["trade_date"] = DAY1
-    proposed["trends"] = [copy.deepcopy(t) for t in previous["trends"] if v2.tracking(t)]
+    proposed["trends"] = [copy.deepcopy(t) for t in previous["trends"] if engine.tracking(t)]
     proposed["scan_audit"]["state_migration_gate"] = {
         "mode": "full_close", "current_trade_date": DAY1,
         "previous_registry_trade_date": DAY0, "previous_registry_blob_sha": SHA,
@@ -51,18 +47,21 @@ def later(previous):
     return proposed
 
 
-class TrendV2Tests(unittest.TestCase):
-    def test_cutover_exact_and_minimal(self):
-        old, new = fixture()
-        self.assertEqual(new["schema_version"], 2)
-        self.assertEqual(len(new["trends"]), 1)
-        self.assertEqual(gate.validate(old, new, SHA, archive=old), [])
-        self.assertIn("legacy_archive_not_exact", gate.validate(old, new, SHA, archive={}))
-        new["trends"][0]["state_history"] = []
-        self.assertIn("cutover_active_pool_not_exact", gate.validate(old, new, SHA, archive=old))
+class TrendRegistryTests(unittest.TestCase):
+    def test_previous_schema_not_accepted(self):
+        old, now = fixture()
+        now = later(old)
+        old["schema_version"] = 1
+        self.assertIn("schema_version_mismatch", gate.validate(old, now, SHA))
+
+    def test_normal_close_only(self):
+        old, now = fixture()
+        now = later(old)
+        now["scan_audit"]["state_migration_gate"]["mode"] = "v2_cutover"
+        self.assertIn("invalid_close_mode", gate.validate(old, now, SHA))
 
     def test_active_continuity_only(self):
-        _, old = fixture()
+        old, _ = fixture()
         now = later(old)
         self.assertEqual(gate.validate(old, now, SHA), [])
         now["trends"] = []
@@ -76,7 +75,7 @@ class TrendV2Tests(unittest.TestCase):
         old["trends"].append(obs)
         now = later(old)
         now["scan_audit"]["state_migration_gate"]["archived_count"] = 1
-        arch = v2.exit_archive(old, now, SHA)
+        arch = engine.exit_archive(old, now, SHA)
         self.assertEqual(gate.validate(old, now, SHA, archive=arch), [])
         self.assertIn("missing_or_inexact_exit_archive", gate.validate(old, now, SHA))
         new_obs = entry("B", "观察", DAY1)
@@ -87,7 +86,7 @@ class TrendV2Tests(unittest.TestCase):
         self.assertIn("B#" + DAY0 + ":old_nontracking_episode_reused", gate.validate(old, now, SHA, archive=arch))
 
     def test_downgrade_requires_real_market_evidence(self):
-        _, old = fixture()
+        old, _ = fixture()
         now = later(old)
         now["trends"][0]["market_state"] = "观察"
         now["trends"][0]["state_history"].append(
@@ -98,8 +97,8 @@ class TrendV2Tests(unittest.TestCase):
                       gate.validate(old, now, SHA))
 
     def test_handoff_unchanged_contract(self):
-        _, reg = fixture()
-        reg["scan_audit"]["state_migration_gate"]["mode"] = "full_close"
+        reg, _ = fixture()
+        reg["scan_audit"]={"state_migration_gate":{"mode":"full_close","current_trade_date":DAY0}}
         reg["trends"][0]["in_new_position_priority"] = True
         handoff = {
             "schema_version": 1, "result_kind": "a_share_trend_handoff",
@@ -111,7 +110,7 @@ class TrendV2Tests(unittest.TestCase):
         }
         self.assertEqual(pair.validate(reg, handoff), [])
         reg["trends"][0]["market_state"] = "失效"
-        self.assertIn("A:ineligible_v2_priority_state", pair.validate(reg, handoff))
+        self.assertIn("A:ineligible_priority_state", pair.validate(reg, handoff))
 
 
 if __name__ == "__main__":

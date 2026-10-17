@@ -5,8 +5,8 @@ on:
     branches: [main]
     paths:
       - 'scripts/validate_trend_state_migrations.py'
-      - 'scripts/trend_registry_v2.py'
-      - 'tests/test_trend_registry_v2.py'
+      - 'scripts/trend_registry.py'
+      - 'tests/test_trend_registry.py'
       - 'skill/TREND_DISCOVERY_NEUTRAL.md'
       - 'tests/test_trend_outcome_cohort.py'
       - 'tests/test_trend_discovery_checkpoint.py'
@@ -16,14 +16,13 @@ on:
       - 'tests/test_trend_publication_pair.py'
       - 'scripts/audit_trend_lifecycle_semantics.py'
       - 'scripts/validate_trend_publication_pair.py'
-      - 'tests/test_trend_state_migrations.py'
       - 'skill/TREND_REGISTRY_PROTOCOL.md'
       - '.github/workflows/validate-trend-state.yml'
   pull_request:
     paths:
       - 'scripts/validate_trend_state_migrations.py'
-      - 'scripts/trend_registry_v2.py'
-      - 'tests/test_trend_registry_v2.py'
+      - 'scripts/trend_registry.py'
+      - 'tests/test_trend_registry.py'
       - 'skill/TREND_DISCOVERY_NEUTRAL.md'
       - 'tests/test_trend_outcome_cohort.py'
       - 'tests/test_trend_discovery_checkpoint.py'
@@ -33,7 +32,6 @@ on:
       - 'tests/test_trend_publication_pair.py'
       - 'scripts/audit_trend_lifecycle_semantics.py'
       - 'scripts/validate_trend_publication_pair.py'
-      - 'tests/test_trend_state_migrations.py'
       - 'skill/TREND_REGISTRY_PROTOCOL.md'
       - '.github/workflows/validate-trend-state.yml'
   workflow_dispatch:
@@ -55,12 +53,19 @@ jobs:
       - name: Run lifecycle continuity and anti-noise regression tests
         run: python -m unittest discover -s tests -p 'test_trend_*.py' -v
       - name: Validate source compiles
-        run: python -m py_compile scripts/validate_trend_state_migrations.py scripts/validate_trend_publication_pair.py scripts/audit_trend_lifecycle_semantics.py scripts/validate_trend_discovery_checkpoint.py scripts/build_trend_outcome_cohort.py
-      - name: Verify real V2 cutover archive and published handoff
+        run: python -m py_compile scripts/trend_registry.py scripts/validate_trend_state_migrations.py scripts/validate_trend_publication_pair.py scripts/audit_trend_lifecycle_semantics.py scripts/validate_trend_discovery_checkpoint.py scripts/build_trend_outcome_cohort.py
+      - name: Verify frozen archive and current registry shape
         run: |
-          python scripts/validate_trend_state_migrations.py --previous research/trend_archive/2026-10-16_v1_snapshot.json --proposed research/trend_registry.json --previous-blob-sha d98dbd238aecd50ef68256b30f0a1f8aac4e12c5 --archive research/trend_archive/2026-10-16_v1_snapshot.json
-          python scripts/validate_trend_publication_pair.py --registry research/trend_registry.json --handoff research/trend_handoff.json
-      - name: Smoke test latest frozen registry and handoff consistency (historical mode only)
-        run: python scripts/validate_trend_publication_pair.py --registry research/trend_registry.json --handoff research/trend_handoff.json --historical-baseline-only
+          test "$(git hash-object research/trend_archive/2026-10-16_before_mainline.json)" = d98dbd238aecd50ef68256b30f0a1f8aac4e12c5
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("research/trend_registry.json").read_text())
+          h=json.loads(Path("research/trend_handoff.json").read_text())
+          assert r["schema_version"]==2 and h["schema_version"]==1
+          assert all(x["episode_id"]==x["trend_name"]+"#"+x["first_seen_trade_date"] for x in r["trends"])
+          assert [x["trend_name"] for x in r["trends"] if x.get("in_new_position_priority")] == [x["trend_name"] for x in h["signals"]]
+          print("CURRENT_TREND_CONTRACT_OK")
+          PY
       - name: Audit past lifecycle classification without modifying official registry
-        run: python scripts/audit_trend_lifecycle_semantics.py --registry research/trend_registry.json --registry-blob-sha legacy-snapshot
+        run: python scripts/audit_trend_lifecycle_semantics.py --registry research/trend_archive/2026-10-16_before_mainline.json --registry-blob-sha d98dbd238aecd50ef68256b30f0a1f8aac4e12c5

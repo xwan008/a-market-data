@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-"""V2 trend lifecycle: independent discovery, candidate continuity, cold exits.
+"""Canonical active trend continuity and cold exit validation.
 
-Archived episodes are never read for ordinary research or used as evidence.
-This module validates transitions and provides deterministic archive artifacts.
+Archived episodes are not included in daily discovery or continuity input.
 """
 import argparse
 import copy
@@ -10,10 +9,68 @@ import json
 import re
 from pathlib import Path
 
+STATES = {"失效": 0, "高潮/衰退": 1, "观察": 2, "新异动": 2,
+          "候选趋势": 3, "趋势确认": 4}
+T_STATES = {"T0", "T1", "T2", "待核验"}
+T_STATE_RANK = {"待核验": 0, "T0": 1, "T1": 2, "T2": 3}
+DIMENSIONS = {"COMMODITY_ANCHOR", "INDUSTRY_FUNDAMENTALS", "MARKET_STRUCTURE",
+              "MARKET_BREADTH", "RELATIVE_STRENGTH", "SUPPLY_DEMAND",
+              "MAJOR_CATALYST"}
+SOURCE = re.compile(r"^(https?://\S+|(?:data|research)/[\w./-]+)$")
+DAY = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+
 TRACK = {"趋势确认", "候选趋势"}
 MARKET = {"趋势确认", "候选趋势", "观察", "新异动", "高潮/衰退", "失效"}
-DAY = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 SHA = re.compile(r"^[0-9a-f]{40}$")
+
+def _valid_evidence(e, after_day):
+    """Verify provenance/shape, not the truth of external market claims."""
+    if not isinstance(e, dict):
+        return False
+    day = e.get("trade_date")
+    window = e.get("window_trading_days")
+    return (
+        e.get("dimension") in DIMENSIONS
+        and e.get("direction") in {"SUPPORT", "COUNTER"}
+        and e.get("impact") in {"NORMAL", "STRUCTURAL", "CRITICAL"}
+        and isinstance(day, str) and DAY.fullmatch(day) is not None
+        and day <= after_day
+        and isinstance(e.get("source"), str) and SOURCE.fullmatch(e["source"]) is not None
+        and isinstance(e.get("finding"), str) and len(e["finding"].strip()) >= 10
+        and (window is None or (isinstance(window, int) and not isinstance(window, bool) and window > 0))
+    )
+
+
+def _market_state_evidence(evidence, direction, since, require_confirmation=False):
+    """One evidence-quality rule, independent of elapsed trading-day count.
+
+    Market structure must be material; breadth and relative strength provide
+    independent corroboration. Industry news cannot substitute for A-share
+    participation. Data verification and contradiction appraisal remain model
+    research responsibilities, not promises of this metadata gate.
+    """
+    fresh = [e for e in evidence if e["direction"] == direction and e["trade_date"] > since]
+    structural = any(e["dimension"] == "MARKET_STRUCTURE"
+                     and e["impact"] in {"STRUCTURAL", "CRITICAL"} for e in fresh)
+    breadth = any(e["dimension"] == "MARKET_BREADTH" for e in fresh)
+    relative = any(e["dimension"] == "RELATIVE_STRENGTH" for e in fresh)
+    return structural and breadth and relative if require_confirmation else structural and (breadth or relative)
+
+
+def _optional_sector_audit_valid(sector_audit, day):
+    """Optional audit quality check; no hard breadth or turnover threshold."""
+    if not isinstance(sector_audit, dict) or sector_audit.get("trade_date") != day:
+        return False
+    sectors, count = sector_audit.get("sectors"), sector_audit.get("industry_count")
+    if not isinstance(sectors, list) or not isinstance(count, int) or isinstance(count, bool) or count < 0:
+        return False
+    ids = [s.get("id") for s in sectors if isinstance(s, dict)]
+    return (len(ids) == len(sectors) and all(isinstance(i, str) and i for i in ids)
+            and len(set(ids)) == len(ids)
+            and sum(i.startswith("industry:") for i in ids) == count)
+
 
 
 def tracking(item):
@@ -24,55 +81,16 @@ def episode_key(name, first_seen):
     return f"{name}#{first_seen}"
 
 
-def cutover(previous, source_sha):
-    """One-time v1 -> v2 conversion, without rewriting old trend evidence."""
-    if previous.get("schema_version") != 1 or previous.get("status") != "COMPLETE":
-        raise ValueError("V1_COMPLETE_BASELINE_REQUIRED")
-    if not isinstance(source_sha, str) or not SHA.fullmatch(source_sha):
-        raise ValueError("REAL_SOURCE_BLOB_SHA_REQUIRED")
-    active = []
-    for item in previous["trends"]:
-        if tracking(item):
-            t = copy.deepcopy(item)
-            t["episode_id"] = episode_key(t["trend_name"], t["first_seen_trade_date"])
-            active.append(t)
-    day = previous["trade_date"]
-    out = {
-        "schema_version": 2,
-        "result_kind": "a_share_trend_registry",
-        "trade_date": day,
-        "generated_at": previous.get("generated_at"),
-        "timezone": "Asia/Shanghai",
-        "status": "COMPLETE",
-        "scan_audit": {
-            "mode": "v2_cutover", "previous_registry_trade_date": day,
-            "original_trend_count": len(previous["trends"]),
-            "active_trend_count": len(active),
-            "archived_trend_count": len(previous["trends"]) - len(active),
-            "source_legacy_blob_sha": source_sha,
-            "state_migration_gate": {
-                "mode": "v2_cutover", "previous_registry_trade_date": day,
-                "previous_registry_blob_sha": source_sha,
-                "current_trade_date": day, "reviews": [],
-                "archived_count": len(previous["trends"]) - len(active),
-            },
-        },
-        "trends": active,
-        "invalidated_history": [],
-        "recheck_queue": [],
-    }
-    return out
-
 
 def exit_archive(previous, proposed, source_sha):
     """Freeze ALL previously non-tracked entries before they leave the live JSON."""
     if previous.get("schema_version") != 2 or proposed.get("schema_version") != 2:
-        raise ValueError("V2_REQUIRED")
+        raise ValueError("CURRENT_REGISTRY_REQUIRED")
     if not isinstance(source_sha, str) or not SHA.fullmatch(source_sha):
         raise ValueError("REAL_SOURCE_BLOB_SHA_REQUIRED")
     return {
         "schema_version": 1,
-        "result_kind": "a_share_trend_v2_exit_archive",
+        "result_kind": "a_share_trend_exit_archive",
         "source_registry_trade_date": previous["trade_date"],
         "archive_trade_date": proposed["trade_date"],
         "source_registry_blob_sha": source_sha,
@@ -80,29 +98,21 @@ def exit_archive(previous, proposed, source_sha):
     }
 
 
-def validate_v2(previous, proposed, source_sha, archive=None,
-                snapshot=None, sector_audit=None):
-    """Structural fail-closed V2 gate. External evidence truth is not asserted."""
-    try:
-        from scripts.validate_trend_state_migrations import (
-            _valid_evidence, _market_state_evidence, _optional_sector_audit_valid,
-            STATES, T_STATES, T_STATE_RANK)
-    except ModuleNotFoundError:
-        from validate_trend_state_migrations import (
-            _valid_evidence, _market_state_evidence, _optional_sector_audit_valid,
-            STATES, T_STATES, T_STATE_RANK)
+
+def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None, archive=None):
+    """Fail closed on unverified state changes, silent exit or stale evidence."""
     errors = []
     before, day = previous.get("trade_date"), proposed.get("trade_date")
-    if proposed.get("schema_version") != 2 or proposed.get("result_kind") != "a_share_trend_registry":
-        errors.append("v2_schema_invalid")
-    if previous.get("schema_version") not in (1, 2):
-        errors.append("unsupported_previous_schema")
+    if previous.get("schema_version") != 2 or proposed.get("schema_version") != 2:
+        errors.append("schema_version_mismatch")
+    if previous.get("result_kind") != "a_share_trend_registry" or proposed.get("result_kind") != "a_share_trend_registry":
+        errors.append("result_kind_mismatch")
     if previous.get("status") != "COMPLETE" or proposed.get("status") != "COMPLETE":
         errors.append("registry_not_complete")
     if not isinstance(before, str) or not DAY.fullmatch(before) or not isinstance(day, str) or not DAY.fullmatch(day):
-        errors.append("invalid_trade_dates")
+        return errors + ["invalid_trade_dates"]
     if not isinstance(source_sha, str) or not SHA.fullmatch(source_sha):
-        errors.append("invalid_previous_blob_sha")
+        return errors + ["invalid_previous_blob_sha"]
     if snapshot is not None and (snapshot.get("trade_date") != day or
                                  snapshot.get("point_in_time_eligible") is not True or
                                  snapshot.get("auxiliary_only") is not True):
@@ -123,22 +133,8 @@ def validate_v2(previous, proposed, source_sha, archive=None,
     if not all(isinstance(n, str) and n for n in ids) or len(set(ids)) != len(ids):
         errors.append("duplicate_or_missing_episode_ids")
 
-    if previous.get("schema_version") == 1:
-        if gate.get("mode") != "v2_cutover" or day != before:
-            errors.append("invalid_v2_cutover_mode")
-        if archive != previous:
-            errors.append("legacy_archive_not_exact")
-        expected = cutover(previous, source_sha)["trends"] if SHA.fullmatch(str(source_sha)) else []
-        if proposed["trends"] != expected:
-            errors.append("cutover_active_pool_not_exact")
-        if gate.get("archived_count") != len(previous["trends"]) - len(expected):
-            errors.append("cutover_archive_count_invalid")
-        if (proposed.get("scan_audit") or {}).get("source_legacy_blob_sha") != source_sha:
-            errors.append("cutover_legacy_source_invalid")
-        return errors
-
     if not isinstance(before, str) or not isinstance(day, str) or day <= before or gate.get("mode") != "full_close":
-        errors.append("invalid_v2_close_mode")
+        errors.append("invalid_close_mode")
     prior_by_id = {t.get("episode_id"): t for t in previous["trends"]}
     curr_by_id = {t.get("episode_id"): t for t in proposed["trends"]}
     if len(prior_by_id) != len(previous["trends"]):
@@ -212,7 +208,7 @@ def validate_v2(previous, proposed, source_sha, archive=None,
     to_archive = [t for t in previous["trends"] if not tracking(t)]
     archived = (archive or {}).get("episodes", []) if isinstance(archive, dict) else []
     if to_archive:
-        if not isinstance(archive, dict) or archive.get("result_kind") != "a_share_trend_v2_exit_archive" or archive.get("source_registry_blob_sha") != source_sha or archive.get("source_registry_trade_date") != before or archive.get("archive_trade_date") != day or archived != to_archive:
+        if not isinstance(archive, dict) or archive.get("result_kind") != "a_share_trend_exit_archive" or archive.get("source_registry_blob_sha") != source_sha or archive.get("source_registry_trade_date") != before or archive.get("archive_trade_date") != day or archived != to_archive:
             errors.append("missing_or_inexact_exit_archive")
     elif archive is not None and (not isinstance(archived, list) or archived):
         errors.append("unexpected_archive_entries")
@@ -238,7 +234,6 @@ def validate_v2(previous, proposed, source_sha, archive=None,
         if not isinstance(item.get("supporting_evidence"), list) or not item["supporting_evidence"]:
             errors.append(f"{episode}:new_cycle_without_evidence")
         if item.get("market_state") == "趋势确认":
-            review = by_id.get(episode)
             # Newly confirmed names need separate first-confirmation support,
             # and a matching new-episode review (excluded from old HOLD coverage).
             new_reviews = gate.get("new_confirmation_reviews") or []
@@ -250,36 +245,20 @@ def validate_v2(previous, proposed, source_sha, archive=None,
     return errors
 
 
-def _load(path):
-    return json.loads(Path(path).read_text(encoding="utf-8"))
-
-
-def _write(path, data):
-    Path(path).parent.mkdir(parents=True, exist_ok=True)
-    Path(path).write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-
-
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--mode", required=True, choices=["cutover", "archive-exits"])
     p.add_argument("--previous", required=True)
-    p.add_argument("--proposed")
+    p.add_argument("--proposed", required=True)
     p.add_argument("--previous-blob-sha", required=True)
-    p.add_argument("--registry-output")
     p.add_argument("--archive-output", required=True)
     a = p.parse_args()
-    previous = _load(a.previous)
-    if a.mode == "cutover":
-        if not a.registry_output:
-            p.error("--registry-output is required for cutover")
-        _write(a.registry_output, cutover(previous, a.previous_blob_sha))
-        # The frozen legacy archive is the EXACT full original JSON.
-        Path(a.archive_output).parent.mkdir(parents=True, exist_ok=True)
-        Path(a.archive_output).write_bytes(Path(a.previous).read_bytes())
-    else:
-        if not a.proposed:
-            p.error("--proposed required for archive-exits")
-        _write(a.archive_output, exit_archive(previous, _load(a.proposed), a.previous_blob_sha))
+    def load(path):
+        return json.loads(Path(path).read_text(encoding="utf-8"))
+    archive = exit_archive(load(a.previous), load(a.proposed), a.previous_blob_sha)
+    dest = Path(a.archive_output)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(json.dumps(archive, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps({"status": "PASS", "archived_count": len(archive["episodes"])}, ensure_ascii=False))
 
 
 if __name__ == "__main__":

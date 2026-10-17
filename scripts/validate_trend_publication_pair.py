@@ -9,9 +9,9 @@ import json
 from pathlib import Path
 
 
-def validate(registry, handoff, require_migration=True):
+def validate(registry, handoff):
     errors = []
-    if registry.get("schema_version") not in (1, 2) or handoff.get("schema_version") != 1:
+    if registry.get("schema_version") != 2 or handoff.get("schema_version") != 1:
         errors.append("schema_version_mismatch")
     if registry.get("result_kind") != "a_share_trend_registry":
         errors.append("registry_result_kind_invalid")
@@ -23,10 +23,7 @@ def validate(registry, handoff, require_migration=True):
             registry.get("trade_date") != handoff.get("trade_date")):
         errors.append("trade_date_mismatch")
     gate = (registry.get("scan_audit") or {}).get("state_migration_gate") or {}
-    valid_mode = gate.get("mode") == "full_close" or (
-        registry.get("schema_version") == 2 and gate.get("mode") == "v2_cutover")
-    if require_migration and (not valid_mode or
-                              gate.get("current_trade_date") != registry.get("trade_date")):
+    if gate.get("mode") != "full_close" or gate.get("current_trade_date") != registry.get("trade_date"):
         errors.append("migration_gate_missing")
     trends = registry.get("trends")
     signals = handoff.get("signals")
@@ -37,10 +34,9 @@ def validate(registry, handoff, require_migration=True):
     names = [t.get("trend_name") for t in trends]
     if len(set(names)) != len(names):
         errors.append("duplicate_registry_trend")
-    if registry.get("schema_version") == 2:
-        ids = [t.get("episode_id") for t in trends]
-        if not all(isinstance(x, str) and x for x in ids) or len(set(ids)) != len(ids):
-            errors.append("duplicate_or_missing_episode_ids")
+    ids = [t.get("episode_id") for t in trends]
+    if not all(isinstance(x, str) and x for x in ids) or len(set(ids)) != len(ids):
+        errors.append("duplicate_or_missing_episode_ids")
     priority = [t for t in trends if t.get("in_new_position_priority") is True]
     actual = [s.get("trend_name") for s in signals]
     expected = [t.get("trend_name") for t in priority]
@@ -66,8 +62,8 @@ def validate(registry, handoff, require_migration=True):
             errors.append(f"{name}:invalid_industry_route")
         if source.get("lifecycle_status") == "已失效":
             errors.append(f"{name}:invalidated_theme_handed_off")
-        if registry.get("schema_version") == 2 and source.get("market_state") not in {"趋势确认", "候选趋势"}:
-            errors.append(f"{name}:ineligible_v2_priority_state")
+        if source.get("market_state") not in {"趋势确认", "候选趋势"}:
+            errors.append(f"{name}:ineligible_priority_state")
     return errors
 
 
@@ -75,17 +71,15 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--registry", required=True)
     parser.add_argument("--handoff", required=True)
-    parser.add_argument("--historical-baseline-only", action="store_true",
-                        help="Validate a pre-migration historical pair, not safe to publish")
     args = parser.parse_args()
     try:
         a = json.loads(Path(args.registry).read_text(encoding="utf-8"))
         b = json.loads(Path(args.handoff).read_text(encoding="utf-8"))
-        errors = validate(a, b, not args.historical_baseline_only)
+        errors = validate(a, b)
     except (OSError, ValueError, TypeError) as exc:
         errors = ["input_error:" + str(exc)]
     print(json.dumps({"status": "PASS" if not errors else "BLOCKED",
-                      "checks": "HISTORICAL" if args.historical_baseline_only else "PREPUBLICATION",
+                      "checks": "PREPUBLICATION",
                       "errors": errors}, ensure_ascii=False))
     return 1 if errors else 0
 
