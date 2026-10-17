@@ -13,7 +13,7 @@ def fixture():
     registry = {
         "schema_version": 2, "result_kind": "a_share_trend_registry",
         "status": "COMPLETE", "trade_date": "2026-10-13",
-        "scan_audit": {"state_migration_gate": {
+        "scan_audit": {"full_market_scan_completed": True, "state_migration_gate": {
             "mode": "full_close", "current_trade_date": "2026-10-13"}},
         "trends": [
             {"trend_name": "黄金", "episode_id": "黄金#2026-10-13", "in_new_position_priority": True,
@@ -21,7 +21,7 @@ def fixture():
              "lifecycle_status": "有效",
              "industry_codes": ["S240401"], "industry_names": ["黄金"]},
             {"trend_name": "其他", "episode_id": "其他#2026-10-13", "in_new_position_priority": False,
-             "market_state": "观察", "trend_state": "T1",
+             "market_state": "候选趋势", "trend_state": "T1",
              "lifecycle_status": "有效",
              "industry_codes": ["S000000"], "industry_names": ["示例"]}
         ]
@@ -46,6 +46,16 @@ class PublicationPairTests(unittest.TestCase):
         r, h = fixture()
         r["scan_audit"]["state_migration_gate"]["mode"] = "v2_cutover"
         self.assertIn("migration_gate_missing", m.validate(r, h))
+
+    def test_nontracking_rejected(self):
+        r, h = fixture()
+        r["trends"][1]["market_state"] = "观察"
+        self.assertIn("nontracking_persisted", m.validate(r, h))
+
+    def test_incomplete_scan_rejected(self):
+        r, h = fixture()
+        r["scan_audit"]["full_market_scan_completed"] = False
+        self.assertIn("full_market_scan_incomplete", m.validate(r, h))
 
     def test_old_handoff_is_rejected(self):
         r, h = fixture()

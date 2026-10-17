@@ -62,6 +62,7 @@ jobs:
           r=json.loads(Path("research/trend_registry.json").read_text())
           h=json.loads(Path("research/trend_handoff.json").read_text())
           assert r["schema_version"]==2 and h["schema_version"]==1
+          assert all(x["market_state"] in {"趋势确认","候选趋势"} and x.get("lifecycle_status")!="已失效" for x in r["trends"])
           assert all(x["episode_id"]==x["trend_name"]+"#"+x["first_seen_trade_date"] for x in r["trends"])
           assert [x["trend_name"] for x in r["trends"] if x.get("in_new_position_priority")] == [x["trend_name"] for x in h["signals"]]
           print("CURRENT_TREND_CONTRACT_OK")
