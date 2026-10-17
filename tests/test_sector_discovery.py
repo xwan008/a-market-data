@@ -54,7 +54,7 @@ class SectorDiscoveryTests(unittest.TestCase):
         self.assertTrue(snap["no_trade_signal"])
         self.assertEqual(snap["discovery_role"]["mode"], "AUXILIARY_EVIDENCE_ONLY")
         self.assertEqual(snap["discovery_role"]["primary_research"],
-                         "legacy_model_driven_full_market")
+                         "independent_full_market_research")
         self.assertFalse(snap["discovery_role"]["may_set_new_position_priority"])
         self.assertFalse(snap["discovery_role"]["may_determine_trend_state"])
         self.assertFalse(snap["discovery_role"]["may_override_independent_existing_trend"])
@@ -66,7 +66,7 @@ class SectorDiscoveryTests(unittest.TestCase):
     def test_protocol_preserves_original_model_decision_priority(self):
         protocol = (Path(__file__).resolve().parents[1]
                     / "skill/TREND_REGISTRY_PROTOCOL.md").read_text(encoding="utf-8")
-        self.assertIn("模型独立发现 → 全部旧趋势复核 → 合并判断、校验发布", protocol)
+        self.assertIn("模型独立发现 → 仅候选/确认连续复核 → 合并判断、校验发布", protocol)
         self.assertIn("Python只负责客观行情计算和必要技术校验", protocol)
         self.assertIn("不作为第二个趋势发现者", protocol)
         self.assertIn("数据缺失或无法核实时应如实说明", protocol)

@@ -215,7 +215,7 @@ def build(latest, industry_index, structure, concept_payload=None, review_cap=20
         "overlap_deduplicated_count": len(pool) - len(unique),
         "sectors": sorted(rows, key=lambda r: r["id"])
     }
-    # Ancillary sector evidence for cross-checking independent legacy model
+    # Ancillary sector evidence for cross-checking independent market research
     # research; optional grouping/refill only within supplemental review work.
     # Never choose, rank, admit, invalidate or replace official themes.
     candidate_overview = [
@@ -260,7 +260,7 @@ def build(latest, industry_index, structure, concept_payload=None, review_cap=20
         "scan_audit": {k: v for k, v in audit.items() if k != "sectors"},
         "discovery_role": {
             "mode": "AUXILIARY_EVIDENCE_ONLY",
-            "primary_research": "legacy_model_driven_full_market",
+            "primary_research": "independent_full_market_research",
             "may_determine_trend_state": False,
             "may_set_new_position_priority": False,
             "may_override_independent_existing_trend": False,
