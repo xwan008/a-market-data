@@ -20,6 +20,9 @@ test('login gives the right-hand access form a restrained, minimal layout',()=>{
  assert.match(refreshCss,/@media\(max-width:820px\)\{[\s\S]*?\.login-minimal-visual\{display:none\}/);
  assert.match(login,/<h1 id="login-title">欢迎回来<\/h1>/);
  assert.doesNotMatch(login,/私人研究空间/);
+ assert.doesNotMatch(login,/登录识势，继续研究。|识势 · W\.X\./);
+ assert.match(refreshCss,/\.login-minimal-content::before\{[\s\S]*?radial-gradient\(ellipse at 50% 49%,rgba\(111,138,197,\.20\)/);
+ assert.match(refreshCss,/\.login-minimal-card\{[\s\S]*?border-radius:22px;[\s\S]*?rgba\(100,127,188,\.12\)/);
  assert.doesNotMatch(login,/研究有据|决策有序|识别市场结构|坚持决策纪律/);
 });
 

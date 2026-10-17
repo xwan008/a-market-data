@@ -686,7 +686,7 @@ function Login({login,loading,error,setupError}) {
    <p className="login-minimal-mobiletagline">辨趋势之真伪，顺市场之大势。</p>
    <section className="login-minimal-content" aria-labelledby="login-title">
     <div className="login-minimal-card">
-     <div className="login-minimal-cardhead"><div><h1 id="login-title">欢迎回来</h1><p>登录识势，继续研究。</p></div><span className="login-minimal-cardicon"><ShieldCheck size={23} strokeWidth={1.65} aria-hidden="true"/></span></div>
+     <div className="login-minimal-cardhead"><h1 id="login-title">欢迎回来</h1><span className="login-minimal-cardicon"><ShieldCheck size={23} strokeWidth={1.65} aria-hidden="true"/></span></div>
      <div className="login-minimal-divider" aria-hidden="true"/>
      <form className="login-minimal-form" onSubmit={e=>{e.preventDefault();login(password)}}>
       <label htmlFor="pass">访问密码</label>
@@ -708,7 +708,6 @@ function Login({login,loading,error,setupError}) {
      {setupError&&<div className="login-minimal-warning" role="alert">站点尚未配置密码或会话密钥，请先完成部署配置。</div>}
     </div>
    </section>
-   <footer className="login-minimal-foot">识势 · W.X.</footer>
   </main>
  </div>;
 }
