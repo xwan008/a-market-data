@@ -39,14 +39,6 @@ def sample_data():
                     "industries": [
                         {"code": "S200101", "name": "Related only", "role": "core"}]}
                ]}
-    registry = {
-        "result_kind": "a_share_trend_registry", "trade_date": day,
-        "trends": [
-            {"trend_name": "Test trend", "lifecycle_status": "有效"},
-            {"trend_name": "Weak group", "lifecycle_status": "有效"},
-            {"trend_name": "Model only", "lifecycle_status": "有效"}
-        ]
-    }
     audit = {
         "trade_date": day, "industry_count": 3,
         "sectors": [
@@ -62,7 +54,7 @@ def sample_data():
              "relative_1d_vs_market_median_pct": 4.0}
         ]
     }
-    return latest, industry, structure, catalog, registry, audit
+    return latest, industry, structure, catalog, audit
 
 
 class ThemeEvidenceTests(unittest.TestCase):
@@ -80,21 +72,19 @@ class ThemeEvidenceTests(unittest.TestCase):
         self.assertNotIn("core_industries", candidate)
         self.assertTrue(result["no_trade_signal"])
         self.assertTrue(result["auxiliary_only"])
-        self.assertEqual(result["decision_authority"], "legacy_model_driven_trend_research")
+        self.assertEqual(result["decision_authority"], "independent_model_research_only")
         self.assertNotIn("trend_state", candidate)
         self.assertNotIn("priority_rank", candidate)
         self.assertEqual(len(result["unmapped_industry_alerts"]), 1)
         self.assertEqual(result["unmapped_industry_alerts"][0]["industry_code"], "S300101")
 
-    def test_known_old_trend_weakness_only_generates_alert(self):
+    def test_independent_research_snapshot_has_no_prior_theme_bias(self):
         result = build(*sample_data())
-        self.assertEqual(len(result["tracked_theme_alerts"]), 1)
-        alert = result["tracked_theme_alerts"][0]
-        self.assertEqual(alert["theme_name"], "Weak group")
-        self.assertIn("WEAK_BREADTH_AND_PRICE", alert["reason_codes"])
-        self.assertIn("Model only", result["scan_summary"]["unknown_tracked_themes"])
-        self.assertNotIn("trend_state", alert)
-        self.assertNotIn("invalidation", alert)
+        self.assertNotIn("tracked_theme_alerts", result)
+        self.assertNotIn("unknown_tracked_themes", result["scan_summary"])
+        self.assertNotIn("registry_baseline_trade_date", result["scan_summary"])
+        self.assertEqual(result["decision_authority"], "independent_model_research_only")
+        self.assertNotIn("legacy", str(result).lower())
 
     def test_not_all_themes_are_written_to_snapshot(self):
         result = build(*sample_data(), max_research=1)
@@ -134,14 +124,9 @@ class ThemeEvidenceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "catalog_industry_not_in_same_universe"):
             build(*data)
         data = list(sample_data())
-        data[5] = copy.deepcopy(data[5])
-        data[5]["trade_date"] = "2026-10-08"
-        with self.assertRaisesRegex(ValueError, "sector_audit_date_or_coverage_mismatch"):
-            build(*data)
-        data = list(sample_data())
         data[4] = copy.deepcopy(data[4])
-        data[4]["trade_date"] = "2026-10-10"
-        with self.assertRaisesRegex(ValueError, "future_or_invalid_registry"):
+        data[4]["trade_date"] = "2026-10-08"
+        with self.assertRaisesRegex(ValueError, "sector_audit_date_or_coverage_mismatch"):
             build(*data)
 
     def test_catalog_does_not_become_handoff_or_apply_alias_scores(self):

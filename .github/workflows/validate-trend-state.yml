@@ -54,9 +54,8 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_trend_*.py' -v
       - name: Validate source compiles
         run: python -m py_compile scripts/trend_registry.py scripts/validate_trend_state_migrations.py scripts/validate_trend_publication_pair.py scripts/audit_trend_lifecycle_semantics.py scripts/validate_trend_discovery_checkpoint.py scripts/build_trend_outcome_cohort.py
-      - name: Verify frozen archive and current registry shape
+      - name: Verify current active registry and handoff shape
         run: |
-          test "$(git hash-object research/trend_archive/2026-10-16_before_mainline.json)" = d98dbd238aecd50ef68256b30f0a1f8aac4e12c5
           python - <<'PY'
           import json
           from pathlib import Path
@@ -67,5 +66,4 @@ jobs:
           assert [x["trend_name"] for x in r["trends"] if x.get("in_new_position_priority")] == [x["trend_name"] for x in h["signals"]]
           print("CURRENT_TREND_CONTRACT_OK")
           PY
-      - name: Audit past lifecycle classification without modifying official registry
-        run: python scripts/audit_trend_lifecycle_semantics.py --registry research/trend_archive/2026-10-16_before_mainline.json --registry-blob-sha d98dbd238aecd50ef68256b30f0a1f8aac4e12c5
+

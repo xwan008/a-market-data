@@ -175,7 +175,7 @@ def _theme_metrics(theme, groups, stock_data, market_median):
     }
 
 
-def build(latest, industry_index, structure, catalog, registry=None, sector_audit=None,
+def build(latest, industry_index, structure, catalog, sector_audit=None,
           max_research=12, max_unmapped=8, retrospective=False):
     trade_date = str(latest.get("trade_date") or "")
     if not trade_date or latest.get("market_status") != "closed":
@@ -191,11 +191,6 @@ def build(latest, industry_index, structure, catalog, registry=None, sector_audi
         sector_audit.get("industry_count", 0) != len(groups)
     ):
         raise ValueError("sector_audit_date_or_coverage_mismatch")
-    if registry is not None and (
-        registry.get("result_kind") != "a_share_trend_registry"
-        or not registry.get("trade_date") or registry["trade_date"] > trade_date
-    ):
-        raise ValueError("future_or_invalid_registry_baseline")
 
     stock_codes = set().union(*groups.values())
     features = {code: stock_features(code, latest, structure, trade_date) for code in stock_codes}
@@ -259,38 +254,8 @@ def build(latest, industry_index, structure, catalog, registry=None, sector_audi
             if n in identity and identity[n] != theme["theme_id"]:
                 raise ValueError("alias_collision:" + n)
             identity[n] = theme["theme_id"]
-    by_id = {t["theme_id"]: t for t in detailed}
-    alerts, unknown_history = [], []
-    if registry:
-        for row in registry.get("trends") or []:
-            if row.get("lifecycle_status") == "已失效":
-                continue
-            name = row.get("trend_name")
-            tid = identity.get(name)
-            if not tid:
-                unknown_history.append(name)
-                continue
-            theme = by_id[tid]
-            reasons = []
-            if theme["sample_quality"] != "OK":
-                reasons.append("LOW_QUALITY")
-            if (theme["breadth_1d"] is not None
-                and theme["breadth_1d"] <= .35
-                and theme["median_return_1d_pct"] is not None
-                and theme["median_return_1d_pct"] < -.5):
-                reasons.append("WEAK_BREADTH_AND_PRICE")
-            if (theme["relative_strength_1d_vs_market_median_pct"] is not None
-                and theme["relative_strength_1d_vs_market_median_pct"] <= -1.5):
-                reasons.append("RELATIVE_UNDERPERFORMANCE")
-            if (theme["industry_breadth_gap"] is not None
-                and theme["industry_breadth_gap"] >= .5):
-                reasons.append("CORE_INDUSTRY_DIVERGENCE")
-            if reasons:
-                alerts.append({
-                    "theme_id": tid, "theme_name": name,
-                    "reason_codes": reasons, "evidence": brief(theme),
-                    "note": "Review under legacy model rules; never auto-invalidate a theme."
-                })
+    # Keep alias collision validation, but do not load any prior trend registry.
+    # Every theme metric below depends solely on dated market inputs/catalog.
 
     unmapped, total_unmapped = [], 0
     # 'Unmapped' means not yet in a CURATED RESEARCH THEME, even though
@@ -312,7 +277,7 @@ def build(latest, industry_index, structure, catalog, registry=None, sector_audi
              "advance_ratio": r["advance_ratio"],
              "relative_strength_1d_vs_market_median_pct":
                  r["relative_1d_vs_market_median_pct"],
-             "note": "Not yet linked to a curated research theme (SW L2 taxonomy is still covered); legacy model researches independently."}
+             "note": "Not yet linked to a curated research theme (SW L2 taxonomy is still covered); independent research is required; not an automatic trend signal."}
             for r in rows[:max_unmapped]
         ]
     status = "RETROSPECTIVE_MAPPING_SMOKE" if is_retrospective else "COMPLETE"
@@ -320,7 +285,7 @@ def build(latest, industry_index, structure, catalog, registry=None, sector_audi
         "schema_version": 1, "result_kind": "a_share_theme_evidence_snapshot",
         "trade_date": trade_date, "generated_at": datetime.now(TZ).isoformat(),
         "status": status, "no_trade_signal": True, "auxiliary_only": True,
-        "decision_authority": "legacy_model_driven_trend_research",
+        "decision_authority": "independent_model_research_only",
         "catalog_version": catalog["catalog_version"],
         "catalog_as_of_date": catalog["catalog_as_of_date"],
         "mapping_semantics": "curated_theme_plus_SW_L2_taxonomy;core_only_deduplicated_stocks;related_research_only",
@@ -339,17 +304,13 @@ def build(latest, industry_index, structure, catalog, registry=None, sector_audi
             "taxonomy_candidates_returned": sum(x["evidence_group_type"] == "SW_L2_TAXONOMY"
                                                  for x in research),
             "research_candidates_deferred": len(eligible) + len(taxonomy_eligible) - len(research),
-            "tracked_alert_count": len(alerts),
             "unmapped_industry_alert_count": len(unmapped),
             "unmapped_eligible_industry_count": total_unmapped,
-            "unknown_tracked_themes": unknown_history,
             "invalid_or_low_sample_themes": sum(t["sample_quality"] != "OK" for t in detailed),
             "sector_audit_status": "MATCHED" if sector_audit else "UNAVAILABLE",
-            "registry_baseline_trade_date": registry["trade_date"] if registry else None,
             "all_theme_detail_retention": "computed_in_memory_not_persisted"
         },
         "research_candidates": research,
-        "tracked_theme_alerts": alerts,
         "unmapped_industry_alerts": unmapped,
         "disclaimer": "Quantitative cross-check and gap detection only. No T0/T1/T2, trade signal, formal theme rank, or handoff."
     }
@@ -361,7 +322,6 @@ def main():
     p.add_argument("--industry-index", default="data/research/company_industry_index.json")
     p.add_argument("--shard-dir", default="data/shards")
     p.add_argument("--catalog", default="research/theme_industry_catalog.json")
-    p.add_argument("--registry", default="research/trend_registry.json")
     p.add_argument("--sector-audit", default="data/research/sector_discovery_audit.json")
     p.add_argument("--output", default="data/research/theme_evidence_snapshot.json")
     p.add_argument("--max-research", type=int, default=12)
@@ -373,10 +333,9 @@ def main():
             "data/research/theme_evidence_snapshot.json").resolve():
         p.error("retrospective smoke cannot overwrite the production evidence snapshot")
     catalog = read_json(args.catalog)
-    registry = read_json(args.registry) if Path(args.registry).exists() else None
     audit = read_json(args.sector_audit) if Path(args.sector_audit).exists() else None
     snapshot = build(read_json(args.latest), read_json(args.industry_index),
-                     load_momentum_shards(read_json(args.latest)["trade_date"], args.shard_dir), catalog, registry, audit,
+                     load_momentum_shards(read_json(args.latest)["trade_date"], args.shard_dir), catalog, audit,
                      args.max_research, args.max_unmapped, args.allow_retrospective_smoke)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(snapshot, ensure_ascii=False, indent=2) + "\n",
@@ -384,7 +343,6 @@ def main():
     print(json.dumps({"trade_date": snapshot["trade_date"], "status": snapshot["status"],
                       "evaluated": snapshot["scan_summary"]["themes_evaluated"],
                       "candidates": len(snapshot["research_candidates"]),
-                      "tracked_alerts": len(snapshot["tracked_theme_alerts"]),
                       "unmapped": len(snapshot["unmapped_industry_alerts"])},
                      ensure_ascii=False))
 
