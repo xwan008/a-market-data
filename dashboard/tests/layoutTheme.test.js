@@ -12,10 +12,14 @@ test('login gives the right-hand access form a restrained, minimal layout',()=>{
  assert.match(login,/className="login-minimal"/);
  assert.ok(login.indexOf('className="login-minimal-visual"')<login.indexOf('className="login-minimal-panel"'));
  assert.match(login,/className="login-minimal-art"/);
+ assert.match(login,/className="login-minimal-tagline"/);
+ assert.match(login,/辨趋势之真伪，<br\/><strong>顺市场之大势。<\/strong>/);
+ assert.match(login,/className="login-minimal-card"/);
  assert.doesNotMatch(login,/login-screen--terminal|login-editorial|login-market|login-visual/);
  assert.match(refreshCss,/\.login-minimal\{[\s\S]*?grid-template-columns:minmax\(0,58%\) minmax\(0,42%\)/);
  assert.match(refreshCss,/@media\(max-width:820px\)\{[\s\S]*?\.login-minimal-visual\{display:none\}/);
  assert.match(login,/<h1 id="login-title">欢迎回来<\/h1>/);
+ assert.doesNotMatch(login,/私人研究空间/);
  assert.doesNotMatch(login,/研究有据|决策有序|识别市场结构|坚持决策纪律/);
 });
 

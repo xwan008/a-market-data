@@ -660,48 +660,55 @@ function Login({login,loading,error,setupError}) {
     <span>识势</span>
    </div>
    <div className="login-minimal-art" aria-hidden="true">
-    <svg viewBox="0 0 760 650" preserveAspectRatio="xMidYMid meet" fill="none">
+    <svg viewBox="0 0 900 760" preserveAspectRatio="xMidYMid slice" fill="none">
      <defs>
-      <linearGradient id="login-minimal-line" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stopColor="#6981B5" stopOpacity=".08"/><stop offset=".42" stopColor="#8EA6D4" stopOpacity=".42"/><stop offset="1" stopColor="#D6E1FA" stopOpacity=".9"/></linearGradient>
-      <linearGradient id="login-minimal-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#9AB0D9" stopOpacity=".13"/><stop offset="1" stopColor="#9AB0D9" stopOpacity="0"/></linearGradient>
+      <linearGradient id="login-minimal-line" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stopColor="#8299C9" stopOpacity=".05"/><stop offset=".48" stopColor="#A8BAE0" stopOpacity=".54"/><stop offset="1" stopColor="#DDE6F8" stopOpacity=".95"/></linearGradient>
+      <linearGradient id="login-minimal-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#92A9D6" stopOpacity=".19"/><stop offset="1" stopColor="#92A9D6" stopOpacity="0"/></linearGradient>
+      <linearGradient id="login-minimal-arc" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#B5C7E8" stopOpacity=".34"/><stop offset="1" stopColor="#8198CA" stopOpacity="0"/></linearGradient>
      </defs>
-     <g stroke="#A9B9D8" strokeOpacity=".12" strokeWidth="1"><path d="M0 132 H760 M0 260 H760 M0 388 H760 M0 516 H760"/><path d="M126 0 V650 M278 0 V650 M430 0 V650 M582 0 V650 M734 0 V650"/></g>
-     <path d="M-20 543 C100 524 143 566 238 460 S374 494 464 347 S612 349 783 170 V650 H-20 Z" fill="url(#login-minimal-fill)"/>
-     <path d="M-20 543 C100 524 143 566 238 460 S374 494 464 347 S612 349 783 170" stroke="url(#login-minimal-line)" strokeWidth="3.5" strokeLinecap="round"/>
-     <path d="M-20 606 C108 606 171 574 253 544 S378 561 466 479 S613 504 783 362" stroke="#9EB1D8" strokeOpacity=".17" strokeWidth="1.2"/>
-     <circle cx="238" cy="460" r="5.5" fill="#C2D2F2" stroke="#30425F" strokeWidth="3"/>
-     <circle cx="464" cy="347" r="5.5" fill="#C2D2F2" stroke="#30425F" strokeWidth="3"/>
-     <circle cx="666" cy="287" r="3.5" fill="#91A9D7"/>
+     <g stroke="#A9BADB" strokeOpacity=".095" strokeWidth="1"><path d="M0 128 H900 M0 248 H900 M0 368 H900 M0 488 H900 M0 608 H900 M0 728 H900"/><path d="M96 0 V760 M216 0 V760 M336 0 V760 M456 0 V760 M576 0 V760 M696 0 V760 M816 0 V760"/></g>
+     <g stroke="url(#login-minimal-arc)" strokeWidth="1.25" opacity=".85"><circle cx="762" cy="169" r="234"/><circle cx="762" cy="169" r="315"/><circle cx="762" cy="169" r="404"/><path d="M365 169 H900 M762 -36 V576"/></g>
+     <rect x="340" y="195" width="592" height="370" rx="22" stroke="#B2C3E4" strokeOpacity=".16" strokeWidth="1.3"/>
+     <path d="M360 238 H908 M360 342 H908 M360 446 H908 M450 210 V550 M580 210 V550 M710 210 V550 M840 210 V550" stroke="#B2C3E4" strokeOpacity=".095" strokeDasharray="3 7"/>
+     <path d="M-30 638 C91 617 148 643 239 578 S354 609 448 493 S565 507 653 389 S767 380 940 215 L940 745 L-30 745 Z" fill="url(#login-minimal-fill)"/>
+     <path d="M-30 638 C91 617 148 643 239 578 S354 609 448 493 S565 507 653 389 S767 380 940 215" stroke="url(#login-minimal-line)" strokeWidth="3.1" strokeLinecap="round"/>
+     <path d="M-30 700 C108 678 186 702 282 659 S400 671 496 595 S653 631 751 520 S852 535 940 453" stroke="#829BCB" strokeOpacity=".19" strokeWidth="1.4"/>
+     <path d="M-30 573 C110 545 187 585 268 508 S392 526 479 431 S629 433 719 312 S852 319 940 151" stroke="#A1B6DD" strokeOpacity=".15" strokeWidth="1.2"/>
+     <g fill="#D6E0F4" stroke="#334764" strokeWidth="3"><circle cx="448" cy="493" r="5.5"/><circle cx="653" cy="389" r="5.5"/><circle cx="823" cy="331" r="5.5"/></g>
+     <path d="M448 493 H562 M653 389 H758" stroke="#AABEE2" strokeOpacity=".32" strokeDasharray="3 5"/>
+     <g stroke="#CAD6ED" strokeOpacity=".18"><path d="M340 217 V195 H362 M910 543 V565 H888"/></g>
     </svg>
    </div>
-   <div className="login-minimal-visual-foot"><span className="login-minimal-rule"/>辨趋势 · 识风险</div>
+   <div className="login-minimal-tagline"><span className="login-minimal-rule"/><h2>辨趋势之真伪，<br/><strong>顺市场之大势。</strong></h2></div>
   </aside>
   <main className="login-minimal-panel">
    <div className="login-minimal-mobilebrand"><img src="/favicon.svg" alt="" aria-hidden="true"/><span>识势</span></div>
+   <p className="login-minimal-mobiletagline">辨趋势之真伪，顺市场之大势。</p>
    <section className="login-minimal-content" aria-labelledby="login-title">
-    <div className="login-minimal-eyebrow"><span/>私人研究空间</div>
-    <h1 id="login-title">欢迎回来</h1>
-    <p className="login-minimal-subtitle">登录，继续你的趋势研究。</p>
-    <form className="login-minimal-form" onSubmit={e=>{e.preventDefault();login(password)}}>
-     <label htmlFor="pass">访问密码</label>
-     <div className="login-minimal-field">
-      <LockKeyhole size={18} aria-hidden="true"/>
-      <input id="pass" value={password} onChange={e=>setPassword(e.target.value)}
-       placeholder="请输入访问密码" type={showPassword?'text':'password'} autoComplete="current-password"
-       minLength={1} required/>
-      <button type="button" className="login-minimal-toggle" onClick={()=>setShowPassword(p=>!p)}
-       aria-label={showPassword?'隐藏密码':'显示密码'} aria-pressed={showPassword}>
-       {showPassword?<EyeOff size={18}/>:<Eye size={18}/>}
+    <div className="login-minimal-card">
+     <div className="login-minimal-cardhead"><div><h1 id="login-title">欢迎回来</h1><p>登录识势，继续研究。</p></div><span className="login-minimal-cardicon"><ShieldCheck size={23} strokeWidth={1.65} aria-hidden="true"/></span></div>
+     <div className="login-minimal-divider" aria-hidden="true"/>
+     <form className="login-minimal-form" onSubmit={e=>{e.preventDefault();login(password)}}>
+      <label htmlFor="pass">访问密码</label>
+      <div className="login-minimal-field">
+       <LockKeyhole size={18} aria-hidden="true"/>
+       <input id="pass" value={password} onChange={e=>setPassword(e.target.value)}
+        placeholder="请输入访问密码" type={showPassword?'text':'password'} autoComplete="current-password"
+        minLength={1} required/>
+       <button type="button" className="login-minimal-toggle" onClick={()=>setShowPassword(p=>!p)}
+        aria-label={showPassword?'隐藏密码':'显示密码'} aria-pressed={showPassword}>
+        {showPassword?<EyeOff size={18}/>:<Eye size={18}/>}
+       </button>
+      </div>
+      {error&&<p className="login-minimal-error" role="alert"><CircleAlert size={15}/>{error}</p>}
+      <button type="submit" className="login-minimal-submit" disabled={loading||!!setupError}>
+       <span>{loading?'正在验证…':'进入工作台'}</span><ArrowRight size={18} aria-hidden="true"/>
       </button>
-     </div>
-     {error&&<p className="login-minimal-error" role="alert"><CircleAlert size={15}/>{error}</p>}
-     <button type="submit" className="login-minimal-submit" disabled={loading||!!setupError}>
-      <span>{loading?'正在验证…':'进入工作台'}</span><ArrowRight size={18} aria-hidden="true"/>
-     </button>
-    </form>
-    {setupError&&<div className="login-minimal-warning" role="alert">站点尚未配置密码或会话密钥，请先完成部署配置。</div>}
+     </form>
+     {setupError&&<div className="login-minimal-warning" role="alert">站点尚未配置密码或会话密钥，请先完成部署配置。</div>}
+    </div>
    </section>
-   <footer className="login-minimal-foot">识势 · 私有访问</footer>
+   <footer className="login-minimal-foot">识势 · W.X.</footer>
   </main>
  </div>;
 }
