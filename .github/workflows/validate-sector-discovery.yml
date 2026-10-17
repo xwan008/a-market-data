@@ -116,7 +116,10 @@ jobs:
           assert all(x['evidence_group_type'] in ('RESEARCH_THEME','SW_L2_TAXONOMY') for x in t['research_candidates'])
           assert len(t['research_candidates'])<=12
           assert t['no_trade_signal'] and t['auxiliary_only']
-          assert t['decision_authority']=='legacy_model_driven_trend_research'
+          assert t['decision_authority']=='independent_model_research_only'
+          assert 'tracked_theme_alerts' not in t
+          assert 'registry_baseline_trade_date' not in t['scan_summary']
+          assert 'unknown_tracked_themes' not in t['scan_summary']
           assert 'all_theme_metrics' not in t
           assert 'trends' not in t
           print('AUXILIARY_THEME_SMOKE_VALID', json.dumps(t['scan_summary'], ensure_ascii=False))
