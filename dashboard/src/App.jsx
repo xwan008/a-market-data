@@ -747,7 +747,7 @@ export default function App(){
      {section==='portfolio'&&<Portfolio data={portfolio} status={status} monitor={datasets.monitor} holdingSnapshot={datasets.holdingSnapshot}/>}
      {section==='validation'&&<TrendValidation/>}
     </div>}
-    <footer className="main-footer"><span>w.x. · 识势</span><span>数据来自已发布的 GitHub 文件和私有 Airtable 记录 · 仅供研究参考，不构成交易建议</span><span>{payload?.receivedAt?`页面读取于 ${fmtTime(payload.receivedAt)}`:'等待同步'}</span></footer>
+    <footer className="main-footer"><span>w.x. · 识势</span><span>{payload?.receivedAt?`页面读取于 ${fmtTime(payload.receivedAt)}`:'等待同步'}</span></footer>
    </main>
   </div>
  </div>;

@@ -149,9 +149,22 @@ test('移除导航冗余英文，五页标题共用字号与基线，右上角�
  assert.match(refreshCss,/\.topbar\{padding-left:42px;padding-right:42px\}/);
  assert.match(refreshCss,/\.page-intro\{margin:0 0 20px\}/);
  assert.match(refreshCss,/\.portfolio-title-row h1\{margin:0 0 6px\}/);
- assert.match(refreshCss,/\.validation-page-heading h1\{margin:0 0 6px\}/);
+ assert.match(refreshCss,/\.validation-page-heading h1\{margin:0\}/);
  assert.match(refreshCss,/\.page-intro h1,\.decision-heading h1,\.portfolio-title-row h1,\.validation-page-heading h1\)\{[\s\S]*?font-size:26px/);
  assert.match(refreshCss,/@media\(max-width:760px\)\{[\s\S]*?\.topbar\{padding-left:14px;padding-right:14px\}/);
+});
+
+test('趋势验证去除冗余英文小标题与副标题，所有页面共用简洁页脚',()=>{
+ const validationHeading=validation.slice(validation.indexOf('<header className="validation-page-heading">'),validation.indexOf('{!ok?<section'));
+ assert.match(validationHeading,/<h1>趋势验证<\/h1>/);
+ assert.doesNotMatch(validationHeading,/<p>|eyebrow/);
+ assert.doesNotMatch(validation,/AWAITING VERIFIED DATA|FORWARD PERFORMANCE|SIGNAL ARCHIVE/);
+ assert.doesNotMatch(validation,/<div><span className="eyebrow">/);
+ const footer=app.slice(app.indexOf('<footer className="main-footer">'),app.indexOf('</footer>')+'</footer>'.length);
+ assert.match(footer,/w\.x\. · 识势/);
+ assert.match(footer,/页面读取于/);
+ assert.doesNotMatch(footer,/GitHub 文件和私有 Airtable 记录|仅供研究参考/);
+ assert.match(refreshCss,/\.validation-section-head h2\{margin:0\}/);
 });
 
 test('板块趋势把当日盘中覆盖与历史研究池分开呈现，缺值不视为异常',()=>{

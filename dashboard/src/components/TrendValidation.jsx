@@ -119,13 +119,12 @@ export default function TrendValidation(){
 
   return <div className="validation-page">
     <header className="validation-page-heading">
-      <div><h1>趋势验证</h1><p>用信号发布后的真实行情检验趋势表现，不将断档与未成熟样本计入成功率。</p></div>
+      <h1>趋势验证</h1>
       <span className="validation-page-asof"><CalendarDays size={15}/> 数据截至 {summary.as_of_trade_date||'尚无完成样本'}</span>
     </header>
 
     {!ok?<section className="validation-empty-state">
       <div className="validation-empty-icon"><CircleDotDashed size={27}/></div>
-      <span className="eyebrow">AWAITING VERIFIED DATA</span>
       <h2>证据仍在积累</h2>
       <p>{response?.error||'独立归档在完整的收盘研究完成后生成。暂时不使用无法核实的历史结果填充图表。'}</p>
       <div>归档 {status.validationSummary||'待发布'} <span/> 趋势 {status.validationTrends||'待发布'} <span/> 个股 {status.validationStocks||'待发布'}</div>
@@ -139,7 +138,7 @@ export default function TrendValidation(){
 
       <section className="validation-measurement">
         <div className="validation-section-head">
-          <div><span className="eyebrow">01 / FORWARD PERFORMANCE</span><h2>信号发布后，表现如何？</h2><p>相对全市场等权日收益代理基准；同一观察窗口下分别检验趋势和个股。</p></div>
+          <h2>信号发布后，表现如何？</h2>
           <div className="validation-horizon" role="group" aria-label="未来观察窗口">
             {['1','3','5','10','20'].map(n=><button key={n} type="button" aria-pressed={horizon===n} className={horizon===n?'active':''} onClick={()=>{setHorizon(n);setExpanded(null)}}>{n}<small>日</small></button>)}
           </div>
@@ -153,7 +152,7 @@ export default function TrendValidation(){
 
       <section className="validation-history">
         <div className="validation-section-head validation-history-head">
-          <div><span className="eyebrow">02 / SIGNAL ARCHIVE</span><h2>每一条信号，都有迹可循</h2><p>追溯持续时间、转折状态与观察区间，点击记录查看完整证据。</p></div>
+          <h2>每一条信号，都有迹可循</h2>
           <span className="validation-record-count">{rows.length} <small>条匹配记录</small></span>
         </div>
         <div className="validation-history-controls">
