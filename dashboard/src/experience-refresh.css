@@ -910,32 +910,20 @@
 }
 .login-minimal-card{
   position:relative;isolation:isolate;overflow:hidden;
-  background:#293F62;border:1px solid #D1DBEB;border-radius:25px;
-  box-shadow:0 28px 68px rgba(40,59,92,.14),0 0 0 5px rgba(212,223,243,.25),0 0 46px rgba(100,127,188,.11);
+  background:linear-gradient(150deg,#FFFFFF 0%,#FFFFFF 58%,#F8FAFD 100%);
+  border:1px solid #D9E2EF;border-radius:24px;
+  box-shadow:0 26px 65px rgba(40,59,92,.12),0 0 0 5px rgba(212,223,243,.23),0 0 46px rgba(100,127,188,.10);
 }
-.login-minimal-cardvisual{
-  position:relative;isolation:isolate;height:155px;overflow:hidden;
-  background:linear-gradient(121deg,#283C5E 0%,#354F77 55%,#263D63 100%);
+.login-minimal-card::before{
+  content:'';position:absolute;top:0;left:0;width:132px;height:3px;z-index:2;
+  background:linear-gradient(90deg,#435C8E,#91A6CD 70%,transparent);
 }
-.login-minimal-cardvisual::before{
-  content:'';position:absolute;inset:-85px -50px auto auto;width:300px;height:230px;
-  background:radial-gradient(ellipse,rgba(158,188,239,.17),transparent 70%);pointer-events:none;
+.login-minimal-card::after{
+  content:'';position:absolute;top:-105px;right:-105px;width:300px;height:250px;
+  background:radial-gradient(ellipse,rgba(174,195,231,.12),transparent 70%);pointer-events:none;
 }
-.login-minimal-cardvisual svg{position:absolute;inset:0;width:100%;height:100%;opacity:.97}
-.login-minimal-cardvisual-seal{
-  position:absolute;left:34px;top:27px;display:flex;align-items:flex-end;justify-content:center;gap:5px;
-  width:46px;height:46px;padding-bottom:13px;border-radius:14px;
-  background:linear-gradient(145deg,rgba(233,241,255,.14),rgba(213,226,249,.06));
-  border:1px solid rgba(220,232,252,.26);box-shadow:0 8px 25px rgba(9,23,47,.13),inset 0 1px 0 rgba(255,255,255,.12);
-}
-.login-minimal-cardvisual-seal span{display:block;width:4px;border-radius:3px;background:#CFDDF6}
-.login-minimal-cardvisual-seal span:nth-child(1){height:9px;opacity:.58}
-.login-minimal-cardvisual-seal span:nth-child(2){height:15px;opacity:.82}
-.login-minimal-cardvisual-seal span:nth-child(3){height:21px}
 .login-minimal-cardbody{
-  position:relative;z-index:1;margin-top:-13px;padding:32px 39px 42px;
-  background:linear-gradient(151deg,#FFFFFF 0%,#FFFFFF 55%,#F9FBFE 100%);
-  border-radius:20px 20px 0 0;box-shadow:0 -8px 25px rgba(21,37,65,.075);
+  position:relative;z-index:1;padding:43px 39px 43px;
 }
 .login-minimal-cardhead{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:24px}
 .login-minimal-heading-rule{display:block;width:29px;height:3px;border-radius:5px;margin-bottom:16px;background:linear-gradient(90deg,#506A9F,#B7C8E4)}
@@ -996,9 +984,7 @@
   .login-minimal-panel{padding:25px 25px 25px}
   .login-minimal-content{padding:55px 0 80px}
   .login-minimal-card{border-radius:20px}
-  .login-minimal-cardvisual{height:127px}
-  .login-minimal-cardvisual-seal{left:26px;top:23px}
-  .login-minimal-cardbody{padding:28px 24px 33px}
+  .login-minimal-cardbody{padding:39px 24px 33px}
   .login-minimal-cardhead h1{font-size:31px}
   .login-minimal-field,.login-minimal-submit{height:53px}
 }

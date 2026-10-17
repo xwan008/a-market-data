@@ -7,7 +7,7 @@ const refreshCss=readFileSync(new URL('../src/experience-refresh.css',import.met
 const app=readFileSync(new URL('../src/App.jsx',import.meta.url),'utf8');
 const lastRule=selector=>[...css.matchAll(new RegExp(selector+'\\s*\\{([^}]+)\\}','g'))].at(-1)?.[1]||'';
 
-test('login uses a designed two-layer card while keeping the existing left artwork',()=>{
+test('login keeps artwork on the left and avoids repeated graphics in the form card',()=>{
  const login=app.slice(app.indexOf('function Login({'),app.indexOf('export default function App()'));
  assert.match(login,/className="login-minimal"/);
  assert.ok(login.indexOf('className="login-minimal-visual"')<login.indexOf('className="login-minimal-panel"'));
@@ -15,9 +15,8 @@ test('login uses a designed two-layer card while keeping the existing left artwo
  assert.match(login,/className="login-minimal-tagline"/);
  assert.match(login,/辨趋势之真伪，<br\/><strong>顺市场之大势。<\/strong>/);
  assert.match(login,/className="login-minimal-card"/);
- assert.match(login,/className="login-minimal-cardvisual"/);
  assert.match(login,/className="login-minimal-cardbody"/);
- assert.match(login,/className="login-minimal-cardvisual-seal"/);
+ assert.doesNotMatch(login,/login-minimal-cardvisual|login-card-line|login-card-area/);
  assert.doesNotMatch(login,/login-screen--terminal|login-editorial|login-market|login-visual/);
  assert.match(refreshCss,/\.login-minimal\{[\s\S]*?grid-template-columns:minmax\(0,58%\) minmax\(0,42%\)/);
  assert.match(refreshCss,/@media\(max-width:820px\)\{[\s\S]*?\.login-minimal-visual\{display:none\}/);
@@ -25,9 +24,8 @@ test('login uses a designed two-layer card while keeping the existing left artwo
  assert.doesNotMatch(login,/私人研究空间/);
  assert.doesNotMatch(login,/登录识势，继续研究。|识势 · W\.X\./);
  assert.match(refreshCss,/\.login-minimal-content::before\{[\s\S]*?radial-gradient\(ellipse at 50% 49%,rgba\(111,138,197,\.18\)/);
- assert.match(refreshCss,/\.login-minimal-card\{[\s\S]*?border-radius:25px;[\s\S]*?rgba\(100,127,188,\.11\)/);
- assert.match(refreshCss,/\.login-minimal-cardvisual\{[\s\S]*?height:155px;[\s\S]*?linear-gradient/);
- assert.match(refreshCss,/\.login-minimal-cardbody\{[\s\S]*?margin-top:-13px;[\s\S]*?border-radius:20px/);
+ assert.match(refreshCss,/\.login-minimal-card\{[\s\S]*?border-radius:24px;[\s\S]*?rgba\(100,127,188,\.10\)/);
+ assert.match(refreshCss,/\.login-minimal-cardbody\{[\s\S]*?padding:43px 39px 43px/);
  assert.match(refreshCss,/@media\(min-width:821px\) and \(min-height:620px\)\{[\s\S]*?\.login-minimal\{height:100dvh;min-height:0;overflow:hidden\}/);
  assert.doesNotMatch(login,/研究有据|决策有序|识别市场结构|坚持决策纪律/);
 });
