@@ -18,7 +18,7 @@ test('识势 is the only Chinese product name in all brand surfaces',()=>{
  assert.match(read('index.html'),/name="application-name" content="识势"/);
  assert.match(read('index.html'),/property="og:site_name" content="识势"/);
  assert.match(read('src/App.jsx'),/className="breadcrumb-muted">识势/);
- assert.match(read('src/App.jsx'),/className="login-panel-name">识势/);
+ assert.match(read('src/App.jsx'),/className="login-editorial-brandname"><strong>识势/);
  assert.match(read('src/App.jsx'),/w\.x\. · 识势/);
  assert.match(read('README.md'),/^# 识势 · A 股决策中心/m);
 });

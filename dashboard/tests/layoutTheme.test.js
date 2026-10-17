@@ -3,13 +3,31 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 
 const css=readFileSync(new URL('../src/neutral-ink-v2.css',import.meta.url),'utf8');
+const refreshCss=readFileSync(new URL('../src/experience-refresh.css',import.meta.url),'utf8');
 const app=readFileSync(new URL('../src/App.jsx',import.meta.url),'utf8');
 const lastRule=selector=>[...css.matchAll(new RegExp(selector+'\\s*\\{([^}]+)\\}','g'))].at(-1)?.[1]||'';
 
-test('login keeps original colorful artwork on desktop and mobile',()=>{
- assert.match(css,/\.login-screen--terminal \.login-visual\{\s*filter:none;\s*opacity:1;/);
- assert.match(css,/@media\(max-width:1080px\)[\s\S]*?\.login-screen--terminal \.login-visual\{\s*filter:none;\s*opacity:\.73;/);
- assert.match(css,/linear-gradient\(113deg,#A8C9CE 0%,#6A9EAD 55%,#3E7181 100%\)/);
+test('login uses the neutral editorial split screen without green artwork or glowing glass frame',()=>{
+ const login=app.slice(app.indexOf('function Login({'),app.indexOf('export default function App()'));
+ assert.match(login,/className="login-editorial"/);
+ assert.match(login,/className="login-editorial-panel"/);
+ assert.match(login,/className="login-editorial-side"/);
+ assert.match(login,/className="login-editorial-trace"/);
+ assert.doesNotMatch(login,/login-screen--terminal|login-visual|login-market|login-panel/);
+ assert.match(refreshCss,/\.login-editorial\{[\s\S]*?background:#F7F9FC/);
+ assert.match(refreshCss,/\.login-editorial-side\{[\s\S]*?background:linear-gradient\(154deg,#303F5B 0%,#25334C 42%,#1D2739 100%\)/);
+ assert.match(refreshCss,/@media\(max-width:840px\)\{[\s\S]*?\.login-editorial-side\{display:none\}/);
+});
+
+test('new login form preserves password authentication and accessible states',()=>{
+ const login=app.slice(app.indexOf('function Login({'),app.indexOf('export default function App()'));
+ assert.match(login,/onSubmit=\{e=>\{e\.preventDefault\(\);login\(password\)\}\}/);
+ assert.match(login,/autoComplete="current-password"/);
+ assert.match(login,/type=\{showPassword\?'text':'password'\}/);
+ assert.match(login,/aria-label=\{showPassword\?'隐藏密码':'显示密码'\}/);
+ assert.match(login,/role="alert"/);
+ assert.match(login,/disabled=\{loading\|\|!!setupError\}/);
+ assert.match(refreshCss,/\.login-editorial-field:focus-within\{border-color:#6179AC;background:#FFF;box-shadow:none;outline:none\}/);
 });
 
 test('workspaces use equal 42px content gutters on desktop and retain mobile spacing',()=>{

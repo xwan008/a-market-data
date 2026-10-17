@@ -653,39 +653,56 @@ function Portfolio({data,status,monitor,holdingSnapshot}){
 function Login({login,loading,error,setupError}) {
  const [password,setPassword]=useState('');
  const [showPassword,setShowPassword]=useState(false);
- return <div className="login-screen login-screen--terminal">
-  <div className="login-visual" aria-hidden="true"/>
-  <main className="login-panel-wrap">
-   <section className="login-panel" aria-labelledby="login-title">
-    <div className="login-panel-top">
-     <div className="login-panel-brand">
-      <img src="/favicon.svg" alt="" aria-hidden="true"/>
-      <img src="/wordmark.svg" alt="识势 w.x."/>
-     </div>
-     <span className="login-panel-name">识势</span>
-    </div>
-    <div className="login-panel-rule" aria-hidden="true"/>
-    <h1 id="login-title" className="login-panel-title">辨趋势之真伪<br/><span>顺市场之大势</span></h1>
-    <form className="login-form" onSubmit={e=>{e.preventDefault();login(password)}}>
-     <label className="login-sr-only" htmlFor="pass">访问密码</label>
-     <div className="login-input">
-      <LockKeyhole size={18} aria-hidden="true"/>
-      <input id="pass" value={password} onChange={e=>setPassword(e.target.value)}
-       placeholder="输入访问密码" type={showPassword?'text':'password'} autoComplete="current-password"
-       minLength={1} required/>
-      <button type="button" className="login-toggle-password" onClick={()=>setShowPassword(p=>!p)}
-       aria-label={showPassword?'隐藏密码':'显示密码'} aria-pressed={showPassword}>
-       {showPassword?<EyeOff size={18}/>:<Eye size={18}/>}
+ return <div className="login-editorial">
+  <main className="login-editorial-panel">
+   <div className="login-editorial-inner">
+    <header className="login-editorial-brand">
+     <span className="login-editorial-brandmark"><img src="/wordmark.svg" alt="识势 w.x."/></span>
+     <span className="login-editorial-brandname"><strong>识势</strong><small>个人投研工作台</small></span>
+    </header>
+    <section className="login-editorial-center" aria-labelledby="login-title">
+     <div className="login-editorial-kicker"><span aria-hidden="true"/>私有研究空间</div>
+     <h1 id="login-title">研究有据，<br/><span>决策有序。</span></h1>
+     <p className="login-editorial-intro">用清晰的研究框架观察市场趋势、买点机会与持仓风险。</p>
+     <form className="login-editorial-form" onSubmit={e=>{e.preventDefault();login(password)}}>
+      <label htmlFor="pass">访问密码</label>
+      <div className="login-editorial-field">
+       <LockKeyhole size={18} aria-hidden="true"/>
+       <input id="pass" value={password} onChange={e=>setPassword(e.target.value)}
+        placeholder="请输入访问密码" type={showPassword?'text':'password'} autoComplete="current-password"
+        minLength={1} required/>
+       <button type="button" className="login-editorial-toggle" onClick={()=>setShowPassword(p=>!p)}
+        aria-label={showPassword?'隐藏密码':'显示密码'} aria-pressed={showPassword}>
+        {showPassword?<EyeOff size={18}/>:<Eye size={18}/>}
+       </button>
+      </div>
+      {error&&<p className="login-editorial-error" role="alert"><CircleAlert size={15}/>{error}</p>}
+      <button type="submit" className="login-editorial-submit" disabled={loading||!!setupError}>
+       <span>{loading?'正在验证…':'进入识势'}</span><ArrowRight size={18} aria-hidden="true"/>
       </button>
-     </div>
-     {error&&<p className="login-error" role="alert"><CircleAlert size={15}/>{error}</p>}
-     <button type="submit" className="login-submit" disabled={loading||!!setupError}>
-      <span>{loading?'正在验证':'进入系统'}</span><ArrowRight size={18} aria-hidden="true"/>
-     </button>
-    </form>
-    {setupError&&<div className="setup-warning" role="alert">站点尚未配置密码或会话密钥。请先配置 Vercel 环境变量。</div>}
-   </section>
+      <p className="login-editorial-helper">仅限已授权的访问者使用。</p>
+     </form>
+     {setupError&&<div className="login-editorial-warning" role="alert">站点尚未配置密码或会话密钥，请先完成部署配置。</div>}
+    </section>
+    <footer className="login-editorial-foot"><LockKeyhole size={14} aria-hidden="true"/>私有访问 · 研究数据仅供参考</footer>
+   </div>
   </main>
+  <aside className="login-editorial-side" aria-label="识势研究理念">
+   <div className="login-editorial-grid" aria-hidden="true"/>
+   <svg className="login-editorial-trace" viewBox="0 0 780 520" preserveAspectRatio="xMidYMid meet" fill="none" aria-hidden="true">
+    <defs><linearGradient id="login-structure-line" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stopColor="#586FA8" stopOpacity=".08"/><stop offset=".55" stopColor="#9AAED8" stopOpacity=".63"/><stop offset="1" stopColor="#D2DDF5" stopOpacity=".88"/></linearGradient></defs>
+    <path d="M-30 392 C76 370 110 412 191 342 S318 352 384 278 S478 306 561 191 S672 229 802 95" stroke="url(#login-structure-line)" strokeWidth="3"/>
+    <path d="M-30 451 C79 436 131 454 204 410 S313 432 386 369 S501 400 583 299 S699 314 802 235" stroke="#8295C3" strokeOpacity=".22" strokeWidth="1.4"/>
+    <path d="M-30 340 C69 352 118 318 198 302 S299 337 384 233 S497 249 567 144 S688 155 802 45" stroke="#6A81B4" strokeOpacity=".14" strokeWidth="1.2"/>
+    <g stroke="#A6B7DD" strokeOpacity=".16"><path d="M0 94 H780 M0 194 H780 M0 294 H780 M0 394 H780"/><path d="M104 0 V520 M244 0 V520 M384 0 V520 M524 0 V520 M664 0 V520"/></g>
+    <circle cx="384" cy="278" r="6" fill="#C6D3EF" stroke="#334664" strokeWidth="3"/>
+    <circle cx="561" cy="191" r="6" fill="#C6D3EF" stroke="#334664" strokeWidth="3"/>
+    <circle cx="672" cy="229" r="4" fill="#859BCC"/>
+   </svg>
+   <div className="login-editorial-side-top"><span className="login-editorial-square" aria-hidden="true"/>识势 · 研究视角</div>
+   <div className="login-editorial-side-copy"><span className="login-editorial-side-overline">趋势 · 结构 · 风险</span><h2>识别市场结构，<br/>坚持决策纪律。</h2><p>让趋势研究、买点观察、持仓管理与历史验证形成连续的判断体系。</p></div>
+   <div className="login-editorial-side-bottom"><span>辨趋势之真伪，顺市场之大势</span><span>w.x. / 识势</span></div>
+  </aside>
  </div>;
 }
 
