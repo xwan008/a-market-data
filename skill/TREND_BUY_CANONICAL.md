@@ -12,6 +12,9 @@
 6. 按最新价量数据确定个股阶段：INITIATING（启动）、PULLBACK（分歧回踩）、REACCELERATING（承接后再加速）、REPAIRING（结构修复）、COOLING（新入场优势下降）、FAILED（确认结构失效）、TRANSITION（证据尚不足）。MA20/MA60是背景而非淘汰红线；单纯低于MA60不得直接DROP，单日放量也不得直接宣布有效趋势。
 7. 独立核实BREAKOUT和PULLBACK有效入场条件，计算真实触发价、条件区、最高买入价、失效价、初始风险、出口计划。板块只有“趋势确认”才允许READY；候选行业只能WAIT。短线距离MA20超过8%、chase=high、风险大于6%或上方已知阻力小于1.5R均暂缓。止损不可伪造；无可靠价格不升级READY。
 8. 前置动态Top5深研完成后，按**趋势主题**跨各申万三级行业对当下的新入场机会进行重新比较：READY优先，其他候选以阶段、触发距离、有效风险边界排序；明显COOLING/FAILED不得占新买入名额。每主题最多五只合格股票，少于五只照实返回。输出 top5_by_theme 和每主题一个focus_watchlist，完全没有合格机会时为NO_CURRENT_BUY_OPPORTUNITY。每日重新计算，不继承前次选股。
+   - **仅新增关注排序，不改变上述正式流程：** 在每主题Top5名单已经确定之后，为入选的READY/WAIT另外计算 `attention_rank`（主题内连续序号1～N）与 `attention_judgement`（关注判断）。原Top5成员与顺序、正式rank、focus_watchlist、READY/WAIT、风控阈值、入场计划和所有Gate不受关注排序影响。
+   - **关注排序依据：** 先按可执行/已确认/有可靠观察区间/无可靠观察区间划分证据层级；在同层级内，使用本轮已冻结的结构风险、参考触发距离和趋势阶段，与同轮预筛审计中既有的基本面综合得分各占一半比较。结构位置分由风险空间50%、触发距离35%、阶段15%构成；该比例仅用于研究关注次序，不是新增选股权重或已验证的超额收益模型。缺少基本面得分按中性处理并提示核验，负PE不能视为低估值优势，不得补用外部行情或未来业绩。
+   - **展示与语义：** 在正式结果每主题Top5和下游handoff中附带两个关注字段，页面显示“关注序号／关注判断”。序号用于分配深研与盯盘顺序，不等于买入次序；WAIT即使关注第1也仍然是WAIT，不能因触及参考位自动升级READY。
 9. 正式结果READY/WAIT/UNCERTAIN/DROP只覆盖前置动态Top5实际深研名单，审计单独保留所有hard-eligible的轻量得分、落选、递补和核查状态；最终主题Top5只能从研究合格者中选择。必须经过fresh_company_research、working_set_frozen、pre_screen_coverage、company_research_coverage、structure_same_day、no_future_evidence、json_schema_valid全部Gate。有效完整结果唯一写 research/trend_buy_formal_result.json，提交后READBACK校验run_id、日期、blob SHA和名单；不完整直接报错，不能借昨日结果冒充今日。
 10. 仅完整19:00研究通过且正式结果READBACK后，scripts/trend_buy_handoff.py从动态主题Top5中提取READY/WAIT形成 research/trend_buy_handoff.json，仍遵守trend_buy_handoff_v2交易字段契约。盘中只按INTRADAY_MONITOR_CANONICAL.md监测交接名单，不重新选股或自动下单。早7:00只复核前一交易日，不新发布handoff。
 

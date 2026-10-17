@@ -464,8 +464,18 @@ function Buy({buy,selected,setSelected,status}){
      <div className="buy-trend-filter-title"><SlidersHorizontal size={16}/><strong>切换板块</strong><span>{group==='全部板块'?'查看全部趋势买点':'已按板块筛选'} · {shown.length} 只</span></div>
      <SelectMenu value={group} onChange={setGroup} label="选择趋势板块" options={['全部板块',...markets]} className="ui-select--group" leadingIcon={Layers}/>
     </div>
-    {items.length?<div className="table-wrap"><table className="data-table"><thead><tr><th>股票 / 代码</th><th>来源板块</th><th>参考价</th><th>信号</th><th/></tr></thead><tbody>{shown.map(item=><tr key={item.code} className={focus?.code===item.code?'row-selected':''} onClick={()=>setSelected(item)}><td><strong>{item.company_name}</strong><small className="mono">{item.code}</small></td><td className="soft-text">{item.trend_name}</td><td className="mono">{fixed(item.current_price)}</td><td><Badge>{item.status}</Badge></td><td><ChevronRight size={16}/></td></tr>)}</tbody></table>{!shown.length&&<Empty title="筛选后无候选" detail="尝试切换信号或板块" icon={Search}/>}</div>:<Empty title="买点榜尚未发布" detail={`数据状态：${formatSource(status.buyHandoff)}`}/>}
-    <div className="table-footer">READY 优先，WAIT 其次；同状态按正式 rank 排序，原始名次不变 <span>交易日 {buy?.trade_date||'—'}</span></div>
+    {items.length?<div className="table-wrap">
+     <table className="data-table"><thead><tr><th>股票 / 代码</th><th>来源板块</th><th>关注序号 / 判断</th><th>参考价</th><th>信号</th><th/></tr></thead>
+      <tbody>{shown.map(item=><tr key={item.code} className={focus?.code===item.code?'row-selected':''} onClick={()=>setSelected(item)}>
+       <td><strong>{item.company_name}</strong><small className="mono">{item.code}</small></td>
+       <td className="soft-text">{item.trend_name}</td>
+       <td className="buy-attention-cell"><strong>{Number.isInteger(item.attention_rank)?`#${item.attention_rank}`:'—'}</strong><small>{safeText(item.attention_judgement)}</small></td>
+       <td className="mono">{fixed(item.current_price)}</td><td><Badge>{item.status}</Badge></td><td><ChevronRight size={16}/></td>
+      </tr>)}</tbody>
+     </table>
+     {!shown.length&&<Empty title="筛选后无候选" detail="尝试切换信号或板块" icon={Search}/>}
+    </div>:<Empty title="买点榜尚未发布" detail={`数据状态：${formatSource(status.buyHandoff)}`}/>}
+    <div className="table-footer">原正式名次不变；关注序号按板块独立评估，仅用于安排研究与观察 <span>交易日 {buy?.trade_date||'—'}</span></div>
    </section>
    <section className="panel inspector inspector-tall buy-detail-pane" aria-label="趋势买点详情"><BuyInspector item={focus}/></section>
   </div>

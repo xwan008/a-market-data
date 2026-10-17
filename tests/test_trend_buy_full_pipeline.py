@@ -52,6 +52,9 @@ class SingleVersionContractTests(unittest.TestCase):
         published=handoff.project(result,sha,shadow=False)
         self.assertEqual(published["schema_version"],"trend_buy_handoff_v2")
         self.assertEqual(published["source_formal_blob_sha"],sha)
+        self.assertEqual(result["top5_by_theme"][0]["items"][0]["attention_rank"],1)
+        self.assertEqual(published["items"][0]["attention_rank"],1)
+        self.assertTrue(published["items"][0]["attention_judgement"])
         self.assertTrue(set(published["items"][0]).issubset(handoff.ALLOWED_ITEM_FIELDS))
         self.assertEqual(published["items"][0]["max_entry_price"],result["ready"][0]["max_entry_price"])
 

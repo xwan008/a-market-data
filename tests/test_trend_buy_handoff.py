@@ -34,6 +34,7 @@ class ContractTests(unittest.TestCase):
         self.assertTrue(h["shadow"])
         self.assertEqual(len(tool.validate_items(h)),1)
         self.assertTrue(set(h["items"][0]).issubset(tool.ALLOWED_ITEM_FIELDS))
+        self.assertNotIn("attention_rank",h["items"][0])  # old frozen handoffs stay byte-compatible
 
     def test_shadow_must_not_publish_live(self):
         with self.assertRaisesRegex(ValueError,"not_promoted"):
@@ -99,6 +100,18 @@ class ContractTests(unittest.TestCase):
         h=tool.project(sample(),"testsha",shadow=True)
         h["items"][0]["unexpected_trade_price"]=[10,12]
         with self.assertRaisesRegex(ValueError,"invalid_handoff_item_fields"):
+            tool.validate_items(h)
+
+    def test_attention_annotation_keeps_formal_rank_and_is_validated(self):
+        s=sample()
+        s["top5_by_theme"][0]["items"][0].update(
+            attention_rank=1,attention_judgement="优先深研并跟踪买点")
+        h=tool.project(s,"testsha",shadow=True)
+        self.assertEqual(h["items"][0]["rank"],1)
+        self.assertEqual(h["items"][0]["attention_rank"],1)
+        self.assertEqual(h["items"][0]["attention_judgement"],"优先深研并跟踪买点")
+        h["items"][0]["attention_rank"]=6
+        with self.assertRaisesRegex(ValueError,"invalid_attention_annotation"):
             tool.validate_items(h)
 
     def test_formal_projection_only_after_gate(self):

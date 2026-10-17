@@ -87,6 +87,38 @@ class DynamicStageTests(unittest.TestCase):
         self.assertEqual(engine.select_focus_watchlist([],rows,research,g)[0]["status"],
                          "NO_CURRENT_BUY_OPPORTUNITY")
 
+    def test_attention_order_is_separate_from_formal_top5_and_uses_frozen_fundamentals(self):
+        weaker = wait_stock("600001", "TRANSITION", support=9.75)
+        stronger = wait_stock("600002", "TRANSITION", support=9.75)
+        research = {"trade_date": "2026-10-09", "companies": [{"trend_name": "固态电池"}],
+                    "screen_audit": {"pre_screen_selected": [
+                        {"code": "600001", "fundamental_score": .2},
+                        {"code": "600002", "fundamental_score": .9}]}}
+        groups = engine.dynamic_top5_by_theme([], [weaker, stronger], research)
+        original_codes = [row["code"] for row in groups[0]["items"]]
+        focus_before = engine.select_focus_watchlist([], [weaker, stronger], research, groups)
+        engine.add_attention_priorities(groups, [], [weaker, stronger], research)
+        self.assertEqual([row["code"] for row in groups[0]["items"]], original_codes)
+        self.assertEqual(engine.select_focus_watchlist([], [weaker, stronger], research, groups), focus_before)
+        by_code = {row["code"]: row for row in groups[0]["items"]}
+        self.assertEqual(by_code["600002"]["attention_rank"], 1)
+        self.assertEqual(by_code["600001"]["attention_rank"], 2)
+        self.assertTrue(all(row["attention_judgement"] for row in groups[0]["items"]))
+
+    def test_missing_reliable_watch_zone_loses_attention_priority_not_formal_seat(self):
+        valid = wait_stock("600001", "TRANSITION", support=9.75)
+        no_stop = wait_stock("600002", "TRANSITION", support=None)
+        research = {"trade_date": "2026-10-09", "companies": [{"trend_name": "固态电池"}],
+                    "screen_audit": {"pre_screen_selected": [
+                        {"code": "600001", "fundamental_score": .1},
+                        {"code": "600002", "fundamental_score": .99}]}}
+        groups = engine.dynamic_top5_by_theme([], [no_stop, valid], research)
+        engine.add_attention_priorities(groups, [], [no_stop, valid], research)
+        by_code = {row["code"]: row for row in groups[0]["items"]}
+        self.assertEqual(by_code["600001"]["attention_rank"], 1)
+        self.assertEqual(by_code["600002"]["attention_rank"], 2)
+        self.assertIn("缺可靠观察区间", by_code["600002"]["attention_judgement"])
+
     def test_single_ma60_cross_is_wait_not_drop(self):
         c={"code":"002709","company_name":"天赐材料",
            "trend_name":"固态电池","market_state":"趋势确认",

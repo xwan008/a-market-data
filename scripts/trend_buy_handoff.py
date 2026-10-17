@@ -18,7 +18,8 @@ PROJECT_FIELDS=(
     "initial_risk_pct","upside_to_resistance_R","exit_plan","decision_reason",
     "transmission","research_falsifier",
 )
-ALLOWED_ITEM_FIELDS=set(PROJECT_FIELDS)|{"rank","trade_date","watch_reference"}
+ALLOWED_ITEM_FIELDS=set(PROJECT_FIELDS)|{"rank","trade_date","watch_reference",
+                                          "attention_rank","attention_judgement"}
 # An unconfirmed WAIT carries research observations, never an executable order or exit contract.
 TRADE_PLAN_FIELDS=("setup_type","entry_zone","entry_trigger","max_entry_price",
                    "invalidation_price","invalidation_rule","initial_risk_pct",
@@ -50,6 +51,13 @@ def validate_items(handoff):
             raise ValueError("trend_handoff_invalid_wait_reason")
         if item.get("rank")!=i+1:
             raise ValueError("trend_handoff_rank_mismatch")
+        attention_rank=item.get("attention_rank")
+        attention_judgement=item.get("attention_judgement")
+        if ((attention_rank is None)!=(attention_judgement is None)
+            or attention_rank is not None and
+            (type(attention_rank) is not int or attention_rank<1 or attention_rank>5
+             or not isinstance(attention_judgement,str) or not attention_judgement.strip())):
+            raise ValueError("invalid_attention_annotation")
         if item.get("trade_date")!=handoff.get("trade_date"):
             raise ValueError("trend_handoff_date_mismatch")
         if not set(item).issubset(ALLOWED_ITEM_FIELDS):
@@ -116,10 +124,15 @@ def project(result, formal_sha, *, shadow=False):
         raise ValueError("dynamic_theme_top5_sector_mismatch")
     references={entry["code"]:entry.get("reference")
                 for group in groups for entry in group.get("items",[])}
+    attention={entry["code"]:(entry.get("attention_rank"),entry.get("attention_judgement"))
+               for group in groups for entry in group.get("items",[])
+               if "attention_rank" in entry or "attention_judgement" in entry}
     rows=[]
     for rank,code in enumerate(codes,1):
         x=candidate_by_code[code]
         row={k:x.get(k) for k in PROJECT_FIELDS}|{"rank":rank,"trade_date":result["trade_date"]}
+        if code in attention:
+            row["attention_rank"],row["attention_judgement"]=attention[code]
         if x["status"]=="WAIT":
             # Upstream may model a remote breakout scenario, but the official WAIT
             # handoff must only show an independently computed *watch* reference.

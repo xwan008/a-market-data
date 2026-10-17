@@ -369,6 +369,85 @@ def dynamic_top5_by_theme(ready, wait, research):
     return groups
 
 
+def add_attention_priorities(groups, ready, wait, research):
+    """Add an independent per-theme research order without reordering Top5.
+
+    The only fundamental input is the existing same-run pre-screen audit;
+    attention is not a new eligibility, READY or trading signal.
+    """
+    audit = research.get("screen_audit") or {}
+    fundamentals = {x["code"]: x.get("fundamental_score")
+                    for x in audit.get("pre_screen_selected", [])
+                    if isinstance(x, dict) and x.get("code")}
+    lookup = {row["code"]: row for row in ready + wait}
+    phase_quality = {
+        "REACCELERATING": 1.0, "INITIATING": .9, "REPAIRING": .65,
+        "PULLBACK": .6, "TRANSITION": .45,
+    }
+
+    def priority(item):
+        row = lookup[item["code"]]
+        ref = item.get("reference") or {}
+        current = item.get("current_price")
+        trigger = ref.get("reference_trigger_price")
+        distance = (abs(trigger / current - 1) * 100
+                    if pos(current) and pos(trigger) else None)
+        risk = (row.get("initial_risk_pct") if row["status"] == "READY"
+                else ref.get("estimated_price_risk_pct"))
+        valid_zone = (isinstance(row.get("entry_zone"), list)
+                      if row["status"] == "READY"
+                      else isinstance(ref.get("reference_zone"), list))
+        if row["status"] == "READY":
+            tier = 0
+        elif (row.get("structure_confirmed") is True and valid_zone):
+            tier = 1
+        elif valid_zone:
+            tier = 2
+        else:
+            tier = 3
+        quality = fundamentals.get(row["code"])
+        quality = max(0, min(1, quality)) if val(quality) else None
+        risk_fit = max(0, 1 - risk / 8) if val(risk) else 0
+        distance_fit = max(0, 1 - distance / 8) if val(distance) else 0
+        phase_fit = phase_quality.get(row.get("trend_phase"), .4)
+        position = .5 * risk_fit + .35 * distance_fit + .15 * phase_fit
+        # Balanced only *inside* the non-negotiable buy-point evidence tiers.
+        # A missing financial score stays neutral, never an invented advantage.
+        combined = .5 * position + .5 * (quality if quality is not None else .5)
+        return tier, combined, quality, risk, distance
+
+    for group in groups:
+        items = group.get("items", [])
+        metrics = {item["code"]: priority(item) for item in items}
+        ordered = sorted(items, key=lambda item: (
+            metrics[item["code"]][0], -metrics[item["code"]][1],
+            -((metrics[item["code"]][2]) if metrics[item["code"]][2] is not None else .5),
+            item["code"]))
+        for rank, item in enumerate(ordered, 1):
+            tier, _, quality, risk, distance = metrics[item["code"]]
+            if tier == 0:
+                judgement = "优先评估条件性买点"
+            elif tier == 1:
+                judgement = "重点跟踪个股确认，等待板块条件"
+            elif tier == 3:
+                judgement = "缺可靠观察区间，暂缓买点跟踪"
+            elif quality is None:
+                judgement = "等待结构确认，盈利质量待核验"
+            elif quality < .35:
+                judgement = "优先核实盈利质量"
+            elif val(risk) and risk > 6:
+                judgement = "结构风险偏高，谨慎观察"
+            elif val(distance) and distance > 3:
+                judgement = "等待靠近合理观察位置"
+            elif quality >= .65:
+                judgement = "优先深研并跟踪买点"
+            else:
+                judgement = "关注结构确认"
+            item["attention_rank"] = rank
+            item["attention_judgement"] = judgement
+    return groups
+
+
 def select_focus_watchlist(ready, wait, research, groups=None):
     """One best opportunity per theme, independent of yesterday's leader."""
     if groups is None:
@@ -467,7 +546,8 @@ def generate(research, structure):
     wait=[x for x in rows if x["status"]=="WAIT"]
     uncertain=[x for x in rows if x["status"]=="UNCERTAIN"]
     drop=[x for x in rows if x["status"]=="DROP"]
-    opportunity_groups = dynamic_top5_by_theme(ready, wait, research)
+    opportunity_groups = add_attention_priorities(
+        dynamic_top5_by_theme(ready, wait, research), ready, wait, research)
     for i,x in enumerate(ready+wait,1):
         x["rank"]=i
     return {
