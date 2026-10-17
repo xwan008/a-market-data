@@ -686,26 +686,42 @@ function Login({login,loading,error,setupError}) {
    <p className="login-minimal-mobiletagline">辨趋势之真伪，顺市场之大势。</p>
    <section className="login-minimal-content" aria-labelledby="login-title">
     <div className="login-minimal-card">
-     <div className="login-minimal-cardhead"><h1 id="login-title">欢迎回来</h1><span className="login-minimal-cardicon"><ShieldCheck size={23} strokeWidth={1.65} aria-hidden="true"/></span></div>
-     <div className="login-minimal-divider" aria-hidden="true"/>
-     <form className="login-minimal-form" onSubmit={e=>{e.preventDefault();login(password)}}>
-      <label htmlFor="pass">访问密码</label>
-      <div className="login-minimal-field">
-       <LockKeyhole size={18} aria-hidden="true"/>
-       <input id="pass" value={password} onChange={e=>setPassword(e.target.value)}
-        placeholder="请输入访问密码" type={showPassword?'text':'password'} autoComplete="current-password"
-        minLength={1} required/>
-       <button type="button" className="login-minimal-toggle" onClick={()=>setShowPassword(p=>!p)}
-        aria-label={showPassword?'隐藏密码':'显示密码'} aria-pressed={showPassword}>
-        {showPassword?<EyeOff size={18}/>:<Eye size={18}/>}
+     <div className="login-minimal-cardvisual" aria-hidden="true">
+      <svg viewBox="0 0 440 166" preserveAspectRatio="xMidYMid slice" fill="none">
+       <defs>
+        <linearGradient id="login-card-line" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stopColor="#7A96C4" stopOpacity=".12"/><stop offset=".62" stopColor="#A8C5F4" stopOpacity=".65"/><stop offset="1" stopColor="#DCE8FF"/></linearGradient>
+        <linearGradient id="login-card-area" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#A9C4EC" stopOpacity=".23"/><stop offset="1" stopColor="#A9C4EC" stopOpacity="0"/></linearGradient>
+       </defs>
+       <g stroke="#C2D2EA" strokeOpacity=".11" strokeWidth=".8"><path d="M0 37 H440 M0 80 H440 M0 123 H440 M47 0 V166 M107 0 V166 M167 0 V166 M227 0 V166 M287 0 V166 M347 0 V166 M407 0 V166"/></g>
+       <g stroke="#AABFE3" strokeOpacity=".16" strokeWidth="1"><circle cx="357" cy="45" r="102"/><circle cx="357" cy="45" r="151"/><circle cx="357" cy="45" r="209"/></g>
+       <path d="M-12 145 C42 141 72 148 120 123 S196 142 240 99 S312 106 351 62 S410 63 454 9 L454 168 L-12 168 Z" fill="url(#login-card-area)"/>
+       <path d="M-12 145 C42 141 72 148 120 123 S196 142 240 99 S312 106 351 62 S410 63 454 9" stroke="url(#login-card-line)" strokeWidth="2.6" strokeLinecap="round"/>
+       <path d="M-12 156 C59 140 77 165 140 143 S206 154 265 124 S362 124 454 73" stroke="#91A9D1" strokeOpacity=".24" strokeWidth="1.2"/>
+       <circle cx="240" cy="99" r="4" fill="#D3E2FA" stroke="#405B81" strokeWidth="2.3"/><circle cx="351" cy="62" r="4" fill="#D3E2FA" stroke="#405B81" strokeWidth="2.3"/>
+      </svg>
+      <span className="login-minimal-cardvisual-seal"><span/><span/><span/></span>
+     </div>
+     <div className="login-minimal-cardbody">
+      <div className="login-minimal-cardhead"><div><span className="login-minimal-heading-rule" aria-hidden="true"/><h1 id="login-title">欢迎回来</h1></div><span className="login-minimal-cardicon"><ShieldCheck size={21} strokeWidth={1.6} aria-hidden="true"/></span></div>
+      <form className="login-minimal-form" onSubmit={e=>{e.preventDefault();login(password)}}>
+       <label htmlFor="pass">访问密码</label>
+       <div className="login-minimal-field">
+        <LockKeyhole size={18} aria-hidden="true"/>
+        <input id="pass" value={password} onChange={e=>setPassword(e.target.value)}
+         placeholder="请输入访问密码" type={showPassword?'text':'password'} autoComplete="current-password"
+         minLength={1} required/>
+        <button type="button" className="login-minimal-toggle" onClick={()=>setShowPassword(p=>!p)}
+         aria-label={showPassword?'隐藏密码':'显示密码'} aria-pressed={showPassword}>
+         {showPassword?<EyeOff size={18}/>:<Eye size={18}/>}
+        </button>
+       </div>
+       {error&&<p className="login-minimal-error" role="alert"><CircleAlert size={15}/>{error}</p>}
+       <button type="submit" className="login-minimal-submit" disabled={loading||!!setupError}>
+        <span>{loading?'正在验证…':'进入工作台'}</span><span className="login-minimal-submit-arrow"><ArrowRight size={18} aria-hidden="true"/></span>
        </button>
-      </div>
-      {error&&<p className="login-minimal-error" role="alert"><CircleAlert size={15}/>{error}</p>}
-      <button type="submit" className="login-minimal-submit" disabled={loading||!!setupError}>
-       <span>{loading?'正在验证…':'进入工作台'}</span><ArrowRight size={18} aria-hidden="true"/>
-      </button>
-     </form>
-     {setupError&&<div className="login-minimal-warning" role="alert">站点尚未配置密码或会话密钥，请先完成部署配置。</div>}
+      </form>
+      {setupError&&<div className="login-minimal-warning" role="alert">站点尚未配置密码或会话密钥，请先完成部署配置。</div>}
+     </div>
     </div>
    </section>
   </main>

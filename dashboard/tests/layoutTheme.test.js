@@ -7,7 +7,7 @@ const refreshCss=readFileSync(new URL('../src/experience-refresh.css',import.met
 const app=readFileSync(new URL('../src/App.jsx',import.meta.url),'utf8');
 const lastRule=selector=>[...css.matchAll(new RegExp(selector+'\\s*\\{([^}]+)\\}','g'))].at(-1)?.[1]||'';
 
-test('login gives the right-hand access form a restrained, minimal layout',()=>{
+test('login uses a designed two-layer card while keeping the existing left artwork',()=>{
  const login=app.slice(app.indexOf('function Login({'),app.indexOf('export default function App()'));
  assert.match(login,/className="login-minimal"/);
  assert.ok(login.indexOf('className="login-minimal-visual"')<login.indexOf('className="login-minimal-panel"'));
@@ -15,14 +15,19 @@ test('login gives the right-hand access form a restrained, minimal layout',()=>{
  assert.match(login,/className="login-minimal-tagline"/);
  assert.match(login,/辨趋势之真伪，<br\/><strong>顺市场之大势。<\/strong>/);
  assert.match(login,/className="login-minimal-card"/);
+ assert.match(login,/className="login-minimal-cardvisual"/);
+ assert.match(login,/className="login-minimal-cardbody"/);
+ assert.match(login,/className="login-minimal-cardvisual-seal"/);
  assert.doesNotMatch(login,/login-screen--terminal|login-editorial|login-market|login-visual/);
  assert.match(refreshCss,/\.login-minimal\{[\s\S]*?grid-template-columns:minmax\(0,58%\) minmax\(0,42%\)/);
  assert.match(refreshCss,/@media\(max-width:820px\)\{[\s\S]*?\.login-minimal-visual\{display:none\}/);
  assert.match(login,/<h1 id="login-title">欢迎回来<\/h1>/);
  assert.doesNotMatch(login,/私人研究空间/);
  assert.doesNotMatch(login,/登录识势，继续研究。|识势 · W\.X\./);
- assert.match(refreshCss,/\.login-minimal-content::before\{[\s\S]*?radial-gradient\(ellipse at 50% 49%,rgba\(111,138,197,\.20\)/);
- assert.match(refreshCss,/\.login-minimal-card\{[\s\S]*?border-radius:22px;[\s\S]*?rgba\(100,127,188,\.12\)/);
+ assert.match(refreshCss,/\.login-minimal-content::before\{[\s\S]*?radial-gradient\(ellipse at 50% 49%,rgba\(111,138,197,\.18\)/);
+ assert.match(refreshCss,/\.login-minimal-card\{[\s\S]*?border-radius:25px;[\s\S]*?rgba\(100,127,188,\.11\)/);
+ assert.match(refreshCss,/\.login-minimal-cardvisual\{[\s\S]*?height:155px;[\s\S]*?linear-gradient/);
+ assert.match(refreshCss,/\.login-minimal-cardbody\{[\s\S]*?margin-top:-13px;[\s\S]*?border-radius:20px/);
  assert.doesNotMatch(login,/研究有据|决策有序|识别市场结构|坚持决策纪律/);
 });
 
@@ -34,7 +39,7 @@ test('new login form preserves password authentication and accessible states',()
  assert.match(login,/aria-label=\{showPassword\?'隐藏密码':'显示密码'\}/);
  assert.match(login,/role="alert"/);
  assert.match(login,/disabled=\{loading\|\|!!setupError\}/);
- assert.match(refreshCss,/\.login-minimal-field:focus-within\{border-color:#6A80AB;box-shadow:none;outline:none\}/);
+ assert.match(refreshCss,/\.login-minimal-field:focus-within\{border-color:#6A80AB;background:#FFFFFF;box-shadow:none;outline:none\}/);
 });
 
 test('workspaces use equal 42px content gutters on desktop and retain mobile spacing',()=>{

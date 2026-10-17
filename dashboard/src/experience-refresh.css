@@ -901,34 +901,54 @@
 .login-minimal-mobilebrand{display:none;align-items:center;gap:9px;height:43px;font-size:18px;font-weight:700;color:#263650}
 .login-minimal-mobilebrand img{width:34px;height:34px}
 .login-minimal-mobiletagline{display:none}
-.login-minimal-content{position:relative;isolation:isolate;width:min(100%,440px)}
+.login-minimal-content{position:relative;isolation:isolate;width:min(100%,452px)}
 .login-minimal-content::before{
   content:'';position:absolute;z-index:-1;pointer-events:none;
-  inset:-72px -62px;
-  background:radial-gradient(ellipse at 50% 49%,rgba(111,138,197,.20) 0%,rgba(124,149,204,.105) 38%,rgba(124,149,204,0) 72%);
-  filter:blur(19px);
+  inset:-80px -66px;
+  background:radial-gradient(ellipse at 50% 49%,rgba(111,138,197,.18) 0%,rgba(124,149,204,.10) 38%,rgba(124,149,204,0) 72%);
+  filter:blur(22px);
 }
 .login-minimal-card{
   position:relative;isolation:isolate;overflow:hidden;
-  background:linear-gradient(158deg,#FFFFFF 0%,#FEFEFF 68%,#FAFBFE 100%);
-  border:1px solid #DDE5F1;border-radius:22px;
-  box-shadow:0 24px 62px rgba(40,59,92,.10),0 0 0 5px rgba(212,223,243,.27),0 0 43px rgba(100,127,188,.12);
-  padding:44px 39px 43px;
+  background:#293F62;border:1px solid #D1DBEB;border-radius:25px;
+  box-shadow:0 28px 68px rgba(40,59,92,.14),0 0 0 5px rgba(212,223,243,.25),0 0 46px rgba(100,127,188,.11);
 }
-.login-minimal-card::before{content:'';position:absolute;inset:0 0 auto;height:2px;background:linear-gradient(90deg,#566E9F 0%,#9CACCD 56%,#E1E7F3 100%)}
-.login-minimal-card::after{content:'';position:absolute;right:-90px;top:-105px;width:265px;height:235px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(113,142,202,.09) 0%,transparent 72%)}
+.login-minimal-cardvisual{
+  position:relative;isolation:isolate;height:155px;overflow:hidden;
+  background:linear-gradient(121deg,#283C5E 0%,#354F77 55%,#263D63 100%);
+}
+.login-minimal-cardvisual::before{
+  content:'';position:absolute;inset:-85px -50px auto auto;width:300px;height:230px;
+  background:radial-gradient(ellipse,rgba(158,188,239,.17),transparent 70%);pointer-events:none;
+}
+.login-minimal-cardvisual svg{position:absolute;inset:0;width:100%;height:100%;opacity:.97}
+.login-minimal-cardvisual-seal{
+  position:absolute;left:34px;top:27px;display:flex;align-items:flex-end;justify-content:center;gap:5px;
+  width:46px;height:46px;padding-bottom:13px;border-radius:14px;
+  background:linear-gradient(145deg,rgba(233,241,255,.14),rgba(213,226,249,.06));
+  border:1px solid rgba(220,232,252,.26);box-shadow:0 8px 25px rgba(9,23,47,.13),inset 0 1px 0 rgba(255,255,255,.12);
+}
+.login-minimal-cardvisual-seal span{display:block;width:4px;border-radius:3px;background:#CFDDF6}
+.login-minimal-cardvisual-seal span:nth-child(1){height:9px;opacity:.58}
+.login-minimal-cardvisual-seal span:nth-child(2){height:15px;opacity:.82}
+.login-minimal-cardvisual-seal span:nth-child(3){height:21px}
+.login-minimal-cardbody{
+  position:relative;z-index:1;margin-top:-13px;padding:32px 39px 42px;
+  background:linear-gradient(151deg,#FFFFFF 0%,#FFFFFF 55%,#F9FBFE 100%);
+  border-radius:20px 20px 0 0;box-shadow:0 -8px 25px rgba(21,37,65,.075);
+}
 .login-minimal-cardhead{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:24px}
-.login-minimal-cardhead h1{font-size:clamp(30px,3vw,37px);font-weight:750;line-height:1.27;letter-spacing:-1px;color:#23334C;margin:0}
-.login-minimal-cardicon{display:grid;place-items:center;flex:none;width:47px;height:47px;border:1px solid #DFE7F4;border-radius:14px;background:linear-gradient(145deg,#F5F7FC,#EDEFF8);color:#5F76A4;box-shadow:inset 0 1px 0 #FFFFFF}
-.login-minimal-divider{height:1px;background:linear-gradient(90deg,#DCE5F2,#E8EDF5 72%,transparent);margin:33px 0 29px}
-.login-minimal-form{display:flex;flex-direction:column;margin:0}
-.login-minimal-form>label{color:#41506A;font-size:12px;font-weight:680;margin-bottom:11px}
+.login-minimal-heading-rule{display:block;width:29px;height:3px;border-radius:5px;margin-bottom:16px;background:linear-gradient(90deg,#506A9F,#B7C8E4)}
+.login-minimal-cardhead h1{font-size:clamp(30px,3vw,35px);font-weight:750;line-height:1.25;letter-spacing:-1px;color:#24354D;margin:0}
+.login-minimal-cardicon{display:grid;place-items:center;flex:none;width:45px;height:45px;border:1px solid #E2E9F3;border-radius:15px;background:linear-gradient(145deg,#F8FAFD,#EEF2F9);color:#677FA8;box-shadow:inset 0 1px 0 #FFFFFF}
+.login-minimal-form{display:flex;flex-direction:column;margin:32px 0 0}
+.login-minimal-form>label{color:#3E506B;font-size:12px;font-weight:690;margin-bottom:11px}
 .login-minimal-field{
-  height:55px;display:flex;align-items:center;gap:12px;
-  border:1px solid #D2DAE7;border-radius:10px;background:#FFFFFF;
-  padding:0 12px 0 16px;color:#8C9AB0;transition:border-color .15s ease;
+  height:57px;display:flex;align-items:center;gap:12px;
+  border:1px solid #D8E0EC;border-radius:12px;background:#F8FAFD;
+  padding:0 12px 0 16px;color:#8798B1;transition:border-color .15s ease,background .15s ease;
 }
-.login-minimal-field:focus-within{border-color:#6A80AB;box-shadow:none;outline:none}
+.login-minimal-field:focus-within{border-color:#6A80AB;background:#FFFFFF;box-shadow:none;outline:none}
 .login-minimal-field input{
   border:0;outline:0;box-shadow:none;background:transparent;
   flex:1;min-width:0;height:100%;font-size:14px;color:#24354D;caret-color:#4D6398;
@@ -939,14 +959,16 @@
 .login-minimal-toggle:hover{background:#F1F4F9;color:#4D6398}
 .login-minimal-toggle:focus-visible{outline:2px solid #6078A8;outline-offset:2px}
 .login-minimal-submit{
-  height:54px;margin-top:16px;padding:0 19px;width:100%;
+  height:57px;margin-top:17px;padding:0 12px 0 20px;width:100%;
   display:flex;align-items:center;justify-content:space-between;
-  background:#4D6398;border:1px solid #465E92;border-radius:10px;
+  background:linear-gradient(103deg,#435B8D 0%,#596FA4 100%);border:1px solid #485F93;border-radius:12px;
   color:#FFFFFF;font-size:14px;font-weight:690;letter-spacing:.2px;
-  box-shadow:0 4px 11px rgba(43,66,110,.09);
-  transition:background .16s ease,box-shadow .16s ease;
+  box-shadow:0 7px 15px rgba(43,66,110,.14),inset 0 1px 0 rgba(255,255,255,.12);
+  transition:filter .16s ease,box-shadow .16s ease;
 }
-.login-minimal-submit:hover:not(:disabled){background:#3F568A;box-shadow:0 6px 15px rgba(43,66,110,.14)}
+.login-minimal-submit-arrow{width:33px;height:33px;display:grid;place-items:center;border-radius:9px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.12);transition:transform .16s ease,background .16s ease}
+.login-minimal-submit:hover:not(:disabled){filter:brightness(1.06);box-shadow:0 9px 19px rgba(43,66,110,.2)}
+.login-minimal-submit:hover:not(:disabled) .login-minimal-submit-arrow{transform:translateX(2px);background:rgba(255,255,255,.19)}
 .login-minimal-submit:disabled{opacity:.58;cursor:not-allowed}
 .login-minimal-submit:focus-visible{outline:2px solid #6880B0;outline-offset:3px}
 .login-minimal-error{display:flex;align-items:flex-start;gap:8px;margin:12px 0 0;color:#B14B4A;font-size:12px;line-height:1.6}
@@ -956,7 +978,7 @@
   .login-minimal{grid-template-columns:minmax(0,53%) minmax(0,47%)}
   .login-minimal-visual{padding:42px clamp(35px,4vw,70px) 55px}
   .login-minimal-panel{padding:42px clamp(24px,3vw,49px) 36px}
-  .login-minimal-card{padding:36px 30px 38px}
+  .login-minimal-cardbody{padding:31px 30px 36px}
 }
 @media(max-width:820px){
   .login-minimal{grid-template-columns:1fr}
@@ -969,11 +991,13 @@
 @media(max-width:480px){
   .login-minimal-panel{padding:25px 25px 25px}
   .login-minimal-content{padding:55px 0 80px}
-  .login-minimal-card{padding:33px 24px 32px;border-radius:16px}
+  .login-minimal-card{border-radius:20px}
+  .login-minimal-cardvisual{height:127px}
+  .login-minimal-cardvisual-seal{left:26px;top:23px}
+  .login-minimal-cardbody{padding:28px 24px 33px}
   .login-minimal-cardhead h1{font-size:31px}
-  .login-minimal-divider{margin:27px 0 25px}
   .login-minimal-field,.login-minimal-submit{height:53px}
 }
 @media(prefers-reduced-motion:reduce){
-  .login-minimal :is(.login-minimal-field,.login-minimal-submit){transition:none}
+  .login-minimal :is(.login-minimal-field,.login-minimal-submit,.login-minimal-submit-arrow){transition:none}
 }
