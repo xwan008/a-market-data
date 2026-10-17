@@ -84,7 +84,7 @@ class TrendV2Tests(unittest.TestCase):
         now["trends"].append(new_obs)
         self.assertEqual(gate.validate(old, now, SHA, archive=arch), [])
         now["trends"][-1]["episode_id"] = "B#" + DAY0
-        self.assertIn("old_nontracking_episode_reused", gate.validate(old, now, SHA, archive=arch))
+        self.assertIn("B#" + DAY0 + ":old_nontracking_episode_reused", gate.validate(old, now, SHA, archive=arch))
 
     def test_downgrade_requires_real_market_evidence(self):
         _, old = fixture()
