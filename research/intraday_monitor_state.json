@@ -4,8 +4,8 @@
   "execution_schema_version": 2,
   "trade_date": "2026-10-19",
   "monitor_date": "2026-10-19",
-  "last_scan_at": "2026-10-19T09:46:25.000+08:00",
-  "snapshot_at": "2026-10-19T09:38:29.625742+08:00",
+  "last_scan_at": "2026-10-19T13:20:30.000+08:00",
+  "snapshot_at": "2026-10-19T13:18:28.772715+08:00",
   "frozen_trend_trade_date": "2026-10-16",
   "frozen_trend_buy_trade_date": "2026-10-16",
   "frozen_trend_buy_handoff_run_id": "trend-buy-formal-main-38891502904-asof-2026-10-16",
@@ -125,6 +125,42 @@
         "holding_action": null,
         "reason": "今日首轮，11/11成分有效报价（100.00%），4涨7跌0平，上涨比例36.36%，涨幅中位数-0.5630%，当前广度不足50%且中位数为负，与上游T1/候选趋势形成盘中分歧，故标记分歧；首轮previous_*为空、同日动量按规则为稳定。previous_trade_day为空，路径B不可用；七日中位数-12.1370%、正收益占比9.09%、覆盖100.00%虽偏弱，但今日尚无同日多轮持续恶化证据，路径C不满足，不能升级衰退预警。空仓仅等待，不追认趋势失效；快照无ETF代码，不猜测具体ETF。",
         "data_quality": "READY"
+      },
+      {
+        "scan_at": "2026-10-19T13:20:30.000+08:00",
+        "trend_name": "风电设备",
+        "trend_state": "T1",
+        "market_state": "候选趋势",
+        "previous_state": "分歧",
+        "current_state": "衰退预警",
+        "previous_structure_momentum": "稳定",
+        "structure_momentum": "减弱",
+        "up_ratio": 0.0909,
+        "median_change_pct": -1.7757,
+        "max_change_pct": 1.2,
+        "min_change_pct": -4.8635,
+        "up_count": 1,
+        "down_count": 9,
+        "flat_count": 1,
+        "quoted_count": 11,
+        "coverage_ratio": 1,
+        "seven_day": {
+          "window_sessions": 7,
+          "sample_count": 11,
+          "target_count": 11,
+          "coverage_ratio": 1,
+          "status": "available",
+          "median_constituent_return_pct": -12.137,
+          "positive_constituent_ratio": 0.0909,
+          "source_trade_date": "2026-10-16",
+          "baseline_trade_date": "2026-10-16"
+        },
+        "previous_entry_action": "等待",
+        "entry_action": "暂停买入",
+        "previous_holding_action": null,
+        "holding_action": null,
+        "reason": "相对09:46已成功落库首轮，上涨比例36.36%→9.09%、上涨家数4→1、下跌家数7→9，涨幅中位数-0.5630%→-1.7757%，广度与中位数两类同步实质恶化，故同日动量减弱。previous_trade_day为空，路径B不可用；七日历史有效且覆盖100%，七日中位数-12.1370%、正收益占比9.09%，本轮上涨比例低于50%、中位数为负，并在同日两次有效扫描中出现广度与中位数持续恶化，满足低置信度路径C，故由分歧升级为衰退预警并暂停买入。该预警不是上游T1/候选趋势失效确认；10:43轮因快照过期未落库，不进入previous_*链。快照无ETF代码，不猜测具体ETF。",
+        "data_quality": "READY"
       }
     ],
     "电网设备/特高压": [
@@ -162,6 +198,42 @@
         "previous_holding_action": null,
         "holding_action": null,
         "reason": "今日首轮，46/46成分有效报价（100.00%），16涨28跌2平，上涨比例34.78%，涨幅中位数-0.3246%，当前广度不足50%且中位数为负，与上游T1/候选趋势形成盘中分歧，故标记分歧；首轮previous_*为空、同日动量按规则为稳定。previous_trade_day为空，路径B不可用；七日中位数-4.0716%、正收益占比23.91%、覆盖100.00%虽偏弱，但今日尚无同日多轮持续恶化证据，路径C不满足，不能升级衰退预警。空仓仅等待，不追认趋势失效；快照无ETF代码，不猜测具体ETF。",
+        "data_quality": "READY"
+      },
+      {
+        "scan_at": "2026-10-19T13:20:30.000+08:00",
+        "trend_name": "电网设备/特高压",
+        "trend_state": "T1",
+        "market_state": "候选趋势",
+        "previous_state": "分歧",
+        "current_state": "修复",
+        "previous_structure_momentum": "稳定",
+        "structure_momentum": "增强",
+        "up_ratio": 0.5,
+        "median_change_pct": -0.0324,
+        "max_change_pct": 5.3292,
+        "min_change_pct": -7.7576,
+        "up_count": 23,
+        "down_count": 23,
+        "flat_count": 0,
+        "quoted_count": 46,
+        "coverage_ratio": 1,
+        "seven_day": {
+          "window_sessions": 7,
+          "sample_count": 46,
+          "target_count": 46,
+          "coverage_ratio": 1,
+          "status": "available",
+          "median_constituent_return_pct": -4.0716,
+          "positive_constituent_ratio": 0.2391,
+          "source_trade_date": "2026-10-16",
+          "baseline_trade_date": "2026-10-16"
+        },
+        "previous_entry_action": "等待",
+        "entry_action": "关注回踩",
+        "previous_holding_action": null,
+        "holding_action": null,
+        "reason": "相对09:46已成功落库首轮，上涨比例34.78%→50.00%、上涨家数16→23、下跌家数28→23，涨幅中位数-0.3246%→-0.0324%，广度与中位数均改善且具有成分扩散性，故同日动量增强、状态由分歧转为修复。当前中位数仍略为负、上涨比例仅到50.00%，尚不足以判正常或直接跟随，空仓仅关注回踩。previous_trade_day为空，路径B不可用；七日中位数-4.0716%、正收益占比23.91%仅作累计背景，不能否定本轮盘中修复或单独触发交易。10:43无效轮次不进入previous_*链；快照无ETF代码，不猜测具体ETF。",
         "data_quality": "READY"
       }
     ]
@@ -233,6 +305,72 @@
         "trend_in_current_handoff": true,
         "reason": "今日首轮，正式WAIT且trend_entry_plan未发布。现价22.60元、涨跌-0.5719%，对应行业中位数-0.3483%，相对行业-0.2236个百分点；首轮相对强度按稳定处理，价格行为判震荡。WAIT只等待确认，不发布买入或卖出动作。七日+0.9325%及medium/bearish/intact仅作背景，不能单独触发交易。",
         "data_quality": "READY"
+      },
+      {
+        "scan_at": "2026-10-19T13:20:30.000+08:00",
+        "rank": 1,
+        "code": "600406",
+        "company_name": "国电南瑞",
+        "trend_name": "电网设备/特高压",
+        "industry_code": "S630803",
+        "industry_name": "电网自动化设备",
+        "formal_status": "WAIT",
+        "wait_reason": "WAIT_CONFIRMATION",
+        "price": 22.89,
+        "change_pct": 0.7039,
+        "industry_median_change_pct": 0.2865,
+        "relative_to_industry_pct": 0.4174,
+        "seven_day": {
+          "source_trade_date": "2026-10-16",
+          "window_sessions": 7,
+          "status": "available",
+          "observation_count": 8,
+          "close_change_7d_pct": 0.9325,
+          "basis": "eight_valid_completed_session_closes"
+        },
+        "history_context_status": "available",
+        "history_confidence": "medium",
+        "history_trend_state": "bearish",
+        "history_break_state": "intact",
+        "latest_high": {
+          "date": "2026-10-12",
+          "type": "high",
+          "price": 22.95,
+          "label": "LH"
+        },
+        "latest_low": {
+          "date": "2026-09-16",
+          "type": "low",
+          "price": 21.6556,
+          "label": "LL"
+        },
+        "invalidation": {
+          "direction": "above",
+          "price": 22.95
+        },
+        "trend_entry_plan": {
+          "setup_type": null,
+          "entry_zone": null,
+          "entry_trigger": null,
+          "max_entry_price": null,
+          "invalidation_price": null,
+          "invalidation_rule": null,
+          "initial_risk_pct": null,
+          "upside_to_resistance_R": null,
+          "exit_plan": null
+        },
+        "entry_zone_relation": "entry_plan_unavailable",
+        "previous_relative_strength": "稳定",
+        "relative_strength": "增强",
+        "previous_price_behavior": "震荡",
+        "price_behavior": "承接",
+        "previous_entry_action": "等待",
+        "entry_action": "等待",
+        "previous_holding_action": null,
+        "holding_action": null,
+        "trend_in_current_handoff": true,
+        "reason": "相对09:46有效首轮，涨跌-0.5719%→+0.7039%，相对行业-0.2236→+0.4174个百分点，因此相对强度稳定→增强、价格行为震荡→承接。正式身份仍为WAIT，trend_entry_plan未发布，故继续等待确认，不发布买入或卖出动作。七日+0.9325%及medium/bearish/intact只作背景；10:43无效轮次不进入previous_*链。",
+        "data_quality": "READY"
       }
     ],
     "601218": [
@@ -300,6 +438,72 @@
         "holding_action": null,
         "trend_in_current_handoff": true,
         "reason": "今日首轮，正式WAIT且trend_entry_plan未发布。现价4.97元、涨跌-3.8685%，对应行业中位数-0.8982%，相对行业-2.9703个百分点；首轮相对强度按稳定处理，价格行为判转弱。WAIT只等待确认，不发布买入或卖出动作。七日-14.9671%及medium/bullish/intact仅作背景，不能单独触发交易。",
+        "data_quality": "READY"
+      },
+      {
+        "scan_at": "2026-10-19T13:20:30.000+08:00",
+        "rank": 7,
+        "code": "601218",
+        "company_name": "吉鑫科技",
+        "trend_name": "风电设备",
+        "industry_code": "S630602",
+        "industry_name": "风电零部件",
+        "formal_status": "WAIT",
+        "wait_reason": "WAIT_CONFIRMATION",
+        "price": 5.01,
+        "change_pct": -3.0948,
+        "industry_median_change_pct": -2.3952,
+        "relative_to_industry_pct": -0.6996,
+        "seven_day": {
+          "source_trade_date": "2026-10-16",
+          "window_sessions": 7,
+          "status": "available",
+          "observation_count": 8,
+          "close_change_7d_pct": -14.9671,
+          "basis": "eight_valid_completed_session_closes"
+        },
+        "history_context_status": "available",
+        "history_confidence": "medium",
+        "history_trend_state": "bullish",
+        "history_break_state": "intact",
+        "latest_high": {
+          "date": "2026-09-29",
+          "type": "high",
+          "price": 6.6,
+          "label": "HH"
+        },
+        "latest_low": {
+          "date": "2026-09-24",
+          "type": "low",
+          "price": 4.93,
+          "label": "HL"
+        },
+        "invalidation": {
+          "direction": "below",
+          "price": 4.93
+        },
+        "trend_entry_plan": {
+          "setup_type": null,
+          "entry_zone": null,
+          "entry_trigger": null,
+          "max_entry_price": null,
+          "invalidation_price": null,
+          "invalidation_rule": null,
+          "initial_risk_pct": null,
+          "upside_to_resistance_R": null,
+          "exit_plan": null
+        },
+        "entry_zone_relation": "entry_plan_unavailable",
+        "previous_relative_strength": "稳定",
+        "relative_strength": "增强",
+        "previous_price_behavior": "转弱",
+        "price_behavior": "转弱",
+        "previous_entry_action": "等待",
+        "entry_action": "等待",
+        "previous_holding_action": null,
+        "holding_action": null,
+        "trend_in_current_handoff": true,
+        "reason": "相对09:46有效首轮，涨跌-3.8685%→-3.0948%，相对行业-2.9703→-0.6996个百分点，因此相对强度稳定→增强、价格行为转弱→转弱。正式身份仍为WAIT，trend_entry_plan未发布，故继续等待确认，不发布买入或卖出动作。七日-14.9671%及medium/bullish/intact只作背景；10:43无效轮次不进入previous_*链。",
         "data_quality": "READY"
       }
     ],
@@ -369,6 +573,72 @@
         "trend_in_current_handoff": true,
         "reason": "今日首轮，正式WAIT且trend_entry_plan未发布。现价3.64元、涨跌-0.5464%，对应行业中位数-0.4521%，相对行业-0.0943个百分点；首轮相对强度按稳定处理，价格行为判震荡。WAIT只等待确认，不发布买入或卖出动作。七日-2.4000%及medium/bearish/intact仅作背景，不能单独触发交易。",
         "data_quality": "READY"
+      },
+      {
+        "scan_at": "2026-10-19T13:20:30.000+08:00",
+        "rank": 5,
+        "code": "601616",
+        "company_name": "广电电气",
+        "trend_name": "电网设备/特高压",
+        "industry_code": "S630802",
+        "industry_name": "配电设备",
+        "formal_status": "WAIT",
+        "wait_reason": "WAIT_CONFIRMATION",
+        "price": 3.58,
+        "change_pct": -2.1858,
+        "industry_median_change_pct": -0.5926,
+        "relative_to_industry_pct": -1.5932,
+        "seven_day": {
+          "source_trade_date": "2026-10-16",
+          "window_sessions": 7,
+          "status": "available",
+          "observation_count": 8,
+          "close_change_7d_pct": -2.4,
+          "basis": "eight_valid_completed_session_closes"
+        },
+        "history_context_status": "available",
+        "history_confidence": "medium",
+        "history_trend_state": "bearish",
+        "history_break_state": "intact",
+        "latest_high": {
+          "date": "2026-10-12",
+          "type": "high",
+          "price": 3.85,
+          "label": "LH"
+        },
+        "latest_low": {
+          "date": "2026-10-09",
+          "type": "low",
+          "price": 3.68,
+          "label": "LL"
+        },
+        "invalidation": {
+          "direction": "above",
+          "price": 3.85
+        },
+        "trend_entry_plan": {
+          "setup_type": null,
+          "entry_zone": null,
+          "entry_trigger": null,
+          "max_entry_price": null,
+          "invalidation_price": null,
+          "invalidation_rule": null,
+          "initial_risk_pct": null,
+          "upside_to_resistance_R": null,
+          "exit_plan": null
+        },
+        "entry_zone_relation": "entry_plan_unavailable",
+        "previous_relative_strength": "稳定",
+        "relative_strength": "减弱",
+        "previous_price_behavior": "震荡",
+        "price_behavior": "转弱",
+        "previous_entry_action": "等待",
+        "entry_action": "等待",
+        "previous_holding_action": null,
+        "holding_action": null,
+        "trend_in_current_handoff": true,
+        "reason": "相对09:46有效首轮，涨跌-0.5464%→-2.1858%，相对行业-0.0943→-1.5932个百分点，因此相对强度稳定→减弱、价格行为震荡→转弱。正式身份仍为WAIT，trend_entry_plan未发布，故继续等待确认，不发布买入或卖出动作。七日-2.4000%及medium/bearish/intact只作背景；10:43无效轮次不进入previous_*链。",
+        "data_quality": "READY"
       }
     ],
     "601877": [
@@ -433,6 +703,69 @@
         "holding_action": null,
         "trend_in_current_handoff": true,
         "reason": "今日首轮，正式WAIT且trend_entry_plan未发布。现价24.98元、涨跌-0.0800%，对应行业中位数-0.4521%，相对行业+0.3721个百分点；首轮相对强度按稳定处理，价格行为判承接。WAIT只等待确认，不发布买入或卖出动作。七日+0.2004%及medium/transition/bearish_structure_break_confirmed仅作背景，不能单独触发交易。",
+        "data_quality": "READY"
+      },
+      {
+        "scan_at": "2026-10-19T13:20:30.000+08:00",
+        "rank": 2,
+        "code": "601877",
+        "company_name": "正泰电器",
+        "trend_name": "电网设备/特高压",
+        "industry_code": "S630802",
+        "industry_name": "配电设备",
+        "formal_status": "WAIT",
+        "wait_reason": "WAIT_CONFIRMATION",
+        "price": 25.11,
+        "change_pct": 0.44,
+        "industry_median_change_pct": -0.5926,
+        "relative_to_industry_pct": 1.0326,
+        "seven_day": {
+          "source_trade_date": "2026-10-16",
+          "window_sessions": 7,
+          "status": "available",
+          "observation_count": 8,
+          "close_change_7d_pct": 0.2004,
+          "basis": "eight_valid_completed_session_closes"
+        },
+        "history_context_status": "available",
+        "history_confidence": "medium",
+        "history_trend_state": "transition",
+        "history_break_state": "bearish_structure_break_confirmed",
+        "latest_high": {
+          "date": "2026-10-12",
+          "type": "high",
+          "price": 26.04,
+          "label": "HH"
+        },
+        "latest_low": {
+          "date": "2026-09-29",
+          "type": "low",
+          "price": 24.3,
+          "label": "LL"
+        },
+        "invalidation": null,
+        "trend_entry_plan": {
+          "setup_type": null,
+          "entry_zone": null,
+          "entry_trigger": null,
+          "max_entry_price": null,
+          "invalidation_price": null,
+          "invalidation_rule": null,
+          "initial_risk_pct": null,
+          "upside_to_resistance_R": null,
+          "exit_plan": null
+        },
+        "entry_zone_relation": "entry_plan_unavailable",
+        "previous_relative_strength": "稳定",
+        "relative_strength": "增强",
+        "previous_price_behavior": "承接",
+        "price_behavior": "强化",
+        "previous_entry_action": "等待",
+        "entry_action": "等待",
+        "previous_holding_action": null,
+        "holding_action": null,
+        "trend_in_current_handoff": true,
+        "reason": "相对09:46有效首轮，涨跌-0.0800%→+0.4400%，相对行业+0.3721→+1.0326个百分点，因此相对强度稳定→增强、价格行为承接→强化。正式身份仍为WAIT，trend_entry_plan未发布，故继续等待确认，不发布买入或卖出动作。七日+0.2004%及medium/transition/bearish_structure_break_confirmed只作背景；10:43无效轮次不进入previous_*链。",
         "data_quality": "READY"
       }
     ],
@@ -502,6 +835,72 @@
         "trend_in_current_handoff": true,
         "reason": "今日首轮，正式WAIT且trend_entry_plan未发布。现价7.00元、涨跌+4.0119%，对应行业中位数-0.4521%，相对行业+4.4640个百分点；首轮相对强度按稳定处理，价格行为判强化。WAIT只等待确认，不发布买入或卖出动作。七日+0.2981%及medium/bearish/intact仅作背景，不能单独触发交易。",
         "data_quality": "READY"
+      },
+      {
+        "scan_at": "2026-10-19T13:20:30.000+08:00",
+        "rank": 3,
+        "code": "605066",
+        "company_name": "天正电气",
+        "trend_name": "电网设备/特高压",
+        "industry_code": "S630802",
+        "industry_name": "配电设备",
+        "formal_status": "WAIT",
+        "wait_reason": "WAIT_CONFIRMATION",
+        "price": 6.87,
+        "change_pct": 2.0802,
+        "industry_median_change_pct": -0.5926,
+        "relative_to_industry_pct": 2.6728,
+        "seven_day": {
+          "source_trade_date": "2026-10-16",
+          "window_sessions": 7,
+          "status": "available",
+          "observation_count": 8,
+          "close_change_7d_pct": 0.2981,
+          "basis": "eight_valid_completed_session_closes"
+        },
+        "history_context_status": "available",
+        "history_confidence": "medium",
+        "history_trend_state": "bearish",
+        "history_break_state": "intact",
+        "latest_high": {
+          "date": "2026-10-09",
+          "type": "high",
+          "price": 6.92,
+          "label": "LH"
+        },
+        "latest_low": {
+          "date": "2026-09-28",
+          "type": "low",
+          "price": 6.5,
+          "label": "LL"
+        },
+        "invalidation": {
+          "direction": "above",
+          "price": 6.92
+        },
+        "trend_entry_plan": {
+          "setup_type": null,
+          "entry_zone": null,
+          "entry_trigger": null,
+          "max_entry_price": null,
+          "invalidation_price": null,
+          "invalidation_rule": null,
+          "initial_risk_pct": null,
+          "upside_to_resistance_R": null,
+          "exit_plan": null
+        },
+        "entry_zone_relation": "entry_plan_unavailable",
+        "previous_relative_strength": "稳定",
+        "relative_strength": "减弱",
+        "previous_price_behavior": "强化",
+        "price_behavior": "承接",
+        "previous_entry_action": "等待",
+        "entry_action": "等待",
+        "previous_holding_action": null,
+        "holding_action": null,
+        "trend_in_current_handoff": true,
+        "reason": "相对09:46有效首轮，涨跌+4.0119%→+2.0802%，相对行业+4.4640→+2.6728个百分点，因此相对强度稳定→减弱、价格行为强化→承接。正式身份仍为WAIT，trend_entry_plan未发布，故继续等待确认，不发布买入或卖出动作。七日+0.2981%及medium/bearish/intact只作背景；10:43无效轮次不进入previous_*链。",
+        "data_quality": "READY"
       }
     ],
     "002090": [
@@ -570,6 +969,72 @@
         "trend_in_current_handoff": true,
         "reason": "今日首轮，正式WAIT且trend_entry_plan未发布。现价8.91元、涨跌-0.7795%，对应行业中位数-0.3483%，相对行业-0.4312个百分点；首轮相对强度按稳定处理，价格行为判转弱。WAIT只等待确认，不发布买入或卖出动作。七日+0.4474%及medium/bullish/intact仅作背景，不能单独触发交易。",
         "data_quality": "READY"
+      },
+      {
+        "scan_at": "2026-10-19T13:20:30.000+08:00",
+        "rank": 4,
+        "code": "002090",
+        "company_name": "金智科技",
+        "trend_name": "电网设备/特高压",
+        "industry_code": "S630803",
+        "industry_name": "电网自动化设备",
+        "formal_status": "WAIT",
+        "wait_reason": "WAIT_CONFIRMATION",
+        "price": 8.92,
+        "change_pct": -0.6682,
+        "industry_median_change_pct": 0.2865,
+        "relative_to_industry_pct": -0.9547,
+        "seven_day": {
+          "source_trade_date": "2026-10-16",
+          "window_sessions": 7,
+          "status": "available",
+          "observation_count": 8,
+          "close_change_7d_pct": 0.4474,
+          "basis": "eight_valid_completed_session_closes"
+        },
+        "history_context_status": "available",
+        "history_confidence": "medium",
+        "history_trend_state": "bullish",
+        "history_break_state": "intact",
+        "latest_high": {
+          "date": "2026-10-12",
+          "type": "high",
+          "price": 9.42,
+          "label": "HH"
+        },
+        "latest_low": {
+          "date": "2026-09-28",
+          "type": "low",
+          "price": 8.79,
+          "label": "HL"
+        },
+        "invalidation": {
+          "direction": "below",
+          "price": 8.79
+        },
+        "trend_entry_plan": {
+          "setup_type": null,
+          "entry_zone": null,
+          "entry_trigger": null,
+          "max_entry_price": null,
+          "invalidation_price": null,
+          "invalidation_rule": null,
+          "initial_risk_pct": null,
+          "upside_to_resistance_R": null,
+          "exit_plan": null
+        },
+        "entry_zone_relation": "entry_plan_unavailable",
+        "previous_relative_strength": "稳定",
+        "relative_strength": "减弱",
+        "previous_price_behavior": "转弱",
+        "price_behavior": "转弱",
+        "previous_entry_action": "等待",
+        "entry_action": "等待",
+        "previous_holding_action": null,
+        "holding_action": null,
+        "trend_in_current_handoff": true,
+        "reason": "相对09:46有效首轮，涨跌-0.7795%→-0.6682%，相对行业-0.4312→-0.9547个百分点，因此相对强度稳定→减弱、价格行为转弱→转弱。正式身份仍为WAIT，trend_entry_plan未发布，故继续等待确认，不发布买入或卖出动作。七日+0.4474%及medium/bullish/intact只作背景；10:43无效轮次不进入previous_*链。",
+        "data_quality": "READY"
       }
     ],
     "000809": [
@@ -637,6 +1102,72 @@
         "holding_action": null,
         "trend_in_current_handoff": true,
         "reason": "今日首轮，正式WAIT且trend_entry_plan未发布。现价3.31元、涨跌-0.8982%，对应行业中位数-0.8982%，相对行业+0.0000个百分点；首轮相对强度按稳定处理，价格行为判转弱。WAIT只等待确认，不发布买入或卖出动作。七日-2.3392%及medium/bearish/intact仅作背景，不能单独触发交易。",
+        "data_quality": "READY"
+      },
+      {
+        "scan_at": "2026-10-19T13:20:30.000+08:00",
+        "rank": 6,
+        "code": "000809",
+        "company_name": "和展能源",
+        "trend_name": "风电设备",
+        "industry_code": "S630602",
+        "industry_name": "风电零部件",
+        "formal_status": "WAIT",
+        "wait_reason": "WAIT_CONFIRMATION",
+        "price": 3.26,
+        "change_pct": -2.3952,
+        "industry_median_change_pct": -2.3952,
+        "relative_to_industry_pct": 0,
+        "seven_day": {
+          "source_trade_date": "2026-10-16",
+          "window_sessions": 7,
+          "status": "available",
+          "observation_count": 8,
+          "close_change_7d_pct": -2.3392,
+          "basis": "eight_valid_completed_session_closes"
+        },
+        "history_context_status": "available",
+        "history_confidence": "medium",
+        "history_trend_state": "bearish",
+        "history_break_state": "intact",
+        "latest_high": {
+          "date": "2026-10-12",
+          "type": "high",
+          "price": 3.56,
+          "label": "LH"
+        },
+        "latest_low": {
+          "date": "2026-09-28",
+          "type": "low",
+          "price": 3.3,
+          "label": "LL"
+        },
+        "invalidation": {
+          "direction": "above",
+          "price": 3.56
+        },
+        "trend_entry_plan": {
+          "setup_type": null,
+          "entry_zone": null,
+          "entry_trigger": null,
+          "max_entry_price": null,
+          "invalidation_price": null,
+          "invalidation_rule": null,
+          "initial_risk_pct": null,
+          "upside_to_resistance_R": null,
+          "exit_plan": null
+        },
+        "entry_zone_relation": "entry_plan_unavailable",
+        "previous_relative_strength": "稳定",
+        "relative_strength": "稳定",
+        "previous_price_behavior": "转弱",
+        "price_behavior": "转弱",
+        "previous_entry_action": "等待",
+        "entry_action": "等待",
+        "previous_holding_action": null,
+        "holding_action": null,
+        "trend_in_current_handoff": true,
+        "reason": "相对09:46有效首轮，涨跌-0.8982%→-2.3952%，相对行业+0.0000→+0.0000个百分点，因此相对强度稳定→稳定、价格行为转弱→转弱。正式身份仍为WAIT，trend_entry_plan未发布，故继续等待确认，不发布买入或卖出动作。七日-2.3392%及medium/bearish/intact只作背景；10:43无效轮次不进入previous_*链。",
         "data_quality": "READY"
       }
     ]
