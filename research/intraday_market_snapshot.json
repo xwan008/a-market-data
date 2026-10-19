@@ -1,15 +1,15 @@
 {
   "schema_version": 2,
   "result_kind": "a_share_intraday_market_snapshot",
-  "trade_date": "2026-10-16",
-  "captured_at": "2026-10-16T14:28:16.731368+08:00",
+  "trade_date": "2026-10-19",
+  "captured_at": "2026-10-19T09:38:29.625742+08:00",
   "timezone": "Asia/Shanghai",
-  "market_status": "afternoon_session",
-  "source_trend_trade_date": "2026-10-15",
-  "source_trend_buy_trade_date": "2026-10-15",
+  "market_status": "morning_session",
+  "source_trend_trade_date": "2026-10-16",
+  "source_trend_buy_trade_date": "2026-10-16",
   "stock_handoff_kind": "trend_buy_v2",
   "source_stock_handoff_path": "research/trend_buy_handoff.json",
-  "source_trend_buy_handoff_run_id": "trend-buy-formal-main-38724687257-asof-2026-10-15",
+  "source_trend_buy_handoff_run_id": "trend-buy-formal-main-38891502904-asof-2026-10-16",
   "source_trend_buy_handoff_schema_version": "trend_buy_handoff_v2",
   "source_status": {
     "sina": "ok",
@@ -20,78 +20,173 @@
     "status": "passed",
     "source_handoff_dates_present": true,
     "source_handoff_trade_date_consistent": true,
-    "trend_buy_handoff_item_count": 3,
-    "trend_buy_stock_count": 3,
+    "trend_buy_handoff_item_count": 7,
+    "trend_buy_stock_count": 7,
     "trend_buy_stock_coverage_passed": true,
     "holding_stock_count": 3,
     "holding_quote_valid_count": 3,
     "holding_stock_coverage_passed": true,
-    "holding_watchlist_as_of": "2026-10-16",
-    "formal_prev_close_comparable_count": 3,
-    "formal_prev_close_matched_count": 3,
+    "holding_watchlist_as_of": "2026-10-19",
+    "formal_prev_close_comparable_count": 7,
+    "formal_prev_close_matched_count": 7,
     "formal_prev_close_alignment_ratio": 1.0,
     "formal_prev_close_alignment_passed": true,
-    "target_company_count": 8,
-    "usable_quote_count": 8,
+    "target_company_count": 60,
+    "usable_quote_count": 60,
     "quote_coverage": 1.0,
     "manifest_errors": [],
-    "history_context_target_count": 3,
-    "history_context_available_count": 3,
+    "history_context_target_count": 7,
+    "history_context_available_count": 7,
     "history_context_unavailable_count": 0,
-    "history_context_part_read_count": 1,
+    "history_context_part_read_count": 5,
     "history_context_errors": [],
-    "board_history_target_count": 1,
-    "board_history_7d_available_count": 1,
+    "board_history_target_count": 2,
+    "board_history_7d_available_count": 2,
     "board_previous_day_available_count": 0,
-    "board_history_shard_read_count": 5,
+    "board_history_shard_read_count": 33,
     "board_history_errors": [],
-    "stock_history_7d_target_count": 3,
-    "stock_history_7d_available_count": 3,
-    "stock_history_7d_shard_read_count": 3,
+    "stock_history_7d_target_count": 7,
+    "stock_history_7d_available_count": 7,
+    "stock_history_7d_shard_read_count": 7,
     "stock_history_7d_errors": [],
-    "crossday_archive_days": 4,
+    "crossday_archive_days": 5,
     "crossday_history_errors": []
   },
   "trends": {
-    "CRO/医疗研发外包": {
+    "风电设备": {
       "rank": 1,
-      "trend_name": "CRO/医疗研发外包",
-      "trend_state": "T2",
+      "trend_name": "风电设备",
+      "trend_state": "T1",
       "market_state": "候选趋势",
       "industry_codes": [
-        "S370603"
+        "S630601",
+        "S630602"
       ],
       "company_codes": [
-        "002821",
-        "600721",
-        "603127",
-        "603259",
-        "603456"
+        "000809",
+        "002202",
+        "002487",
+        "002531",
+        "600072",
+        "601218",
+        "601615",
+        "603063",
+        "603218",
+        "603507",
+        "603985"
       ],
       "metrics": {
-        "company_count": 5,
-        "quoted_count": 5,
+        "company_count": 11,
+        "quoted_count": 11,
         "coverage_ratio": 1.0,
-        "up_count": 0,
-        "down_count": 5,
+        "up_count": 4,
+        "down_count": 7,
         "flat_count": 0,
-        "up_ratio": 0.0,
-        "median_change_pct": -4.4423,
-        "max_change_pct": -0.5491,
-        "min_change_pct": -6.805,
+        "up_ratio": 0.3636,
+        "median_change_pct": -0.563,
+        "max_change_pct": 0.622,
+        "min_change_pct": -4.5543,
         "data_quality": "READY"
       },
       "history_context": {
-        "baseline_trade_date": "2026-10-15",
+        "baseline_trade_date": "2026-10-16",
         "constituent_basis": "current_frozen_universe_completed_sessions",
         "seven_day": {
           "window_sessions": 7,
-          "sample_count": 5,
-          "target_count": 5,
+          "sample_count": 11,
+          "target_count": 11,
           "coverage_ratio": 1.0,
           "status": "available",
-          "median_constituent_return_pct": -3.8342,
-          "positive_constituent_ratio": 0.4
+          "median_constituent_return_pct": -12.137,
+          "positive_constituent_ratio": 0.0909
+        },
+        "previous_trade_day": null
+      },
+      "history_context_status": "available"
+    },
+    "电网设备/特高压": {
+      "rank": 2,
+      "trend_name": "电网设备/特高压",
+      "trend_state": "T1",
+      "market_state": "候选趋势",
+      "industry_codes": [
+        "S630801",
+        "S630802",
+        "S630803",
+        "S630804"
+      ],
+      "company_codes": [
+        "000400",
+        "000533",
+        "000682",
+        "002028",
+        "002090",
+        "002112",
+        "002121",
+        "002168",
+        "002169",
+        "002270",
+        "002339",
+        "002346",
+        "002350",
+        "002358",
+        "002441",
+        "002452",
+        "002546",
+        "002706",
+        "002857",
+        "002927",
+        "002980",
+        "600089",
+        "600192",
+        "600268",
+        "600312",
+        "600379",
+        "600406",
+        "600468",
+        "600525",
+        "600550",
+        "600885",
+        "601126",
+        "601179",
+        "601222",
+        "601567",
+        "601616",
+        "601877",
+        "603016",
+        "603050",
+        "603097",
+        "603191",
+        "603312",
+        "603556",
+        "603829",
+        "603861",
+        "605066"
+      ],
+      "metrics": {
+        "company_count": 46,
+        "quoted_count": 46,
+        "coverage_ratio": 1.0,
+        "up_count": 16,
+        "down_count": 28,
+        "flat_count": 2,
+        "up_ratio": 0.3478,
+        "median_change_pct": -0.3246,
+        "max_change_pct": 4.0119,
+        "min_change_pct": -6.4617,
+        "data_quality": "READY"
+      },
+      "history_context": {
+        "baseline_trade_date": "2026-10-16",
+        "constituent_basis": "current_frozen_universe_completed_sessions",
+        "seven_day": {
+          "window_sessions": 7,
+          "sample_count": 46,
+          "target_count": 46,
+          "coverage_ratio": 1.0,
+          "status": "available",
+          "median_constituent_return_pct": -4.0716,
+          "positive_constituent_ratio": 0.2391
         },
         "previous_trade_day": null
       },
@@ -99,110 +194,1129 @@
     }
   },
   "industries": {
-    "S370603": {
-      "industry_code": "S370603",
-      "industry_name": "医疗研发外包",
-      "manifest_trade_date": "2026-10-15",
+    "S630601": {
+      "industry_code": "S630601",
+      "industry_name": "风电整机",
+      "manifest_trade_date": "2026-10-16",
       "trend_rank": 1,
-      "trend_name": "CRO/医疗研发外包",
-      "trend_state": "T2",
+      "trend_name": "风电设备",
+      "trend_state": "T1",
       "market_state": "候选趋势",
       "source_scope": "trend",
       "company_codes": [
-        "002821",
-        "600721",
-        "603127",
-        "603259",
-        "603456"
+        "002202",
+        "601615"
       ],
       "metrics": {
-        "company_count": 5,
-        "quoted_count": 5,
+        "company_count": 2,
+        "quoted_count": 2,
         "coverage_ratio": 1.0,
-        "up_count": 0,
-        "down_count": 5,
+        "up_count": 1,
+        "down_count": 1,
         "flat_count": 0,
-        "up_ratio": 0.0,
-        "median_change_pct": -4.4423,
-        "max_change_pct": -0.5491,
-        "min_change_pct": -6.805,
+        "up_ratio": 0.5,
+        "median_change_pct": 0.009,
+        "max_change_pct": 0.1322,
+        "min_change_pct": -0.1142,
         "data_quality": "READY"
       },
       "stocks": {
-        "002821": {
-          "name": "凯莱英",
-          "price": 151.91,
-          "prev_close": 158.9,
-          "change_pct": -4.399,
-          "quote_time": "2026-10-16T14:28:15+08:00",
+        "002202": {
+          "name": "金风科技",
+          "price": 15.15,
+          "prev_close": 15.13,
+          "change_pct": 0.1322,
+          "quote_time": "2026-10-19T09:38:27+08:00",
           "primary_source": "sina",
           "source_prices": {
-            "sina": 151.91,
-            "tencent": 151.91
+            "sina": 15.15,
+            "tencent": 15.14
           },
           "confidence": "high",
           "warnings": [
             "tencent_date_unverified"
           ]
         },
-        "600721": {
-          "name": "百花医药",
-          "price": 11.23,
-          "prev_close": 12.05,
-          "change_pct": -6.805,
-          "quote_time": "2026-10-16T14:28:14+08:00",
+        "601615": {
+          "name": "明阳智能",
+          "price": 8.75,
+          "prev_close": 8.76,
+          "change_pct": -0.1142,
+          "quote_time": "2026-10-19T09:38:27+08:00",
           "primary_source": "sina",
           "source_prices": {
-            "sina": 11.23,
-            "tencent": 11.23
+            "sina": 8.75,
+            "tencent": 8.76
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        }
+      }
+    },
+    "S630602": {
+      "industry_code": "S630602",
+      "industry_name": "风电零部件",
+      "manifest_trade_date": "2026-10-16",
+      "trend_rank": 1,
+      "trend_name": "风电设备",
+      "trend_state": "T1",
+      "market_state": "候选趋势",
+      "source_scope": "trend",
+      "company_codes": [
+        "000809",
+        "002487",
+        "002531",
+        "600072",
+        "601218",
+        "603063",
+        "603218",
+        "603507",
+        "603985"
+      ],
+      "metrics": {
+        "company_count": 9,
+        "quoted_count": 9,
+        "coverage_ratio": 1.0,
+        "up_count": 3,
+        "down_count": 6,
+        "flat_count": 0,
+        "up_ratio": 0.3333,
+        "median_change_pct": -0.8982,
+        "max_change_pct": 0.622,
+        "min_change_pct": -4.5543,
+        "data_quality": "READY"
+      },
+      "stocks": {
+        "000809": {
+          "name": "和展能源",
+          "price": 3.31,
+          "prev_close": 3.34,
+          "change_pct": -0.8982,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 3.31,
+            "tencent": 3.31
           },
           "confidence": "high",
           "warnings": [
             "tencent_date_unverified"
           ]
         },
-        "603127": {
-          "name": "昭衍新药",
-          "price": 48.4,
-          "prev_close": 50.65,
-          "change_pct": -4.4423,
-          "quote_time": "2026-10-16T14:28:15+08:00",
+        "002487": {
+          "name": "大金重工",
+          "price": 34.16,
+          "prev_close": 35.79,
+          "change_pct": -4.5543,
+          "quote_time": "2026-10-19T09:38:27+08:00",
           "primary_source": "sina",
           "source_prices": {
-            "sina": 48.4,
-            "tencent": 48.4
+            "sina": 34.16,
+            "tencent": 34.16
           },
           "confidence": "high",
           "warnings": [
             "tencent_date_unverified"
           ]
         },
-        "603259": {
-          "name": "药明康德",
-          "price": 144.72,
-          "prev_close": 154.5,
-          "change_pct": -6.3301,
-          "quote_time": "2026-10-16T14:28:16+08:00",
+        "002531": {
+          "name": "天顺风能",
+          "price": 7.17,
+          "prev_close": 7.41,
+          "change_pct": -3.2389,
+          "quote_time": "2026-10-19T09:38:27+08:00",
           "primary_source": "sina",
           "source_prices": {
-            "sina": 144.72,
-            "tencent": 144.72
+            "sina": 7.17,
+            "tencent": 7.17
           },
           "confidence": "high",
           "warnings": [
             "tencent_date_unverified"
           ]
         },
-        "603456": {
-          "name": "九洲药业",
-          "price": 16.3,
-          "prev_close": 16.39,
-          "change_pct": -0.5491,
-          "quote_time": "2026-10-16T14:28:13+08:00",
+        "600072": {
+          "name": "中船科技",
+          "price": 10.04,
+          "prev_close": 10.0,
+          "change_pct": 0.4,
+          "quote_time": "2026-10-19T09:38:27+08:00",
           "primary_source": "sina",
           "source_prices": {
-            "sina": 16.3,
-            "tencent": 16.28
+            "sina": 10.04,
+            "tencent": 10.04
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "601218": {
+          "name": "吉鑫科技",
+          "price": 4.97,
+          "prev_close": 5.17,
+          "change_pct": -3.8685,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 4.97,
+            "tencent": 4.97
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "603063": {
+          "name": "禾望电气",
+          "price": 22.96,
+          "prev_close": 23.09,
+          "change_pct": -0.563,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 22.96,
+            "tencent": 22.96
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "603218": {
+          "name": "日月股份",
+          "price": 8.97,
+          "prev_close": 8.95,
+          "change_pct": 0.2235,
+          "quote_time": "2026-10-19T09:38:26+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 8.97,
+            "tencent": 8.98
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "603507": {
+          "name": "振江股份",
+          "price": 22.7,
+          "prev_close": 23.44,
+          "change_pct": -3.157,
+          "quote_time": "2026-10-19T09:38:29+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 22.7,
+            "tencent": 22.7
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "603985": {
+          "name": "恒润股份",
+          "price": 14.56,
+          "prev_close": 14.47,
+          "change_pct": 0.622,
+          "quote_time": "2026-10-19T09:38:28+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 14.56,
+            "tencent": 14.56
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        }
+      }
+    },
+    "S630801": {
+      "industry_code": "S630801",
+      "industry_name": "输变电设备",
+      "manifest_trade_date": "2026-10-16",
+      "trend_rank": 2,
+      "trend_name": "电网设备/特高压",
+      "trend_state": "T1",
+      "market_state": "候选趋势",
+      "source_scope": "trend",
+      "company_codes": [
+        "000533",
+        "002028",
+        "002112",
+        "002270",
+        "002358",
+        "002452",
+        "600089",
+        "600192",
+        "600312",
+        "600379",
+        "600525",
+        "600550",
+        "601179",
+        "603097",
+        "603191",
+        "603312"
+      ],
+      "metrics": {
+        "company_count": 16,
+        "quoted_count": 16,
+        "coverage_ratio": 1.0,
+        "up_count": 6,
+        "down_count": 9,
+        "flat_count": 1,
+        "up_ratio": 0.375,
+        "median_change_pct": -0.3412,
+        "max_change_pct": 2.4655,
+        "min_change_pct": -1.5063,
+        "data_quality": "READY"
+      },
+      "stocks": {
+        "000533": {
+          "name": "顺钠股份",
+          "price": 9.27,
+          "prev_close": 9.35,
+          "change_pct": -0.8556,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 9.27,
+            "tencent": 9.27
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "002028": {
+          "name": "思源电气",
+          "price": 120.94,
+          "prev_close": 118.03,
+          "change_pct": 2.4655,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 120.94,
+            "tencent": 120.95
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "002112": {
+          "name": "三变科技",
+          "price": 13.06,
+          "prev_close": 13.12,
+          "change_pct": -0.4573,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 13.06,
+            "tencent": 13.07
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "002270": {
+          "name": "华明装备",
+          "price": 18.73,
+          "prev_close": 18.85,
+          "change_pct": -0.6366,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 18.73,
+            "tencent": 18.73
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "002358": {
+          "name": "森源电气",
+          "price": 4.98,
+          "prev_close": 4.98,
+          "change_pct": 0.0,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 4.98,
+            "tencent": 4.98
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "002452": {
+          "name": "长高电气",
+          "price": 9.68,
+          "prev_close": 9.52,
+          "change_pct": 1.6807,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 9.68,
+            "tencent": 9.68
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "600089": {
+          "name": "特变电工",
+          "price": 17.16,
+          "prev_close": 17.25,
+          "change_pct": -0.5217,
+          "quote_time": "2026-10-19T09:38:28+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 17.16,
+            "tencent": 17.16
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "600192": {
+          "name": "长城电工",
+          "price": 7.57,
+          "prev_close": 7.66,
+          "change_pct": -1.1749,
+          "quote_time": "2026-10-19T09:38:28+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 7.57,
+            "tencent": 7.57
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "600312": {
+          "name": "平高电气",
+          "price": 20.95,
+          "prev_close": 20.74,
+          "change_pct": 1.0125,
+          "quote_time": "2026-10-19T09:38:28+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 20.95,
+            "tencent": 20.95
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "600379": {
+          "name": "宝光股份",
+          "price": 11.77,
+          "prev_close": 11.95,
+          "change_pct": -1.5063,
+          "quote_time": "2026-10-19T09:38:28+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 11.77,
+            "tencent": 11.77
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "600525": {
+          "name": "长园集团",
+          "price": 4.43,
+          "prev_close": 4.44,
+          "change_pct": -0.2252,
+          "quote_time": "2026-10-19T09:38:26+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 4.43,
+            "tencent": 4.43
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "600550": {
+          "name": "保变电气",
+          "price": 9.89,
+          "prev_close": 9.87,
+          "change_pct": 0.2026,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 9.89,
+            "tencent": 9.89
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "601179": {
+          "name": "中国西电",
+          "price": 11.01,
+          "prev_close": 10.96,
+          "change_pct": 0.4562,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 11.01,
+            "tencent": 11.01
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "603097": {
+          "name": "江苏华辰",
+          "price": 17.83,
+          "prev_close": 17.99,
+          "change_pct": -0.8894,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 17.83,
+            "tencent": 17.83
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "603191": {
+          "name": "望变电气",
+          "price": 12.22,
+          "prev_close": 12.3,
+          "change_pct": -0.6504,
+          "quote_time": "2026-10-19T09:38:28+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 12.22,
+            "tencent": 12.22
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "603312": {
+          "name": "西典新能",
+          "price": 30.26,
+          "prev_close": 30.25,
+          "change_pct": 0.0331,
+          "quote_time": "2026-10-19T09:38:28+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 30.26,
+            "tencent": 30.26
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        }
+      }
+    },
+    "S630802": {
+      "industry_code": "S630802",
+      "industry_name": "配电设备",
+      "manifest_trade_date": "2026-10-16",
+      "trend_rank": 2,
+      "trend_name": "电网设备/特高压",
+      "trend_state": "T1",
+      "market_state": "候选趋势",
+      "source_scope": "trend",
+      "company_codes": [
+        "002168",
+        "002346",
+        "002350",
+        "002441",
+        "002706",
+        "002927",
+        "600468",
+        "601567",
+        "601616",
+        "601877",
+        "603016",
+        "603829",
+        "603861",
+        "605066"
+      ],
+      "metrics": {
+        "company_count": 14,
+        "quoted_count": 14,
+        "coverage_ratio": 1.0,
+        "up_count": 4,
+        "down_count": 10,
+        "flat_count": 0,
+        "up_ratio": 0.2857,
+        "median_change_pct": -0.4521,
+        "max_change_pct": 4.0119,
+        "min_change_pct": -4.2326,
+        "data_quality": "READY"
+      },
+      "stocks": {
+        "002168": {
+          "name": "ST惠程",
+          "price": 3.42,
+          "prev_close": 3.44,
+          "change_pct": -0.5814,
+          "quote_time": "2026-10-19T09:38:06+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 3.42,
+            "tencent": 3.42
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "002346": {
+          "name": "柘中股份",
+          "price": 16.16,
+          "prev_close": 16.17,
+          "change_pct": -0.0618,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 16.16,
+            "tencent": 16.16
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "002350": {
+          "name": "北京科锐",
+          "price": 13.13,
+          "prev_close": 12.89,
+          "change_pct": 1.8619,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 13.13,
+            "tencent": 13.13
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "002441": {
+          "name": "众业达",
+          "price": 8.28,
+          "prev_close": 8.36,
+          "change_pct": -0.9569,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 8.28,
+            "tencent": 8.28
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "002706": {
+          "name": "良信股份",
+          "price": 7.75,
+          "prev_close": 7.62,
+          "change_pct": 1.706,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 7.75,
+            "tencent": 7.76
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "002927": {
+          "name": "泰永长征",
+          "price": 15.24,
+          "prev_close": 15.53,
+          "change_pct": -1.8674,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 15.24,
+            "tencent": 15.24
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "600468": {
+          "name": "百利电气",
+          "price": 5.57,
+          "prev_close": 5.59,
+          "change_pct": -0.3578,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 5.57,
+            "tencent": 5.57
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "601567": {
+          "name": "三星电气",
+          "price": 12.29,
+          "prev_close": 12.25,
+          "change_pct": 0.3265,
+          "quote_time": "2026-10-19T09:38:26+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 12.29,
+            "tencent": 12.29
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "601616": {
+          "name": "广电电气",
+          "price": 3.64,
+          "prev_close": 3.66,
+          "change_pct": -0.5464,
+          "quote_time": "2026-10-19T09:38:26+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 3.64,
+            "tencent": 3.64
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "601877": {
+          "name": "正泰电器",
+          "price": 24.98,
+          "prev_close": 25.0,
+          "change_pct": -0.08,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 24.98,
+            "tencent": 24.97
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "603016": {
+          "name": "新宏泰",
+          "price": 27.83,
+          "prev_close": 29.06,
+          "change_pct": -4.2326,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 27.83,
+            "tencent": 27.83
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "603829": {
+          "name": "洛凯股份",
+          "price": 14.44,
+          "prev_close": 14.57,
+          "change_pct": -0.8922,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 14.44,
+            "tencent": 14.44
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "603861": {
+          "name": "白云电器",
+          "price": 11.68,
+          "prev_close": 11.8,
+          "change_pct": -1.0169,
+          "quote_time": "2026-10-19T09:38:28+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 11.68,
+            "tencent": 11.68
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "605066": {
+          "name": "天正电气",
+          "price": 7.0,
+          "prev_close": 6.73,
+          "change_pct": 4.0119,
+          "quote_time": "2026-10-19T09:38:28+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 7.0,
+            "tencent": 7.0
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        }
+      }
+    },
+    "S630803": {
+      "industry_code": "S630803",
+      "industry_name": "电网自动化设备",
+      "manifest_trade_date": "2026-10-16",
+      "trend_rank": 2,
+      "trend_name": "电网设备/特高压",
+      "trend_state": "T1",
+      "market_state": "候选趋势",
+      "source_scope": "trend",
+      "company_codes": [
+        "000400",
+        "000682",
+        "002090",
+        "002169",
+        "002339",
+        "600268",
+        "600406",
+        "600885",
+        "601126",
+        "603050"
+      ],
+      "metrics": {
+        "company_count": 10,
+        "quoted_count": 10,
+        "coverage_ratio": 1.0,
+        "up_count": 3,
+        "down_count": 7,
+        "flat_count": 0,
+        "up_ratio": 0.3,
+        "median_change_pct": -0.3483,
+        "max_change_pct": 1.1799,
+        "min_change_pct": -1.6861,
+        "data_quality": "READY"
+      },
+      "stocks": {
+        "000400": {
+          "name": "许继电气",
+          "price": 22.12,
+          "prev_close": 22.21,
+          "change_pct": -0.4052,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 22.12,
+            "tencent": 22.12
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "000682": {
+          "name": "东方电子",
+          "price": 10.29,
+          "prev_close": 10.17,
+          "change_pct": 1.1799,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 10.29,
+            "tencent": 10.29
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "002090": {
+          "name": "金智科技",
+          "price": 8.91,
+          "prev_close": 8.98,
+          "change_pct": -0.7795,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 8.91,
+            "tencent": 8.92
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "002169": {
+          "name": "智光电气",
+          "price": 9.94,
+          "prev_close": 10.0,
+          "change_pct": -0.6,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 9.94,
+            "tencent": 9.94
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "002339": {
+          "name": "积成电子",
+          "price": 6.84,
+          "prev_close": 6.86,
+          "change_pct": -0.2915,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 6.84,
+            "tencent": 6.84
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "600268": {
+          "name": "国电南自",
+          "price": 9.82,
+          "prev_close": 9.77,
+          "change_pct": 0.5118,
+          "quote_time": "2026-10-19T09:38:26+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 9.82,
+            "tencent": 9.82
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "600406": {
+          "name": "国电南瑞",
+          "price": 22.6,
+          "prev_close": 22.73,
+          "change_pct": -0.5719,
+          "quote_time": "2026-10-19T09:38:28+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 22.6,
+            "tencent": 22.6
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "600885": {
+          "name": "宏发股份",
+          "price": 29.8,
+          "prev_close": 29.71,
+          "change_pct": 0.3029,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 29.8,
+            "tencent": 29.84
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "601126": {
+          "name": "四方股份",
+          "price": 30.32,
+          "prev_close": 30.84,
+          "change_pct": -1.6861,
+          "quote_time": "2026-10-19T09:38:28+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 30.32,
+            "tencent": 30.32
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "603050": {
+          "name": "科林电气",
+          "price": 15.24,
+          "prev_close": 15.28,
+          "change_pct": -0.2618,
+          "quote_time": "2026-10-19T09:38:28+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 15.24,
+            "tencent": 15.24
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        }
+      }
+    },
+    "S630804": {
+      "industry_code": "S630804",
+      "industry_name": "电工仪器仪表",
+      "manifest_trade_date": "2026-10-16",
+      "trend_rank": 2,
+      "trend_name": "电网设备/特高压",
+      "trend_state": "T1",
+      "market_state": "候选趋势",
+      "source_scope": "trend",
+      "company_codes": [
+        "002121",
+        "002546",
+        "002857",
+        "002980",
+        "601222",
+        "603556"
+      ],
+      "metrics": {
+        "company_count": 6,
+        "quoted_count": 6,
+        "coverage_ratio": 1.0,
+        "up_count": 3,
+        "down_count": 2,
+        "flat_count": 1,
+        "up_ratio": 0.5,
+        "median_change_pct": 0.3608,
+        "max_change_pct": 3.6946,
+        "min_change_pct": -6.4617,
+        "data_quality": "READY"
+      },
+      "stocks": {
+        "002121": {
+          "name": "科陆电子",
+          "price": 4.21,
+          "prev_close": 4.06,
+          "change_pct": 3.6946,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 4.21,
+            "tencent": 4.21
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "002546": {
+          "name": "新联电子",
+          "price": 7.04,
+          "prev_close": 7.04,
+          "change_pct": 0.0,
+          "quote_time": "2026-10-19T09:38:24+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 7.04,
+            "tencent": 7.04
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "002857": {
+          "name": "三晖电气",
+          "price": 15.86,
+          "prev_close": 16.09,
+          "change_pct": -1.4295,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 15.86,
+            "tencent": 15.86
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "002980": {
+          "name": "华盛昌",
+          "price": 104.66,
+          "prev_close": 111.89,
+          "change_pct": -6.4617,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 104.66,
+            "tencent": 104.66
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "601222": {
+          "name": "林洋能源",
+          "price": 6.07,
+          "prev_close": 5.94,
+          "change_pct": 2.1886,
+          "quote_time": "2026-10-19T09:38:28+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 6.07,
+            "tencent": 6.07
+          },
+          "confidence": "high",
+          "warnings": [
+            "tencent_date_unverified"
+          ]
+        },
+        "603556": {
+          "name": "海兴电力",
+          "price": 20.94,
+          "prev_close": 20.79,
+          "change_pct": 0.7215,
+          "quote_time": "2026-10-19T09:38:27+08:00",
+          "primary_source": "sina",
+          "source_prices": {
+            "sina": 20.94,
+            "tencent": 20.94
           },
           "confidence": "high",
           "warnings": [
@@ -213,16 +1327,16 @@
     }
   },
   "trend_buy_stocks": {
-    "600721": {
+    "600406": {
       "rank": 1,
-      "code": "600721",
-      "company_name": "百花医药",
-      "trend_name": "CRO/医疗研发外包",
-      "industry_code": "S370603",
-      "industry_name": "医疗研发外包",
+      "code": "600406",
+      "company_name": "国电南瑞",
+      "trend_name": "电网设备/特高压",
+      "industry_code": "S630803",
+      "industry_name": "电网自动化设备",
       "formal_status": "WAIT",
       "wait_reason": "WAIT_CONFIRMATION",
-      "formal_current_price": 12.05,
+      "formal_current_price": 22.73,
       "trend_entry_plan": {
         "setup_type": null,
         "entry_zone": null,
@@ -235,61 +1349,131 @@
         "exit_plan": null
       },
       "stock_handoff_kind": "trend_buy_v2",
-      "price": 11.23,
-      "prev_close": 12.05,
-      "change_pct": -6.805,
-      "quote_time": "2026-10-16T14:28:14+08:00",
+      "price": 22.6,
+      "prev_close": 22.73,
+      "change_pct": -0.5719,
+      "quote_time": "2026-10-19T09:38:28+08:00",
       "confidence": "high",
       "warnings": [
         "tencent_date_unverified"
       ],
-      "industry_median_change_pct": -4.4423,
-      "relative_to_industry_pct": -2.3627,
+      "industry_median_change_pct": -0.3483,
+      "relative_to_industry_pct": -0.2236,
       "in_monitored_industry_universe": true,
       "trend_in_current_handoff": true,
       "history_context_status": "available",
       "history_context": {
-        "source_trade_date": "2026-10-15",
+        "source_trade_date": "2026-10-16",
         "history_confidence": "medium",
-        "close_change_7d_pct": -6.9498,
-        "trend_state": "transition",
-        "break_state": "transition",
+        "close_change_7d_pct": 0.9325,
+        "trend_state": "bearish",
+        "break_state": "intact",
         "latest_high": {
-          "date": "2026-09-30",
+          "date": "2026-10-12",
           "type": "high",
-          "price": 13.65,
+          "price": 22.95,
           "label": "LH"
         },
         "latest_low": {
-          "date": "2026-09-28",
+          "date": "2026-09-16",
           "type": "low",
-          "price": 11.9,
-          "label": "HL"
+          "price": 21.6556,
+          "label": "LL"
+        },
+        "invalidation": {
+          "direction": "above",
+          "price": 22.95
+        },
+        "seven_day_status": "available",
+        "seven_day_window_sessions": 7
+      },
+      "seven_day": {
+        "source_trade_date": "2026-10-16",
+        "window_sessions": 7,
+        "status": "available",
+        "observation_count": 8,
+        "close_change_7d_pct": 0.9325,
+        "basis": "eight_valid_completed_session_closes"
+      },
+      "previous_trade_day_monitor": null
+    },
+    "601877": {
+      "rank": 2,
+      "code": "601877",
+      "company_name": "正泰电器",
+      "trend_name": "电网设备/特高压",
+      "industry_code": "S630802",
+      "industry_name": "配电设备",
+      "formal_status": "WAIT",
+      "wait_reason": "WAIT_CONFIRMATION",
+      "formal_current_price": 25.0,
+      "trend_entry_plan": {
+        "setup_type": null,
+        "entry_zone": null,
+        "entry_trigger": null,
+        "max_entry_price": null,
+        "invalidation_price": null,
+        "invalidation_rule": null,
+        "initial_risk_pct": null,
+        "upside_to_resistance_R": null,
+        "exit_plan": null
+      },
+      "stock_handoff_kind": "trend_buy_v2",
+      "price": 24.98,
+      "prev_close": 25.0,
+      "change_pct": -0.08,
+      "quote_time": "2026-10-19T09:38:27+08:00",
+      "confidence": "high",
+      "warnings": [
+        "tencent_date_unverified"
+      ],
+      "industry_median_change_pct": -0.4521,
+      "relative_to_industry_pct": 0.3721,
+      "in_monitored_industry_universe": true,
+      "trend_in_current_handoff": true,
+      "history_context_status": "available",
+      "history_context": {
+        "source_trade_date": "2026-10-16",
+        "history_confidence": "medium",
+        "close_change_7d_pct": 0.2004,
+        "trend_state": "transition",
+        "break_state": "bearish_structure_break_confirmed",
+        "latest_high": {
+          "date": "2026-10-12",
+          "type": "high",
+          "price": 26.04,
+          "label": "HH"
+        },
+        "latest_low": {
+          "date": "2026-09-29",
+          "type": "low",
+          "price": 24.3,
+          "label": "LL"
         },
         "invalidation": null,
         "seven_day_status": "available",
         "seven_day_window_sessions": 7
       },
       "seven_day": {
-        "source_trade_date": "2026-10-15",
+        "source_trade_date": "2026-10-16",
         "window_sessions": 7,
         "status": "available",
         "observation_count": 8,
-        "close_change_7d_pct": -6.9498,
+        "close_change_7d_pct": 0.2004,
         "basis": "eight_valid_completed_session_closes"
       },
       "previous_trade_day_monitor": null
     },
-    "603127": {
-      "rank": 2,
-      "code": "603127",
-      "company_name": "昭衍新药",
-      "trend_name": "CRO/医疗研发外包",
-      "industry_code": "S370603",
-      "industry_name": "医疗研发外包",
+    "605066": {
+      "rank": 3,
+      "code": "605066",
+      "company_name": "天正电气",
+      "trend_name": "电网设备/特高压",
+      "industry_code": "S630802",
+      "industry_name": "配电设备",
       "formal_status": "WAIT",
       "wait_reason": "WAIT_CONFIRMATION",
-      "formal_current_price": 50.65,
+      "formal_current_price": 6.73,
       "trend_entry_plan": {
         "setup_type": null,
         "entry_zone": null,
@@ -302,64 +1486,274 @@
         "exit_plan": null
       },
       "stock_handoff_kind": "trend_buy_v2",
-      "price": 48.4,
-      "prev_close": 50.65,
-      "change_pct": -4.4423,
-      "quote_time": "2026-10-16T14:28:15+08:00",
+      "price": 7.0,
+      "prev_close": 6.73,
+      "change_pct": 4.0119,
+      "quote_time": "2026-10-19T09:38:28+08:00",
       "confidence": "high",
       "warnings": [
         "tencent_date_unverified"
       ],
-      "industry_median_change_pct": -4.4423,
+      "industry_median_change_pct": -0.4521,
+      "relative_to_industry_pct": 4.464,
+      "in_monitored_industry_universe": true,
+      "trend_in_current_handoff": true,
+      "history_context_status": "available",
+      "history_context": {
+        "source_trade_date": "2026-10-16",
+        "history_confidence": "medium",
+        "close_change_7d_pct": 0.2981,
+        "trend_state": "bearish",
+        "break_state": "intact",
+        "latest_high": {
+          "date": "2026-10-09",
+          "type": "high",
+          "price": 6.92,
+          "label": "LH"
+        },
+        "latest_low": {
+          "date": "2026-09-28",
+          "type": "low",
+          "price": 6.5,
+          "label": "LL"
+        },
+        "invalidation": {
+          "direction": "above",
+          "price": 6.92
+        },
+        "seven_day_status": "available",
+        "seven_day_window_sessions": 7
+      },
+      "seven_day": {
+        "source_trade_date": "2026-10-16",
+        "window_sessions": 7,
+        "status": "available",
+        "observation_count": 8,
+        "close_change_7d_pct": 0.2981,
+        "basis": "eight_valid_completed_session_closes"
+      },
+      "previous_trade_day_monitor": null
+    },
+    "002090": {
+      "rank": 4,
+      "code": "002090",
+      "company_name": "金智科技",
+      "trend_name": "电网设备/特高压",
+      "industry_code": "S630803",
+      "industry_name": "电网自动化设备",
+      "formal_status": "WAIT",
+      "wait_reason": "WAIT_CONFIRMATION",
+      "formal_current_price": 8.98,
+      "trend_entry_plan": {
+        "setup_type": null,
+        "entry_zone": null,
+        "entry_trigger": null,
+        "max_entry_price": null,
+        "invalidation_price": null,
+        "invalidation_rule": null,
+        "initial_risk_pct": null,
+        "upside_to_resistance_R": null,
+        "exit_plan": null
+      },
+      "stock_handoff_kind": "trend_buy_v2",
+      "price": 8.91,
+      "prev_close": 8.98,
+      "change_pct": -0.7795,
+      "quote_time": "2026-10-19T09:38:27+08:00",
+      "confidence": "high",
+      "warnings": [
+        "tencent_date_unverified"
+      ],
+      "industry_median_change_pct": -0.3483,
+      "relative_to_industry_pct": -0.4312,
+      "in_monitored_industry_universe": true,
+      "trend_in_current_handoff": true,
+      "history_context_status": "available",
+      "history_context": {
+        "source_trade_date": "2026-10-16",
+        "history_confidence": "medium",
+        "close_change_7d_pct": 0.4474,
+        "trend_state": "bullish",
+        "break_state": "intact",
+        "latest_high": {
+          "date": "2026-10-12",
+          "type": "high",
+          "price": 9.42,
+          "label": "HH"
+        },
+        "latest_low": {
+          "date": "2026-09-28",
+          "type": "low",
+          "price": 8.79,
+          "label": "HL"
+        },
+        "invalidation": {
+          "direction": "below",
+          "price": 8.79
+        },
+        "seven_day_status": "available",
+        "seven_day_window_sessions": 7
+      },
+      "seven_day": {
+        "source_trade_date": "2026-10-16",
+        "window_sessions": 7,
+        "status": "available",
+        "observation_count": 8,
+        "close_change_7d_pct": 0.4474,
+        "basis": "eight_valid_completed_session_closes"
+      },
+      "previous_trade_day_monitor": null
+    },
+    "601616": {
+      "rank": 5,
+      "code": "601616",
+      "company_name": "广电电气",
+      "trend_name": "电网设备/特高压",
+      "industry_code": "S630802",
+      "industry_name": "配电设备",
+      "formal_status": "WAIT",
+      "wait_reason": "WAIT_CONFIRMATION",
+      "formal_current_price": 3.66,
+      "trend_entry_plan": {
+        "setup_type": null,
+        "entry_zone": null,
+        "entry_trigger": null,
+        "max_entry_price": null,
+        "invalidation_price": null,
+        "invalidation_rule": null,
+        "initial_risk_pct": null,
+        "upside_to_resistance_R": null,
+        "exit_plan": null
+      },
+      "stock_handoff_kind": "trend_buy_v2",
+      "price": 3.64,
+      "prev_close": 3.66,
+      "change_pct": -0.5464,
+      "quote_time": "2026-10-19T09:38:26+08:00",
+      "confidence": "high",
+      "warnings": [
+        "tencent_date_unverified"
+      ],
+      "industry_median_change_pct": -0.4521,
+      "relative_to_industry_pct": -0.0943,
+      "in_monitored_industry_universe": true,
+      "trend_in_current_handoff": true,
+      "history_context_status": "available",
+      "history_context": {
+        "source_trade_date": "2026-10-16",
+        "history_confidence": "medium",
+        "close_change_7d_pct": -2.4,
+        "trend_state": "bearish",
+        "break_state": "intact",
+        "latest_high": {
+          "date": "2026-10-12",
+          "type": "high",
+          "price": 3.85,
+          "label": "LH"
+        },
+        "latest_low": {
+          "date": "2026-10-09",
+          "type": "low",
+          "price": 3.68,
+          "label": "LL"
+        },
+        "invalidation": {
+          "direction": "above",
+          "price": 3.85
+        },
+        "seven_day_status": "available",
+        "seven_day_window_sessions": 7
+      },
+      "seven_day": {
+        "source_trade_date": "2026-10-16",
+        "window_sessions": 7,
+        "status": "available",
+        "observation_count": 8,
+        "close_change_7d_pct": -2.4,
+        "basis": "eight_valid_completed_session_closes"
+      },
+      "previous_trade_day_monitor": null
+    },
+    "000809": {
+      "rank": 6,
+      "code": "000809",
+      "company_name": "和展能源",
+      "trend_name": "风电设备",
+      "industry_code": "S630602",
+      "industry_name": "风电零部件",
+      "formal_status": "WAIT",
+      "wait_reason": "WAIT_CONFIRMATION",
+      "formal_current_price": 3.34,
+      "trend_entry_plan": {
+        "setup_type": null,
+        "entry_zone": null,
+        "entry_trigger": null,
+        "max_entry_price": null,
+        "invalidation_price": null,
+        "invalidation_rule": null,
+        "initial_risk_pct": null,
+        "upside_to_resistance_R": null,
+        "exit_plan": null
+      },
+      "stock_handoff_kind": "trend_buy_v2",
+      "price": 3.31,
+      "prev_close": 3.34,
+      "change_pct": -0.8982,
+      "quote_time": "2026-10-19T09:38:27+08:00",
+      "confidence": "high",
+      "warnings": [
+        "tencent_date_unverified"
+      ],
+      "industry_median_change_pct": -0.8982,
       "relative_to_industry_pct": 0.0,
       "in_monitored_industry_universe": true,
       "trend_in_current_handoff": true,
       "history_context_status": "available",
       "history_context": {
-        "source_trade_date": "2026-10-15",
+        "source_trade_date": "2026-10-16",
         "history_confidence": "medium",
-        "close_change_7d_pct": 13.0076,
-        "trend_state": "bullish",
+        "close_change_7d_pct": -2.3392,
+        "trend_state": "bearish",
         "break_state": "intact",
         "latest_high": {
           "date": "2026-10-12",
           "type": "high",
-          "price": 55.17,
-          "label": "HH"
+          "price": 3.56,
+          "label": "LH"
         },
         "latest_low": {
-          "date": "2026-09-30",
+          "date": "2026-09-28",
           "type": "low",
-          "price": 44.24,
-          "label": "HL"
+          "price": 3.3,
+          "label": "LL"
         },
         "invalidation": {
-          "direction": "below",
-          "price": 44.24
+          "direction": "above",
+          "price": 3.56
         },
         "seven_day_status": "available",
         "seven_day_window_sessions": 7
       },
       "seven_day": {
-        "source_trade_date": "2026-10-15",
+        "source_trade_date": "2026-10-16",
         "window_sessions": 7,
         "status": "available",
         "observation_count": 8,
-        "close_change_7d_pct": 13.0076,
+        "close_change_7d_pct": -2.3392,
         "basis": "eight_valid_completed_session_closes"
       },
       "previous_trade_day_monitor": null
     },
-    "603456": {
-      "rank": 3,
-      "code": "603456",
-      "company_name": "九洲药业",
-      "trend_name": "CRO/医疗研发外包",
-      "industry_code": "S370603",
-      "industry_name": "医疗研发外包",
+    "601218": {
+      "rank": 7,
+      "code": "601218",
+      "company_name": "吉鑫科技",
+      "trend_name": "风电设备",
+      "industry_code": "S630602",
+      "industry_name": "风电零部件",
       "formal_status": "WAIT",
       "wait_reason": "WAIT_CONFIRMATION",
-      "formal_current_price": 16.39,
+      "formal_current_price": 5.17,
       "trend_entry_plan": {
         "setup_type": null,
         "entry_zone": null,
@@ -372,50 +1766,50 @@
         "exit_plan": null
       },
       "stock_handoff_kind": "trend_buy_v2",
-      "price": 16.3,
-      "prev_close": 16.39,
-      "change_pct": -0.5491,
-      "quote_time": "2026-10-16T14:28:13+08:00",
+      "price": 4.97,
+      "prev_close": 5.17,
+      "change_pct": -3.8685,
+      "quote_time": "2026-10-19T09:38:27+08:00",
       "confidence": "high",
       "warnings": [
         "tencent_date_unverified"
       ],
-      "industry_median_change_pct": -4.4423,
-      "relative_to_industry_pct": 3.8932,
+      "industry_median_change_pct": -0.8982,
+      "relative_to_industry_pct": -2.9703,
       "in_monitored_industry_universe": true,
       "trend_in_current_handoff": true,
       "history_context_status": "available",
       "history_context": {
-        "source_trade_date": "2026-10-15",
+        "source_trade_date": "2026-10-16",
         "history_confidence": "medium",
-        "close_change_7d_pct": 0.7995,
+        "close_change_7d_pct": -14.9671,
         "trend_state": "bullish",
         "break_state": "intact",
         "latest_high": {
-          "date": "2026-10-12",
+          "date": "2026-09-29",
           "type": "high",
-          "price": 17.05,
+          "price": 6.6,
           "label": "HH"
         },
         "latest_low": {
-          "date": "2026-10-09",
+          "date": "2026-09-24",
           "type": "low",
-          "price": 15.85,
+          "price": 4.93,
           "label": "HL"
         },
         "invalidation": {
           "direction": "below",
-          "price": 15.85
+          "price": 4.93
         },
         "seven_day_status": "available",
         "seven_day_window_sessions": 7
       },
       "seven_day": {
-        "source_trade_date": "2026-10-15",
+        "source_trade_date": "2026-10-16",
         "window_sessions": 7,
         "status": "available",
         "observation_count": 8,
-        "close_change_7d_pct": 0.7995,
+        "close_change_7d_pct": -14.9671,
         "basis": "eight_valid_completed_session_closes"
       },
       "previous_trade_day_monitor": null
@@ -427,10 +1821,10 @@
       "company_name": "淮北矿业",
       "source_scope": "holding_watchlist",
       "in_trend_buy_handoff": false,
-      "price": 14.93,
-      "prev_close": 14.82,
-      "change_pct": 0.7422,
-      "quote_time": "2026-10-16T14:28:13+08:00",
+      "price": 14.97,
+      "prev_close": 14.99,
+      "change_pct": -0.1334,
+      "quote_time": "2026-10-19T09:38:28+08:00",
       "confidence": "high",
       "warnings": [
         "tencent_date_unverified"
@@ -441,10 +1835,10 @@
       "company_name": "赤峰黄金",
       "source_scope": "holding_watchlist",
       "in_trend_buy_handoff": false,
-      "price": 39.74,
-      "prev_close": 38.85,
-      "change_pct": 2.2909,
-      "quote_time": "2026-10-16T14:28:16+08:00",
+      "price": 40.48,
+      "prev_close": 39.89,
+      "change_pct": 1.4791,
+      "quote_time": "2026-10-19T09:38:26+08:00",
       "confidence": "high",
       "warnings": [
         "tencent_date_unverified"
@@ -455,10 +1849,10 @@
       "company_name": "白银有色",
       "source_scope": "holding_watchlist",
       "in_trend_buy_handoff": false,
-      "price": 5.25,
-      "prev_close": 5.14,
-      "change_pct": 2.1401,
-      "quote_time": "2026-10-16T14:28:13+08:00",
+      "price": 5.19,
+      "prev_close": 5.26,
+      "change_pct": -1.3308,
+      "quote_time": "2026-10-19T09:38:26+08:00",
       "confidence": "high",
       "warnings": [
         "tencent_date_unverified"
