@@ -1,29 +1,393 @@
 {
   "schema_version": 2,
   "result_kind": "a_share_trend_registry",
-  "trade_date": "2026-10-16",
-  "generated_at": "2026-10-16T18:39:43+08:00",
+  "trade_date": "2026-10-19",
+  "generated_at": "2026-10-19T18:52:00+08:00",
   "timezone": "Asia/Shanghai",
   "status": "COMPLETE",
   "scan_audit": {
-    "mode": "initial_active_baseline",
-    "trade_date": "2026-10-16",
-    "tracked_count": 5,
-    "notes": "Read-only initial live pool frozen from the last complete closing study. No historical archive is a production discovery input.",
+    "mode": "full_close",
+    "trade_date": "2026-10-19",
+    "full_market_scan_completed": true,
+    "independent_discovery_frozen_at": "2026-10-19T18:47:00+08:00",
+    "independent_discovery_count": 4,
+    "quote_universe_count": 3177,
+    "valid_quote_count": 3177,
+    "industry_mapped_count": 3139,
+    "source_latest_blob_sha": "2962b49d9a00482fcb70f3ec16df963073c07318",
+    "auxiliary_snapshot_trade_date": "2026-10-19",
+    "auxiliary_snapshot_status": "COMPLETE_POINT_IN_TIME_ELIGIBLE",
+    "prior_baseline_mode": "INITIAL_READ_ONLY",
+    "notes": "全市场申万一级、三级行业完成扫描；模型首轮在读取旧账本前冻结。Python快照仅作量价交叉验证，不决定状态。",
     "state_migration_gate": {
-      "mode": "initial_active_baseline",
-      "current_trade_date": "2026-10-16",
-      "reviews": []
+      "mode": "full_close",
+      "previous_registry_blob_sha": "67640617708c76846df46bfa8024aacb7ce867a7",
+      "previous_registry_trade_date": "2026-10-16",
+      "current_trade_date": "2026-10-19",
+      "reviews": [
+        {
+          "episode_id": "风电设备#2026-09-17",
+          "decision": "HOLD",
+          "previous_market_state": "候选趋势",
+          "proposed_market_state": "候选趋势",
+          "previous_trend_state": "T1",
+          "proposed_trend_state": "T1",
+          "reason": "10月19日中位数与广度仍略强于全市场但均值转弱、无涨停，属于候选内普通分歧；产业招标/装机及半年报改善未被新事实推翻，维持T1候选，退出本轮新仓优先。",
+          "evidence": [
+            {
+              "dimension": "MARKET_BREADTH",
+              "direction": "SUPPORT",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-19",
+              "source": "data/latest.json",
+              "finding": "11只样本上涨广度54.55%，高于全市场43.9%的上涨比例。"
+            },
+            {
+              "dimension": "RELATIVE_STRENGTH",
+              "direction": "COUNTER",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-19",
+              "source": "data/latest.json",
+              "finding": "11只样本均值-0.582%，弱于全市场均值-0.187%，但中位数仍为正。"
+            },
+            {
+              "dimension": "INDUSTRY_FUNDAMENTALS",
+              "direction": "SUPPORT",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-19",
+              "source": "data/latest.json",
+              "finding": "同口径公司上半年净利润同比中位数+24.67%，产业改善未被本轮新事实证伪。"
+            }
+          ]
+        },
+        {
+          "episode_id": "电网设备/特高压#2026-10-12",
+          "decision": "HOLD",
+          "previous_market_state": "候选趋势",
+          "proposed_market_state": "候选趋势",
+          "previous_trend_state": "T1",
+          "proposed_trend_state": "T1",
+          "reason": "订单—交付—盈利链继续成立，10月19日46股中位数+1.002%、广度67.39%并保持相对强度；但尚不足趋势确认，维持T1候选并列新仓优先第1。",
+          "evidence": [
+            {
+              "dimension": "MARKET_STRUCTURE",
+              "direction": "SUPPORT",
+              "impact": "STRUCTURAL",
+              "trade_date": "2026-10-19",
+              "source": "data/latest.json",
+              "finding": "46只样本中位涨跌幅+1.002%，核心与中位股同步为正。"
+            },
+            {
+              "dimension": "MARKET_BREADTH",
+              "direction": "SUPPORT",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-19",
+              "source": "data/latest.json",
+              "finding": "46只样本上涨广度67.39%，显著高于全市场43.9%。"
+            },
+            {
+              "dimension": "INDUSTRY_FUNDAMENTALS",
+              "direction": "SUPPORT",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-19",
+              "source": "https://static.weeklyonstock.com/26/0921/zbf145236.html",
+              "finding": "输变电招标、头部企业订单及上半年利润增长继续支持订单—交付—盈利链。"
+            }
+          ]
+        },
+        {
+          "episode_id": "军工装备/航空航天#2026-10-13",
+          "decision": "HOLD",
+          "previous_market_state": "候选趋势",
+          "proposed_market_state": "候选趋势",
+          "previous_trend_state": "T0",
+          "proposed_trend_state": "T0",
+          "reason": "34只样本中位数+1.863%、广度88.24%，量价扩散延续；订单与盈利闭环仍不足，维持T0候选，不列新仓优先。",
+          "evidence": [
+            {
+              "dimension": "MARKET_STRUCTURE",
+              "direction": "SUPPORT",
+              "impact": "STRUCTURAL",
+              "trade_date": "2026-10-19",
+              "source": "data/latest.json",
+              "finding": "航空、地面兵装与航海装备34只样本中位涨跌幅+1.863%，三组同步扩散。"
+            },
+            {
+              "dimension": "MARKET_BREADTH",
+              "direction": "SUPPORT",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-19",
+              "source": "data/latest.json",
+              "finding": "34只样本上涨广度88.24%，显著强于全市场43.9%。"
+            },
+            {
+              "dimension": "INDUSTRY_FUNDAMENTALS",
+              "direction": "COUNTER",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-19",
+              "source": "data/latest.json",
+              "finding": "尚未取得覆盖行业的新增订单、合同负债或交付数据多源闭环。"
+            }
+          ]
+        },
+        {
+          "episode_id": "汽车零部件/出口链#2026-10-16",
+          "decision": "HOLD",
+          "previous_market_state": "候选趋势",
+          "proposed_market_state": "候选趋势",
+          "previous_trend_state": "T0",
+          "proposed_trend_state": "T0",
+          "reason": "出口正增长和64.97%广度支持候选持续，但半年度净利润中位数仍为负，产业利润传导未完成；维持T0候选，不列新仓优先。",
+          "evidence": [
+            {
+              "dimension": "MARKET_STRUCTURE",
+              "direction": "SUPPORT",
+              "impact": "STRUCTURAL",
+              "trade_date": "2026-10-19",
+              "source": "data/latest.json",
+              "finding": "157只零部件样本中位涨跌幅+0.719%并出现9只涨停，核心与中位股均有扩散。"
+            },
+            {
+              "dimension": "MARKET_BREADTH",
+              "direction": "SUPPORT",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-19",
+              "source": "data/latest.json",
+              "finding": "157只样本上涨广度64.97%，高于全市场43.9%。"
+            },
+            {
+              "dimension": "INDUSTRY_FUNDAMENTALS",
+              "direction": "COUNTER",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-19",
+              "source": "data/latest.json",
+              "finding": "同口径公司上半年净利润同比中位数-5.26%，利润传导尚未形成行业级确认。"
+            }
+          ]
+        }
+      ],
+      "exits": [
+        {
+          "episode_id": "水泥/建材修复#2026-10-16",
+          "decision": "EXIT",
+          "previous_market_state": "候选趋势",
+          "proposed_market_state": "观察",
+          "previous_trend_state": "T0",
+          "reason": "10月19日水泥制造与制品21只样本中位数-0.551%、均值-0.809%、上涨广度仅28.57%，较10月16日95.24%广度发生实质反转，且半年报收入、利润中位数仍显著为负，市场候选结构不再成立；产业T0并未据股价自动判失效。",
+          "evidence": [
+            {
+              "dimension": "MARKET_STRUCTURE",
+              "direction": "COUNTER",
+              "impact": "STRUCTURAL",
+              "trade_date": "2026-10-19",
+              "source": "data/latest.json",
+              "finding": "21只水泥样本中位涨跌幅-0.551%、均值-0.809%，前一交易日的行业级强势结构未能承接。"
+            },
+            {
+              "dimension": "MARKET_BREADTH",
+              "direction": "COUNTER",
+              "impact": "STRUCTURAL",
+              "trade_date": "2026-10-19",
+              "source": "data/latest.json",
+              "finding": "21只样本上涨广度28.57%，明显低于全市场43.9%，且无涨停扩散。"
+            },
+            {
+              "dimension": "RELATIVE_STRENGTH",
+              "direction": "COUNTER",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-19",
+              "source": "data/latest.json",
+              "finding": "水泥样本均值-0.809%，弱于全市场均值-0.187%，相对强度转负。"
+            }
+          ]
+        }
+      ],
+      "new_confirmation_reviews": []
     }
   },
   "trends": [
+    {
+      "trend_name": "电网设备/特高压",
+      "trend_state": "T1",
+      "market_state": "候选趋势",
+      "lifecycle_status": "有效",
+      "first_seen_trade_date": "2026-10-12",
+      "last_verified_trade_date": "2026-10-19",
+      "industry_codes": [
+        "S630801",
+        "S630802",
+        "S630803",
+        "S630804"
+      ],
+      "industry_names": [
+        "输变电设备",
+        "配电设备",
+        "电网自动化设备",
+        "电工仪器仪表"
+      ],
+      "in_new_position_priority": true,
+      "supporting_evidence": [
+        {
+          "description": "国家发展改革委披露“十五五”新型电网投资预计超过5万亿元，形成未来数年确定性资本开支锚。",
+          "source": "https://www2.xinhuanet.com/fortune/20260525/b12bd567244c49b5ab1aea79108f0d68/c.html",
+          "trade_date": "2026-10-12"
+        },
+        {
+          "description": "10月12日电网与光伏设备局部走强，多只配网、输变电标的上涨，形成首次市场异动。",
+          "source": "https://www.bluebookmax.cn/pm-20261012.html",
+          "trade_date": "2026-10-12"
+        },
+        {
+          "description": "2026年10月16日同口径样本46只，中位涨跌幅+1.056%、上涨广度82.61%；仅用于A股市场链复核，不单独证明产业状态。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/latest.json",
+          "trade_date": "2026-10-16"
+        },
+        {
+          "description": "2026年10月19日46只电网设备样本中位涨跌幅+1.002%、上涨广度67.39%，明显强于全市场中位数-0.202%及43.9%上涨比例。",
+          "source": "data/latest.json",
+          "trade_date": "2026-10-19"
+        },
+        {
+          "description": "2026年第四批输变电招标约114亿元，头部企业订单与上半年利润增长形成订单—交付—盈利验证；10月省网采购持续，11月仍有总部批次预期。",
+          "source": "https://static.weeklyonstock.com/26/0921/zbf145236.html",
+          "trade_date": "2026-10-19"
+        }
+      ],
+      "contrary_evidence": [
+        {
+          "description": "Python候选未显示电网设备形成全行业强势信号，当前更像局部设备扩散；原材料成本与招标竞争仍可能压缩利润。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-12"
+        },
+        {
+          "description": "输变电、配电、电网自动化与仪表单日中位数分别-0.443%/-0.196%/-1.143%/-0.028%，上涨广度43.75%/35.71%/30%/50%。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
+          "trade_date": "2026-10-13"
+        },
+        {
+          "description": "10月14日同口径申万三级映射样本46只，中位涨跌幅-2.694%、上涨广度2.17%；作为当日A股市场链复核，不单独证明产业状态。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/latest.json",
+          "trade_date": "2026-10-14"
+        },
+        {
+          "description": "2026年10月15日同口径申万三级映射样本46只，中位涨跌幅-2.704%、上涨广度17.39%；作为当日A股市场链复核，不单独证明产业状态。",
+          "source": "https://github.com/xwan008/a-market-data/blob/main/data/latest.json",
+          "trade_date": "2026-10-15"
+        },
+        {
+          "description": "公开计划显示10月总部层面无新增输变电、特高压大批次，短期订单节奏存在空档。",
+          "source": "https://finance.sina.cn/2026-10-01/detail-inittzpt4991498.d.html?cid=76729&node_id=76729&vt=4",
+          "trade_date": "2026-10-19"
+        }
+      ],
+      "invalidation_condition": "电网投资招标与交付不及预期，且局部异动未扩散到主要设备子行业并快速回吐。",
+      "change_reason": "订单—交付—盈利链继续成立，10月19日46股中位数+1.002%、广度67.39%并保持相对强度；但尚不足趋势确认，维持T1候选并列新仓优先第1。",
+      "state_history": [
+        {
+          "trade_date": "2026-10-12",
+          "from": null,
+          "to": "新异动",
+          "event": "new_trend_detected",
+          "reason": "电网投资锚与局部市场异动首次交叉"
+        },
+        {
+          "trade_date": "2026-10-13",
+          "from": "新异动",
+          "to": "观察",
+          "event": "market_state_change",
+          "reason": "10月13日输变电、配电、电网自动化和仪表四个子组单日中位数均偏弱或接近零，广度不足；新异动未形成持续扩散，降为观察，产业T1维持。"
+        },
+        {
+          "trade_date": "2026-10-14",
+          "from": "观察",
+          "to": "观察",
+          "event": "verified_maintained",
+          "reason": "10月14日46只样本中位数-2.694%、广度2.17%，市场仍未形成承接；订单与交付逻辑未被产业事实推翻，维持T1观察。"
+        },
+        {
+          "trade_date": "2026-10-15",
+          "from": "观察",
+          "to": "观察",
+          "event": "verified_maintained",
+          "reason": "46只样本中位数-2.704%、上涨广度17.39%，与大盘接近且未形成承接；订单与交付逻辑未被产业事实推翻，维持T1观察。"
+        },
+        {
+          "trade_date": "2026-10-16",
+          "from": "观察",
+          "to": "候选趋势",
+          "event": "market_state_change",
+          "reason": "46只样本中位数+1.056%、广度82.61%，相对全市场中位数高0.490个百分点且38只上涨，订单与交付逻辑未被推翻，市场由观察升为候选趋势。"
+        },
+        {
+          "trade_date": "2026-10-19",
+          "from": "候选趋势",
+          "to": "候选趋势",
+          "event": "verified_maintained",
+          "reason": "订单—交付—盈利链继续成立，10月19日46股中位数+1.002%、广度67.39%并保持相对强度；但尚不足趋势确认，维持T1候选并列新仓优先第1。"
+        }
+      ],
+      "episode_id": "电网设备/特高压#2026-10-12",
+      "priority_rank": 1
+    },
+    {
+      "trend_name": "光通信/光纤光缆",
+      "trend_state": "T1",
+      "market_state": "候选趋势",
+      "lifecycle_status": "有效",
+      "first_seen_trade_date": "2026-10-19",
+      "last_verified_trade_date": "2026-10-19",
+      "industry_codes": [
+        "S730205"
+      ],
+      "industry_names": [
+        "通信线缆及配套"
+      ],
+      "in_new_position_priority": true,
+      "supporting_evidence": [
+        {
+          "description": "10月19日通信线缆及配套8只样本全部上涨，中位涨跌幅+2.141%、均值+2.929%，亨通光电涨停、中天科技+5.41%，形成行业级扩散。",
+          "source": "data/latest.json",
+          "trade_date": "2026-10-19"
+        },
+        {
+          "description": "同口径8家公司上半年营业收入同比全部正增长，中位增速31.13%；净利润同比正增长占87.5%、中位增速185.06%，产业盈利改善具有横向验证。",
+          "source": "data/latest.json",
+          "trade_date": "2026-10-19"
+        },
+        {
+          "description": "海关总署披露前三季度工业机器人、电子元件、电脑零部件、电工器材等机电产品进出口合计增长，网络及算力硬件需求仍具外需支撑。",
+          "source": "https://www.customs.gov.cn/customs/xwfb34/302330/hgzs2026nqsjdjckqkxwfbh75/index.html",
+          "trade_date": "2026-10-19"
+        }
+      ],
+      "contrary_evidence": [
+        {
+          "description": "本轮尚未取得光纤光缆当期产品价格、在手订单与新增产能利用率的多源交叉，单日涨幅可能包含事件交易成分。",
+          "source": "data/latest.json",
+          "trade_date": "2026-10-19"
+        }
+      ],
+      "invalidation_condition": "若细分产品价格与订单不兑现，同时8只样本广度跌破市场平均、龙头与中位股同步破位，则退出候选；盈利改善进一步由订单和价格验证前不升T2。",
+      "change_reason": "8只样本100%上涨、中位+2.141%，且半年报收入、净利润改善形成基本面交叉，建立T1候选新周期；订单与价格第一锚仍需补验。",
+      "state_history": [
+        {
+          "trade_date": "2026-10-19",
+          "from": null,
+          "to": "候选趋势",
+          "event": "new_verified_trend",
+          "reason": "通信线缆8只样本100%上涨且半年报收入、净利润横向改善，建立T1候选；产品价格和订单仍需补验。"
+        }
+      ],
+      "priority_rank": 2,
+      "episode_id": "光通信/光纤光缆#2026-10-19"
+    },
     {
       "trend_name": "风电设备",
       "trend_state": "T1",
       "market_state": "候选趋势",
       "lifecycle_status": "有效",
       "first_seen_trade_date": "2026-09-17",
-      "last_verified_trade_date": "2026-10-16",
+      "last_verified_trade_date": "2026-10-19",
       "industry_codes": [
         "S630601",
         "S630602"
@@ -32,7 +396,7 @@
         "风电整机",
         "风电零部件"
       ],
-      "in_new_position_priority": true,
+      "in_new_position_priority": false,
       "supporting_evidence": [
         {
           "description": "2026年1—8月国内风电项目招标71.1GW、同比增长15.9%，6—7月新增装机同比高增。",
@@ -53,6 +417,11 @@
           "description": "2026年10月16日同口径样本11只，中位涨跌幅+1.331%、上涨广度90.91%；仅用于A股市场链复核，不单独证明产业状态。",
           "source": "https://github.com/xwan008/a-market-data/blob/main/data/latest.json",
           "trade_date": "2026-10-16"
+        },
+        {
+          "description": "2026年10月19日11只风电整机及零部件样本中位涨跌幅+0.217%、上涨广度54.55%，仍高于全市场43.9%的上涨比例；上半年样本净利润同比中位数+24.67%。",
+          "source": "data/latest.json",
+          "trade_date": "2026-10-19"
         }
       ],
       "contrary_evidence": [
@@ -90,10 +459,15 @@
           "description": "2026年10月15日同口径申万三级映射样本11只，中位涨跌幅-3.893%、上涨广度9.09%；作为当日A股市场链复核，不单独证明产业状态。",
           "source": "https://github.com/xwan008/a-market-data/blob/main/data/latest.json",
           "trade_date": "2026-10-15"
+        },
+        {
+          "description": "同日风电样本均值-0.582%、无涨停，弱于全市场均值-0.187%，扩散强度较10月16日明显回落。",
+          "source": "data/latest.json",
+          "trade_date": "2026-10-19"
         }
       ],
       "invalidation_condition": "招标或装机兑现转弱，同时板块相对强度与广度连续退出候选区。",
-      "change_reason": "11只样本中10只上涨、中位数+1.331%、广度90.91%，相对全市场中位数高0.765个百分点，且出现1只涨停并有中票扩散，市场由观察升为候选趋势；产业T1维持。",
+      "change_reason": "10月19日中位数与广度仍略强于全市场但均值转弱、无涨停，属于候选内普通分歧；产业招标/装机及半年报改善未被新事实推翻，维持T1候选，退出本轮新仓优先。",
       "state_history": [
         {
           "trade_date": "2026-09-29",
@@ -157,111 +531,16 @@
           "to": "候选趋势",
           "event": "market_state_change",
           "reason": "11只样本中10只上涨、中位数+1.331%、广度90.91%，相对全市场中位数高0.765个百分点，且出现1只涨停并有中票扩散，市场由观察升为候选趋势；产业T1维持。"
-        }
-      ],
-      "priority_rank": 1,
-      "episode_id": "风电设备#2026-09-17"
-    },
-    {
-      "trend_name": "电网设备/特高压",
-      "trend_state": "T1",
-      "market_state": "候选趋势",
-      "lifecycle_status": "有效",
-      "first_seen_trade_date": "2026-10-12",
-      "last_verified_trade_date": "2026-10-16",
-      "industry_codes": [
-        "S630801",
-        "S630802",
-        "S630803",
-        "S630804"
-      ],
-      "industry_names": [
-        "输变电设备",
-        "配电设备",
-        "电网自动化设备",
-        "电工仪器仪表"
-      ],
-      "in_new_position_priority": true,
-      "supporting_evidence": [
-        {
-          "description": "国家发展改革委披露“十五五”新型电网投资预计超过5万亿元，形成未来数年确定性资本开支锚。",
-          "source": "https://www2.xinhuanet.com/fortune/20260525/b12bd567244c49b5ab1aea79108f0d68/c.html",
-          "trade_date": "2026-10-12"
         },
         {
-          "description": "10月12日电网与光伏设备局部走强，多只配网、输变电标的上涨，形成首次市场异动。",
-          "source": "https://www.bluebookmax.cn/pm-20261012.html",
-          "trade_date": "2026-10-12"
-        },
-        {
-          "description": "2026年10月16日同口径样本46只，中位涨跌幅+1.056%、上涨广度82.61%；仅用于A股市场链复核，不单独证明产业状态。",
-          "source": "https://github.com/xwan008/a-market-data/blob/main/data/latest.json",
-          "trade_date": "2026-10-16"
-        }
-      ],
-      "contrary_evidence": [
-        {
-          "description": "Python候选未显示电网设备形成全行业强势信号，当前更像局部设备扩散；原材料成本与招标竞争仍可能压缩利润。",
-          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
-          "trade_date": "2026-10-12"
-        },
-        {
-          "description": "输变电、配电、电网自动化与仪表单日中位数分别-0.443%/-0.196%/-1.143%/-0.028%，上涨广度43.75%/35.71%/30%/50%。",
-          "source": "https://github.com/xwan008/a-market-data/blob/main/data/research/theme_evidence_snapshot.json",
-          "trade_date": "2026-10-13"
-        },
-        {
-          "description": "10月14日同口径申万三级映射样本46只，中位涨跌幅-2.694%、上涨广度2.17%；作为当日A股市场链复核，不单独证明产业状态。",
-          "source": "https://github.com/xwan008/a-market-data/blob/main/data/latest.json",
-          "trade_date": "2026-10-14"
-        },
-        {
-          "description": "2026年10月15日同口径申万三级映射样本46只，中位涨跌幅-2.704%、上涨广度17.39%；作为当日A股市场链复核，不单独证明产业状态。",
-          "source": "https://github.com/xwan008/a-market-data/blob/main/data/latest.json",
-          "trade_date": "2026-10-15"
-        }
-      ],
-      "invalidation_condition": "电网投资招标与交付不及预期，且局部异动未扩散到主要设备子行业并快速回吐。",
-      "change_reason": "46只样本中位数+1.056%、广度82.61%，相对全市场中位数高0.490个百分点且38只上涨，订单与交付逻辑未被推翻，市场由观察升为候选趋势。",
-      "state_history": [
-        {
-          "trade_date": "2026-10-12",
-          "from": null,
-          "to": "新异动",
-          "event": "new_trend_detected",
-          "reason": "电网投资锚与局部市场异动首次交叉"
-        },
-        {
-          "trade_date": "2026-10-13",
-          "from": "新异动",
-          "to": "观察",
-          "event": "market_state_change",
-          "reason": "10月13日输变电、配电、电网自动化和仪表四个子组单日中位数均偏弱或接近零，广度不足；新异动未形成持续扩散，降为观察，产业T1维持。"
-        },
-        {
-          "trade_date": "2026-10-14",
-          "from": "观察",
-          "to": "观察",
-          "event": "verified_maintained",
-          "reason": "10月14日46只样本中位数-2.694%、广度2.17%，市场仍未形成承接；订单与交付逻辑未被产业事实推翻，维持T1观察。"
-        },
-        {
-          "trade_date": "2026-10-15",
-          "from": "观察",
-          "to": "观察",
-          "event": "verified_maintained",
-          "reason": "46只样本中位数-2.704%、上涨广度17.39%，与大盘接近且未形成承接；订单与交付逻辑未被产业事实推翻，维持T1观察。"
-        },
-        {
-          "trade_date": "2026-10-16",
-          "from": "观察",
+          "trade_date": "2026-10-19",
+          "from": "候选趋势",
           "to": "候选趋势",
-          "event": "market_state_change",
-          "reason": "46只样本中位数+1.056%、广度82.61%，相对全市场中位数高0.490个百分点且38只上涨，订单与交付逻辑未被推翻，市场由观察升为候选趋势。"
+          "event": "verified_maintained",
+          "reason": "10月19日中位数与广度仍略强于全市场但均值转弱、无涨停，属于候选内普通分歧；产业招标/装机及半年报改善未被新事实推翻，维持T1候选，退出本轮新仓优先。"
         }
       ],
-      "priority_rank": 2,
-      "episode_id": "电网设备/特高压#2026-10-12"
+      "episode_id": "风电设备#2026-09-17"
     },
     {
       "trend_name": "军工装备/航空航天",
@@ -269,7 +548,7 @@
       "market_state": "候选趋势",
       "lifecycle_status": "有效",
       "first_seen_trade_date": "2026-10-13",
-      "last_verified_trade_date": "2026-10-16",
+      "last_verified_trade_date": "2026-10-19",
       "industry_codes": [
         "S650201",
         "S650301",
@@ -296,6 +575,11 @@
           "description": "2026年10月16日同口径样本34只，中位涨跌幅+3.896%、上涨广度100.00%；仅用于A股市场链复核，不单独证明产业状态。",
           "source": "https://github.com/xwan008/a-market-data/blob/main/data/latest.json",
           "trade_date": "2026-10-16"
+        },
+        {
+          "description": "2026年10月19日34只航空、地面兵装与航海装备样本中位涨跌幅+1.863%、上涨广度88.24%，三类装备继续同步扩散。",
+          "source": "data/latest.json",
+          "trade_date": "2026-10-19"
         }
       ],
       "contrary_evidence": [
@@ -313,10 +597,15 @@
           "description": "2026年10月15日同口径申万三级映射样本34只，中位涨跌幅-3.496%、上涨广度0.00%；作为当日A股市场链复核，不单独证明产业状态。",
           "source": "https://github.com/xwan008/a-market-data/blob/main/data/latest.json",
           "trade_date": "2026-10-15"
+        },
+        {
+          "description": "本轮仍未取得覆盖行业的新增订单、合同负债或交付数据多源闭环，市场强势不能单独提升产业阶段。",
+          "source": "data/latest.json",
+          "trade_date": "2026-10-19"
         }
       ],
       "invalidation_condition": "航展催化后2—3个交易日板块广度跌破40%，且订单/合同负债/交付数据无改善，则降为观察或失效。",
-      "change_reason": "34只样本全部上涨、中位数+3.896%，航空、地面兵装与航海装备同步扩散并有3只涨停，市场由观察升为候选趋势；订单与盈利尚未确认，产业仍为T0。",
+      "change_reason": "34只样本中位数+1.863%、广度88.24%，量价扩散延续；订单与盈利闭环仍不足，维持T0候选，不列新仓优先。",
       "state_history": [
         {
           "trade_date": "2026-10-13",
@@ -345,6 +634,13 @@
           "to": "候选趋势",
           "event": "market_state_change",
           "reason": "34只样本全部上涨、中位数+3.896%，航空、地面兵装与航海装备同步扩散并有3只涨停，市场由观察升为候选趋势；订单与盈利尚未确认，产业仍为T0。"
+        },
+        {
+          "trade_date": "2026-10-19",
+          "from": "候选趋势",
+          "to": "候选趋势",
+          "event": "verified_maintained",
+          "reason": "34只样本中位数+1.863%、广度88.24%，量价扩散延续；订单与盈利闭环仍不足，维持T0候选，不列新仓优先。"
         }
       ],
       "episode_id": "军工装备/航空航天#2026-10-13"
@@ -355,7 +651,7 @@
       "market_state": "候选趋势",
       "lifecycle_status": "有效",
       "first_seen_trade_date": "2026-10-16",
-      "last_verified_trade_date": "2026-10-16",
+      "last_verified_trade_date": "2026-10-19",
       "industry_codes": [
         "S280202",
         "S280203",
@@ -381,6 +677,16 @@
           "description": "10月16日157只汽车零部件样本中位数+2.180%、上涨广度91.08%，并有13只涨停，形成行业级扩散。",
           "source": "https://github.com/xwan008/a-market-data/blob/main/data/latest.json",
           "trade_date": "2026-10-16"
+        },
+        {
+          "description": "2026年10月19日157只汽车零部件样本中位涨跌幅+0.719%、上涨广度64.97%，出现9只涨停，市场扩散仍在。",
+          "source": "data/latest.json",
+          "trade_date": "2026-10-19"
+        },
+        {
+          "description": "2026年1—8月汽车零部件出口约698亿美元、同比增长8%，出口需求维持正增长。",
+          "source": "https://i.ifeng.com/c/8wYCz300ScB",
+          "trade_date": "2026-10-19"
         }
       ],
       "contrary_evidence": [
@@ -388,10 +694,15 @@
           "description": "9月国内乘用车销量同比下降28.1%至163万辆，国内需求仍弱；出口增长尚未等同于全部零部件公司利润改善。",
           "source": "https://www.reuters.com/business/autos-transportation/china-home-car-sales-downturn-continues-exports-retain-momentum-2026-10-12-2/",
           "trade_date": "2026-10-12"
+        },
+        {
+          "description": "同口径样本上半年净利润同比中位数-5.26%，正增长占比48.4%，出口增量尚未形成全行业利润改善。",
+          "source": "data/latest.json",
+          "trade_date": "2026-10-19"
         }
       ],
       "invalidation_condition": "若出口增速显著回落、国内销量继续下滑且板块广度快速跌破市场平均，则候选失效；仅有股价扩散而无订单或利润兑现时不得升T1。",
-      "change_reason": "出口高增提供前瞻需求线索，157只零部件样本出现91.08%广度与13只涨停，进入T0候选；国内销量大幅下降且利润传导未确认，不能升T1。",
+      "change_reason": "出口正增长和64.97%广度支持候选持续，但半年度净利润中位数仍为负，产业利润传导未完成；维持T0候选，不列新仓优先。",
       "state_history": [
         {
           "trade_date": "2026-10-16",
@@ -399,57 +710,16 @@
           "to": "候选趋势",
           "event": "new_verified_trend",
           "reason": "出口高增提供前瞻需求线索，157只零部件样本出现91.08%广度与13只涨停，进入T0候选；国内销量大幅下降且利润传导未确认，不能升T1。"
+        },
+        {
+          "trade_date": "2026-10-19",
+          "from": "候选趋势",
+          "to": "候选趋势",
+          "event": "verified_maintained",
+          "reason": "出口正增长和64.97%广度支持候选持续，但半年度净利润中位数仍为负，产业利润传导未完成；维持T0候选，不列新仓优先。"
         }
       ],
       "episode_id": "汽车零部件/出口链#2026-10-16"
-    },
-    {
-      "trend_name": "水泥/建材修复",
-      "trend_state": "T0",
-      "market_state": "候选趋势",
-      "lifecycle_status": "有效",
-      "first_seen_trade_date": "2026-10-16",
-      "last_verified_trade_date": "2026-10-16",
-      "industry_codes": [
-        "S610101",
-        "S610102"
-      ],
-      "industry_names": [
-        "水泥制造",
-        "水泥制品"
-      ],
-      "in_new_position_priority": false,
-      "supporting_evidence": [
-        {
-          "description": "2026年10月全国P.O42.5散装水泥预测均价301.89元/吨，环比上涨5.18%，提供价格拐点线索。",
-          "source": "https://www.ccement.com/news/content/61611714834055001.html",
-          "trade_date": "2026-10-10"
-        },
-        {
-          "description": "10月16日21只水泥样本中位数+2.358%、上涨广度95.24%，含2只涨停，市场扩散明显。",
-          "source": "https://github.com/xwan008/a-market-data/blob/main/data/latest.json",
-          "trade_date": "2026-10-16"
-        }
-      ],
-      "contrary_evidence": [
-        {
-          "description": "同一预测均价同比仍下降3.33%，31个省市中仅4个同比上涨，价格改善存在区域性且尚未证明行业利润全面修复。",
-          "source": "https://www.ccement.com/news/content/61611714834055001.html",
-          "trade_date": "2026-10-10"
-        }
-      ],
-      "invalidation_condition": "若水泥价格环比改善未持续、旺季需求与库存去化不及预期且板块广度退回市场以下，则候选失效；同比价格转正和盈利改善前不升T1。",
-      "change_reason": "价格环比改善与21只样本95.24%广度共振，形成T0候选；价格同比仍降且区域分化明显，尚不足T1。",
-      "state_history": [
-        {
-          "trade_date": "2026-10-16",
-          "from": null,
-          "to": "候选趋势",
-          "event": "new_verified_trend",
-          "reason": "价格环比改善与21只样本95.24%广度共振，形成T0候选；价格同比仍降且区域分化明显，尚不足T1。"
-        }
-      ],
-      "episode_id": "水泥/建材修复#2026-10-16"
     }
   ],
   "invalidated_history": [],
