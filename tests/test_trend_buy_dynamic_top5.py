@@ -119,6 +119,41 @@ class DynamicStageTests(unittest.TestCase):
         self.assertEqual(by_code["600002"]["attention_rank"], 2)
         self.assertIn("缺可靠观察区间", by_code["600002"]["attention_judgement"])
 
+    def test_overhead_constraint_demotes_overheated_confirmed_wait_without_changing_focus(self):
+        hot = wait_stock("600001", "REACCELERATING", p=10, ma20=9.2,
+                         ma60=9.0, support=9.1)
+        hot.update({"structure_confirmed": True, "setup_type": "BREAKOUT",
+                    "entry_zone": [9.95, 10.1], "invalidation_price": 9.7,
+                    "initial_risk_pct": 3.96})
+        hot["technical_context"].update({
+            "attention_resistance": {"status": "VERIFIED", "price": 10.2,
+                                      "date": "2026-09-10"},
+            "distance_to_ma20_pct": 8.7})
+        room = wait_stock("600002", "REPAIRING", p=10, ma20=9.8,
+                          ma60=10.1, support=9.75)
+        room["technical_context"].update({
+            "attention_resistance": {"status": "VERIFIED", "price": 11.5,
+                                      "date": "2026-09-01"},
+            "distance_to_ma20_pct": 2.0})
+        research = {"trade_date": "2026-10-09",
+                    "companies": [{"trend_name": "固态电池"}],
+                    "screen_audit": {"pre_screen_selected": [
+                        {"code": "600001", "fundamental_score": .9},
+                        {"code": "600002", "fundamental_score": .2}]}}
+        groups = engine.dynamic_top5_by_theme([], [hot, room], research)
+        old_order = [x["code"] for x in groups[0]["items"]]
+        old_focus = engine.select_focus_watchlist([], [hot, room], research, groups)
+        engine.add_attention_priorities(groups, [], [hot, room], research)
+        by_code = {x["code"]: x for x in groups[0]["items"]}
+        self.assertEqual(by_code["600002"]["attention_rank"], 1)
+        self.assertEqual(by_code["600001"]["attention_rank"], 2)
+        self.assertEqual(by_code["600001"]["attention_resistance_check"]["status"], "LIMITED")
+        self.assertTrue(by_code["600001"]["attention_resistance_check"]["chase_risk_high"])
+        self.assertIn("暂缓追涨", by_code["600001"]["attention_judgement"])
+        self.assertEqual([x["code"] for x in groups[0]["items"]], old_order)
+        self.assertEqual(engine.select_focus_watchlist([], [hot, room], research, groups),
+                         old_focus)
+
     def test_single_ma60_cross_is_wait_not_drop(self):
         c={"code":"002709","company_name":"天赐材料",
            "trend_name":"固态电池","market_state":"趋势确认",
