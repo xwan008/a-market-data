@@ -79,6 +79,54 @@ class DynamicStageTests(unittest.TestCase):
         self.assertEqual(len(result[0]["items"]),5)
         self.assertEqual(result[0]["qualified_opportunity_count"],9)
 
+    def test_remote_wait_with_confirmed_early_signal_is_watch_only(self):
+        forming = wait_stock("600487", "TRANSITION", p=10, ma20=12.5,
+                             ma60=13.0, support=9.2)
+        forming["technical_context"]["higher_low"] = True
+        forming["phase_evidence"] = {"pullback_low_holds": True}
+        research = {"trade_date": "2026-10-09",
+                    "companies": [{"trend_name": "固态电池"}]}
+        groups = engine.dynamic_top5_by_theme([], [forming], research)
+        self.assertEqual(groups[0]["qualified_opportunity_count"], 0)
+        self.assertEqual(groups[0]["trend_watch_candidate_count"], 1)
+        self.assertEqual(len(groups[0]["items"]), 1)
+        watch = groups[0]["items"][0]
+        self.assertEqual(watch["code"], "600487")
+        self.assertEqual(watch["status"], "WAIT")
+        self.assertEqual(watch["entry_opportunity"], "TREND_WATCH_ONLY")
+        self.assertIsNone(watch["reference"]["reference_zone"])
+
+    def test_top5_is_a_cap_not_a_minimum(self):
+        rows = [wait_stock("%06d" % (600001+i), "TRANSITION", p=10,
+                           ma20=13, ma60=13.5, support=9.2)
+                for i in range(8)]
+        for row in rows[:2]:
+            row["technical_context"]["higher_low"] = True
+            row["phase_evidence"] = {"pullback_low_holds": True}
+        research = {"trade_date": "2026-10-09",
+                    "companies": [{"trend_name": "固态电池"}]}
+        groups = engine.dynamic_top5_by_theme([], rows, research)
+        self.assertEqual(len(groups[0]["items"]), 2)
+        self.assertEqual(groups[0]["qualified_opportunity_count"], 0)
+        self.assertEqual(groups[0]["trend_watch_candidate_count"], 2)
+        self.assertTrue(all(x["entry_opportunity"] == "TREND_WATCH_ONLY"
+                            for x in groups[0]["items"]))
+
+    def test_nearby_candidate_keeps_priority_over_remote_watch(self):
+        nearby = wait_stock("600011", "TRANSITION", p=10,
+                            ma20=9.8, ma60=10.1, support=9.4)
+        remote = wait_stock("600012", "TRANSITION", p=10,
+                            ma20=13, ma60=13.5, support=9.2)
+        remote["technical_context"]["higher_low"] = True
+        remote["phase_evidence"] = {"pullback_low_holds": True}
+        groups = engine.dynamic_top5_by_theme([], [remote, nearby],
+            {"trade_date": "2026-10-09",
+             "companies": [{"trend_name": "固态电池"}]})
+        self.assertEqual([x["code"] for x in groups[0]["items"]],
+                         ["600011", "600012"])
+        self.assertEqual([x["entry_opportunity"] for x in groups[0]["items"]],
+                         ["EARLY_NOT_READY", "TREND_WATCH_ONLY"])
+
     def test_no_forced_nominee(self):
         rows=[wait_stock("002074","COOLING")]
         research={"trade_date":"2026-10-09","companies":[{"trend_name":"固态电池"}]}
