@@ -175,8 +175,74 @@ def _theme_metrics(theme, groups, stock_data, market_median):
     }
 
 
+
+def _crosscheck_shortlist(sector_audit, groups, themes, taxonomy, limit=3):
+    """At most three objective leads across all auxiliary sources, not a trend ranking."""
+    pool = []
+
+    def add(source_id, name, kind, industry_codes, members, channels, quality,
+            rs, breadth, acceleration, median3, median5, usable):
+        if not channels or quality not in ("OK", "SMALL_SAMPLE") or usable < 3:
+            return
+        # A common scale across SW-L3, concepts and mapped themes. The small-
+        # sample factor affects review priority only, never trend eligibility.
+        score = round((rs or 0) + max((breadth or 0) - .5, 0) * 3
+                      + max(acceleration or 0, 0) * .35, 3)
+        priority = round(score * min(usable / 5, 1), 3)
+        item = {
+            "source_id": source_id, "name": name, "kind": kind,
+            "industry_codes": industry_codes, "channels": channels,
+            "sample_quality": quality, "usable_stock_count": usable,
+            "score": score, "review_priority_score": priority,
+            "relative_strength_1d_vs_market_median_pct": rs,
+            "advance_ratio": breadth, "median_return_3d_pct": median3,
+            "median_return_5d_pct": median5,
+        }
+        pool.append((item, set(members)))
+
+    for theme in themes + taxonomy:
+        core = theme["core_industry_codes"]
+        members = set().union(*(groups[code] for code in core))
+        add(theme["evidence_group_type"] + ":" + theme["theme_id"],
+            theme["theme_name"], theme["evidence_group_type"], core, members,
+            theme["channels"], theme["sample_quality"],
+            theme["relative_strength_1d_vs_market_median_pct"],
+            theme["breadth_1d"], theme["acceleration_3d_vs_5d"],
+            theme["median_return_3d_pct"], theme["median_return_5d_pct"],
+            theme["usable_stock_count"])
+
+    if sector_audit is not None:
+        for row in sector_audit["sectors"]:
+            # Concept stock membership is not in this snapshot; do not rank an
+            # undeduplicable concept as though it were a verified industry.
+            if row.get("kind") != "industry":
+                continue
+            code = row["id"].split(":", 1)[1]
+            members = groups.get(code, set())
+            if code not in groups or len(members) != row["member_count"]:
+                raise ValueError("sector_audit_industry_membership_mismatch:" + code)
+            add(row["id"], row["name"], "industry",
+                [code], members, row["channels"],
+                row["sample_quality"], row["relative_1d_vs_market_median_pct"],
+                row["advance_ratio"], row.get("acceleration_3d_vs_5d"),
+                row.get("median_3d_pct"), row.get("median_5d_pct"),
+                row["usable_count"] if "usable_count" in row else row["member_count"])
+
+    pool.sort(key=lambda pair: (-pair[0]["review_priority_score"],
+                                -pair[0]["score"], pair[0]["source_id"]))
+    chosen = []
+    for item, members in pool:
+        if any(members and prior_members and
+               len(members & prior_members) / len(members | prior_members) >= .85
+               for _, prior_members in chosen):
+            continue
+        chosen.append((item, members))
+        if len(chosen) == limit:
+            break
+    return [dict(item, rank=i + 1) for i, (item, _) in enumerate(chosen)]
+
 def build(latest, industry_index, structure, catalog, sector_audit=None,
-          max_research=12, max_unmapped=8, retrospective=False):
+          max_research=3, max_unmapped=8, retrospective=False):
     trade_date = str(latest.get("trade_date") or "")
     if not trade_date or latest.get("market_status") != "closed":
         raise ValueError("completed_market_session_required")
@@ -247,6 +313,8 @@ def build(latest, industry_index, structure, catalog, sector_audit=None,
     def brief(t):
         return {k: v for k, v in t.items() if k not in ("core_industries",)}
     research = [brief(t) for t in candidates]
+    # Only this final list is handed to the model for supplemental cross-checking.
+    crosscheck = _crosscheck_shortlist(sector_audit, groups, detailed, taxonomy)
 
     identity = {}
     for theme in catalog["themes"]:
@@ -308,9 +376,11 @@ def build(latest, industry_index, structure, catalog, sector_audit=None,
             "unmapped_eligible_industry_count": total_unmapped,
             "invalid_or_low_sample_themes": sum(t["sample_quality"] != "OK" for t in detailed),
             "sector_audit_status": "MATCHED" if sector_audit else "UNAVAILABLE",
-            "all_theme_detail_retention": "computed_in_memory_not_persisted"
+            "all_theme_detail_retention": "computed_in_memory_not_persisted",
+            "crosscheck_shortlist_count": len(crosscheck)
         },
         "research_candidates": research,
+        "crosscheck_shortlist": crosscheck,
         "unmapped_industry_alerts": unmapped,
         "disclaimer": "Quantitative cross-check and gap detection only. No T0/T1/T2, trade signal, formal theme rank, or handoff."
     }
@@ -324,7 +394,7 @@ def main():
     p.add_argument("--catalog", default="research/theme_industry_catalog.json")
     p.add_argument("--sector-audit", default="data/research/sector_discovery_audit.json")
     p.add_argument("--output", default="data/research/theme_evidence_snapshot.json")
-    p.add_argument("--max-research", type=int, default=12)
+    p.add_argument("--max-research", type=int, default=3)
     p.add_argument("--max-unmapped", type=int, default=8)
     p.add_argument("--allow-retrospective-smoke", action="store_true")
     args = p.parse_args()

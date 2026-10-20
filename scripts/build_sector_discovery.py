@@ -86,7 +86,7 @@ def validate_concepts(payload, trade_date):
     return rows, "VERIFIED" if rows else "EMPTY_VERIFIED"
 
 
-def build(latest, industry_index, structure, concept_payload=None, review_cap=20):
+def build(latest, industry_index, structure, concept_payload=None, review_cap=3):
     trade_date = str(latest.get("trade_date") or "")
     if not trade_date or latest.get("market_status") != "closed":
         raise ValueError("completed_market_session_required")
@@ -144,9 +144,12 @@ def build(latest, industry_index, structure, concept_payload=None, review_cap=20
         medvolume = median(vols) if len(vols) >= max(3, usable // 2) else None
         acceleration = round(med3 - .6 * med5, 3) if med3 is not None and med5 is not None else None
         rs1 = round(med1 - market_median, 3) if med1 is not None else None
-        quality = "LOW_SAMPLE" if count < 5 else ("INSUFFICIENT" if coverage < .8 else "OK")
-        strong = bool(quality == "OK" and breadth >= .6 and med1 >= .5 and rs1 >= .8)
-        emerging = bool(quality == "OK" and breadth >= .6 and med1 >= .35 and rs1 >= .3
+        quality = ("LOW_SAMPLE" if count < 3 else
+                   "INSUFFICIENT" if coverage < .8 else
+                   "SMALL_SAMPLE" if count < 5 else "OK")
+        signal_eligible = quality in ("OK", "SMALL_SAMPLE")
+        strong = bool(signal_eligible and breadth >= .6 and med1 >= .5 and rs1 >= .8)
+        emerging = bool(signal_eligible and breadth >= .6 and med1 >= .35 and rs1 >= .3
                         and acceleration is not None and acceleration >= .35)
         channels = (["STRONG"] if strong else []) + (["EMERGING"] if emerging else [])
         score = round((rs1 or 0) + max((breadth or 0) - .5, 0) * 3
@@ -299,7 +302,7 @@ def main():
     parser.add_argument("--concept-membership", default="data/research/concept_membership_asof.json")
     parser.add_argument("--output", default="data/research/sector_discovery_snapshot.json")
     parser.add_argument("--audit", default="data/research/sector_discovery_audit.json")
-    parser.add_argument("--review-cap", type=int, default=20)
+    parser.add_argument("--review-cap", type=int, default=3)
     args = parser.parse_args()
     if args.review_cap < 1:
         parser.error("review-cap must be positive")

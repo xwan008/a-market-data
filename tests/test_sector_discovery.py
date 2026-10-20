@@ -69,6 +69,8 @@ class SectorDiscoveryTests(unittest.TestCase):
         self.assertIn("模型独立发现 → 仅候选/确认连续复核 → 合并判断、校验发布", protocol)
         self.assertIn("Python只负责客观行情计算和必要技术校验", protocol)
         self.assertIn("不作为第二个趋势发现者", protocol)
+        self.assertIn("不排除模型已发现的方向", protocol)
+        self.assertIn("crosscheck_shortlist", protocol)
         self.assertIn("数据缺失或无法核实时应如实说明", protocol)
 
     def test_verified_concept_and_future_prevention(self):
@@ -178,6 +180,29 @@ class SectorDiscoveryTests(unittest.TestCase):
         latest["market_status"] = "trading"
         with self.assertRaisesRegex(ValueError, "completed_market_session"):
             build(latest, index, structure)
+
+    def test_three_or_four_stock_industries_can_trigger_auxiliary_signals(self):
+        for remaining in (3, 4):
+            latest, index, structure = inputs()
+            for code in ("000004", "000005", "000006")[:6 - remaining]:
+                del index["companies"][code]
+            snap, audit = build(latest, index, structure)
+            hot = next(r for r in audit["sectors"] if r["name"] == "Sample hot")
+            self.assertEqual(hot["member_count"], remaining)
+            self.assertEqual(hot["sample_quality"], "SMALL_SAMPLE")
+            self.assertIn("STRONG", hot["channels"])
+            self.assertIn(hot["id"], [r["id"] for r in snap["model_research_candidates"]])
+            self.assertFalse(snap["discovery_role"]["may_determine_trend_state"])
+
+    def test_small_sample_still_requires_quote_coverage(self):
+        latest, index, structure = inputs()
+        for code in ("000005", "000006"):
+            del index["companies"][code]
+        del latest["stocks"]["000004"]
+        _, audit = build(latest, index, structure)
+        hot = next(r for r in audit["sectors"] if r["name"] == "Sample hot")
+        self.assertEqual(hot["sample_quality"], "INSUFFICIENT")
+        self.assertEqual(hot["channels"], [])
 
     def test_low_sample_does_not_create_false_confirmed_sector(self):
         latest, index, structure = inputs()

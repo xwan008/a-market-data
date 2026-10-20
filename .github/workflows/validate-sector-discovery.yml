@@ -66,7 +66,7 @@ jobs:
           assert snapshot['trade_date'] == audit['trade_date']
           assert audit['industry_count'] >= 300
           assert len(audit['sectors']) >= 300
-          assert audit['selected_count'] <= 20
+          assert audit['selected_count'] <= 3
           assert audit['selected_count'] + audit['deferred_count'] == audit['eligible_count']
           assert snapshot['no_trade_signal'] is True
           assert snapshot['discovery_role']['mode'] == 'AUXILIARY_EVIDENCE_ONLY'
@@ -74,9 +74,9 @@ jobs:
           assert snapshot['discovery_role']['missing_discovery_blocks_primary_research'] is False
           assert snapshot['theme_research_budget']['scope'] == 'supplemental_program_discovery_only'
           assert len(snapshot['candidate_overview']) == audit['eligible_count']
-          assert snapshot['theme_research_budget']['max_new_theme_deep_research'] == 20
+          assert snapshot['theme_research_budget']['max_new_theme_deep_research'] == 3
           assert snapshot['theme_research_budget']['unit'] == 'evidence_verified_theme_not_industry'
-          assert len(snapshot['classification_peer_hints']) <= 20
+          assert len(snapshot['classification_peer_hints']) <= 3
           print('DISCOVERY_REAL_DATA_VALID', json.dumps({
               'date': snapshot['trade_date'], 'status': snapshot['status'],
               'industry_count': audit['industry_count'],
@@ -114,7 +114,10 @@ jobs:
           assert t['scan_summary']['taxonomy_covered_level3_industries']==331
           assert t['scan_summary']['curated_candidates_returned']+t['scan_summary']['taxonomy_candidates_returned']==len(t['research_candidates'])
           assert all(x['evidence_group_type'] in ('RESEARCH_THEME','SW_L2_TAXONOMY') for x in t['research_candidates'])
-          assert len(t['research_candidates'])<=12
+          assert len(t['research_candidates'])<=3
+          assert 0 <= len(t['crosscheck_shortlist']) <= 3
+          assert t['scan_summary']['crosscheck_shortlist_count']==len(t['crosscheck_shortlist'])
+          assert all(x['rank']==i+1 for i,x in enumerate(t['crosscheck_shortlist']))
           assert t['no_trade_signal'] and t['auxiliary_only']
           assert t['decision_authority']=='independent_model_research_only'
           assert 'tracked_theme_alerts' not in t
