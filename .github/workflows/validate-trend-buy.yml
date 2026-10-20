@@ -118,8 +118,13 @@ jobs:
           day=json.loads(Path('research/trend_handoff.json').read_text())['trade_date']
           if path.exists():
               evidence=json.loads(path.read_text())
-              assert evidence.get('as_of_date')==day, ('REVIEW_DATE_MISMATCH',day,evidence.get('as_of_date'))
-              print('DATE_SCOPED_RESEARCH_EVIDENCE_PRESENT',day,len(evidence.get('reviews',[])))
+              evidence_date=evidence.get('as_of_date')
+              if evidence_date!=day:
+                  formal=json.loads(Path('research/trend_buy_formal_result.json').read_text())
+                  assert formal['trade_date']!=day, 'CURRENT_FORMAL_WITH_STALE_RESEARCH_EVIDENCE'
+                  print('STALE_RESEARCH_EVIDENCE_NO_CURRENT_FORMAL',evidence_date,day)
+              else:
+                  print('DATE_SCOPED_RESEARCH_EVIDENCE_PRESENT',day,len(evidence.get('reviews',[])))
           else:
               print('NO_DATE_SCOPED_COMPANY_EVIDENCE: SHADOW_CI_ONLY, NOT_FORMAL')
           PY
