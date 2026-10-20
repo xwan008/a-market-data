@@ -51,5 +51,33 @@ class ShardedMomentumTests(unittest.TestCase):
                 load_momentum_shards("2026-10-10", tmp)
 
 
+
+class AttentionResistanceTests(unittest.TestCase):
+    def test_historical_overhead_uses_confirmed_past_pivot_only(self):
+        from price_inputs import SelectedStockStructures
+        asof = date(2026, 10, 19)
+        rows = [{"date": (asof - timedelta(days=124-i)).isoformat(),
+                 "high": 10.1} for i in range(125)]
+        rows[50]["high"] = 11.2
+        rows[-1]["high"] = 11.8  # not a confirmed pivot: no future right bars
+        got = SelectedStockStructures._attention_resistance(
+            rows, 10.5, asof.isoformat())
+        self.assertEqual(got["status"], "VERIFIED")
+        self.assertAlmostEqual(got["price"], 11.2)
+        self.assertEqual(got["date"], rows[50]["date"])
+        self.assertEqual(
+            SelectedStockStructures._attention_resistance(
+                rows[:119], 10.5, rows[118]["date"])["status"], "UNVERIFIED")
+
+    def test_missing_historical_pivot_is_unknown_not_infinite_upside(self):
+        from price_inputs import SelectedStockStructures
+        asof = "2026-10-19"
+        rows = [{"date": "2026-10-18", "high": 10.1} for _ in range(124)]
+        rows.append({"date": asof, "high": 10.1})
+        got = SelectedStockStructures._attention_resistance(rows, 10.5, asof)
+        self.assertEqual(got["status"], "UNVERIFIED")
+        self.assertIsNone(got["price"])
+
+
 if __name__ == "__main__":
     unittest.main()
