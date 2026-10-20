@@ -20,6 +20,38 @@ TREND=ROOT/"research/trend_handoff.json"
 def read(path):
     return json.loads(path.read_text(encoding="utf-8"))
 
+
+def validate_fresh_review_scope(evidence, research):
+    """Require selected-company reviews, allowing only audited thematic rejections."""
+    reviews=evidence["reviews"]
+    review_codes=[row["code"] for row in reviews]
+    selected_codes=[row["code"] for row in research["companies"]]
+    if len(set(review_codes))!=len(review_codes):
+        raise ValueError("RESEARCH_DUPLICATE_REVIEW")
+    if len(set(selected_codes))!=len(selected_codes):
+        raise ValueError("RESEARCH_DUPLICATE_SELECTED")
+    by_code={row["code"]:row for row in reviews}
+    selected=set(selected_codes)
+    missing=selected-set(by_code)
+    if missing:
+        raise ValueError("RESEARCH_SELECTED_REVIEW_MISSING:"+",".join(sorted(missing)))
+
+    # A negative review has to remain available to justify the next-ranked
+    # replacement; it must never become a selected research candidate.
+    extra=set(by_code)-selected
+    audit=research["screen_audit"]
+    replacements=set(audit["research_replacements"])
+    rejected={row["code"] for row in audit["pre_screened_out"]
+              if row["reason"]=="THEME_NOT_SUPPORTED"}
+    if extra!=replacements or extra!=rejected:
+        raise ValueError("RESEARCH_NEGATIVE_REPLACEMENT_AUDIT_MISMATCH")
+    if any(by_code[code]["transmission"]!="NOT_SUPPORTED" for code in extra):
+        raise ValueError("RESEARCH_EXTRA_REVIEW_NOT_NEGATIVE")
+    if any(by_code[code]["transmission"]=="NOT_SUPPORTED" for code in selected):
+        raise ValueError("RESEARCH_REJECTED_COMPANY_SELECTED")
+
+
+
 def isnum(n):
     return isinstance(n,(int,float)) and not isinstance(n,bool) and math.isfinite(n)
 

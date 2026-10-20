@@ -15,6 +15,55 @@ def module(path,name):
 engine=module("trend_buy_engine.py","trend_engine")
 handoff=module("trend_buy_handoff.py","trend_handoff")
 
+builder=module("build_trend_buy_manual_research.py","trend_buy_builder")
+
+
+class FreshReviewScopeTests(unittest.TestCase):
+    def setUp(self):
+        self.evidence={"reviews":[
+            {"code":"A","transmission":"SUPPORTED"},
+            {"code":"B","transmission":"EARLY_EVIDENCE"},
+            {"code":"C","transmission":"NOT_SUPPORTED"}]}
+        self.research={"companies":[{"code":"A"},{"code":"B"}],
+                       "screen_audit":{
+                           "research_replacements":["C"],
+                           "pre_screened_out":[{"code":"C","reason":"THEME_NOT_SUPPORTED"}]}}
+
+    def test_rejected_review_justifies_replacement_without_filling_slot(self):
+        builder.validate_fresh_review_scope(self.evidence,self.research)
+
+    def test_selected_company_without_review_blocks(self):
+        self.evidence["reviews"]=[row for row in self.evidence["reviews"] if row["code"]!="B"]
+        with self.assertRaisesRegex(ValueError,"RESEARCH_SELECTED_REVIEW_MISSING"):
+            builder.validate_fresh_review_scope(self.evidence,self.research)
+
+    def test_unaudited_extra_review_blocks(self):
+        self.evidence["reviews"].append({"code":"D","transmission":"SUPPORTED"})
+        with self.assertRaisesRegex(ValueError,"RESEARCH_NEGATIVE_REPLACEMENT_AUDIT_MISMATCH"):
+            builder.validate_fresh_review_scope(self.evidence,self.research)
+
+    def test_extra_review_must_be_explicitly_negative(self):
+        self.evidence["reviews"][-1]["transmission"]="SUPPORTED"
+        with self.assertRaisesRegex(ValueError,"RESEARCH_EXTRA_REVIEW_NOT_NEGATIVE"):
+            builder.validate_fresh_review_scope(self.evidence,self.research)
+
+    def test_rejection_requires_matching_prescreen_audit(self):
+        self.research["screen_audit"]["pre_screened_out"]=[]
+        with self.assertRaisesRegex(ValueError,"RESEARCH_NEGATIVE_REPLACEMENT_AUDIT_MISMATCH"):
+            builder.validate_fresh_review_scope(self.evidence,self.research)
+
+    def test_rejected_company_cannot_be_selected(self):
+        self.evidence["reviews"][0]["transmission"]="NOT_SUPPORTED"
+        with self.assertRaisesRegex(ValueError,"RESEARCH_REJECTED_COMPANY_SELECTED"):
+            builder.validate_fresh_review_scope(self.evidence,self.research)
+
+    def test_duplicate_company_review_blocks(self):
+        self.evidence["reviews"].append(dict(self.evidence["reviews"][0]))
+        with self.assertRaisesRegex(ValueError,"RESEARCH_DUPLICATE_REVIEW"):
+            builder.validate_fresh_review_scope(self.evidence,self.research)
+
+
+
 
 def fixture():
     audit={x:True for x in ("fresh_company_research","working_set_frozen",

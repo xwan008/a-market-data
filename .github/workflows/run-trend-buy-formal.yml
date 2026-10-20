@@ -91,7 +91,8 @@ jobs:
           assert len(audit['pre_screen_selected'])==research['selected_company_count']
           assert research['selected_company_count']==res['coverage']['judged']
           assert audit['source_review_pending_count']==0, ('RESEARCH_PENDING',audit['source_review_pending_codes'])
-          assert {x['code'] for x in evidence['reviews']}=={x['code'] for x in research['companies']}, 'RESEARCH_NOT_EXACTLY_FRESH_TOP5'
+          from scripts.build_trend_buy_manual_research import validate_fresh_review_scope
+          validate_fresh_review_scope(evidence, research)
           assert research['mode']==res['mode']=='FORMAL'
           assert res['production_eligible'] is True and res['status']=='COMPLETE'
           assert res['coverage']['complete']
