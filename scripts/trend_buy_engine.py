@@ -333,37 +333,77 @@ def opportunity_key(row):
 
 
 def dynamic_top5_by_theme(ready, wait, research):
-    """Choose <=5 actual current entry opportunities per *theme*, post-screen.
+    """Rank up to five names per theme, including evidence-backed trend watches.
 
-    Every eligible pre-screen company must already have been evaluated.
-    Cooling, failed, unsupported and unresolved companies cannot fill seats.
+    Immediate/nearby entry candidates come first. When fewer than five qualify,
+    include only WAIT stocks with observable trend evidence; never invent a buy
+    zone or fill the list merely to reach five. Cooling/failed structures stay out.
     """
     sectors = sorted({str(x.get("trend_name") or "") for x in research.get("companies", [])
                       if x.get("trend_name")})
+
+    def trend_watch_signal(row):
+        if row.get("status") != "WAIT" or row.get("transmission") not in {"SUPPORTED", "EARLY_EVIDENCE"}:
+            return False
+        ctx, evidence = row.get("technical_context") or {}, row.get("phase_evidence") or {}
+        if not (pos(row.get("current_price")) and pos(ctx.get("ma20")) and pos(ctx.get("ma60"))):
+            return False
+        if row.get("trend_phase") in {"REACCELERATING", "INITIATING", "REPAIRING", "PULLBACK"}:
+            return True
+        if ctx.get("higher_low") is True and evidence.get("pullback_low_holds") is True:
+            return True
+        return (evidence.get("fresh_break") is True
+                and ((val(ctx.get("volume_ratio_1d_vs_20d"))
+                      and ctx["volume_ratio_1d_vs_20d"] >= 1.1)
+                     or (val(ctx.get("close_location_pct"))
+                         and ctx["close_location_pct"] >= 60)))
+
+    def trend_watch_key(row):
+        ctx, evidence = row.get("technical_context") or {}, row.get("phase_evidence") or {}
+        break_signal = evidence.get("fresh_break") is True and (
+            (val(ctx.get("volume_ratio_1d_vs_20d")) and ctx["volume_ratio_1d_vs_20d"] >= 1.1)
+            or (val(ctx.get("close_location_pct")) and ctx["close_location_pct"] >= 60))
+        higher_low = ctx.get("higher_low") is True and evidence.get("pullback_low_holds") is True
+        phase = row.get("trend_phase")
+        phase_rank = {"REACCELERATING": 0, "INITIATING": 1, "REPAIRING": 2,
+                      "PULLBACK": 3, "TRANSITION": 4}.get(phase, 5)
+        signal_score = 2 * int(break_signal) + 2 * int(higher_low) + int(phase_rank < 4)
+        dist = ctx.get("distance_to_ma20_pct")
+        if not val(dist) and pos(ctx.get("ma20")) and pos(row.get("current_price")):
+            dist = (row["current_price"] / ctx["ma20"] - 1) * 100
+        return (-signal_score, phase_rank, abs(dist) if val(dist) else 100,
+                row.get("code") or "")
+
     groups = []
     for sector in sectors:
-        candidates = []
+        primary, watches = [], []
         for row in ready + wait:
             if row.get("trend_name") != sector or row.get("trend_phase") in {"COOLING", "FAILED"}:
                 continue
             ref = early_watch_reference(row)
             p, trigger = row.get("current_price"), ref.get("reference_trigger_price")
             distance = abs(trigger / p - 1) * 100 if pos(p) and pos(trigger) else 100
-            # No speculative remote breakout or unbounded initial risk.
             feasible = ref.get("reference_zone") is not None
             near = distance <= 8
-            if row.get("status") != "READY" and not (near or feasible):
-                continue
-            candidates.append(row)
-        candidates.sort(key=opportunity_key)
-        selected = candidates[:5]
+            if row.get("status") == "READY" or near or feasible:
+                primary.append(row)
+            elif trend_watch_signal(row):
+                watches.append(row)
+        primary.sort(key=opportunity_key)
+        watches.sort(key=trend_watch_key)
+        selected = primary[:5]
+        selected.extend(watches[:max(0, 5 - len(selected))])
+        primary_codes = {row["code"] for row in primary}
         groups.append({
-            "trend_name": sector, "qualified_opportunity_count": len(candidates),
+            "trend_name": sector,
+            "qualified_opportunity_count": len(primary),
+            "trend_watch_candidate_count": len(watches),
             "items": [{
                 "code": row["code"], "company_name": row["company_name"],
                 "status": row["status"], "trend_phase": row.get("trend_phase"),
                 "entry_opportunity": ("READY" if row["status"] == "READY"
-                                      else "EARLY_NOT_READY"),
+                                      else "EARLY_NOT_READY" if row["code"] in primary_codes
+                                      else "TREND_WATCH_ONLY"),
                 "current_price": row.get("current_price"),
                 "reference": early_watch_reference(row),
                 "decision_reason": row.get("decision_reason"),
