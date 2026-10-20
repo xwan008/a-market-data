@@ -58,6 +58,62 @@ def sample_data():
 
 
 class ThemeEvidenceTests(unittest.TestCase):
+    def test_crosscheck_unifies_industry_and_theme_without_duplicate_slots(self):
+        result = build(*sample_data())
+        leads = result["crosscheck_shortlist"]
+        self.assertEqual(len(leads), 2)
+        self.assertEqual([lead["rank"] for lead in leads], [1, 2])
+        self.assertIn("industry:S300101", [lead["source_id"] for lead in leads])
+        # The curated theme and its single core industry share six stocks:
+        # whichever ranks first may enter, but they cannot take two slots.
+        overlap = {"industry:S100101", "RESEARCH_THEME:test"}
+        self.assertEqual(len(overlap & {lead["source_id"] for lead in leads}), 1)
+        self.assertTrue(all(lead["usable_stock_count"] >= 3 for lead in leads))
+        self.assertEqual(result["scan_summary"]["crosscheck_shortlist_count"], 2)
+
+    def test_crosscheck_caps_all_sources_at_three_and_is_deterministic(self):
+        latest, index, structure, catalog, audit = sample_data()
+        for group in range(4):
+            industry_code = f"S{group + 4}00101"
+            for i in range(5):
+                stock = f"{100 + group * 5 + i:06d}"
+                latest["stocks"][stock] = {"change_pct": 5, "confidence": "high"}
+                index["companies"][stock] = {
+                    "mapping_status": "mapped", "industry_code": industry_code,
+                    "sw_level3_name": f"Additional hot {group}"}
+                structure["companies"][stock] = {
+                    "data_status": "verified", "data_date": latest["trade_date"],
+                    "phase_evidence": {"return_3d_pct": 6, "return_5d_pct": 3,
+                                       "volume_ratio_1d": 1.5}}
+            audit["sectors"].append({
+                "kind": "industry", "id": "industry:" + industry_code,
+                "name": f"Additional hot {group}", "channels": ["STRONG"],
+                "score": 8, "sample_quality": "OK",
+                "member_count": 5, "usable_count": 5, "median_1d_pct": 5,
+                "advance_ratio": 1,
+                "relative_1d_vs_market_median_pct": 5,
+                "acceleration_3d_vs_5d": 4})
+        audit["industry_count"] = 7
+        first = build(latest, index, structure, catalog, audit)
+        second = build(latest, index, structure, catalog, audit)
+        self.assertEqual(len(first["crosscheck_shortlist"]), 3)
+        self.assertEqual(first["crosscheck_shortlist"], second["crosscheck_shortlist"])
+        self.assertEqual(len({lead["source_id"] for lead in first["crosscheck_shortlist"]}), 3)
+
+    def test_small_sample_industry_can_enter_crosscheck_but_is_discounted(self):
+        latest, index, structure, catalog, audit = sample_data()
+        for code in ("000017", "000018"):
+            del index["companies"][code]
+        row = audit["sectors"][0]
+        row["member_count"] = 4
+        row["usable_count"] = 4
+        row["sample_quality"] = "SMALL_SAMPLE"
+        result = build(latest, index, structure, catalog, audit)
+        lead = next(x for x in result["crosscheck_shortlist"]
+                    if x["source_id"] == "industry:S300101")
+        self.assertEqual(lead["sample_quality"], "SMALL_SAMPLE")
+        self.assertLess(lead["review_priority_score"], lead["score"])
+
     def test_compact_shortlist_core_only_and_research_only_roles(self):
         result = build(*sample_data())
         self.assertEqual(result["scan_summary"]["themes_evaluated"], 2)
@@ -98,6 +154,12 @@ class ThemeEvidenceTests(unittest.TestCase):
         for code in list(data[1]["companies"]):
             if data[1]["companies"][code]["industry_code"] == "S100101" and int(code) > 4:
                 data[1]["companies"].pop(code)
+        # Keep the sector audit aligned with the modified test industry index.
+        data[4] = copy.deepcopy(data[4])
+        core = next(x for x in data[4]["sectors"]
+                    if x["id"] == "industry:S100101")
+        core["member_count"] = 4
+        core["sample_quality"] = "SMALL_SAMPLE"
         result = build(*data)
         self.assertEqual(len(result["research_candidates"]), 0)
         self.assertEqual(result["scan_summary"]["invalid_or_low_sample_themes"], 1)
