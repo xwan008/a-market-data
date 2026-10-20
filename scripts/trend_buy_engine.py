@@ -136,6 +136,9 @@ def evaluate_candidate(c, structure, trade_date):
     result["technical_context"] = {
         "ma20": ma20, "ma60": ma60,
         "support_invalidation": structure.get("support_invalidation"),
+        "attention_resistance": structure.get("attention_resistance"),
+        "distance_to_ma20_pct": structure.get("distance_to_ma20_pct"),
+        "chase_risk": structure.get("chase_risk"),
         "volume_ratio_1d_vs_20d": structure.get("volume_ratio_1d_vs_20d"),
         "volume_ratio_5d_vs_20d": structure.get("volume_ratio_5d_vs_20d"),
         "relative_strength_20d_vs_market_pct": structure.get("relative_strength_20d_vs_market_pct"),
@@ -394,27 +397,55 @@ def add_attention_priorities(groups, ready, wait, research):
                     if pos(current) and pos(trigger) else None)
         risk = (row.get("initial_risk_pct") if row["status"] == "READY"
                 else ref.get("estimated_price_risk_pct"))
-        valid_zone = (isinstance(row.get("entry_zone"), list)
-                      if row["status"] == "READY"
-                      else isinstance(ref.get("reference_zone"), list))
+        zone = (row.get("entry_zone") if row["status"] == "READY"
+                else ref.get("reference_zone"))
+        stop = (row.get("invalidation_price") if row["status"] == "READY"
+                else ref.get("invalidation_price"))
+        valid_zone = (isinstance(zone, list) and len(zone) == 2
+                      and all(pos(p) for p in zone)
+                      and pos(stop) and zone[1] > stop)
+        ctx = row.get("technical_context") or {}
+        overhead = ctx.get("attention_resistance") or {}
+        resistance_price = overhead.get("price")
+        reward_r = None
+        if (overhead.get("status") == "VERIFIED" and pos(resistance_price)
+                and valid_zone):
+            reward_r = (resistance_price - zone[1]) / (zone[1] - stop)
+        space_status = ("SUFFICIENT" if reward_r is not None
+                        and reward_r >= MIN_UPSIDE_R
+                        else "LIMITED" if reward_r is not None else "UNVERIFIED")
+        ma20_distance = ctx.get("distance_to_ma20_pct")
+        overheated = ((val(ma20_distance)
+                       and ma20_distance > MAX_MA20_DISTANCE_PCT)
+                      or ctx.get("chase_risk") == "high")
+        # READY always first. Within WAIT reward/risk and overextension
+        # precede momentum/trigger proximity; unknown is never unlimited upside.
         if row["status"] == "READY":
             tier = 0
-        elif (row.get("structure_confirmed") is True and valid_zone):
-            tier = 1
-        elif valid_zone:
-            tier = 2
-        else:
+        elif valid_zone and not overheated and space_status == "SUFFICIENT":
+            tier = 1 if row.get("structure_confirmed") is True else 2
+        elif valid_zone and not overheated and space_status == "UNVERIFIED":
             tier = 3
+        elif valid_zone and not overheated:
+            tier = 4
+        elif valid_zone:
+            tier = 5
+        else:
+            tier = 6
         quality = fundamentals.get(row["code"])
         quality = max(0, min(1, quality)) if val(quality) else None
         risk_fit = max(0, 1 - risk / 8) if val(risk) else 0
+        reward_fit = (max(0, min(1, reward_r / MIN_UPSIDE_R))
+                      if reward_r is not None else .25)
+        risk_space_fit = .5 * risk_fit + .5 * reward_fit
         distance_fit = max(0, 1 - distance / 8) if val(distance) else 0
         phase_fit = phase_quality.get(row.get("trend_phase"), .4)
-        position = .5 * risk_fit + .35 * distance_fit + .15 * phase_fit
+        position = .5 * risk_space_fit + .35 * distance_fit + .15 * phase_fit
         # Balanced only *inside* the non-negotiable buy-point evidence tiers.
         # A missing financial score stays neutral, never an invented advantage.
         combined = .5 * position + .5 * (quality if quality is not None else .5)
-        return tier, combined, quality, risk, distance
+        return (tier, combined, quality, risk, distance, reward_r,
+                space_status, overheated, ma20_distance, overhead)
 
     for group in groups:
         items = group.get("items", [])
@@ -424,8 +455,19 @@ def add_attention_priorities(groups, ready, wait, research):
             -((metrics[item["code"]][2]) if metrics[item["code"]][2] is not None else .5),
             item["code"]))
         for rank, item in enumerate(ordered, 1):
-            tier, _, quality, risk, distance = metrics[item["code"]]
-            if tier == 0:
+            (tier, _, quality, risk, distance, reward_r,
+             space_status, overheated, ma20_distance, overhead) = metrics[item["code"]]
+            if overheated:
+                judgement = "偏离MA20过大，暂缓追涨；" + (
+                    "上方阻力空间不足" if space_status == "LIMITED"
+                    else "上方空间仍需核验")
+            elif space_status == "LIMITED" and reward_r < 0:
+                judgement = "上方阻力低于计划价格上限，等待新结构"
+            elif space_status == "LIMITED":
+                judgement = f"上方压力仅约{reward_r:.2f}R，等待回踩或有效突破"
+            elif space_status == "UNVERIFIED":
+                judgement = "上方阻力空间待核验，不能视为无阻力"
+            elif tier == 0:
                 judgement = "优先评估条件性买点"
             elif tier == 1:
                 judgement = "重点跟踪个股确认，等待板块条件"
@@ -445,6 +487,17 @@ def add_attention_priorities(groups, ready, wait, research):
                 judgement = "关注结构确认"
             item["attention_rank"] = rank
             item["attention_judgement"] = judgement
+            item["attention_resistance_check"] = {
+                "status": space_status,
+                "resistance_price": overhead.get("price"),
+                "resistance_date": overhead.get("date"),
+                "resistance_source": overhead.get("source"),
+                "upside_to_resistance_R": (
+                    round(reward_r, 2) if reward_r is not None else None),
+                "distance_to_ma20_pct": ma20_distance,
+                "chase_risk_high": bool(overheated),
+                "note": "仅排序审计，不改变READY/WAIT、Top5与focus",
+            }
     return groups
 
 
