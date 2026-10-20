@@ -465,6 +465,8 @@ def add_attention_priorities(groups, ready, wait, research):
                 judgement = "上方阻力低于计划价格上限，等待新结构"
             elif space_status == "LIMITED":
                 judgement = f"上方压力仅约{reward_r:.2f}R，等待回踩或有效突破"
+            elif tier == 6:
+                judgement = "缺可靠观察区间，暂缓买点跟踪"
             elif space_status == "UNVERIFIED":
                 judgement = "上方阻力空间待核验，不能视为无阻力"
             elif tier == 0:
