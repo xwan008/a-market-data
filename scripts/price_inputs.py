@@ -69,9 +69,37 @@ class SelectedStockStructures:
             raise ValueError("market_relative_strength_baseline_missing")
         self.market_ret20 = median(returns) / 100
 
+    @staticmethod
+    def _attention_resistance(rows, current, trade_date):
+        """As-of 120-180-bar confirmed swing-high, for attention ranking only."""
+        if len(rows) < 120 or rows[-1]["date"] != trade_date:
+            return {"status": "UNVERIFIED", "price": None,
+                    "reason": "not_enough_same_day_history"}
+        pivots = []
+        for i in range(3, len(rows) - 3):
+            high = rows[i]["high"]
+            if (high > current * 1.005
+                    and all(high >= rows[k]["high"] for k in range(i - 3, i + 4))):
+                pivots.append(rows[i])
+        if not pivots:
+            return {"status": "UNVERIFIED", "price": None,
+                    "reason": "no_confirmed_overhead_pivot_in_lookback",
+                    "history_points": len(rows)}
+        nearest = min(pivots, key=lambda r: r["high"])
+        return {"status": "VERIFIED", "price": round(nearest["high"], 4),
+                "date": nearest["date"], "source": "asof_180bar_confirmed_pivot",
+                "history_points": len(rows)}
+
     def get(self, code: str, company: dict) -> dict:
-        rows = self._rows_for(code)[-65:]
-        base = self._base_metrics(code, company.get("name") or code, rows,
+        # Keep original 65-bar trading indicators; longer history is ONLY
+        # for the separate attention/resistance annotation.
+        full_rows = [r for r in self._rows_for(code)
+                     if r["date"] <= self.trade_date][-180:]
+        base = self._base_metrics(code, company.get("name") or code, full_rows[-65:],
                                   {"price": company.get("price")},
                                   self.trade_date, min_points=65)
-        return self._classify(base, self.market_ret20)
+        assessed = self._classify(base, self.market_ret20)
+        if assessed.get("data_status") == "verified":
+            assessed["attention_resistance"] = self._attention_resistance(
+                full_rows, assessed["current_price"], self.trade_date)
+        return assessed
