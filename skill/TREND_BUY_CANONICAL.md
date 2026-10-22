@@ -18,7 +18,7 @@
    - **风险展示及边界：** 主题Top5增加 `attention_resistance_check` 记录阻力价/日期/来源、收益风险比、MA20偏离及是否过热；`attention_judgement` 显式标出“上方空间受限”“偏离MA20过大”“上方空间待核验”等，随原关注字段向页面解释。绝不借此修改原Top5成员与顺序、正式rank、focus_watchlist、READY/WAIT、原交易风险阈值、入场计划、发布Gate及下游交易合同。缺基本面分按中性处理并提示核验；负PE不作为低估优势。
    - **展示与语义：** 在正式结果每主题Top5和下游handoff中附带两个关注字段，页面显示“关注序号／关注判断”。序号用于分配深研与盯盘顺序，不等于买入次序；WAIT即使关注第1也仍然是WAIT，不能因触及参考位自动升级READY。
 9. 正式结果READY/WAIT/UNCERTAIN/DROP只覆盖前置动态Top5实际深研名单，审计单独保留所有hard-eligible的轻量得分、落选、递补和核查状态；最终主题Top5只能从研究合格者中选择。必须经过fresh_company_research、working_set_frozen、pre_screen_coverage、company_research_coverage、structure_same_day、no_future_evidence、json_schema_valid全部Gate。有效完整结果唯一写 research/trend_buy_formal_result.json，提交后READBACK校验run_id、日期、blob SHA和名单；不完整直接报错，不能借昨日结果冒充今日。
-10. 仅完整19:00研究通过且正式结果READBACK后，scripts/trend_buy_handoff.py从动态主题Top5中提取READY/WAIT形成 research/trend_buy_handoff.json，仍遵守trend_buy_handoff_v2交易字段契约。盘中只按INTRADAY_MONITOR_CANONICAL.md监测交接名单，不重新选股或自动下单。早7:00只复核前一交易日，不新发布handoff。
+10. 仅完整19:00研究通过且正式结果READBACK后，scripts/trend_buy_handoff.py从动态主题Top5中提取READY/WAIT形成 research/trend_buy_handoff.json，仍遵守trend_buy_handoff_v2交易字段契约。盘中只按INTRADAY_MONITOR_CANONICAL.md监测交接名单，不重新选股或自动下单。
 
 ## 3. 状态含义
 - READY：经证据核实，行业趋势确认且价格形态、合理区间、结构失效及风险全部就绪；仅下一交易日条件性入场，非无条件买单。
@@ -28,4 +28,4 @@
 - COOLING与正式WAIT是不同维度；暂停新建仓优先排名不直接命令已持有的用户止盈止损。持仓退出根据独立结构保护、业务逻辑证伪与风险预算执行。
 
 ## 4. 交易时间与异常
-北京时间07:00只用前一完整交易日；19:00用当天已完成行情发布，非正式交易日不把旧数值当新信号。研究证据、市场数据、代码审计、GitHub提交或READBACK任何一项关键失败，不写新正式结果或handoff。连续多日行情指标只是形态代理，不证明实际资金身份，也尚未证明超额收益；生产参数须通过严格截至当日日K的历史回放验证。
+北京时间工作日19:00执行完整研究，使用当天已完成行情发布；非正式交易日不把旧数值当新信号。研究证据、市场数据、代码审计、GitHub提交或READBACK任何一项关键失败，不写新正式结果或handoff。连续多日行情指标只是形态代理，不证明实际资金身份，也尚未证明超额收益；生产参数须通过严格截至当日日K的历史回放验证。
