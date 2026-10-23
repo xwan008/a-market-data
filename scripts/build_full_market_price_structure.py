@@ -275,6 +275,7 @@ def base_metrics(code: str, name: str, rows: list[dict], quote: dict, reference_
         confirmed_swing_supports.append({
             "price": round(swing["price"], 4),
             "date": swing["date"], "bars_ago": age,
+            "unbroken_through_date": reference_date,
             "source": "asof_65bar_confirmed_pivot_low",
         })
     confirmed_swing_supports = confirmed_swing_supports[-6:]
