@@ -56,14 +56,19 @@ class DynamicStageTests(unittest.TestCase):
         self.assertEqual(f[0]["code"], "002709")
         self.assertNotEqual(f[0]["status"], "CURRENT_READY_FOCUS")
 
-    def test_individually_confirmed_wait_outranks_unconfirmed_repairing(self):
+    def test_verified_strong_rr_can_outrank_unconfirmed_repairing(self):
         early = wait_stock("600985", "REPAIRING")
         stock_confirmed = wait_stock("002128", "TRANSITION")
         stock_confirmed.update({
             "structure_confirmed": True, "setup_type": "PULLBACK",
+            "data_date": "2026-10-09",
             "entry_zone": [10.0, 10.1], "invalidation_price": 9.5,
             "initial_risk_pct": 5.94
         })
+        stock_confirmed["technical_context"]["attention_resistance"] = {
+            "status": "VERIFIED", "price": 13.5, "date": "2026-09-22",
+            "source": "asof_180bar_confirmed_pivot", "history_points": 180
+        }
         research = {"trade_date": "2026-10-09",
                     "companies": [{"trend_name": "固态电池"}]}
         top = engine.dynamic_top5_by_theme([], [early, stock_confirmed], research)
@@ -152,7 +157,7 @@ class DynamicStageTests(unittest.TestCase):
         self.assertEqual([i["attention_rank"] for i in groups[0]["items"]], [1, 2])
         self.assertTrue(all(row["attention_judgement"] for row in groups[0]["items"]))
 
-    def test_missing_reliable_watch_zone_loses_attention_priority_not_formal_seat(self):
+    def test_missing_watch_zone_remains_wait_even_if_ranked_above_confirmed_plan(self):
         valid = wait_stock("600001", "TRANSITION", support=9.75)
         valid.update({"structure_confirmed": True, "setup_type": "PULLBACK",
                       "entry_zone": [9.85,10.02],
@@ -165,8 +170,9 @@ class DynamicStageTests(unittest.TestCase):
         groups = engine.dynamic_top5_by_theme([], [no_stop, valid], research)
         engine.add_attention_priorities(groups, [], [no_stop, valid], research)
         by_code = {row["code"]: row for row in groups[0]["items"]}
-        self.assertEqual(by_code["600001"]["attention_rank"], 1)
-        self.assertEqual(by_code["600002"]["attention_rank"], 2)
+        self.assertEqual(by_code["600002"]["attention_rank"], 1)
+        self.assertEqual(by_code["600001"]["attention_rank"], 2)
+        self.assertIsNone(by_code["600002"]["reference"]["reference_zone"])
         self.assertIn("缺可靠观察区间", by_code["600002"]["attention_judgement"])
 
     def test_overhead_constraint_demotes_overheated_confirmed_wait_without_changing_focus(self):
@@ -265,10 +271,12 @@ class DynamicStageTests(unittest.TestCase):
         self.assertIsNone(engine.early_watch_reference(unconfirmed)["reference_zone"])
         research={"trade_date":"2026-10-09","companies":[{"trend_name":"固态电池"}]}
         top=engine.dynamic_top5_by_theme([], [unconfirmed,valid],research)
-        self.assertEqual([x["code"] for x in top[0]["items"]],
-                         ["600001","600002"])
+        self.assertEqual({x["code"] for x in top[0]["items"]},
+                         {"600001","600002"})
         engine.add_attention_priorities(top,[],[unconfirmed,valid],research)
         self.assertEqual([x["attention_rank"] for x in top[0]["items"]],[1,2])
+        self.assertIsNone(next(x for x in top[0]["items"]
+                               if x["code"]=="600002")["reference"]["reference_zone"])
 
     def test_unconfirmed_breakout_stays_unpriced_even_with_bounce_signal(self):
         row=wait_stock("600003","INITIATING",p=10,ma20=9.8,
