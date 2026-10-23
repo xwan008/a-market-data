@@ -259,6 +259,31 @@ def base_metrics(code: str, name: str, rows: list[dict], quote: dict, reference_
     ma20_5, ma60_5 = sma(closes, 20, 5), sma(closes, 60, 5)
     highs, lows = pivots(rows[-120:], 3)
     recent_highs, recent_lows = highs[-3:], lows[-3:]
+    # Preserve individual, time-confirmed swing lows for SETUP-SPECIFIC stops.
+    # A low broken by a later daily low is not a surviving support.
+    date_to_index = {bar["date"]: i for i, bar in enumerate(rows)}
+    confirmed_swing_supports = []
+    for swing in lows:
+        i = date_to_index.get(swing["date"])
+        if i is None:
+            continue
+        age = len(rows) - 1 - i
+        if not 3 <= age <= 30:
+            continue
+        # Exclude flat/tied plateaus falsely identified as pivots by the
+        # general-purpose <= pivot scanner.
+        if not (swing["price"] < min(x["low"] for x in rows[i-3:i])
+                and swing["price"] < min(x["low"] for x in rows[i+1:i+4])):
+            continue
+        if any(bar["low"] < swing["price"] for bar in rows[i + 1:]):
+            continue
+        confirmed_swing_supports.append({
+            "price": round(swing["price"], 4),
+            "date": swing["date"], "bars_ago": age,
+            "unbroken_through_date": reference_date,
+            "source": "asof_65bar_confirmed_pivot_low",
+        })
+    confirmed_swing_supports = confirmed_swing_supports[-6:]
     hh = len(recent_highs) >= 2 and recent_highs[-1]["price"] > recent_highs[-2]["price"]
     hl = len(recent_lows) >= 2 and recent_lows[-1]["price"] > recent_lows[-2]["price"]
     ret10 = current / closes[-11] - 1
@@ -310,6 +335,7 @@ def base_metrics(code: str, name: str, rows: list[dict], quote: dict, reference_
         "higher_low": hl,
         "first_effective_resistance": resistance,
         "support_invalidation": round(support, 4),
+        "confirmed_swing_supports": confirmed_swing_supports,
         "volume_ratio_1d_vs_20d": round(ratio1, 3) if ratio1 is not None else None,
         "volume_ratio_5d_vs_20d": round(ratio5, 3) if ratio5 is not None else None,
         "close_location_pct": round(close_loc * 100, 2),
