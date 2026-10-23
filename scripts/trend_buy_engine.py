@@ -698,6 +698,7 @@ def add_attention_priorities(groups, ready, wait, research):
         metrics = {item["code"]: priority(item) for item in items}
         # Single public ranking: attention fields describe the formal Top5 order.
         for rank, item in enumerate(items, 1):
+            row = lookup[item["code"]]
             (tier, _, quality, risk, distance, reward_r,
              space_status, overheated, ma20_distance, overhead) = metrics[item["code"]]
             if overheated:
