@@ -38,7 +38,31 @@ def pair(a, b):
     return [price(a), price(b)]
 
 
-def build_plan(kind, s, current, confirmed=False):
+def verified_overhead(s, current, trade_date=None):
+    """Nearest independently grounded overhead; never use future/unverified pivots."""
+    candidates = []
+    local = s.get("first_effective_resistance") or {}
+    if isinstance(local, dict) and pos(local.get("price")) and local["price"] > current:
+        # Comes from the already same-day verified 65-bar structure.
+        candidates.append({"status": "VERIFIED", "price": local["price"],
+                           "source": local.get("source") or "asof_structure",
+                           "date": local.get("date")})
+    extended = s.get("attention_resistance") or {}
+    date = extended.get("date") if isinstance(extended, dict) else None
+    if (isinstance(extended, dict)
+            and extended.get("status") == "VERIFIED"
+            and extended.get("source") == "asof_180bar_confirmed_pivot"
+            and val(extended.get("history_points"))
+            and extended["history_points"] >= 120
+            and isinstance(date, str) and len(date) == 10
+            and isinstance(trade_date, str) and date <= trade_date
+            and pos(extended.get("price")) and extended["price"] > current):
+        candidates.append({"status": "VERIFIED", "price": extended["price"],
+                           "source": extended["source"], "date": date})
+    return min(candidates, key=lambda x: x["price"]) if candidates else None
+
+
+def build_plan(kind, s, current, confirmed=False, trade_date=None):
     ma20 = s.get("ma20")
     support = s.get("support_invalidation")
     breakout = s.get("breakout_level") or s.get("prior_60d_high")
@@ -66,10 +90,12 @@ def build_plan(kind, s, current, confirmed=False):
     if zone is None or invalid >= zone[0]:
         return None
     risk_pct = (zone[1] - invalid) / zone[1] * 100
-    resistance = s.get("first_effective_resistance")
-    overhead = resistance.get("price") if isinstance(resistance, dict) else None
+    resistance = verified_overhead(s, current, trade_date)
+    overhead = resistance["price"] if resistance else None
+    # A verified obstacle between current price and the proposed entry ceiling
+    # gives a negative/zero R, NOT an unknown/unbounded upside.
     expected_r = ((overhead - zone[1]) / (zone[1] - invalid)
-                  if pos(overhead) and overhead > zone[1] else None)
+                  if pos(overhead) else None)
     return {
         "setup_type": kind,
         "entry_zone": zone,
@@ -137,6 +163,7 @@ def evaluate_candidate(c, structure, trade_date):
         "ma20": ma20, "ma60": ma60,
         "support_invalidation": structure.get("support_invalidation"),
         "attention_resistance": structure.get("attention_resistance"),
+        "first_effective_resistance": structure.get("first_effective_resistance"),
         "distance_to_ma20_pct": structure.get("distance_to_ma20_pct"),
         "chase_risk": structure.get("chase_risk"),
         "volume_ratio_1d_vs_20d": structure.get("volume_ratio_1d_vs_20d"),
@@ -186,7 +213,9 @@ def evaluate_candidate(c, structure, trade_date):
     else:
         kind = "PULLBACK"
     result["structure_confirmed"] = breakout_confirmed or pullback_confirmed
-    plan = build_plan(kind, structure, current, confirmed=(breakout_confirmed or pullback_confirmed))
+    plan = build_plan(kind, structure, current,
+                      confirmed=(breakout_confirmed or pullback_confirmed),
+                      trade_date=trade_date)
     if plan is None:
         result.update(status="UNCERTAIN",decision_reason="无法建立可验证入场区或结构失效价")
         return result
@@ -206,7 +235,8 @@ def evaluate_candidate(c, structure, trade_date):
         # An overheated BREAKOUT must NEVER publish a breakout-price zone while
         # telling the trader to WAIT for a pullback. Rebuild around real MA20
         # support, otherwise publish no conditional buy range.
-        revised = build_plan("PULLBACK", structure, current, confirmed=False)
+        revised = build_plan("PULLBACK", structure, current, confirmed=False,
+                             trade_date=trade_date)
         if revised is None:
             result.update(status="UNCERTAIN", wait_reason=None,
                           setup_type=None, entry_zone=None, max_entry_price=None,
@@ -332,6 +362,58 @@ def opportunity_key(row):
             row.get("code") or "")
 
 
+def top5_rank_key(row):
+    """Within an already selected thematic Top5, prefer credible reward/risk.
+
+    Eligibility and Top5 membership are decided upstream. Unknown upside has
+    no invented bonus; a verified sub-1.5R obstacle ranks behind unpriced WAIT
+    setups. READY is still a conditional trade status, not a trade order.
+    """
+    ref = early_watch_reference(row)
+    p = row.get("current_price")
+    zone = (row.get("entry_zone") if row.get("status") == "READY"
+            else ref.get("reference_zone"))
+    stop = (row.get("invalidation_price") if row.get("status") == "READY"
+            else ref.get("invalidation_price"))
+    valid = (isinstance(zone, list) and len(zone) == 2
+             and all(pos(v) for v in zone) and zone[0] <= zone[1]
+             and pos(stop) and stop < zone[0])
+    ctx = row.get("technical_context") or {}
+    overhead = verified_overhead(ctx, p, row.get("data_date")) if pos(p) else None
+    reward_r = ((overhead["price"] - zone[1]) / (zone[1] - stop)
+                if overhead and valid else None)
+    limited = reward_r is not None and reward_r < MIN_UPSIDE_R
+    known_good = reward_r is not None and reward_r >= MIN_UPSIDE_R
+
+    if row.get("status") == "READY":
+        # Independently verified short upside must already have blocked READY.
+        tier = 0 if known_good else 1
+    elif known_good:
+        tier = 2 if row.get("structure_confirmed") else 3
+    elif valid and reward_r is None:
+        tier = 4
+    elif limited:
+        tier = 6
+    else:
+        tier = 5
+
+    phases = {"REACCELERATING": 1.0, "INITIATING": .9,
+              "PULLBACK": .7, "REPAIRING": .6, "TRANSITION": .4}
+    phase_fit = phases.get(row.get("trend_phase"), .25)
+    structure_fit = .65 * int(row.get("structure_confirmed") is True) + .35 * phase_fit
+    trigger = ref.get("reference_trigger_price")
+    distance = abs(trigger / p - 1) * 100 if pos(p) and pos(trigger) else None
+    risk = ((zone[1] - stop) / zone[1] * 100) if valid else None
+    execution_fit = (.5 * max(0, 1 - risk / MAX_ENTRY_RISK_PCT) if risk is not None else 0)
+    execution_fit += (.5 * max(0, 1 - distance / 8) if distance is not None else 0)
+    reward_fit = (max(0, min(1, (reward_r - MIN_UPSIDE_R) / 1.5))
+                  if reward_r is not None else 0)
+    # Provisional weights; validate through as-of backtests before tuning.
+    combined = .45 * reward_fit + .35 * structure_fit + .20 * execution_fit
+    return (tier, -combined, -(reward_r if reward_r is not None else -100),
+            opportunity_key(row))
+
+
 def dynamic_top5_by_theme(ready, wait, research):
     """Rank up to five names per theme, including evidence-backed trend watches.
 
@@ -393,6 +475,8 @@ def dynamic_top5_by_theme(ready, wait, research):
         watches.sort(key=trend_watch_key)
         selected = primary[:5]
         selected.extend(watches[:max(0, 5 - len(selected))])
+        # Do not change membership/cap: reorder only the selected Top5.
+        selected.sort(key=top5_rank_key)
         primary_codes = {row["code"] for row in primary}
         groups.append({
             "trend_name": sector,
@@ -443,9 +527,10 @@ def add_attention_priorities(groups, ready, wait, research):
                 else ref.get("invalidation_price"))
         valid_zone = (isinstance(zone, list) and len(zone) == 2
                       and all(pos(p) for p in zone)
-                      and pos(stop) and zone[1] > stop)
+                      and pos(stop) and stop < zone[0])
         ctx = row.get("technical_context") or {}
-        overhead = ctx.get("attention_resistance") or {}
+        overhead = (verified_overhead(ctx, current, row.get("data_date"))
+                    if pos(current) else None) or {}
         resistance_price = overhead.get("price")
         reward_r = None
         if (overhead.get("status") == "VERIFIED" and pos(resistance_price)
@@ -490,11 +575,8 @@ def add_attention_priorities(groups, ready, wait, research):
     for group in groups:
         items = group.get("items", [])
         metrics = {item["code"]: priority(item) for item in items}
-        ordered = sorted(items, key=lambda item: (
-            metrics[item["code"]][0], -metrics[item["code"]][1],
-            -((metrics[item["code"]][2]) if metrics[item["code"]][2] is not None else .5),
-            item["code"]))
-        for rank, item in enumerate(ordered, 1):
+        # Single public ranking: attention fields describe the formal Top5 order.
+        for rank, item in enumerate(items, 1):
             (tier, _, quality, risk, distance, reward_r,
              space_status, overheated, ma20_distance, overhead) = metrics[item["code"]]
             if overheated:
@@ -538,7 +620,7 @@ def add_attention_priorities(groups, ready, wait, research):
                     round(reward_r, 2) if reward_r is not None else None),
                 "distance_to_ma20_pct": ma20_distance,
                 "chase_risk_high": bool(overheated),
-                "note": "仅排序审计，不改变READY/WAIT、Top5与focus",
+                "note": "与正式Top5共享赔率证据；关注序号跟随正式排序",
             }
     return groups
 
@@ -637,6 +719,12 @@ def generate(research, structure):
             raise ValueError("invalid_final_status")
         if row["status"]=="READY" and (row["wait_reason"] is not None or not row["entry_zone"] or not pos(row["invalidation_price"])):
             raise ValueError("ready_lacks_trade_plan")
+    # Fail closed if a VERIFIED, correctly sourced nearby pivot still bypasses
+    # the READY risk/reward gate; never publish contradictory READY vs risk label.
+    for row in rows:
+        if (row["status"] == "READY" and val(row.get("upside_to_resistance_R"))
+                and row["upside_to_resistance_R"] < MIN_UPSIDE_R):
+            raise ValueError("ready_known_resistance_below_min_rr")
     ready=[x for x in rows if x["status"]=="READY"]
     wait=[x for x in rows if x["status"]=="WAIT"]
     uncertain=[x for x in rows if x["status"]=="UNCERTAIN"]

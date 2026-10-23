@@ -120,6 +120,45 @@ class TrendTests(unittest.TestCase):
         x=engine.generate(r,s)["wait"][0]
         self.assertEqual(x["wait_reason"],"WAIT_RISK_REWARD")
 
+    def test_verified_180bar_nearby_pivot_blocks_ready(self):
+        # 2026-10-23-like Jiechang: original 65-bar breakout was READY,
+        # but the independently verified 180-bar obstacle is only ~0.26R.
+        r,s=inputs(s=structure(current_price=28.8, ma20=27.5045,
+                              ma60=25.7688, support_invalidation=27.5045,
+                              breakout_level=28.88, prior_60d_high=28.88,
+                              attention_resistance={"status":"VERIFIED",
+                                  "price":29.33,"date":"2026-09-01",
+                                  "source":"asof_180bar_confirmed_pivot",
+                                  "history_points":180}))
+        x=engine.generate(r,s)["wait"][0]
+        self.assertEqual(x["wait_reason"],"WAIT_RISK_REWARD")
+        self.assertTrue(x["structure_confirmed"])
+        self.assertAlmostEqual(x["upside_to_resistance_R"],.26,places=2)
+
+    def test_first_resistance_inside_entry_zone_is_not_treated_as_missing(self):
+        r,s=inputs(s=structure(first_effective_resistance={"price":20.28}))
+        x=engine.generate(r,s)["wait"][0]
+        self.assertEqual(x["wait_reason"],"WAIT_RISK_REWARD")
+        self.assertLess(x["upside_to_resistance_R"],0)
+
+    def test_future_or_unverified_attention_pivots_do_not_block_ready(self):
+        pivot={"status":"VERIFIED","price":20.35,"date":"2026-10-10",
+               "source":"asof_180bar_confirmed_pivot","history_points":180}
+        r,s=inputs(s=structure(attention_resistance=pivot))
+        self.assertEqual(engine.generate(r,s)["ready"][0]["status"],"READY")
+        pivot["date"]="2026-10-02"
+        pivot["status"]="UNVERIFIED"
+        self.assertEqual(engine.generate(r,s)["ready"][0]["status"],"READY")
+        pivot["status"]="VERIFIED"
+        pivot["source"]="untrusted_annotation"
+        self.assertEqual(engine.generate(r,s)["ready"][0]["status"],"READY")
+
+    def test_distant_verified_resistance_preserves_ready(self):
+        r,s=inputs(s=structure(attention_resistance={
+            "status":"VERIFIED","price":23.5,"date":"2026-09-28",
+            "source":"asof_180bar_confirmed_pivot","history_points":180}))
+        self.assertEqual(engine.generate(r,s)["ready"][0]["status"],"READY")
+
     def test_wrong_coverage_or_date_rejected(self):
         r,s=inputs()
         r["selected_company_count"]=2
