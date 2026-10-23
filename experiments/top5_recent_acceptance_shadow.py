@@ -48,10 +48,11 @@ def nearest_resistance(ctx, asof, current):
 
 
 def evaluate_recent_acceptance(history, row, asof, lookback=3):
-    """Inspect only the completed as-of bar and 1–3 preceding trading bars.
+    """Inspect the as-of CLOSE against earlier 1–3 day CLOSING acceptance.
 
-    Comparison price is the completed day's CLOSE (zero slippage), never
-    a claimed next-day fill. Structure stop is a separate OBSERVATION proxy.
+    Comparison price is the completed day's CLOSE (zero slippage).
+    Never replace the previous closing support with today's wick low.
+    Structure stop is a separate OBSERVATION proxy, never an order.
     """
     if lookback not in (1, 2, 3):
         raise ValueError("lookback_must_be_1_2_3")
@@ -70,7 +71,25 @@ def evaluate_recent_acceptance(history, row, asof, lookback=3):
     if not finite_positive(frozen) or abs(frozen - price) > max(.011, .001 * price):
         raise ValueError("frozen_price_mismatch")
     ctx = row.get("technical_context") or {}
-    baseline = min(x["low"] for x in previous)
+    # First identify an ALREADY-OBSERVED closing support in the preceding
+    # 1–3 completed days. The signal-day panic wick is NOT support.
+    # Two adjacent closes within 0.8% form a potential closing support band;
+    # invalidate that band if a later PRE-asof close already broke it.
+    support = None
+    for i in range(len(previous) - 2, -1, -1):
+        older, newer = previous[i], previous[i + 1]
+        low_close, high_close = sorted((older["close"], newer["close"]))
+        if high_close / low_close - 1 > .008:
+            continue
+        if any(x["close"] < low_close * .995 for x in previous[i + 2:]):
+            continue
+        support = {
+            "dates": [older["date"], newer["date"]],
+            "close_low": low_close, "close_high": high_close,
+            "wick_low": min(older["low"], newer["low"]),
+        }
+        break
+    baseline = support["wick_low"] if support else None
     today_low = day["low"]
     close_location = ((price - today_low) / (day["high"] - today_low) * 100
                       if day["high"] > today_low else 50.0)
@@ -78,20 +97,23 @@ def evaluate_recent_acceptance(history, row, asof, lookback=3):
     ratio = ctx.get("volume_ratio_1d_vs_20d")
     verified_volume = finite_positive(ratio) and ratio >= 1.3
     strong_close = close_location >= 65
-    sweep_pct = max(0.0, (baseline - today_low) / baseline * 100)
-    close_reclaimed = price > baseline
+    close_reclaimed = support is not None and price > support["close_high"]
+    wick_broken = support is not None and today_low < support["wick_low"] * .995
+    sweep_pct = (max(0.0, (support["wick_low"] - today_low)
+                     / support["wick_low"] * 100) if support else None)
 
-    # HOLD = tested existing 3-day minimum within 0.5% and recovered.
-    # SWEEP_RECLAIM = punctured by >0.5%, closed back above it strongly.
-    # These are observations, not a proof of first touch or future follow-through.
-    if (today_low >= baseline * .995 and today_low <= baseline * 1.005
+    # A SUPPORT_HOLD may use the already-existing 2-day support-band low
+    # as a provisional close-day observation. SWEEP_RECLAIM cannot blindly
+    # substitute the signal-day low as a new stop: the previous intraday stop
+    # was already crossed and close-vs-intraday invalidation is unsettled.
+    if (support is not None and not wick_broken
+            and today_low <= support["close_high"] * 1.005
             and close_reclaimed and positive and strong_close):
         mode = "LOCAL_SUPPORT_HOLD"
-        anchor = min(baseline, today_low)
-    elif (today_low < baseline * .995 and close_reclaimed
-          and positive and strong_close):
+        anchor = support["wick_low"]
+    elif (wick_broken and close_reclaimed and positive and strong_close):
         mode = "SAME_DAY_SWEEP_RECLAIM"
-        anchor = today_low  # old support already pierced; no stale anchor stop
+        anchor = None   # no invented new support from the signal-day wick
     else:
         mode = "UNCONFIRMED_LOCAL_ACCEPTANCE"
         anchor = None
@@ -112,7 +134,9 @@ def evaluate_recent_acceptance(history, row, asof, lookback=3):
                     if resistance is not None and stop is not None else None)
     reasons = []
     if mode == "UNCONFIRMED_LOCAL_ACCEPTANCE":
-        reasons.append("no_1to3d_acceptance_pattern")
+        reasons.append("no_1to3d_close_support")
+    if mode == "SAME_DAY_SWEEP_RECLAIM":
+        reasons.append("swept_support_requires_explicit_close_based_or_retest_invalidation")
     if not verified_volume:
         reasons.append("volume_confirmation_missing")
     if price_risk is not None and price_risk > MAX_RISK_PCT:
@@ -123,9 +147,9 @@ def evaluate_recent_acceptance(history, row, asof, lookback=3):
         reasons.append("first_resistance_below_1_5R")
     # A shallow sweep is better grounded than a deep undercut but still
     # does NOT prove a retest succeeded on later days.
-    evidence = ("DEEP_SWEEP_UNCERTAIN" if sweep_pct > 2 else
-                "ASOF_SINGLE_BAR_ONLY" if anchor is not None else
-                "INSUFFICIENT")
+    evidence = ("SWEEP_STOP_UNRESOLVED" if mode == "SAME_DAY_SWEEP_RECLAIM"
+                else "CLOSING_SUPPORT_HELD_OBSERVATION" if anchor is not None
+                else "NO_RECENT_CLOSE_SUPPORT_CONFIRMED")
     return {
         "code": row["code"], "name": row.get("company_name"),
         "asof_date": asof, "lookback_trading_days": lookback,
@@ -133,10 +157,15 @@ def evaluate_recent_acceptance(history, row, asof, lookback=3):
         "observed_pattern": mode,
         "first_acceptance_proven": False,
         "acceptance_evidence": evidence,
-        "prior_support_low": round3(baseline),
+        "prior_support_low": round3(baseline) if baseline is not None else None,
+        "recent_close_support_band": ([round3(support["close_low"]),
+                                       round3(support["close_high"])]
+                                      if support else None),
+        "support_confirmed_dates": support["dates"] if support else [],
+        "intraday_support_broken": wick_broken,
         "asof_low": round3(today_low),
         "asof_close": round3(price),
-        "sweep_depth_pct": round(sweep_pct, 2),
+        "sweep_depth_pct": round(sweep_pct, 2) if sweep_pct is not None else None,
         "close_location_pct": round(close_location, 2),
         "volume_ratio_1d_vs_20d": round(ratio, 3) if finite_positive(ratio) else None,
         "observation_anchor": round3(anchor) if anchor is not None else None,
