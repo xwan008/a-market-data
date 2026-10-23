@@ -64,9 +64,9 @@ def verified_overhead(s, current, trade_date=None):
 
 def build_plan(kind, s, current, confirmed=False, trade_date=None):
     ma20 = s.get("ma20")
-    support = s.get("support_invalidation")
-    breakout = s.get("breakout_level") or s.get("prior_60d_high")
-    if not pos(current) or not pos(ma20) or not pos(support):
+    breakout = s.get("breakout_level")
+    if not pos(current) or not pos(ma20) or not confirmed:
+        # Without actual signal confirmation, an entry/stop is not a price plan.
         return None
     if kind == "BREAKOUT":
         if not pos(breakout):
@@ -75,19 +75,41 @@ def build_plan(kind, s, current, confirmed=False, trade_date=None):
                        if confirmed else breakout * 1.002)
         entry_ceiling = (min(breakout * 1.025, current * (1 + MAX_ENTRY_SLIPPAGE_PCT / 100))
                          if confirmed else breakout * 1.025)
-        # Failure: recapture below former resistance, with structural stop below it.
-        invalid = max(support, breakout * .985)
-        trigger = "收盘站稳前60日压力位且放量/收盘位置确认；下一交易日仅在计划价格内执行"
+        # Trade failure is a sustained recapture below the very breakout
+        # boundary being traded, NOT the low of the preceding entire trend.
+        invalid = price(breakout * .995)  # trial 0.5% boundary buffer
+        evidence_source = "confirmed_breakout_boundary"
+        failure_anchor = breakout
+        trigger = "收盘确认突破已有压力位；如有效跌回本次突破价下方则本次交易假设失效"
+        invalid_rule = ("本次突破价 " + str(price(breakout)) +
+                        " 元为交易失效边界；参考缓冲止损价 " +
+                        str(invalid) + " 元，须事先明确收盘确认与跳空处置规则")
     elif kind == "PULLBACK":
         entry_floor = (max(ma20, current * .995) if confirmed else ma20 * .995)
         entry_ceiling = (current * (1 + MAX_ENTRY_SLIPPAGE_PCT / 100)
                          if confirmed else ma20 * 1.018)
-        invalid = min(support, ma20 * .985)
-        trigger = "上升结构回踩MA20附近，日内触及支撑后收盘重新站上MA20且出现积极承接"
+        # A PULLBACK stop must be the LOW OF THE CONFIRMED REBOUND setup.
+        # An MA line or an older uptrend bottom cannot stand in for it.
+        if not (pos(s.get("current_day_low"))
+                and pos(s.get("previous_close"))
+                and current > s["previous_close"]
+                and current >= ma20
+                and s["current_day_low"] <= ma20 * 1.02
+                and s.get("higher_low") is True
+                and val(s.get("close_location_pct"))
+                and s["close_location_pct"] >= 55):
+            return None
+        failure_anchor = s["current_day_low"]
+        invalid = price(failure_anchor * .995)  # trial 0.5% low buffer
+        evidence_source = "same_day_confirmed_pullback_rebound_low"
+        trigger = "回踩MA20附近后已有真实反弹收盘确认；未再次确认不得借原日低点追认买点"
+        invalid_rule = ("本次已确认回踩低点 " + str(price(failure_anchor)) +
+                        " 元为失效依据；参考缓冲止损价 " +
+                        str(invalid) + " 元，须事先明确收盘确认与跳空处置规则")
     else:
         raise ValueError("unknown_setup")
     zone = pair(entry_floor, entry_ceiling)
-    if zone is None or invalid >= zone[0]:
+    if zone is None or not pos(invalid) or invalid >= zone[0]:
         return None
     risk_pct = (zone[1] - invalid) / zone[1] * 100
     resistance = verified_overhead(s, current, trade_date)
@@ -102,7 +124,12 @@ def build_plan(kind, s, current, confirmed=False, trade_date=None):
         "max_entry_price": zone[1],
         "entry_trigger": trigger,
         "invalidation_price": price(invalid),
-        "invalidation_rule": "计划价格结构失效；以有效收盘确认优先，跳空/重大突发风险需即时再评估，不能保证按止损价成交",
+        "invalidation_rule": invalid_rule,
+        "setup_stop_evidence": {
+            "source": evidence_source, "anchor_price": price(failure_anchor),
+            "buffer_pct": 0.5, "asof_date": trade_date,
+            "confirmation": "same_day_completed_bar"
+        },
         "initial_risk_pct": round(risk_pct, 2),
         "upside_to_resistance_R": round(expected_r, 2) if expected_r is not None else None,
         "exit_plan": {
@@ -162,7 +189,8 @@ def evaluate_candidate(c, structure, trade_date):
     result["technical_context"] = {
         "ma20": ma20, "ma60": ma60,
         "support_invalidation": structure.get("support_invalidation"),
-        "confirmed_swing_supports": structure.get("confirmed_swing_supports") or [],
+        "breakout_level": structure.get("breakout_level"),
+        "prior_60d_high": structure.get("prior_60d_high"),
         "attention_resistance": structure.get("attention_resistance"),
         "first_effective_resistance": structure.get("first_effective_resistance"),
         "distance_to_ma20_pct": structure.get("distance_to_ma20_pct"),
@@ -214,11 +242,23 @@ def evaluate_candidate(c, structure, trade_date):
     else:
         kind = "PULLBACK"
     result["structure_confirmed"] = breakout_confirmed or pullback_confirmed
-    plan = build_plan(kind, structure, current,
-                      confirmed=(breakout_confirmed or pullback_confirmed),
+    if not result["structure_confirmed"]:
+        overheated = ((pos(structure.get("distance_to_ma20_pct"))
+                       and structure["distance_to_ma20_pct"] > MAX_MA20_DISTANCE_PCT)
+                      or structure.get("chase_risk") == "high")
+        result.update(status="WAIT", setup_type=kind,
+                      wait_reason=("WAIT_PULLBACK" if overheated else
+                                   "WAIT_BREAKOUT" if kind == "BREAKOUT"
+                                   else "WAIT_PULLBACK"),
+                      decision_reason=("已有趋势观察价值，但尚未确认本次突破或回踩承接；"
+                                       "缺对应的交易失效位，不能虚构入场区"))
+        return result
+    plan = build_plan(kind, structure, current, confirmed=True,
                       trade_date=trade_date)
     if plan is None:
-        result.update(status="UNCERTAIN",decision_reason="无法建立可验证入场区或结构失效价")
+        result.update(status="WAIT", setup_type=kind,
+                      wait_reason="WAIT_CONFIRMATION",
+                      decision_reason="买点形态虽已确认，但缺少有效且处于本次入场下方的近端结构失效位")
         return result
     result.update(plan)
     if c.get("market_state") != "趋势确认":
@@ -233,26 +273,14 @@ def evaluate_candidate(c, structure, trade_date):
     elif (pos(structure.get("distance_to_ma20_pct"))
           and structure["distance_to_ma20_pct"] > MAX_MA20_DISTANCE_PCT
           or structure.get("chase_risk") == "high"):
-        # An overheated BREAKOUT must NEVER publish a breakout-price zone while
-        # telling the trader to WAIT for a pullback. Rebuild around real MA20
-        # support, otherwise publish no conditional buy range.
-        revised = build_plan("PULLBACK", structure, current, confirmed=False,
-                             trade_date=trade_date)
-        if revised is None:
-            result.update(status="UNCERTAIN", wait_reason=None,
-                          setup_type=None, entry_zone=None, max_entry_price=None,
-                          entry_trigger=None, invalidation_price=None,
-                          invalidation_rule=None, initial_risk_pct=None,
-                          upside_to_resistance_R=None, exit_plan=None,
-                          decision_reason="短期追高风险高，但尚无可验证的回调支撑/失效结构")
-        else:
-            result.update(revised)
-            if revised["initial_risk_pct"] > MAX_ENTRY_RISK_PCT:
-                result.update(status="WAIT", wait_reason="WAIT_RISK_REWARD",
-                              decision_reason="等待回调至MA20但可计算结构风险仍超过6%")
-            else:
-                result.update(status="WAIT", wait_reason="WAIT_PULLBACK",
-                              decision_reason="短期明显偏离MA20；只能等待真正回调承接确认")
+        # Never pretend a future pullback was already observed. A new
+        # pullback candle can be evaluated on its own completed trading day.
+        result.update(status="WAIT", wait_reason="WAIT_PULLBACK",
+                      entry_zone=None, max_entry_price=None, entry_trigger=None,
+                      invalidation_price=None, invalidation_rule=None,
+                      initial_risk_pct=None, upside_to_resistance_R=None,
+                      exit_plan=None, setup_stop_evidence=None,
+                      decision_reason="当前突破偏离过大；等待以后真实回踩承接，再以那次低点重新计算失效价")
     elif phase == "REPAIRING":
         result.update(status="WAIT", wait_reason="WAIT_CONFIRMATION",
                       decision_reason="修复阶段需验证后续承接；单次放量不自动形成READY")
@@ -271,128 +299,72 @@ def evaluate_candidate(c, structure, trade_date):
 EARLY_WATCH_MAX_PLAN_RISK_PCT = 8.0  # tentative risk filter for an unconfirmed early setup
 
 
-def confirmed_watch_stop(ctx, zone, trade_date):
-    """Find a surviving, already-confirmed swing low BELOW the watch entry.
-
-    This is an evidence-anchored PROVISIONAL risk proxy, never an executable
-    stop. Unsupported MA20 levels / stale lows cannot be silently substituted.
-    """
-    if not (isinstance(zone, list) and len(zone) == 2
-            and all(pos(z) for z in zone) and zone[0] <= zone[1]
-            and isinstance(trade_date, str)):
-        return None
-    matches = []
-    for support in ctx.get("confirmed_swing_supports") or []:
-        if not isinstance(support, dict):
-            continue
-        pivot_price, pivot_date = support.get("price"), support.get("date")
-        bars_ago = support.get("bars_ago")
-        if (support.get("source") != "asof_65bar_confirmed_pivot_low"
-                or support.get("unbroken_through_date") != trade_date
-                or not pos(pivot_price) or pivot_price > zone[0]
-                or not isinstance(pivot_date, str) or not pivot_date < trade_date
-                or type(bars_ago) is not int or not 3 <= bars_ago <= 30):
-            continue
-        stop = price(pivot_price * .995)  # provisional 0.5% buffer
-        if not pos(stop) or stop >= zone[0]:
-            continue
-        risk_pct = round((zone[1] - stop) / zone[1] * 100, 2)
-        if risk_pct <= EARLY_WATCH_MAX_PLAN_RISK_PCT:
-            matches.append((pivot_price, stop, risk_pct, pivot_date))
-    if not matches:
-        return None
-    pivot_price, stop, risk_pct, pivot_date = max(matches)
-    return {"stop": stop, "risk_pct": risk_pct, "support_price": pivot_price,
-            "support_date": pivot_date,
-            "stop_basis": "surviving_confirmed_swing_low_minus_0.5pct"}
-
-
 def early_watch_reference(row):
-    """Conditional entry hypothesis, distinct from confirmed BUY/READY.
+    """Price to OBSERVE, not hypothetical entry/stop or permission to buy.
 
-    Do not invent a stop or borrow one from a remote historical breakout.
-    Use only contemporaneous verified MA/support data captured in the row.
+    Confirmed and risk-bounded individual setups in WAIT (e.g. sector pending)
+    may retain their original setup pair; other WAITs cannot borrow a trend
+    bottom, a moving average, or an unrelated previous day low as a stop.
     """
-    if (row.get("structure_confirmed") is True and
-        row.get("setup_type") in {"BREAKOUT","PULLBACK"} and
-        isinstance(row.get("entry_zone"),list) and len(row["entry_zone"])==2 and
-        all(pos(z) for z in row["entry_zone"]) and
-        pos(row.get("invalidation_price")) and
-        row["invalidation_price"]<row["entry_zone"][0] and
-        pos(row.get("initial_risk_pct")) and
-        row["initial_risk_pct"]<=MAX_ENTRY_RISK_PCT):
-        # A true, already observed stock structure must take precedence over
-        # an inferred moving-average anticipation. Its WAIT is often due to
-        # the unconfirmed industry and can be studied earlier, not auto-bought.
+    if (row.get("structure_confirmed") is True
+            and row.get("setup_type") in {"BREAKOUT", "PULLBACK"}
+            and isinstance(row.get("entry_zone"), list)
+            and len(row["entry_zone"]) == 2
+            and all(pos(z) for z in row["entry_zone"])
+            and pos(row.get("invalidation_price"))
+            and row["invalidation_price"] < row["entry_zone"][0]
+            and pos(row.get("initial_risk_pct"))
+            and row["initial_risk_pct"] <= MAX_ENTRY_RISK_PCT):
         return {
-            "stage":"STOCK_CONFIRMED_SECTOR_PENDING",
-            "setup_mode":row["setup_type"],
-            "conditional_trigger":"个股收盘结构已出现；板块即使仍为候选，也可提前研究小规模试探入场，但必须次交易日复核信号仍有效、价格不超上限、账户亏损预算和结构失效位；不得冒充READY自动买入",
-            "reference_trigger_price":row["entry_zone"][0],
-            "reference_zone":row["entry_zone"],
-            "invalidation_price":row["invalidation_price"],
-            "estimated_price_risk_pct":row["initial_risk_pct"],
-            "risk_threshold_pct":MAX_ENTRY_RISK_PCT,
-            "price_basis":"同日已确认个股结构，板块可能尚未确认",
+            "stage": "STOCK_CONFIRMED_SECTOR_PENDING",
+            "setup_mode": row["setup_type"],
+            "conditional_trigger": "已有个股交易结构，但仍受板块/赔率/风险等WAIT条件约束；下个完整交易日复核，非买单",
+            "reference_trigger_price": row["entry_zone"][0],
+            "reference_zone": row["entry_zone"],
+            "invalidation_price": row["invalidation_price"],
+            "estimated_price_risk_pct": row["initial_risk_pct"],
+            "risk_threshold_pct": MAX_ENTRY_RISK_PCT,
+            "price_basis": "同日确认的本次突破或回踩结构，WAIT仍不可执行",
         }
-    ctx=row.get("technical_context") or {}
+    ctx = row.get("technical_context") or {}
     p, ma20, ma60 = row.get("current_price"), ctx.get("ma20"), ctx.get("ma60")
-    if not all(pos(z) for z in (p,ma20,ma60)):
-        return {"stage":"EVIDENCE_PENDING",
-                "conditional_trigger":"等待同日可靠均线与结构数据",
-                "reference_trigger_price":None,"reference_zone":None,
-                "invalidation_price":None,"estimated_price_risk_pct":None}
-    evidence = row.get("phase_evidence") or {}
-    setup = row.get("setup_type")
-    if p < ma60:
-        level=max(ma20,ma60)
-        mode="RECLAIM"
-        rule="观察日K重新站上MA20和MA60中较高者，收盘位置和成交承接改善；尚非买入信号"
-    elif p < ma20:
-        level=ma20
-        mode="MA20_RECOVERY"
-        rule="观察日K重新站上MA20，回调低点不创新低，并验证收盘承接"
-    elif setup == "BREAKOUT" and evidence.get("pullback_low_holds") is not True:
-        # Do not disguise an unconfirmed BREAKOUT as an MA20 pullback.
-        overhead = verified_overhead(ctx, p, row.get("data_date"))
-        level = overhead["price"] if overhead else p
+    if not all(pos(z) for z in (p, ma20, ma60)):
         return {
-            "stage":"PRE_TREND_WATCH","setup_mode":"BREAKOUT_CONFIRMATION",
-            "conditional_trigger":"当前突破未确认；等待收盘有效突破并形成新的可验证失效位后重新计算，不得按参考触发价买入",
-            "reference_trigger_price":price(level),
-            "reference_zone":None,"invalidation_price":None,
-            "estimated_price_risk_pct":None,
-            "risk_threshold_pct":EARLY_WATCH_MAX_PLAN_RISK_PCT,
-            "price_basis":"同一已完成交易日，未确认突破不得借用MA20止损"}
+            "stage": "EVIDENCE_PENDING",
+            "conditional_trigger": "缺少有效同日价格与均线",
+            "reference_trigger_price": None, "reference_zone": None,
+            "invalidation_price": None, "estimated_price_risk_pct": None,
+        }
+    kind = row.get("setup_type")
+    if kind == "BREAKOUT":
+        level = ctx.get("breakout_level") or ctx.get("prior_60d_high")
+        if not pos(level):
+            resistance = verified_overhead(ctx, p, row.get("data_date"))
+            level = resistance["price"] if resistance else p
+        mode = "BREAKOUT_CONFIRMATION"
+        rule = "仅关注突破触发价；尚无本次已确认的突破失败位置，不给交易止损或入场区"
+    elif p < ma60:
+        level = max(ma20, ma60)
+        mode = "RECLAIM"
+        rule = "等待重新站稳均线并出现明确的回踩承接，再从该次形态计算失效位"
+    elif p < ma20:
+        level = ma20
+        mode = "MA20_RECOVERY"
+        rule = "等待重新站上MA20并验证本次回踩低点与承接"
     else:
-        level=ma20
-        mode=("PULLBACK_RETEST_AFTER_BREAKOUT"
-              if setup == "BREAKOUT" else "PULLBACK_HOLD")
-        rule=("原突破尚未确认，仅观察未来回踩MA20后真正承接；"
-              "不能把回踩观察条件视为已完成的突破买点"
-              if setup == "BREAKOUT" else
-              "等待回踩MA20附近后实际承接/反包；观察价不是买单")
-    zone=pair(level*(.997 if mode in {"PULLBACK_HOLD","PULLBACK_RETEST_AFTER_BREAKOUT"}
-                     else 1.0),
-              level*(1.014 if mode in {"PULLBACK_HOLD","PULLBACK_RETEST_AFTER_BREAKOUT"}
-                     else 1.018))
-    matched=confirmed_watch_stop(ctx, zone, row.get("data_date"))
-    if matched:
-        rule+="；已定位同日有效摆动低点，仍须下一完整交易日确认入场形态"
-    else:
-        rule+="；暂无与该入场形态匹配且风险合格的有效摆动低点，暂不提供参考止损"
+        level = ma20
+        mode = "PULLBACK_HOLD"
+        rule = "观察将来回踩MA20附近能否完成承接；在真实形态出现前不得指定止损"
     return {
-        "stage":"PRE_TREND_WATCH","setup_mode":mode,
-        "conditional_trigger":rule,
-        "reference_trigger_price":price(level),
-        "reference_zone":zone if matched else None,
-        "invalidation_price":matched["stop"] if matched else None,
-        "estimated_price_risk_pct":matched["risk_pct"] if matched else None,
-        "support_price":matched["support_price"] if matched else None,
-        "support_date":matched["support_date"] if matched else None,
-        "stop_basis":matched["stop_basis"] if matched else None,
-        "risk_threshold_pct":EARLY_WATCH_MAX_PLAN_RISK_PCT,
-        "price_basis":"同一已完成交易日的冻结K线；仅供WAIT观察，非可执行止损"}
+        "stage": "PRE_TREND_WATCH", "setup_mode": mode,
+        "conditional_trigger": rule,
+        "reference_trigger_price": price(level),
+        "reference_zone": None, "invalidation_price": None,
+        "estimated_price_risk_pct": None,
+        "risk_threshold_pct": EARLY_WATCH_MAX_PLAN_RISK_PCT,
+        "price_basis": "同一已完成交易日观察触发价，非入场/持仓止损",
+    }
+
 
 def opportunity_key(row):
     """Best *new* entry today; price strength is not an unconditional bonus."""
