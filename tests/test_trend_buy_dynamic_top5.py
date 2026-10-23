@@ -272,6 +272,29 @@ class DynamicStageTests(unittest.TestCase):
         engine.add_attention_priorities(top, [], [invalid, valid], research)
         self.assertEqual([x["attention_rank"] for x in top[0]["items"]], [1,2])
 
+    def test_unconfirmed_breakout_not_mislabeled_as_confirmed_pullback(self):
+        row = with_confirmed_support(
+            wait_stock("600003", "INITIATING", p=10, ma20=9.8,
+                       ma60=9.5, support=9.9), 9.55)
+        row.update({"setup_type":"BREAKOUT",
+                    "phase_evidence":{"fresh_break":True,
+                                      "pullback_low_holds":False}})
+        pending = engine.early_watch_reference(row)
+        self.assertEqual(pending["setup_mode"],"BREAKOUT_CONFIRMATION")
+        self.assertIsNone(pending["reference_zone"])
+        self.assertIsNone(pending["invalidation_price"])
+        self.assertEqual(row["status"],"WAIT")
+        # A separate prospective RETEST can be studied if the low still holds,
+        # but its reference is not the original, unconfirmed BREAKOUT buy point.
+        row["phase_evidence"]["pullback_low_holds"] = True
+        retest = engine.early_watch_reference(row)
+        self.assertEqual(retest["setup_mode"],
+                         "PULLBACK_RETEST_AFTER_BREAKOUT")
+        self.assertIsNotNone(retest["reference_zone"])
+        self.assertLess(retest["invalidation_price"],
+                        retest["reference_zone"][0])
+        self.assertEqual(row["status"],"WAIT")
+
     def test_single_ma60_cross_is_wait_not_drop(self):
         c={"code":"002709","company_name":"天赐材料",
            "trend_name":"固态电池","market_state":"趋势确认",
