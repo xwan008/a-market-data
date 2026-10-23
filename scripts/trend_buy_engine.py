@@ -401,55 +401,135 @@ def opportunity_key(row):
             row.get("code") or "")
 
 
-def top5_rank_key(row):
-    """Within an already selected thematic Top5, prefer credible reward/risk.
+def top5_fundamental_evidence(research):
+    """Reuse ONLY the frozen, same-run pre-screen audit, without new reads.
 
-    Eligibility and Top5 membership are decided upstream. Unknown upside has
-    no invented bonus; a verified sub-1.5R obstacle ranks behind unpriced WAIT
-    setups. READY is still a conditional trade status, not a trade order.
+    In the production audit, growth/quality/valuation_match are each in 0..1.
+    The 10% trend_health part of fundamental_score is NOT fundamental quality
+    and must not be counted again in the 25% fundamental ranking component.
     """
+    selected = ((research.get("screen_audit") or {})
+                .get("pre_screen_selected") or [])
+    return {item["code"]: item for item in selected
+            if isinstance(item, dict) and isinstance(item.get("code"), str)}
+
+
+def top5_score_details(row, fundamental=None):
+    """Four-dimensional Top5 RESEARCH priority, never READY eligibility.
+
+    All components are in 0..1; missing evidence gets the NEUTRAL 0.5
+    comparison value and lowers confidence, rather than pretending to be
+    either a free upside or a proven failure. Trial weights need as-of replay.
+    """
+    def clamp(v):
+        return min(1., max(0., float(v)))
+
+    def neutral(raw, transform):
+        return (clamp(transform(raw)), 1.) if val(raw) else (.5, 0.)
+
     ref = early_watch_reference(row)
     p = row.get("current_price")
+    ctx = row.get("technical_context") or {}
+    evidence = row.get("phase_evidence") or {}
     zone = (row.get("entry_zone") if row.get("status") == "READY"
             else ref.get("reference_zone"))
     stop = (row.get("invalidation_price") if row.get("status") == "READY"
             else ref.get("invalidation_price"))
-    valid = (isinstance(zone, list) and len(zone) == 2
-             and all(pos(v) for v in zone) and zone[0] <= zone[1]
-             and pos(stop) and stop < zone[0])
-    ctx = row.get("technical_context") or {}
-    overhead = verified_overhead(ctx, p, row.get("data_date")) if pos(p) else None
+    valid_zone = (isinstance(zone, list) and len(zone) == 2
+                  and all(pos(z) for z in zone) and zone[0] <= zone[1]
+                  and pos(stop) and stop < zone[0])
+    overhead = (verified_overhead(ctx, p, row.get("data_date"))
+                if pos(p) else None)
     reward_r = ((overhead["price"] - zone[1]) / (zone[1] - stop)
-                if overhead and valid else None)
-    limited = reward_r is not None and reward_r < MIN_UPSIDE_R
-    known_good = reward_r is not None and reward_r >= MIN_UPSIDE_R
+                if overhead and valid_zone else None)
+    # 1.5R maps to neutral 0.5, 0.45R maps to 0.15, 3R caps at 1.
+    # An unknown R is 0.5 WITHOUT inventing an expected return.
+    reward_fit = clamp(reward_r / 3) if reward_r is not None else .5
+    reward_coverage = 1. if reward_r is not None else 0.
 
-    if row.get("status") == "READY":
-        # Independently verified short upside must already have blocked READY.
-        tier = 0 if known_good else 1
-    elif known_good:
-        tier = 2 if row.get("structure_confirmed") else 3
-    elif valid and reward_r is None:
-        tier = 4
-    elif limited:
-        tier = 6
+    v1, c1 = neutral(ctx.get("volume_ratio_1d_vs_20d"),
+                     lambda v: .5 + (v - 1) / 4)
+    v5, c5 = neutral(ctx.get("volume_ratio_5d_vs_20d"),
+                     lambda v: .5 + (v - 1) / 2)
+    close, cc = neutral(ctx.get("close_location_pct"),
+                        lambda v: v / 100)
+    strength, cs = neutral(ctx.get("relative_strength_20d_vs_market_pct"),
+                           lambda v: .5 + v / 20)
+    positive, cp = neutral(evidence.get("positive_days_5d"),
+                           lambda v: v / 5)
+    volume_fit = (.25 * v1 + .15 * v5 + .25 * close
+                  + .25 * strength + .10 * positive)
+    volume_coverage = (.25 * c1 + .15 * c5 + .25 * cc
+                       + .25 * cs + .10 * cp)
+
+    facts = fundamental if isinstance(fundamental, dict) else {}
+    parts = (("growth", .45), ("quality", .25), ("valuation_match", .20))
+    present = [name for name, _ in parts if val(facts.get(name))
+               and 0 <= facts[name] <= 1]
+    if present:
+        fundamental_fit = sum(
+            weight * (clamp(facts[name]) if name in present else .5)
+            for name, weight in parts) / .90
+        fundamental_coverage = sum(
+            weight for name, weight in parts if name in present) / .90
+        fundamental_basis = "asof_growth_quality_valuation"
+    elif val(facts.get("fundamental_score")) and 0 <= facts["fundamental_score"] <= 1:
+        # Backward compatible fallback, with reduced evidence confidence:
+        # the legacy proxy includes 10% trend_health and is not pure financials.
+        fundamental_fit = clamp(facts["fundamental_score"])
+        fundamental_coverage = .5
+        fundamental_basis = "legacy_screen_proxy"
     else:
-        tier = 5
+        fundamental_fit, fundamental_coverage = .5, 0.
+        fundamental_basis = "missing_neutral"
 
-    phases = {"REACCELERATING": 1.0, "INITIATING": .9,
-              "PULLBACK": .7, "REPAIRING": .6, "TRANSITION": .4}
-    phase_fit = phases.get(row.get("trend_phase"), .25)
-    structure_fit = .65 * int(row.get("structure_confirmed") is True) + .35 * phase_fit
-    trigger = ref.get("reference_trigger_price")
-    distance = abs(trigger / p - 1) * 100 if pos(p) and pos(trigger) else None
-    risk = ((zone[1] - stop) / zone[1] * 100) if valid else None
-    execution_fit = (.5 * max(0, 1 - risk / MAX_ENTRY_RISK_PCT) if risk is not None else 0)
-    execution_fit += (.5 * max(0, 1 - distance / 8) if distance is not None else 0)
-    reward_fit = (max(0, min(1, (reward_r - MIN_UPSIDE_R) / 1.5))
-                  if reward_r is not None else 0)
-    # Provisional weights; validate through as-of backtests before tuning.
-    combined = .45 * reward_fit + .35 * structure_fit + .20 * execution_fit
-    return (tier, -combined, -(reward_r if reward_r is not None else -100),
+    ma20 = ctx.get("ma20")
+    ma60 = ctx.get("ma60")
+    gap = ctx.get("distance_to_ma20_pct")
+    if not val(gap) and pos(p) and pos(ma20):
+        gap = (p / ma20 - 1) * 100
+    ma20_fit, cm20 = neutral(gap, lambda v: 1 - abs(v) / 10)
+    room = ((overhead["price"] / p - 1) * 100
+            if overhead and pos(p) else None)
+    # A VERIFIED ceiling ~1% above price is NOT an attractive position,
+    # even when the trade stop has not yet been confirmed.
+    space_fit, cr = neutral(room, lambda v: v / 6)
+    ma60_fit = (.75 if p >= ma60 else .35) if pos(p) and pos(ma60) else .5
+    cm60 = 1. if pos(p) and pos(ma60) else 0.
+    risk_pct = ((zone[1] - stop) / zone[1] * 100) if valid_zone else None
+    risk_fit, ck = neutral(risk_pct, lambda v: 1 - v / MAX_ENTRY_RISK_PCT)
+    position_fit = (.30 * ma20_fit + .40 * space_fit
+                    + .15 * ma60_fit + .15 * risk_fit)
+    position_coverage = (.30 * cm20 + .40 * cr
+                         + .15 * cm60 + .15 * ck)
+    if ctx.get("chase_risk") == "high":
+        position_fit = min(position_fit, .25)
+
+    combined = (.30 * reward_fit + .30 * volume_fit
+                + .25 * fundamental_fit + .15 * position_fit)
+    coverage = (.30 * reward_coverage + .30 * volume_coverage
+                + .25 * fundamental_coverage + .15 * position_coverage)
+    confidence = ("HIGH" if coverage >= .85 else
+                  "MEDIUM" if coverage >= .60 else "LOW")
+    return {
+        "score": round(combined, 8),
+        "confidence": confidence,
+        "evidence_coverage": round(coverage, 6),
+        "upside_to_resistance_R": round(reward_r, 4) if reward_r is not None else None,
+        "fundamental_basis": fundamental_basis,
+    }
+
+
+def top5_rank_key(row, fundamental=None):
+    """Only reorder the ALREADY-selected thematic Top5; status is untouched.
+
+    No status/evidence tier pre-empts the agreed 30/30/25/15 score. On ties,
+    prefer more complete evidence, then an executable READY, then the legacy
+    deterministic opportunity key. A rank-1 WAIT is never a buy instruction.
+    """
+    scored = top5_score_details(row, fundamental)
+    return (-scored["score"], -scored["evidence_coverage"],
+            0 if row.get("status") == "READY" else 1,
             opportunity_key(row))
 
 
@@ -514,8 +594,10 @@ def dynamic_top5_by_theme(ready, wait, research):
         watches.sort(key=trend_watch_key)
         selected = primary[:5]
         selected.extend(watches[:max(0, 5 - len(selected))])
-        # Do not change membership/cap: reorder only the selected Top5.
-        selected.sort(key=top5_rank_key)
+        # Keep the exact selected members/cap; only the internal order changes.
+        frozen_fundamentals = top5_fundamental_evidence(research)
+        selected.sort(key=lambda row: top5_rank_key(
+            row, frozen_fundamentals.get(row["code"])))
         primary_codes = {row["code"] for row in primary}
         groups.append({
             "trend_name": sector,
@@ -659,7 +741,14 @@ def add_attention_priorities(groups, ready, wait, research):
                     round(reward_r, 2) if reward_r is not None else None),
                 "distance_to_ma20_pct": ma20_distance,
                 "chase_risk_high": bool(overheated),
-                "note": "与正式Top5共享赔率证据；关注序号跟随正式排序",
+                "note": (
+                    "Top5内部30/30/25/15评分；排序可信度:"
+                    + {"HIGH": "高", "MEDIUM": "中", "LOW": "低"}[
+                        top5_score_details(
+                            row, top5_fundamental_evidence(research).get(row["code"])
+                        )["confidence"]]
+                    + "；未知R仅作中性评分，不代表实际可交易赔率；关注序号跟随正式排序"
+                ),
             }
     return groups
 
