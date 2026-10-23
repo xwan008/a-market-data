@@ -210,7 +210,7 @@ class DynamicStageTests(unittest.TestCase):
     def test_higher_verified_R_wins_within_same_status_and_structure(self):
         lower = wait_stock("600001","INITIATING",ma60=9.5,support=9.6)
         higher = wait_stock("600002","INITIATING",ma60=9.5,support=9.6)
-        for row, level in ((lower,10.7),(higher,11.8)):
+        for row, level in ((lower,10.9),(higher,11.8)):
             row.update({"status":"READY","structure_confirmed":True,
                         "data_date":"2026-10-09","setup_type":"BREAKOUT",
                         "entry_zone":[10.02,10.12],
