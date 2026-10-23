@@ -135,7 +135,7 @@ class DynamicStageTests(unittest.TestCase):
         self.assertEqual(engine.select_focus_watchlist([],rows,research,g)[0]["status"],
                          "NO_CURRENT_BUY_OPPORTUNITY")
 
-    def test_attention_order_is_separate_from_formal_top5_and_uses_frozen_fundamentals(self):
+    def test_attention_sequence_matches_formal_top5_without_changing_members(self):
         weaker = wait_stock("600001", "TRANSITION", support=9.75)
         stronger = wait_stock("600002", "TRANSITION", support=9.75)
         research = {"trade_date": "2026-10-09", "companies": [{"trend_name": "固态电池"}],
@@ -149,8 +149,7 @@ class DynamicStageTests(unittest.TestCase):
         self.assertEqual([row["code"] for row in groups[0]["items"]], original_codes)
         self.assertEqual(engine.select_focus_watchlist([], [weaker, stronger], research, groups), focus_before)
         by_code = {row["code"]: row for row in groups[0]["items"]}
-        self.assertEqual(by_code["600002"]["attention_rank"], 1)
-        self.assertEqual(by_code["600001"]["attention_rank"], 2)
+        self.assertEqual([i["attention_rank"] for i in groups[0]["items"]], [1, 2])
         self.assertTrue(all(row["attention_judgement"] for row in groups[0]["items"]))
 
     def test_missing_reliable_watch_zone_loses_attention_priority_not_formal_seat(self):
@@ -173,15 +172,21 @@ class DynamicStageTests(unittest.TestCase):
         hot.update({"structure_confirmed": True, "setup_type": "BREAKOUT",
                     "entry_zone": [9.95, 10.1], "invalidation_price": 9.7,
                     "initial_risk_pct": 3.96})
+        hot["data_date"] = "2026-10-09"
         hot["technical_context"].update({
             "attention_resistance": {"status": "VERIFIED", "price": 10.2,
-                                      "date": "2026-09-10"},
+                                      "date": "2026-09-10",
+                                      "source": "asof_180bar_confirmed_pivot",
+                                      "history_points": 180},
             "distance_to_ma20_pct": 8.7})
         room = wait_stock("600002", "REPAIRING", p=10, ma20=9.8,
                           ma60=10.1, support=9.75)
+        room["data_date"] = "2026-10-09"
         room["technical_context"].update({
             "attention_resistance": {"status": "VERIFIED", "price": 11.5,
-                                      "date": "2026-09-01"},
+                                      "date": "2026-09-01",
+                                      "source": "asof_180bar_confirmed_pivot",
+                                      "history_points": 180},
             "distance_to_ma20_pct": 2.0})
         research = {"trade_date": "2026-10-09",
                     "companies": [{"trend_name": "固态电池"}],
@@ -201,6 +206,44 @@ class DynamicStageTests(unittest.TestCase):
         self.assertEqual([x["code"] for x in groups[0]["items"]], old_order)
         self.assertEqual(engine.select_focus_watchlist([], [hot, room], research, groups),
                          old_focus)
+
+    def test_higher_verified_R_wins_within_same_status_and_structure(self):
+        lower = wait_stock("600001","INITIATING",ma60=9.5,support=9.6)
+        higher = wait_stock("600002","INITIATING",ma60=9.5,support=9.6)
+        for row, level in ((lower,10.7),(higher,11.8)):
+            row.update({"status":"READY","structure_confirmed":True,
+                        "data_date":"2026-10-09","setup_type":"BREAKOUT",
+                        "entry_zone":[10.02,10.12],
+                        "invalidation_price":9.7,"initial_risk_pct":4.15})
+            row["technical_context"]["attention_resistance"] = {
+                "status":"VERIFIED","price":level,"date":"2026-10-02",
+                "source":"asof_180bar_confirmed_pivot","history_points":180}
+        research={"trade_date":"2026-10-09",
+                  "companies":[{"trend_name":"固态电池"}]}
+        group=engine.dynamic_top5_by_theme([lower,higher],[],research)[0]
+        self.assertEqual([x["code"] for x in group["items"]],
+                         ["600002","600001"])
+        self.assertEqual(len(group["items"]),2)
+
+    def test_limited_R_wait_ranks_below_unpriced_wait_without_removing_it(self):
+        limited=wait_stock("600001","INITIATING",p=10,ma20=9.8,
+                           ma60=9.5,support=9.7)
+        limited.update({"data_date":"2026-10-09","structure_confirmed":True,
+                        "setup_type":"BREAKOUT","entry_zone":[10.02,10.12],
+                        "invalidation_price":9.7,"initial_risk_pct":4.15})
+        limited["technical_context"]["attention_resistance"] = {
+            "status":"VERIFIED","price":10.2,"date":"2026-10-02",
+            "source":"asof_180bar_confirmed_pivot","history_points":180}
+        no_zone=wait_stock("600002","INITIATING",p=10,ma20=9.8,
+                           ma60=9.5,support=None)
+        research={"trade_date":"2026-10-09",
+                  "companies":[{"trend_name":"固态电池"}]}
+        group=engine.dynamic_top5_by_theme([], [limited,no_zone],research)[0]
+        self.assertEqual([x["code"] for x in group["items"]],
+                         ["600002","600001"])
+        self.assertEqual(len(group["items"]),2)
+        engine.add_attention_priorities([group], [], [limited,no_zone], research)
+        self.assertEqual([x["attention_rank"] for x in group["items"]],[1,2])
 
     def test_single_ma60_cross_is_wait_not_drop(self):
         c={"code":"002709","company_name":"天赐材料",
