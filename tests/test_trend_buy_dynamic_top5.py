@@ -273,6 +273,7 @@ class DynamicStageTests(unittest.TestCase):
     def test_unconfirmed_breakout_stays_unpriced_even_with_bounce_signal(self):
         row=wait_stock("600003","INITIATING",p=10,ma20=9.8,
                        ma60=9.5,support=9.8)
+        row["technical_context"]["breakout_level"] = 10.2
         row.update({"data_date":"2026-10-09","setup_type":"BREAKOUT",
                     "phase_evidence":{"fresh_break":True,
                                       "pullback_low_holds":False}})
