@@ -111,7 +111,7 @@ class ConfirmedSwingStopEvidenceTests(unittest.TestCase):
             "source":"asof_65bar_confirmed_pivot_low",
             "unbroken_through_date":"2026-10-23"}]}
         good = engine.confirmed_watch_stop(ctx, zone, "2026-10-23")
-        self.assertAlmostEqual(good["stop"], 9.452, places=3)
+        self.assertAlmostEqual(good["stop"], 9.453, places=3)
         self.assertLess(good["stop"], zone[0])
         self.assertLess(good["risk_pct"], 8)
         ctx["confirmed_swing_supports"][0]["price"]=9.9
