@@ -58,17 +58,27 @@ class EarlyFocusTests(unittest.TestCase):
         self.assertLess(p["reference_trigger_distance_pct"],5)
         self.assertTrue(p["not_buy_order"])
 
-    def test_confirmed_stock_plan_beats_unconfirmed_but_high_volume_candidate(self):
+    def test_research_rank_can_favor_volume_over_confirmed_wait_without_promoting_buy(self):
         earlier=item("002128","煤炭",28.8,28.5,27.7,27.557,
                      vol1=.85,rel=-1,confirmed=True)
         earlier.update({"setup_type":"PULLBACK","entry_zone":[28.656,29.146],
                         "invalidation_price":27.557,"initial_risk_pct":5.45})
         volume=item("601918","煤炭",11.58,10.752,10.3,10.35,
                     vol1=1.9,rel=4,confirmed=False)
-        chosen=engine.select_focus_watchlist([], [volume,earlier], research(["煤炭"]))[0]
-        self.assertEqual(chosen["code"],"002128")
-        self.assertEqual(chosen["reference"]["stage"],"STOCK_CONFIRMED_SECTOR_PENDING")
-        self.assertEqual(chosen["reference"]["reference_zone"],[28.656,29.146])
+        researched=research(["煤炭"])
+        groups=engine.dynamic_top5_by_theme([], [volume,earlier], researched)
+        self.assertEqual({x["code"] for x in groups[0]["items"]}, {"002128","601918"})
+        self.assertEqual(groups[0]["items"][0]["code"],"601918")
+        # Attention is NOT READY status. The other, already confirmed WAIT
+        # retains its original watch zone, without being discarded/promoted.
+        original=next(x for x in groups[0]["items"] if x["code"]=="002128")
+        self.assertEqual(original["reference"]["stage"],"STOCK_CONFIRMED_SECTOR_PENDING")
+        self.assertEqual(original["reference"]["reference_zone"],[28.656,29.146])
+        chosen=engine.select_focus_watchlist([], [volume,earlier], researched, groups)[0]
+        self.assertEqual(chosen["code"],"601918")
+        self.assertEqual(chosen["status"],"EARLY_FOCUS_NOT_READY")
+        self.assertIsNone(chosen["reference"]["reference_zone"])
+        self.assertIn("尚缺可靠",chosen["remaining_blocks_to_ready"])
         self.assertTrue(chosen["not_buy_order"])
 
     def test_no_close_stop_must_not_generate_buy_zone(self):
