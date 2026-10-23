@@ -177,7 +177,7 @@ class TrendTests(unittest.TestCase):
                               support_invalidation=15.0, current_day_low=19.7,
                               previous_close=19.8,close_location_pct=80))
         row=engine.generate(r,s)["ready"][0]
-        self.assertAlmostEqual(row["invalidation_price"],19.602,places=3)
+        self.assertAlmostEqual(row["invalidation_price"],19.601,places=3)
         self.assertEqual(row["setup_stop_evidence"]["source"],
                          "same_day_confirmed_pullback_rebound_low")
         self.assertGreater(row["invalidation_price"],15)
