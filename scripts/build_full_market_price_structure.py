@@ -270,6 +270,11 @@ def base_metrics(code: str, name: str, rows: list[dict], quote: dict, reference_
         age = len(rows) - 1 - i
         if not 3 <= age <= 30:
             continue
+        # Exclude flat/tied plateaus falsely identified as pivots by the
+        # general-purpose <= pivot scanner.
+        if not (swing["price"] < min(x["low"] for x in rows[i-3:i])
+                and swing["price"] < min(x["low"] for x in rows[i+1:i+4])):
+            continue
         if any(bar["low"] < swing["price"] for bar in rows[i + 1:]):
             continue
         confirmed_swing_supports.append({
