@@ -70,8 +70,10 @@ class TrendTests(unittest.TestCase):
                               first_effective_resistance=None))
         x=engine.generate(r,s)["wait"][0]
         self.assertEqual(x["setup_type"],"PULLBACK")
-        self.assertLess(x["entry_zone"][1],22.0)
-        self.assertAlmostEqual(x["entry_zone"][1],20.665,places=2)
+        self.assertIsNone(x["entry_zone"])
+        self.assertIsNone(x["invalidation_price"])
+        self.assertIsNone(x["upside_to_resistance_R"])
+        self.assertIsNone(engine.early_watch_reference(x)["reference_zone"])
 
     def test_candidate_sector_blocks_ready_even_when_stock_setup_confirms(self):
         c=company()
@@ -89,9 +91,9 @@ class TrendTests(unittest.TestCase):
                               distance_to_ma20_pct=14.28))
         x=engine.generate(r,s)["wait"][0]
         self.assertEqual(x["wait_reason"],"WAIT_PULLBACK")
-        self.assertEqual(x["setup_type"],"PULLBACK")
-        self.assertLess(x["entry_zone"][1],21.37)
-        self.assertLess(x["invalidation_price"],x["entry_zone"][0])
+        self.assertEqual(x["status"],"WAIT")
+        self.assertIsNone(x["entry_zone"])
+        self.assertIsNone(x["invalidation_price"])
 
     def test_overheat_risk_blocks_ready(self):
         r,s=inputs(s=structure(chase_risk="high",distance_to_ma20_pct=13))
@@ -121,8 +123,8 @@ class TrendTests(unittest.TestCase):
         self.assertEqual(x["wait_reason"],"WAIT_RISK_REWARD")
 
     def test_verified_180bar_nearby_pivot_blocks_ready(self):
-        # 2026-10-23-like Jiechang: original 65-bar breakout was READY,
-        # but the independently verified 180-bar obstacle is only ~0.26R.
+        # Verified 180-bar resistance blocks READY even if the breakout
+        # boundary is the valid local invalidation anchor.
         r,s=inputs(s=structure(current_price=28.8, ma20=27.5045,
                               ma60=25.7688, support_invalidation=27.5045,
                               breakout_level=28.88, prior_60d_high=28.88,
@@ -133,7 +135,9 @@ class TrendTests(unittest.TestCase):
         x=engine.generate(r,s)["wait"][0]
         self.assertEqual(x["wait_reason"],"WAIT_RISK_REWARD")
         self.assertTrue(x["structure_confirmed"])
-        self.assertAlmostEqual(x["upside_to_resistance_R"],.26,places=2)
+        self.assertLess(x["upside_to_resistance_R"],1.5)
+        self.assertEqual(x["setup_stop_evidence"]["source"],
+                         "confirmed_breakout_boundary")
 
     def test_first_resistance_inside_entry_zone_is_not_treated_as_missing(self):
         r,s=inputs(s=structure(first_effective_resistance={"price":20.28}))
@@ -158,6 +162,56 @@ class TrendTests(unittest.TestCase):
             "status":"VERIFIED","price":23.5,"date":"2026-09-28",
             "source":"asof_180bar_confirmed_pivot","history_points":180}))
         self.assertEqual(engine.generate(r,s)["ready"][0]["status"],"READY")
+
+    def test_breakout_invalidates_at_its_own_boundary_not_old_trend_low(self):
+        r,s=inputs(s=structure(support_invalidation=14.1, breakout_level=20.0))
+        row=engine.generate(r,s)["ready"][0]
+        self.assertAlmostEqual(row["invalidation_price"], 19.9, places=2)
+        self.assertEqual(row["setup_stop_evidence"]["anchor_price"],20.0)
+        self.assertIn("突破价",row["invalidation_rule"])
+        self.assertGreater(row["invalidation_price"],14.1)
+
+    def test_pullback_stop_uses_actual_rebound_low_not_trend_start(self):
+        r,s=inputs(s=structure(current_price=20.0,ma20=19.9,
+                              structure_type="pullback",breakout_confirmed=False,
+                              support_invalidation=15.0, current_day_low=19.7,
+                              previous_close=19.8,close_location_pct=80))
+        row=engine.generate(r,s)["ready"][0]
+        self.assertAlmostEqual(row["invalidation_price"],19.602,places=3)
+        self.assertEqual(row["setup_stop_evidence"]["source"],
+                         "same_day_confirmed_pullback_rebound_low")
+        self.assertGreater(row["invalidation_price"],15)
+
+    def test_no_rebound_or_remote_low_cannot_fabricate_pullback_stop(self):
+        r,s=inputs(s=structure(current_price=20.0,ma20=19.9,
+                              structure_type="pullback",breakout_confirmed=False,
+                              current_day_low=16.0,previous_close=19.8,
+                              close_location_pct=80,support_invalidation=15.0))
+        # Failure to observe the actual near-MA20 pullback is not UNCERTAIN:
+        # keep the researched candidate WAIT with no executable stop.
+        row=engine.generate(r,s)["wait"][0]
+        self.assertEqual(row["status"],"WAIT")
+        self.assertIsNone(row["invalidation_price"])
+        self.assertIsNone(row["entry_zone"])
+        self.assertIsNone(engine.early_watch_reference(row)["reference_zone"])
+
+    def test_unconfirmed_breakout_has_no_stop_even_with_old_pivot(self):
+        r,s=inputs(s=structure(structure_type="transition",breakout_confirmed=False,
+                              support_invalidation=19.8))
+        row=engine.generate(r,s)["wait"][0]
+        self.assertIsNone(row["entry_zone"])
+        self.assertIsNone(row["invalidation_price"])
+        ref=engine.early_watch_reference(row)
+        self.assertEqual(ref["setup_mode"],"BREAKOUT_CONFIRMATION")
+        self.assertIsNone(ref["reference_zone"])
+        self.assertIsNone(ref["invalidation_price"])
+
+    def test_confirmed_breakout_without_matching_boundary_waits(self):
+        r,s=inputs(s=structure(breakout_level=None, prior_60d_high=20.0))
+        row=engine.generate(r,s)["wait"][0]
+        self.assertEqual(row["wait_reason"],"WAIT_CONFIRMATION")
+        self.assertTrue(row["structure_confirmed"])
+        self.assertIsNone(row["invalidation_price"])
 
     def test_wrong_coverage_or_date_rejected(self):
         r,s=inputs()
