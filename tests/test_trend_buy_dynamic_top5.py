@@ -20,16 +20,6 @@ def bars(values):
              "close": c, "volume": 100.0}
             for i, c in enumerate(values)]
 
-def with_confirmed_support(row, price, date="2026-10-01"):
-    row["data_date"] = "2026-10-09"
-    row["technical_context"]["confirmed_swing_supports"] = [{
-        "source": "asof_65bar_confirmed_pivot_low",
-        "date": date, "bars_ago": 6, "price": price,
-        "unbroken_through_date": "2026-10-09",
-    }]
-    return row
-
-
 def wait_stock(code, phase, p=10, ma20=9.8, ma60=10.1, support=9.4, sector="固态电池"):
     return {"code": code, "company_name": code, "trend_name": sector,
             "industry_code": "S630701" if int(code)%2 else "S630702",
@@ -163,8 +153,10 @@ class DynamicStageTests(unittest.TestCase):
         self.assertTrue(all(row["attention_judgement"] for row in groups[0]["items"]))
 
     def test_missing_reliable_watch_zone_loses_attention_priority_not_formal_seat(self):
-        valid = with_confirmed_support(
-            wait_stock("600001", "TRANSITION", support=9.75), 9.6)
+        valid = wait_stock("600001", "TRANSITION", support=9.75)
+        valid.update({"structure_confirmed": True, "setup_type": "PULLBACK",
+                      "entry_zone": [9.85,10.02],
+                      "invalidation_price": 9.6, "initial_risk_pct": 4.2})
         no_stop = wait_stock("600002", "TRANSITION", support=None)
         research = {"trade_date": "2026-10-09", "companies": [{"trend_name": "固态电池"}],
                     "screen_audit": {"pre_screen_selected": [
@@ -256,43 +248,43 @@ class DynamicStageTests(unittest.TestCase):
         engine.add_attention_priorities([group], [], [limited,no_zone], research)
         self.assertEqual([x["attention_rank"] for x in group["items"]],[1,2])
 
-    def test_watch_ranking_uses_only_verified_matching_support(self):
-        valid = with_confirmed_support(
-            wait_stock("600001", "INITIATING", p=10, ma20=9.8,
-                       ma60=9.5, support=9.9), 9.55)
-        invalid = wait_stock("600002", "INITIATING", p=10, ma20=9.8,
-                             ma60=9.5, support=9.9)
+    def test_only_setup_confirmed_wait_carries_executable_pair_as_watch(self):
+        valid = wait_stock("600001", "INITIATING", p=10, ma20=9.8,
+                           ma60=9.5, support=8.0)
+        valid.update({"data_date":"2026-10-09",
+                      "structure_confirmed":True,"setup_type":"PULLBACK",
+                      "entry_zone":[9.9,10.1],
+                      "invalidation_price":9.65,"initial_risk_pct":4.46})
+        unconfirmed = wait_stock("600002", "INITIATING", p=10,
+                                 ma20=9.8,ma60=9.5,support=9.9)
+        unconfirmed.update({"data_date":"2026-10-09",
+                            "setup_type":"PULLBACK"})
+        # Even a convenient MA20 and older general trend support cannot
+        # create a numeric stop before the specific rebound is confirmed.
         self.assertIsNotNone(engine.early_watch_reference(valid)["reference_zone"])
-        self.assertIsNone(engine.early_watch_reference(invalid)["reference_zone"])
-        research = {"trade_date":"2026-10-09",
-                    "companies":[{"trend_name":"固态电池"}]}
-        top = engine.dynamic_top5_by_theme([], [invalid, valid], research)
+        self.assertIsNone(engine.early_watch_reference(unconfirmed)["reference_zone"])
+        research={"trade_date":"2026-10-09","companies":[{"trend_name":"固态电池"}]}
+        top=engine.dynamic_top5_by_theme([], [unconfirmed,valid],research)
         self.assertEqual([x["code"] for x in top[0]["items"]],
-                         ["600001", "600002"])
-        engine.add_attention_priorities(top, [], [invalid, valid], research)
-        self.assertEqual([x["attention_rank"] for x in top[0]["items"]], [1,2])
+                         ["600001","600002"])
+        engine.add_attention_priorities(top,[],[unconfirmed,valid],research)
+        self.assertEqual([x["attention_rank"] for x in top[0]["items"]],[1,2])
 
-    def test_unconfirmed_breakout_not_mislabeled_as_confirmed_pullback(self):
-        row = with_confirmed_support(
-            wait_stock("600003", "INITIATING", p=10, ma20=9.8,
-                       ma60=9.5, support=9.9), 9.55)
-        row.update({"setup_type":"BREAKOUT",
+    def test_unconfirmed_breakout_stays_unpriced_even_with_bounce_signal(self):
+        row=wait_stock("600003","INITIATING",p=10,ma20=9.8,
+                       ma60=9.5,support=9.8)
+        row["technical_context"]["breakout_level"] = 10.2
+        row.update({"data_date":"2026-10-09","setup_type":"BREAKOUT",
                     "phase_evidence":{"fresh_break":True,
                                       "pullback_low_holds":False}})
-        pending = engine.early_watch_reference(row)
+        pending=engine.early_watch_reference(row)
         self.assertEqual(pending["setup_mode"],"BREAKOUT_CONFIRMATION")
         self.assertIsNone(pending["reference_zone"])
         self.assertIsNone(pending["invalidation_price"])
-        self.assertEqual(row["status"],"WAIT")
-        # A separate prospective RETEST can be studied if the low still holds,
-        # but its reference is not the original, unconfirmed BREAKOUT buy point.
-        row["phase_evidence"]["pullback_low_holds"] = True
-        retest = engine.early_watch_reference(row)
-        self.assertEqual(retest["setup_mode"],
-                         "PULLBACK_RETEST_AFTER_BREAKOUT")
-        self.assertIsNotNone(retest["reference_zone"])
-        self.assertLess(retest["invalidation_price"],
-                        retest["reference_zone"][0])
+        row["phase_evidence"]["pullback_low_holds"]=True
+        still_pending=engine.early_watch_reference(row)
+        self.assertEqual(still_pending["setup_mode"],"BREAKOUT_CONFIRMATION")
+        self.assertIsNone(still_pending["reference_zone"])
         self.assertEqual(row["status"],"WAIT")
 
     def test_single_ma60_cross_is_wait_not_drop(self):
