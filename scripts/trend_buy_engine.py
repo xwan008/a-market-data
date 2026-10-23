@@ -338,11 +338,22 @@ def early_watch_reference(row):
     kind = row.get("setup_type")
     if kind == "BREAKOUT":
         level = ctx.get("breakout_level") or ctx.get("prior_60d_high")
-        if not pos(level):
-            resistance = verified_overhead(ctx, p, row.get("data_date"))
-            level = resistance["price"] if resistance else p
-        mode = "BREAKOUT_CONFIRMATION"
-        rule = "仅关注突破触发价；尚无本次已确认的突破失败位置，不给交易止损或入场区"
+        if not pos(level) or abs(level / p - 1) > .08:
+            # A stale/distant hypothetical breakout is not a useful nearby
+            # watch trigger. Show recovery into local structure instead.
+            if p < ma60:
+                level = max(ma20, ma60)
+                mode = "RECLAIM"
+            elif p < ma20:
+                level = ma20
+                mode = "MA20_RECOVERY"
+            else:
+                level = ma20
+                mode = "SETUP_REASSESSMENT"
+            rule = "远期突破价不作为当前买点；观察近端结构，待有效突破或承接另行确立"
+        else:
+            mode = "BREAKOUT_CONFIRMATION"
+            rule = "仅关注本次突破关口；尚无已确认的突破失败结构，不给交易止损或入场区"
     elif p < ma60:
         level = max(ma20, ma60)
         mode = "RECLAIM"
