@@ -1,0 +1,36 @@
+name: Validate Top5 recent-entry shadow (non-production)
+on:
+  pull_request:
+    paths:
+      - 'experiments/top5_recent_acceptance_shadow.py'
+      - 'experiments/README_top5_recent_acceptance.md'
+      - 'tests/test_top5_recent_acceptance_shadow.py'
+      - '.github/workflows/validate-top5-recent-shadow.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  shadow-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run standalone non-production tests
+        run: python -m unittest discover -s tests -p 'test_top5_recent_acceptance_shadow.py' -v
+      - name: Complete as-of reproduction without changes to formal result
+        run: |
+          sha256sum research/trend_buy_formal_result.json > /tmp/formal.sha
+          python experiments/top5_recent_acceptance_shadow.py --asof 2026-10-23 > /tmp/top5-shadow.json
+          sha256sum --check /tmp/formal.sha
+          python - <<'PY'
+          import json
+          with open('/tmp/top5-shadow.json') as f:
+              j=json.load(f)
+          assert j['tradeable_candidate_count']==0
+          assert j['passing_observation_count']==0
+          assert j['candidate_count']==5
+          print('SHADOW_ONLY_FROZEN_FIVE_OK')
+          PY
