@@ -78,7 +78,8 @@ class EarlyFocusTests(unittest.TestCase):
         self.assertEqual(chosen["code"],"601918")
         self.assertEqual(chosen["status"],"EARLY_FOCUS_NOT_READY")
         self.assertIsNone(chosen["reference"]["reference_zone"])
-        self.assertIn("尚缺可靠",chosen["remaining_blocks_to_ready"])
+        self.assertTrue(any("尚缺可靠" in reason
+                            for reason in chosen["remaining_blocks_to_ready"]))
         self.assertTrue(chosen["not_buy_order"])
 
     def test_no_close_stop_must_not_generate_buy_zone(self):
