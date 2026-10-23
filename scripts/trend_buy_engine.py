@@ -94,7 +94,7 @@ def build_plan(kind, s, current, confirmed=False, trade_date=None):
                 and pos(s.get("previous_close"))
                 and current > s["previous_close"]
                 and current >= ma20
-                and s["current_day_low"] <= ma20 * 1.02
+                and ma20 * .97 <= s["current_day_low"] <= ma20 * 1.02
                 and s.get("higher_low") is True
                 and val(s.get("close_location_pct"))
                 and s["close_location_pct"] >= 55):
@@ -226,7 +226,7 @@ def evaluate_candidate(c, structure, trade_date):
     pullback_confirmed = bool(
         shape == "pullback" and structure.get("higher_low")
         and pos(structure.get("current_day_low"))
-        and structure["current_day_low"] <= ma20 * 1.02
+        and ma20 * .97 <= structure["current_day_low"] <= ma20 * 1.02
         and current >= ma20
         and pos(structure.get("previous_close"))
         and current > structure["previous_close"]
