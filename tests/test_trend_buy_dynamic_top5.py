@@ -33,6 +33,67 @@ def wait_stock(code, phase, p=10, ma20=9.8, ma60=10.1, support=9.4, sector="固�
                                   "close_location_pct":75}}
 
 class DynamicStageTests(unittest.TestCase):
+    def test_recent_closing_support_uses_prior_bars_only(self):
+        h = [
+            {"date":"2026-10-20","open":43.19,"high":45.68,"low":43.15,"close":45.20,"volume":100},
+            {"date":"2026-10-21","open":45.22,"high":45.38,"low":44.33,"close":44.46,"volume":100},
+            {"date":"2026-10-22","open":44.32,"high":45.40,"low":44.32,"close":44.46,"volume":100},
+            {"date":"2026-10-23","open":44.05,"high":47.12,"low":42.90,"close":47.07,"volume":200},
+        ]
+        result = technical.recent_closing_acceptance(h)
+        self.assertEqual(result["support_close_band"], [44.46, 44.46])
+        self.assertEqual(result["support_dates"], ["2026-10-21","2026-10-22"])
+        self.assertEqual(result["support_low"], 44.32)
+        self.assertEqual(result["signal_day_low"], 42.9)
+        self.assertTrue(result["intraday_support_broken"])
+        self.assertEqual(result["pattern"], "SAME_DAY_SWEEP_RECLAIM")
+        h.append({"date":"2026-10-26","open":25,"high":25,"low":25,
+                  "close":25,"volume":9999})
+        self.assertEqual(result, technical.recent_closing_acceptance(h[:-1]))
+        self.assertIsNone(technical.recent_closing_acceptance(h,1)["support_close_band"])
+
+    def test_current_trend_and_recent_signal_rank_not_financials(self):
+        a = wait_stock("600001", "INITIATING", ma60=9.5)
+        b = wait_stock("600002", "INITIATING", ma60=9.5)
+        for row in (a,b):
+            row["data_date"] = "2026-10-23"
+            row["phase_evidence"] = {"fresh_break": True,
+                                      "positive_days_5d":3}
+            row["technical_context"].update({
+                "volume_ratio_1d_vs_20d":2,
+                "close_location_pct":90,
+            })
+        a["technical_context"]["recent_acceptance"] = {
+            "data_date":"2026-10-23","lookback_trading_days":3,
+            "pattern":"SAME_DAY_SWEEP_RECLAIM",
+            "support_close_band":[9.3,9.3],"support_dates":["2026-10-21","2026-10-22"]}
+        b["technical_context"]["recent_acceptance"] = {
+            "data_date":"2026-10-23","lookback_trading_days":3,
+            "pattern":"LOCAL_SUPPORT_HOLD",
+            "support_low":9.55,"support_close_band":[9.6,9.6],
+            "support_dates":["2026-10-21","2026-10-22"]}
+        research={"trade_date":"2026-10-23","companies":[{"trend_name":"固态电池"}],
+                  "screen_audit":{"pre_screen_selected":[
+                      {"code":"600001","growth":1,"quality":1,"valuation_match":1},
+                      {"code":"600002","growth":0,"quality":0,"valuation_match":0}]}}
+        first=engine.dynamic_top5_by_theme([], [a,b], research)[0]
+        self.assertEqual([x["code"] for x in first["items"]], ["600002","600001"])
+        self.assertEqual(engine.top5_rank_details(a)["risk_basis"],"UNKNOWN_NOT_ZERO")
+        self.assertIsNone(engine.top5_rank_details(a)["observation_risk_pct"])
+        research["screen_audit"]["pre_screen_selected"].reverse()
+        self.assertEqual([x["code"] for x in engine.dynamic_top5_by_theme([], [a,b], research)[0]["items"]],
+                         ["600002","600001"])
+        self.assertEqual([x["status"] for x in first["items"]], ["WAIT","WAIT"])
+
+    def test_formal_one_point_five_R_gate_remains_separate_from_rank(self):
+        self.assertEqual(engine.MIN_UPSIDE_R, 1.5)
+        self.assertEqual(engine.MAX_ENTRY_RISK_PCT, 6.0)
+        row = wait_stock("600001", "INITIATING", ma60=9.5)
+        info = engine.top5_rank_details(row)
+        self.assertTrue(info["no_r_assumed"])
+        self.assertNotIn("upside_to_resistance_R", info)
+        self.assertEqual(info["risk_basis"], "UNKNOWN_NOT_ZERO")
+
     def test_blowoff_volume_weak_close_is_cooling(self):
         data = bars([10.0]*25 + [10.1, 10.3, 10.8, 11.8, 12.4, 12.5])
         data[-1]["high"],data[-1]["low"]=13.5, 12.2
@@ -56,7 +117,7 @@ class DynamicStageTests(unittest.TestCase):
         self.assertEqual(f[0]["code"], "002709")
         self.assertNotEqual(f[0]["status"], "CURRENT_READY_FOCUS")
 
-    def test_verified_strong_rr_can_outrank_unconfirmed_repairing(self):
+    def test_trend_phase_priority_not_long_history_R(self):
         early = wait_stock("600985", "REPAIRING")
         stock_confirmed = wait_stock("002128", "TRANSITION")
         stock_confirmed.update({
@@ -72,9 +133,10 @@ class DynamicStageTests(unittest.TestCase):
         research = {"trade_date": "2026-10-09",
                     "companies": [{"trend_name": "固态电池"}]}
         top = engine.dynamic_top5_by_theme([], [early, stock_confirmed], research)
-        self.assertEqual(top[0]["items"][0]["code"], "002128")
+        self.assertEqual(top[0]["items"][0]["code"], "600985")
         pick = engine.select_focus_watchlist([], [early, stock_confirmed], research, top)
-        self.assertEqual(pick[0]["code"], "002128")
+        self.assertEqual(pick[0]["code"], "600985")
+        self.assertEqual(pick[0]["status"], "EARLY_FOCUS_NOT_READY")
 
     def test_only_five_per_theme_across_industries(self):
         rows=[wait_stock("%06d"%(600001+i),"REPAIRING",support=9.4)
@@ -157,7 +219,7 @@ class DynamicStageTests(unittest.TestCase):
         self.assertEqual([i["attention_rank"] for i in groups[0]["items"]], [1, 2])
         self.assertTrue(all(row["attention_judgement"] for row in groups[0]["items"]))
 
-    def test_missing_watch_zone_remains_wait_even_if_ranked_above_confirmed_plan(self):
+    def test_confirmed_setup_before_unconfirmed_no_zone(self):
         valid = wait_stock("600001", "TRANSITION", support=9.75)
         valid.update({"structure_confirmed": True, "setup_type": "PULLBACK",
                       "entry_zone": [9.85,10.02],
@@ -170,10 +232,10 @@ class DynamicStageTests(unittest.TestCase):
         groups = engine.dynamic_top5_by_theme([], [no_stop, valid], research)
         engine.add_attention_priorities(groups, [], [no_stop, valid], research)
         by_code = {row["code"]: row for row in groups[0]["items"]}
-        self.assertEqual(by_code["600002"]["attention_rank"], 1)
-        self.assertEqual(by_code["600001"]["attention_rank"], 2)
+        self.assertEqual(by_code["600002"]["attention_rank"], 2)
+        self.assertEqual(by_code["600001"]["attention_rank"], 1)
         self.assertIsNone(by_code["600002"]["reference"]["reference_zone"])
-        self.assertIn("缺可靠观察区间", by_code["600002"]["attention_judgement"])
+        self.assertIn("可执行", by_code["600002"]["attention_judgement"])
 
     def test_overhead_constraint_demotes_overheated_confirmed_wait_without_changing_focus(self):
         hot = wait_stock("600001", "REACCELERATING", p=10, ma20=9.2,
@@ -216,7 +278,7 @@ class DynamicStageTests(unittest.TestCase):
         self.assertEqual(engine.select_focus_watchlist([], [hot, room], research, groups),
                          old_focus)
 
-    def test_higher_verified_R_wins_within_same_status_and_structure(self):
+    def test_old_resistance_price_not_rank_decider(self):
         lower = wait_stock("600001","INITIATING",ma60=9.5,support=9.6)
         higher = wait_stock("600002","INITIATING",ma60=9.5,support=9.6)
         for row, level in ((lower,10.9),(higher,11.8)):
@@ -231,10 +293,11 @@ class DynamicStageTests(unittest.TestCase):
                   "companies":[{"trend_name":"固态电池"}]}
         group=engine.dynamic_top5_by_theme([lower,higher],[],research)[0]
         self.assertEqual([x["code"] for x in group["items"]],
-                         ["600002","600001"])
+                         ["600001","600002"])
         self.assertEqual(len(group["items"]),2)
+        self.assertEqual(engine.MIN_UPSIDE_R,1.5)
 
-    def test_limited_R_wait_ranks_below_unpriced_wait_without_removing_it(self):
+    def test_confirmed_setup_prioritized_without_promoting_WAIT(self):
         limited=wait_stock("600001","INITIATING",p=10,ma20=9.8,
                            ma60=9.5,support=9.7)
         limited.update({"data_date":"2026-10-09","structure_confirmed":True,
@@ -249,8 +312,9 @@ class DynamicStageTests(unittest.TestCase):
                   "companies":[{"trend_name":"固态电池"}]}
         group=engine.dynamic_top5_by_theme([], [limited,no_zone],research)[0]
         self.assertEqual([x["code"] for x in group["items"]],
-                         ["600002","600001"])
+                         ["600001","600002"])
         self.assertEqual(len(group["items"]),2)
+        self.assertTrue(all(x["status"]=="WAIT" for x in group["items"]))
         engine.add_attention_priorities([group], [], [limited,no_zone], research)
         self.assertEqual([x["attention_rank"] for x in group["items"]],[1,2])
 
@@ -295,7 +359,7 @@ class DynamicStageTests(unittest.TestCase):
         self.assertIsNone(still_pending["reference_zone"])
         self.assertEqual(row["status"],"WAIT")
 
-    def test_top5_frozen_financial_parts_change_order_without_selection_change(self):
+    def test_financial_scores_do_not_change_final_theme_order(self):
         weak = wait_stock("600001", "INITIATING", ma60=9.5)
         strong = wait_stock("600002", "INITIATING", ma60=9.5)
         audit = {"pre_screen_selected": [
@@ -309,21 +373,19 @@ class DynamicStageTests(unittest.TestCase):
                     "screen_audit": audit}
         g = engine.dynamic_top5_by_theme([], [weak, strong], research)[0]
         self.assertEqual([x["code"] for x in g["items"]],
-                         ["600002", "600001"])
+                         ["600001", "600002"])
         self.assertEqual([x["status"] for x in g["items"]], ["WAIT", "WAIT"])
-        eng = engine.top5_fundamental_evidence(research)
-        high = engine.top5_score_details(strong, eng[strong["code"]])
-        low = engine.top5_score_details(weak, eng[weak["code"]])
-        self.assertAlmostEqual(high["score"] - low["score"], .20, places=6)
-        self.assertEqual(high["fundamental_basis"], "asof_growth_quality_valuation")
+        audit["pre_screen_selected"].reverse()
+        self.assertEqual([x["code"] for x in engine.dynamic_top5_by_theme(
+            [], [weak,strong],research)[0]["items"]], ["600001","600002"])
         engine.add_attention_priorities([g], [], [weak, strong], research)
         self.assertEqual([x["attention_rank"] for x in g["items"]], [1, 2])
-        self.assertIn("可信度", g["items"][0]["attention_resistance_check"]["note"])
+        self.assertIn("近期趋势", g["items"][0]["attention_resistance_check"]["note"])
         focus = engine.select_focus_watchlist([], [weak, strong], research, [g])
-        self.assertEqual(focus[0]["code"], "600002")
+        self.assertEqual(focus[0]["code"], "600001")
         self.assertEqual(focus[0]["status"], "EARLY_FOCUS_NOT_READY")
 
-    def test_volume_quality_not_nearest_watch_trigger_wins(self):
+    def test_entry_position_precedes_volume_when_signal_equal(self):
         close = wait_stock("600001", "INITIATING", ma20=9.92, ma60=9.5)
         strong = wait_stock("600002", "INITIATING", ma20=9.2, ma60=9.5)
         for row in (close, strong):
@@ -344,9 +406,11 @@ class DynamicStageTests(unittest.TestCase):
         research = {"trade_date": "2026-10-09",
                     "companies": [{"trend_name": "固态电池"}]}
         g = engine.dynamic_top5_by_theme([], [close, strong], research)[0]
-        self.assertEqual([x["code"] for x in g["items"]], ["600002", "600001"])
+        self.assertEqual([x["code"] for x in g["items"]], ["600001", "600002"])
+        self.assertGreater(engine.top5_rank_details(strong)["volume_strength"],
+                           engine.top5_rank_details(close)["volume_strength"])
 
-    def test_r_below_threshold_remains_continuous_unknown_is_neutral(self):
+    def test_R_is_for_ready_gate_not_a_top5_ranking_bonus(self):
         low = wait_stock("600001", "INITIATING", ma60=9.5)
         high = wait_stock("600002", "INITIATING", ma60=9.5)
         unknown = wait_stock("600003", "INITIATING", ma60=9.5)
@@ -359,23 +423,18 @@ class DynamicStageTests(unittest.TestCase):
                 "status": "VERIFIED", "price": obstacle, "date": "2026-10-02",
                 "source": "asof_180bar_confirmed_pivot", "history_points": 180}
         unknown["data_date"] = "2026-10-09"
-        l = engine.top5_score_details(low)
-        h = engine.top5_score_details(high)
-        u = engine.top5_score_details(unknown)
-        self.assertLess(l["upside_to_resistance_R"], 1.5)
-        self.assertLess(h["upside_to_resistance_R"], 1.5)
-        self.assertGreater(h["score"], l["score"])
-        self.assertIsNone(u["upside_to_resistance_R"])
-        self.assertLess(u["evidence_coverage"], h["evidence_coverage"])
+        self.assertEqual(engine.MIN_UPSIDE_R, 1.5)
+        self.assertTrue(all(engine.top5_rank_details(row)["no_r_assumed"]
+                            for row in (low,high,unknown)))
+        self.assertEqual(engine.top5_rank_key(low)[:-1],
+                         engine.top5_rank_key(high)[:-1])
         research = {"trade_date": "2026-10-09",
                     "companies": [{"trend_name": "固态电池"}]}
         groups = engine.dynamic_top5_by_theme([], [low, high, unknown], research)
         self.assertEqual({x["code"] for x in groups[0]["items"]},
                          {"600001", "600002", "600003"})
-        self.assertEqual(groups[0]["items"].index(
-            next(x for x in groups[0]["items"] if x["code"] == "600002")) <
-            groups[0]["items"].index(
-            next(x for x in groups[0]["items"] if x["code"] == "600001")), True)
+        self.assertEqual([x["code"] for x in groups[0]["items"]][:2],
+                         ["600001", "600002"])
 
     def test_expensive_sixth_member_cannot_enter_with_high_quality(self):
         rows = [wait_stock("%06d" % (600001 + i), "INITIATING",
@@ -390,7 +449,7 @@ class DynamicStageTests(unittest.TestCase):
         self.assertEqual(len(g["items"]), 5)
         self.assertNotIn(rows[5]["code"], {i["code"] for i in g["items"]})
 
-    def test_missing_or_future_evidence_never_invents_rr(self):
+    def test_future_pivot_invisible_to_rank_but_ready_gate_exists(self):
         row = wait_stock("600001", "INITIATING", ma60=9.5)
         row.update({"data_date": "2026-10-09",
                     "structure_confirmed": True, "setup_type": "BREAKOUT",
@@ -400,14 +459,14 @@ class DynamicStageTests(unittest.TestCase):
                  "date": "2026-10-10", "source": "asof_180bar_confirmed_pivot",
                  "history_points": 180}
         row["technical_context"]["attention_resistance"] = pivot
-        x = engine.top5_score_details(row)
-        self.assertIsNone(x["upside_to_resistance_R"])
-        self.assertLess(x["evidence_coverage"], 1)
-        pivot["date"] = "2026-10-02"
-        y = engine.top5_score_details(row)
-        self.assertIsNotNone(y["upside_to_resistance_R"])
-        self.assertGreater(y["evidence_coverage"], x["evidence_coverage"])
-
+        self.assertIsNone(engine.verified_overhead(
+            row["technical_context"],10,"2026-10-09"))
+        key=engine.top5_rank_key(row)
+        pivot["date"]="2026-10-02"
+        self.assertIsNotNone(engine.verified_overhead(
+            row["technical_context"],10,"2026-10-09"))
+        self.assertEqual(key,engine.top5_rank_key(row))
+        self.assertEqual(engine.MIN_UPSIDE_R,1.5)
     def test_single_ma60_cross_is_wait_not_drop(self):
         c={"code":"002709","company_name":"天赐材料",
            "trend_name":"固态电池","market_state":"趋势确认",

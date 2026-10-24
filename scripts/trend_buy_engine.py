@@ -192,6 +192,7 @@ def evaluate_candidate(c, structure, trade_date):
         "breakout_level": structure.get("breakout_level"),
         "prior_60d_high": structure.get("prior_60d_high"),
         "attention_resistance": structure.get("attention_resistance"),
+        "recent_acceptance": structure.get("recent_acceptance"),
         "first_effective_resistance": structure.get("first_effective_resistance"),
         "distance_to_ma20_pct": structure.get("distance_to_ma20_pct"),
         "chase_risk": structure.get("chase_risk"),
@@ -401,136 +402,119 @@ def opportunity_key(row):
             row.get("code") or "")
 
 
-def top5_fundamental_evidence(research):
-    """Reuse ONLY the frozen, same-run pre-screen audit, without new reads.
+def top5_rank_details(row):
+    """Current-cycle entry ATTENTION, not a trading plan or READY override.
 
-    In the production audit, growth/quality/valuation_match are each in 0..1.
-    The 10% trend_health part of fundamental_score is NOT fundamental quality
-    and must not be counted again in the 25% fundamental ranking component.
+    Apply ordered questions instead of a tunable mix of fundamental/R weights:
+      1. Is the near-term 5–10d trend intact (rather than repairing)?
+      2. Is a current breakout or prior 1–3d closing acceptance observable?
+      3. Is the participation location stretched/expensive to test?
+      4. Do volume and relative strength corroborate this move?
+    No older trend bottom is a stop, no unknown R is assigned 50 points.
+    Formal verified-overhead 1.5R gating remains in evaluate_candidate.
     """
-    selected = ((research.get("screen_audit") or {})
-                .get("pre_screen_selected") or [])
-    return {item["code"]: item for item in selected
-            if isinstance(item, dict) and isinstance(item.get("code"), str)}
-
-
-def top5_score_details(row, fundamental=None):
-    """Four-dimensional Top5 RESEARCH priority, never READY eligibility.
-
-    All components are in 0..1; missing evidence gets the NEUTRAL 0.5
-    comparison value and lowers confidence, rather than pretending to be
-    either a free upside or a proven failure. Trial weights need as-of replay.
-    """
-    def clamp(v):
-        return min(1., max(0., float(v)))
-
-    def neutral(raw, transform):
-        return (clamp(transform(raw)), 1.) if val(raw) else (.5, 0.)
-
-    ref = early_watch_reference(row)
-    p = row.get("current_price")
     ctx = row.get("technical_context") or {}
-    evidence = row.get("phase_evidence") or {}
+    ev = row.get("phase_evidence") or {}
+    recent = ctx.get("recent_acceptance") or {}
+    if (recent.get("data_date") != row.get("data_date")
+            or recent.get("lookback_trading_days") not in (1,2,3)):
+        recent = {}
+    phase = row.get("trend_phase") or "TRANSITION"
+    trend_tier = (0 if phase in {"INITIATING", "REACCELERATING", "PULLBACK"}
+                  else 1 if phase == "REPAIRING" else 2)
+    p = row.get("current_price")
+    ratio = ctx.get("volume_ratio_1d_vs_20d")
+    loc = ctx.get("close_location_pct")
+    fresh = ev.get("fresh_break") is True
+    strong_break = (fresh and val(ratio) and ratio >= 1.3
+                    and val(loc) and loc >= 65)
+    pattern = recent.get("pattern") or "UNVERIFIED"
+    ref = early_watch_reference(row)
     zone = (row.get("entry_zone") if row.get("status") == "READY"
             else ref.get("reference_zone"))
     stop = (row.get("invalidation_price") if row.get("status") == "READY"
             else ref.get("invalidation_price"))
-    valid_zone = (isinstance(zone, list) and len(zone) == 2
-                  and all(pos(z) for z in zone) and zone[0] <= zone[1]
-                  and pos(stop) and stop < zone[0])
-    overhead = (verified_overhead(ctx, p, row.get("data_date"))
-                if pos(p) else None)
-    reward_r = ((overhead["price"] - zone[1]) / (zone[1] - stop)
-                if overhead and valid_zone else None)
-    # 1.5R maps to neutral 0.5, 0.45R maps to 0.15, 3R caps at 1.
-    # An unknown R is 0.5 WITHOUT inventing an expected return.
-    reward_fit = clamp(reward_r / 3) if reward_r is not None else .5
-    reward_coverage = 1. if reward_r is not None else 0.
-
-    v1, c1 = neutral(ctx.get("volume_ratio_1d_vs_20d"),
-                     lambda v: .5 + (v - 1) / 4)
-    v5, c5 = neutral(ctx.get("volume_ratio_5d_vs_20d"),
-                     lambda v: .5 + (v - 1) / 2)
-    close, cc = neutral(ctx.get("close_location_pct"),
-                        lambda v: v / 100)
-    strength, cs = neutral(ctx.get("relative_strength_20d_vs_market_pct"),
-                           lambda v: .5 + v / 20)
-    positive, cp = neutral(evidence.get("positive_days_5d"),
-                           lambda v: v / 5)
-    volume_fit = (.25 * v1 + .15 * v5 + .25 * close
-                  + .25 * strength + .10 * positive)
-    volume_coverage = (.25 * c1 + .15 * c5 + .25 * cc
-                       + .25 * cs + .10 * cp)
-
-    facts = fundamental if isinstance(fundamental, dict) else {}
-    parts = (("growth", .45), ("quality", .25), ("valuation_match", .20))
-    present = [name for name, _ in parts if val(facts.get(name))
-               and 0 <= facts[name] <= 1]
-    if present:
-        fundamental_fit = sum(
-            weight * (clamp(facts[name]) if name in present else .5)
-            for name, weight in parts) / .90
-        fundamental_coverage = sum(
-            weight for name, weight in parts if name in present) / .90
-        fundamental_basis = "asof_growth_quality_valuation"
-    elif val(facts.get("fundamental_score")) and 0 <= facts["fundamental_score"] <= 1:
-        # Backward compatible fallback, with reduced evidence confidence:
-        # the legacy proxy includes 10% trend_health and is not pure financials.
-        fundamental_fit = clamp(facts["fundamental_score"])
-        fundamental_coverage = .5
-        fundamental_basis = "legacy_screen_proxy"
+    paired_plan = (row.get("structure_confirmed") is True
+                   and isinstance(zone, list) and len(zone) == 2
+                   and all(pos(x) for x in zone)
+                   and pos(stop) and stop < zone[0])
+    if paired_plan:
+        follow_tier = 0
+        signal = "SETUP_CONFIRMED"
+    elif pattern == "LOCAL_SUPPORT_HOLD":
+        follow_tier = 1
+        signal = "RECENT_SUPPORT_HOLD"
+    elif strong_break:
+        follow_tier = 2
+        signal = "FRESH_BREAK_FOLLOW"
+    elif pattern == "SAME_DAY_SWEEP_RECLAIM":
+        follow_tier = 3
+        signal = "SWEEP_RECOVER_WATCH"
+    elif fresh:
+        follow_tier = 4
+        signal = "UNCONFIRMED_BREAK_WATCH"
     else:
-        fundamental_fit, fundamental_coverage = .5, 0.
-        fundamental_basis = "missing_neutral"
+        follow_tier = 5
+        signal = "TREND_OBSERVATION"
 
-    ma20 = ctx.get("ma20")
-    ma60 = ctx.get("ma60")
     gap = ctx.get("distance_to_ma20_pct")
-    if not val(gap) and pos(p) and pos(ma20):
-        gap = (p / ma20 - 1) * 100
-    ma20_fit, cm20 = neutral(gap, lambda v: 1 - abs(v) / 10)
-    room = ((overhead["price"] / p - 1) * 100
-            if overhead and pos(p) else None)
-    # A VERIFIED ceiling ~1% above price is NOT an attractive position,
-    # even when the trade stop has not yet been confirmed.
-    space_fit, cr = neutral(room, lambda v: v / 6)
-    ma60_fit = (.75 if p >= ma60 else .35) if pos(p) and pos(ma60) else .5
-    cm60 = 1. if pos(p) and pos(ma60) else 0.
-    risk_pct = ((zone[1] - stop) / zone[1] * 100) if valid_zone else None
-    risk_fit, ck = neutral(risk_pct, lambda v: 1 - v / MAX_ENTRY_RISK_PCT)
-    position_fit = (.30 * ma20_fit + .40 * space_fit
-                    + .15 * ma60_fit + .15 * risk_fit)
-    position_coverage = (.30 * cm20 + .40 * cr
-                         + .15 * cm60 + .15 * ck)
-    if ctx.get("chase_risk") == "high":
-        position_fit = min(position_fit, .25)
-
-    combined = (.30 * reward_fit + .30 * volume_fit
-                + .25 * fundamental_fit + .15 * position_fit)
-    coverage = (.30 * reward_coverage + .30 * volume_coverage
-                + .25 * fundamental_coverage + .15 * position_coverage)
-    confidence = ("HIGH" if coverage >= .85 else
-                  "MEDIUM" if coverage >= .60 else "LOW")
+    if not val(gap) and pos(p) and pos(ctx.get("ma20")):
+        gap = (p / ctx["ma20"] - 1) * 100
+    overextended = (bool(val(gap) and gap > MAX_MA20_DISTANCE_PCT)
+                    or ctx.get("chase_risk") == "high")
+    # Only *confirmed* setups get a trade risk. On an observed hold,
+    # current-close to the previously observed support low is a comparison
+    # distance, NOT a stop or an executable risk budget.
+    if paired_plan:
+        risk_pct = (zone[1] - stop) / zone[1] * 100
+        risk_basis = "CONFIRMED_SETUP"
+    elif (pattern == "LOCAL_SUPPORT_HOLD" and pos(p)
+          and pos(recent.get("support_low"))
+          and recent["support_low"] < p):
+        risk_pct = (p - recent["support_low"]) / p * 100
+        risk_basis = "CLOSE_TO_PRIOR_SUPPORT_OBSERVATION"
+    else:
+        risk_pct = None
+        risk_basis = "UNKNOWN_NOT_ZERO"
+    risk_key = risk_pct if val(risk_pct) else 100.0
+    # The extension is only an entry-position comparison, NEVER a stop proxy.
+    extension_key = abs(gap) if val(gap) else 100.
+    def normalized(x, start, span):
+        return min(1., max(0., (x - start) / span)) if val(x) else 0.
+    volume_strength = (
+        .25 * normalized(ratio, 1., 2.)
+        + .20 * normalized(ctx.get("volume_ratio_5d_vs_20d"), 1., 1.5)
+        + .25 * normalized(loc, 50., 50.)
+        + .20 * normalized(ctx.get("relative_strength_20d_vs_market_pct"), 0., 15.)
+        + .10 * normalized(ev.get("positive_days_5d"), 2., 3.)
+    )
+    # Overextended entries are deferred BEFORE trend tiers: a strong trend is
+    # not permission to chase beyond the existing 8% / high-chase warnings.
+    # No old R or recycled fundamentals enter this key. Quantities are
+    # intentionally bounded and only disambiguate the same trend/signal tier.
+    ranking_key = (
+        int(overextended), trend_tier, follow_tier,
+        0 if risk_basis != "UNKNOWN_NOT_ZERO" else 1,
+        round(risk_key, 5), round(extension_key, 5),
+        -round(volume_strength, 6), row.get("code") or ""
+    )
     return {
-        "score": round(combined, 8),
-        "confidence": confidence,
-        "evidence_coverage": round(coverage, 6),
-        "upside_to_resistance_R": round(reward_r, 4) if reward_r is not None else None,
-        "fundamental_basis": fundamental_basis,
+        "ranking_key": ranking_key,
+        "trend_tier": trend_tier, "follow_signal": signal,
+        "recent_support_pattern": pattern,
+        "recent_support_close_band": recent.get("support_close_band"),
+        "recent_support_dates": recent.get("support_dates") or [],
+        "observation_risk_pct": round(risk_pct, 2) if val(risk_pct) else None,
+        "risk_basis": risk_basis,
+        "overextended": overextended,
+        "volume_strength": round(volume_strength, 4),
+        "no_r_assumed": True,
     }
 
 
 def top5_rank_key(row, fundamental=None):
-    """Only reorder the ALREADY-selected thematic Top5; status is untouched.
-
-    No status/evidence tier pre-empts the agreed 30/30/25/15 score. On ties,
-    prefer more complete evidence, then an executable READY, then the legacy
-    deterministic opportunity key. A rank-1 WAIT is never a buy instruction.
-    """
-    scored = top5_score_details(row, fundamental)
-    return (-scored["score"], -scored["evidence_coverage"],
-            0 if row.get("status") == "READY" else 1,
-            opportunity_key(row))
+    """Deterministic order of *already-selected* Top5; fundamentals unused."""
+    return top5_rank_details(row)["ranking_key"]
 
 
 def dynamic_top5_by_theme(ready, wait, research):
@@ -595,9 +579,7 @@ def dynamic_top5_by_theme(ready, wait, research):
         selected = primary[:5]
         selected.extend(watches[:max(0, 5 - len(selected))])
         # Keep the exact selected members/cap; only the internal order changes.
-        frozen_fundamentals = top5_fundamental_evidence(research)
-        selected.sort(key=lambda row: top5_rank_key(
-            row, frozen_fundamentals.get(row["code"])))
+        selected.sort(key=top5_rank_key)
         primary_codes = {row["code"] for row in primary}
         groups.append({
             "trend_name": sector,
@@ -710,7 +692,7 @@ def add_attention_priorities(groups, ready, wait, research):
             elif space_status == "LIMITED":
                 judgement = f"上方压力仅约{reward_r:.2f}R，等待回踩或有效突破"
             elif tier == 6:
-                judgement = "缺可靠观察区间，暂缓买点跟踪"
+                judgement = "近期趋势可观察，尚无可执行入场与止损组合"
             elif space_status == "UNVERIFIED":
                 judgement = "上方阻力空间待核验，不能视为无阻力"
             elif tier == 0:
@@ -743,12 +725,11 @@ def add_attention_priorities(groups, ready, wait, research):
                 "distance_to_ma20_pct": ma20_distance,
                 "chase_risk_high": bool(overheated),
                 "note": (
-                    "Top5内部30/30/25/15评分；排序可信度:"
-                    + {"HIGH": "高", "MEDIUM": "中", "LOW": "低"}[
-                        top5_score_details(
-                            row, top5_fundamental_evidence(research).get(row["code"])
-                        )["confidence"]]
-                    + "；未知R仅作中性评分，不代表实际可交易赔率；关注序号跟随正式排序"
+                    "Top5按近期趋势→当前跟随信号→试错成本→量价排序；"
+                    + "近期结构:" + top5_rank_details(row)["follow_signal"]
+                    + "；观察风险:"
+                    + top5_rank_details(row)["risk_basis"]
+                    + "；未知R不计分；READY/WAIT及1.5R正式门槛独立执行"
                 ),
             }
     return groups
