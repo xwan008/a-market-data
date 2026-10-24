@@ -86,6 +86,8 @@ def compare_numeric(a, b, field, tol):
         return 0
     # Larger is better for all sub-evidence except distance-to-MA20.
     delta = y-x if field == "abs_distance_to_ma20_pct" else x-y
+    if field == "positive_days_5d":  # one full day is a discrete material difference
+        return 1 if delta >= tol else -1 if delta <= -tol else 0
     return 1 if delta > tol else -1 if delta < -tol else 0
 
 
