@@ -403,12 +403,14 @@ def opportunity_key(row):
 
 
 def top5_rank_details(row):
-    """Rank RECENT trend-follow opportunities, independently of READY.
+    """The sole final Top5 internal sort key, independent of trade admission.
 
-    PR54 as-of 1–3 day closing acceptance and 5–10-day momentum are ranking
-    evidence. Formal 60/120-day breakout confirmation, entry-zone, overhead
-    pivots, fundamentals and 1.5R must NEVER promote a Top5 attention rank.
-    A swept support is observation, not a proven stop.
+    PR #54 historically defined prior-close acceptance observation, NOT this
+    complete rank formula. The actual key compares overextension, 5-day trend
+    tier, recent signal tier, absolute MA20 distance, optional held-support
+    observation distance, then volume/relative strength and code. READY/WAIT,
+    60/120d structural plans, historical resistance R and financial scores
+    cannot raise rank. A close-support observation is NOT a trade stop or R.
     """
     ctx = row.get("technical_context") or {}
     ev = row.get("phase_evidence") or {}
@@ -444,7 +446,8 @@ def top5_rank_details(row):
     else:
         signal_tier, signal = 6, "RECENT_TREND_WATCH"
 
-    # Use as-of 5–10d evidence, NOT the formal MA60/60-day phase label.
+    # This trend tier explicitly uses 5d return and 5d positive-day count.
+    # Other contexts such as 10d return can affect the separate chase_risk flag.
     ret5, up5 = ev.get("return_5d_pct"), ev.get("positive_days_5d")
     trend_tier = (0 if val(ret5) and ret5 > 0 and val(up5) and up5 >= 3
                   else 1 if val(ret5) and ret5 > 0 else 2)
@@ -492,6 +495,7 @@ def top5_rank_details(row):
                                  if observation_distance is not None else None),
         "risk_basis": risk_basis,
         "overextended": overextended,
+        "abs_ma20_distance_pct": (round(position_distance, 2) if val(gap) else None),
         "volume_strength": round(volume_strength, 4),
         "no_r_assumed": True,
         "ignores_formal_60day_confirmation": True,
@@ -587,25 +591,38 @@ def dynamic_top5_by_theme(ready, wait, research):
 
 
 def add_attention_priorities(groups, ready, wait, research):
-    """Annotate existing Top5 order; never create another ranking.
+    """Explain real Top5 rank evidence; independently report trade-risk context.
 
-    Legacy fundamental context affects annotation wording only. This function
-    must not change Top5 membership, order, READY/WAIT or trade-plan fields.
+    The supplied members and order are fixed. No READY, risk/reward, old tier,
+    fundamental score or confirmed 60-day plan can alter ranking explanations.
     """
-    audit = research.get("screen_audit") or {}
-    fundamentals = {x["code"]: x.get("fundamental_score")
-                    for x in audit.get("pre_screen_selected", [])
-                    if isinstance(x, dict) and x.get("code")}
+    signal_labels = {
+        "FRESH_BREAK_AND_RECENT_SUPPORT_HOLD":
+            "放量突破前5日高点；此前收盘参考区本日盘中未有效刺破并收强",
+        "FRESH_BREAK_AND_RECENT_SWEEP_RECLAIM":
+            "放量突破前5日高点；此前收盘参考区盘中刺破后收复，失效条件未定",
+        "RECENT_SUPPORT_HOLD":
+            "此前收盘参考区盘中未有效刺破并收强；未同时满足放量5日突破观察条件",
+        "RECENT_SWEEP_RECLAIM":
+            "此前收盘参考区盘中刺破后收复；失效条件未定",
+        "FRESH_5D_BREAK_FOLLOW":
+            "放量突破前5日高点；未识别符合当前规则的近期收盘参考区",
+        "UNCONFIRMED_5D_BREAK":
+            "价格越过前5日高点，但未同时满足放量和收盘强度观察条件",
+        "RECENT_TREND_WATCH":
+            "未达到上述近期突破或收盘参考区观察条件，继续跟踪",
+    }
+    trend_labels = {
+        0: "近5日涨幅为正且上涨日不少于3日",
+        1: "近5日涨幅为正，但上涨天数条件不足或未经核验",
+        2: "近5日正收益条件未达到或数据不足",
+    }
     lookup = {row["code"]: row for row in ready + wait}
-    def annotation_metrics(item):
-        row = lookup[item["code"]]
-        ref = item.get("reference") or {}
-        current = item.get("current_price")
-        trigger = ref.get("reference_trigger_price")
-        distance = (abs(trigger / current - 1) * 100
-                    if pos(current) and pos(trigger) else None)
-        risk = (row.get("initial_risk_pct") if row["status"] == "READY"
-                else ref.get("estimated_price_risk_pct"))
+
+    def trade_risk_context(row):
+        """Keep existing risk fields, without creating a second priority tier."""
+        ref = early_watch_reference(row)
+        current = row.get("current_price")
         zone = (row.get("entry_zone") if row["status"] == "READY"
                 else ref.get("reference_zone"))
         stop = (row.get("invalidation_price") if row["status"] == "READY"
@@ -628,67 +645,44 @@ def add_attention_priorities(groups, ready, wait, research):
         overheated = ((val(ma20_distance)
                        and ma20_distance > MAX_MA20_DISTANCE_PCT)
                       or ctx.get("chase_risk") == "high")
-        # Legacy annotation tier only; never changes the PR54-based Top5 order.
-        if row["status"] == "READY":
-            tier = 0
-        elif valid_zone and not overheated and space_status == "SUFFICIENT":
-            tier = 1 if row.get("structure_confirmed") is True else 2
-        elif valid_zone and not overheated and space_status == "UNVERIFIED":
-            tier = 3
-        elif valid_zone and not overheated:
-            tier = 4
-        elif valid_zone:
-            tier = 5
-        else:
-            tier = 6
-        quality = fundamentals.get(row["code"])
-        quality = max(0, min(1, quality)) if val(quality) else None
-        # Previous risk_fit/reward_fit/position/combined score calculations
-        # were dead: they no longer informed order or annotations.
-        return (tier, quality, risk, distance, reward_r,
-                space_status, overheated, ma20_distance, overhead)
+        return valid_zone, reward_r, space_status, overheated, ma20_distance, overhead
 
     for group in groups:
-        items = group.get("items", [])
-        metrics = {item["code"]: annotation_metrics(item) for item in items}
-        # Single public ranking: attention fields describe the formal Top5 order.
-        for rank, item in enumerate(items, 1):
+        for rank, item in enumerate(group.get("items", []), 1):
             row = lookup[item["code"]]
-            (tier, quality, risk, distance, reward_r,
-             space_status, overheated, ma20_distance, overhead) = metrics[item["code"]]
-            if overheated:
-                judgement = "偏离MA20过大，暂缓追涨；" + (
-                    "上方阻力空间不足" if space_status == "LIMITED"
-                    else "上方空间仍需核验")
-            elif space_status == "LIMITED" and reward_r < 0:
-                judgement = "上方阻力低于计划价格上限，等待新结构"
-            elif space_status == "LIMITED":
-                judgement = f"上方压力仅约{reward_r:.2f}R，等待回踩或有效突破"
-            elif tier == 6:
-                judgement = "近期趋势可观察，尚无可执行入场与止损组合"
-            elif space_status == "UNVERIFIED":
-                judgement = "上方阻力空间待核验，不能视为无阻力"
-            elif tier == 0:
-                judgement = "优先评估条件性买点"
-            elif tier == 1:
-                judgement = "重点跟踪个股确认，等待板块条件"
-            elif tier == 3:
-                judgement = "缺可靠观察区间，暂缓买点跟踪"
-            elif quality is None:
-                judgement = "等待结构确认，盈利质量待核验"
-            elif quality < .35:
-                judgement = "优先核实盈利质量"
-            elif val(risk) and risk > 6:
-                judgement = "结构风险偏高，谨慎观察"
-            elif val(distance) and distance > 3:
-                judgement = "等待靠近合理观察位置"
-            elif quality >= .65:
-                judgement = "优先深研并跟踪买点"
-            else:
-                judgement = "关注结构确认"
-            rank_details = top5_rank_details(row)
+            (valid_zone, reward_r, space_status, overheated,
+             ma20_distance, overhead) = trade_risk_context(row)
+            details = top5_rank_details(row)
+            position = details["abs_ma20_distance_pct"]
+            position_text = (f"；距MA20绝对偏离{position:.2f}%"
+                             if position is not None else "；MA20距离证据缺失")
+            if details["overextended"]:
+                position_text += "；短线过热标记参与排序"
             item["attention_rank"] = rank
-            item["attention_judgement"] = judgement
+            item["attention_judgement"] = (
+                "Top5关注排序依据：" + trend_labels[details["trend_tier"]]
+                + "；" + signal_labels[details["follow_signal"]]
+                + position_text
+                + "；量价强度仅为后序排序比较项；此名次不是交易买入许可"
+            )
+            # Risk notes are separate from rank reasons. A high rank may be WAIT.
+            if row["status"] == "READY":
+                risk_notes = ["READY仅为下一交易日条件性计划，非即时买单"]
+            elif valid_zone:
+                risk_notes = ["WAIT：有已确认形态的价位参考，但仍不满足全部交易准入条件"]
+            else:
+                risk_notes = ["WAIT：缺少可执行的成对入场与失效位，当前只供观察"]
+            if overheated:
+                risk_notes.append("短线偏离较大或追高风险高，暂缓追涨")
+            if space_status == "LIMITED":
+                risk_notes.append(f"已知上方阻力仅约{reward_r:.2f}R，须继续等待")
+            elif space_status == "SUFFICIENT":
+                risk_notes.append(f"已核验阻力对应计划约{reward_r:.2f}R，不保证兑现")
+            else:
+                risk_notes.append("尚无可计算的独立阻力赔率，不能视为上方空间无限")
+            if details["recent_support_pattern"] == "SAME_DAY_SWEEP_RECLAIM":
+                risk_notes.append("此前收盘参考区盘中被刺破后收复，不据当日最低价新造止损或实际R")
+            risk_notes.append("历史阻力和1.5R为交易准入检查，不决定Top5名次")
             item["attention_resistance_check"] = {
                 "status": space_status,
                 "resistance_price": overhead.get("price"),
@@ -698,19 +692,12 @@ def add_attention_priorities(groups, ready, wait, research):
                     round(reward_r, 2) if reward_r is not None else None),
                 "distance_to_ma20_pct": ma20_distance,
                 "chase_risk_high": bool(overheated),
-                "note": (
-                    "Top5按近期趋势→当前跟随信号→试错成本→量价排序；"
-                    + "近期结构:" + rank_details["follow_signal"]
-                    + "；观察风险:"
-                    + rank_details["risk_basis"]
-                    + "；未知R不计分；READY/WAIT及1.5R正式门槛独立执行"
-                ),
+                "note": "；".join(risk_notes),
             }
     return groups
 
-
 def select_focus_watchlist(ready, wait, research, groups=None):
-    """One best opportunity per theme, independent of yesterday's leader."""
+    """Display the official current Top5 first name, not a new buy-point rank."""
     if groups is None:
         groups = dynamic_top5_by_theme(ready, wait, research)
     picks = []
@@ -720,7 +707,7 @@ def select_focus_watchlist(ready, wait, research, groups=None):
         if not group["items"]:
             picks.append({"trend_name": theme, "status": "NO_CURRENT_BUY_OPPORTUNITY",
                           "trade_date": research["trade_date"], "code": None,
-                          "reason": "本板块没有距离合理、非衰退且风险信息充分的近期买点候选"})
+                          "reason": "本板块未收录符合当前榜单条件的关注对象；不代表趋势结束或持仓退出"})
             continue
         first = group["items"][0]
         best = lookup[first["code"]]
@@ -736,6 +723,7 @@ def select_focus_watchlist(ready, wait, research, groups=None):
             blocks.append("相关业务仍属早期商业化证据")
         ctx = best.get("technical_context") or {}
         evidence = best.get("phase_evidence") or {}
+        # Independent diagnostic count, never used to re-sort Top5.
         flags = {
             "volume_1d": (ctx.get("volume_ratio_1d_vs_20d") or 0) >= 1.1,
             "volume_5d": (ctx.get("volume_ratio_5d_vs_20d") or 0) >= 1.03,
@@ -761,7 +749,7 @@ def select_focus_watchlist(ready, wait, research, groups=None):
                 round(abs(ref["reference_trigger_price"]/best["current_price"]-1)*100, 2)
                 if pos(ref.get("reference_trigger_price")) and pos(best.get("current_price"))
                 else None),
-            "decision_reason": "根据截至本轮收盘的最新买点成熟度、趋势阶段与入场距离动态选择",
+            "decision_reason": "直接沿用本交易日正式主题Top5首位作为关注对象；交易准入单独判断，不是买入指令",
             "remaining_blocks_to_ready": blocks,
             "not_buy_order": True
         })
