@@ -403,99 +403,81 @@ def opportunity_key(row):
 
 
 def top5_rank_details(row):
-    """Current-cycle entry ATTENTION, not a trading plan or READY override.
+    """Rank RECENT trend-follow opportunities, independently of READY.
 
-    Apply ordered questions instead of a tunable mix of fundamental/R weights:
-      1. Is the near-term 5–10d trend intact (rather than repairing)?
-      2. Is a current breakout or prior 1–3d closing acceptance observable?
-      3. Is the participation location stretched/expensive to test?
-      4. Do volume and relative strength corroborate this move?
-    No older trend bottom is a stop, no unknown R is assigned 50 points.
-    Formal verified-overhead 1.5R gating remains in evaluate_candidate.
+    PR54 as-of 1–3 day closing acceptance and 5–10-day momentum are ranking
+    evidence. Formal 60/120-day breakout confirmation, entry-zone, overhead
+    pivots, fundamentals and 1.5R must NEVER promote a Top5 attention rank.
+    A swept support is observation, not a proven stop.
     """
     ctx = row.get("technical_context") or {}
     ev = row.get("phase_evidence") or {}
     recent = ctx.get("recent_acceptance") or {}
     if (recent.get("data_date") != row.get("data_date")
-            or recent.get("lookback_trading_days") not in (1,2,3)):
+            or recent.get("lookback_trading_days") not in (1, 2, 3)):
         recent = {}
-    phase = row.get("trend_phase") or "TRANSITION"
-    trend_tier = (0 if phase in {"INITIATING", "REACCELERATING", "PULLBACK"}
-                  else 1 if phase == "REPAIRING" else 2)
+    pattern = recent.get("pattern") or "UNVERIFIED"
     p = row.get("current_price")
     ratio = ctx.get("volume_ratio_1d_vs_20d")
     loc = ctx.get("close_location_pct")
-    fresh = ev.get("fresh_break") is True
+    fresh = ev.get("fresh_break") is True  # close above previous FIVE daily highs
     strong_break = (fresh and val(ratio) and ratio >= 1.3
                     and val(loc) and loc >= 65)
-    pattern = recent.get("pattern") or "UNVERIFIED"
-    ref = early_watch_reference(row)
-    zone = (row.get("entry_zone") if row.get("status") == "READY"
-            else ref.get("reference_zone"))
-    stop = (row.get("invalidation_price") if row.get("status") == "READY"
-            else ref.get("invalidation_price"))
-    paired_plan = (row.get("structure_confirmed") is True
-                   and isinstance(zone, list) and len(zone) == 2
-                   and all(pos(x) for x in zone)
-                   and pos(stop) and stop < zone[0])
-    if paired_plan:
-        follow_tier = 0
-        signal = "SETUP_CONFIRMED"
-    elif pattern == "LOCAL_SUPPORT_HOLD":
-        follow_tier = 1
-        signal = "RECENT_SUPPORT_HOLD"
-    elif strong_break:
-        follow_tier = 2
-        signal = "FRESH_BREAK_FOLLOW"
-    elif pattern == "SAME_DAY_SWEEP_RECLAIM":
-        follow_tier = 3
-        signal = "SWEEP_RECOVER_WATCH"
-    elif fresh:
-        follow_tier = 4
-        signal = "UNCONFIRMED_BREAK_WATCH"
-    else:
-        follow_tier = 5
-        signal = "TREND_OBSERVATION"
+    hold = pattern == "LOCAL_SUPPORT_HOLD"
+    sweep = pattern == "SAME_DAY_SWEEP_RECLAIM"
+    support_observed = hold or sweep
 
+    # Two current-cycle observations can coexist: the breakout no longer
+    # hides the previous 1–3-day support and its sweep/reclaim.
+    if strong_break and hold:
+        signal_tier, signal = 0, "FRESH_BREAK_AND_RECENT_SUPPORT_HOLD"
+    elif strong_break and sweep:
+        signal_tier, signal = 1, "FRESH_BREAK_AND_RECENT_SWEEP_RECLAIM"
+    elif hold:
+        signal_tier, signal = 2, "RECENT_SUPPORT_HOLD"
+    elif sweep:
+        signal_tier, signal = 3, "RECENT_SWEEP_RECLAIM"
+    elif strong_break:
+        signal_tier, signal = 4, "FRESH_5D_BREAK_FOLLOW"
+    elif fresh:
+        signal_tier, signal = 5, "UNCONFIRMED_5D_BREAK"
+    else:
+        signal_tier, signal = 6, "RECENT_TREND_WATCH"
+
+    # Use as-of 5–10d evidence, NOT the formal MA60/60-day phase label.
+    ret5, up5 = ev.get("return_5d_pct"), ev.get("positive_days_5d")
+    trend_tier = (0 if val(ret5) and ret5 > 0 and val(up5) and up5 >= 3
+                  else 1 if val(ret5) and ret5 > 0 else 2)
     gap = ctx.get("distance_to_ma20_pct")
     if not val(gap) and pos(p) and pos(ctx.get("ma20")):
         gap = (p / ctx["ma20"] - 1) * 100
     overextended = (bool(val(gap) and gap > MAX_MA20_DISTANCE_PCT)
                     or ctx.get("chase_risk") == "high")
-    # Only *confirmed* setups get a trade risk. On an observed hold,
-    # current-close to the previously observed support low is a comparison
-    # distance, NOT a stop or an executable risk budget.
-    if paired_plan:
-        risk_pct = (zone[1] - stop) / zone[1] * 100
-        risk_basis = "CONFIRMED_SETUP"
-    elif (pattern == "LOCAL_SUPPORT_HOLD" and pos(p)
-          and pos(recent.get("support_low"))
-          and recent["support_low"] < p):
-        risk_pct = (p - recent["support_low"]) / p * 100
-        risk_basis = "CLOSE_TO_PRIOR_SUPPORT_OBSERVATION"
+
+    # A swept support CANNOT supply a new stop or quantified risk.
+    if (hold and pos(p) and pos(recent.get("support_low"))
+            and recent["support_low"] < p):
+        observation_distance = (p - recent["support_low"]) / p * 100
+        risk_basis = "CLOSE_TO_PRIOR_SUPPORT_OBSERVATION_NOT_STOP"
     else:
-        risk_pct = None
+        observation_distance = None
         risk_basis = "UNKNOWN_NOT_ZERO"
-    risk_key = risk_pct if val(risk_pct) else 100.0
-    # The extension is only an entry-position comparison, NEVER a stop proxy.
-    extension_key = abs(gap) if val(gap) else 100.
-    def normalized(x, start, span):
-        return min(1., max(0., (x - start) / span)) if val(x) else 0.
+    position_distance = abs(gap) if val(gap) else 100.
+    def normalized(v, start, span):
+        return min(1., max(0., (v - start) / span)) if val(v) else 0.
     volume_strength = (
         .25 * normalized(ratio, 1., 2.)
         + .20 * normalized(ctx.get("volume_ratio_5d_vs_20d"), 1., 1.5)
         + .25 * normalized(loc, 50., 50.)
         + .20 * normalized(ctx.get("relative_strength_20d_vs_market_pct"), 0., 15.)
-        + .10 * normalized(ev.get("positive_days_5d"), 2., 3.)
+        + .10 * normalized(up5, 2., 3.)
     )
-    # Overextended entries are deferred BEFORE trend tiers: a strong trend is
-    # not permission to chase beyond the existing 8% / high-chase warnings.
-    # No old R or recycled fundamentals enter this key. Quantities are
-    # intentionally bounded and only disambiguate the same trend/signal tier.
+    # Deterministic, non-weighted comparison; no unknown risk is rewarded.
     ranking_key = (
-        int(overextended), trend_tier, follow_tier,
-        0 if risk_basis != "UNKNOWN_NOT_ZERO" else 1,
-        round(risk_key, 5), round(extension_key, 5),
+        int(overextended), trend_tier, signal_tier,
+        round(position_distance, 5),
+        0 if observation_distance is not None else 1,
+        round(observation_distance, 5) if observation_distance is not None else 100.,
         -round(volume_strength, 6), row.get("code") or ""
     )
     return {
@@ -504,12 +486,17 @@ def top5_rank_details(row):
         "recent_support_pattern": pattern,
         "recent_support_close_band": recent.get("support_close_band"),
         "recent_support_dates": recent.get("support_dates") or [],
-        "observation_risk_pct": round(risk_pct, 2) if val(risk_pct) else None,
+        "recent_support_observed": support_observed,
+        "five_day_break_confirmed_asof": strong_break,
+        "observation_risk_pct": (round(observation_distance, 2)
+                                 if observation_distance is not None else None),
         "risk_basis": risk_basis,
         "overextended": overextended,
         "volume_strength": round(volume_strength, 4),
         "no_r_assumed": True,
+        "ignores_formal_60day_confirmation": True,
     }
+
 
 
 def top5_rank_key(row, fundamental=None):
