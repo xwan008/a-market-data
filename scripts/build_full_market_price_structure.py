@@ -229,6 +229,63 @@ def trend_phase_metrics(rows, ma20, ma60, current, ratio1, ratio5, close_locatio
         }
     }
 
+def recent_closing_acceptance(rows: list[dict], lookback: int = 3):
+    """As-of 1–3-day CLOSE support context for Top5 ranking, NOT a trade stop.
+
+    A closing support is an already-formed consecutive close cluster; today's
+    lowest wick cannot retroactively become yesterday's acceptance price.
+    Confirming a support with two closes is intentionally more conservative
+    than assuming that one low print was a successfully defended level.
+    """
+    if lookback not in (1, 2, 3):
+        raise ValueError("invalid_recent_support_lookback")
+    if len(rows) < lookback + 1:
+        return {"pattern": "UNVERIFIED", "support_close_band": None,
+                "support_dates": [], "support_low": None,
+                "signal_day_low": None, "intraday_support_broken": None,
+                "lookback_trading_days": lookback}
+    prior, day = rows[-lookback-1:-1], rows[-1]
+    support = None
+    for i in range(len(prior)-2, -1, -1):
+        old, new = prior[i], prior[i+1]
+        low, high = sorted((old["close"], new["close"]))
+        if high / low - 1 > .008:
+            continue
+        if any(x["close"] < low * .995 for x in prior[i+2:]):
+            continue
+        support = {"band": [round(low, 3), round(high, 3)],
+                   "low": round(min(old["low"],new["low"]), 3),
+                   "dates": [old["date"],new["date"]]}
+        break
+    day_low = day["low"]
+    if support is None:
+        pattern, pierced = "NO_RECENT_CLOSE_SUPPORT", None
+    else:
+        pierced = day_low < support["low"] * .995
+        location = ((day["close"] - day_low) / (day["high"]-day_low) * 100
+                    if day["high"] > day_low else 50)
+        reclaimed = day["close"] > support["band"][1]
+        strong = day["close"] > prior[-1]["close"] and location >= 65
+        if (not pierced and day_low <= support["band"][1]*1.005
+                and reclaimed and strong):
+            pattern = "LOCAL_SUPPORT_HOLD"
+        elif pierced and reclaimed and strong:
+            pattern = "SAME_DAY_SWEEP_RECLAIM"
+        else:
+            pattern = "UNCONFIRMED_LOCAL_ACCEPTANCE"
+    return {"pattern": pattern,
+            "support_close_band": support["band"] if support else None,
+            "support_dates": support["dates"] if support else [],
+            "support_low": support["low"] if support else None,
+            "signal_day_low": round(day_low, 3),
+            "intraday_support_broken": pierced,
+            "lookback_trading_days": lookback,
+            "data_date": day["date"],
+            "observation_only": True}
+
+
+
+
 def base_metrics(code: str, name: str, rows: list[dict], quote: dict, reference_date: str, min_points: int = MIN_POINTS):
     flagged, flag_reason = risk_warning(name)
     base_flags = {
@@ -294,6 +351,7 @@ def base_metrics(code: str, name: str, rows: list[dict], quote: dict, reference_
         "data_date": rows[-1]["date"],
         "history_points": len(rows),
         **phase,
+        "recent_acceptance": recent_closing_acceptance(rows, 3),
         "current_price": round(current, 4),
         "ma20": round(ma20, 4),
         "ma60": round(ma60, 4),
