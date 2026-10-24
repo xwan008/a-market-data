@@ -33,6 +33,67 @@ def wait_stock(code, phase, p=10, ma20=9.8, ma60=10.1, support=9.4, sector="固�
                                   "close_location_pct":75}}
 
 class DynamicStageTests(unittest.TestCase):
+    def test_recent_closing_support_uses_prior_bars_only(self):
+        h = [
+            {"date":"2026-10-20","open":43.19,"high":45.68,"low":43.15,"close":45.20,"volume":100},
+            {"date":"2026-10-21","open":45.22,"high":45.38,"low":44.33,"close":44.46,"volume":100},
+            {"date":"2026-10-22","open":44.32,"high":45.40,"low":44.32,"close":44.46,"volume":100},
+            {"date":"2026-10-23","open":44.05,"high":47.12,"low":42.90,"close":47.07,"volume":200},
+        ]
+        result = technical.recent_closing_acceptance(h)
+        self.assertEqual(result["support_close_band"], [44.46, 44.46])
+        self.assertEqual(result["support_dates"], ["2026-10-21","2026-10-22"])
+        self.assertEqual(result["support_low"], 44.32)
+        self.assertEqual(result["signal_day_low"], 42.9)
+        self.assertTrue(result["intraday_support_broken"])
+        self.assertEqual(result["pattern"], "SAME_DAY_SWEEP_RECLAIM")
+        h.append({"date":"2026-10-26","open":25,"high":25,"low":25,
+                  "close":25,"volume":9999})
+        self.assertEqual(result, technical.recent_closing_acceptance(h[:-1]))
+        self.assertIsNone(technical.recent_closing_acceptance(h,1)["support_close_band"])
+
+    def test_current_trend_and_recent_signal_rank_not_financials(self):
+        a = wait_stock("600001", "INITIATING", ma60=9.5)
+        b = wait_stock("600002", "INITIATING", ma60=9.5)
+        for row in (a,b):
+            row["data_date"] = "2026-10-23"
+            row["phase_evidence"] = {"fresh_break": True,
+                                      "positive_days_5d":3}
+            row["technical_context"].update({
+                "volume_ratio_1d_vs_20d":2,
+                "close_location_pct":90,
+            })
+        a["technical_context"]["recent_acceptance"] = {
+            "data_date":"2026-10-23","lookback_trading_days":3,
+            "pattern":"SAME_DAY_SWEEP_RECLAIM",
+            "support_close_band":[9.3,9.3],"support_dates":["2026-10-21","2026-10-22"]}
+        b["technical_context"]["recent_acceptance"] = {
+            "data_date":"2026-10-23","lookback_trading_days":3,
+            "pattern":"LOCAL_SUPPORT_HOLD",
+            "support_low":9.55,"support_close_band":[9.6,9.6],
+            "support_dates":["2026-10-21","2026-10-22"]}
+        research={"trade_date":"2026-10-23","companies":[{"trend_name":"固态电池"}],
+                  "screen_audit":{"pre_screen_selected":[
+                      {"code":"600001","growth":1,"quality":1,"valuation_match":1},
+                      {"code":"600002","growth":0,"quality":0,"valuation_match":0}]}}
+        first=engine.dynamic_top5_by_theme([], [a,b], research)[0]
+        self.assertEqual([x["code"] for x in first["items"]], ["600002","600001"])
+        self.assertEqual(engine.top5_rank_details(a)["risk_basis"],"UNKNOWN_NOT_ZERO")
+        self.assertIsNone(engine.top5_rank_details(a)["observation_risk_pct"])
+        research["screen_audit"]["pre_screen_selected"].reverse()
+        self.assertEqual([x["code"] for x in engine.dynamic_top5_by_theme([], [a,b], research)[0]["items"]],
+                         ["600002","600001"])
+        self.assertEqual([x["status"] for x in first["items"]], ["WAIT","WAIT"])
+
+    def test_formal_one_point_five_R_gate_remains_separate_from_rank(self):
+        self.assertEqual(engine.MIN_UPSIDE_R, 1.5)
+        self.assertEqual(engine.MAX_ENTRY_RISK_PCT, 6.0)
+        row = wait_stock("600001", "INITIATING", ma60=9.5)
+        info = engine.top5_rank_details(row)
+        self.assertTrue(info["no_r_assumed"])
+        self.assertNotIn("upside_to_resistance_R", info)
+        self.assertEqual(info["risk_basis"], "UNKNOWN_NOT_ZERO")
+
     def test_blowoff_volume_weak_close_is_cooling(self):
         data = bars([10.0]*25 + [10.1, 10.3, 10.8, 11.8, 12.4, 12.5])
         data[-1]["high"],data[-1]["low"]=13.5, 12.2
