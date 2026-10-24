@@ -619,9 +619,9 @@ def add_attention_priorities(groups, ready, wait, research):
     }
     lookup = {row["code"]: row for row in ready + wait}
 
-    def trade_risk_context(row):
+    def trade_risk_context(row, item):
         """Keep existing risk fields, without creating a second priority tier."""
-        ref = early_watch_reference(row)
+        ref = item.get("reference") or {}
         current = row.get("current_price")
         zone = (row.get("entry_zone") if row["status"] == "READY"
                 else ref.get("reference_zone"))
@@ -651,7 +651,7 @@ def add_attention_priorities(groups, ready, wait, research):
         for rank, item in enumerate(group.get("items", []), 1):
             row = lookup[item["code"]]
             (valid_zone, reward_r, space_status, overheated,
-             ma20_distance, overhead) = trade_risk_context(row)
+             ma20_distance, overhead) = trade_risk_context(row, item)
             details = top5_rank_details(row)
             position = details["abs_ma20_distance_pct"]
             position_text = (f"；距MA20绝对偏离{position:.2f}%"
