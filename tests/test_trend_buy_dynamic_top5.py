@@ -85,6 +85,50 @@ class DynamicStageTests(unittest.TestCase):
                          ["600002","600001"])
         self.assertEqual([x["status"] for x in first["items"]], ["WAIT","WAIT"])
 
+    def test_legacy_breakout_gate_and_old_price_stop_cannot_change_rank(self):
+        def stock(code, prior_support):
+            x=wait_stock(code,"INITIATING",p=10,ma20=9.6,ma60=9.5)
+            x["data_date"]="2026-10-23"
+            x["phase_evidence"]={
+                "fresh_break":True,"return_5d_pct":7,"positive_days_5d":4}
+            x["technical_context"].update({
+                "volume_ratio_1d_vs_20d":2,"close_location_pct":90,
+                "recent_acceptance":{
+                    "data_date":"2026-10-23","lookback_trading_days":3,
+                    "pattern":prior_support,
+                    "support_close_band":[9.1,9.15] if prior_support else None,
+                    "support_dates":["2026-10-21","2026-10-22"] if prior_support else [],
+                    "intraday_support_broken":prior_support=="SAME_DAY_SWEEP_RECLAIM",
+                } if prior_support else {
+                    "data_date":"2026-10-23","lookback_trading_days":3,
+                    "pattern":"NO_RECENT_CLOSE_SUPPORT"})
+            return x
+        sweep=stock("600002","SAME_DAY_SWEEP_RECLAIM")
+        old60=stock("600001",None)
+        old60.update({"structure_confirmed":True,"setup_type":"BREAKOUT",
+                      "entry_zone":[9.95,10.10],
+                      "invalidation_price":9.5,"initial_risk_pct":5.94})
+        old60["technical_context"].update({
+            "prior_60d_high":10,"breakout_level":10,
+            "attention_resistance":{
+                "status":"VERIFIED","price":11,"date":"2026-06-11",
+                "source":"asof_180bar_confirmed_pivot","history_points":180}})
+        research={"trade_date":"2026-10-23",
+                  "companies":[{"trend_name":"固态电池"}]}
+        group=engine.dynamic_top5_by_theme([], [old60,sweep], research)
+        self.assertEqual([x["code"] for x in group[0]["items"]],
+                         ["600002","600001"])
+        key=engine.top5_rank_key(old60)
+        old60["technical_context"]["prior_60d_high"]=100
+        old60["technical_context"]["breakout_level"]=100
+        old60["status"]="READY"
+        old60["invalidation_price"]=9.9
+        old60["entry_zone"]=[10,10.1]
+        self.assertEqual(key,engine.top5_rank_key(old60))
+        self.assertNotEqual(old60["status"],sweep["status"])
+        self.assertEqual(engine.top5_rank_details(sweep)["recent_support_pattern"],
+                         "SAME_DAY_SWEEP_RECLAIM")
+
     def test_formal_one_point_five_R_gate_remains_separate_from_rank(self):
         self.assertEqual(engine.MIN_UPSIDE_R, 1.5)
         self.assertEqual(engine.MAX_ENTRY_RISK_PCT, 6.0)
@@ -117,26 +161,45 @@ class DynamicStageTests(unittest.TestCase):
         self.assertEqual(f[0]["code"], "002709")
         self.assertNotEqual(f[0]["status"], "CURRENT_READY_FOCUS")
 
-    def test_trend_phase_priority_not_long_history_R(self):
+    def test_prior_short_support_and_breakout_outrank_60day_plan(self):
         early = wait_stock("600985", "REPAIRING")
+        early["data_date"] = "2026-10-09"
+        early["phase_evidence"] = {"fresh_break": True,
+                                     "return_5d_pct": 6, "positive_days_5d": 3}
+        early["technical_context"].update({
+            "volume_ratio_1d_vs_20d":2.0,"close_location_pct":86,
+            "recent_acceptance":{
+                "data_date":"2026-10-09","lookback_trading_days":3,
+                "pattern":"SAME_DAY_SWEEP_RECLAIM",
+                "support_close_band":[9.4,9.42],
+                "support_dates":["2026-10-07","2026-10-08"],
+                "intraday_support_broken":True,
+                "signal_day_low":9.11}})
         stock_confirmed = wait_stock("002128", "TRANSITION")
         stock_confirmed.update({
-            "structure_confirmed": True, "setup_type": "PULLBACK",
+            "structure_confirmed": True, "setup_type": "BREAKOUT",
             "data_date": "2026-10-09",
             "entry_zone": [10.0, 10.1], "invalidation_price": 9.5,
             "initial_risk_pct": 5.94
         })
+        stock_confirmed["technical_context"]["prior_60d_high"]=10.0
         stock_confirmed["technical_context"]["attention_resistance"] = {
             "status": "VERIFIED", "price": 13.5, "date": "2026-09-22",
             "source": "asof_180bar_confirmed_pivot", "history_points": 180
         }
-        research = {"trade_date": "2026-10-09",
-                    "companies": [{"trend_name": "固态电池"}]}
-        top = engine.dynamic_top5_by_theme([], [early, stock_confirmed], research)
-        self.assertEqual(top[0]["items"][0]["code"], "600985")
-        pick = engine.select_focus_watchlist([], [early, stock_confirmed], research, top)
+        research={"trade_date":"2026-10-09",
+                  "companies":[{"trend_name":"固态电池"}]}
+        top=engine.dynamic_top5_by_theme([], [early, stock_confirmed], research)
+        self.assertEqual([i["code"] for i in top[0]["items"]],
+                         ["600985", "002128"])
+        self.assertEqual(engine.top5_rank_details(early)["follow_signal"],
+                         "FRESH_BREAK_AND_RECENT_SWEEP_RECLAIM")
+        self.assertTrue(engine.top5_rank_details(early)["ignores_formal_60day_confirmation"])
+        self.assertIsNone(engine.top5_rank_details(early)["observation_risk_pct"])
+        pick=engine.select_focus_watchlist([], [early, stock_confirmed], research, top)
         self.assertEqual(pick[0]["code"], "600985")
         self.assertEqual(pick[0]["status"], "EARLY_FOCUS_NOT_READY")
+
 
     def test_only_five_per_theme_across_industries(self):
         rows=[wait_stock("%06d"%(600001+i),"REPAIRING",support=9.4)
