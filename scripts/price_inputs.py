@@ -71,7 +71,7 @@ class SelectedStockStructures:
 
     @staticmethod
     def _attention_resistance(rows, current, trade_date):
-        """As-of 120-180-bar confirmed swing-high for READY gate and Top5 ranking."""
+        """As-of 120–180-bar confirmed swing-high for READY gate and Top5 risk annotation only."""
         if len(rows) < 120 or rows[-1]["date"] != trade_date:
             return {"status": "UNVERIFIED", "price": None,
                     "reason": "not_enough_same_day_history"}

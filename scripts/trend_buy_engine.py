@@ -472,7 +472,7 @@ def top5_rank_details(row):
         + .20 * normalized(ctx.get("relative_strength_20d_vs_market_pct"), 0., 15.)
         + .10 * normalized(up5, 2., 3.)
     )
-    # Deterministic, non-weighted comparison; no unknown risk is rewarded.
+    # Lexicographic comparison; weighted volume evidence is only a late tie-breaker.
     ranking_key = (
         int(overextended), trend_tier, signal_tier,
         round(position_distance, 5),
@@ -499,7 +499,7 @@ def top5_rank_details(row):
 
 
 
-def top5_rank_key(row, fundamental=None):
+def top5_rank_key(row):
     """Deterministic order of *already-selected* Top5; fundamentals unused."""
     return top5_rank_details(row)["ranking_key"]
 
@@ -587,22 +587,17 @@ def dynamic_top5_by_theme(ready, wait, research):
 
 
 def add_attention_priorities(groups, ready, wait, research):
-    """Add an independent per-theme research order without reordering Top5.
+    """Annotate existing Top5 order; never create another ranking.
 
-    The only fundamental input is the existing same-run pre-screen audit;
-    attention is not a new eligibility, READY or trading signal.
+    Legacy fundamental context affects annotation wording only. This function
+    must not change Top5 membership, order, READY/WAIT or trade-plan fields.
     """
     audit = research.get("screen_audit") or {}
     fundamentals = {x["code"]: x.get("fundamental_score")
                     for x in audit.get("pre_screen_selected", [])
                     if isinstance(x, dict) and x.get("code")}
     lookup = {row["code"]: row for row in ready + wait}
-    phase_quality = {
-        "REACCELERATING": 1.0, "INITIATING": .9, "REPAIRING": .65,
-        "PULLBACK": .6, "TRANSITION": .45,
-    }
-
-    def priority(item):
+    def annotation_metrics(item):
         row = lookup[item["code"]]
         ref = item.get("reference") or {}
         current = item.get("current_price")
@@ -633,8 +628,7 @@ def add_attention_priorities(groups, ready, wait, research):
         overheated = ((val(ma20_distance)
                        and ma20_distance > MAX_MA20_DISTANCE_PCT)
                       or ctx.get("chase_risk") == "high")
-        # READY always first. Within WAIT reward/risk and overextension
-        # precede momentum/trigger proximity; unknown is never unlimited upside.
+        # Legacy annotation tier only; never changes the PR54-based Top5 order.
         if row["status"] == "READY":
             tier = 0
         elif valid_zone and not overheated and space_status == "SUFFICIENT":
@@ -649,26 +643,18 @@ def add_attention_priorities(groups, ready, wait, research):
             tier = 6
         quality = fundamentals.get(row["code"])
         quality = max(0, min(1, quality)) if val(quality) else None
-        risk_fit = max(0, 1 - risk / 8) if val(risk) else 0
-        reward_fit = (max(0, min(1, reward_r / MIN_UPSIDE_R))
-                      if reward_r is not None else .25)
-        risk_space_fit = .5 * risk_fit + .5 * reward_fit
-        distance_fit = max(0, 1 - distance / 8) if val(distance) else 0
-        phase_fit = phase_quality.get(row.get("trend_phase"), .4)
-        position = .5 * risk_space_fit + .35 * distance_fit + .15 * phase_fit
-        # Balanced only *inside* the non-negotiable buy-point evidence tiers.
-        # A missing financial score stays neutral, never an invented advantage.
-        combined = .5 * position + .5 * (quality if quality is not None else .5)
-        return (tier, combined, quality, risk, distance, reward_r,
+        # Previous risk_fit/reward_fit/position/combined score calculations
+        # were dead: they no longer informed order or annotations.
+        return (tier, quality, risk, distance, reward_r,
                 space_status, overheated, ma20_distance, overhead)
 
     for group in groups:
         items = group.get("items", [])
-        metrics = {item["code"]: priority(item) for item in items}
+        metrics = {item["code"]: annotation_metrics(item) for item in items}
         # Single public ranking: attention fields describe the formal Top5 order.
         for rank, item in enumerate(items, 1):
             row = lookup[item["code"]]
-            (tier, _, quality, risk, distance, reward_r,
+            (tier, quality, risk, distance, reward_r,
              space_status, overheated, ma20_distance, overhead) = metrics[item["code"]]
             if overheated:
                 judgement = "偏离MA20过大，暂缓追涨；" + (
@@ -700,6 +686,7 @@ def add_attention_priorities(groups, ready, wait, research):
                 judgement = "优先深研并跟踪买点"
             else:
                 judgement = "关注结构确认"
+            rank_details = top5_rank_details(row)
             item["attention_rank"] = rank
             item["attention_judgement"] = judgement
             item["attention_resistance_check"] = {
@@ -713,9 +700,9 @@ def add_attention_priorities(groups, ready, wait, research):
                 "chase_risk_high": bool(overheated),
                 "note": (
                     "Top5按近期趋势→当前跟随信号→试错成本→量价排序；"
-                    + "近期结构:" + top5_rank_details(row)["follow_signal"]
+                    + "近期结构:" + rank_details["follow_signal"]
                     + "；观察风险:"
-                    + top5_rank_details(row)["risk_basis"]
+                    + rank_details["risk_basis"]
                     + "；未知R不计分；READY/WAIT及1.5R正式门槛独立执行"
                 ),
             }

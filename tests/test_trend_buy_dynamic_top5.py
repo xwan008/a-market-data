@@ -1,5 +1,7 @@
 """Regression for new-entry phase, full thematic ranking and no future leakage."""
+import copy
 import importlib.util
+import json
 import unittest
 from pathlib import Path
 
@@ -33,6 +35,38 @@ def wait_stock(code, phase, p=10, ma20=9.8, ma60=10.1, support=9.4, sector="å›ºæ
                                   "close_location_pct":75}}
 
 class DynamicStageTests(unittest.TestCase):
+    def test_pinned_20261023_top5_cleanup_preserves_exact_annotations(self):
+        """Dead scoring cleanup must be byte-equivalent at the Top5 output layer.
+
+        Pinned from the last published two-theme formal result BEFORE cleanup;
+        frozen fixture remains stable when future formal reports overwrite main.
+        The real 10/23 output's annotation wording does not use prescreen
+        fundamentals, so no undisclosed old fundamental ranks are required.
+        """
+        snapshot = json.loads((ROOT / "tests" / "fixtures" /
+                               "top5_cleanup_2026-10-23.json").read_text(
+                                   encoding="utf-8"))
+        self.assertEqual(snapshot["trade_date"], "2026-10-23")
+        original = snapshot["groups"]
+        rerun = copy.deepcopy(original)
+        original_order = [(g["trend_name"], [x["code"] for x in g["items"]])
+                          for g in original]
+        for group in rerun:
+            for item in group["items"]:
+                for annotation in ("attention_rank", "attention_judgement",
+                                   "attention_resistance_check"):
+                    item.pop(annotation, None)
+        result = engine.add_attention_priorities(
+            rerun, [], snapshot["rows"], snapshot["research"])
+        self.assertEqual(result, original)
+        self.assertEqual(original_order, [
+            (g["trend_name"], [x["code"] for x in g["items"]]) for g in result
+        ])
+        self.assertEqual([x["code"] for x in result[1]["items"]],
+                         ["603275", "603416", "002979", "603025", "603583"])
+        self.assertEqual([r["status"] for r in snapshot["rows"]],
+                         ["WAIT"] * 10)
+
     def test_recent_closing_support_uses_prior_bars_only(self):
         h = [
             {"date":"2026-10-20","open":43.19,"high":45.68,"low":43.15,"close":45.20,"volume":100},
