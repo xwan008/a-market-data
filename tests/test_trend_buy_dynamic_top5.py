@@ -101,7 +101,7 @@ class DynamicStageTests(unittest.TestCase):
                     "intraday_support_broken":prior_support=="SAME_DAY_SWEEP_RECLAIM",
                 } if prior_support else {
                     "data_date":"2026-10-23","lookback_trading_days":3,
-                    "pattern":"NO_RECENT_CLOSE_SUPPORT"})
+                    "pattern":"NO_RECENT_CLOSE_SUPPORT"}})
             return x
         sweep=stock("600002","SAME_DAY_SWEEP_RECLAIM")
         old60=stock("600001",None)
