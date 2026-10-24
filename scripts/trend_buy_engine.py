@@ -488,10 +488,12 @@ def top5_rank_details(row):
         + .20 * normalized(ctx.get("relative_strength_20d_vs_market_pct"), 0., 15.)
         + .10 * normalized(ev.get("positive_days_5d"), 2., 3.)
     )
+    # Overextended entries are deferred BEFORE trend tiers: a strong trend is
+    # not permission to chase beyond the existing 8% / high-chase warnings.
     # No old R or recycled fundamentals enter this key. Quantities are
     # intentionally bounded and only disambiguate the same trend/signal tier.
     ranking_key = (
-        trend_tier, follow_tier, int(overextended),
+        int(overextended), trend_tier, follow_tier,
         0 if risk_basis != "UNKNOWN_NOT_ZERO" else 1,
         round(risk_key, 5), round(extension_key, 5),
         -round(volume_strength, 6), row.get("code") or ""
