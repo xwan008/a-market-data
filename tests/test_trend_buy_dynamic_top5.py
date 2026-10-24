@@ -35,22 +35,14 @@ def wait_stock(code, phase, p=10, ma20=9.8, ma60=10.1, support=9.4, sector="固�
                                   "close_location_pct":75}}
 
 class DynamicStageTests(unittest.TestCase):
-    def test_pinned_20261023_top5_cleanup_preserves_exact_annotations(self):
-        """Dead scoring cleanup must be byte-equivalent at the Top5 output layer.
-
-        Pinned from the last published two-theme formal result BEFORE cleanup;
-        frozen fixture remains stable when future formal reports overwrite main.
-        The real 10/23 output's annotation wording does not use prescreen
-        fundamentals, so no undisclosed old fundamental ranks are required.
-        """
+    def test_pinned_20261023_top5_explanations_change_not_member_rank_risk_values(self):
+        """Labels may change, but all previously published non-prose fields stay."""
         snapshot = json.loads((ROOT / "tests" / "fixtures" /
                                "top5_cleanup_2026-10-23.json").read_text(
                                    encoding="utf-8"))
         self.assertEqual(snapshot["trade_date"], "2026-10-23")
         original = snapshot["groups"]
         rerun = copy.deepcopy(original)
-        original_order = [(g["trend_name"], [x["code"] for x in g["items"]])
-                          for g in original]
         for group in rerun:
             for item in group["items"]:
                 for annotation in ("attention_rank", "attention_judgement",
@@ -58,14 +50,80 @@ class DynamicStageTests(unittest.TestCase):
                     item.pop(annotation, None)
         result = engine.add_attention_priorities(
             rerun, [], snapshot["rows"], snapshot["research"])
-        self.assertEqual(result, original)
-        self.assertEqual(original_order, [
-            (g["trend_name"], [x["code"] for x in g["items"]]) for g in result
-        ])
+        self.assertEqual(len(original), len(result))
+        for past, current in zip(original, result):
+            self.assertEqual(past["trend_name"], current["trend_name"])
+            self.assertEqual(
+                [x["code"] for x in past["items"]],
+                [x["code"] for x in current["items"]])
+            for index, (old, new) in enumerate(zip(past["items"],
+                                                    current["items"]), 1):
+                self.assertEqual({k: v for k, v in old.items()
+                                  if k not in ("attention_rank", "attention_judgement",
+                                               "attention_resistance_check")},
+                                 {k: v for k, v in new.items()
+                                  if k not in ("attention_rank", "attention_judgement",
+                                               "attention_resistance_check")})
+                self.assertEqual(old["attention_rank"], new["attention_rank"])
+                self.assertEqual(new["attention_rank"], index)
+                self.assertEqual(
+                    {k: v for k, v in old["attention_resistance_check"].items()
+                     if k != "note"},
+                    {k: v for k, v in new["attention_resistance_check"].items()
+                     if k != "note"})
+                self.assertTrue(new["attention_judgement"].startswith("Top5关注排序依据："))
+                self.assertIn("不是交易买入许可", new["attention_judgement"])
+                self.assertNotIn("PR #", new["attention_judgement"])
+                self.assertNotIn("试错成本", new["attention_judgement"])
+                self.assertIn("历史阻力和1.5R为交易准入检查",
+                              new["attention_resistance_check"]["note"])
         self.assertEqual([x["code"] for x in result[1]["items"]],
                          ["603275", "603416", "002979", "603025", "603583"])
-        self.assertEqual([r["status"] for r in snapshot["rows"]],
-                         ["WAIT"] * 10)
+        self.assertTrue(all(x["status"] == "WAIT" for x in snapshot["rows"]))
+
+    def test_rank_explanation_independent_of_old_formal_tiers(self):
+        """Formal R and financial quality may change the risk note, never why ranked."""
+        x = wait_stock("600001", "INITIATING", ma60=9.5)
+        x.update(data_date="2026-10-23",
+                 phase_evidence={"fresh_break": True, "return_5d_pct": 6.2,
+                                 "positive_days_5d": 4})
+        x["technical_context"].update({
+            "volume_ratio_1d_vs_20d": 2.1, "close_location_pct": 93,
+            "distance_to_ma20_pct": 2.04,
+            "recent_acceptance": {
+                "pattern": "SAME_DAY_SWEEP_RECLAIM",
+                "data_date": "2026-10-23", "lookback_trading_days": 3,
+                "support_close_band": [9.1, 9.1],
+                "support_dates": ["2026-10-21", "2026-10-22"],
+                "support_low": 8.9, "intraday_support_broken": True}})
+        research = {"trade_date": "2026-10-23",
+                    "companies": [{"trend_name": "固态电池"}],
+                    "screen_audit": {"pre_screen_selected": [
+                        {"code": "600001", "fundamental_score": .02}]}}
+        group = engine.dynamic_top5_by_theme([], [x], research)
+        engine.add_attention_priorities(group, [], [x], research)
+        first = group[0]["items"][0]
+        explanation = first["attention_judgement"]
+        self.assertIn("盘中刺破后收复", explanation)
+        self.assertIn("失效条件未定", explanation)
+        self.assertNotIn("优先深研", explanation)
+        self.assertIn("不据当日最低价新造止损",
+                      first["attention_resistance_check"]["note"])
+        altered = copy.deepcopy(x)
+        altered.update(status="READY", structure_confirmed=True,
+                       setup_type="BREAKOUT", entry_zone=[10.0,10.2],
+                       invalidation_price=9.7, initial_risk_pct=4.9)
+        altered["technical_context"]["attention_resistance"] = {
+            "status":"VERIFIED", "price":12.5,"date":"2026-09-01",
+            "source":"asof_180bar_confirmed_pivot","history_points":180}
+        another = copy.deepcopy(group)
+        research["screen_audit"]["pre_screen_selected"][0]["fundamental_score"] = .99
+        engine.add_attention_priorities(another, [altered], [], research)
+        second = another[0]["items"][0]
+        self.assertEqual(second["attention_rank"], 1)
+        self.assertEqual(second["attention_judgement"], explanation)
+        self.assertNotEqual(second["attention_resistance_check"]["note"],
+                            first["attention_resistance_check"]["note"])
 
     def test_recent_closing_support_uses_prior_bars_only(self):
         h = [
@@ -332,7 +390,7 @@ class DynamicStageTests(unittest.TestCase):
         self.assertEqual(by_code["600002"]["attention_rank"], 2)
         self.assertEqual(by_code["600001"]["attention_rank"], 1)
         self.assertIsNone(by_code["600002"]["reference"]["reference_zone"])
-        self.assertIn("可执行", by_code["600002"]["attention_judgement"])
+        self.assertIn("不是交易买入许可", by_code["600002"]["attention_judgement"])
 
     def test_overhead_constraint_demotes_overheated_confirmed_wait_without_changing_focus(self):
         hot = wait_stock("600001", "REACCELERATING", p=10, ma20=9.2,
@@ -370,7 +428,8 @@ class DynamicStageTests(unittest.TestCase):
         self.assertEqual(by_code["600001"]["attention_rank"], 2)
         self.assertEqual(by_code["600001"]["attention_resistance_check"]["status"], "LIMITED")
         self.assertTrue(by_code["600001"]["attention_resistance_check"]["chase_risk_high"])
-        self.assertIn("暂缓追涨", by_code["600001"]["attention_judgement"])
+        self.assertIn("短线过热标记参与排序", by_code["600001"]["attention_judgement"])
+        self.assertIn("暂缓追涨", by_code["600001"]["attention_resistance_check"]["note"])
         self.assertEqual([x["code"] for x in groups[0]["items"]], old_order)
         self.assertEqual(engine.select_focus_watchlist([], [hot, room], research, groups),
                          old_focus)
@@ -477,7 +536,8 @@ class DynamicStageTests(unittest.TestCase):
             [], [weak,strong],research)[0]["items"]], ["600001","600002"])
         engine.add_attention_priorities([g], [], [weak, strong], research)
         self.assertEqual([x["attention_rank"] for x in g["items"]], [1, 2])
-        self.assertIn("近期趋势", g["items"][0]["attention_resistance_check"]["note"])
+        self.assertIn("历史阻力和1.5R为交易准入检查",
+                      g["items"][0]["attention_resistance_check"]["note"])
         focus = engine.select_focus_watchlist([], [weak, strong], research, [g])
         self.assertEqual(focus[0]["code"], "600001")
         self.assertEqual(focus[0]["status"], "EARLY_FOCUS_NOT_READY")
