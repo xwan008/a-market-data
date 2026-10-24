@@ -1,0 +1,43 @@
+name: Validate frozen PR54 Top5 A-B pairwise shadow (research only)
+on:
+  pull_request:
+    paths:
+      - 'experiments/top5_ab_pairwise_shadow.py'
+      - 'experiments/fixtures/top5_ab_2026-10-23.json'
+      - 'experiments/README_top5_ab_pairwise_shadow.md'
+      - 'tests/test_top5_ab_pairwise_shadow.py'
+      - '.github/workflows/validate-top5-ab-pairwise-shadow.yml'
+permissions:
+  contents: read
+jobs:
+  prove-shadow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Snapshot official formal and handoff hashes
+        run: |
+          sha256sum research/trend_buy_formal_result.json research/trend_buy_handoff.json research/trend_buy_company_reviews/latest.json > /tmp/formal-protected-shas
+      - name: Run A-B frozen snapshot and no-leakage regression
+        run: |
+          python -m py_compile experiments/top5_ab_pairwise_shadow.py tests/test_top5_ab_pairwise_shadow.py
+          python -m unittest discover -s tests -p 'test_top5_ab_pairwise_shadow.py' -v
+      - name: Reproduce exact archived date and check read-only behavior
+        run: |
+          python experiments/top5_ab_pairwise_shadow.py --asof 2026-10-23 --output /tmp/top5-ab-20261023.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/top5-ab-20261023.json').read_text())
+          assert x['read_only'] is True and x['modifies_formal_or_ready'] is False
+          assert all(g['membership_unchanged'] for g in x['main'])
+          assert len(x['main'])==2 and sum(len(g['candidate_evidence']) for g in x['main'])==10
+          for g in x['main']:
+              print('AB_SHADOW_TIERS',json.dumps({'theme':g['theme'],
+                    'A':g['A_formal_order'],'B':g['B_evidence_tiers'],
+                    'sensitivity':g['sensitivity']},ensure_ascii=False))
+          PY
+          sha256sum --check /tmp/formal-protected-shas
