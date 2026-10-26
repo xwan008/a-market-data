@@ -1,0 +1,101 @@
+name: Shadow end-to-end concept Top20 to buy Top5 review
+
+on:
+  push:
+    branches: [feature/hotspot-theme-identification-20261026]
+    paths: [".github/workflows/shadow-concept-buy-handoff.yml"]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  shadow-handoff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - uses: actions/download-artifact@v4
+        with:
+          name: mainboard-concept-breadth-20261026
+          run-id: 40347347572
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: /tmp/mainboard-concept
+      - name: Validate concept Top20 scope and original trend state
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          def read(p):return json.loads(Path(p).read_text())
+          snapshot=read('/tmp/mainboard-concept/2026-10-26.json')
+          signal=snapshot['routes'][0]
+          upstream=read('research/trend_handoff.json')['signals'][0]
+          assert snapshot['trade_date']=='2026-10-26'
+          assert snapshot['market_scope']=='SH_SZ_MAINBOARD_ONLY'
+          assert signal['hotspot_type']=='THEME'
+          assert signal['recognition_basis']=='CONCEPT_3D_5D_STRUCTURE'
+          assert signal['concept_member_count']==482
+          assert signal['concept_mainboard_member_count']==227
+          assert len(signal['candidate_stocks'])==20
+          assert signal['trend_state']==upstream['trend_state']
+          for c in signal['candidate_stocks']:
+              assert c['stock_code'].startswith(('600','601','603','605','000','001','002','003'))
+          print('MAINBOARD_TOP20_VERIFIED', len(signal['candidate_stocks']),flush=True)
+          PY
+      - name: Rebuild frozen structure input for selected main-board stocks
+        run: |
+          python scripts/build_history.py
+          python scripts/build_bridge.py
+      - name: Read concept Top20 in existing formal research builder, shadow only
+        run: |
+          python scripts/build_trend_buy_manual_research.py \
+            --evidence research/trend_buy_company_reviews/latest.json \
+            --theme-candidates /tmp/mainboard-concept/2026-10-26.json \
+            --structure-output /tmp/selected-concept-structure.json \
+            --output /tmp/selected-concept-research.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          research=json.loads(Path('/tmp/selected-concept-research.json').read_text())
+          data=json.loads(Path('/tmp/mainboard-concept/2026-10-26.json').read_text())
+          candidates=set(x['stock_code'] for x in data['routes'][0]['candidate_stocks'])
+          selected=research['companies']
+          audit=research['screen_audit']
+          assert audit['theme_group_count']==1
+          assert 0 <= len(selected)<=5
+          assert len(selected)==len(set(x['code'] for x in selected))
+          assert all(x['code'] in candidates for x in selected)
+          assert all(x['code'].startswith(('600','601','603','605','000','001','002','003')) for x in selected)
+          assert research['mode']=='SHADOW' or research['mode']=='FORMAL'
+          if audit['source_review_pending_count']:
+              assert research['mode']=='SHADOW'
+              assert research['publication_audit']['company_research_coverage'] is False
+          summary={
+            'status':'SHADOW_NO_PUBLICATION',
+            'source_date':research['trade_date'],
+            'concept':'人形机器人',
+            'concept_code':'886069',
+            'upstream_trend_state':data['routes'][0]['trend_state'],
+            'technical_top20_count':len(candidates),
+            'post_business_screen_count':len(selected),
+            'post_business_screen_codes':[x['code'] for x in selected],
+            'research_mode':research['mode'],
+            'research_review_missing':audit['source_review_pending_codes'],
+            'technical_gate_count':audit['hard_eligible'],
+            'publish_permitted': False
+          }
+          Path('/tmp/concept_buy_handoff_summary.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2))
+          print('MAINBOARD_CONCEPT_BUY_RESEARCH',json.dumps(summary,ensure_ascii=False),flush=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mainboard-concept-buy-handoff-shadow-20261026
+          path: |
+            /tmp/selected-concept-research.json
+            /tmp/selected-concept-structure.json
+            /tmp/concept_buy_handoff_summary.json
+          retention-days: 14
+          if-no-files-found: ignore
