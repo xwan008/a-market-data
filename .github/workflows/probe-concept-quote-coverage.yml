@@ -25,10 +25,21 @@ jobs:
           path: /tmp/verified-prior-shadow
       - name: Install existing market dependencies
         run: pip install -r requirements.txt
+      - name: Scope archived concept membership honestly
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          source=Path('/tmp/verified-prior-shadow/concept_membership_asof.json')
+          snapshot=json.loads(source.read_text())
+          snapshot['catalog_scope']='SINGLE_BOARD_ONLY'
+          Path('/tmp/current_concept_probe.json').write_text(json.dumps(snapshot,ensure_ascii=False))
+          print('SCOPE_IS_SINGLE_BOARD_NOT_WHOLE_MARKET')
+          PY
       - name: Probe raw unfiltered providers for missing concept members
         run: |
           python -u scripts/probe_concept_quote_supplement.py \
-            --concept-file /tmp/verified-prior-shadow/concept_membership_asof.json \
+            --concept-file /tmp/current_concept_probe.json \
             --output /tmp/robot_concept_quote_supplement.json
           python - <<'PY'
           import json
@@ -44,7 +55,7 @@ jobs:
         run: |
           python scripts/build_full_market_price_structure.py
           python scripts/route_hotspot_themes.py \
-            --concept-file /tmp/verified-prior-shadow/concept_membership_asof.json \
+            --concept-file /tmp/current_concept_probe.json \
             --supplement-quotes /tmp/robot_concept_quote_supplement.json \
             --output-dir /tmp/robot_concept_supplemented
           python - <<'PY'
@@ -52,6 +63,25 @@ jobs:
           from pathlib import Path
           routes=json.loads(Path('/tmp/robot_concept_supplemented/2026-10-26.json').read_text())
           row=routes['routes'][0]
+          catalog=json.loads(Path('/tmp/current_concept_probe.json').read_text())
+          latest=json.loads(Path('data/latest.json').read_text())
+          supplement=json.loads(Path('/tmp/robot_concept_quote_supplement.json').read_text())
+          members=catalog['concepts'][0]['member_codes']
+          full={**supplement['stocks'],**latest['stocks']}
+          prices=[]
+          for code in members:
+              quote=full.get(code) or {}
+              if quote.get('confidence') not in ('medium','high'):continue
+              price,prev=quote.get('price'),quote.get('prev_close')
+              if price is None or prev is None or float(prev)<=0:continue
+              prices.append((float(price)/float(prev)-1)*100)
+          from statistics import median
+          print('CONCEPT_FULL_QUOTE_BREADTH',json.dumps({
+            'member_count':len(members),'usable':len(prices),
+            'coverage':round(len(prices)/len(members),4),
+            'breadth_1d':round(sum(r>0 for r in prices)/len(prices),4) if prices else None,
+            'median_return_1d_pct':round(median(prices),4) if prices else None
+          },ensure_ascii=False),flush=True)
           print('REAL_DATA_ROUTING_VERDICT',json.dumps({
             'hotspot':row['trend_name'],'type':row['hotspot_type'],
             'reason':row.get('classification_reason'),
