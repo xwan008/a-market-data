@@ -106,7 +106,7 @@ def fetch_current_memberships(handoff):
             "as_of_trade_date": trade_date, "concepts": concepts}
 
 
-def build(handoff, industry_index, latest, structure, catalog, cap=20):
+def build(handoff, industry_index, latest, structure, catalog, cap=20, supplement=None):
     date = handoff.get("trade_date")
     if (not date or handoff.get("result_kind") != "a_share_trend_handoff" or
             latest.get("trade_date") != date or latest.get("market_status") != "closed" or
@@ -114,7 +114,15 @@ def build(handoff, industry_index, latest, structure, catalog, cap=20):
         raise ValueError("INPUTS_NOT_SAME_COMPLETED_SESSION")
     concepts = validate_memberships(catalog, date)
     company_map = industry_index.get("companies") or {}
-    latest_quotes = latest.get("stocks") or {}
+    latest_quotes = dict(latest.get("stocks") or {})
+    if supplement is not None:
+        if (supplement.get("trade_date") != date or
+                supplement.get("market_status") != "closed" or
+                supplement.get("result_kind") != "concept_quote_supplement" or
+                not isinstance(supplement.get("stocks"), dict)):
+            raise ValueError("CONCEPT_QUOTE_SUPPLEMENT_ASOF_INVALID")
+        # Existing frozen market quotes always take precedence over supplemental quotes.
+        latest_quotes = {**supplement["stocks"], **latest_quotes}
     price_structures = structure.get("companies") or {}
     if not company_map or not latest_quotes or not price_structures:
         raise ValueError("INPUT_UNIVERSE_INCOMPLETE")
@@ -133,23 +141,44 @@ def build(handoff, industry_index, latest, structure, catalog, cap=20):
         if not industry_members:
             raise ValueError("NO_INDUSTRY_SEED:" + signal["trend_name"])
         choices = []
+        incomplete = []
+        matched_concepts = []
         for concept in concepts:
             name_match = name_strength(signal["trend_name"], concept["name"])
             if name_match < 2:
                 continue
-            codes = set(concept["member_codes"]) & set(company_map)
+            full_members = set(concept["member_codes"])
+            matched_concepts.append(concept["concept_id"])
+            # Never divide by the mainboard-only SW universe, or an incomplete
+            # concept will be falsely reported as an industry opportunity.
             values = [(code, get_return(latest_quotes.get(code) or {}))
-                      for code in codes]
+                      for code in full_members]
             valid = [(code, r) for code, r in values if r is not None]
-            if len(valid) < 5 or len(valid) / max(len(codes), 1) < .8:
+            actual_coverage = len(valid) / len(full_members)
+            if len(valid) < 5 or actual_coverage < .8:
+                incomplete.append({
+                    "concept_id": concept["concept_id"],
+                    "concept_name": concept["name"],
+                    "member_count": len(full_members),
+                    "quoted_count": len(valid),
+                    "quote_coverage": round(actual_coverage, 4),
+                    "missing_from_frozen_quotes": sum(
+                        c not in (latest.get("stocks") or {}) for c in full_members),
+                    "missing_from_industry_index": sum(
+                        c not in company_map for c in full_members),
+                    "reason": "INSUFFICIENT_CONCEPT_QUOTE_COVERAGE"
+                })
                 continue
+            # The full breadth is based on ALL available named concept members;
+            # SW memberships are still only used for the research-stage subset.
+            codes = full_members & set(company_map)
             bread = sum(r > 0 for _, r in valid) / len(valid)
             med = median(r for _, r in valid)
             extra_up = sum(code not in industry_members and r >= 1
                            for code, r in valid)
             rising = sum(r >= 1 for _, r in valid)
             industries = {company_map[code].get("industry_code")
-                          for code, _ in valid}
+                          for code, _ in valid if code in company_map}
             # A concept must materially explain strength OUTSIDE the original SW route.
             is_theme = (len(industries) >= 3 and extra_up >= 3 and
                         extra_up / max(rising, 1) >= .25 and
@@ -157,19 +186,26 @@ def build(handoff, industry_index, latest, structure, catalog, cap=20):
             choices.append({"concept": concept, "codes": codes, "breadth": bread,
                             "median": med, "extra_up": extra_up, "rising": rising,
                             "industry_count": len(industries), "match": name_match,
-                            "valid": is_theme, "quote_coverage": len(valid) / len(codes)})
+                            "valid": is_theme, "quote_coverage": actual_coverage})
         eligible = [c for c in choices if c["valid"]]
         eligible.sort(key=lambda x: (-x["match"], -x["extra_up"] / max(x["rising"], 1),
                                      -x["median"], x["concept"]["concept_id"]))
         best = eligible[0] if eligible else None
+        # A relevant matched concept with insufficient quotes is UNKNOWN,
+        # not a negative theme finding and definitely not a positive industry classification.
+        unresolved = bool(not best and incomplete)
         row = {"rank": signal["rank"], "trend_name": signal["trend_name"],
                "trend_state": signal["trend_state"], "market_state": signal["market_state"],
-               "hotspot_type": "THEME" if best else "INDUSTRY",
+               "hotspot_type": "THEME" if best else "DATA_INSUFFICIENT" if unresolved else "INDUSTRY",
                "original_industry_codes": signal["industry_codes"],
                "mapping_source": catalog["source"] if best else "SW_LEVEL3",
                "mapping_code": best["concept"]["concept_id"] if best else None,
                "mapping_name": best["concept"]["name"] if best else None,
-               "candidate_stocks": []}
+               "candidate_stocks": [],
+               "matched_concepts": matched_concepts,
+               "insufficient_concepts": incomplete,
+               "classification_reason": "CONCEPT_COVERAGE_UNVERIFIED" if unresolved else
+                   "CONCEPT_EVIDENCE_SUPPORTED" if best else "INDUSTRY_MAPPING_RETAINED"}
         if best:
             row.update({"concept_member_count": len(best["concept"]["member_codes"]),
                         "concept_member_codes": best["concept"]["member_codes"],
@@ -212,17 +248,20 @@ def main():
     parser.add_argument("--structure", default="data/research/full_market_price_structure.json")
     parser.add_argument("--concept-file", help="Verified same-day membership snapshot (historical replay)")
     parser.add_argument("--output-dir", default="data/research/theme_stock_candidates")
+    parser.add_argument("--supplement-quotes", help="Same-day concept-only quote supplement, never overwrites frozen base")
     args = parser.parse_args()
     handoff = read(args.handoff)
     catalog = read(args.concept_file) if args.concept_file else fetch_current_memberships(handoff)
     result = build(handoff, read(args.industry_index), read(args.latest),
-                   read(args.structure), catalog)
+                   read(args.structure), catalog,
+                   supplement=read(args.supplement_quotes) if args.supplement_quotes else None)
     output = Path(args.output_dir) / (result["trade_date"] + ".json")
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n",
                       encoding="utf-8")
     print(json.dumps({"output": str(output), "industry": sum(x["hotspot_type"] == "INDUSTRY" for x in result["routes"]),
                       "themes": sum(x["hotspot_type"] == "THEME" for x in result["routes"]),
+                      "data_insufficient": sum(x["hotspot_type"] == "DATA_INSUFFICIENT" for x in result["routes"]),
                       "candidates": sum(len(x["candidate_stocks"]) for x in result["routes"])},
                      ensure_ascii=False))
 
