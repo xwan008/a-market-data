@@ -125,6 +125,13 @@ class ThemeBuyRoutingTests(unittest.TestCase):
         self.assertEqual(result["screen_audit"]["research_scope"],
                          "dynamic_tertiary_industry_top5_after_lightweight_scan")
 
+    def test_data_insufficient_blocks_formal_buy_pipeline(self):
+        self.route["routes"][0]["hotspot_type"] = "DATA_INSUFFICIENT"
+        self.route["routes"][0]["candidate_stocks"] = []
+        self.put("route.json", self.route)
+        with self.assertRaisesRegex(ValueError, "THEME_ROUTE_COVERAGE_INSUFFICIENT"):
+            self.run_builder()
+
     def test_changed_trend_state_blocks_stale_concept_snapshot(self):
         self.route["routes"][0]["trend_state"] = "T2"
         self.put("route.json", self.route)
