@@ -14,7 +14,6 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-import requests
 from route_hotspot_themes import name_strength
 
 BASE = "https://fuyao.aicubes.cn"
@@ -59,7 +58,9 @@ def date_from_timestamp(payload):
 
 
 def build(handoff, key, session=None, observed_trade_date=None):
-    session = session or requests.Session()
+    if session is None:
+        import requests
+        session = requests.Session()
     asof = handoff.get("trade_date")
     if (observed_trade_date or datetime.now(SH).date().isoformat()) != asof:
         raise ValueError("CURRENT_PROVIDER_CANNOT_REPLAY_HISTORICAL_MEMBERSHIP")
