@@ -57,11 +57,41 @@ jobs:
           python scripts/build_history.py
           python scripts/build_bridge.py
 
+      - name: Resolve same-day market theme and persist concept Top20
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install "akshare==1.18.94"
+          python scripts/route_hotspot_themes.py
+          DAY="$(python -c 'import json;print(json.load(open("research/trend_handoff.json"))["trade_date"])')"
+          FILE="data/research/theme_stock_candidates/$DAY.json"
+          test -s "$FILE"
+          python - "$FILE" <<'PY'
+          import json,sys
+          from pathlib import Path
+          r=json.loads(Path(sys.argv[1]).read_text())
+          assert r["status"]=="COMPLETE"
+          assert r["trade_date"]==Path(sys.argv[1]).stem
+          print("THEME_ROUTE_SNAPSHOT_VERIFIED",r["trade_date"],
+                [(x["trend_name"],x["hotspot_type"],len(x["candidate_stocks"]))
+                 for x in r["routes"]])
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$FILE"
+          if ! git diff --cached --quiet; then
+            git commit -m "research: verified daily concept Top20 routing snapshot"
+            git push origin HEAD:main
+            git fetch origin main
+            git show "origin/main:$FILE" | cmp - "$FILE"
+          fi
+
       - name: Fresh dynamic industry Top5 and selected company research
         run: |
           python scripts/build_trend_buy_manual_research.py \
             --evidence research/trend_buy_company_reviews/latest.json \
             --structure-output /tmp/mainline-scoped-structure.json \
+            --theme-candidates "data/research/theme_stock_candidates/$(python -c 'import json;print(json.load(open(\"research/trend_handoff.json\"))[\"trade_date\"])').json" \
             --output /tmp/mainline-fresh-research.json
 
       - name: Recompute every selected entry, theme Top5 and risk plan
@@ -87,7 +117,12 @@ jobs:
           assert res['trade_date']==research['trade_date']==technical['reference_trade_date']==day
           assert audit['hard_eligible']==len(audit['lightweight_scanned'])
           assert audit['hard_eligible']==len(audit['pre_screen_selected'])+len(audit['pre_screened_out'])
-          assert audit['research_scope']=='dynamic_tertiary_industry_top5_after_lightweight_scan'
+          assert audit['research_scope'] in ('dynamic_tertiary_industry_top5_after_lightweight_scan',
+                                             'dynamic_industry_or_concept_top5_after_lightweight_scan')
+          routefile=Path('data/research/theme_stock_candidates')/(day+'.json')
+          routing=src(routefile)
+          assert routing['trade_date']==day and routing['status']=='COMPLETE'
+          assert audit['theme_group_count']==sum(x['hotspot_type']=='THEME' for x in routing['routes'])
           assert len(audit['pre_screen_selected'])==research['selected_company_count']
           assert research['selected_company_count']==res['coverage']['judged']
           assert audit['source_review_pending_count']==0, ('RESEARCH_PENDING',audit['source_review_pending_codes'])
@@ -109,6 +144,7 @@ jobs:
               'run':'new_screen_new_issuer_review_new_price_analysis',
               'old_formal_or_replay_used_as_input':False,
               'industry_handoff_sha':subprocess.check_output(['git','rev-parse','HEAD:research/trend_handoff.json'],text=True).strip(),
+              'hotspot_route_snapshot_sha':subprocess.check_output(['git','hash-object',str(routefile)],text=True).strip(),
               'frozen_company_index_sha':subprocess.check_output(['git','rev-parse','HEAD:data/low_risk/index.json'],text=True).strip(),
               'company_review_sha':subprocess.check_output(['git','rev-parse','HEAD:research/trend_buy_company_reviews/latest.json'],text=True).strip(),
               'research_selected_company_count':research['selected_company_count'],
