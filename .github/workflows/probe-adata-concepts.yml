@@ -1,0 +1,62 @@
+name: Trial real concept membership sources (adata + Tushare)
+
+on:
+  push:
+    branches: [feature/hotspot-theme-identification-20261026]
+    paths:
+      - ".github/workflows/probe-adata-concepts.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install pinned existing dependencies and source adapters
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install adata tushare
+      - name: Probe three concept boards and optional historical Tushare
+        env:
+          TUSHARE_TOKEN: ${{ secrets.TUSHARE_TOKEN }}
+        run: |
+          timeout 420s python -u scripts/probe_theme_sources_adata.py
+      - name: Review completeness before marking usable
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('/tmp/adata_theme_probe_20261026.json')
+          if not p.exists():
+              print('VERDICT PROBE_INCOMPLETE_NO_OUTPUT')
+              raise SystemExit(1)
+          s=json.loads(p.read_text())
+          for item in s['samples']:
+              print('CONCEPT', item['wanted'],
+                    'web_code',item['web_concept_code']['status'],
+                    'web_count',item['web_concept_code'].get('returned_unique'),
+                    'index_code',item['index_code_full']['status'],
+                    'index_count',item['index_code_full'].get('returned_unique'),
+                    'provider_count',item['index_code_full'].get('vendor_declared_total'))
+          print('TUSHARE',s['tushare']['status'],
+                'members',s['tushare'].get('member_count'))
+          proven=sum(r['index_code_full']['status']=='COMPLETE_COUNT_MATCH' for r in s['samples'])
+          if not proven and s['tushare']['status']!='SUCCESS':
+              print('VERDICT NO_SOURCE_PROVED_COMPLETE; do not promote to production')
+              raise SystemExit(1)
+          print('VERDICT SOURCE_CHECK_PASSED_WITH_LIMITATIONS')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: adata-concept-probe-20261026
+          path: /tmp/adata_theme_probe_20261026.json
+          retention-days: 14
+          if-no-files-found: ignore
