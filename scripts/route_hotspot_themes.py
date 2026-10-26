@@ -70,6 +70,8 @@ def validate_memberships(catalog, trade_date):
             raise ValueError("CONCEPT_MEMBERSHIP_INVALID_ID")
         if not members or any(not CODE.fullmatch(str(x)) for x in members):
             raise ValueError("CONCEPT_MEMBERSHIP_INVALID_STOCK")
+        if len(members) != len(set(members)):
+            raise ValueError("CONCEPT_MEMBERSHIP_DUPLICATE_STOCK")
         seen.add(code)
     return rows
 
@@ -121,6 +123,13 @@ def build(handoff, industry_index, latest, structure, catalog, cap=20, supplemen
                 supplement.get("result_kind") != "concept_quote_supplement" or
                 not isinstance(supplement.get("stocks"), dict)):
             raise ValueError("CONCEPT_QUOTE_SUPPLEMENT_ASOF_INVALID")
+        for symbol, quote in supplement["stocks"].items():
+            if (not CODE.fullmatch(str(symbol)) or not isinstance(quote, dict) or
+                    quote.get("date") != date or
+                    quote.get("confidence") not in ("high", "medium") or
+                    safe_number(quote.get("price")) is None or
+                    safe_number(quote.get("prev_close")) is None):
+                raise ValueError("CONCEPT_SUPPLEMENT_QUOTE_NOT_DATE_VERIFIED")
         # Existing frozen market quotes always take precedence over supplemental quotes.
         latest_quotes = {**supplement["stocks"], **latest_quotes}
     price_structures = structure.get("companies") or {}
