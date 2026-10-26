@@ -61,6 +61,31 @@ class ThemeRouterTests(unittest.TestCase):
         self.assertTrue(all(x["stock_code"] in c["concepts"][0]["member_codes"]
                             for x in group["candidate_stocks"]))
 
+    def test_nonmainboard_missing_quotes_do_not_dilute_mainboard_concept(self):
+        h, i, q, structure, c = fixture()
+        # All the mainboard concept stocks are present and advancing;
+        # GEM/STAR/BSE are source-verified constituents but OUTSIDE research.
+        c["concepts"][0]["member_codes"] += ["300001", "688001", "830001"]
+        with patch("build_trend_buy_manual_research.compact_opportunity",
+                   side_effect=dummy_technical):
+            route = router.build(h, i, q, structure, c)["routes"][0]
+        self.assertEqual(route["hotspot_type"], "THEME")
+        self.assertEqual(route["concept_member_count"], 10)
+        self.assertEqual(route["concept_mainboard_member_count"], 7)
+        self.assertEqual(route["quote_coverage"], 1.0)
+        self.assertTrue(all(router.is_main_board(x["stock_code"])
+                            for x in route["candidate_stocks"]))
+
+    def test_mainboard_missing_quotes_are_still_insufficient(self):
+        h, i, q, structure, c = fixture()
+        c["concepts"][0]["member_codes"] += ["300001", "688001"]
+        for code in ["000003", "000004", "000005", "000006"]:
+            q["stocks"].pop(code)
+        row = router.build(h, i, q, structure, c)["routes"][0]
+        self.assertEqual(row["hotspot_type"], "DATA_INSUFFICIENT")
+        self.assertEqual(row["insufficient_concepts"][0]["mainboard_member_count"], 7)
+        self.assertEqual(row["insufficient_concepts"][0]["quoted_count"], 3)
+
     def test_single_industry_trend_retains_sw_route(self):
         h, i, q, s, c = fixture()
         h["signals"][0]["trend_name"] = "煤炭"
