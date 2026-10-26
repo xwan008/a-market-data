@@ -57,7 +57,7 @@ def get_return(quote):
 def validate_memberships(catalog, trade_date):
     if (catalog.get("schema_version") != 1 or
             catalog.get("as_of_trade_date") != trade_date or
-            catalog.get("source") != "EASTMONEY_AKSHARE"):
+            catalog.get("source") not in ("EASTMONEY_AKSHARE", "THS_AKSHARE")):
         raise ValueError("CONCEPT_MEMBERSHIP_DATE_OR_SOURCE_INVALID")
     rows = catalog.get("concepts")
     if not isinstance(rows, list):
@@ -75,35 +75,75 @@ def validate_memberships(catalog, trade_date):
 
 
 def fetch_current_memberships(handoff):
-    """Fetch only name-matching boards; NEVER label today's membership as a past snapshot."""
+    """Fetch source-verified current concept membership; never backfill a past snapshot."""
     trade_date = handoff["trade_date"]
     if datetime.now(SH).date().isoformat() != trade_date:
         raise ValueError("LIVE_MEMBERSHIP_NOT_POINT_IN_TIME_FOR_TRADE_DATE")
     import akshare as ak
-    listing = ak.stock_board_concept_name_em()
-    if not {"板块代码", "板块名称"}.issubset(listing.columns):
-        raise ValueError("EASTMONEY_BOARD_SCHEMA_CHANGED")
-    relevant = {}
-    for _, item in listing.iterrows():
-        code, name = str(item["板块代码"]), str(item["板块名称"])
-        if any(name_strength(s.get("trend_name"), name) >= 2
-               for s in handoff["signals"]):
-            relevant[code] = name
-    # Limit remote calls while preserving complete memberships for each fetched board.
-    if len(relevant) > 30:
-        raise ValueError("TOO_MANY_MATCHED_CONCEPTS_REQUIRE_ALIAS_REVIEW")
-    concepts = []
-    for code, name in sorted(relevant.items()):
-        members = ak.stock_board_concept_cons_em(symbol=code)
-        if not {"代码", "名称"}.issubset(members.columns):
-            raise ValueError("EASTMONEY_CONSTITUENT_SCHEMA_CHANGED:" + code)
-        codes = sorted({str(v).zfill(6) for v in members["代码"]})
-        if not codes or any(not CODE.fullmatch(c) for c in codes):
-            raise ValueError("EMPTY_OR_INVALID_CONCEPT:" + code)
-        concepts.append({"concept_id": code, "name": name, "member_codes": codes,
-                         "source": "EASTMONEY_AKSHARE"})
-    return {"schema_version": 1, "source": "EASTMONEY_AKSHARE",
-            "as_of_trade_date": trade_date, "concepts": concepts}
+    errors = []
+    try:
+        listing = ak.stock_board_concept_name_em()
+        if not {"板块代码", "板块名称"}.issubset(listing.columns):
+            raise ValueError("EASTMONEY_BOARD_SCHEMA_CHANGED")
+        relevant = {}
+        for _, item in listing.iterrows():
+            code, name = str(item["板块代码"]), str(item["板块名称"])
+            if any(name_strength(s.get("trend_name"), name) >= 2
+                   for s in handoff["signals"]):
+                relevant[code] = name
+        if not relevant:
+            raise ValueError("EASTMONEY_NO_RELEVANT_CONCEPT_FOUND")
+        if len(relevant) > 30:
+            raise ValueError("TOO_MANY_MATCHED_CONCEPTS_REQUIRE_ALIAS_REVIEW")
+        concepts = []
+        for code, name in sorted(relevant.items()):
+            members = ak.stock_board_concept_cons_em(symbol=code)
+            if not {"代码", "名称"}.issubset(members.columns):
+                raise ValueError("EASTMONEY_CONSTITUENT_SCHEMA_CHANGED:" + code)
+            codes = sorted({str(v).zfill(6) for v in members["代码"]})
+            if not codes or any(not CODE.fullmatch(c) for c in codes):
+                raise ValueError("EMPTY_OR_INVALID_CONCEPT:" + code)
+            concepts.append({"concept_id": code, "name": name, "member_codes": codes,
+                             "source": "EASTMONEY_AKSHARE"})
+        return {"schema_version": 1, "source": "EASTMONEY_AKSHARE",
+                "as_of_trade_date": trade_date, "concepts": concepts}
+    except Exception as exc:
+        errors.append("eastmoney:" + type(exc).__name__ + ":" + str(exc)[:160])
+
+    # An independent source is allowed, but must carry its true provider identity.
+    try:
+        listing = ak.stock_board_concept_name_ths()
+        name_col = next((c for c in listing.columns if c in ("概念名称", "板块名称", "名称")), None)
+        code_col = next((c for c in listing.columns if c in ("概念代码", "板块代码", "代码")), None)
+        if name_col is None:
+            raise ValueError("THS_BOARD_NAME_SCHEMA_CHANGED:" + str(list(listing.columns)))
+        relevant = {}
+        for _, item in listing.iterrows():
+            name = str(item[name_col]).strip()
+            code = str(item[code_col]).strip() if code_col is not None else "name:" + name
+            if any(name_strength(s.get("trend_name"), name) >= 2
+                   for s in handoff["signals"]):
+                relevant[code] = name
+        if not relevant:
+            raise ValueError("THS_NO_RELEVANT_CONCEPT_FOUND")
+        if len(relevant) > 30:
+            raise ValueError("TOO_MANY_MATCHED_CONCEPTS_REQUIRE_ALIAS_REVIEW")
+        concepts = []
+        for code, name in sorted(relevant.items()):
+            members = ak.stock_board_concept_cons_ths(symbol=name)
+            if "代码" not in members.columns:
+                raise ValueError("THS_CONSTITUENT_SCHEMA_CHANGED:" + name)
+            codes = sorted({str(v).zfill(6) for v in members["代码"]})
+            if not codes or any(not CODE.fullmatch(c) for c in codes):
+                raise ValueError("EMPTY_OR_INVALID_THS_CONCEPT:" + name)
+            concepts.append({"concept_id": code, "name": name, "member_codes": codes,
+                             "source": "THS_AKSHARE"})
+        print("CONCEPT_PROVIDER_FALLBACK",errors[0], "=> THS_AKSHARE",flush=True)
+        return {"schema_version": 1, "source": "THS_AKSHARE",
+                "as_of_trade_date": trade_date, "concepts": concepts}
+    except Exception as exc:
+        errors.append("ths:" + type(exc).__name__ + ":" + str(exc)[:160])
+    raise RuntimeError("ALL_CONCEPT_SOURCES_UNAVAILABLE:" + "; ".join(errors))
 
 
 def build(handoff, industry_index, latest, structure, catalog, cap=20):
@@ -166,7 +206,7 @@ def build(handoff, industry_index, latest, structure, catalog, cap=20):
                "trend_state": signal["trend_state"], "market_state": signal["market_state"],
                "hotspot_type": "THEME" if best else "INDUSTRY",
                "original_industry_codes": signal["industry_codes"],
-               "mapping_source": "EASTMONEY_AKSHARE" if best else "SW_LEVEL3",
+               "mapping_source": catalog["source"] if best else "SW_LEVEL3",
                "mapping_code": best["concept"]["concept_id"] if best else None,
                "mapping_name": best["concept"]["name"] if best else None,
                "candidate_stocks": []}
