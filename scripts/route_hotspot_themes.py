@@ -17,7 +17,7 @@ from zoneinfo import ZoneInfo
 
 SH = ZoneInfo("Asia/Shanghai")
 CODE = re.compile(r"^\d{6}$")
-GENERIC = {"工业", "自动化", "设备", "产业", "概念", "板块", "行业", "材料", "制造", "相关"}
+GENERIC = {"工业", "自动化", "工业自动化", "设备", "产业", "概念", "板块", "行业", "材料", "制造", "相关"}
 
 
 def read(path):
