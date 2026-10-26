@@ -1,0 +1,35 @@
+name: Validate hotspot concept routing
+
+on:
+  pull_request:
+    paths:
+      - "scripts/route_hotspot_themes.py"
+      - "scripts/build_trend_buy_manual_research.py"
+      - "tests/test_hotspot_theme_router.py"
+      - "tests/test_theme_buy_routing.py"
+      - ".github/workflows/run-trend-buy-formal.yml"
+      - ".github/workflows/validate-hotspot-routing.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  theme-routing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Syntax verification
+        run: |
+          python -m py_compile scripts/route_hotspot_themes.py scripts/build_trend_buy_manual_research.py
+          python -m py_compile tests/test_hotspot_theme_router.py tests/test_theme_buy_routing.py
+      - name: New classifier and integration regression
+        run: |
+          python -m unittest discover -s tests -p "test_hotspot_theme_router.py" -v
+          python -m unittest discover -s tests -p "test_theme_buy_routing.py" -v
+      - name: Existing buy prescreen compatibility
+        run: python -m unittest discover -s tests -p "test_trend_buy_prescreen.py" -v
