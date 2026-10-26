@@ -130,7 +130,7 @@ def fetch_current_memberships(handoff):
             raise ValueError("TOO_MANY_MATCHED_CONCEPTS_REQUIRE_ALIAS_REVIEW")
         concepts = []
         for code, name in sorted(relevant.items()):
-            members = ak.stock_board_concept_cons_ths(symbol=name)
+            members = ak.stock_board_cons_ths(symbol=code)
             if "代码" not in members.columns:
                 raise ValueError("THS_CONSTITUENT_SCHEMA_CHANGED:" + name)
             codes = sorted({str(v).zfill(6) for v in members["代码"]})
