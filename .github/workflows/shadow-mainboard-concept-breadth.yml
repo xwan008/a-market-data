@@ -41,6 +41,10 @@ jobs:
                                 'source':'THS_ADATA',
                                 'market_scope':'SH_SZ_MAINBOARD_ONLY'}]}
           Path('/tmp/mainboard_concept_payload.json').write_text(json.dumps(payload,ensure_ascii=False))
+          full_route_payload=json.loads(json.dumps(payload))
+          full_route_payload['concepts'][0]['member_codes']=snap['full_member_codes']
+          Path('/tmp/full_source_route_payload.json').write_text(
+              json.dumps(full_route_payload,ensure_ascii=False))
           PY
           python scripts/build_sector_discovery.py \
             --concept-membership /tmp/mainboard_concept_payload.json \
@@ -48,7 +52,7 @@ jobs:
             --audit /tmp/mainboard_shadow_audit.json
           python scripts/build_full_market_price_structure.py
           python scripts/route_hotspot_themes.py \
-            --concept-file /tmp/mainboard_concept_payload.json \
+            --concept-file /tmp/full_source_route_payload.json \
             --output-dir /tmp/mainboard_scoped_route
       - name: Report evidence without publishing or changing industry state
         run: |
@@ -85,6 +89,11 @@ jobs:
           assert row['member_count']==227
           assert row['coverage']>=.95
           assert routes['market_scope']=='SH_SZ_MAINBOARD_ONLY'
+          assert route['concept_member_count']==482 if route['hotspot_type']=='THEME' else True
+          assert route.get('concept_mainboard_member_count',227)==227
+          assert len(route['candidate_stocks']) <=20
+          for item in route['candidate_stocks']:
+              assert item['stock_code'].startswith(('600','601','603','605','000','001','002','003'))
           PY
       - uses: actions/upload-artifact@v4
         if: always()
@@ -92,6 +101,7 @@ jobs:
           name: mainboard-concept-breadth-20261026
           path: |
             /tmp/mainboard_concept_payload.json
+            /tmp/full_source_route_payload.json
             /tmp/mainboard_shadow_audit.json
             /tmp/mainboard_scoped_route/2026-10-26.json
             /tmp/mainboard_concept_comparison.json
