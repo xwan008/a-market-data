@@ -1,0 +1,136 @@
+name: Replay 2026-10-26 hotspot with concept routing (shadow)
+
+on:
+  push:
+    branches:
+      - feature/hotspot-theme-identification-20261026
+    paths:
+      - .github/workflows/replay-hotspot-20261026.yml
+      - research/replay-hotspot-20261026-trigger.txt
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install pinned market library
+        run: pip install -r requirements.txt
+      - name: Validate frozen completed-session input
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          latest=json.loads(Path('data/latest.json').read_text())
+          handoff=json.loads(Path('research/trend_handoff.json').read_text())
+          index=json.loads(Path('data/low_risk/index.json').read_text())
+          assert latest['trade_date']==handoff['trade_date']==index['trade_date']=='2026-10-26'
+          assert latest['market_status']=='closed'
+          assert index['validation']['status']=='passed'
+          print('FROZEN_SESSION_OK',latest['trade_date'],len(latest.get('stocks',{})),flush=True)
+          PY
+      - name: Obtain real concept membership and rerun hotspot routing
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from scripts.route_hotspot_themes import fetch_current_memberships, read
+          data=fetch_current_memberships(read('research/trend_handoff.json'))
+          assert data['as_of_trade_date']=='2026-10-26'
+          assert data['concepts'], 'NO_MATCHED_REAL_CONCEPT_BOARDS'
+          Path('/tmp/verified-concepts.json').write_text(json.dumps(data,ensure_ascii=False))
+          print('VERIFIED_SOURCE_BOARDS',[(x['concept_id'],x['name'],len(x['member_codes'])) for x in data['concepts']],flush=True)
+          PY
+          python scripts/route_hotspot_themes.py \
+            --concept-file /tmp/verified-concepts.json \
+            --output-dir /tmp/shadow-theme-candidates
+      - name: Recompute matched-board discovery metrics using same-day data
+        run: |
+          python scripts/build_sector_discovery.py \
+            --concept-membership /tmp/verified-concepts.json \
+            --output /tmp/sector-discovery-shadow.json \
+            --audit /tmp/sector-discovery-shadow-audit.json
+      - name: Produce comparative rerun report without changing formal registry
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from statistics import median
+          p=lambda f:json.loads(Path(f).read_text())
+          router=p('/tmp/shadow-theme-candidates/2026-10-26.json')
+          audit=p('/tmp/sector-discovery-shadow-audit.json')
+          handoff=p('research/trend_handoff.json')
+          index=p('data/research/company_industry_index.json')
+          quotes=p('data/latest.json')['stocks']
+          all_rows={x['id']:x for x in audit['sectors']}
+          def numeric_pct(c):
+              q=quotes.get(c) or {}
+              try:
+                  if q.get('confidence') not in ('high','medium'):return None
+                  if q.get('change_pct') is not None: return float(q['change_pct'])
+                  return (float(q['price'])/float(q['prev_close'])-1)*100
+              except (ValueError,TypeError,ZeroDivisionError,KeyError): return None
+          summary=[]
+          for r in router['routes']:
+              original=set(r['original_industry_codes'])
+              sw_codes=[str(c).zfill(6) for c, row in index['companies'].items()
+                        if row.get('mapping_status')=='mapped' and row.get('industry_code') in original]
+              sw_ret=[numeric_pct(c) for c in sw_codes]
+              sw_ret=[v for v in sw_ret if v is not None]
+              con=all_rows.get('concept:'+str(r.get('mapping_code'))) if r['hotspot_type']=='THEME' else None
+              item={
+                  'name':r['trend_name'], 'reclassified_as':r['hotspot_type'],
+                  'original_market_state':r['market_state'],
+                  'original_trend_state':r['trend_state'],
+                  'original_sw_industries':r['original_industry_codes'],
+                  'old_sw_member_count':len(sw_codes),'old_sw_usable':len(sw_ret),
+                  'old_sw_up_breadth':round(sum(v>0 for v in sw_ret)/len(sw_ret),4) if sw_ret else None,
+                  'old_sw_median_1d_pct':round(median(sw_ret),3) if sw_ret else None,
+                  'concept_code':r.get('mapping_code'),
+                  'concept_name':r.get('mapping_name'),
+                  'concept_full_member_count':r.get('concept_member_count'),
+                  'concept_up_breadth':(con or {}).get('advance_ratio'),
+                  'concept_median_1d_pct':(con or {}).get('median_1d_pct'),
+                  'concept_three_day_breadth':(con or {}).get('breadth_3d'),
+                  'concept_five_day_breadth':(con or {}).get('breadth_5d'),
+                  'concept_research_top20':r['candidate_stocks'],
+                  'automatic_new_trend_confirmation':False
+              }
+              summary.append(item)
+          result={'trade_date':'2026-10-26','status':'SHADOW_RERUN','formal_publication_modified':False,
+                  'concept_scope':'ONLY_NAME_MATCHED_BOARDS_NOT_A_FULL_CONCEPT_SCAN',
+                  'discovery_no_trade_signal':True,
+                  'raw_board_count':audit['concept_count'],
+                  'industry_count':audit['industry_count'],
+                  'prior_handoff_signals':handoff['signals'],
+                  'results':summary}
+          path=Path('/tmp/hotspot-rerun-2026-10-26.json')
+          path.write_text(json.dumps(result,ensure_ascii=False,indent=2))
+          print('HOTSPOT_RERUN_RESULT',json.dumps(result,ensure_ascii=False),flush=True)
+          with open(__import__('os').environ['GITHUB_STEP_SUMMARY'],'a') as f:
+              f.write('# 2026-10-26 theme routing shadow rerun\n')
+              f.write('No formal publication changed. Only same-day, source-verified concept boards matching the upstream hotspot were scanned.\n')
+              for x in summary:
+                  f.write(f"\n## {x['name']} → {x['reclassified_as']}\n")
+                  f.write(f"- Old industry breadth: {x['old_sw_up_breadth']}; median 1d: {x['old_sw_median_1d_pct']}%\n")
+                  f.write(f"- Concept: {x['concept_name']} ({x['concept_code']}), breadth {x['concept_up_breadth']}, median 1d {x['concept_median_1d_pct']}%\n")
+                  f.write(f"- Concept technical candidates: {len(x['concept_research_top20'])}; original trend status: {x['original_market_state']}\n")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hotspot-theme-shadow-2026-10-26
+          path: |
+            /tmp/verified-concepts.json
+            /tmp/shadow-theme-candidates/2026-10-26.json
+            /tmp/sector-discovery-shadow.json
+            /tmp/sector-discovery-shadow-audit.json
+            /tmp/hotspot-rerun-2026-10-26.json
+          if-no-files-found: ignore
+          retention-days: 14
