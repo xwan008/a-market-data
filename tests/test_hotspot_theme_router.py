@@ -79,6 +79,42 @@ class ThemeRouterTests(unittest.TestCase):
         result = router.build(h, i, q, s, c)["routes"][0]
         self.assertEqual(result["hotspot_type"], "INDUSTRY")
 
+    def test_named_concept_with_missing_full_universe_is_unknown_not_industry(self):
+        h, i, q, s, c = fixture()
+        for stock in ("000003", "000004", "000005", "000006", "000007"):
+            i["companies"].pop(stock)
+            q["stocks"].pop(stock)
+        result = router.build(h, i, q, s, c)["routes"][0]
+        self.assertEqual(result["hotspot_type"], "DATA_INSUFFICIENT")
+        self.assertEqual(result["classification_reason"], "CONCEPT_COVERAGE_UNVERIFIED")
+        self.assertEqual(result["candidate_stocks"], [])
+        self.assertLess(result["insufficient_concepts"][0]["quote_coverage"], .8)
+        self.assertEqual(result["insufficient_concepts"][0]["member_count"], 7)
+
+    def test_same_day_quote_supplement_does_not_change_industry_membership(self):
+        h, i, q, s, c = fixture()
+        # All cross-industry records are outside the frozen SW research index.
+        for stock in ("000003", "000004", "000005", "000006", "000007"):
+            i["companies"].pop(stock)
+            q["stocks"].pop(stock)
+        supplement = {
+            "result_kind": "concept_quote_supplement",
+            "trade_date": DAY, "market_status": "closed",
+            "stocks": {code: {"confidence":"medium","change_pct":2}
+                       for code in ("000003", "000004", "000005", "000006", "000007")}}
+        result = router.build(h, i, q, s, c, supplement=supplement)["routes"][0]
+        self.assertEqual(result["hotspot_type"], "INDUSTRY")
+        # Full quote coverage is restored, but sector transmission is still unverified
+        # for the unmapped stock codes; do not invent SW membership.
+        self.assertFalse(result["insufficient_concepts"])
+
+    def test_wrong_day_supplement_blocks(self):
+        h, i, q, s, c = fixture()
+        with self.assertRaisesRegex(ValueError, "SUPPLEMENT_ASOF_INVALID"):
+            router.build(h, i, q, s, c, supplement={
+                "result_kind": "concept_quote_supplement",
+                "trade_date": "2026-10-27", "market_status": "closed", "stocks": {}})
+
     def test_membership_asof_date_is_hard_gate(self):
         h, i, q, s, c = fixture()
         c["as_of_trade_date"] = "2026-10-27"
