@@ -236,6 +236,8 @@ def build(evidence_path, structure_path=None, structure_output_path=None, theme_
         if names != expected or len(names) != len(set(names)):
             raise ValueError("THEME_ROUTES_NOT_MATCHED_TO_HANDOFF")
         for route, signal in zip(routes, trend["signals"]):
+            if route.get("hotspot_type") == "DATA_INSUFFICIENT":
+                raise ValueError("THEME_ROUTE_COVERAGE_INSUFFICIENT")
             if (route.get("rank") != signal.get("rank") or
                 route.get("trend_state") != signal.get("trend_state") or
                 route.get("market_state") != signal.get("market_state") or
