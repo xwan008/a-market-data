@@ -108,6 +108,15 @@ class ThemeRouterTests(unittest.TestCase):
         # for the unmapped stock codes; do not invent SW membership.
         self.assertFalse(result["insufficient_concepts"])
 
+    def test_partial_concept_catalog_does_not_prove_industry_type(self):
+        h, i, q, s, c = fixture()
+        c["catalog_scope"] = "SINGLE_BOARD_ONLY"
+        for stock in ("000003", "000004", "000005"):
+            q["stocks"][stock]["change_pct"] = -2
+        row = router.build(h, i, q, s, c)["routes"][0]
+        self.assertEqual(row["hotspot_type"], "DATA_INSUFFICIENT")
+        self.assertEqual(row["classification_reason"], "PARTIAL_CONCEPT_CATALOG")
+
     def test_wrong_day_supplement_blocks(self):
         h, i, q, s, c = fixture()
         with self.assertRaisesRegex(ValueError, "SUPPLEMENT_ASOF_INVALID"):
