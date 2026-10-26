@@ -29,7 +29,7 @@ jobs:
           import json
           from pathlib import Path
           def read(p):return json.loads(Path(p).read_text())
-          snapshot=read('/tmp/mainboard-concept/2026-10-26.json')
+          snapshot=read('/tmp/mainboard-concept/mainboard_scoped_route/2026-10-26.json')
           signal=snapshot['routes'][0]
           upstream=read('research/trend_handoff.json')['signals'][0]
           assert snapshot['trade_date']=='2026-10-26'
@@ -52,14 +52,14 @@ jobs:
         run: |
           python scripts/build_trend_buy_manual_research.py \
             --evidence research/trend_buy_company_reviews/latest.json \
-            --theme-candidates /tmp/mainboard-concept/2026-10-26.json \
+            --theme-candidates /tmp/mainboard-concept/mainboard_scoped_route/2026-10-26.json \
             --structure-output /tmp/selected-concept-structure.json \
             --output /tmp/selected-concept-research.json
           python - <<'PY'
           import json
           from pathlib import Path
           research=json.loads(Path('/tmp/selected-concept-research.json').read_text())
-          data=json.loads(Path('/tmp/mainboard-concept/2026-10-26.json').read_text())
+          data=json.loads(Path('/tmp/mainboard-concept/mainboard_scoped_route/2026-10-26.json').read_text())
           candidates=set(x['stock_code'] for x in data['routes'][0]['candidate_stocks'])
           selected=research['companies']
           audit=research['screen_audit']
