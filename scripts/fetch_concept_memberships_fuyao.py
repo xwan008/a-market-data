@@ -58,10 +58,10 @@ def date_from_timestamp(payload):
     return datetime.fromtimestamp(millis/1000, SH).date().isoformat()
 
 
-def build(handoff, key, session=None):
+def build(handoff, key, session=None, observed_trade_date=None):
     session = session or requests.Session()
     asof = handoff.get("trade_date")
-    if datetime.now(SH).date().isoformat() != asof:
+    if (observed_trade_date or datetime.now(SH).date().isoformat()) != asof:
         raise ValueError("CURRENT_PROVIDER_CANNOT_REPLAY_HISTORICAL_MEMBERSHIP")
     listing = request_json(session, "/api/a-share-index/catalog/ths-index-list",
                            {"tag":"cn_concept"}, key)
