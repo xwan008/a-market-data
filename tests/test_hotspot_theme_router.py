@@ -100,7 +100,8 @@ class ThemeRouterTests(unittest.TestCase):
         supplement = {
             "result_kind": "concept_quote_supplement",
             "trade_date": DAY, "market_status": "closed",
-            "stocks": {code: {"confidence":"medium","change_pct":2}
+            "stocks": {code: {"confidence":"medium","change_pct":2,
+                             "date":DAY,"price":10.2,"prev_close":10.0}
                        for code in ("000003", "000004", "000005", "000006", "000007")}}
         result = router.build(h, i, q, s, c, supplement=supplement)["routes"][0]
         self.assertEqual(result["hotspot_type"], "INDUSTRY")
@@ -116,6 +117,16 @@ class ThemeRouterTests(unittest.TestCase):
         row = router.build(h, i, q, s, c)["routes"][0]
         self.assertEqual(row["hotspot_type"], "DATA_INSUFFICIENT")
         self.assertEqual(row["classification_reason"], "PARTIAL_CONCEPT_CATALOG")
+
+    def test_stale_supplement_quote_cannot_masquerade_as_current(self):
+        h, i, q, s, c = fixture()
+        with self.assertRaisesRegex(ValueError,"QUOTE_NOT_DATE_VERIFIED"):
+            router.build(h,i,q,s,c,supplement={
+                "result_kind":"concept_quote_supplement",
+                "trade_date":DAY,"market_status":"closed",
+                "stocks":{"000003":{"date":"2026-10-25","confidence":"medium",
+                                    "price":10.2,"prev_close":10.0}}
+            })
 
     def test_wrong_day_supplement_blocks(self):
         h, i, q, s, c = fixture()
