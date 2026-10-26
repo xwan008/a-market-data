@@ -57,7 +57,7 @@ def get_return(quote):
 def validate_memberships(catalog, trade_date):
     if (catalog.get("schema_version") != 1 or
             catalog.get("as_of_trade_date") != trade_date or
-            catalog.get("source") != "EASTMONEY_AKSHARE"):
+            catalog.get("source") not in {"EASTMONEY_AKSHARE", "THS_ADATA"}):
         raise ValueError("CONCEPT_MEMBERSHIP_DATE_OR_SOURCE_INVALID")
     rows = catalog.get("concepts")
     if not isinstance(rows, list):
@@ -166,7 +166,7 @@ def build(handoff, industry_index, latest, structure, catalog, cap=20):
                "trend_state": signal["trend_state"], "market_state": signal["market_state"],
                "hotspot_type": "THEME" if best else "INDUSTRY",
                "original_industry_codes": signal["industry_codes"],
-               "mapping_source": "EASTMONEY_AKSHARE" if best else "SW_LEVEL3",
+               "mapping_source": catalog["source"] if best else "SW_LEVEL3",
                "mapping_code": best["concept"]["concept_id"] if best else None,
                "mapping_name": best["concept"]["name"] if best else None,
                "candidate_stocks": []}
