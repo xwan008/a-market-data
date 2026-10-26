@@ -1,0 +1,478 @@
+{
+  "schema_version": 2,
+  "result_kind": "a_share_trend_registry",
+  "trade_date": "2026-10-26",
+  "generated_at": "2026-10-26T18:32:35+08:00",
+  "timezone": "Asia/Shanghai",
+  "status": "COMPLETE",
+  "scan_audit": {
+    "mode": "full_close",
+    "trade_date": "2026-10-26",
+    "full_market_scan_completed": true,
+    "independent_discovery_frozen_at": "2026-10-26T18:30:30+08:00",
+    "independent_discovery_count": 8,
+    "quote_universe_count": 3138,
+    "valid_quote_count": 3138,
+    "industry_mapped_count": 3138,
+    "source_latest_blob_sha": "e264473d8090c2f1923ef41cf8754ad1f5bd7cd0",
+    "auxiliary_snapshot_trade_date": "2026-10-26",
+    "auxiliary_snapshot_status": "COMPLETE_POINT_IN_TIME_ELIGIBLE",
+    "prior_baseline_mode": "STRICT_VALIDATED",
+    "notes": "先扫描331个申万三级行业并冻结8个独立发现对象；冻结后辅助快照核验17个研究主题、131个分类组，覆盖331个三级行业。概念成员字段不可用，使用完整申万三级覆盖与已核验研究主题补充；78个量价合格行业中75个因三项交叉复核容量保留在计算快照，不冒充已研究否决。",
+    "candidate_disposition_audit": [
+      {
+        "candidate_name": "烘焙食品",
+        "covered_industries": [
+          "烘焙食品"
+        ],
+        "origin": "MODEL_INDEPENDENT_AND_PYTHON_CROSSCHECK",
+        "decision": "OBSERVATION_NOT_PERSISTED",
+        "supporting_evidence": "8只样本中位+3.238%、广度100%、3日+3.265%、5日+4.67%、量比中位1.975。",
+        "market_assessment": "量价与多日结构较强，但尚无分歧后承接验证。",
+        "industry_assessment": "未取得行业订单、渠道动销、原料价差和利润率同步改善的多源证据。",
+        "decisive_reason": "市场强势成立但产业盈利链未完成，按观察处理。",
+        "missing_evidence": "渠道动销、价格与原料成本后的真实价差、上市公司利润率改善。",
+        "recheck_trigger": "消费动销和利润率得到多源验证，且回撤后维持广度和相对强度。"
+      },
+      {
+        "candidate_name": "白酒",
+        "covered_industries": [
+          "白酒Ⅲ"
+        ],
+        "origin": "MODEL_INDEPENDENT_AND_PYTHON_CROSSCHECK",
+        "decision": "OBSERVATION_NOT_PERSISTED",
+        "supporting_evidence": "19只样本中位+2.096%、广度100%、3日中位+2.50%。",
+        "market_assessment": "当日全面反弹，但5日中位仍-1.10%，尚未形成稳定多日趋势。",
+        "industry_assessment": "未取得批价、库存、回款和三季报盈利同步改善证据。",
+        "decisive_reason": "更符合超跌修复，产业第一锚不足。",
+        "missing_evidence": "核心产品批价、渠道库存和回款改善。",
+        "recheck_trigger": "批价与库存改善并在分歧日维持中票扩散。"
+      },
+      {
+        "candidate_name": "商贸零售",
+        "covered_industries": [
+          "百货",
+          "超市",
+          "多业态零售"
+        ],
+        "origin": "MODEL_INDEPENDENT",
+        "decision": "OBSERVATION_NOT_PERSISTED",
+        "supporting_evidence": "商贸零售研究主题27只样本中位+1.128%、广度62.96%，3日与5日结构均为正。",
+        "market_assessment": "板块温和扩散但量能仅约1.055倍，强度不足以确认。",
+        "industry_assessment": "缺少同店销售、客流、毛利率和费用率的当期闭环。",
+        "decisive_reason": "经营改善证据不足且市场强度一般。",
+        "missing_evidence": "同店销售、客流与利润率连续改善。",
+        "recheck_trigger": "三季报或高频经营数据改善且板块形成持续超额。"
+      },
+      {
+        "candidate_name": "银行",
+        "covered_industries": [
+          "国有大型银行Ⅲ",
+          "股份制银行Ⅲ",
+          "城商行Ⅲ",
+          "农商行Ⅲ"
+        ],
+        "origin": "MODEL_INDEPENDENT",
+        "decision": "OBSERVATION_NOT_PERSISTED",
+        "supporting_evidence": "主要银行细分当日广度均100%，国有大行中位+2.216%。",
+        "market_assessment": "更接近风险偏好下降下的防御轮动，多数细分3日或5日结构仍弱。",
+        "industry_assessment": "未取得息差、资产质量和中收的本轮新增行业级改善证据。",
+        "decisive_reason": "风格切换不能替代盈利趋势确认。",
+        "missing_evidence": "息差企稳、资产质量及中收改善。",
+        "recheck_trigger": "基本面指标改善并保持跨银行类型持续扩散。"
+      },
+      {
+        "candidate_name": "保险",
+        "covered_industries": [
+          "保险Ⅲ"
+        ],
+        "origin": "MODEL_INDEPENDENT",
+        "decision": "OBSERVATION_NOT_PERSISTED",
+        "supporting_evidence": "5只样本中位+1.662%、广度100%、3日+2.77%、5日+1.84%。",
+        "market_assessment": "小样本强势，但持续性仍需验证。",
+        "industry_assessment": "未取得新业务价值、负债成本和投资收益的新增闭环。",
+        "decisive_reason": "产业盈利证据不足。",
+        "missing_evidence": "新业务价值、保费结构及投资收益改善。",
+        "recheck_trigger": "经营数据改善并保持相对强度。"
+      },
+      {
+        "candidate_name": "摩托车/乘用车",
+        "covered_industries": [
+          "摩托车",
+          "综合乘用车"
+        ],
+        "origin": "MODEL_INDEPENDENT",
+        "decision": "OBSERVATION_NOT_PERSISTED",
+        "supporting_evidence": "两细分当日中位+2.392%和+1.856%、广度均100%，3日结构均为正。",
+        "market_assessment": "扩散较好但尚缺分歧承接。",
+        "industry_assessment": "乘联分会预计10月狭义乘用车零售同比下降约28.9%，需求端构成明显反证。",
+        "decisive_reason": "市场反弹与终端需求预期背离。",
+        "missing_evidence": "订单、零售销量与单车利润改善。",
+        "recheck_trigger": "终端销量超预期并在板块回撤时维持强度。"
+      },
+      {
+        "candidate_name": "游戏/软件",
+        "covered_industries": [
+          "游戏Ⅲ",
+          "横向通用软件"
+        ],
+        "origin": "MODEL_INDEPENDENT",
+        "decision": "OBSERVATION_NOT_PERSISTED",
+        "supporting_evidence": "游戏14只中位+2.591%、广度85.71%；横向通用软件8只中位+1.244%，3日+3.265%、5日+7.125%、量比1.604。",
+        "market_assessment": "局部量价强势，但两个细分并非同一盈利链，不能合并为正式趋势。",
+        "industry_assessment": "缺少版号、流水、订单、续费和利润率的当期多源改善。",
+        "decisive_reason": "产业对象分散且盈利证据不足。",
+        "missing_evidence": "游戏流水或软件订单、续费与利润率改善。",
+        "recheck_trigger": "相应独立产业证据出现并保持市场扩散。"
+      }
+    ],
+    "state_migration_gate": {
+      "mode": "full_close",
+      "previous_registry_blob_sha": "51f82ce9bdf922a38d381178d0326759c45475c8",
+      "previous_registry_trade_date": "2026-10-23",
+      "current_trade_date": "2026-10-26",
+      "reviews": [
+        {
+          "episode_id": "工业自动化/机器人#2026-10-20",
+          "decision": "CHANGE",
+          "previous_market_state": "趋势确认",
+          "proposed_market_state": "候选趋势",
+          "previous_trend_state": "T1",
+          "proposed_trend_state": "T1",
+          "reason": "机器人6只样本当日中位+0.048%、上涨广度66.67%，3日和5日结构仍为正；其他自动化设备亦保持正收益。但工控设备12只中位-2.453%、广度8.33%，激光设备2只中位-4.276%、广度0%，两个核心细分显著弱于全市场中位-0.044%。确认阶段所需的多细分同步扩散已经消失，产业T1未被证伪，市场由趋势确认降为候选趋势。",
+          "evidence": [
+            {
+              "dimension": "MARKET_STRUCTURE",
+              "direction": "COUNTER",
+              "impact": "STRUCTURAL",
+              "trade_date": "2026-10-26",
+              "source": "data/research/sector_discovery_audit.json",
+              "finding": "工控与激光设备显著下跌，而机器人和其他自动化设备仅局部维持，确认阶段的多细分同步结构消失。"
+            },
+            {
+              "dimension": "MARKET_BREADTH",
+              "direction": "COUNTER",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-26",
+              "source": "data/research/sector_discovery_audit.json",
+              "finding": "工控上涨广度仅8.33%，激光设备上涨广度0%，核心细分承接明显收缩。"
+            },
+            {
+              "dimension": "RELATIVE_STRENGTH",
+              "direction": "COUNTER",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-26",
+              "source": "data/research/sector_discovery_audit.json",
+              "finding": "工控与激光设备中位收益相对全市场分别落后约2.41和4.23个百分点。"
+            }
+          ]
+        }
+      ],
+      "exits": [
+        {
+          "episode_id": "半导体设计/材料/封测#2026-10-20",
+          "decision": "EXIT",
+          "previous_market_state": "候选趋势",
+          "proposed_market_state": "观察",
+          "previous_trend_state": "T1",
+          "reason": "材料、数字设计、模拟设计和封测四个细分当日全部显著弱于全市场，封测与材料全线下跌，3日结构亦多数转负；A股市场候选结构失去跨细分承接，退出正式池至观察。产业T1不因股价下跌而降级。",
+          "evidence": [
+            {
+              "dimension": "MARKET_STRUCTURE",
+              "direction": "COUNTER",
+              "impact": "STRUCTURAL",
+              "trade_date": "2026-10-26",
+              "source": "data/research/sector_discovery_audit.json",
+              "finding": "四个细分当日中位分别-4.385%、-3.378%、-1.488%和-7.781%，封测3日中位转为-2.14%，多细分结构同步破坏。"
+            },
+            {
+              "dimension": "MARKET_BREADTH",
+              "direction": "COUNTER",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-26",
+              "source": "data/research/sector_discovery_audit.json",
+              "finding": "半导体材料和封测上涨广度均0%，数字设计14.29%、模拟设计40%，全产业链广度明显收缩。"
+            },
+            {
+              "dimension": "RELATIVE_STRENGTH",
+              "direction": "COUNTER",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-26",
+              "source": "data/research/sector_discovery_audit.json",
+              "finding": "四个细分相对全市场中位分别落后约4.34、3.34、1.45和7.74个百分点。"
+            }
+          ]
+        },
+        {
+          "episode_id": "电网设备/特高压#2026-10-12",
+          "decision": "EXIT",
+          "previous_market_state": "候选趋势",
+          "proposed_market_state": "观察",
+          "previous_trend_state": "T1",
+          "reason": "输变电、配电、电网自动化和仪表四个细分当日及3日结构同步转负，且全部显著弱于全市场；市场候选扩散已经消失，退出正式池至观察。既有招标交付产业逻辑未被本轮股价证伪，产业T1不变。",
+          "evidence": [
+            {
+              "dimension": "MARKET_STRUCTURE",
+              "direction": "COUNTER",
+              "impact": "STRUCTURAL",
+              "trade_date": "2026-10-26",
+              "source": "data/research/sector_discovery_audit.json",
+              "finding": "四个细分当日中位约-1.61%至-2.56%，3日中位全部为负，5日中位亦全部为负。"
+            },
+            {
+              "dimension": "MARKET_BREADTH",
+              "direction": "COUNTER",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-26",
+              "source": "data/research/sector_discovery_audit.json",
+              "finding": "输变电、配电、电网自动化、仪表上涨广度分别31.25%、21.43%、20%和0%，没有主要细分形成承接。"
+            },
+            {
+              "dimension": "RELATIVE_STRENGTH",
+              "direction": "COUNTER",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-26",
+              "source": "data/research/sector_discovery_audit.json",
+              "finding": "四个细分相对全市场中位均落后约1.57至2.52个百分点。"
+            }
+          ]
+        },
+        {
+          "episode_id": "军工装备/航空航天#2026-10-13",
+          "decision": "EXIT",
+          "previous_market_state": "候选趋势",
+          "proposed_market_state": "观察",
+          "previous_trend_state": "T0",
+          "reason": "航空装备仅接近全市场，地面兵装和航海装备继续显著偏弱，三个细分5日结构全部为负；事件催化未转化为市场持续性，退出正式池至观察，产业T0不变。",
+          "evidence": [
+            {
+              "dimension": "MARKET_STRUCTURE",
+              "direction": "COUNTER",
+              "impact": "STRUCTURAL",
+              "trade_date": "2026-10-26",
+              "source": "data/research/sector_discovery_audit.json",
+              "finding": "航空装备当日中位+0.094%，地面兵装-2.848%、航海装备-0.826%；三个细分5日中位分别-1.635%、-7.19%和-6.48%。"
+            },
+            {
+              "dimension": "MARKET_BREADTH",
+              "direction": "COUNTER",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-26",
+              "source": "data/research/sector_discovery_audit.json",
+              "finding": "航空装备上涨广度50%，地面兵装0%、航海装备20%，跨细分扩散不足。"
+            },
+            {
+              "dimension": "RELATIVE_STRENGTH",
+              "direction": "COUNTER",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-26",
+              "source": "data/research/sector_discovery_audit.json",
+              "finding": "地面兵装和航海装备相对全市场分别落后约2.81和0.78个百分点，航空装备仅领先约0.14个百分点。"
+            }
+          ]
+        }
+      ],
+      "new_confirmation_reviews": []
+    }
+  },
+  "trends": [
+    {
+      "trend_name": "工业自动化/机器人",
+      "trend_state": "T1",
+      "market_state": "候选趋势",
+      "lifecycle_status": "有效",
+      "first_seen_trade_date": "2026-10-20",
+      "last_verified_trade_date": "2026-10-26",
+      "industry_codes": [
+        "S640701",
+        "S640702",
+        "S640703",
+        "S640704"
+      ],
+      "industry_names": [
+        "机器人",
+        "工控设备",
+        "激光设备",
+        "其他自动化设备"
+      ],
+      "in_new_position_priority": true,
+      "supporting_evidence": [
+        {
+          "description": "国家统计局披露前三季度工业机器人产量同比增长29.1%、机器人减速器增长44.4%，8月工业机器人增长34.6%、工业自动调节仪表与控制系统增长35.2%，形成需求与产量交叉。",
+          "source": "https://www.stats.gov.cn/sj/zxfb/202610/t20261020_1972579.html",
+          "trade_date": "2026-10-20"
+        },
+        {
+          "description": "自动化设备23只样本全部上涨，中位+3.276%、3日中位+4.24%，机器人6只中位+3.576%、工控12只中位+3.246%，市场广度与中票扩散同步。",
+          "source": "data/latest.json",
+          "trade_date": "2026-10-20"
+        },
+        {
+          "description": "机器人与工控公司半年报营业收入同比中位数分别+13.37%和+17.40%，净利润中位数分别+21.49%和+22.56%，两组均有66.7%公司利润正增长。",
+          "source": "data/latest.json",
+          "trade_date": "2026-10-20"
+        },
+        {
+          "description": "自动化设备主要细分3日中位收益仍为正，机器人约+4.93%、工控约+4.07%，既有产业与盈利改善证据未出现新增反证。",
+          "source": "data/latest.json",
+          "trade_date": "2026-10-21"
+        },
+        {
+          "description": "23只样本中位-1.752%、上涨广度17.39%，相对全市场中位-2.365%和9.10%广度保持优势。",
+          "source": "data/latest.json",
+          "trade_date": "2026-10-22"
+        },
+        {
+          "description": "机器人与工控3日中位收益分别约+1.20%和+1.11%，主要细分短期结构尚未破坏。",
+          "source": "data/research/sector_discovery_audit.json",
+          "trade_date": "2026-10-22"
+        },
+        {
+          "description": "机器人6只样本中位+7.930%、上涨广度100%、3日中位+5.035%、5日中位+10.15%，量比中位2.37，形成核心与中票共同扩散。",
+          "source": "data/research/sector_discovery_audit.json",
+          "trade_date": "2026-10-23"
+        },
+        {
+          "description": "工控设备12只样本中位+3.651%、上涨广度91.67%、3日中位+1.735%、5日中位+5.54%，量比中位1.559。",
+          "source": "data/research/sector_discovery_audit.json",
+          "trade_date": "2026-10-23"
+        },
+        {
+          "description": "前三季度工业机器人产量同比增长29.1%，工业自动调节仪表与控制系统、工业控制计算机及系统产量分别增长30.6%和25.8%。",
+          "source": "https://www.stats.gov.cn/sj/sjjd/202610/t20261019_1965653.html",
+          "trade_date": "2026-10-23"
+        },
+        {
+          "description": "机器人6只样本中位+0.048%、广度66.67%，3日中位+4.575%、5日中位+7.51%；其他自动化设备中位+0.949%，说明趋势尚未全面失效。",
+          "source": "data/research/sector_discovery_audit.json",
+          "trade_date": "2026-10-26"
+        }
+      ],
+      "contrary_evidence": [
+        {
+          "description": "自动化设备5日中位收益仍为-1.33%，当日量比1.309但持续承接尚未经过更多分歧验证，且部分细分订单/交付数据仍待补充。",
+          "source": "data/latest.json",
+          "trade_date": "2026-10-20"
+        },
+        {
+          "description": "23只自动化设备样本中位-0.581%、上涨广度30.43%，弱于全市场中位-0.273%与37.93%广度，分歧承接需要继续验证。",
+          "source": "data/latest.json",
+          "trade_date": "2026-10-21"
+        },
+        {
+          "description": "激光设备2只样本中位-5.392%，其他自动化设备当日无上涨样本；整体仍处普跌环境，分歧承接需要继续验证。",
+          "source": "data/research/sector_discovery_audit.json",
+          "trade_date": "2026-10-22"
+        },
+        {
+          "description": "其他自动化设备3只样本3日中位-1.56%，且其半年报净利润同比中位数约-34.33%，产业盈利扩散仍不均衡。",
+          "source": "data/research/sector_discovery_audit.json",
+          "trade_date": "2026-10-23"
+        },
+        {
+          "description": "工控设备12只中位-2.453%、上涨广度8.33%，激光设备2只中位-4.276%、上涨广度0%；两细分相对全市场分别落后约2.41和4.23个百分点，多细分同步扩散消失。",
+          "source": "data/research/sector_discovery_audit.json",
+          "trade_date": "2026-10-26"
+        }
+      ],
+      "invalidation_condition": "若工业机器人、工控订单与产量增速回落，且自动化设备广度跌破市场平均、核心与中位股同步破位，则退出候选；订单和利润率未继续扩散前不升T2。",
+      "change_reason": "机器人6只样本当日中位+0.048%、上涨广度66.67%，3日和5日结构仍为正；其他自动化设备亦保持正收益。但工控设备12只中位-2.453%、广度8.33%，激光设备2只中位-4.276%、广度0%，两个核心细分显著弱于全市场中位-0.044%。确认阶段所需的多细分同步扩散已经消失，产业T1未被证伪，市场由趋势确认降为候选趋势。",
+      "state_history": [
+        {
+          "trade_date": "2026-10-20",
+          "from": null,
+          "to": "候选趋势",
+          "event": "new_verified_trend",
+          "reason": "工业机器人与自动控制产量高增，机器人/工控半年报收入和利润改善，且23只自动化设备当日全部上涨、3日结构为正，产业与市场链交叉形成T1候选。"
+        },
+        {
+          "trade_date": "2026-10-21",
+          "from": "候选趋势",
+          "to": "候选趋势",
+          "event": "verified_maintained",
+          "reason": "工业机器人与自动控制的产业增速及半年报盈利改善未被证伪；23只样本当日中位-0.581%、广度30.43%弱于市场，但3日与5日结构仍为正，按首次分歧维持T1候选并降至新仓优先第3。"
+        },
+        {
+          "trade_date": "2026-10-22",
+          "from": "候选趋势",
+          "to": "候选趋势",
+          "event": "verified_maintained",
+          "reason": "23只自动化样本中位-1.752%、广度17.39%，虽绝对下跌但仍优于全市场；机器人与工控3日中位收益约+1.20%和+1.11%，产业增速及盈利改善未出现新增证伪。维持T1候选并列新仓优先第3。"
+        },
+        {
+          "trade_date": "2026-10-23",
+          "from": "候选趋势",
+          "to": "趋势确认",
+          "event": "market_state_change",
+          "reason": "机器人、工控、激光及其他自动化设备当日同步上涨；机器人6只样本中位+7.930%、广度100%、3日中位+5.035%、5日中位+10.15%、量比中位2.37，工控12只中位+3.651%、广度91.67%，核心与中票扩散、相对强度、成交和多日结构共同获得支持。前三季度工业机器人及智能生产设备产量高增，T1产业链未被证伪，市场由候选趋势升级为趋势确认并列新仓优先第1。"
+        },
+        {
+          "trade_date": "2026-10-26",
+          "from": "趋势确认",
+          "to": "候选趋势",
+          "event": "market_state_change",
+          "reason": "机器人6只样本当日中位+0.048%、上涨广度66.67%，3日和5日结构仍为正；其他自动化设备亦保持正收益。但工控设备12只中位-2.453%、广度8.33%，激光设备2只中位-4.276%、广度0%，两个核心细分显著弱于全市场中位-0.044%。确认阶段所需的多细分同步扩散已经消失，产业T1未被证伪，市场由趋势确认降为候选趋势。"
+        }
+      ],
+      "episode_id": "工业自动化/机器人#2026-10-20",
+      "priority_rank": 1
+    },
+    {
+      "trend_name": "油气开采/油服工程",
+      "trend_state": "T0",
+      "market_state": "候选趋势",
+      "lifecycle_status": "有效",
+      "first_seen_trade_date": "2026-10-26",
+      "last_verified_trade_date": "2026-10-26",
+      "industry_codes": [
+        "S750101",
+        "S750201",
+        "S750202"
+      ],
+      "industry_names": [
+        "油气开采Ⅲ",
+        "油田服务",
+        "油气及炼化工程"
+      ],
+      "in_new_position_priority": false,
+      "supporting_evidence": [
+        {
+          "description": "布伦特原油10月23日受供应中断担忧推动至每桶115美元附近、创约5个月新高，为油气产业提供商品第一锚。",
+          "source": "https://www.caiwennews.com/article/1666259.shtml",
+          "trade_date": "2026-10-26"
+        },
+        {
+          "description": "油气开采、油田服务、油气及炼化工程当日中位分别+2.249%、+2.800%和+3.446%，上涨广度均100%；油服与油气工程3日、5日中位收益均为正。",
+          "source": "data/research/sector_discovery_audit.json",
+          "trade_date": "2026-10-26"
+        }
+      ],
+      "contrary_evidence": [
+        {
+          "description": "油价上涨主要来自地缘供应风险，10月26日盘中已出现回落；油气开采3日和5日中位仍约-1.12%和-1.08%，高油价向资本开支、油服订单和利润的传导尚未闭环。",
+          "source": "https://www.caiwennews.com/article/1666259.shtml",
+          "trade_date": "2026-10-26"
+        },
+        {
+          "description": "油气开采4只样本虽当日全线上涨，但3日和5日中位仍为负，当前不能把单日商品冲击直接判为正式景气。",
+          "source": "data/research/sector_discovery_audit.json",
+          "trade_date": "2026-10-26"
+        }
+      ],
+      "invalidation_condition": "若布伦特原油供应风险溢价快速回吐，且油田服务、油气工程广度与3/5日相对强度同步转负，同时缺少资本开支或订单验证，则退出候选。",
+      "change_reason": "商品第一锚与A股油服、工程、开采三条市场线同日共振，油服和工程具备正向3/5日结构；但地缘驱动可逆、订单和盈利传导未闭环，按T0候选进入正式池，不列新仓优先。",
+      "state_history": [
+        {
+          "trade_date": "2026-10-26",
+          "from": null,
+          "to": "候选趋势",
+          "event": "new_verified_trend",
+          "reason": "布伦特油价高位与油气开采、油服、油气工程100%上涨广度交叉验证；订单盈利尚未闭环，产业仅为T0。"
+        }
+      ],
+      "episode_id": "油气开采/油服工程#2026-10-26"
+    }
+  ],
+  "invalidated_history": [],
+  "recheck_queue": []
+}
