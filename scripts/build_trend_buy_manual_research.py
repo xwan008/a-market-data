@@ -200,7 +200,7 @@ def compact_opportunity(structure, trade_date):
             "reference_is_not_buy_signal":True}, None
 
 
-def build(evidence_path, structure_path=None, structure_output_path=None):
+def build(evidence_path, structure_path=None, structure_output_path=None, theme_candidates_path=None):
     trend=read(TREND)
     index=read(INDEX)
     vault=read(evidence_path)
@@ -219,9 +219,57 @@ def build(evidence_path, structure_path=None, structure_output_path=None):
         raise ValueError("asof_date_mismatch")
     if (index.get("validation") or {}).get("status")!="passed":
         raise ValueError("materialized_index_not_valid")
-    industries=sorted({str(code) for sig in trend.get("signals",[]) for code in sig.get("industry_codes",[])})
+    # Optional VERIFIED theme router. No file means exact legacy industry behavior.
+    route_by_name = {}
+    if theme_candidates_path:
+        routing = read(Path(theme_candidates_path))
+        if (routing.get("schema_version") != 1 or
+            routing.get("result_kind") != "hotspot_stock_route_snapshot" or
+            routing.get("status") != "COMPLETE" or routing.get("trade_date") != day or
+            routing.get("concept_as_of_trade_date") != day):
+            raise ValueError("THEME_CANDIDATES_SNAPSHOT_INVALID")
+        routes = routing.get("routes")
+        if not isinstance(routes, list):
+            raise ValueError("THEME_ROUTES_INVALID")
+        names = [r.get("trend_name") for r in routes]
+        expected = [s["trend_name"] for s in trend.get("signals", [])]
+        if names != expected or len(names) != len(set(names)):
+            raise ValueError("THEME_ROUTES_NOT_MATCHED_TO_HANDOFF")
+        for route, signal in zip(routes, trend["signals"]):
+            if (route.get("rank") != signal.get("rank") or
+                route.get("trend_state") != signal.get("trend_state") or
+                route.get("market_state") != signal.get("market_state") or
+                route.get("original_industry_codes") != signal.get("industry_codes") or
+                route.get("hotspot_type") not in ("INDUSTRY", "THEME")):
+                raise ValueError("THEME_ROUTE_HAS_CHANGED_UPSTREAM_SIGNAL")
+            if route["hotspot_type"] == "THEME":
+                if (route.get("mapping_source") != "EASTMONEY_AKSHARE" or
+                    not route.get("mapping_code") or
+                    not isinstance(route.get("concept_member_codes"), list)):
+                    raise ValueError("THEME_MAPPING_UNVERIFIED")
+                candidates = route.get("candidate_stocks")
+                if not isinstance(candidates, list) or len(candidates) > 20:
+                    raise ValueError("THEME_CANDIDATES_CAP_INVALID")
+                codes = [x.get("stock_code") for x in candidates]
+                if len(codes) != len(set(codes)) or any(
+                    x.get("rank") != i or x.get("stock_code") not in route["concept_member_codes"]
+                    for i, x in enumerate(candidates, 1)
+                ):
+                    raise ValueError("THEME_CANDIDATES_MEMBERSHIP_INVALID")
+            route_by_name[signal["trend_name"]] = route
+    industry_signals = [s for s in trend.get("signals", [])
+                        if route_by_name.get(s["trend_name"], {}).get("hotspot_type") != "THEME"]
+    theme_routes = [route_by_name[s["trend_name"]] for s in trend.get("signals", [])
+                    if route_by_name.get(s["trend_name"], {}).get("hotspot_type") == "THEME"]
+    industry_codes = {str(code) for sig in industry_signals
+                      for code in sig.get("industry_codes", [])}
+    # Use actual SW ownership ONLY to find the existing frozen company manifests.
+    # The selected research group remains the concept, not the owning industry.
+    for route in theme_routes:
+        industry_codes.update(c.get("industry_code") for c in route["candidate_stocks"])
+    industries = sorted(industry_codes)
     if not industries:
-        raise ValueError("trend_has_no_routed_industries")
+        raise ValueError("trend_has_no_mapped_candidate_industries")
     audit={"universe":0,"hard_eligible":0,"hard_filtered":[],
            "pre_screen_selected":[],"pre_screened_out":[],
            "industry_count":len(industries),"industry_manifests":[]}
@@ -251,7 +299,27 @@ def build(evidence_path, structure_path=None, structure_output_path=None):
         universe[code]=rows
         audit["universe"]+=len(rows)
         audit["industry_manifests"].append({"code":code,"companies":len(rows),"parts":len(manifest["parts"])})
-    # Freeze complete: all sector materialized data have been read and verified.
+    # Build independent research groups; never mix concept members with its
+    # former industry seed just because they share the SW level-2 parent.
+    screening_groups = []
+    used_industries = set()
+    for signal in trend.get("signals", []):
+        route = route_by_name.get(signal["trend_name"], {})
+        if route.get("hotspot_type") == "THEME":
+            rows = []
+            for entry in route["candidate_stocks"]:
+                sector, code = entry["industry_code"], entry["stock_code"]
+                item = next((x for x in universe[sector] if x["code"] == code), None)
+                if item is None:
+                    raise ValueError("THEME_CANDIDATE_NOT_IN_FROZEN_MANIFEST:" + code)
+                rows.append(item)
+            screening_groups.append(("concept:" + route["mapping_code"], rows, signal))
+        else:
+            for sector in signal["industry_codes"]:
+                if sector not in used_industries:
+                    screening_groups.append((sector, universe[sector], signal))
+                    used_industries.add(sector)
+    # Freeze complete: all required company manifests have been read and verified.
     if audit["universe"]<=0:
         raise ValueError("universe_empty")
     # Every hard-eligible stock is CHEAPLY scored. Only the tertiary-industry
@@ -263,8 +331,8 @@ def build(evidence_path, structure_path=None, structure_output_path=None):
     audit["lightweight_scanned"]=[]
     audit["research_slots_per_industry"]={}
     audit["research_replacements"]=[]
-    for code in industries:
-        items=universe[code]
+    selected_codes=set()
+    for code, items, group_signal in screening_groups:
         valid=[]
         for c in items:
             fail=hard_reason(c)
@@ -301,6 +369,10 @@ def build(evidence_path, structure_path=None, structure_output_path=None):
         ranked.sort(key=lambda row:(-row[1]["combined_score"],row[0]["code"]))
         accepted=[]
         for c,d in ranked:
+            if c["code"] in selected_codes:
+                audit["pre_screened_out"].append({"code":c["code"],"industry_code":code,
+                                                  "reason":"ALREADY_SELECTED_IN_ANOTHER_GROUP"})
+                continue
             # A specifically researched and falsified thematic link can release
             # this research slot to the next ranked peer, WITHOUT deep-researching
             # the whole eligible universe.
@@ -320,8 +392,9 @@ def build(evidence_path, structure_path=None, structure_output_path=None):
         audit["research_slots_per_industry"][code]=len(accepted)
         for c,d in accepted:
             audit["pre_screen_selected"].append(d)
-            selected.append(c)
-    if len({c["code"] for c in selected})!=len(selected):
+            selected.append((c,group_signal))
+            selected_codes.add(c["code"])
+    if len({c["code"] for c,_ in selected})!=len(selected):
         raise ValueError("duplicate_selected_company")
     if len(audit["lightweight_scanned"])!=audit["hard_eligible"]:
         raise ValueError("incomplete_lightweight_coverage")
@@ -331,7 +404,7 @@ def build(evidence_path, structure_path=None, structure_output_path=None):
     candidate=[]
     no_source=[]
     missing_review=[]
-    for c in selected:
+    for c, signal in selected:
         item=review.get(c["code"])
         if item is None:
             missing_review.append(c["code"])
@@ -350,8 +423,7 @@ def build(evidence_path, structure_path=None, structure_output_path=None):
             raise ValueError("source_outside_asof:"+c["code"])
         if status=="UNCERTAIN" and not sources:
             no_source.append(c["code"])
-        signal=next((z for z in trend["signals"] if c["industry_code"] in z["industry_codes"]),None)
-        trend_name=(signal or {}).get("trend_name") or ""
+        trend_name=signal.get("trend_name") or ""
         if not trend_name or not signal.get("market_state") or not signal.get("trend_state"):
             raise ValueError("unrouted_or_unreviewed_sector:"+c["code"])
         # Explicitly preserve no-verifiable-evidence as UNCERTAIN; evidence
@@ -381,7 +453,10 @@ def build(evidence_path, structure_path=None, structure_output_path=None):
                                        "noncore_eps_share_pct":round(noncore,2) if noncore is not None else None},
         })
     audit["selected_company_count"]=len(candidate)
-    audit["research_scope"]="dynamic_tertiary_industry_top5_after_lightweight_scan"
+    audit["research_scope"]=("dynamic_industry_or_concept_top5_after_lightweight_scan"
+                              if theme_routes else "dynamic_tertiary_industry_top5_after_lightweight_scan")
+    audit["theme_group_count"]=len(theme_routes)
+    audit["theme_candidate_source"]=str(theme_candidates_path) if theme_routes else None
     audit["pre_screen_coverage_complete"]=(len(audit["lightweight_scanned"])==audit["hard_eligible"])
     audit["source_review_complete_count"]=len(candidate)-len(missing_review)
     audit["source_review_pending_count"]=len(missing_review)
@@ -431,9 +506,10 @@ def main():
     p.add_argument("--evidence",required=True)
     p.add_argument("--structure",default=None,help="Optional legacy fixture, not used by production")
     p.add_argument("--structure-output",default=None,help="Write only selected candidates to an ephemeral technical input")
+    p.add_argument("--theme-candidates",default=None,help="Same-day verified hotspot concept candidate snapshot")
     p.add_argument("--output",required=True)
     a=p.parse_args()
-    out=build(Path(a.evidence),a.structure,a.structure_output)
+    out=build(Path(a.evidence),a.structure,a.structure_output,a.theme_candidates)
     path=Path(a.output)
     path.parent.mkdir(parents=True,exist_ok=True)
     path.write_text(json.dumps(out,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
