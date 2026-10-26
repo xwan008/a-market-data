@@ -22,7 +22,7 @@ class Response:
 class FakeSession:
     def __init__(self,one=None,bad_timestamp=False):
         self.calls=[]
-        self.one=one or ["000001","300001"]
+        self.one=one if one is not None else ["000001","300001"]
         self.bad_timestamp=bad_timestamp
     def get(self,url,params=None,headers=None,timeout=None):
         assert headers["X-api-key"]=="TEST-KEY"
