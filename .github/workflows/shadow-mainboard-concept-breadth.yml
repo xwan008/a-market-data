@@ -1,0 +1,99 @@
+name: Shadow compare mainboard concept trend breadth
+
+on:
+  push:
+    branches: [feature/hotspot-theme-identification-20261026]
+    paths: [".github/workflows/shadow-mainboard-concept-breadth.yml"]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  breadth:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - uses: actions/download-artifact@v4
+        with:
+          name: mainboard-concept-source-stability-20261026
+          run-id: 40346359777
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: /tmp/source
+      - name: Recalculate main-board concept 1d 3d 5d breadth from frozen prices
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          snap=json.loads(Path('/tmp/source/mainboard_ths_stability_20261026.json').read_text())
+          assert snap['status']=='STABLE_WITHIN_ONE_TRADING_DAY'
+          assert snap['mainboard_quote_coverage']>=.95
+          assert len(snap['mainboard_member_codes'])==227
+          payload={'schema_version':1,'source':'THS_ADATA',
+                   'as_of_trade_date':'2026-10-26',
+                   'catalog_scope':'KNOWN_HOTSPOT_ONLY_NOT_WHOLE_MARKET',
+                   'full_members_provenance_count':snap['full_concept_count'],
+                   'concepts':[{'concept_id':'886069','name':'人形机器人',
+                                'member_codes':snap['mainboard_member_codes'],
+                                'source':'THS_ADATA',
+                                'market_scope':'SH_SZ_MAINBOARD_ONLY'}]}
+          Path('/tmp/mainboard_concept_payload.json').write_text(json.dumps(payload,ensure_ascii=False))
+          PY
+          python scripts/build_sector_discovery.py \
+            --concept-membership /tmp/mainboard_concept_payload.json \
+            --output /tmp/mainboard_shadow_sector.json \
+            --audit /tmp/mainboard_shadow_audit.json
+          python scripts/build_full_market_price_structure.py
+          python scripts/route_hotspot_themes.py \
+            --concept-file /tmp/mainboard_concept_payload.json \
+            --output-dir /tmp/mainboard_scoped_route
+      - name: Report evidence without publishing or changing industry state
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          def load(p):return json.loads(Path(p).read_text())
+          audit=load('/tmp/mainboard_shadow_audit.json')
+          routes=load('/tmp/mainboard_scoped_route/2026-10-26.json')
+          handoff=load('research/trend_handoff.json')
+          signal=handoff['signals'][0]
+          sectors={x['id']:x for x in audit['sectors']}
+          row=sectors['concept:886069']
+          original=[sectors['industry:'+c] for c in signal['industry_codes']]
+          route=routes['routes'][0]
+          keys=['id','name','member_count','usable_count','coverage',
+                'sample_quality','advance_ratio','breadth_3d','breadth_5d',
+                'median_1d_pct','median_3d_pct','median_5d_pct',
+                'score','channels','reason']
+          result={
+              'trade_date':'2026-10-26',
+              'market_scope':'SH_SZ_MAINBOARD_ONLY',
+              'not_formal_trading_signal':True,
+              'subject':'人形机器人',
+              'concept':{key:row.get(key) for key in keys},
+              'old_sw_tertiary_industries':[{key:x.get(key) for key in keys} for x in original],
+              'classifier_type':route['hotspot_type'],
+              'classifier_reason':route.get('classification_reason'),
+              'classifier_top20_count':len(route['candidate_stocks']),
+              'mapping_provenance':'Known independently cross-checked 886069 index; no automatic full-catalog mapping proof'
+          }
+          Path('/tmp/mainboard_concept_comparison.json').write_text(json.dumps(result,ensure_ascii=False,indent=2))
+          print('MAINBOARD_CONCEPT_COMPARISON',json.dumps(result,ensure_ascii=False),flush=True)
+          assert row['member_count']==227
+          assert row['coverage']>=.95
+          assert routes['market_scope']=='SH_SZ_MAINBOARD_ONLY'
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mainboard-concept-breadth-20261026
+          path: |
+            /tmp/mainboard_concept_payload.json
+            /tmp/mainboard_shadow_audit.json
+            /tmp/mainboard_scoped_route/2026-10-26.json
+            /tmp/mainboard_concept_comparison.json
+          retention-days: 14
+          if-no-files-found: ignore
