@@ -198,12 +198,47 @@ def build(handoff, industry_index, latest, structure, catalog, cap=20, supplemen
             rising = sum(r >= 1 for _, r in valid)
             industries = {company_map[code].get("industry_code")
                           for code, _ in valid if code in company_map}
-            # A concept must materially explain strength OUTSIDE the original SW route.
-            is_theme = (len(industries) >= 3 and extra_up >= 3 and
-                        extra_up / max(rising, 1) >= .25 and
-                        bread >= .55 and med >= 0)
+            # Industry-vs-theme is a mapping decision, not an entry signal.
+            # A single down session must not erase an already coherent 3d/5d
+            # cross-industry theme. Require same-session verified daily history.
+            windows = {}
+            for days, field in ((3, "return_3d_pct"), (5, "return_5d_pct")):
+                window_values = []
+                for code, _ in valid:
+                    item = price_structures.get(code) or {}
+                    if (item.get("data_status") == "verified" and
+                            item.get("data_date") == date):
+                        value = safe_number((item.get("phase_evidence") or {}).get(field))
+                        if value is not None:
+                            window_values.append((code, value))
+                coverage = len(window_values) / len(valid)
+                windows[days] = {
+                    "coverage": round(coverage, 4),
+                    "breadth": sum(v > 0 for _, v in window_values) / len(window_values)
+                               if window_values else None,
+                    "median": median(v for _, v in window_values)
+                              if window_values else None,
+                    "outside_positive": sum(c not in industry_members and v > 0
+                                            for c, v in window_values),
+                    "positive_total": sum(v > 0 for _, v in window_values),
+                }
+            one_day_coherent = (extra_up >= 3 and
+                                extra_up / max(rising, 1) >= .25 and
+                                bread >= .55 and med >= 0)
+            multi_day_coherent = all(
+                w["coverage"] >= .8 and w["breadth"] is not None
+                and w["breadth"] >= .6 and w["median"] >= 0
+                and w["outside_positive"] >= 3
+                and w["outside_positive"] / max(w["positive_total"], 1) >= .25
+                for w in windows.values())
+            is_theme = len(industries) >= 3 and (
+                one_day_coherent or multi_day_coherent)
             choices.append({"concept": concept, "codes": codes, "mainboard_member_count": len(mainboard_members), "breadth": bread,
                             "median": med, "extra_up": extra_up, "rising": rising,
+                            "windows": windows, "recognition_basis":
+                                "CONCEPT_3D_5D_STRUCTURE" if multi_day_coherent
+                                else "CONCEPT_1D_STRUCTURE" if one_day_coherent
+                                else "NO_MATCHED_THEME_STRENGTH",
                             "industry_count": len(industries), "match": name_match,
                             "valid": is_theme, "quote_coverage": actual_coverage})
         eligible = [c for c in choices if c["valid"]]
@@ -234,6 +269,9 @@ def build(handoff, industry_index, latest, structure, catalog, cap=20, supplemen
                         "concept_up_ratio": round(best["breadth"], 4),
                         "concept_median_return_pct": round(best["median"], 3),
                         "outside_route_rising_count": best["extra_up"],
+                        "recognition_basis": best["recognition_basis"],
+                        "evidence_3d": best["windows"][3],
+                        "evidence_5d": best["windows"][5],
                         "quote_coverage": round(best["quote_coverage"], 4)})
             # Reuse the existing cheap technical opportunity screen; no new buy score.
             from build_trend_buy_manual_research import compact_opportunity
