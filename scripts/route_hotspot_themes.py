@@ -113,8 +113,8 @@ def fetch_current_memberships(handoff):
     # An independent source is allowed, but must carry its true provider identity.
     try:
         listing = ak.stock_board_concept_name_ths()
-        name_col = next((c for c in listing.columns if c in ("概念名称", "板块名称", "名称")), None)
-        code_col = next((c for c in listing.columns if c in ("概念代码", "板块代码", "代码")), None)
+        name_col = next((c for c in listing.columns if c in ("概念名称", "板块名称", "名称", "name")), None)
+        code_col = next((c for c in listing.columns if c in ("概念代码", "板块代码", "代码", "code")), None)
         if name_col is None:
             raise ValueError("THS_BOARD_NAME_SCHEMA_CHANGED:" + str(list(listing.columns)))
         relevant = {}
