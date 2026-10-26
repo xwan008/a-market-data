@@ -1,0 +1,72 @@
+name: Test concept-only quote coverage from Sina Tencent
+
+on:
+  push:
+    branches: [feature/hotspot-theme-identification-20261026]
+    paths: [".github/workflows/probe-concept-quote-coverage.yml"]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - uses: actions/download-artifact@v4
+        with:
+          name: adata-humanoid-shadow-20261026
+          run-id: 40339394411
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: /tmp/verified-prior-shadow
+      - name: Install existing market dependencies
+        run: pip install -r requirements.txt
+      - name: Probe raw unfiltered providers for missing concept members
+        run: |
+          python -u scripts/probe_concept_quote_supplement.py \
+            --concept-file /tmp/verified-prior-shadow/concept_membership_asof.json \
+            --output /tmp/robot_concept_quote_supplement.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          q=json.loads(Path('/tmp/robot_concept_quote_supplement.json').read_text())
+          assert q['result_kind']=='concept_quote_supplement'
+          assert q['trade_date']=='2026-10-26'
+          assert q['member_count']==482
+          print('SUPPLEMENT_AUDIT',json.dumps({
+            k:v for k,v in q.items() if k!='stocks'},ensure_ascii=False),flush=True)
+          PY
+      - name: Re-run classification using supplemented concept breadth
+        run: |
+          python scripts/build_full_market_price_structure.py
+          python scripts/route_hotspot_themes.py \
+            --concept-file /tmp/verified-prior-shadow/concept_membership_asof.json \
+            --supplement-quotes /tmp/robot_concept_quote_supplement.json \
+            --output-dir /tmp/robot_concept_supplemented
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          routes=json.loads(Path('/tmp/robot_concept_supplemented/2026-10-26.json').read_text())
+          row=routes['routes'][0]
+          print('REAL_DATA_ROUTING_VERDICT',json.dumps({
+            'hotspot':row['trend_name'],'type':row['hotspot_type'],
+            'reason':row.get('classification_reason'),
+            'concept':row.get('mapping_name'),
+            'full_quote_coverage':row.get('quote_coverage'),
+            'incomplete':row.get('insufficient_concepts'),
+            'top20_count':len(row['candidate_stocks'])
+          },ensure_ascii=False),flush=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: robot-concept-quote-coverage-20261026
+          path: |
+            /tmp/robot_concept_quote_supplement.json
+            /tmp/robot_concept_supplemented/2026-10-26.json
+          retention-days: 14
+          if-no-files-found: ignore
