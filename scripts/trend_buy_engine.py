@@ -565,11 +565,11 @@ def dynamic_top5_by_theme(ready, wait, research):
                 primary.append(row)
             elif trend_watch_signal(row):
                 watches.append(row)
-        primary.sort(key=opportunity_key)
+        primary.sort(key=top5_rank_key)
         watches.sort(key=trend_watch_key)
         selected = primary[:5]
         selected.extend(watches[:max(0, 5 - len(selected))])
-        # Keep the exact selected members/cap; only the internal order changes.
+        # Apply the same final ranking after including any fallback watches.
         selected.sort(key=top5_rank_key)
         primary_codes = {row["code"] for row in primary}
         groups.append({
