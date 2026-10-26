@@ -121,6 +121,11 @@ def main():
                 "web_concept_code": {"status": "NOT_ATTEMPTED"},
                 "index_code_full": {"status": "NOT_ATTEMPTED"}}
         found = best(indexed, name, "name")
+        # A one-off external clue for the October 22 humanoid-robot THS index.
+        # This is a probe hint only; not automatically a canonical theme mapping.
+        if name == "人形机器人" and found is None:
+            found = {"name": name, "index_code": "886069"}
+            item["index_code_hint_not_source_verified"] = True
         board = best(boards, name, "name")
         if board:
             item["name_matched"] = board["name"]
