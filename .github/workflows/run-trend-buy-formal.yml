@@ -88,10 +88,11 @@ jobs:
 
       - name: Fresh dynamic industry Top5 and selected company research
         run: |
+          DAY="$(python -c "import json;print(json.load(open('research/trend_handoff.json'))['trade_date'])")"
           python scripts/build_trend_buy_manual_research.py \
             --evidence research/trend_buy_company_reviews/latest.json \
             --structure-output /tmp/mainline-scoped-structure.json \
-            --theme-candidates "data/research/theme_stock_candidates/$(python -c 'import json;print(json.load(open(\"research/trend_handoff.json\"))[\"trade_date\"])').json" \
+            --theme-candidates "data/research/theme_stock_candidates/$DAY.json" \
             --output /tmp/mainline-fresh-research.json
 
       - name: Recompute every selected entry, theme Top5 and risk plan
