@@ -86,6 +86,36 @@ class ThemeRouterTests(unittest.TestCase):
         self.assertEqual(row["insufficient_concepts"][0]["mainboard_member_count"], 7)
         self.assertEqual(row["insufficient_concepts"][0]["quoted_count"], 3)
 
+    def test_multiday_theme_is_not_demoted_on_one_day_pullback(self):
+        h, i, q, structure, c = fixture()
+        for code in q["stocks"]:
+            q["stocks"][code]["change_pct"] = -1.0
+            structure["companies"][code].update({
+                "data_status": "verified",
+                "data_date": DAY,
+                "phase_evidence": {"return_3d_pct": 2.5, "return_5d_pct": 3.0}
+            })
+        with patch("build_trend_buy_manual_research.compact_opportunity",
+                   side_effect=dummy_technical):
+            route = router.build(h, i, q, structure, c)["routes"][0]
+        self.assertEqual(route["hotspot_type"], "THEME")
+        self.assertEqual(route["recognition_basis"], "CONCEPT_3D_5D_STRUCTURE")
+        self.assertEqual(len(route["candidate_stocks"]), 7)
+        self.assertGreaterEqual(route["evidence_3d"]["breadth"], .6)
+
+    def test_stale_multiday_evidence_does_not_rescue_weak_theme(self):
+        h, i, q, structure, c = fixture()
+        for code in q["stocks"]:
+            q["stocks"][code]["change_pct"] = -1.0
+            structure["companies"][code].update({
+                "data_status": "verified",
+                "data_date": "2026-10-23",
+                "phase_evidence": {"return_3d_pct": 2.5, "return_5d_pct": 3.0}
+            })
+        route = router.build(h, i, q, structure, c)["routes"][0]
+        self.assertEqual(route["hotspot_type"], "INDUSTRY")
+        self.assertEqual(route["candidate_stocks"], [])
+
     def test_single_industry_trend_retains_sw_route(self):
         h, i, q, s, c = fixture()
         h["signals"][0]["trend_name"] = "煤炭"
