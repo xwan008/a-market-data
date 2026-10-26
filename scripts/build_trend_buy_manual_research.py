@@ -243,7 +243,7 @@ def build(evidence_path, structure_path=None, structure_output_path=None, theme_
                 route.get("hotspot_type") not in ("INDUSTRY", "THEME")):
                 raise ValueError("THEME_ROUTE_HAS_CHANGED_UPSTREAM_SIGNAL")
             if route["hotspot_type"] == "THEME":
-                if (route.get("mapping_source") != "EASTMONEY_AKSHARE" or
+                if (route.get("mapping_source") not in ("EASTMONEY_AKSHARE", "THS_ADATA") or
                     not route.get("mapping_code") or
                     not isinstance(route.get("concept_member_codes"), list)):
                     raise ValueError("THEME_MAPPING_UNVERIFIED")
