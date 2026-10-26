@@ -17,6 +17,14 @@ from zoneinfo import ZoneInfo
 
 SH = ZoneInfo("Asia/Shanghai")
 CODE = re.compile(r"^\d{6}$")
+SH_MAIN_PREFIXES = ("600", "601", "603", "605")
+SZ_MAIN_PREFIXES = ("000", "001", "002", "003")
+
+
+def is_main_board(code):
+    return bool(CODE.fullmatch(str(code))) and str(code).startswith(
+        SH_MAIN_PREFIXES + SZ_MAIN_PREFIXES
+    )
 GENERIC = {"工业", "自动化", "工业自动化", "设备", "产业", "概念", "板块", "行业", "材料", "制造", "相关"}
 
 
@@ -157,30 +165,32 @@ def build(handoff, industry_index, latest, structure, catalog, cap=20, supplemen
             if name_match < 2:
                 continue
             full_members = set(concept["member_codes"])
+            mainboard_members = {c for c in full_members if is_main_board(c)}
             matched_concepts.append(concept["concept_id"])
-            # Never divide by the mainboard-only SW universe, or an incomplete
-            # concept will be falsely reported as an industry opportunity.
+            # Main-board-only research: breadth and data coverage use the
+            # concept's SH/SZ main-board members, NOT all-market constituents.
+            # Full membership is kept intact for provenance and reproducibility.
             values = [(code, get_return(latest_quotes.get(code) or {}))
-                      for code in full_members]
+                      for code in mainboard_members]
             valid = [(code, r) for code, r in values if r is not None]
-            actual_coverage = len(valid) / len(full_members)
+            actual_coverage = len(valid) / len(mainboard_members) if mainboard_members else 0
             if len(valid) < 5 or actual_coverage < .8:
                 incomplete.append({
                     "concept_id": concept["concept_id"],
                     "concept_name": concept["name"],
                     "member_count": len(full_members),
+                    "mainboard_member_count": len(mainboard_members),
                     "quoted_count": len(valid),
                     "quote_coverage": round(actual_coverage, 4),
                     "missing_from_frozen_quotes": sum(
-                        c not in (latest.get("stocks") or {}) for c in full_members),
+                        c not in (latest.get("stocks") or {}) for c in mainboard_members),
                     "missing_from_industry_index": sum(
-                        c not in company_map for c in full_members),
+                        c not in company_map for c in mainboard_members),
                     "reason": "INSUFFICIENT_CONCEPT_QUOTE_COVERAGE"
                 })
                 continue
-            # The full breadth is based on ALL available named concept members;
-            # SW memberships are still only used for the research-stage subset.
-            codes = full_members & set(company_map)
+            # Only actual main-board SW members are eligible for Top20 research.
+            codes = mainboard_members & set(company_map)
             bread = sum(r > 0 for _, r in valid) / len(valid)
             med = median(r for _, r in valid)
             extra_up = sum(code not in industry_members and r >= 1
@@ -192,7 +202,7 @@ def build(handoff, industry_index, latest, structure, catalog, cap=20, supplemen
             is_theme = (len(industries) >= 3 and extra_up >= 3 and
                         extra_up / max(rising, 1) >= .25 and
                         bread >= .55 and med >= 0)
-            choices.append({"concept": concept, "codes": codes, "breadth": bread,
+            choices.append({"concept": concept, "codes": codes, "mainboard_member_count": len(mainboard_members), "breadth": bread,
                             "median": med, "extra_up": extra_up, "rising": rising,
                             "industry_count": len(industries), "match": name_match,
                             "valid": is_theme, "quote_coverage": actual_coverage})
@@ -219,6 +229,7 @@ def build(handoff, industry_index, latest, structure, catalog, cap=20, supplemen
                    "CONCEPT_EVIDENCE_SUPPORTED" if best else "INDUSTRY_MAPPING_RETAINED"}
         if best:
             row.update({"concept_member_count": len(best["concept"]["member_codes"]),
+                        "concept_mainboard_member_count": best["mainboard_member_count"],
                         "concept_member_codes": best["concept"]["member_codes"],
                         "concept_up_ratio": round(best["breadth"], 4),
                         "concept_median_return_pct": round(best["median"], 3),
@@ -248,6 +259,7 @@ def build(handoff, industry_index, latest, structure, catalog, cap=20, supplemen
             "trade_date": date, "status": "COMPLETE",
             "concept_source": catalog["source"],
             "concept_as_of_trade_date": catalog["as_of_trade_date"],
+            "market_scope": "SH_SZ_MAINBOARD_ONLY",
             "max_candidates_per_theme": cap, "routes": result}
 
 
