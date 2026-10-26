@@ -1,0 +1,135 @@
+name: Shadow rerun humanoid concept from verified adata artifact
+
+on:
+  push:
+    branches: [feature/hotspot-theme-identification-20261026]
+    paths:
+      - ".github/workflows/shadow-adata-humanoid-20261026.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  shadow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/download-artifact@v4
+        with:
+          name: adata-concept-probe-20261026
+          run-id: 40338281349
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: /tmp/verified-probe
+      - name: Freeze verified source-membership identity and timestamp
+        run: |
+          python - <<'PY'
+          import json
+          from datetime import datetime
+          from pathlib import Path
+          p=Path('/tmp/verified-probe/adata_theme_probe_20261026.json')
+          probe=json.loads(p.read_text())
+          row=next(r for r in probe['samples'] if r['wanted']=='人形机器人')
+          block=row['index_code_full']
+          assert block['status']=='COMPLETE_COUNT_MATCH'
+          assert row['index_code']=='886069'
+          assert len(block['member_codes'])==block['returned_unique']==block['vendor_declared_total']==482
+          assert len(set(block['member_codes']))==482
+          observed=datetime.fromisoformat(probe['observed_at'])
+          assert observed.date().isoformat()=='2026-10-26', 'POINT_IN_TIME_DATE_MISMATCH'
+          catalog={'schema_version':1,'source':'THS_ADATA',
+                   'as_of_trade_date':'2026-10-26',
+                   'source_observed_at':probe['observed_at'],
+                   'source_vendor_declared_total':482,
+                   'concepts':[{'concept_id':'886069','name':'人形机器人',
+                                'source':'THS_ADATA','member_codes':block['member_codes']}]}
+          Path('/tmp/concept_membership_asof.json').write_text(json.dumps(catalog,ensure_ascii=False))
+          print('SOURCE_CONCEPT_MEMBERSHIP_VALID',482,observed.isoformat(),flush=True)
+          PY
+      - name: Run new routing and discovery against 2026-10-26 frozen close
+        run: |
+          python scripts/route_hotspot_themes.py \
+            --concept-file /tmp/concept_membership_asof.json \
+            --output-dir /tmp/adata_shadow_candidates
+          python scripts/build_sector_discovery.py \
+            --concept-membership /tmp/concept_membership_asof.json \
+            --output /tmp/adata_shadow_sector.json \
+            --audit /tmp/adata_shadow_audit.json
+      - name: Compare old industry versus new concept and print auditable facts
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from statistics import median
+          def read(path):
+              return json.loads(Path(path).read_text())
+          trade_date='2026-10-26'
+          handoff=read('research/trend_handoff.json')
+          quotes=read('data/latest.json')
+          industries=read('data/research/company_industry_index.json')
+          routes=read('/tmp/adata_shadow_candidates/2026-10-26.json')
+          audit=read('/tmp/adata_shadow_audit.json')
+          assert handoff['trade_date']==quotes['trade_date']==routes['trade_date']==trade_date
+          assert quotes['market_status']=='closed'
+          assert audit['concept_count']==1
+          concept=next(s for s in audit['sectors'] if s['id']=='concept:886069')
+          signal=handoff['signals'][0]
+          old_ids=set(signal['industry_codes'])
+          old_codes={str(c).zfill(6) for c, item in industries['companies'].items()
+                     if item.get('mapping_status')=='mapped'
+                     and item.get('industry_code') in old_ids}
+          def pct(code):
+              row=(quotes['stocks'].get(code) or {})
+              if row.get('confidence') not in ('high','medium'):return None
+              if row.get('change_pct') is not None:
+                  return float(row['change_pct'])
+              try:
+                  return (float(row['price'])/float(row['prev_close'])-1)*100
+              except (ValueError,TypeError,KeyError,ZeroDivisionError):return None
+          old=[pct(code) for code in old_codes]
+          old=[n for n in old if n is not None]
+          picked=routes['routes'][0]
+          result={'trade_date':trade_date,'result_kind':'SHADOW_NOT_FORMAL',
+                  'name':signal['trend_name'],'original_state':signal['market_state'],
+                  'original_trend_state':signal['trend_state'],
+                  'original_industry_codes':sorted(old_ids),
+                  'original_industry_members':len(old_codes),
+                  'original_industry_usable':len(old),
+                  'original_industry_breadth':round(sum(v>0 for v in old)/len(old),4) if old else None,
+                  'original_industry_median_1d_pct':round(median(old),3) if old else None,
+                  'concept':{'name':'人形机器人','index_code':'886069',
+                             'source':'THS_ADATA','full_members':482,
+                             'mapped_quote_count':concept['usable_count'],
+                             'quote_coverage':concept['coverage'],
+                             'sample_quality':concept['sample_quality'],
+                             'breadth_1d':concept['advance_ratio'],
+                             'breadth_3d':concept['breadth_3d'],
+                             'breadth_5d':concept['breadth_5d'],
+                             'median_1d_pct':concept['median_1d_pct']},
+                  'classifier_type':picked['hotspot_type'],
+                  'classifier_mapping_source':picked['mapping_source'],
+                  'top20':picked['candidate_stocks'],
+                  'limitations':[
+                    'Only one externally identified concept board tested; NOT a full market concept scan.',
+                    'Live 2026-10-26 evening constituents, not an historical as-of snapshot from a date-query API.',
+                    'Only stocks inside existing frozen research universe have market price and business quality coverage.',
+                    'This is not a new formal trend-state decision or a buy signal.']}
+          Path('/tmp/adata_humanoid_shadow_result.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
+          print('SHADOW_CONCEPT_RESULT',json.dumps(result,ensure_ascii=False),flush=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: adata-humanoid-shadow-20261026
+          path: |
+            /tmp/concept_membership_asof.json
+            /tmp/adata_shadow_candidates/2026-10-26.json
+            /tmp/adata_shadow_sector.json
+            /tmp/adata_shadow_audit.json
+            /tmp/adata_humanoid_shadow_result.json
+          retention-days: 14
+          if-no-files-found: ignore
