@@ -57,7 +57,7 @@ def get_return(quote):
 def validate_memberships(catalog, trade_date):
     if (catalog.get("schema_version") != 1 or
             catalog.get("as_of_trade_date") != trade_date or
-            catalog.get("source") not in {"EASTMONEY_AKSHARE", "THS_ADATA"}):
+            catalog.get("source") not in {"EASTMONEY_AKSHARE", "THS_ADATA", "THS_FUYAO"}):
         raise ValueError("CONCEPT_MEMBERSHIP_DATE_OR_SOURCE_INVALID")
     rows = catalog.get("concepts")
     if not isinstance(rows, list):
