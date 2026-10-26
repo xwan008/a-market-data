@@ -193,7 +193,8 @@ def build(handoff, industry_index, latest, structure, catalog, cap=20, supplemen
         best = eligible[0] if eligible else None
         # A relevant matched concept with insufficient quotes is UNKNOWN,
         # not a negative theme finding and definitely not a positive industry classification.
-        unresolved = bool(not best and incomplete)
+        partial_catalog = catalog.get("catalog_scope") in ("PARTIAL_CONCEPT_CATALOG", "SINGLE_BOARD_ONLY")
+        unresolved = bool(not best and (incomplete or partial_catalog))
         row = {"rank": signal["rank"], "trend_name": signal["trend_name"],
                "trend_state": signal["trend_state"], "market_state": signal["market_state"],
                "hotspot_type": "THEME" if best else "DATA_INSUFFICIENT" if unresolved else "INDUSTRY",
@@ -204,7 +205,8 @@ def build(handoff, industry_index, latest, structure, catalog, cap=20, supplemen
                "candidate_stocks": [],
                "matched_concepts": matched_concepts,
                "insufficient_concepts": incomplete,
-               "classification_reason": "CONCEPT_COVERAGE_UNVERIFIED" if unresolved else
+               "classification_reason": ("CONCEPT_COVERAGE_UNVERIFIED" if incomplete else
+                   "PARTIAL_CONCEPT_CATALOG") if unresolved else
                    "CONCEPT_EVIDENCE_SUPPORTED" if best else "INDUSTRY_MAPPING_RETAINED"}
         if best:
             row.update({"concept_member_count": len(best["concept"]["member_codes"]),
