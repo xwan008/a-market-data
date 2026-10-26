@@ -52,6 +52,14 @@ jobs:
           PY
       - name: Run new routing and discovery against 2026-10-26 frozen close
         run: |
+          python scripts/build_full_market_price_structure.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          s=json.loads(Path('data/research/full_market_price_structure.json').read_text())
+          assert s['reference_trade_date']=='2026-10-26', 'STRUCTURE_ASOF_MISMATCH'
+          print('FROZEN_STRUCTURE_REBUILT',s['reference_trade_date'],s['verified_count'],flush=True)
+          PY
           python scripts/route_hotspot_themes.py \
             --concept-file /tmp/concept_membership_asof.json \
             --output-dir /tmp/adata_shadow_candidates
