@@ -320,6 +320,17 @@ def _d123_stage_errors(item, previous, day):
                     not isinstance(backfill.get("review_gap"), str) or
                     len(backfill["review_gap"].strip()) < 12):
                 errors.append(f"{episode}:d123_legacy_backfill_provenance_missing")
+            # Backfilled phase must be supported by actual recorded close dates.
+            # The current close is a real session even when HOLD omits state_history.
+            sessions = {day}
+            for row in item.get("state_history") or []:
+                if isinstance(row, dict):
+                    value = row.get("trade_date")
+                    if isinstance(value, str) and DAY.fullmatch(value) and trigger <= value <= day:
+                        sessions.add(value)
+            required = {"D2": 2, "D3": 3, "POST_D3": 4}.get(stage, 1)
+            if len(sessions) < required:
+                errors.append(f"{episode}:d123_legacy_sessions_insufficient")
             if stage == "POST_D3" and decision != "UNVERIFIED":
                 errors.append(f"{episode}:d123_legacy_d3_decision_not_proven")
     else:

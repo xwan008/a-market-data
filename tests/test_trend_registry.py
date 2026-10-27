@@ -219,6 +219,14 @@ class TrendRegistryTests(unittest.TestCase):
         self.assertEqual(engine._d123_stage_errors(row, None, "2026-10-27"), [])
         row["d123_stage"] = "POST_D3"
         row["d123_decision"] = "UNVERIFIED"
+        self.assertIn(row["episode_id"] + ":d123_legacy_sessions_insufficient",
+                      engine._d123_stage_errors(row, None, "2026-10-27"))
+        row["state_history"].extend([
+            {"trade_date": "2026-10-21", "from": "观察", "to": "候选趋势"},
+            {"trade_date": "2026-10-22", "from": "候选趋势", "to": "候选趋势"}])
+        row["first_seen_trade_date"] = "2026-10-20"
+        row["d123_trigger_trade_date"] = "2026-10-20"
+        row["d123_backfill_audit"]["first_formal_trade_date"] = "2026-10-20"
         self.assertEqual(engine._d123_stage_errors(row, None, "2026-10-27"), [])
         row["d123_decision"] = "NOT_CONFIRMED"
         self.assertIn(row["episode_id"] + ":d123_legacy_d3_decision_not_proven",
