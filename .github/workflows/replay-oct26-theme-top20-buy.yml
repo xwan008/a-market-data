@@ -47,10 +47,11 @@ jobs:
           exact=r['scenario_real_oct26_exact_humanoid_concept']
           assert exact['actual_full_members']==482
           assert exact['actual_mainboard_members']==227
-          assert len(exact['top20'])==20
-          assert len({x['code'] for x in exact['top20']})==20
-          assert all(x['code'].startswith(('600','601','603','605','000','001','002','003'))
-                     for x in exact['top20'])
+          assert exact['status']=='BLOCKED_NO_VERIFIED_COMMERCIAL_CHAIN_EVIDENCE'
+          assert exact['top20']==[]
+          assert exact['final_engine_top5']==[]
+          assert exact['historic_vendor_only_top20_now_ineligible'] is True
+          assert exact['verified_business_chain_company_count']==0
           assert exact['buy_eligible'] is False
           assert r['no_official_trend_or_buy_publication'] is True
           print('THEME_IDENTITY_TOP20_BUY_FULL_AUDIT',json.dumps({
