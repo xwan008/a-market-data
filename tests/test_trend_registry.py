@@ -196,6 +196,24 @@ class TrendRegistryTests(unittest.TestCase):
         self.assertIn(row["episode_id"] + ":d123_stage_missing",
                       engine._d123_stage_errors(row, None, "2026-10-28"))
 
+    def test_formal_registry_has_no_fake_d3_continuation(self):
+        import json
+        from pathlib import Path
+        registry = json.loads((Path(__file__).resolve().parents[1] /
+                               "research/trend_registry.json").read_text())
+        if registry["trade_date"] != "2026-10-27":
+            self.skipTest("historical regression only for the corrected close")
+        assert len(registry["trends"]) == 5
+        for row in registry["trends"]:
+            self.assertIn(row["d123_stage"], {"D1", "D2", "D3"})
+            self.assertIn(row["d123_decision"], {"PENDING", "CONFIRMED", "NOT_CONFIRMED"})
+            if row["d123_stage"] == "D3":
+                self.assertIn(row["d123_decision"], {"CONFIRMED", "NOT_CONFIRMED"})
+        robot = next(x for x in registry["trends"] if x["trend_name"] == "工业自动化/机器人")
+        self.assertEqual((robot["d123_stage"], robot["d123_decision"],
+                          robot["d123_decision_trade_date"]),
+                         ("D3", "NOT_CONFIRMED", "2026-10-22"))
+
     def test_d2_can_directly_confirm_and_close(self):
         first = theme("日内相对强势", "观察", "2026-10-27")
         first.update(d123_stage="D1", d123_trigger_trade_date="2026-10-27",
