@@ -2,7 +2,7 @@
   "schema_version": 2,
   "result_kind": "a_share_trend_registry",
   "trade_date": "2026-10-27",
-  "generated_at": "2026-10-27T18:34:18+08:00",
+  "generated_at": "2026-10-27T20:56:04+08:00",
   "timezone": "Asia/Shanghai",
   "status": "COMPLETE",
   "scan_audit": {
@@ -266,7 +266,65 @@
         }
       ],
       "new_confirmation_reviews": []
-    }
+    },
+    "same_day_revisions": [
+      {
+        "previous_registry_blob_sha": "c34f390dfd756891e487ad90b153f81432f5e2c2",
+        "previous_generated_at": "2026-10-27T18:34:18+08:00",
+        "revised_at": "2026-10-27T20:56:04+08:00",
+        "reason": "同一交易日内复核新候选真实受益链后修正证据不足的首次候选判断，原18:30发现及迁移审计保持不变。",
+        "changes": [
+          {
+            "episode_id": "商贸零售#2026-10-27",
+            "from": "候选趋势",
+            "to": "观察",
+            "reason": "同日复核认为商贸零售3个三级行业的3日/5日强势与整体社零正增长不足以构成两类独立确认依据；超市与百货经营数据分化，宽主题共同受益尚未核实，按观察跟踪而非首次候选。",
+            "evidence": [
+              {
+                "dimension": "MARKET_STRUCTURE",
+                "direction": "COUNTER",
+                "impact": "NORMAL",
+                "trade_date": "2026-10-27",
+                "source": "data/research/sector_discovery_audit.json",
+                "finding": "三级行业结构分化：百货当日上涨广度45%、中位收益-0.097%，超市与多业态零售虽维持相对强势，尚不能代替全主题一致的结构承接。"
+              },
+              {
+                "dimension": "INDUSTRY_FUNDAMENTALS",
+                "direction": "COUNTER",
+                "impact": "NORMAL",
+                "trade_date": "2026-10-27",
+                "source": "https://www.stats.gov.cn/sj/zxfb/202610/t20261019_1972514.html",
+                "finding": "已公开社零数据整体增长仅1.1%，其中百货店与超市零售额表现相反，不能用整体社零同比推断三类业态经营同步改善。"
+              }
+            ]
+          },
+          {
+            "episode_id": "电机#2026-10-27",
+            "from": "候选趋势",
+            "to": "观察",
+            "reason": "同日复核认可电机Ⅲ多日收益、相对强度和量比，但以工业机器人及减速器产量增长映射全部电机公司缺乏独立受益证据，且10月27日广度44.44%；仍值得观察，但候选尚需补齐真实受益链。",
+            "evidence": [
+              {
+                "dimension": "MARKET_STRUCTURE",
+                "direction": "COUNTER",
+                "impact": "NORMAL",
+                "trade_date": "2026-10-27",
+                "source": "data/research/sector_discovery_audit.json",
+                "finding": "电机Ⅲ当日中位收益-0.433%，上涨广度44.44%，但3日中位+2.655%、5日+3.16%、量比1.9215，存在延续线索且尚不构成无争议的行业共振。"
+              },
+              {
+                "dimension": "INDUSTRY_FUNDAMENTALS",
+                "direction": "COUNTER",
+                "impact": "NORMAL",
+                "trade_date": "2026-10-27",
+                "source": "https://www.stats.gov.cn/sj/zxfb/202610/t20261020_1972579.html",
+                "finding": "机器人和减速器整体产量增速是相邻产业需求证据，不能独立证明电机Ⅲ各核心公司订单和盈利随之改善。"
+              }
+            ]
+          }
+        ]
+      }
+    ]
   },
   "trends": [
     {
@@ -730,7 +788,7 @@
       "episode_id": "商贸零售#2026-10-27",
       "first_seen_trade_date": "2026-10-27",
       "last_verified_trade_date": "2026-10-27",
-      "market_state": "候选趋势",
+      "market_state": "观察",
       "trend_state": "T0",
       "trend_basis": "A_SHARE",
       "lifecycle_status": "有效",
@@ -762,10 +820,20 @@
           "trade_date": "2026-10-27",
           "source": "data/latest.json",
           "description": "社零增速仅1.1%，且尚未取得百货、超市和多业态零售同店、客流、毛利率同步改善证据。"
+        },
+        {
+          "trade_date": "2026-10-27",
+          "source": "data/research/sector_discovery_audit.json",
+          "description": "三级行业结构分化：百货当日上涨广度45%、中位收益-0.097%，超市与多业态零售虽维持相对强势，尚不能代替全主题一致的结构承接。"
+        },
+        {
+          "trade_date": "2026-10-27",
+          "source": "https://www.stats.gov.cn/sj/zxfb/202610/t20261019_1972514.html",
+          "description": "已公开社零数据整体增长仅1.1%，其中百货店与超市零售额表现相反，不能用整体社零同比推断三类业态经营同步改善。"
         }
       ],
-      "invalidation_condition": "若三类零售3日结构转负且社零、同店销售或利润率无改善，则降为观察或退出。",
-      "change_reason": "零售三细分形成连续多日相对强势，并有社零弱复苏支撑；盈利闭环不足，按T0候选起步。",
+      "invalidation_condition": "保持观察且不生成个股handoff；后续只有在真实受益链与市场多日参与重新得到独立验证时才能升候选，否则依据实际结构反证审查退出。",
+      "change_reason": "同日复核认为商贸零售3个三级行业的3日/5日强势与整体社零正增长不足以构成两类独立确认依据；超市与百货经营数据分化，宽主题共同受益尚未核实，按观察跟踪而非首次候选。",
       "confirmation_audit": {
         "asof_trade_date": "2026-10-27",
         "market_environment": "RISK_OFF",
@@ -782,38 +850,38 @@
           "S450302",
           "S450303"
         ],
-        "strongest_counter": "消费增速偏低且同店、客流和利润率的行业级改善尚未完成验证。",
-        "decision_reason": "产业弱复苏与三个细分多日强势交叉，达到候选但尚不足趋势确认。",
-        "decision_state": "候选趋势",
-        "specific_blocker": "需同店销售、客流和毛利率改善，并经历分歧日后保持跨细分广度。"
+        "strongest_counter": "已公开社零数据整体增长仅1.1%，其中百货店与超市零售额表现相反，不能用整体社零同比推断三类业态经营同步改善。",
+        "decision_reason": "同日复核认为商贸零售3个三级行业的3日/5日强势与整体社零正增长不足以构成两类独立确认依据；超市与百货经营数据分化，宽主题共同受益尚未核实，按观察跟踪而非首次候选。",
+        "decision_state": "观察",
+        "specific_blocker": "需分别核实超市、百货与多业态零售的真实同店销售、客流、订单和利润率，以及宽主题下分歧后的持续参与。"
       },
       "industry_assessments": [
         {
           "industry_code": "S450301",
           "industry_name": "百货",
-          "benefit_level": "DIRECT",
-          "market_state": "候选趋势",
+          "benefit_level": "UNVERIFIED",
+          "market_state": "观察",
           "evidence_trade_date": "2026-10-27",
-          "benefit_reason": "线下客流与可选消费修复可直接传导至百货同店销售。",
-          "market_reason": "20只样本3日和5日均为正且放量，但当日广度仅45%。"
+          "benefit_reason": "线下客流与可选消费修复可直接传导至百货同店销售。；仍属于待验证的业务传导假设，不能当成已经核验的行业整体利润改善。",
+          "market_reason": "20只样本3日和5日均为正且放量，但当日广度仅45%。；同日复核更正为观察：现有短期市场表现未能解决关键受益链证据缺口。"
         },
         {
           "industry_code": "S450302",
           "industry_name": "超市",
           "benefit_level": "DIRECT",
-          "market_state": "候选趋势",
+          "market_state": "观察",
           "evidence_trade_date": "2026-10-27",
-          "benefit_reason": "必选消费需求和门店效率改善可直接影响超市经营。",
-          "market_reason": "7只样本当日与多日结构为正，但样本较少、盈利证据未闭环。"
+          "benefit_reason": "必选消费需求和门店效率改善可直接影响超市经营。；仍属于待验证的业务传导假设，不能当成已经核验的行业整体利润改善。",
+          "market_reason": "7只样本当日与多日结构为正，但样本较少、盈利证据未闭环。；同日复核更正为观察：现有短期市场表现未能解决关键受益链证据缺口。"
         },
         {
           "industry_code": "S450303",
           "industry_name": "多业态零售",
-          "benefit_level": "DIRECT",
-          "market_state": "候选趋势",
+          "benefit_level": "UNVERIFIED",
+          "market_state": "观察",
           "evidence_trade_date": "2026-10-27",
-          "benefit_reason": "消费客流与渠道效率改善可直接传导多业态零售收入。",
-          "market_reason": "15只样本当日及3日、5日为正且放量，但仍缺回撤承接。"
+          "benefit_reason": "消费客流与渠道效率改善可直接传导多业态零售收入。；仍属于待验证的业务传导假设，不能当成已经核验的行业整体利润改善。",
+          "market_reason": "15只样本当日及3日、5日为正且放量，但仍缺回撤承接。；同日复核更正为观察：现有短期市场表现未能解决关键受益链证据缺口。"
         }
       ],
       "state_history": [
@@ -823,6 +891,14 @@
           "to": "候选趋势",
           "event": "new_verified_trend",
           "reason": "零售三细分形成连续多日相对强势，并有社零弱复苏支撑；盈利闭环不足，按T0候选起步。"
+        },
+        {
+          "trade_date": "2026-10-27",
+          "from": "候选趋势",
+          "to": "观察",
+          "event": "same_day_revision",
+          "reason": "同日复核认为商贸零售3个三级行业的3日/5日强势与整体社零正增长不足以构成两类独立确认依据；超市与百货经营数据分化，宽主题共同受益尚未核实，按观察跟踪而非首次候选。",
+          "revised_at": "2026-10-27T20:56:04+08:00"
         }
       ]
     },
@@ -831,7 +907,7 @@
       "episode_id": "电机#2026-10-27",
       "first_seen_trade_date": "2026-10-27",
       "last_verified_trade_date": "2026-10-27",
-      "market_state": "候选趋势",
+      "market_state": "观察",
       "trend_state": "T0",
       "trend_basis": "A_SHARE",
       "lifecycle_status": "有效",
@@ -859,10 +935,20 @@
           "trade_date": "2026-10-27",
           "source": "data/research/sector_discovery_audit.json",
           "description": "电机当日中位-0.433%、上涨广度44.44%，行业业务暴露分散，尚缺覆盖样本的订单与利润率同步改善。"
+        },
+        {
+          "trade_date": "2026-10-27",
+          "source": "data/research/sector_discovery_audit.json",
+          "description": "电机Ⅲ当日中位收益-0.433%，上涨广度44.44%，但3日中位+2.655%、5日+3.16%、量比1.9215，存在延续线索且尚不构成无争议的行业共振。"
+        },
+        {
+          "trade_date": "2026-10-27",
+          "source": "https://www.stats.gov.cn/sj/zxfb/202610/t20261020_1972579.html",
+          "description": "机器人和减速器整体产量增速是相邻产业需求证据，不能独立证明电机Ⅲ各核心公司订单和盈利随之改善。"
         }
       ],
-      "invalidation_condition": "若3日与5日结构同步转负且机器人、自动化终端需求无法传导至订单盈利，则降为观察或退出。",
-      "change_reason": "电机行业3日和5日结构持续、量能放大，并有机器人产量线索；订单盈利仍待闭环，按T0候选起步。",
+      "invalidation_condition": "保持观察且不生成个股handoff；后续只有在真实受益链与市场多日参与重新得到独立验证时才能升候选，否则依据实际结构反证审查退出。",
+      "change_reason": "同日复核认可电机Ⅲ多日收益、相对强度和量比，但以工业机器人及减速器产量增长映射全部电机公司缺乏独立受益证据，且10月27日广度44.44%；仍值得观察，但候选尚需补齐真实受益链。",
       "confirmation_audit": {
         "asof_trade_date": "2026-10-27",
         "market_environment": "RISK_OFF",
@@ -877,20 +963,20 @@
         "core_industry_codes": [
           "S630101"
         ],
-        "strongest_counter": "电机当日广度不足一半，且行业内不同终端暴露的订单和盈利改善未独立确认。",
-        "decision_reason": "量价延续与产业需求线索交叉后达到候选，但单一行业尚不能确认。",
-        "decision_state": "候选趋势",
-        "specific_blocker": "需订单、出货或盈利改善的行业级证据，并在分歧日保持多数样本相对强度。"
+        "strongest_counter": "机器人和减速器整体产量增速是相邻产业需求证据，不能独立证明电机Ⅲ各核心公司订单和盈利随之改善。",
+        "decision_reason": "同日复核认可电机Ⅲ多日收益、相对强度和量比，但以工业机器人及减速器产量增长映射全部电机公司缺乏独立受益证据，且10月27日广度44.44%；仍值得观察，但候选尚需补齐真实受益链。",
+        "decision_state": "观察",
+        "specific_blocker": "需核实电机Ⅲ核心企业机器人/自动化收入占比、实际订单及出货和利润传导，同时验证反弹与分歧承接。"
       },
       "industry_assessments": [
         {
           "industry_code": "S630101",
           "industry_name": "电机",
-          "benefit_level": "CORE",
-          "market_state": "候选趋势",
+          "benefit_level": "UNVERIFIED",
+          "market_state": "观察",
           "evidence_trade_date": "2026-10-27",
-          "benefit_reason": "工业机器人、自动化设备和高端制造需求可直接带动电机出货。",
-          "market_reason": "18只样本3日与5日为正且显著放量，但当日广度不足一半。"
+          "benefit_reason": "工业机器人、自动化设备和高端制造需求可直接带动电机出货。；仍属于待验证的业务传导假设，不能当成已经核验的行业整体利润改善。",
+          "market_reason": "18只样本3日与5日为正且显著放量，但当日广度不足一半。；同日复核更正为观察：现有短期市场表现未能解决关键受益链证据缺口。"
         }
       ],
       "state_history": [
@@ -900,6 +986,14 @@
           "to": "候选趋势",
           "event": "new_verified_trend",
           "reason": "电机行业3日和5日结构持续、量能放大，并有机器人产量线索；订单盈利仍待闭环，按T0候选起步。"
+        },
+        {
+          "trade_date": "2026-10-27",
+          "from": "候选趋势",
+          "to": "观察",
+          "event": "same_day_revision",
+          "reason": "同日复核认可电机Ⅲ多日收益、相对强度和量比，但以工业机器人及减速器产量增长映射全部电机公司缺乏独立受益证据，且10月27日广度44.44%；仍值得观察，但候选尚需补齐真实受益链。",
+          "revised_at": "2026-10-27T20:56:04+08:00"
         }
       ]
     }
