@@ -190,8 +190,12 @@ class TrendRegistryTests(unittest.TestCase):
             "market_reason": "本行业独立的强弱结构仍具备有效价格承接证据"
         }]
         self.assertEqual(gate.validate(before, after, SHA), [])
+        # Peripheral/related industries may legitimately remain candidates.
         current["industry_assessments"][0]["benefit_level"] = "RELATED"
-        self.assertIn("A#" + OLD + ":S630601:sw3_independent_evidence_missing",
+        self.assertEqual(gate.validate(before, after, SHA), [])
+        # A confirmed SW3, however, must have a CORE/DIRECT benefit.
+        current["industry_assessments"][0]["market_state"] = "趋势确认"
+        self.assertIn("A#" + OLD + ":S630601:confirmed_without_direct_benefit",
                       gate.validate(before, after, SHA))
 
     def test_confirmation_requires_confirmed_core_sw3_not_entire_theme(self):
