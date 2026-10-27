@@ -28,7 +28,7 @@ Frozen Working Set
 
 唯一公司事实输入：
 
-`frozen working_set[industry_code]`
+`frozen working_set[industry_code]`（仅由同日合法 `trend_handoff.json` 中已经独立确认且CORE/DIRECT受益的三级行业生成；当`signals=[]`时不启动此预筛，也不补旧股票）
 
 要求 working set 已通过 Freeze Gate：
 
@@ -52,7 +52,7 @@ post_freeze_materialized_read_count == 0
 - 营收同比 < -20% 且净利润同比 < -50%；
 - 其他已在正式规则中明确的数据完整性硬条件。
 
-禁止使用三级行业的 trend / strength / breadth / confidence / buyability 做准入或排序。
+**本条仅限公司级硬过滤与同业排序**：在上游已通过正式配对Gate、确认CORE/DIRECT受益三级行业后，不再使用该行业的 trend / strength / breadth / confidence / buyability 分数替代公司事实作额外公司淘汰或排名。**绝不能据此跳过上游唯一的“趋势确认＋三级行业受益资格”前置门槛**；观察/候选行业无权进入此处冻结工作集。
 
 硬过滤发生在 frozen working set 内，不改变原 Universe 审计。
 
