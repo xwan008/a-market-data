@@ -75,6 +75,15 @@ class TrendTests(unittest.TestCase):
         self.assertIsNone(x["upside_to_resistance_R"])
         self.assertIsNone(engine.early_watch_reference(x)["reference_zone"])
 
+    def test_prospective_formal_run_rejects_candidate_sector_before_research(self):
+        r,s=inputs()
+        r["mode"]="FORMAL"
+        r["trade_date"]=s["reference_trade_date"]="2026-10-27"
+        s["companies"]["600001"]["data_date"]="2026-10-27"
+        r["companies"][0]["market_state"]="候选趋势"
+        with self.assertRaisesRegex(ValueError,"formal_stock_research_requires_confirmed_sw3"):
+            engine.generate(r,s)
+
     def test_candidate_sector_blocks_ready_even_when_stock_setup_confirms(self):
         c=company()
         c["market_state"]="候选趋势"
