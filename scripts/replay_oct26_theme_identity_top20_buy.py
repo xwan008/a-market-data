@@ -195,37 +195,44 @@ def live_general_robot_oct27(quotes,structure):
         codes=sorted(set(str(x).zfill(6) for x in data["stock_code"].tolist()))
         if not codes or any(len(x)!=6 or not x.isdigit() for x in codes):
             raise ValueError("THS_885517_MEMBER_CODE_INVALID")
-        uri="https://d.10jqka.com.cn/v2/blockrank/885517/8/d15.js"
-        http=requests.get(uri,timeout=20,headers={
-            "User-Agent":"Mozilla/5.0","Referer":"https://q.10jqka.com.cn/"})
-        http.raise_for_status()
-        body=http.text
-        provider_n=int(json.loads(body[body.find("{"):body.rfind("}")+1])["block"]["subcodeCount"])
+        provider_n=None
+        provider_validation_error=None
+        try:
+            uri="https://d.10jqka.com.cn/v2/blockrank/885517/8/d15.js"
+            http=requests.get(uri,timeout=12,headers={
+                "User-Agent":"Mozilla/5.0","Referer":"https://q.10jqka.com.cn/"})
+            http.raise_for_status()
+            body=http.text
+            provider_n=int(json.loads(body[body.find("{"):body.rfind("}")+1])["block"]["subcodeCount"])
+        except Exception as ex:
+            provider_validation_error=str(ex)[:150]
         mainboard=[c for c in codes if c.startswith(PREFIX)]
         quote_covered=[c for c in mainboard if router.get_return((quotes.get("stocks") or {}).get(c) or {}) is not None]
         result.update({
             "source_observed_at":datetime.now(ZoneInfo("Asia/Shanghai")).isoformat(),
             "provider_expected_count":provider_n,"actual_returned_count":len(codes),
+            "provider_validation_error":provider_validation_error,
             "mainboard_members_from_LIVE_membership":len(mainboard),
             "oct26_quote_coverage_on_oct27_membership":
                 round(len(quote_covered)/len(mainboard),4) if mainboard else None,
         })
-        if provider_n != len(codes):
-            result.update({"status":"PARTIAL_PAGINATION_BLOCKED"})
-        else:
-            valid=[]
-            for c in quote_covered:
-                opportunity,_=research_module.compact_opportunity(
-                    (structure.get("companies") or {}).get(c),DAY)
-                if opportunity is not None:
-                    valid.append((opportunity["opportunity_score"],c,
-                                 (quotes["stocks"].get(c) or {}).get("name")))
-            valid.sort(key=lambda x:(-x[0],x[1]))
-            result["status"]="CURRENT_MEMBERSHIP_TECHNICAL_SIMULATION_ONLY"
-            result["non_historical_technical_top20"]=[
-                {"rank":i+1,"code":code,"name":name,
-                 "opportunity_score":round(score,6)}
-                for i,(score,code,name) in enumerate(valid[:20])]
+        valid=[]
+        for c in quote_covered:
+            opportunity,_=research_module.compact_opportunity(
+                (structure.get("companies") or {}).get(c),DAY)
+            if opportunity is not None:
+                valid.append((opportunity["opportunity_score"],c,
+                             (quotes["stocks"].get(c) or {}).get("name")))
+        valid.sort(key=lambda x:(-x[0],x[1]))
+        result["status"]=(
+            "CURRENT_MEMBERSHIP_TECHNICAL_SIMULATION_ONLY"
+            if provider_n==len(codes)
+            else "CURRENT_CONSTITUENTS_UNVERIFIED_COUNT_SENSITIVITY_ONLY"
+        )
+        result["non_historical_technical_top20"]=[
+            {"rank":i+1,"code":code,"name":name,
+             "opportunity_score":round(score,6)}
+            for i,(score,code,name) in enumerate(valid[:20])]
     except Exception as ex:
         result["status"]="LIVE_PROVIDER_UNAVAILABLE"
         result["failure"]=str(ex)[:250]
