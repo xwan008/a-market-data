@@ -1,222 +1,144 @@
-"""Regression tests for the minimal theme-identification / candidate snapshot layer."""
+"""Post-state identity-first routing never reclassifies industries using returns."""
+import copy
 import sys
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"scripts"))
 import route_hotspot_themes as router
 
-
-DAY = "2026-10-26"
-
-
-def fixture():
-    # Two original SW constituents and five unrelated-industry concept constituents.
-    ownership = {
-        "000001": "S640701", "000002": "S640702",
-        "000003": "S650101", "000004": "S650102",
-        "000005": "S650103", "000006": "S650104",
-        "000007": "S650105",
-    }
-    index = {"companies": {k: {"mapping_status": "mapped", "industry_code": v}
-                           for k, v in ownership.items()}}
-    latest = {"trade_date": DAY, "market_status": "closed", "stocks": {
-        code: {"name": "测试" + code, "change_pct": 2.0,
-               "confidence": "high"} for code in ownership}}
-    structure = {"reference_trade_date": DAY, "companies": {
-        code: {"mock_score": .8 if code in {"000003", "000004"} else .6}
-        for code in ownership}}
-    handoff = {"result_kind": "a_share_trend_handoff", "trade_date": DAY,
-               "signals": [{"rank": 1, "trend_name": "工业自动化/机器人",
-                            "industry_codes": ["S640701", "S640702"],
-                            "mapping_status": "resolved",
-                            "trend_state": "T1", "market_state": "候选趋势"}]}
-    catalog = {"schema_version": 1, "source": "EASTMONEY_AKSHARE",
-               "as_of_trade_date": DAY,
-               "concepts": [{"concept_id": "BKTEST", "name": "人形机器人",
-                             "member_codes": list(ownership)}]}
-    return handoff, index, latest, structure, catalog
+DAY="2026-10-26"
+MAIN=["600001","600002","600003","600004","600005","000001"]
 
 
-def dummy_technical(row, date):
-    assert date == DAY
-    return ({"opportunity_score": row["mock_score"]}, None)
+def fixture(kind="THEME"):
+    identity={
+        "result_kind":"hotspot_identity_snapshot",
+        "trade_date":DAY, "status":"COMPLETE",
+        "market_scope":"SH_SZ_MAINBOARD_ONLY",
+        "resolved_at":DAY+"T18:31:00+08:00",
+        "identities":[{"hotspot_name":"人形机器人",
+                       "mapping_status":"VERIFIED",
+                       "board_type":kind,
+                       "board_code":"886069" if kind=="THEME" else "S640701",
+                       "concept_code":"886069" if kind=="THEME" else None,
+                       "industry_codes":[] if kind=="THEME" else ["S640701","S640702"]}]}
+    signal={"rank":1,"trend_name":"人形机器人",
+            "board_type":kind,"board_code":identity["identities"][0]["board_code"],
+            "industry_codes":[] if kind=="THEME" else ["S640701","S640702"],
+            "trend_state":"T1","market_state":"候选趋势"}
+    handoff={"result_kind":"a_share_trend_handoff","trade_date":DAY,
+             "generated_at":DAY+"T18:34:00+08:00",
+             "source":{"identity_verified_before_state":True},
+             "signals":[signal]}
+    latest={"trade_date":DAY,"market_status":"closed",
+            "stocks":{code:{"name":"测试"+code,
+                            "confidence":"high","change_pct":-5}
+                      for code in MAIN}}
+    industries={"companies":{
+        code:{"mapping_status":"mapped",
+              "industry_code":"S640701" if code in MAIN[:3] else "S640702"}
+        for code in MAIN}}
+    structure={"reference_trade_date":DAY,"companies":{
+        code:{"mock_score":.7} for code in MAIN}}
+    catalog={"schema_version":1,"source":"THS_ADATA",
+             "as_of_trade_date":DAY,
+             "source_observed_at":DAY+"T18:30:15+08:00",
+             "concepts":[{"concept_id":"886069","name":"人形机器人",
+                          "source":"THS_ADATA",
+                          "member_codes":MAIN+["300001","688001","830001"]}]}
+    return handoff,industries,latest,structure,identity,catalog
 
 
-class ThemeRouterTests(unittest.TestCase):
-    def test_robot_cross_industry_becomes_theme_and_ranks_capped_stocks(self):
-        h, i, q, s, c = fixture()
+def mock_opportunity(item, day):
+    assert day==DAY
+    return ({"opportunity_score":item["mock_score"]},None)
+
+
+class VerifiedRouteTest(unittest.TestCase):
+    def build(self,args,**kwargs):
         with patch("build_trend_buy_manual_research.compact_opportunity",
-                   side_effect=dummy_technical):
-            data = router.build(h, i, q, s, c, cap=3)
-        group = data["routes"][0]
-        self.assertEqual(group["hotspot_type"], "THEME")
-        self.assertEqual(group["mapping_code"], "BKTEST")
-        self.assertEqual(group["concept_member_count"], 7)
-        self.assertEqual(group["outside_route_rising_count"], 5)
-        self.assertEqual(len(group["candidate_stocks"]), 3)
-        self.assertEqual(group["candidate_stocks"][0]["stock_code"], "000003")
-        self.assertEqual(group["candidate_stocks"][1]["stock_code"], "000004")
-        self.assertTrue(all(x["stock_code"] in c["concepts"][0]["member_codes"]
-                            for x in group["candidate_stocks"]))
+                   side_effect=mock_opportunity):
+            return router.build_verified_routes(*args,**kwargs)
 
-    def test_nonmainboard_missing_quotes_do_not_dilute_mainboard_concept(self):
-        h, i, q, structure, c = fixture()
-        # All the mainboard concept stocks are present and advancing;
-        # GEM/STAR/BSE are source-verified constituents but OUTSIDE research.
-        c["concepts"][0]["member_codes"] += ["300001", "688001", "830001"]
-        with patch("build_trend_buy_manual_research.compact_opportunity",
-                   side_effect=dummy_technical):
-            route = router.build(h, i, q, structure, c)["routes"][0]
-        self.assertEqual(route["hotspot_type"], "THEME")
-        self.assertEqual(route["concept_member_count"], 10)
-        self.assertEqual(route["concept_mainboard_member_count"], 7)
-        self.assertEqual(route["quote_coverage"], 1.0)
+    def test_theme_identity_survives_market_pullback(self):
+        args=fixture()
+        row=self.build(args,cap=4)["routes"][0]
+        self.assertEqual(row["hotspot_type"],"THEME")
+        self.assertEqual(row["concept_member_count"],9)
+        self.assertEqual(row["concept_mainboard_member_count"],6)
+        self.assertEqual(row["quote_coverage"],1)
+        self.assertEqual(len(row["candidate_stocks"]),4)
         self.assertTrue(all(router.is_main_board(x["stock_code"])
-                            for x in route["candidate_stocks"]))
+                            for x in row["candidate_stocks"]))
+        self.assertNotIn("concept_up_ratio",row)
+        self.assertNotIn("recognition_basis",row)
 
-    def test_mainboard_missing_quotes_are_still_insufficient(self):
-        h, i, q, structure, c = fixture()
-        c["concepts"][0]["member_codes"] += ["300001", "688001"]
-        for code in ["000003", "000004", "000005", "000006"]:
-            q["stocks"].pop(code)
-        row = router.build(h, i, q, structure, c)["routes"][0]
-        self.assertEqual(row["hotspot_type"], "DATA_INSUFFICIENT")
-        self.assertEqual(row["insufficient_concepts"][0]["mainboard_member_count"], 7)
-        self.assertEqual(row["insufficient_concepts"][0]["quoted_count"], 3)
+    def test_industry_only_passes_codes_never_industry_member_list(self):
+        handoff,idx,latest,structure,ident,catalog=fixture("INDUSTRY")
+        route=self.build((handoff,idx,latest,structure,ident))["routes"][0]
+        self.assertEqual(route["hotspot_type"],"INDUSTRY")
+        self.assertEqual(route["industry_codes"],["S640701","S640702"])
+        self.assertEqual(route["candidate_stocks"],[])
+        self.assertNotIn("concept_member_codes",route)
 
-    def test_multiday_theme_is_not_demoted_on_one_day_pullback(self):
-        h, i, q, structure, c = fixture()
-        for code in q["stocks"]:
-            q["stocks"][code]["change_pct"] = -1.0
-            structure["companies"][code].update({
-                "data_status": "verified",
-                "data_date": DAY,
-                "phase_evidence": {"return_3d_pct": 2.5, "return_5d_pct": 3.0}
-            })
-        with patch("build_trend_buy_manual_research.compact_opportunity",
-                   side_effect=dummy_technical):
-            route = router.build(h, i, q, structure, c)["routes"][0]
-        self.assertEqual(route["hotspot_type"], "THEME")
-        self.assertEqual(route["recognition_basis"], "CONCEPT_3D_5D_STRUCTURE")
-        self.assertEqual(len(route["candidate_stocks"]), 7)
-        self.assertGreaterEqual(route["evidence_3d"]["breadth"], .6)
+    def test_missing_mainboard_quotes_are_insufficient(self):
+        args=list(fixture())
+        for code in MAIN[:2]:
+            args[2]["stocks"].pop(code)
+        with self.assertRaisesRegex(ValueError,"QUOTE_COVERAGE_INSUFFICIENT"):
+            self.build(args)
 
-    def test_stale_multiday_evidence_does_not_rescue_weak_theme(self):
-        h, i, q, structure, c = fixture()
-        for code in q["stocks"]:
-            q["stocks"][code]["change_pct"] = -1.0
-            structure["companies"][code].update({
-                "data_status": "verified",
-                "data_date": "2026-10-23",
-                "phase_evidence": {"return_3d_pct": 2.5, "return_5d_pct": 3.0}
-            })
-        route = router.build(h, i, q, structure, c)["routes"][0]
-        self.assertEqual(route["hotspot_type"], "INDUSTRY")
-        self.assertEqual(route["candidate_stocks"], [])
+    def test_missing_identity_confirmed_before_state_is_blocked(self):
+        args=list(fixture())
+        args[0]["source"]={}
+        with self.assertRaisesRegex(ValueError,"NOT_ADJUDICATED_AFTER_IDENTITY"):
+            self.build(args)
 
-    def test_single_industry_trend_retains_sw_route(self):
-        h, i, q, s, c = fixture()
-        h["signals"][0]["trend_name"] = "煤炭"
-        result = router.build(h, i, q, s, c)["routes"][0]
-        self.assertEqual(result["hotspot_type"], "INDUSTRY")
-        self.assertEqual(result["candidate_stocks"], [])
-        self.assertEqual(result["original_industry_codes"],
-                         ["S640701", "S640702"])
+    def test_identity_resolution_after_trend_state_is_blocked(self):
+        args=list(fixture())
+        args[4]["resolved_at"]=DAY+"T18:36:00+08:00"
+        with self.assertRaisesRegex(ValueError,"AFTER_TREND_STATE"):
+            self.build(args)
 
-    def test_no_external_breadth_cannot_overwrite_industry(self):
-        h, i, q, s, c = fixture()
-        c["concepts"][0]["member_codes"] = ["000001", "000002",
-                                            "000003", "000004", "000005"]
-        for code in ("000003", "000004", "000005"):
-            q["stocks"][code]["change_pct"] = -2
-        result = router.build(h, i, q, s, c)["routes"][0]
-        self.assertEqual(result["hotspot_type"], "INDUSTRY")
+    def test_membership_captured_after_trend_state_is_blocked(self):
+        args=list(fixture())
+        args[5]["source_observed_at"]=DAY+"T18:35:00+08:00"
+        with self.assertRaisesRegex(ValueError,"AFTER_TREND_STATE"):
+            self.build(args)
 
-    def test_named_concept_with_missing_full_universe_is_unknown_not_industry(self):
-        h, i, q, s, c = fixture()
-        for stock in ("000003", "000004", "000005", "000006", "000007"):
-            i["companies"].pop(stock)
-            q["stocks"].pop(stock)
-        result = router.build(h, i, q, s, c)["routes"][0]
-        self.assertEqual(result["hotspot_type"], "DATA_INSUFFICIENT")
-        self.assertEqual(result["classification_reason"], "CONCEPT_COVERAGE_UNVERIFIED")
-        self.assertEqual(result["candidate_stocks"], [])
-        self.assertLess(result["insufficient_concepts"][0]["quote_coverage"], .8)
-        self.assertEqual(result["insufficient_concepts"][0]["member_count"], 7)
+    def test_concept_code_mismatch_cannot_be_replaced_by_better_performance(self):
+        args=list(fixture())
+        args[0]["signals"][0]["board_code"]="886068"
+        with self.assertRaisesRegex(ValueError,"STATE_OR_IDENTITY_MISMATCH"):
+            self.build(args)
 
-    def test_same_day_quote_supplement_does_not_change_industry_membership(self):
-        h, i, q, s, c = fixture()
-        # All cross-industry records are outside the frozen SW research index.
-        for stock in ("000003", "000004", "000005", "000006", "000007"):
-            i["companies"].pop(stock)
-            q["stocks"].pop(stock)
-        supplement = {
-            "result_kind": "concept_quote_supplement",
-            "trade_date": DAY, "market_status": "closed",
-            "stocks": {code: {"confidence":"medium","change_pct":2,
-                             "date":DAY,"price":10.2,"prev_close":10.0}
-                       for code in ("000003", "000004", "000005", "000006", "000007")}}
-        result = router.build(h, i, q, s, c, supplement=supplement)["routes"][0]
-        self.assertEqual(result["hotspot_type"], "INDUSTRY")
-        # Full quote coverage is restored, but sector transmission is still unverified
-        # for the unmapped stock codes; do not invent SW membership.
-        self.assertFalse(result["insufficient_concepts"])
+    def test_mismatched_identity_date_cannot_publish(self):
+        args=list(fixture())
+        args[4]["trade_date"]="2026-10-25"
+        with self.assertRaisesRegex(ValueError,"DATE_SCOPE_INVALID"):
+            self.build(args)
 
-    def test_partial_concept_catalog_does_not_prove_industry_type(self):
-        h, i, q, s, c = fixture()
-        c["catalog_scope"] = "SINGLE_BOARD_ONLY"
-        for stock in ("000003", "000004", "000005"):
-            q["stocks"][stock]["change_pct"] = -2
-        row = router.build(h, i, q, s, c)["routes"][0]
-        self.assertEqual(row["hotspot_type"], "DATA_INSUFFICIENT")
-        self.assertEqual(row["classification_reason"], "PARTIAL_CONCEPT_CATALOG")
+    def test_invalid_member_code_fails_closed(self):
+        args=list(fixture())
+        args[5]["concepts"][0]["member_codes"].append("INVALID")
+        with self.assertRaisesRegex(ValueError,"INVALID_STOCK"):
+            self.build(args)
 
-    def test_stale_supplement_quote_cannot_masquerade_as_current(self):
-        h, i, q, s, c = fixture()
-        with self.assertRaisesRegex(ValueError,"QUOTE_NOT_DATE_VERIFIED"):
-            router.build(h,i,q,s,c,supplement={
-                "result_kind":"concept_quote_supplement",
-                "trade_date":DAY,"market_status":"closed",
-                "stocks":{"000003":{"date":"2026-10-25","confidence":"medium",
-                                    "price":10.2,"prev_close":10.0}}
-            })
+    def test_unresolved_identity_not_claimed_as_industry(self):
+        args=list(fixture())
+        args[4]["identities"][0]["mapping_status"]="MAPPING_UNRESOLVED"
+        with self.assertRaisesRegex(ValueError,"IDENTITIES_NOT_MATCHED"):
+            self.build(args)
 
-    def test_wrong_day_supplement_blocks(self):
-        h, i, q, s, c = fixture()
-        with self.assertRaisesRegex(ValueError, "SUPPLEMENT_ASOF_INVALID"):
-            router.build(h, i, q, s, c, supplement={
-                "result_kind": "concept_quote_supplement",
-                "trade_date": "2026-10-27", "market_status": "closed", "stocks": {}})
-
-    def test_membership_asof_date_is_hard_gate(self):
-        h, i, q, s, c = fixture()
-        c["as_of_trade_date"] = "2026-10-27"
-        with self.assertRaisesRegex(ValueError, "DATE_OR_SOURCE"):
-            router.build(h, i, q, s, c)
-
-    def test_closed_session_is_required(self):
-        h, i, q, s, c = fixture()
-        q["market_status"] = "open"
-        with self.assertRaisesRegex(ValueError, "SAME_COMPLETED_SESSION"):
-            router.build(h, i, q, s, c)
-
-    def test_invalid_or_missing_board_data_must_not_be_mislabeled(self):
-        h, i, q, s, c = fixture()
-        c["concepts"][0]["member_codes"] = ["junk"]
-        with self.assertRaisesRegex(ValueError, "INVALID_STOCK"):
-            router.build(h, i, q, s, c)
-
-    def test_candidate_scoring_is_not_a_buy_signal(self):
-        h, i, q, s, c = fixture()
-        s["companies"]["000004"] = {"mock_score": .9}
-        with patch("build_trend_buy_manual_research.compact_opportunity",
-                   side_effect=dummy_technical):
-            result = router.build(h, i, q, s, c)["routes"][0]
-        self.assertNotIn("ready", result)
-        self.assertNotIn("entry_zone", result["candidate_stocks"][0])
+    def test_extra_identity_observation_does_not_enter_handoff(self):
+        args=list(fixture())
+        args[4]["identities"].append({"hotspot_name":"其他未入选研究",
+                                      "mapping_status":"MAPPING_UNRESOLVED"})
+        result=self.build(args)
+        self.assertEqual(len(result["routes"]),1)
 
 
-if __name__ == "__main__":
+if __name__=="__main__":
     unittest.main()
