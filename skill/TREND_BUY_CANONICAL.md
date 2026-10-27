@@ -5,7 +5,8 @@
 
 ## 2. 唯一执行链
 1. 读取同一完整交易日的 research/trend_handoff.json；按 TREND_HANDOFF_ROUTING_OVERRIDE.md 路由**仅已确认且直接受益**的申万三级行业。自2026-10-27起仅`market_state=趋势确认`允许正式个股行动研究：候选/观察继续在上游趋势榜跟踪，不进入当前个股工作集、Top5、WAIT或READY。下游不得自行升级行业；若同日handoff含候选或不合格三级行业，停止发布而不是降级后继续运行。
-2. 校验 data/low_risk/index.json、manifest和全部part，读取一次并Freeze公司working set；不得用旧行情、缺失部分或未来证据。
+2. **零合格趋势可无新榜**：若本轮已完整发布且配对Gate通过的 `research/trend_handoff.json#signals=[]`，这是合法的 `NO_ELIGIBLE_CONFIRMED_TREND`，当天不启动Top5个股深研、不生成或覆盖新的 `research/trend_buy_formal_result.json` / `research/trend_buy_handoff.json`，并在19:00报告明确注明“无合格确认行业／未发布当日新买点榜”；不得重用前一日股票、伪造空公司工作集来凑READY/WAIT或把正常空信号当成失败。若存在合格信号但数据不齐或映射不合格，则仍BLOCK，不得以空榜掩盖数据质量错误。
+3. 校验 data/low_risk/index.json、manifest和全部part，读取一次并Freeze公司working set；不得用旧行情、缺失部分或未来证据。
 3. 按 PRE_SCREEN_RESEARCH_SCOPE_OVERRIDE.md 执行原有公司硬过滤、45%增长/25%质量/20%估值匹配/10%趋势健康评分。所有hard-eligible公司均由Python利用已生成的技术摘要轻量计算买点机会分（35%入场/风险、30%价格结构、20%量价、15%相对强弱），再以70%机会分+30%原基本面分在每个三级行业前置动态选Top5（第6名与第5名分差≤0.03时并列）。仅入选者需要深度业务研究，非入选者记PRE_SCREENED_OUT。
 4. 日常不再生成或读取全市场大结构JSON。行情构建阶段在65日趋势摘要和分片内附加近3/5日收益及量能；前置公司硬过滤后，仅对合格公司按需读取最近65根历史K线计算阶段、均线、支撑/阻力、相对强弱与突破/回踩；仅对本轮入选研究公司的同日120～180根历史K线附加可核验的近端阻力证据，仅供READY风险门槛及Top5独立阻力风险注释使用，不参与Top5内部名次排序，不改变65日突破/回踩信号定义。市场20日相对强度基准来自同日分片，后续模型只消费已入选公司的临时结构文件。至少65根有效日K线且同日冻结价格一致。缺少120日历史/有效枢轴时标记上方空间待核验，不视为无限上涨，也不单凭缺失历史高点淘汰新启动。
 5. 只对前置动态Top5入选公司核实主题商业关联、公告、财务和重大风险。明确NOT_SUPPORTED者剔除并依同三级行业轻量排名递补，缺少资料的新入选者记RESEARCH_PENDING并阻断正式发布，不允许自动使用旧名单替代。未入选的股票不需要深度研究、不得误标为UNCERTAIN。
