@@ -216,6 +216,41 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
             direction = "COUNTER" if STATES[m1] < STATES[m0] else "SUPPORT"
             if not _market_state_evidence(qualified, direction, before, require_confirmation=m1 == "趋势确认"):
                 errors.append(f"{episode}:market_change_without_independent_evidence")
+    # Prospective SW3-level routing audit. No retroactive rewriting of 10/26.
+    # This checks the presence, identity and provenance of each independent
+    # industry decision; it does NOT automatically confirm stock-price trends.
+    if day >= "2026-10-27":
+        for theme in proposed["trends"]:
+            episode = theme.get("episode_id")
+            assessments = theme.get("industry_assessments")
+            codes, names = theme.get("industry_codes"), theme.get("industry_names")
+            if not isinstance(assessments, list) or not isinstance(codes, list) or not isinstance(names, list):
+                errors.append(f"{episode}:sw3_assessments_missing")
+                continue
+            pairs = [(x.get("industry_code"), x.get("industry_name"))
+                     for x in assessments if isinstance(x, dict)]
+            if (len(pairs) != len(assessments) or len(pairs) != len(codes) or
+                len(set(pairs)) != len(pairs) or
+                set(pairs) != set(zip(codes, names))):
+                errors.append(f"{episode}:sw3_route_or_identity_mismatch")
+            confirmed = 0
+            for row in assessments:
+                if not isinstance(row, dict):
+                    continue
+                code = row.get("industry_code")
+                if (row.get("benefit_level") not in {"CORE", "DIRECT"} or
+                    row.get("market_state") not in TRACK or
+                    row.get("evidence_trade_date") != day or
+                    not isinstance(row.get("benefit_reason"), str) or
+                    len(row["benefit_reason"].strip()) < 12 or
+                    not isinstance(row.get("market_reason"), str) or
+                    len(row["market_reason"].strip()) < 12):
+                    errors.append(f"{episode}:{code}:sw3_independent_evidence_missing")
+                if row.get("market_state") == "趋势确认":
+                    confirmed += 1
+            if theme.get("market_state") == "趋势确认" and confirmed < 1:
+                errors.append(f"{episode}:confirmed_without_confirmed_sw3")
+
     for item in proposed["trends"]:
         episode = item.get("episode_id")
         if item.get("market_state") not in TRACK or item.get("lifecycle_status") == "已失效":
