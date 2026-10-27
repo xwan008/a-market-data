@@ -246,6 +246,52 @@ class SectorDiscoveryTests(unittest.TestCase):
         self.assertEqual(hot["channels"], [])
         self.assertEqual(hot["reason"], "LOW_SAMPLE_OBSERVE")
 
+    def test_coverage_watch_is_not_a_trend_or_capacity_gate(self):
+        latest, index, structure = inputs()
+        for i in range(1, 7):
+            latest["stocks"][f"{i:06d}"]["change_pct"] = -.2
+        for i in range(7, 13):
+            latest["stocks"][f"{i:06d}"]["change_pct"] = -4
+        snap, audit = build(latest, index, structure, review_cap=1)
+        coverage = snap["discovery_coverage_audit"]
+        hints = coverage["sw3_watch_hints"]
+        self.assertEqual(len(snap["model_research_candidates"]), 0)
+        self.assertEqual(audit["eligible_count"], 0)
+        self.assertEqual(len(hints), 1)
+        self.assertIn("RELATIVE_BREADTH_DIVERGENCE", hints[0]["flags"])
+        self.assertIn("PERSISTENT_STRUCTURE", hints[0]["flags"])
+        self.assertFalse(hints[0]["selected_in_top3"])
+        self.assertFalse(hints[0]["market_state_authority"])
+        self.assertEqual(coverage, audit["discovery_coverage_audit"])
+        self.assertEqual(coverage["sw2_feed_status"], "UNAVAILABLE_NO_VERIFIED_SOURCE")
+        self.assertEqual(coverage["price_feed_status"], "UNAVAILABLE_NO_VERIFIED_SOURCE")
+
+    def test_external_coverage_quotes_have_strict_cutoff(self):
+        latest, index, structure = inputs()
+        sw2 = {"schema_version": 1, "source": "test feed",
+               "as_of_trade_date": "2026-10-09", "indices": [
+                   {"sw_level2_code": "100100", "return_1d_pct": 4,
+                    "quote_at": "2026-10-09T15:00:00+08:00", "source": "test index source"}]}
+        anchors = {"schema_version": 1, "source": "test feed",
+                   "as_of_trade_date": "2026-10-09", "anchors": [
+                       {"anchor_id": "test", "instrument": "test contract", "market": "test market",
+                        "price_basis": "close", "quote_at": "2026-10-09T15:00:00+08:00",
+                        "price": 100, "unit": "test unit", "change_5d_pct": 3,
+                        "research_sw3_codes": ["S200101"], "source": "test source"}]}
+        snap, _ = build(latest, index, structure, None, 3, sw2, anchors)
+        result = snap["discovery_coverage_audit"]
+        self.assertEqual(result["counts"]["official_indices"], 1)
+        self.assertEqual(result["counts"]["price_anchors"], 1)
+        self.assertTrue(result["price_anchor_hints"][0]["price_vs_equity_divergence"])
+        self.assertFalse(result["price_anchor_hints"][0]["beneficiary_verified"])
+        sw2["indices"][0]["quote_at"] = "2026-10-09T19:00:00+08:00"
+        with self.assertRaisesRegex(ValueError, "indices_invalid"):
+            build(latest, index, structure, None, 3, sw2, anchors)
+        sw2["indices"][0]["quote_at"] = "2026-10-09T15:00:00+08:00"
+        anchors["as_of_trade_date"] = "2026-10-10"
+        with self.assertRaisesRegex(ValueError, "future_data"):
+            build(latest, index, structure, None, 3, sw2, anchors)
+
 
 if __name__ == "__main__":
     unittest.main()

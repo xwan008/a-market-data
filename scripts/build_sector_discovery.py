@@ -12,6 +12,7 @@ from statistics import median
 from zoneinfo import ZoneInfo
 
 from price_inputs import load_momentum_shards
+from discovery_coverage import build_coverage_review
 
 TZ = ZoneInfo("Asia/Shanghai")
 
@@ -86,7 +87,8 @@ def validate_concepts(payload, trade_date):
     return rows, "VERIFIED" if rows else "EMPTY_VERIFIED"
 
 
-def build(latest, industry_index, structure, concept_payload=None, review_cap=3):
+def build(latest, industry_index, structure, concept_payload=None, review_cap=3,
+          sw2_indices=None, price_anchors=None):
     trade_date = str(latest.get("trade_date") or "")
     if not trade_date or latest.get("market_status") != "closed":
         raise ValueError("completed_market_session_required")
@@ -205,6 +207,7 @@ def build(latest, industry_index, structure, concept_payload=None, review_cap=3)
     for row in unique:
         row["reason"] = "MODEL_REVIEW" if row["id"] in selected_ids else "CAPACITY_DEFERRED"
 
+    coverage = build_coverage_review(rows, trade_date, selected_ids, sw2_indices, price_anchors)
     audit = {
         "schema_version": 1, "trade_date": trade_date,
         "scan_inputs": {"industry_index": "data/research/company_industry_index.json",
@@ -216,6 +219,7 @@ def build(latest, industry_index, structure, concept_payload=None, review_cap=3)
         "review_capacity": review_cap, "eligible_count": len(unique),
         "selected_count": len(selected), "deferred_count": len(unique) - len(selected),
         "overlap_deduplicated_count": len(pool) - len(unique),
+        "discovery_coverage_audit": coverage,
         "sectors": sorted(rows, key=lambda r: r["id"])
     }
     # Ancillary sector evidence for cross-checking independent market research
@@ -285,6 +289,7 @@ def build(latest, industry_index, structure, concept_payload=None, review_cap=3)
             "routable_codes_only_after_model_verification": True,
         },
         "candidate_overview": candidate_overview,
+        "discovery_coverage_audit": coverage,
         "classification_peer_hints": peer_hints,
         "all_industry_metrics": "data/research/sector_discovery_audit.json#sectors",
         "handoff_routing_reference": "data/low_risk/index.json",
@@ -300,6 +305,8 @@ def main():
     parser.add_argument("--industry-index", default="data/research/company_industry_index.json")
     parser.add_argument("--shard-dir", default="data/shards")
     parser.add_argument("--concept-membership", default="data/research/concept_membership_asof.json")
+    parser.add_argument("--sw2-indices", default="data/research/sw2_index_asof.json")
+    parser.add_argument("--price-anchors", default="data/research/price_anchors_asof.json")
     parser.add_argument("--output", default="data/research/sector_discovery_snapshot.json")
     parser.add_argument("--audit", default="data/research/sector_discovery_audit.json")
     parser.add_argument("--review-cap", type=int, default=3)
@@ -308,8 +315,12 @@ def main():
         parser.error("review-cap must be positive")
     concept_path = Path(args.concept_membership)
     concept = read_json(concept_path) if concept_path.exists() else None
+    sw2_path, anchors_path = Path(args.sw2_indices), Path(args.price_anchors)
+    sw2 = read_json(sw2_path) if sw2_path.exists() else None
+    anchors = read_json(anchors_path) if anchors_path.exists() else None
     snapshot, audit = build(read_json(args.latest), read_json(args.industry_index),
-                            load_momentum_shards(read_json(args.latest)["trade_date"], args.shard_dir), concept, args.review_cap)
+                            load_momentum_shards(read_json(args.latest)["trade_date"], args.shard_dir),
+                            concept, args.review_cap, sw2, anchors)
     for path, payload in ((args.output, snapshot), (args.audit, audit)):
         target = Path(path)
         target.parent.mkdir(parents=True, exist_ok=True)

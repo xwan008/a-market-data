@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "scripts/build_sector_discovery.py"
+      - "scripts/discovery_coverage.py"
       - "scripts/build_theme_evidence.py"
       - "scripts/price_inputs.py"
       - "scripts/build_history.py"
@@ -26,6 +27,7 @@ on:
       - ".github/workflows/update-data.yml"
       - "tests/test_daily_data_delivery_workflow.py"
       - "scripts/build_sector_discovery.py"
+      - "scripts/discovery_coverage.py"
       - "skill/TREND_REGISTRY_PROTOCOL.md"
       - "scripts/build_theme_evidence.py"
       - "tests/test_sector_discovery.py"
@@ -54,7 +56,7 @@ jobs:
       - name: Verify daily persistence, Python checks and fail-closed auxiliary data
         run: python -m unittest discover -s tests -p "test_daily_data_delivery_workflow.py" -v
       - name: Compile discovery and routing preflight
-        run: python -m py_compile scripts/build_sector_discovery.py scripts/build_theme_evidence.py scripts/validate_theme_handoff_routes.py
+        run: python -m py_compile scripts/discovery_coverage.py scripts/build_sector_discovery.py scripts/build_theme_evidence.py scripts/validate_theme_handoff_routes.py
       - name: Prove sector discovery needs no full-market JSON
         run: |
           rm -f data/research/full_market_price_structure.json
