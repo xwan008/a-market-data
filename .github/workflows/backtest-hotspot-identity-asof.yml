@@ -7,6 +7,8 @@ on:
     paths:
       - .github/workflows/backtest-hotspot-identity-asof.yml
       - scripts/backtest_hotspot_identity_asof.py
+      - scripts/backtest_published_trend_states_asof.py
+      - research/backtests/pr60_published_trend_state_manifest_20261027.json
       - tests/test_hotspot_identity_asof_backtest.py
   workflow_dispatch:
 
@@ -49,6 +51,28 @@ jobs:
               assert latest.get("market_status")=="closed", "HISTORICAL_SNAPSHOT_NOT_CLOSED"
               print("IMMUTABLE_ASOF_DAY",day,sha,flush=True)
           PY
+      - name: Restore actual same-day published trend registries independently
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,subprocess
+          from pathlib import Path
+          manifest=json.loads(Path("research/backtests/pr60_published_trend_state_manifest_20261027.json").read_text())
+          assert len(manifest["records"])==3
+          for row in manifest["records"]:
+              day,sha=row["trade_date"],row["registry_commit"]
+              subprocess.run(["git","fetch","--filter=blob:none","--depth=1","--no-tags","origin",sha],
+                             check=True,stdout=subprocess.DEVNULL)
+              dest=Path("/tmp/pr60_asof_inputs")/"registry"/day/"trend_registry.json"
+              dest.parent.mkdir(parents=True,exist_ok=True)
+              with dest.open("wb") as f:
+                  subprocess.run(["git","show",f"{sha}:research/trend_registry.json"],
+                                 check=True,stdout=f)
+              reg=json.loads(dest.read_text())
+              assert reg.get("trade_date")==day, "HISTORICAL_REGISTRY_ASOF_WRONG"
+              print("PUBLISHED_STATE_ASOF_COMMIT",day,sha,len(reg["trends"]),flush=True)
+          PY
       - name: Unit regression and integrity negative controls
         run: |
           python -m py_compile scripts/backtest_hotspot_identity_asof.py
@@ -85,6 +109,22 @@ jobs:
               "original_industry_forward_proxy":original["summary"]
           },ensure_ascii=False),flush=True)
           PY
+      - name: Evaluate actual old candidate versus confirmed state proxy separately
+        run: |
+          python -u scripts/backtest_published_trend_states_asof.py \
+            --root /tmp/pr60_asof_inputs \
+            --manifest research/backtests/sector_discovery_asof_manifest_20260917_20261009.json \
+            --state-manifest research/backtests/pr60_published_trend_state_manifest_20261027.json \
+            --output /tmp/pr60_actual_published_state_forward_proxy.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/pr60_actual_published_state_forward_proxy.json').read_text())
+          assert r['result_kind']=='limited_real_published_state_forward_proxy'
+          assert r['registry_commit_dates']==['2026-09-30','2026-10-08','2026-10-09']
+          assert len(r['records'])>0
+          print('PUBLISHED_TREND_STATE_PROXY_OBSERVATIONS',len(r['records']),flush=True)
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -92,5 +132,6 @@ jobs:
           path: |
             /tmp/pr60_identity_asof_report.json
             /tmp/pr60_original_sector_forward_proxy.json
+            /tmp/pr60_actual_published_state_forward_proxy.json
           retention-days: 30
           if-no-files-found: ignore
