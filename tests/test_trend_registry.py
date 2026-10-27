@@ -45,6 +45,28 @@ def exit_theme(after,facts=None):
         "evidence":facts if facts is not None else [
             fact("MARKET_STRUCTURE",impact="STRUCTURAL"),fact("MARKET_BREADTH")]}]
 
+def add_future_audit(after):
+    """Prospective research metadata; old published days stay immutable."""
+    day = after["trade_date"]
+    for row in after["trends"]:
+        row["confirmation_audit"] = {
+            "asof_trade_date": day, "market_environment": "NORMAL",
+            "driver_type": "COMMODITY" if row.get("trend_basis") == "COMMODITY"
+                           else "INDUSTRIAL_GROWTH",
+            "discovery_basis": "CONTINUING_STRUCTURE",
+            "catalyst_kind": "SUSTAINED_DRIVER",
+            "catalyst_fact": "产销及订单基础事实已在当日交易截止前得到验证",
+            "catalyst_source": "https://example.org/official",
+            "catalyst_available_at": day + "T16:00:00+08:00",
+            "strongest_counter": "产业订单变化存在不确定性且需持续检查",
+            "decision_reason": "综合实际价格结构与产业资料核对后保留状态",
+            "decision_state": row["market_state"],
+            "core_industry_codes": row["industry_codes"],
+            "specific_blocker": "当前仍有未兑现的真实订单及趋势结构证据需跟踪",
+            "first_sufficient_evidence_trade_date": day,
+        }
+
+
 class TrendRegistryTests(unittest.TestCase):
     def test_hold_pass(self):
         before,after=fixture()
@@ -156,6 +178,7 @@ class TrendRegistryTests(unittest.TestCase):
         before, after = fixture()
         after["trade_date"] = "2026-10-27"
         after["scan_audit"]["state_migration_gate"]["current_trade_date"] = "2026-10-27"
+        add_future_audit(after)
         self.assertIn("A#" + OLD + ":sw3_assessments_missing",
                       gate.validate(before, after, SHA))
         current = after["trends"][0]
@@ -180,6 +203,8 @@ class TrendRegistryTests(unittest.TestCase):
         trend["state_history"].append({"trade_date": "2026-10-27",
                                        "from": "候选趋势", "to": "趋势确认"})
         review = after["scan_audit"]["state_migration_gate"]["reviews"][0]
+        add_future_audit(after)
+        trend["confirmation_audit"]["decision_state"] = "趋势确认"
         review.update(decision="CHANGE", proposed_market_state="趋势确认",
                       evidence=[fact("MARKET_STRUCTURE", "SUPPORT", "STRUCTURAL", "2026-10-27"),
                                 fact("MARKET_BREADTH", "SUPPORT", "NORMAL", "2026-10-27"),
@@ -248,6 +273,100 @@ class TrendRegistryTests(unittest.TestCase):
         self.assertIn("baseline_sha_or_date_not_frozen",gate.validate(before,after,"b"*40))
         self.assertIn("invalid_previous_blob_sha",gate.validate(before,after,"bad"))
         self.assertIn("snapshot_invalid",gate.validate(before,after,SHA,snapshot={"trade_date":OLD}))
+
+    def test_future_catalyst_audit_cutoff_and_surge_cannot_confirm(self):
+        before, after = fixture()
+        after["trade_date"] = "2026-10-27"
+        after["scan_audit"]["state_migration_gate"]["current_trade_date"] = "2026-10-27"
+        add_future_audit(after)
+        after["trends"][0]["industry_assessments"] = [{
+            "industry_code": "S630601", "industry_name": "风电整机",
+            "benefit_level": "CORE", "market_state": "候选趋势",
+            "evidence_trade_date": "2026-10-27",
+            "benefit_reason": "经过公告和产品对照具备直接经营受益证据",
+            "market_reason": "自身多日结构尚未独立确认且仍需复核"
+        }]
+        self.assertEqual(gate.validate(before, after, SHA), [])
+        audit = after["trends"][0]["confirmation_audit"]
+        audit["catalyst_available_at"] = "2026-10-28T01:00:00+08:00"
+        self.assertIn("A#" + OLD + ":catalyst_not_available_at_close",
+                      gate.validate(before, after, SHA))
+        audit["catalyst_available_at"] = "2026-10-27T16:00:00+08:00"
+        audit["discovery_basis"] = "ONE_DAY_SURGE"
+        self.assertIn("A#" + OLD + ":surge_alone_cannot_progress",
+                      gate.validate(before, after, SHA))
+        audit["discovery_basis"] = "CONTINUING_STRUCTURE"
+        after["trends"][0]["in_new_position_priority"] = True
+        self.assertIn("A#" + OLD + ":only_confirmed_priority",
+                      gate.validate(before, after, SHA))
+
+    def test_new_surges_stay_observation_only(self):
+        before, after = fixture()
+        after["trade_date"] = "2026-10-27"
+        after["scan_audit"]["state_migration_gate"]["current_trade_date"] = "2026-10-27"
+        new = theme("爆发行业", "观察", "2026-10-27")
+        after["trends"].append(new)
+        add_future_audit(after)
+        new["confirmation_audit"]["discovery_basis"] = "ONE_DAY_SURGE"
+        self.assertIn("A#" + OLD + ":sw3_assessments_missing",
+                      gate.validate(before, after, SHA))
+        after["trends"][0]["industry_assessments"] = [{
+            "industry_code": "S630601", "industry_name": "风电整机",
+            "benefit_level": "CORE", "market_state": "候选趋势",
+            "evidence_trade_date": "2026-10-27",
+            "benefit_reason": "真实经营资料足以证明该行业存在直接受益",
+            "market_reason": "多日股价结构仍在形成还没有完整确认"
+        }]
+        self.assertEqual(gate.validate(before, after, SHA), [])
+        new["market_state"] = "候选趋势"
+        new["confirmation_audit"]["decision_state"] = "候选趋势"
+        self.assertIn(new["episode_id"] + ":one_day_surge_must_observe",
+                      gate.validate(before, after, SHA))
+
+    def test_commodity_downgrade_requires_commodity_not_equity_counter(self):
+        before, after = fixture()
+        after["trade_date"] = "2026-10-27"
+        after["scan_audit"]["state_migration_gate"]["current_trade_date"] = "2026-10-27"
+        anchor = {"instrument": "Brent future", "price_basis": "published settlement",
+                  "trade_date": "2026-10-26", "source": "https://example.org/oil",
+                  "trend_reason": "期货自身有效结构且报价日期与合约已经核验"}
+        for theme_row in (before["trends"][0], after["trends"][0]):
+            theme_row["trend_basis"] = "COMMODITY"
+            theme_row["commodity_anchor"] = copy.deepcopy(anchor)
+        after["trends"][0]["market_state"] = "观察"
+        after["trends"][0]["state_history"].append(
+            {"trade_date": "2026-10-27", "from": "候选趋势", "to": "观察"})
+        review = after["scan_audit"]["state_migration_gate"]["reviews"][0]
+        review.update(decision="CHANGE", proposed_market_state="观察",
+                      evidence=[fact("MARKET_STRUCTURE", date="2026-10-27",
+                                     impact="STRUCTURAL"),
+                                fact("MARKET_BREADTH", date="2026-10-27")])
+        add_future_audit(after)
+        self.assertIn("A#" + OLD + ":market_change_without_independent_evidence",
+                      gate.validate(before, after, SHA))
+        review["evidence"].append(fact("COMMODITY_ANCHOR", impact="STRUCTURAL",
+                                       date="2026-10-27"))
+        self.assertEqual(gate.validate(before, after, SHA), [])
+
+    def test_independent_confirmed_sw3_downgrade_needs_same_code_counter(self):
+        before, after = fixture()
+        after["trade_date"] = "2026-10-27"
+        after["scan_audit"]["state_migration_gate"]["current_trade_date"] = "2026-10-27"
+        assessment = {"industry_code": "S630601", "industry_name": "风电整机",
+                      "benefit_level": "CORE", "market_state": "趋势确认",
+                      "evidence_trade_date": "2026-10-27",
+                      "benefit_reason": "确认该产品真实收入传导而非仅是题材概念",
+                      "market_reason": "行业已有多日相对强度与有效承接"}
+        before["trends"][0]["industry_assessments"] = [dict(assessment)]
+        after["trends"][0]["industry_assessments"] = [dict(assessment,
+                                                         market_state="候选趋势")]
+        add_future_audit(after)
+        self.assertIn("A#" + OLD + ":S630601:core_downgrade_without_own_counter",
+                      gate.validate(before, after, SHA))
+        review = after["scan_audit"]["state_migration_gate"]["reviews"][0]
+        review["evidence"] = [dict(fact("MARKET_STRUCTURE", impact="STRUCTURAL",
+                                        date="2026-10-27"), industry_code="S630601")]
+        self.assertEqual(gate.validate(before, after, SHA), [])
 
     def test_handoff_contract_stable(self):
         before,after=fixture()
