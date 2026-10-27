@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "result_kind": "a_share_trend_context",
+  "status": "COMPLETE",
+  "trade_date": "2026-10-26",
+  "publication_note": "跨市场及观察研究辅助信息；市场状态不产生A股个股READY，买点仅来自独立handoff。商品价格截至各自quote_trade_date，可能早于A股研究交易日。",
+  "observations": [
+    {
+      "trend_name": "银行",
+      "episode_id": "银行#2026-10-26",
+      "first_seen_trade_date": "2026-10-26",
+      "last_verified_trade_date": "2026-10-26",
+      "market_state": "观察",
+      "trend_state": "T1",
+      "industry_evidence_as_of": "2026-10-15",
+      "industry_codes": [
+        "S480201",
+        "S480301",
+        "S480401",
+        "S480501"
+      ],
+      "industry_names": [
+        "国有大型银行Ⅲ",
+        "股份制银行Ⅲ",
+        "城商行Ⅲ",
+        "农商行Ⅲ"
+      ],
+      "research_reason": "10月12日历史趋势确认并不自动继承。本轮四类银行当日上涨广度均100%，但多数子行业3/5日结构仍弱，属于新一期观察研究，需持续复核，不能直接升级。",
+      "evidence": [
+        {
+          "trade_date": "2026-10-26",
+          "source": "data/research/sector_discovery_audit.json",
+          "description": "四类银行当日广度均达100%；国有大型银行行业中位+2.216%，但若干银行类别3日及5日收益仍为负。"
+        }
+      ],
+      "next_check": "比较四类银行连续3/5日相对强度、核心企业分布与回撤承接；核对三季报资产质量和净息差数据，满足独立证据再升候选/确认。"
+    }
+  ],
+  "commodity_trends": [
+    {
+      "commodity_id": "BRENT_CRUDE",
+      "commodity_name": "布伦特原油",
+      "first_seen_trade_date": "2026-10-26",
+      "last_verified_trade_date": "2026-10-26",
+      "market_state": "趋势确认",
+      "market_scope": "国际商品价格走势（非A股行业确认、非产业盈利确认）",
+      "price_anchor": {
+        "instrument": "Brent crude oil futures",
+        "contract": "资料未列明具体合约月份",
+        "trade_date": "2026-10-23",
+        "value": 116.72,
+        "unit": "美元/桶",
+        "price_basis": "来源报道的2026-10-23收盘价，非2026-10-26收盘价",
+        "source": "https://www.marketsall.com/en/market-analysis/weekly-analysis/week-of-26-30-october-2026"
+      },
+      "evidence": [
+        {
+          "trade_date": "2026-10-23",
+          "source": "https://www.marketsall.com/en/market-analysis/weekly-analysis/week-of-26-30-october-2026",
+          "description": "截至10月23日的周度分析：Brent收盘116.72美元/桶，周涨6.24%、10月以来涨12.74%；商品价格趋势形成独立正向证据。"
+        },
+        {
+          "trade_date": "2026-10-26",
+          "source": "data/research/sector_discovery_audit.json",
+          "description": "10月26日A股油田服务中位+2.8%、油气及炼化工程+3.446%，但油气开采3/5日结构仍弱；商品确认不转化为全产业A股确认。"
+        }
+      ],
+      "a_share_industries": [
+        {
+          "industry_code": "S750101",
+          "industry_name": "油气开采Ⅲ"
+        },
+        {
+          "industry_code": "S750201",
+          "industry_name": "油田服务"
+        },
+        {
+          "industry_code": "S750202",
+          "industry_name": "油气及炼化工程"
+        },
+        {
+          "industry_code": "S750301",
+          "industry_name": "炼油化工"
+        }
+      ],
+      "a_share_assessment": "商品价格已确认上行；A股油气开采/油服工程的正式2026-10-26状态为候选趋势（T0），具体三级行业需分别复核；暂无由商品确认自动生成的买入资格。",
+      "risk_note": "地缘风险造成油价高波动；近月与远月、Brent与WTI及期货合约月份可能出现显著差异。价格上涨不自动意味着炼油利润改善。",
+      "next_check": "下一次独立核验对应合约及最终结算价、价格回撤、OPEC/IEA供需与库存变化，分开复核油气开采、油服工程和炼油化工的受益传导。"
+    }
+  ],
+  "transitions": []
+}
