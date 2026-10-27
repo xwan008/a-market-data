@@ -69,6 +69,37 @@ def add_future_audit(after):
         }
 
 
+
+def surge_session(day, supported=False):
+    state = "SUPPORTED" if supported else "ASSESSED"
+    return {"trade_date": day, "dimensions": {
+        label: {"status": state,
+                "finding": "本交易日独立复核了真实市场行情、产业证据与关键反证信息",
+                "source": "data/research/sector_discovery_audit.json"}
+        for label in engine.SURGE_DIMENSIONS
+    }}
+
+
+def surge_audit(day, market="观察", discovery="ONE_DAY_SURGE"):
+    return {
+        "asof_trade_date": day, "market_environment": "MIXED",
+        "market_environment_reason": "市场出现不同板块轮动，需要甄别宽基资金影响",
+        "market_environment_source": "data/research/sector_discovery_audit.json",
+        "driver_type": "INDUSTRIAL_GROWTH",
+        "discovery_basis": discovery,
+        "catalyst_kind": "EVENT",
+        "catalyst_fact": "存在已经核验的政策与产业新闻但盈利传导仍待核对",
+        "catalyst_source": "https://example.org/catalyst",
+        "catalyst_available_at": day + "T16:00:00+08:00",
+        "strongest_counter": "目前核心行业仍存在较强资金分歧与持续性未知风险",
+        "decision_reason": "按收盘前可得客观数据评估核心三级行业状态",
+        "decision_state": market, "core_industry_codes": ["S630601"],
+        "specific_blocker": "板块资金强度与产业订单仍有具体待验证事实",
+        "first_sufficient_evidence_trade_date": day
+    }
+
+
+
 class TrendRegistryTests(unittest.TestCase):
     def test_hold_pass(self):
         before,after=fixture()
@@ -377,6 +408,79 @@ class TrendRegistryTests(unittest.TestCase):
         review["evidence"] = [dict(fact("MARKET_STRUCTURE", impact="STRUCTURAL",
                                         date="2026-10-27"), industry_code="S630601")]
         self.assertEqual(gate.validate(before, after, SHA), [])
+
+    def test_single_day_surge_requires_first_review_with_full_matrix(self):
+        obj = theme("新主题", "观察", "2026-10-27")
+        obj["confirmation_audit"] = surge_audit("2026-10-27")
+        missing = engine._surge_review_errors(obj, None, "2026-10-27")
+        self.assertIn(obj["episode_id"] + ":surge_followup_missing", missing)
+        obj["surge_followup"] = {
+            "trigger_trade_date": "2026-10-27",
+            "sessions": [surge_session("2026-10-27")],
+            "decision": "PENDING", "decision_trade_date": None}
+        self.assertEqual(engine._surge_review_errors(obj, None, "2026-10-27"), [])
+        obj["surge_followup"]["sessions"][0]["dimensions"].pop("breadth")
+        self.assertIn(obj["episode_id"] + ":surge_evidence_matrix_incomplete",
+                      engine._surge_review_errors(obj, None, "2026-10-27"))
+
+    def test_second_session_can_confirm_only_with_complete_independent_evidence(self):
+        old = theme("机器人", "观察", "2026-10-27")
+        old["confirmation_audit"] = surge_audit("2026-10-27")
+        old["surge_followup"] = {
+            "trigger_trade_date": "2026-10-27",
+            "sessions": [surge_session("2026-10-27")],
+            "decision": "PENDING", "decision_trade_date": None}
+        now = copy.deepcopy(old)
+        now["confirmation_audit"] = surge_audit(
+            "2026-10-28", market="趋势确认", discovery="CONTINUING_STRUCTURE")
+        now["market_state"] = "趋势确认"
+        now["surge_followup"]["sessions"].append(surge_session("2026-10-28"))
+        now["surge_followup"]["decision"] = "CONFIRMED"
+        now["surge_followup"]["decision_trade_date"] = "2026-10-28"
+        errs = engine._surge_review_errors(now, old, "2026-10-28")
+        self.assertIn(now["episode_id"] + ":breadth:surge_confirmed_without_support", errs)
+        now["surge_followup"]["sessions"][-1] = surge_session("2026-10-28", True)
+        self.assertEqual(engine._surge_review_errors(now, old, "2026-10-28"), [])
+
+    def test_third_session_requires_yes_or_no_not_forced_confirmation(self):
+        prior = theme("文化传媒", "观察", "2026-10-27")
+        prior["confirmation_audit"] = surge_audit("2026-10-28", discovery="CONTINUING_STRUCTURE")
+        prior["surge_followup"] = {
+            "trigger_trade_date": "2026-10-27",
+            "sessions": [surge_session("2026-10-27"), surge_session("2026-10-28")],
+            "decision": "PENDING", "decision_trade_date": None}
+        now = copy.deepcopy(prior)
+        now["confirmation_audit"] = surge_audit("2026-10-29", discovery="CONTINUING_STRUCTURE")
+        now["surge_followup"]["sessions"].append(surge_session("2026-10-29"))
+        self.assertIn(now["episode_id"] + ":surge_third_close_decision_missing",
+                      engine._surge_review_errors(now, prior, "2026-10-29"))
+        now["surge_followup"]["decision"] = "NOT_CONFIRMED"
+        now["surge_followup"]["decision_trade_date"] = "2026-10-29"
+        self.assertEqual(engine._surge_review_errors(now, prior, "2026-10-29"), [])
+
+        # Later new evidence can upgrade without rewriting the initial 3-session decision.
+        later = copy.deepcopy(now)
+        later["market_state"] = "趋势确认"
+        later["confirmation_audit"] = surge_audit(
+            "2026-11-02", market="趋势确认", discovery="CONTINUING_STRUCTURE")
+        self.assertEqual(engine._surge_review_errors(later, now, "2026-11-02"), [])
+        later["surge_followup"]["decision"] = "CONFIRMED"
+        self.assertIn(now["episode_id"] + ":surge_final_judgement_rewritten",
+                      engine._surge_review_errors(later, now, "2026-11-02"))
+
+    def test_review_session_cannot_be_skipped_or_backdated(self):
+        old = theme("测试异动", "观察", "2026-10-27")
+        old["surge_followup"] = {
+            "trigger_trade_date": "2026-10-27",
+            "sessions": [surge_session("2026-10-27")],
+            "decision": "PENDING", "decision_trade_date": None}
+        current = copy.deepcopy(old)
+        current["confirmation_audit"] = surge_audit("2026-10-28")
+        self.assertIn(old["episode_id"] + ":surge_review_not_updated_this_close",
+                      engine._surge_review_errors(current, old, "2026-10-28"))
+        current["surge_followup"]["sessions"].append(surge_session("2026-10-27"))
+        self.assertIn(old["episode_id"] + ":surge_review_trade_date_mismatch",
+                      engine._surge_review_errors(current, old, "2026-10-28"))
 
     def test_handoff_contract_stable(self):
         before,after=fixture()
