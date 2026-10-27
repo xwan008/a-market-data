@@ -31,10 +31,10 @@ class ThemeBuyRoutingTests(unittest.TestCase):
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name)
         self.handoff = {"schema_version": 1, "result_kind": "a_share_trend_handoff",
-                        "trade_date": DAY, "signals": [
+                        "trade_date": DAY, "source":{"identity_verified_before_state":True}, "signals": [
                             {"rank": 1, "trend_name": "工业自动化/机器人",
                              "trend_state": "T1", "market_state": "候选趋势",
-                             "industry_codes": ["S640701"], "mapping_status": "resolved"}]}
+                             "board_type":"THEME","board_code":"BKTEST","industry_codes": ["S640701"], "mapping_status": "resolved"}]}
         self.companies = {"000001": company("000001", "S640701", "原行业股票"),
                           "000003": company("000003", "S650101", "跨行业甲"),
                           "000004": company("000004", "S650101", "跨行业乙")}
@@ -71,10 +71,12 @@ class ThemeBuyRoutingTests(unittest.TestCase):
         self.route = {"schema_version": 1, "result_kind": "hotspot_stock_route_snapshot",
                       "status": "COMPLETE", "trade_date": DAY,
                       "concept_as_of_trade_date": DAY,
+                       "market_scope":"SH_SZ_MAINBOARD_ONLY",
+                       "identities_verified_before_state":True,
                       "routes": [{"rank": 1, "trend_name": "工业自动化/机器人",
                                   "trend_state": "T1", "market_state": "候选趋势",
                                   "original_industry_codes": ["S640701"],
-                                  "hotspot_type": "THEME", "mapping_source": "EASTMONEY_AKSHARE",
+                                  "hotspot_type": "THEME", "board_code":"BKTEST","mapping_source": "EASTMONEY_AKSHARE",
                                   "mapping_code": "BKTEST", "concept_member_codes":
                                   ["000001", "000003", "000004"],
                                   "candidate_stocks": [
@@ -124,6 +126,18 @@ class ThemeBuyRoutingTests(unittest.TestCase):
         self.assertEqual([x["code"] for x in result["companies"]], ["000001"])
         self.assertEqual(result["screen_audit"]["research_scope"],
                          "dynamic_tertiary_industry_top5_after_lightweight_scan")
+
+    def test_missing_prestage_identity_flag_blocks_direct_buy(self):
+        self.route.pop("identities_verified_before_state")
+        self.put("route.json",self.route)
+        with self.assertRaisesRegex(ValueError,"THEME_CANDIDATES_SNAPSHOT_INVALID"):
+            self.run_builder()
+
+    def test_late_changed_board_code_blocks(self):
+        self.route["routes"][0]["board_code"]="886069"
+        self.put("route.json",self.route)
+        with self.assertRaisesRegex(ValueError,"CHANGED_UPSTREAM_SIGNAL"):
+            self.run_builder()
 
     def test_data_insufficient_blocks_formal_buy_pipeline(self):
         self.route["routes"][0]["hotspot_type"] = "DATA_INSUFFICIENT"
