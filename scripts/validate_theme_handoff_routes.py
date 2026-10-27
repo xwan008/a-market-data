@@ -18,6 +18,27 @@ def check_theme_routes(handoff: dict, low_risk_index: dict, registry: dict | Non
     if handoff.get("schema_version") != 1 or handoff.get("result_kind") != "a_share_trend_handoff":
         raise ValueError("invalid_original_handoff_contract")
     day = handoff.get("trade_date")
+    prospective = isinstance(day, str) and day >= "2026-10-27"
+    if prospective:
+        # Use exactly the authoritative publication-pair contract. The newer
+        # handoff contains a verified subset, NOT every industry on a theme.
+        # Do not recreate a conflicting permission rule in this router.
+        from validate_trend_publication_pair import validate as pair_validate
+        if registry is None:
+            raise ValueError("registry_required_for_verified_handoff")
+        problems = pair_validate(registry, handoff)
+        if problems:
+            raise ValueError("publication_pair_invalid:" + ";".join(problems))
+        if handoff.get("signals") == []:
+            # A legitimate no-op research day needs no company index; it must
+            # not trigger an empty company work-set or reuse old stock picks.
+            return {
+                "status": "NO_ELIGIBLE_CONFIRMED_TREND",
+                "trade_date": day, "theme_count": 0,
+                "unique_industry_count": 0,
+                "total_company_memberships_across_themes": 0,
+                "identity_only": True,
+            }
     if not day or low_risk_index.get("trade_date") != day:
         raise ValueError("handoff_low_risk_trade_date_mismatch")
     if (low_risk_index.get("validation") or {}).get("status") != "passed":
@@ -41,12 +62,14 @@ def check_theme_routes(handoff: dict, low_risk_index: dict, registry: dict | Non
                           key=lambda t: t.get("priority_rank", 9999))
         if [t.get("trend_name") for t in priority] != [s.get("trend_name") for s in signals]:
             raise ValueError("handoff_registry_priority_mismatch")
-        for signal, recorded in zip(signals, priority):
-            if (signal.get("industry_codes") != recorded.get("industry_codes")
-                    or signal.get("industry_names") != recorded.get("industry_names")
-                    or signal.get("trend_state") != recorded.get("trend_state")
-                    or signal.get("market_state") != recorded.get("market_state")):
-                raise ValueError("handoff_registry_route_mismatch")
+        if not prospective:
+            # Old dated artifacts are read-only history; do not mutate them.
+            for signal, recorded in zip(signals, priority):
+                if (signal.get("industry_codes") != recorded.get("industry_codes")
+                        or signal.get("industry_names") != recorded.get("industry_names")
+                        or signal.get("trend_state") != recorded.get("trend_state")
+                        or signal.get("market_state") != recorded.get("market_state")):
+                    raise ValueError("handoff_registry_route_mismatch")
     routed, total_company_memberships = set(), 0
     for signal in signals:
         if not signal.get("trend_name") or signal.get("mapping_status") != "resolved":
