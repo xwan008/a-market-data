@@ -49,6 +49,14 @@ class DailyEvidenceWorkflowTests(unittest.TestCase):
         self.assertLess(workflow.index("rm -f data/research/sector_discovery_snapshot.json"),
                         workflow.index("python scripts/build_sector_discovery.py"))
 
+    def test_concurrent_research_commits_cannot_erase_or_block_valid_market_data(self):
+        workflow = WORKFLOW.read_text(encoding="utf-8")
+        self.assertIn("for attempt in 1 2 3; do", workflow)
+        self.assertIn("git rebase origin/main", workflow)
+        self.assertIn("DATA_PUBLICATION_RETRY_EXHAUSTED", workflow)
+        self.assertIn("git merge-base --is-ancestor HEAD origin/main", workflow)
+        self.assertNotIn("git push --force", workflow)
+
     def test_auxiliary_contracts_and_missing_files_fail_closed(self):
         block = next(x for x in embedded_python() if "AUXILIARY_STATUS" in x)
         day = "2026-10-12"
