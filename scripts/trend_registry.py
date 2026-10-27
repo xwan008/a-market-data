@@ -157,6 +157,8 @@ def _surge_review_errors(item, previous, day):
     episode = item.get("episode_id")
     audit = item.get("confirmation_audit") or {}
     prior_review = previous.get("surge_followup") if isinstance(previous, dict) else None
+    if prior_review is not None and not isinstance(prior_review, dict):
+        return [f"{episode}:previous_surge_followup_invalid"]
     review = item.get("surge_followup")
     starts_now = (previous is None and
                   audit.get("discovery_basis") == "ONE_DAY_SURGE")
@@ -196,9 +198,9 @@ def _surge_review_errors(item, previous, day):
             errors.append(f"{episode}:surge_session_invalid")
             continue
         dt = row.get("trade_date")
-        if not isinstance(dt, str) or not DAY.fullmatch(dt) or dt > day or (
-                n and (not isinstance(sessions[n-1], dict) or
-                       dt <= sessions[n-1].get("trade_date", ""))):
+        prior_dt = sessions[n-1].get("trade_date") if n and isinstance(sessions[n-1], dict) else None
+        if (not isinstance(dt, str) or not DAY.fullmatch(dt) or dt > day or
+                (n and (not isinstance(prior_dt, str) or dt <= prior_dt))):
             errors.append(f"{episode}:surge_session_date_invalid")
         dimensions = row.get("dimensions")
         if not isinstance(dimensions, dict) or set(dimensions) != SURGE_DIMENSIONS:
