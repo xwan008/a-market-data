@@ -96,6 +96,29 @@ class TrendContextTests(unittest.TestCase):
         current["commodity_trends"][0]["a_share_industries"] = []
         self.assertEqual(validate(registry(), current, context(OLD)), [])
 
+    def test_downgrade_to_observation_must_be_persisted(self):
+        current = context()
+        current["observations"] = []
+        r = registry()
+        r["scan_audit"] = {"state_migration_gate": {"exits": [
+            {"episode_id": "工业自动化#2026-10-20",
+             "proposed_market_state": "观察"}]}}
+        self.assertIn("工业自动化#2026-10-20:downgraded_observation_missing",
+                      validate(r, current))
+        current["observations"] = [dict(observation(),
+                                       trend_name="工业自动化",
+                                       episode_id="工业自动化#2026-10-20",
+                                       first_seen_trade_date="2026-10-20",
+                                       last_verified_trade_date=NEW)]
+        self.assertNotIn("工业自动化#2026-10-20:downgraded_observation_missing",
+                         validate(r, current))
+
+    def test_trading_fields_prohibited_in_context(self):
+        current = context()
+        current["commodity_trends"][0]["ready"] = True
+        self.assertIn("context_contains_trading_fields",
+                      validate(registry(), current))
+
     def test_future_dated_quote_is_rejected(self):
         current = context()
         current["commodity_trends"][0]["price_anchor"]["trade_date"] = "2026-10-28"
