@@ -23,7 +23,8 @@ def registry():
 def concept():
     return {"schema_version":1,"source":"THS_ADATA",
             "as_of_trade_date":DAY,
-            "concepts":[{"concept_id":"886069","name":"人形机器人",
+            "source_observed_at":DAY+"T18:30:15+08:00",
+            "concepts":[{"concept_id":"886069","source":"THS_ADATA","name":"人形机器人",
                          "member_codes":["600001","600002","600003",
                                          "600004","600005","000001","300001"]}]}
 
@@ -165,6 +166,21 @@ class IdentityAndRouterTest(unittest.TestCase):
         future=concept();future["as_of_trade_date"]="2026-10-27"
         self.assertEqual(resolver.resolve(discovery(item()),registry(),future)
                          ["identities"][0]["mapping_status"],"DATA_INSUFFICIENT")
+
+    def test_missing_concept_capture_time_blocks_verified_mapping(self):
+        snapshot=concept()
+        snapshot.pop("source_observed_at")
+        result=resolver.resolve(discovery(item()),registry(),snapshot)
+        self.assertEqual(result["identities"][0]["mapping_status"],
+                         "DATA_INSUFFICIENT")
+
+    def test_concept_capture_after_identity_resolution_is_rejected(self):
+        snapshot=concept()
+        snapshot["source_observed_at"]=DAY+"T18:32:00+08:00"
+        result=resolver.resolve(discovery(item()),registry(),snapshot,
+                                resolved_at=DAY+"T18:31:00+08:00")
+        self.assertEqual(result["identities"][0]["mapping_status"],
+                         "DATA_INSUFFICIENT")
 
     def test_unverifiable_driver_source_and_future_publication_rejected(self):
         no_source=item();no_source["driver"]["sources"]=[]
