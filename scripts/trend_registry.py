@@ -329,7 +329,7 @@ def _d123_stage_errors(item, previous, day):
                     if isinstance(value, str) and DAY.fullmatch(value) and trigger <= value <= day:
                         sessions.add(value)
             required = {"D2": 2, "D3": 3, "POST_D3": 4}.get(stage, 1)
-            if len(sessions) < required:
+            if len(sessions) < required or trigger not in sessions:
                 errors.append(f"{episode}:d123_legacy_sessions_insufficient")
             if stage == "POST_D3" and decision != "UNVERIFIED":
                 errors.append(f"{episode}:d123_legacy_d3_decision_not_proven")
