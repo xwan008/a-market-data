@@ -23,6 +23,7 @@ def fixture(kind="THEME"):
                        "board_type":kind,
                        "board_code":"886069" if kind=="THEME" else "S640701",
                        "concept_code":"886069" if kind=="THEME" else None,
+                       "origin_source":"THS_ADATA" if kind=="THEME" else "SW2021_L3",
                        "industry_codes":[] if kind=="THEME" else ["S640701","S640702"]}]}
     signal={"rank":1,"trend_name":"人形机器人",
             "board_type":kind,"board_code":identity["identities"][0]["board_code"],
@@ -131,6 +132,15 @@ class VerifiedRouteTest(unittest.TestCase):
         args[4]["identities"][0]["mapping_status"]="MAPPING_UNRESOLVED"
         with self.assertRaisesRegex(ValueError,"IDENTITIES_NOT_MATCHED"):
             self.build(args)
+
+    def test_unresolved_unpublished_hotspots_do_not_block_valid_industry(self):
+        handoff,index,latest,structure,identity,catalog=fixture("INDUSTRY")
+        identity["status"]="NEEDS_IDENTITY_REVIEW"
+        identity["identities"].append({
+            "hotspot_name":"待核验其他概念","board_type":None,
+            "mapping_status":"MAPPING_UNRESOLVED"})
+        result=self.build((handoff,index,latest,structure,identity))
+        self.assertEqual(result["routes"][0]["hotspot_type"],"INDUSTRY")
 
     def test_extra_identity_observation_does_not_enter_handoff(self):
         args=list(fixture())
