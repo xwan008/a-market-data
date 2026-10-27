@@ -88,6 +88,45 @@ class UpstreamRouteCheckTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "registry_route_mismatch"):
             check_theme_routes(handoff, index, registry)
 
+    def test_new_route_can_contain_only_verified_confirmed_subset(self):
+        h, idx, r = fixtures()
+        day = "2026-10-27"
+        h["trade_date"] = idx["trade_date"] = r["trade_date"] = day
+        r["scan_audit"] = {
+            "full_market_scan_completed": True,
+            "state_migration_gate": {"mode": "full_close", "current_trade_date": day}
+        }
+        h["signals"][0]["market_state"] = "趋势确认"
+        r["trends"][0]["market_state"] = "趋势确认"
+        r["trends"][0]["industry_assessments"] = [
+            {"industry_code": "S110101", "industry_name": "种子",
+             "market_state": "趋势确认", "benefit_level": "CORE"},
+            {"industry_code": "S110502", "industry_name": "粮油加工",
+             "market_state": "观察", "benefit_level": "RELATED"}
+        ]
+        h["signals"][0]["industry_codes"] = ["S110101"]
+        h["signals"][0]["industry_names"] = ["种子"]
+        self.assertEqual(check_theme_routes(h, idx, r)["unique_industry_count"], 1)
+        h["signals"][0]["industry_codes"].append("S110502")
+        h["signals"][0]["industry_names"].append("粮油加工")
+        with self.assertRaisesRegex(ValueError, "publication_pair_invalid"):
+            check_theme_routes(h, idx, r)
+
+    def test_zero_verified_routes_do_not_require_company_index(self):
+        h, idx, r = fixtures()
+        day = "2026-10-27"
+        h["trade_date"] = r["trade_date"] = day
+        r["scan_audit"] = {
+            "full_market_scan_completed": True,
+            "state_migration_gate": {"mode": "full_close", "current_trade_date": day}
+        }
+        r["trends"][0]["in_new_position_priority"] = False
+        h["signals"] = []
+        self.assertEqual(
+            check_theme_routes(h, {}, r)["status"], "NO_ELIGIBLE_CONFIRMED_TREND")
+        with self.assertRaisesRegex(ValueError, "registry_required_for_verified_handoff"):
+            check_theme_routes(h, {}, None)
+
     def test_empty_company_pool_fails(self):
         handoff, index, registry = fixtures()
         index["industries"]["S110502"]["company_count"] = 0
