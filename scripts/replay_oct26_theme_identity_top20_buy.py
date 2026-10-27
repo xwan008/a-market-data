@@ -123,7 +123,7 @@ def exact_history_theme(source,registry,idx,quotes,structure,outdir):
     save(research_file,result)
     final=engine.generate(result,read(selected_structure))
     save(outdir+"/humanoid_technical_buy_engine_result.json",final)
-    researched=[{"rank":i+1,"code":x["code"],"name":x["name"],
+    researched=[{"rank":i+1,"code":x["code"],"name":x["company_name"],
                  "transmission":x["transmission"],
                  "review_basis":x.get("evidence_basis")} for i,x in enumerate(result["companies"])]
     print("HUMANOID_BUY_RESEARCH",json.dumps({
