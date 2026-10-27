@@ -2,7 +2,7 @@
 """Validate PRE-STATE verified hotspot identity and build the post-state buy routing.
 
 No dynamic identity guesses or stock-breadth market-state thresholds are used.
-Industry passes SW codes; theme passes confirmed concept members and Top20.
+Industry passes SW codes; theme requires true commercial chain proof BEFORE Top20.
 """
 from __future__ import annotations
 
@@ -81,12 +81,13 @@ def validate_memberships(catalog, trade_date):
 
 
 def build_verified_routes(handoff, industry_index, latest, structure, identities,
-                          catalog=None, cap=20):
+                          catalog=None, cap=20, business_evidence=None):
     """Post-state handoff builder: NO name guessing, NO market-state recalculation.
 
     Identity must be frozen before the researcher adjudicated market state.
     Industry route passes only industry CODES. Theme route uses verified
-    concept membership to select up to 20 MAINBOARD technical candidates.
+    concept membership + verified direct commercial business proof to select
+    up to 20 MAINBOARD technical candidates; concept tags alone NEVER qualify.
     """
     day = handoff.get("trade_date")
     if (not day or handoff.get("result_kind") != "a_share_trend_handoff" or
@@ -126,11 +127,21 @@ def build_verified_routes(handoff, industry_index, latest, structure, identities
     if not industry_companies or not quotes or not structures:
         raise ValueError("MARKET_RESEARCH_UNIVERSE_EMPTY")
     matched_concepts = {}
-    if any(by_name[signal["trend_name"]].get("board_type") == "THEME" for signal in signals):
+    commercial_by_concept = {}
+    has_themes = any(by_name[signal["trend_name"]].get("board_type") == "THEME"
+                     for signal in signals)
+    if has_themes:
         if catalog is None:
             raise ValueError("VERIFIED_CONCEPT_MEMBERSHIP_REQUIRED")
+        if business_evidence is None:
+            raise ValueError("THEME_BUSINESS_PROOF_REQUIRED_BEFORE_TOP20")
         validate_memberships(catalog, day)
         matched_concepts = {c["concept_id"]: c for c in catalog["concepts"]}
+        from validate_theme_business_chain import validate_business_chain_snapshot
+        commercial_by_concept = validate_business_chain_snapshot(
+            business_evidence, day,
+            [by_name[signal["trend_name"]]["concept_code"] for signal in signals
+             if by_name[signal["trend_name"]]["board_type"] == "THEME"])
     routed = []
     for signal in signals:
         identity = by_name[signal["trend_name"]]
@@ -166,8 +177,11 @@ def build_verified_routes(handoff, industry_index, latest, structure, identities
             if len(valid) < 5 or coverage < .95:
                 raise ValueError("CONCEPT_MAINBOARD_QUOTE_COVERAGE_INSUFFICIENT")
             from build_trend_buy_manual_research import compact_opportunity
+            chain_proven = commercial_by_concept[code]
+            # Proof MUST precede opportunity scoring. Never pad Top20 with
+            # an unproven vendor concept tag, application user or MOU.
             candidates = []
-            for stock in sorted(scoped):
+            for stock in sorted(scoped & set(chain_proven)):
                 info = industry_companies.get(stock) or {}
                 q = quotes.get(stock) or {}
                 name = str(q.get("name") or "")
@@ -180,6 +194,8 @@ def build_verified_routes(handoff, industry_index, latest, structure, identities
                     candidates.append((opportunity["opportunity_score"],stock,
                                        info["industry_code"],name))
             candidates.sort(key=lambda r: (-r[0],r[1]))
+            if not candidates:
+                raise ValueError("THEME_NO_VERIFIED_COMMERCIAL_CHAIN_TOP20_CANDIDATES")
             route = {
                 "rank": signal["rank"], "trend_name": signal["trend_name"],
                 "trend_state": signal["trend_state"], "market_state": signal["market_state"],
@@ -191,11 +207,21 @@ def build_verified_routes(handoff, industry_index, latest, structure, identities
                 "concept_mainboard_member_count": len(scoped),
                 "concept_member_codes": members,
                 "quote_coverage": round(coverage, 4),
+                "business_chain_gate": "VERIFIED_DIRECT_REVENUE_OR_SIGNED_ORDER",
+                "business_chain_reviewed_count": len(chain_proven),
+                "business_chain_scope_count": len(scoped & set(chain_proven)),
+                "business_evidence_verified_at": business_evidence["verified_at"],
                 "mapping_status": "VERIFIED",
                 "classification_reason": "IDENTITY_ORIGIN_AND_DRIVER_VERIFIED",
                 "candidate_stocks": [
                     {"rank": n, "stock_code": c, "stock_name": name,
-                     "industry_code": sector, "opportunity_score": round(score,6)}
+                     "industry_code": sector, "opportunity_score": round(score,6),
+                     "business_chain_status": "VERIFIED_DIRECT_COMMERCIAL_CHAIN",
+                     "business_chain_node": chain_proven[c]["specific_chain_node"],
+                     "commercial_relationship": chain_proven[c]["commercial_relationship"],
+                     "business_proof_type": chain_proven[c]["commercial_proof"]["type"],
+                     "business_proof_document": chain_proven[c]["commercial_proof"]["issuer_document_url"],
+                     "business_proof_period_end": chain_proven[c]["commercial_proof"]["period_end"]}
                     for n,(score,c,sector,name) in enumerate(candidates[:cap],1)
                 ],
             }
@@ -219,6 +245,8 @@ def main():
     parser.add_argument("--latest", default="data/latest.json")
     parser.add_argument("--structure", default="data/research/full_market_price_structure.json")
     parser.add_argument("--concept-file", help="Verified same-day membership for identified themes")
+    parser.add_argument("--business-evidence-file",
+                        help="Independent issuer document proof of attributable theme revenue or signed orders; REQUIRED for THEME")
     parser.add_argument("--identity-file", required=True,
                         help="Frozen pre-state verified identity resolution snapshot")
     parser.add_argument("--output-dir", default="data/research/theme_stock_candidates")
@@ -227,7 +255,9 @@ def main():
     catalog = read(args.concept_file) if args.concept_file else None
     result = build_verified_routes(
         handoff, read(args.industry_index), read(args.latest),
-        read(args.structure), read(args.identity_file), catalog)
+        read(args.structure), read(args.identity_file), catalog,
+        business_evidence=read(args.business_evidence_file)
+        if args.business_evidence_file else None)
     output = Path(args.output_dir) / (result["trade_date"] + ".json")
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n",
