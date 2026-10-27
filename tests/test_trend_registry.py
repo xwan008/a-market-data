@@ -113,7 +113,8 @@ class TrendRegistryTests(unittest.TestCase):
         before, after = fixture()
         before = copy.deepcopy(after)
         before["trade_date"] = today
-        before["generated_at"] = today + "T18:35:00+08:00"
+        # Use a same-day earlier timestamp so the regression is time-of-day independent.
+        before["generated_at"] = today + "T00:00:00+08:00"
         before["scan_audit"]["state_migration_gate"]["current_trade_date"] = today
         before["scan_audit"]["state_migration_gate"]["previous_registry_trade_date"] = OLD
         add_future_audit(before)
