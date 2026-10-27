@@ -301,21 +301,141 @@ def build(handoff, industry_index, latest, structure, catalog, cap=20, supplemen
             "max_candidates_per_theme": cap, "routes": result}
 
 
+
+def build_verified_routes(handoff, industry_index, latest, structure, identities,
+                          catalog=None, cap=20):
+    """Post-state handoff builder: NO name guessing, NO market-state recalculation.
+
+    Identity must be frozen before the researcher adjudicated market state.
+    Industry route passes only industry CODES. Theme route uses verified
+    concept membership to select up to 20 MAINBOARD technical candidates.
+    """
+    day = handoff.get("trade_date")
+    if (not day or handoff.get("result_kind") != "a_share_trend_handoff" or
+            latest.get("trade_date") != day or latest.get("market_status") != "closed" or
+            structure.get("reference_trade_date") != day or
+            identities.get("result_kind") != "hotspot_identity_snapshot" or
+            identities.get("trade_date") != day or
+            identities.get("market_scope") != "SH_SZ_MAINBOARD_ONLY" or
+            identities.get("status") != "COMPLETE"):
+        raise ValueError("IDENTITY_OR_MARKET_HANDOFF_DATE_SCOPE_INVALID")
+    if not (handoff.get("source") or {}).get("identity_verified_before_state") is True:
+        raise ValueError("HANDOFF_NOT_ADJUDICATED_AFTER_IDENTITY")
+    if not 1 <= cap <= 20:
+        raise ValueError("RESEARCH_CANDIDATE_CAP_INVALID")
+    signals = handoff.get("signals") or []
+    ids = identities.get("identities") or []
+    if len(ids) != len(signals) or any(
+            a.get("hotspot_name") != b.get("trend_name") or
+            a.get("mapping_status") != "VERIFIED" for a, b in zip(ids, signals)):
+        raise ValueError("IDENTITIES_NOT_EXACTLY_MATCHED_TO_HANDOFF")
+    industry_companies = industry_index.get("companies") or {}
+    quotes = latest.get("stocks") or {}
+    structures = structure.get("companies") or {}
+    if not industry_companies or not quotes or not structures:
+        raise ValueError("MARKET_RESEARCH_UNIVERSE_EMPTY")
+    matched_concepts = {}
+    if any(a.get("board_type") == "THEME" for a in ids):
+        if catalog is None:
+            raise ValueError("VERIFIED_CONCEPT_MEMBERSHIP_REQUIRED")
+        validate_memberships(catalog, day)
+        matched_concepts = {c["concept_id"]: c for c in catalog["concepts"]}
+    routed = []
+    for identity, signal in zip(ids, signals):
+        kind = identity["board_type"]
+        code = identity["board_code"]
+        if (signal.get("board_type") != kind or
+                signal.get("board_code") != code or
+                signal.get("market_state") not in ("趋势确认", "候选趋势")):
+            raise ValueError("POST_MAPPING_TREND_STATE_OR_IDENTITY_MISMATCH")
+        industry_codes = identity.get("industry_codes") or []
+        if kind == "INDUSTRY":
+            if (not industry_codes or industry_codes != signal.get("industry_codes") or
+                    any(not re.fullmatch(r"S\d{6}", c) for c in industry_codes)):
+                raise ValueError("INDUSTRY_CODE_HANDOFF_MISMATCH")
+            route = {
+                "rank": signal["rank"], "trend_name": signal["trend_name"],
+                "trend_state": signal["trend_state"], "market_state": signal["market_state"],
+                "hotspot_type": "INDUSTRY", "board_code": code,
+                "original_industry_codes": industry_codes,
+                "industry_codes": industry_codes, "mapping_source": "SW2021_L3",
+                "mapping_code": code, "mapping_name": signal["trend_name"],
+                "candidate_stocks": [], "mapping_status": "VERIFIED",
+                "classification_reason": "IDENTITY_ORIGIN_AND_DRIVER_VERIFIED",
+            }
+        elif kind == "THEME":
+            if identity.get("concept_code") != code or code not in matched_concepts:
+                raise ValueError("VERIFIED_CONCEPT_CODE_OR_MEMBERSHIP_MISSING")
+            members = matched_concepts[code]["member_codes"]
+            scoped = {c for c in members if is_main_board(c)}
+            valid = [c for c in scoped if get_return(quotes.get(c) or {}) is not None]
+            coverage = len(valid)/len(scoped) if scoped else 0
+            if len(valid) < 5 or coverage < .95:
+                raise ValueError("CONCEPT_MAINBOARD_QUOTE_COVERAGE_INSUFFICIENT")
+            from build_trend_buy_manual_research import compact_opportunity
+            candidates = []
+            for stock in sorted(scoped):
+                info = industry_companies.get(stock) or {}
+                q = quotes.get(stock) or {}
+                name = str(q.get("name") or "")
+                if (info.get("mapping_status") != "mapped" or
+                        not info.get("industry_code") or not name or
+                        "ST" in name.upper() or "退" in name):
+                    continue
+                opportunity, _ = compact_opportunity(structures.get(stock), day)
+                if opportunity is not None:
+                    candidates.append((opportunity["opportunity_score"],stock,
+                                       info["industry_code"],name))
+            candidates.sort(key=lambda r: (-r[0],r[1]))
+            route = {
+                "rank": signal["rank"], "trend_name": signal["trend_name"],
+                "trend_state": signal["trend_state"], "market_state": signal["market_state"],
+                "hotspot_type": "THEME", "board_code": code,
+                "original_industry_codes": signal.get("industry_codes") or [],
+                "mapping_source": catalog["source"], "mapping_code": code,
+                "mapping_name": matched_concepts[code]["name"],
+                "concept_member_count": len(members),
+                "concept_mainboard_member_count": len(scoped),
+                "concept_member_codes": members,
+                "quote_coverage": round(coverage, 4),
+                "mapping_status": "VERIFIED",
+                "classification_reason": "IDENTITY_ORIGIN_AND_DRIVER_VERIFIED",
+                "candidate_stocks": [
+                    {"rank": n, "stock_code": c, "stock_name": name,
+                     "industry_code": sector, "opportunity_score": round(score,6)}
+                    for n,(score,c,sector,name) in enumerate(candidates[:cap],1)
+                ],
+            }
+        else:
+            raise ValueError("UNKNOWN_VERIFIED_BOARD_TYPE")
+        routed.append(route)
+    return {
+        "schema_version": 1, "result_kind": "hotspot_stock_route_snapshot",
+        "trade_date": day, "status": "COMPLETE",
+        "market_scope": "SH_SZ_MAINBOARD_ONLY",
+        "identities_verified_before_state": True,
+        "concept_source": catalog["source"] if catalog else None,
+        "concept_as_of_trade_date": day,
+        "max_candidates_per_theme": cap, "routes": routed,
+    }
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--handoff", default="research/trend_handoff.json")
     parser.add_argument("--industry-index", default="data/research/company_industry_index.json")
     parser.add_argument("--latest", default="data/latest.json")
     parser.add_argument("--structure", default="data/research/full_market_price_structure.json")
-    parser.add_argument("--concept-file", help="Verified same-day membership snapshot (historical replay)")
+    parser.add_argument("--concept-file", help="Verified same-day membership for identified themes")
+    parser.add_argument("--identity-file", required=True,
+                        help="Frozen pre-state verified identity resolution snapshot")
     parser.add_argument("--output-dir", default="data/research/theme_stock_candidates")
     parser.add_argument("--supplement-quotes", help="Same-day concept-only quote supplement, never overwrites frozen base")
     args = parser.parse_args()
     handoff = read(args.handoff)
-    catalog = read(args.concept_file) if args.concept_file else fetch_current_memberships(handoff)
-    result = build(handoff, read(args.industry_index), read(args.latest),
-                   read(args.structure), catalog,
-                   supplement=read(args.supplement_quotes) if args.supplement_quotes else None)
+    catalog = read(args.concept_file) if args.concept_file else None
+    result = build_verified_routes(
+        handoff, read(args.industry_index), read(args.latest),
+        read(args.structure), read(args.identity_file), catalog)
     output = Path(args.output_dir) / (result["trade_date"] + ".json")
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n",
