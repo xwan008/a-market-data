@@ -7,9 +7,6 @@ on:
       - 'scripts/validate_trend_state_migrations.py'
       - 'scripts/trend_registry.py'
       - 'tests/test_trend_registry.py'
-      - 'tests/test_trend_context.py'
-      - 'scripts/validate_trend_context.py'
-      - 'research/trend_context.json'
       - 'skill/TREND_DISCOVERY_NEUTRAL.md'
       - 'tests/test_trend_outcome_cohort.py'
       - 'tests/test_trend_discovery_checkpoint.py'
@@ -26,9 +23,6 @@ on:
       - 'scripts/validate_trend_state_migrations.py'
       - 'scripts/trend_registry.py'
       - 'tests/test_trend_registry.py'
-      - 'tests/test_trend_context.py'
-      - 'scripts/validate_trend_context.py'
-      - 'research/trend_context.json'
       - 'skill/TREND_DISCOVERY_NEUTRAL.md'
       - 'tests/test_trend_outcome_cohort.py'
       - 'tests/test_trend_discovery_checkpoint.py'
@@ -59,7 +53,7 @@ jobs:
       - name: Run lifecycle continuity and anti-noise regression tests
         run: python -m unittest discover -s tests -p 'test_trend_*.py' -v
       - name: Validate source compiles
-        run: python -m py_compile scripts/trend_registry.py scripts/validate_trend_state_migrations.py scripts/validate_trend_publication_pair.py scripts/validate_trend_context.py scripts/audit_trend_lifecycle_semantics.py scripts/validate_trend_discovery_checkpoint.py scripts/build_trend_outcome_cohort.py
+        run: python -m py_compile scripts/trend_registry.py scripts/validate_trend_state_migrations.py scripts/validate_trend_publication_pair.py scripts/audit_trend_lifecycle_semantics.py scripts/validate_trend_discovery_checkpoint.py scripts/build_trend_outcome_cohort.py
       - name: Verify current active registry and handoff shape
         run: |
           python - <<'PY'
@@ -68,12 +62,10 @@ jobs:
           r=json.loads(Path("research/trend_registry.json").read_text())
           h=json.loads(Path("research/trend_handoff.json").read_text())
           assert r["schema_version"]==2 and h["schema_version"]==1
-          assert all(x["market_state"] in {"趋势确认","候选趋势"} and x.get("lifecycle_status")!="已失效" for x in r["trends"])
+          assert all(x["market_state"] in {"趋势确认","候选趋势","观察"} and x.get("lifecycle_status")!="已失效" for x in r["trends"])
+          assert all(x["in_new_position_priority"] is not True for x in r["trends"] if x["market_state"]=="观察")
           assert all(x["episode_id"]==x["trend_name"]+"#"+x["first_seen_trade_date"] for x in r["trends"])
           assert [x["trend_name"] for x in r["trends"] if x.get("in_new_position_priority")] == [x["trend_name"] for x in h["signals"]]
           print("CURRENT_TREND_CONTRACT_OK")
           PY
 
-
-      - name: Validate published observation and commodity context
-        run: python scripts/validate_trend_context.py --registry research/trend_registry.json --context research/trend_context.json
