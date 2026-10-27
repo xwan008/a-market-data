@@ -73,6 +73,34 @@ class SectorDiscoveryTests(unittest.TestCase):
         self.assertIn("crosscheck_shortlist", protocol)
         self.assertIn("数据缺失或无法核实时应如实说明", protocol)
 
+    def test_canonical_skills_do_not_resurrect_pre_confirmed_stock_routing(self):
+        root = Path(__file__).resolve().parents[1] / "skill"
+        protocol = (root / "TREND_REGISTRY_PROTOCOL.md").read_text(encoding="utf-8")
+        buy = (root / "TREND_BUY_CANONICAL.md").read_text(encoding="utf-8")
+        routing = (root / "TREND_HANDOFF_ROUTING_OVERRIDE.md").read_text(encoding="utf-8")
+        prescreen = (root / "PRE_SCREEN_RESEARCH_SCOPE_OVERRIDE.md").read_text(encoding="utf-8")
+        intraday = (root / "INTRADAY_MONITOR_CANONICAL.md").read_text(encoding="utf-8")
+        # Research reviews the surge promptly but a deadline never forces
+        # confirmation. The formal stock route is narrower than the registry.
+        self.assertIn("### 0.5 单日爆发后第二至第三交易日", protocol)
+        self.assertIn("不确认是合格的结论", protocol)
+        self.assertIn("候选与观察均不得进入正式个股行动研究或handoff", protocol)
+        self.assertIn("signals=[]", protocol)
+        self.assertIn("market_environment_source", protocol)
+        self.assertIn("NO_ELIGIBLE_CONFIRMED_TREND", buy)
+        self.assertIn("CORE/DIRECT+趋势确认", routing)
+        self.assertIn("不得通过人工alias", routing)
+        self.assertIn("绝不能据此跳过上游唯一", prescreen)
+        self.assertIn("不得把上一日", intraday)
+        # Reject legacy descriptions that silently restore old permissions.
+        for obsolete in (
+            "仅候选/确认连续复核",
+            "接口字段、行业路由、排序与资格均保持不变",
+            "不改变T等级、市场状态、优先级、配对/迁移校验或发布硬Gate",
+            "2026年10月机器人示例",
+        ):
+            self.assertNotIn(obsolete, protocol)
+
     def test_verified_concept_and_future_prevention(self):
         latest, index, structure = inputs()
         c = {"schema_version": 1, "source": "verified provider",
