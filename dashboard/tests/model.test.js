@@ -43,7 +43,7 @@ test('盘中绘图只采用同日 READY 扫描并按扫描时间排序',()=>{
  assert.equal(snapshotChange(s.slice(0,1),'up_ratio',100),null);
 });
 test('趋势顺序只认正式 rank，未上榜板块不虚构名次',()=>{
- const registry={trends:[{trend_name:'甲'},{trend_name:'乙'},{trend_name:'丙'}]};
+ const registry={trends:[{trend_name:'甲',market_state:'候选趋势'},{trend_name:'乙',market_state:'趋势确认'},{trend_name:'丙',market_state:'候选趋势'}]};
  const handoff={signals:[{trend_name:'乙',rank:1},{trend_name:'丙',rank:2}]};
  const history={
   甲:[{scan_at:'2026-10-12T09:40:00+08:00',data_quality:'READY',up_ratio:.5},{scan_at:'2026-10-12T10:40:00+08:00',data_quality:'READY',up_ratio:.1}],
@@ -59,7 +59,7 @@ test('趋势顺序只认正式 rank，未上榜板块不虚构名次',()=>{
 
 
 
-test('板块趋势状态优先排序严格遵循确认、候选、观察、新异动、高潮衰退、失效，组内保留正式 rank',()=>{
+test('板块趋势只展示仍有效的确认、候选、观察，剔除失效等状态，组内保留正式 rank',()=>{
  const states=[
   ['失效股','失效'],['新异动股','新异动'],['观察股','观察'],
   ['高潮股','高潮/衰退'],['候选乙','候选趋势'],['趋势确认股','趋势确认'],
@@ -68,7 +68,7 @@ test('板块趋势状态优先排序严格遵循确认、候选、观察、新�
  const registry={trends:states.map(([trend_name,market_state])=>({trend_name,market_state}))};
  const handoff={signals:[{trend_name:'候选乙',rank:1},{trend_name:'候选甲',rank:2},{trend_name:'趋势确认股',rank:3}]};
  const sorted=rankedTrendRows(registry,handoff,{},'2026-10-12','state');
- assert.deepEqual(sorted.map(x=>x.trend_name),['趋势确认股','候选乙','候选甲','观察股','新异动股','高潮股','失效股','未知股']);
+ assert.deepEqual(sorted.map(x=>x.trend_name),['趋势确认股','候选乙','候选甲','观察股']);
  assert.deepEqual(sorted.slice(0,3).map(x=>x.priorityRank),[3,1,2]);
  assert.deepEqual(rankedTrendRows(registry,handoff,{},'2026-10-12','formal').slice(0,3).map(x=>x.trend_name),['候选乙','候选甲','趋势确认股']);
 });
