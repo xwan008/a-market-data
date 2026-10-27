@@ -118,6 +118,12 @@ class TrendRegistryTests(unittest.TestCase):
         before["scan_audit"]["state_migration_gate"]["current_trade_date"] = today
         before["scan_audit"]["state_migration_gate"]["previous_registry_trade_date"] = OLD
         add_future_audit(before)
+        before["trends"][0]["industry_assessments"] = [{
+            "industry_code": "S630601", "industry_name": "风电整机",
+            "benefit_level": "CORE", "market_state": "候选趋势",
+            "evidence_trade_date": today,
+            "benefit_reason": "核心产品受益链具有可核验的真实经营事实",
+            "market_reason": "现有连续市场结构尚不足以完成趋势确认"}]
         after = copy.deepcopy(before)
         now = datetime.now(engine.BEIJING).isoformat(timespec="microseconds")
         after["generated_at"] = now
