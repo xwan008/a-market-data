@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Active trend continuity and evidence-backed exit validation."""
 import re
+from datetime import datetime, timezone, timedelta
 
 STATES = {"失效": 0, "高潮/衰退": 1, "观察": 2, "新异动": 2,
           "候选趋势": 3, "趋势确认": 4}
@@ -49,14 +50,91 @@ def _market_state_evidence(evidence, direction, since, require_confirmation=Fals
                      and e["impact"] in {"STRUCTURAL", "CRITICAL"} for e in fresh)
     breadth = any(e["dimension"] == "MARKET_BREADTH" for e in fresh)
     relative = any(e["dimension"] == "RELATIVE_STRENGTH" for e in fresh)
-    if commodity and direction == "SUPPORT":
+    if commodity:
+        # The same primary instrument must govern promotion AND invalidation.
+        # Equity breadth cannot stand in for a commodity-price counter signal.
         anchor = any(e["dimension"] == "COMMODITY_ANCHOR" and
                      e["impact"] in {"STRUCTURAL", "CRITICAL"} for e in fresh)
-        corroboration = any(e["dimension"] in {"SUPPLY_DEMAND", "RELATIVE_STRENGTH",
-                                                "INDUSTRY_FUNDAMENTALS"} for e in fresh)
+        corroboration = any(e["dimension"] in {"SUPPLY_DEMAND", "INDUSTRY_FUNDAMENTALS"}
+                            for e in fresh)
+        if direction == "COUNTER":
+            return structural and anchor and (corroboration if require_confirmation else True)
         return structural and anchor and corroboration if require_confirmation else (
             structural and (anchor or corroboration))
     return structural and breadth and relative if require_confirmation else structural and (breadth or relative)
+
+
+# Prospective research-decision audit. Checks provenance and internal consistency;
+# it cannot verify real-world catalyst truth or profitability.
+RESEARCH_GATE_FROM = "2026-10-27"
+BEIJING = timezone(timedelta(hours=8))
+
+
+def _research_audit_errors(item, day, prior=None):
+    episode = item.get("episode_id")
+    audit = item.get("confirmation_audit")
+    errors = []
+    if not isinstance(audit, dict) or audit.get("asof_trade_date") != day:
+        return [f"{episode}:confirmation_audit_missing"]
+    if audit.get("market_environment") not in {"NORMAL", "EVENT_LIQUIDITY_SHOCK",
+                                                "RISK_OFF", "MIXED", "UNCERTAIN"}:
+        errors.append(f"{episode}:environment_unclassified")
+    if audit.get("driver_type") not in {"INDUSTRIAL_GROWTH", "CONTENT_COMMERCIALIZATION",
+                                      "COMMODITY", "DEFENSIVE", "OTHER"}:
+        errors.append(f"{episode}:driver_unclassified")
+    if (item.get("trend_basis") == "COMMODITY") != (audit.get("driver_type") == "COMMODITY"):
+        errors.append(f"{episode}:driver_basis_mismatch")
+    if audit.get("discovery_basis") not in {"ONE_DAY_SURGE", "CONTINUING_STRUCTURE",
+                                           "SUSTAINED_FUNDAMENTAL", "COMMODITY_STRUCTURE"}:
+        errors.append(f"{episode}:discovery_basis_missing")
+    if (prior is None and audit.get("discovery_basis") == "ONE_DAY_SURGE"
+            and item.get("market_state") != "观察"):
+        errors.append(f"{episode}:one_day_surge_must_observe")
+    if audit.get("catalyst_kind") not in {"EVENT", "SUSTAINED_DRIVER", "COMMODITY_SUPPLY",
+                                         "UNVERIFIED"}:
+        errors.append(f"{episode}:catalyst_kind_invalid")
+    if not isinstance(audit.get("catalyst_fact"), str) or len(audit["catalyst_fact"].strip()) < 12:
+        errors.append(f"{episode}:catalyst_fact_missing")
+    if not isinstance(audit.get("strongest_counter"), str) or len(audit["strongest_counter"].strip()) < 12:
+        errors.append(f"{episode}:counter_review_missing")
+    if not isinstance(audit.get("decision_reason"), str) or len(audit["decision_reason"].strip()) < 12:
+        errors.append(f"{episode}:confirmation_decision_reason_missing")
+    if audit.get("decision_state") != item.get("market_state"):
+        errors.append(f"{episode}:confirmation_decision_state_mismatch")
+    src = audit.get("catalyst_source")
+    if not isinstance(src, str) or SOURCE.fullmatch(src) is None:
+        errors.append(f"{episode}:catalyst_source_invalid")
+    # Exact publication / accessibility cutoff matters for Tesla and global oil.
+    published = audit.get("catalyst_available_at")
+    try:
+        moment = datetime.fromisoformat(published)
+        if moment.tzinfo is None or moment.utcoffset() is None or (
+            moment.astimezone(BEIJING) > datetime.fromisoformat(day + "T18:30:00+08:00")):
+            raise ValueError("future or naive")
+    except (TypeError, ValueError, OverflowError):
+        errors.append(f"{episode}:catalyst_not_available_at_close")
+    core = audit.get("core_industry_codes")
+    codes = item.get("industry_codes") or []
+    if not isinstance(core, list) or not isinstance(codes, list) or (
+            len(set(core)) != len(core) or not all(isinstance(x, str) for x in core)
+            or any(x not in codes for x in core)):
+        errors.append(f"{episode}:core_industry_identity_invalid")
+    elif item.get("market_state") == "趋势确认" and item.get("trend_basis") != "COMMODITY" and not core:
+        errors.append(f"{episode}:confirmed_core_missing")
+    if item.get("market_state") in {"候选趋势", "趋势确认"}:
+        if audit.get("catalyst_kind") == "UNVERIFIED":
+            errors.append(f"{episode}:unverified_driver_cannot_progress")
+        if audit.get("discovery_basis") == "ONE_DAY_SURGE":
+            errors.append(f"{episode}:surge_alone_cannot_progress")
+    if item.get("market_state") != "趋势确认":
+        blocker = audit.get("specific_blocker")
+        if not isinstance(blocker, str) or len(blocker.strip()) < 12:
+            errors.append(f"{episode}:confirmation_blocker_missing")
+    else:
+        sufficient = audit.get("first_sufficient_evidence_trade_date")
+        if not isinstance(sufficient, str) or not DAY.fullmatch(sufficient) or sufficient > day:
+            errors.append(f"{episode}:first_sufficient_evidence_date_missing")
+    return errors
 
 
 def _optional_sector_audit_valid(sector_audit, day):
@@ -167,7 +245,9 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
         valid = [f for f in evidence if _valid_evidence(f, day)]
         if len(valid) != len(evidence):
             errors.append(f"{episode}:exit_evidence_invalid")
-        if not _market_state_evidence(valid, "COUNTER", before):
+        if not _market_state_evidence(valid, "COUNTER", before,
+                                      require_confirmation=prior.get("trend_basis") == "COMMODITY",
+                                      commodity=prior.get("trend_basis") == "COMMODITY"):
             errors.append(f"{episode}:exit_without_independent_market_counter")
     for episode in continued:
         prior = prior_by_id[episode]
@@ -221,8 +301,43 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
                 errors.append(f"{episode}:industry_downgrade_without_primary_counter")
         if m0 != m1:
             direction = "COUNTER" if STATES[m1] < STATES[m0] else "SUPPORT"
-            if not _market_state_evidence(qualified, direction, before, require_confirmation=m1 == "趋势确认", commodity=now.get("trend_basis") == "COMMODITY"):
+            if not _market_state_evidence(qualified, direction, before,
+                                          require_confirmation=m1 == "趋势确认",
+                                          commodity=(prior.get("trend_basis") == "COMMODITY"
+                                                     if direction == "COUNTER" else
+                                                     now.get("trend_basis") == "COMMODITY")):
                 errors.append(f"{episode}:market_change_without_independent_evidence")
+    # Every current observation/candidate/confirmed episode is reviewed at the
+    # same Beijing cutoff. Existing 2026-10-26 registry is not rewritten.
+    if day >= RESEARCH_GATE_FROM:
+        for theme in proposed["trends"]:
+            errors.extend(_research_audit_errors(
+                theme, day, prior_by_id.get(theme.get("episode_id"))))
+        for episode in continued:
+            old, cur = prior_by_id[episode], curr_by_id[episode]
+            old_assess = {x.get("industry_code"): x for x in
+                          old.get("industry_assessments", []) if isinstance(x, dict)}
+            current_assess = {x.get("industry_code"): x for x in
+                              cur.get("industry_assessments", []) if isinstance(x, dict)}
+            # An individually confirmed SW3 can be downgraded only on evidence
+            # for THAT SW3, not on the weakness of an unrelated theme segment.
+            for code, row in old_assess.items():
+                if row.get("market_state") != "趋势确认":
+                    continue
+                now_ind = current_assess.get(code)
+                if now_ind is None:
+                    errors.append(f"{episode}:{code}:confirmed_core_disappeared")
+                elif now_ind.get("market_state") != "趋势确认":
+                    evidence = (by_id.get(episode) or {}).get("evidence", [])
+                    if not isinstance(evidence, list) or not any(
+                        e.get("direction") == "COUNTER" and
+                        e.get("impact") in {"STRUCTURAL", "CRITICAL"} and
+                        e.get("industry_code") == code and
+                        e.get("trade_date") > before and
+                        _valid_evidence(e, day)
+                        for e in evidence if isinstance(e, dict)
+                    ):
+                        errors.append(f"{episode}:{code}:core_downgrade_without_own_counter")
     # Prospective SW3-level routing audit. No retroactive rewriting of 10/26.
     # This checks the presence, identity and provenance of each independent
     # industry decision; it does NOT automatically confirm stock-price trends.
@@ -231,7 +346,9 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
             episode = theme.get("episode_id")
             assessments = theme.get("industry_assessments")
             codes, names = theme.get("industry_codes"), theme.get("industry_names")
-            if theme.get("market_state") == "观察":
+            if theme.get("market_state") == "观察" and not assessments:
+                # First-day discovery can be researched without claiming that
+                # tentative sector relationships are already verified.
                 if theme.get("in_new_position_priority") is True:
                     errors.append(f"{episode}:observation_in_priority")
                 continue
@@ -249,8 +366,8 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
                 if not isinstance(row, dict):
                     continue
                 code = row.get("industry_code")
-                if (row.get("benefit_level") not in {"CORE", "DIRECT"} or
-                    row.get("market_state") not in (TRACK if theme.get("trend_basis") == "COMMODITY" else TRACK - {"观察"}) or
+                if (row.get("benefit_level") not in {"CORE", "DIRECT", "RELATED", "UNVERIFIED"} or
+                    row.get("market_state") not in TRACK or
                     row.get("evidence_trade_date") != day or
                     not isinstance(row.get("benefit_reason"), str) or
                     len(row["benefit_reason"].strip()) < 12 or
@@ -258,7 +375,10 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
                     len(row["market_reason"].strip()) < 12):
                     errors.append(f"{episode}:{code}:sw3_independent_evidence_missing")
                 if row.get("market_state") == "趋势确认":
-                    confirmed += 1
+                    if row.get("benefit_level") not in {"CORE", "DIRECT"}:
+                        errors.append(f"{episode}:{code}:confirmed_without_direct_benefit")
+                    else:
+                        confirmed += 1
             if (theme.get("market_state") == "趋势确认" and confirmed < 1 and
                 theme.get("trend_basis") != "COMMODITY"):
                 errors.append(f"{episode}:confirmed_without_confirmed_sw3")
@@ -269,6 +389,9 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
             errors.append(f"{episode}:nontracking_persisted")
         if item.get("market_state") == "观察" and item.get("in_new_position_priority") is True:
             errors.append(f"{episode}:observation_in_priority")
+        if day >= RESEARCH_GATE_FROM and (item.get("in_new_position_priority") is True
+                                          and item.get("market_state") != "趋势确认"):
+            errors.append(f"{episode}:only_confirmed_priority")
         if item.get("trend_basis") not in (None, "A_SHARE", "COMMODITY"):
             errors.append(f"{episode}:invalid_trend_basis")
         if item.get("trend_basis") == "COMMODITY":
