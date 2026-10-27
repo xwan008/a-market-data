@@ -212,6 +212,24 @@ def _surge_review_errors(item, previous, day):
                 not isinstance(evidence.get("source"), str) or
                 SOURCE.fullmatch(evidence["source"]) is None):
                 errors.append(f"{episode}:{name}:surge_evidence_invalid")
+        funding = dimensions.get("funding_strength")
+        if isinstance(funding, dict):
+            # Relative volume/turnover is a participation proxy, NOT proof of
+            # net capital inflow or the identity of buyers.
+            if (funding.get("measurement_basis") not in
+                    {"PRICE_VOLUME_PROXY", "VERIFIED_NET_FLOW", "UNVERIFIED"} or
+                    not isinstance(funding.get("observation_window"), str) or
+                    len(funding["observation_window"].strip()) < 4 or
+                    (funding.get("measurement_basis") == "UNVERIFIED" and
+                     funding.get("status") == "SUPPORTED")):
+                errors.append(f"{episode}:funding_strength_basis_invalid")
+        breadth = dimensions.get("breadth")
+        if isinstance(breadth, dict) and breadth.get("status") == "SUPPORTED":
+            count = breadth.get("sample_size")
+            rising = breadth.get("advancing_count")
+            if (type(count) is not int or count <= 0 or
+                    type(rising) is not int or rising < 0 or rising > count):
+                errors.append(f"{episode}:breadth_sample_invalid")
     decision = review.get("decision")
     if decision not in {"PENDING", "CONFIRMED", "NOT_CONFIRMED"}:
         errors.append(f"{episode}:surge_decision_invalid")
@@ -235,6 +253,14 @@ def _surge_review_errors(item, previous, day):
                 needed |= {"beneficiary_chain", "funding_strength", "breadth",
                            "relative_strength"}
             latest = sessions[-1].get("dimensions") if sessions and isinstance(sessions[-1], dict) else {}
+            if (audit.get("market_environment") == "EVENT_LIQUIDITY_SHOCK" and
+                    (not isinstance(review.get("event_independent_evidence"), dict) or
+                     review["event_independent_evidence"].get("status") != "SUPPORTED" or
+                     not isinstance(review["event_independent_evidence"].get("finding"), str) or
+                     len(review["event_independent_evidence"]["finding"].strip()) < 12 or
+                     not isinstance(review["event_independent_evidence"].get("source"), str) or
+                     SOURCE.fullmatch(review["event_independent_evidence"]["source"]) is None)):
+                errors.append(f"{episode}:surge_event_without_independent_sector_evidence")
             for name in needed:
                 if (not isinstance(latest, dict) or
                     not isinstance(latest.get(name), dict) or
