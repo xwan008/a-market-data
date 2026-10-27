@@ -5,6 +5,7 @@ on:
     paths:
       - "scripts/route_hotspot_themes.py"
       - "scripts/validate_theme_business_chain.py"
+      - "tests/test_theme_business_chain_proof.py"
       - "scripts/resolve_hotspot_identities.py"
       - "scripts/validate_hotspot_identity_publication.py"
       - "tests/test_hotspot_identity_publication.py"
@@ -40,6 +41,7 @@ jobs:
       - name: New classifier and integration regression
         run: |
           python -m unittest discover -s tests -p "test_hotspot_theme_router.py" -v
+          python -m unittest discover -s tests -p "test_theme_business_chain_proof.py" -v
           python -m unittest discover -s tests -p "test_theme_buy_routing.py" -v
           python -m unittest discover -s tests -p "test_fuyao_concept_provider.py" -v
           python -m unittest discover -s tests -p "test_hotspot_identity_pipeline.py" -v
