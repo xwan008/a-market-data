@@ -366,12 +366,15 @@ function Overview({registry,trendHandoff,buy,monitor,holdingSnapshot,holdingChar
  </div>;
 }
 
-function Trends({registry,trendHandoff,monitor,archive,selected,setSelected}){
+function Trends({registry,trendHandoff,context,monitor,archive,selected,setSelected}){
  const [sortMode,setSortMode]=useState('state');
  const [detailView,setDetailView]=useState('chart');
  const day=monitor?.result_kind==='a_share_intraday_monitor_state'?monitor.trade_date:null;
  const rows=rankedTrendRows(registry,trendHandoff,monitor?.industry_history,day,sortMode);
  const officialCount=rows.filter(x=>x.priorityRank!=null).length;
+ const contextCurrent=context?.result_kind==='a_share_trend_context'&&context.trade_date===registry?.trade_date;
+ const observed=contextCurrent?asArray(context.observations):[];
+ const commodities=contextCurrent?asArray(context.commodity_trends):[];
  const focus=rows.find(i=>i.trend_name===selected?.trend_name)||rows[0];
  const plotRows=validSnapshots(monitor?.industry_history?.[focus?.trend_name],day);
  const hasPlot=plotRows.some(row=>typeof row?.up_ratio==='number'&&Number.isFinite(row.up_ratio));
@@ -382,6 +385,32 @@ function Trends({registry,trendHandoff,monitor,archive,selected,setSelected}){
    <div className="buy-stat-card buy-stat-ready"><div className="buy-stat-heading"><span className="buy-stat-icon"><Target size={15}/></span><span className="buy-stat-title">正式优先</span></div><div className="buy-stat-value"><strong>{officialCount}</strong><small>个</small></div><p>来自正式趋势榜单名次</p></div>
    <div className="buy-stat-card buy-stat-covered"><div className="buy-stat-heading"><span className="buy-stat-icon"><Layers size={15}/></span><span className="buy-stat-title">研究池方向</span></div><div className="buy-stat-value"><strong>{rows.length}</strong><small>个</small></div><p>仅含本轮研究方向</p></div>
    <div className="buy-stat-card trend-stat-intraday"><div className="buy-stat-heading"><span className="buy-stat-icon"><Activity size={15}/></span><span className="buy-stat-title">今日盘中有值</span></div><div className="buy-stat-value"><strong>{coveredCount}</strong><small>个</small></div><p>{day?`${day} 有效数值快照`:'当日数值尚未发布'}</p></div>
+  </div>
+  <div className="trend-context-grid">
+   <section className="panel trend-context-panel" aria-label="持续观察方向">
+    <PanelHead title="持续观察 · 不等于失效" aside={<span className="count-chip">{contextCurrent?observed.length:'未同步'} 个方向</span>}/>
+    {contextCurrent?(observed.length?observed.map(item=><article className="trend-context-item" key={item.episode_id}>
+     <div className="trend-context-item-head"><strong>{safeText(item.trend_name)}</strong><ResearchState value={item.market_state}/></div>
+     <p>{safeText(item.research_reason)}</p>
+     <p className="trend-context-meta">最近核验 {safeText(item.last_verified_trade_date)} · {asArray(item.industry_names).join(' / ')||'三级行业待核验'}</p>
+     <details><summary>后续复核条件与证据</summary><p>{safeText(item.next_check)}</p>{asArray(item.evidence).map((e,i)=><p key={i}>{safeText(e.trade_date)} · {safeText(e.description)}</p>)}</details>
+    </article>):<p className="muted">本轮无持续观察方向，并不意味着其他行业全部失效。</p>):<p className="muted">观察数据未发布或与正式研究交易日不一致，不展示过期状态。</p>}
+   </section>
+   <section className="panel trend-context-panel" aria-label="商品价格趋势">
+    <PanelHead title="商品价格趋势 · 独立于A股" aside={<span className="count-chip">{contextCurrent?commodities.length:'未同步'} 个品种</span>}/>
+    {contextCurrent?(commodities.length?commodities.map(item=><article className="trend-context-item" key={item.commodity_id}>
+     <div className="trend-context-item-head"><strong>{safeText(item.commodity_name)}</strong><ResearchState value={item.market_state}/></div>
+     <p className="trend-context-meta">{safeText(item.market_scope)}</p>
+     <p><strong>{fixed(item.price_anchor?.value,2)} {safeText(item.price_anchor?.unit)}</strong><span className="trend-context-meta"> · 报价日 {safeText(item.price_anchor?.trade_date)} · {safeText(item.price_anchor?.price_basis)}</span></p>
+     <p>{safeText(item.a_share_assessment)}</p>
+     <details><summary>报价依据、三级行业与风险</summary><p>合约：{safeText(item.price_anchor?.contract)}</p>
+      <p>三级行业：{asArray(item.a_share_industries).map(x=>safeText(x.industry_name)).join(' / ')||'暂无核实映射，仍展示商品趋势'}</p>
+      <p>{safeText(item.risk_note)}</p><p>下次核验：{safeText(item.next_check)}</p>
+      {asArray(item.evidence).map((e,i)=><p key={i}>{safeText(e.trade_date)} · {safeText(e.description)}</p>)}
+      {item.price_anchor?.source&&<a href={item.price_anchor.source} target="_blank" rel="noopener noreferrer">报价来源 <ExternalLink size={12}/></a>}
+     </details>
+    </article>):<p className="muted">本轮暂无已核实商品价格趋势。</p>):<p className="muted">商品数据未发布或与正式研究交易日不一致。</p>}
+   </section>
   </div>
   <div className="two-pane trend-workspace"><section className="panel"><PanelHead title="板块排序" aside={<span className="count-chip">{rows.length} 个方向</span>}/>
    {rows.length?<TrendTable trends={rows} onSelect={setSelected} selected={focus} monitor={monitor?.industry_history} monitorDay={day} sortMode={sortMode} onSort={setSortMode}/>:<Empty title="暂无趋势数据" detail="等待正式趋势池发布"/>}
@@ -742,7 +771,7 @@ export default function App(){
     {payload?.fetchError&&<div className="fetch-warning"><CircleAlert size={17}/>{payload.fetchError}，展示上次成功加载的数据。</div>}
     {!payload?<Skeleton/>:<div className="view-enter" key={section}>
      {section==='overview'&&<Overview registry={datasets.registry} trendHandoff={datasets.trendHandoff} buy={datasets.buyHandoff} monitor={datasets.monitor} holdingSnapshot={datasets.holdingSnapshot} holdingCharts={datasets.holdingCharts} portfolio={portfolio} status={status} onSection={setSection} monitorUi={monitorUi} setMonitorUi={setMonitorUi}/>}
-     {section==='trends'&&<Trends registry={datasets.registry} trendHandoff={datasets.trendHandoff} monitor={datasets.monitor} archive={datasets.crossdayArchive} selected={selectedTrend} setSelected={setSelectedTrend}/>}
+     {section==='trends'&&<Trends registry={datasets.registry} trendHandoff={datasets.trendHandoff} context={datasets.context} monitor={datasets.monitor} archive={datasets.crossdayArchive} selected={selectedTrend} setSelected={setSelectedTrend}/>}
      {section==='buy'&&<Buy buy={datasets.buyHandoff} selected={selectedBuy} setSelected={setSelectedBuy} status={status}/>}
      {section==='portfolio'&&<Portfolio data={portfolio} status={status} monitor={datasets.monitor} holdingSnapshot={datasets.holdingSnapshot}/>}
      {section==='validation'&&<TrendValidation/>}
