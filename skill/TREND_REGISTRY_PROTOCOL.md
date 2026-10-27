@@ -43,6 +43,16 @@
 
 本轮拟正式handoff中附加 \`board_type\`、\`board_code\`，并在 \`source.identity_verified_before_state=true\` 后方可由已评估的结果生成买点路由；必须有“身份解析时间不晚于趋势状态研究完成时间”的证明。行业路由只输出申万 \`industry_codes\` 给原买点行业池；主题输出 \`concept_code\`/对应当日完整成员快照和最多20只主板候选给原买点Top5流程。保留原有产业、市场状态、排名、资格和配对/迁移Gate，买点任务**不得在19:00才调用实时概念接口重新猜测身份或二次确认趋势**。18:30未完成此新增字段及Gate接线前，新路由只能影子运行，不能宣称正式榜单已按新类型重评。
 
+**标准化快照及执行契约（每日期）**：
+
+- 先独立冻结 \`data/research/independent_hotspot_discovery/YYYY-MM-DD.json\`。旧趋势候选只能在此后另写 \`postfreeze_active_trend_rechecks\` 输入，不得混入独立发现本身；若旧候选未能取得当日原始来源和驱动证据，身份保持待核验。
+- 完整概念成员要从实际采集时间不晚于本轮身份决策的来源取得，冻结在带 \`source_observed_at\` 和 \`as_of_trade_date\` 的概念文件。昨天晚上补采的文件不能冒充今天此前的趋势状态判断所用数据。
+- 调用 \`scripts/resolve_hotspot_identities.py\` 保存 \`data/research/hotspot_identity_snapshots/YYYY-MM-DD.json\`；调用 \`scripts/build_mapped_hotspot_market_evidence.py\` 保存 \`data/research/mapped_hotspot_market_evidence/YYYY-MM-DD.json\`。这两份只提供身份与客观证据，不得填入 \`trend_state\` 或 \`market_state\`。非正式研究池的映射未决只保留审计，任何进入handoff的热点必须先完成身份核验与行情覆盖Gate。
+- 模型按第0节和第1.2节证据独立评估、写入拟正式Registry/Handoff后，再运行 \`scripts/validate_hotspot_identity_publication.py\`；这一项为**新增**硬Gate，仍须继续运行原有 \`validate_trend_state_migrations.py\` 和 \`validate_trend_publication_pair.py\` 两个发布硬Gate；三者均通过才能按原协议成对提交并READBACK。
+- 仅在成功发布身份先行的本轮handoff之后，调用 \`scripts/route_hotspot_themes.py --identity-file data/research/hotspot_identity_snapshots/YYYY-MM-DD.json --concept-file <真实当日概念成分快照> --output-dir data/research/theme_stock_candidates\` 生成主题Top20；纯行业型可省略概念文件。19:00买点任务仅核验并读取这些已发布的日期文件，不再实时重新映射。若Top20准备失败，不得标记买点任务完成。
+
+
+
 ### 1.3 当期发现候选的落选审计（仅解释，不改变研究结论）
 
 18:30独立发现冻结后、正式发布前，必须对**本轮模型已发现但未进入确认/候选正式趋势池**的方向，以及**当日程序交叉复核名单 `crosscheck_shortlist` 中未进入正式趋势池**的方向，逐一解释去向。对程序名单同时记录是否已被模型独立覆盖，以及一致、补漏或冲突的复核结论；同源行情不得当作独立置信度加成。仅在已核实属于同一产业研究对象时合并审计，并列明对应原信号。程序完整计算快照中未进入最多3个复核名额的信号只保留排序/容量事实，不冒充已研究或否决。原模型独立发现冻结顺序不变；客观扫描分数只是复核线索，不能自动决定趋势资格或回填独立发现。
