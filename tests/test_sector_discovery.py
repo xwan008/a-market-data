@@ -66,7 +66,7 @@ class SectorDiscoveryTests(unittest.TestCase):
     def test_protocol_preserves_original_model_decision_priority(self):
         protocol = (Path(__file__).resolve().parents[1]
                     / "skill/TREND_REGISTRY_PROTOCOL.md").read_text(encoding="utf-8")
-        self.assertIn("模型独立发现 → 仅候选/确认连续复核 → 合并判断、校验发布", protocol)
+        self.assertIn("模型独立发现 → 观察/候选/确认连续复核 → 合并判断、校验发布", protocol)
         self.assertIn("Python只负责客观行情计算和必要技术校验", protocol)
         self.assertIn("不作为第二个趋势发现者", protocol)
         self.assertIn("不排除模型已发现的方向", protocol)
