@@ -2,7 +2,7 @@
   "schema_version": 2,
   "result_kind": "a_share_trend_registry",
   "trade_date": "2026-10-27",
-  "generated_at": "2026-10-27T22:05:25+08:00",
+  "generated_at": "2026-10-27T22:16:05+08:00",
   "timezone": "Asia/Shanghai",
   "status": "COMPLETE",
   "scan_audit": {
@@ -387,6 +387,110 @@
             ]
           }
         ]
+      },
+      {
+        "previous_registry_blob_sha": "7b9ebdae6a3a3fe515f847cc72a342b247260d1a",
+        "previous_generated_at": "2026-10-27T22:05:25+08:00",
+        "revised_at": "2026-10-27T22:16:05+08:00",
+        "reason": "为10月27日正式趋势榜其余四个有效板块统一补充D阶段展示，不更改观察/候选/确认市场状态、episode和handoff；旧D3审查缺口显式标UNVERIFIED。",
+        "changes": [
+          {
+            "episode_id": "工业自动化/机器人#2026-10-20",
+            "from": "候选趋势",
+            "to": "候选趋势",
+            "reason": "10月20日首次正式跟踪，21日及22日持续复核、23日曾趋势确认、26日降为候选；按正式跟踪交易日已超过D3，但22日未保存完整D3八维阶段判定，故不补造历史结论。",
+            "evidence": [
+              {
+                "dimension": "MARKET_STRUCTURE",
+                "direction": "SUPPORT",
+                "impact": "NORMAL",
+                "trade_date": "2026-10-27",
+                "source": "data/research/sector_discovery_audit.json",
+                "finding": "机器人Ⅲ10月27日中位-2.973%、3日中位+3.665%，当日相对市场落后0.624个百分点；历史跟踪已持续超过3个交易日。"
+              },
+              {
+                "dimension": "INDUSTRY_FUNDAMENTALS",
+                "direction": "SUPPORT",
+                "impact": "NORMAL",
+                "trade_date": "2026-10-27",
+                "source": "research/trend_registry.json",
+                "finding": "10月27日正式Registry保留工业自动化/机器人为候选趋势，历史记录10月20日首次入榜，10月23日确认后10月26日降级。"
+              }
+            ]
+          },
+          {
+            "episode_id": "油气开采/油服工程#2026-10-26",
+            "from": "候选趋势",
+            "to": "候选趋势",
+            "reason": "10月26日首次正式入榜，10月27日为第二个有效收盘跟踪交易日；D2可依据独立证据直接确认，不与候选状态绑定。",
+            "evidence": [
+              {
+                "dimension": "MARKET_STRUCTURE",
+                "direction": "SUPPORT",
+                "impact": "NORMAL",
+                "trade_date": "2026-10-27",
+                "source": "data/research/sector_discovery_audit.json",
+                "finding": "10月27日油气开采Ⅲ中位-1.021%、相对市场+1.328个百分点，油气及炼化工程中位-2.523%；需继续核验商品与A股传导。"
+              },
+              {
+                "dimension": "RELATIVE_STRENGTH",
+                "direction": "SUPPORT",
+                "impact": "NORMAL",
+                "trade_date": "2026-10-27",
+                "source": "data/research/sector_discovery_audit.json",
+                "finding": "油气开采Ⅲ10月27日相对全市场中位数领先1.328个百分点，油气及炼化工程相对落后0.174个百分点。"
+              }
+            ]
+          },
+          {
+            "episode_id": "银行#2026-10-26",
+            "from": "候选趋势",
+            "to": "候选趋势",
+            "reason": "10月26日正式首次观察，10月27日升级候选；为第二个有效收盘跟踪交易日D2，未达到确认条件但D2可以直接确认。",
+            "evidence": [
+              {
+                "dimension": "MARKET_BREADTH",
+                "direction": "SUPPORT",
+                "impact": "NORMAL",
+                "trade_date": "2026-10-27",
+                "source": "data/research/sector_discovery_audit.json",
+                "finding": "10月27日国有大型银行Ⅲ与股份制银行Ⅲ上涨广度均100%，行业内逆势扩散；仅补复核阶段不更改候选结论。"
+              },
+              {
+                "dimension": "RELATIVE_STRENGTH",
+                "direction": "SUPPORT",
+                "impact": "NORMAL",
+                "trade_date": "2026-10-27",
+                "source": "data/research/sector_discovery_audit.json",
+                "finding": "10月27日国有大型银行Ⅲ相对市场领先3.185个百分点、股份制银行Ⅲ领先3.910个百分点。"
+              }
+            ]
+          },
+          {
+            "episode_id": "商贸零售#2026-10-27",
+            "from": "观察",
+            "to": "观察",
+            "reason": "10月27日首次正式跟踪，百货、超市、多业态零售当日相对全市场较强；本轮D1观察，不因为存在3日结构就倒推旧D1。",
+            "evidence": [
+              {
+                "dimension": "RELATIVE_STRENGTH",
+                "direction": "SUPPORT",
+                "impact": "NORMAL",
+                "trade_date": "2026-10-27",
+                "source": "data/research/sector_discovery_audit.json",
+                "finding": "10月27日百货相对市场领先2.252个百分点、超市领先2.946、多业态零售领先3.329，符合当天相对强势观察。"
+              },
+              {
+                "dimension": "MARKET_BREADTH",
+                "direction": "SUPPORT",
+                "impact": "NORMAL",
+                "trade_date": "2026-10-27",
+                "source": "data/research/sector_discovery_audit.json",
+                "finding": "10月27日超市上涨广度71.43%、多业态零售60%，百货45%，方向内广度分化仍需D2验证。"
+              }
+            ]
+          }
+        ]
       }
     ]
   },
@@ -537,6 +641,14 @@
           "to": "候选趋势",
           "event": "market_state_change",
           "reason": "机器人6只样本当日中位+0.048%、上涨广度66.67%，3日和5日结构仍为正；其他自动化设备亦保持正收益。但工控设备12只中位-2.453%、广度8.33%，激光设备2只中位-4.276%、广度0%，两个核心细分显著弱于全市场中位-0.044%。确认阶段所需的多细分同步扩散已经消失，产业T1未被证伪，市场由趋势确认降为候选趋势。"
+        },
+        {
+          "trade_date": "2026-10-27",
+          "from": "候选趋势",
+          "to": "候选趋势",
+          "event": "same_day_revision",
+          "reason": "只补正式趋势榜D阶段展示：10月20日首次正式跟踪，21日及22日持续复核、23日曾趋势确认、26日降为候选；按正式跟踪交易日已超过D3，但22日未保存完整D3八维阶段判定，故不补造历史结论。",
+          "revised_at": "2026-10-27T22:16:05+08:00"
         }
       ],
       "episode_id": "工业自动化/机器人#2026-10-20",
@@ -599,6 +711,16 @@
         "decision_reason": "产业驱动仍在而市场结构只剩局部强势，按候选而非确认处理。",
         "decision_state": "候选趋势",
         "specific_blocker": "需机器人与工控至少两个直接受益细分恢复持续相对强度和广度。"
+      },
+      "d123_stage": "POST_D3",
+      "d123_trigger_trade_date": "2026-10-20",
+      "d123_decision": "UNVERIFIED",
+      "d123_backfill_audit": {
+        "asof_trade_date": "2026-10-27",
+        "basis": "FORMAL_REGISTRY_SESSION_HISTORY",
+        "first_formal_trade_date": "2026-10-20",
+        "source": "research/trend_registry.json",
+        "review_gap": "原D3完整八维复核结论未作为独立阶段存档；POST_D3仅代表正式跟踪交易日数已超过第三日，不补造D3确认/否定结论。"
       }
     },
     {
@@ -662,6 +784,14 @@
           "to": "候选趋势",
           "event": "new_verified_trend",
           "reason": "布伦特油价高位与油气开采、油服、油气工程100%上涨广度交叉验证；订单盈利尚未闭环，产业仅为T0。"
+        },
+        {
+          "trade_date": "2026-10-27",
+          "from": "候选趋势",
+          "to": "候选趋势",
+          "event": "same_day_revision",
+          "reason": "只补正式趋势榜D阶段展示：10月26日首次正式入榜，10月27日为第二个有效收盘跟踪交易日；D2可依据独立证据直接确认，不与候选状态绑定。",
+          "revised_at": "2026-10-27T22:16:05+08:00"
         }
       ],
       "episode_id": "油气开采/油服工程#2026-10-26",
@@ -720,6 +850,16 @@
         "decision_reason": "商品第一锚仍在高位但并未单向强化，A股仅上游相对抗跌，维持候选。",
         "decision_state": "候选趋势",
         "specific_blocker": "需原油第一锚重新走强，并由油气开采向油服和工程形成持续扩散。"
+      },
+      "d123_stage": "D2",
+      "d123_trigger_trade_date": "2026-10-26",
+      "d123_decision": "PENDING",
+      "d123_backfill_audit": {
+        "asof_trade_date": "2026-10-27",
+        "basis": "FORMAL_REGISTRY_SESSION_HISTORY",
+        "first_formal_trade_date": "2026-10-26",
+        "source": "research/trend_registry.json",
+        "review_gap": "原首次正式入榜当日未设置D1阶段字段；本次根据已发布首次入榜日期补显示D2，不冒充补做昨日完整D1八维审查。"
       }
     },
     {
@@ -783,6 +923,14 @@
           "to": "候选趋势",
           "event": "market_state_change",
           "reason": "四类银行在普跌环境中同步扩散并形成3日延续，市场由观察升为候选；但基本面闭环与风险偏好正常化后的承接尚不足，不能确认。"
+        },
+        {
+          "trade_date": "2026-10-27",
+          "from": "候选趋势",
+          "to": "候选趋势",
+          "event": "same_day_revision",
+          "reason": "只补正式趋势榜D阶段展示：10月26日正式首次观察，10月27日升级候选；为第二个有效收盘跟踪交易日D2，未达到确认条件但D2可以直接确认。",
+          "revised_at": "2026-10-27T22:16:05+08:00"
         }
       ],
       "trend_basis": "A_SHARE",
@@ -845,6 +993,16 @@
         "decision_reason": "跨银行类型的广度与多日结构支持升级候选，但不足以确认盈利趋势。",
         "decision_state": "候选趋势",
         "specific_blocker": "需三季报息差、资产质量和中收改善，并验证市场回稳后的板块承接。"
+      },
+      "d123_stage": "D2",
+      "d123_trigger_trade_date": "2026-10-26",
+      "d123_decision": "PENDING",
+      "d123_backfill_audit": {
+        "asof_trade_date": "2026-10-27",
+        "basis": "FORMAL_REGISTRY_SESSION_HISTORY",
+        "first_formal_trade_date": "2026-10-26",
+        "source": "research/trend_registry.json",
+        "review_gap": "原首次正式入榜当日未设置D1阶段字段；本次根据已发布首次入榜日期补显示D2，不冒充补做昨日完整D1八维审查。"
       }
     },
     {
@@ -963,8 +1121,19 @@
           "event": "same_day_revision",
           "reason": "同日复核认为商贸零售3个三级行业的3日/5日强势与整体社零正增长不足以构成两类独立确认依据；超市与百货经营数据分化，宽主题共同受益尚未核实，按观察跟踪而非首次候选。",
           "revised_at": "2026-10-27T20:56:04+08:00"
+        },
+        {
+          "trade_date": "2026-10-27",
+          "from": "观察",
+          "to": "观察",
+          "event": "same_day_revision",
+          "reason": "只补正式趋势榜D阶段展示：10月27日首次正式跟踪，百货、超市、多业态零售当日相对全市场较强；本轮D1观察，不因为存在3日结构就倒推旧D1。",
+          "revised_at": "2026-10-27T22:16:05+08:00"
         }
-      ]
+      ],
+      "d123_stage": "D1",
+      "d123_trigger_trade_date": "2026-10-27",
+      "d123_decision": "PENDING"
     },
     {
       "trend_name": "电机",

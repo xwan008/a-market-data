@@ -274,7 +274,7 @@ def _surge_review_errors(item, previous, day):
 
 
 def _d123_stage_errors(item, previous, day):
-    """Validate displayed D1/D2/D3 stage; never use it to confirm a market trend."""
+    """Validate displayed phase, allowing sourced one-time legacy backfill."""
     episode = item.get("episode_id", "unknown")
     stage = item.get("d123_stage")
     prior_stage = previous.get("d123_stage") if isinstance(previous, dict) else None
@@ -283,38 +283,58 @@ def _d123_stage_errors(item, previous, day):
                 (item.get("confirmation_audit") or {}).get("discovery_basis") == "ONE_DAY_SURGE"):
             return [f"{episode}:d123_stage_missing"]
         return []
-    errors = []
     allowed = {"D1", "D2", "D3", "POST_D3"}
     if stage not in allowed:
         return [f"{episode}:d123_stage_invalid"]
+    errors = []
     trigger = item.get("d123_trigger_trade_date")
-    if (not isinstance(trigger, str) or DAY.fullmatch(trigger) is None
-            or trigger > day):
+    if not isinstance(trigger, str) or DAY.fullmatch(trigger) is None or trigger > day:
         errors.append(f"{episode}:d123_trigger_invalid")
     decision = item.get("d123_decision")
-    if decision not in {"PENDING", "CONFIRMED", "NOT_CONFIRMED"}:
+    if decision not in {"PENDING", "CONFIRMED", "NOT_CONFIRMED", "UNVERIFIED"}:
         errors.append(f"{episode}:d123_decision_invalid")
-    if stage in {"D1", "D2"} and decision == "NOT_CONFIRMED":
-        errors.append(f"{episode}:d123_early_negative_decision")
-    if stage in {"D3", "POST_D3"} and decision == "PENDING":
+    if stage in {"D1", "D2"} and decision not in {"PENDING", "CONFIRMED"}:
+        errors.append(f"{episode}:d123_early_decision_invalid")
+    if stage == "D3" and decision == "PENDING":
         errors.append(f"{episode}:d123_final_decision_missing")
-    if (decision == "CONFIRMED" and item.get("market_state") != "趋势确认"
-            and (not isinstance(previous, dict) or previous.get("d123_decision") != "CONFIRMED")):
+    if stage == "POST_D3" and decision == "PENDING":
+        errors.append(f"{episode}:d123_final_decision_missing")
+    if stage == "D3" and decision == "UNVERIFIED":
+        errors.append(f"{episode}:d123_d3_unverified_not_permitted")
+    if decision == "CONFIRMED" and item.get("market_state") != "趋势确认" and (
+            not isinstance(previous, dict) or previous.get("d123_decision") != "CONFIRMED"):
         errors.append(f"{episode}:d123_confirmation_state_mismatch")
-    if stage == "D1" and trigger != day:
-        errors.append(f"{episode}:d123_first_day_mismatch")
+    backfill = item.get("d123_backfill_audit")
     if prior_stage is None:
-        if stage != "D1":
-            errors.append(f"{episode}:d123_missing_initial_stage")
+        if stage == "D1":
+            if trigger != day:
+                errors.append(f"{episode}:d123_first_day_mismatch")
+        else:
+            if (not isinstance(backfill, dict) or
+                    backfill.get("asof_trade_date") != day or
+                    backfill.get("basis") != "FORMAL_REGISTRY_SESSION_HISTORY" or
+                    backfill.get("first_formal_trade_date") != item.get("first_seen_trade_date") or
+                    backfill.get("first_formal_trade_date") != trigger or
+                    not isinstance(backfill.get("source"), str) or
+                    SOURCE.fullmatch(backfill["source"]) is None or
+                    not isinstance(backfill.get("review_gap"), str) or
+                    len(backfill["review_gap"].strip()) < 12):
+                errors.append(f"{episode}:d123_legacy_backfill_provenance_missing")
+            if stage == "POST_D3" and decision != "UNVERIFIED":
+                errors.append(f"{episode}:d123_legacy_d3_decision_not_proven")
     else:
         if trigger != previous.get("d123_trigger_trade_date"):
             errors.append(f"{episode}:d123_trigger_changed")
         expected = {"D1": "D2", "D2": "D3", "D3": "POST_D3",
-                    "POST_D3": "POST_D3"}[prior_stage] if prior_stage in allowed else None
+                    "POST_D3": "POST_D3"}.get(prior_stage)
         if stage != expected:
             errors.append(f"{episode}:d123_progression_invalid")
         if prior_stage in {"D3", "POST_D3"} and decision != previous.get("d123_decision"):
             errors.append(f"{episode}:d123_final_decision_rewritten")
+        if backfill != previous.get("d123_backfill_audit"):
+            errors.append(f"{episode}:d123_backfill_audit_rewritten")
+    if decision == "UNVERIFIED" and stage != "POST_D3":
+        errors.append(f"{episode}:d123_unverified_phase_invalid")
     return errors
 
 
@@ -428,6 +448,7 @@ def _same_day_revision_errors(previous, proposed, source_sha, snapshot=None, sec
         "invalidation_condition", "last_verified_trade_date", "contrary_evidence",
         "supporting_evidence", "confirmation_audit", "industry_assessments",
         "state_history", "d123_stage", "d123_trigger_trade_date", "d123_decision",
+        "d123_backfill_audit",
     }
     changed_ids = set()
     for eid, old in prev_by_id.items():
@@ -462,9 +483,12 @@ def _same_day_revision_errors(previous, proposed, source_sha, snapshot=None, sec
             errors.append(str(eid) + ":same_day_research_decision_mismatch")
         errors.extend(_research_audit_errors(cur, day, old))
         if cur.get("d123_stage") != old.get("d123_stage") or cur.get("d123_trigger_trade_date") != old.get("d123_trigger_trade_date"):
-            if old.get("d123_stage") is not None or cur.get("d123_stage") != "D1" or cur.get("d123_trigger_trade_date") != day:
+            if old.get("d123_stage") is not None:
                 errors.append(str(eid) + ":same_day_d123_stage_invalid")
-        errors.extend(_d123_stage_errors(cur, None if old.get("d123_stage") is None else old, day) if cur.get("d123_stage") != old.get("d123_stage") else [])
+            else:
+                errors.extend(_d123_stage_errors(cur, None, day))
+        elif cur.get("d123_backfill_audit") != old.get("d123_backfill_audit"):
+            errors.append(str(eid) + ":same_day_d123_backfill_rewritten")
         assessments = cur.get("industry_assessments")
         if not isinstance(assessments, list) or (
                 len(assessments) != len(cur.get("industry_codes") or [])):
