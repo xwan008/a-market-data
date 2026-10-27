@@ -336,10 +336,12 @@ def build_verified_routes(handoff, industry_index, latest, structure, identities
         raise ValueError("RESEARCH_CANDIDATE_CAP_INVALID")
     signals = handoff.get("signals") or []
     ids = identities.get("identities") or []
-    if len(ids) != len(signals) or any(
-            a.get("hotspot_name") != b.get("trend_name") or
-            a.get("mapping_status") != "VERIFIED" for a, b in zip(ids, signals)):
-        raise ValueError("IDENTITIES_NOT_EXACTLY_MATCHED_TO_HANDOFF")
+    by_name = {x.get("hotspot_name"): x for x in ids}
+    if (len(by_name) != len(ids) or
+            len({s.get("trend_name") for s in signals}) != len(signals) or
+            any(name not in by_name or by_name[name].get("mapping_status") != "VERIFIED"
+                for name in [s.get("trend_name") for s in signals])):
+        raise ValueError("IDENTITIES_NOT_MATCHED_TO_HANDOFF")
     industry_companies = industry_index.get("companies") or {}
     quotes = latest.get("stocks") or {}
     structures = structure.get("companies") or {}
@@ -352,7 +354,8 @@ def build_verified_routes(handoff, industry_index, latest, structure, identities
         validate_memberships(catalog, day)
         matched_concepts = {c["concept_id"]: c for c in catalog["concepts"]}
     routed = []
-    for identity, signal in zip(ids, signals):
+    for signal in signals:
+        identity = by_name[signal["trend_name"]]
         kind = identity["board_type"]
         code = identity["board_code"]
         if (signal.get("board_type") != kind or
