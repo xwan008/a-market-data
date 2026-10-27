@@ -57,34 +57,61 @@ jobs:
           python scripts/build_history.py
           python scripts/build_bridge.py
 
-      - name: Resolve same-day market theme and persist concept Top20
+      - name: Verify already published identity-first trend routing
         shell: bash
         run: |
           set -euo pipefail
-          python -m pip install "akshare==1.18.94"
-          python scripts/route_hotspot_themes.py
-          DAY="$(python -c 'import json;print(json.load(open("research/trend_handoff.json"))["trade_date"])')"
-          FILE="data/research/theme_stock_candidates/$DAY.json"
-          test -s "$FILE"
-          python - "$FILE" <<'PY'
-          import json,sys
+          python - <<'PY'
+          import json
+          from datetime import datetime
           from pathlib import Path
-          r=json.loads(Path(sys.argv[1]).read_text())
-          assert r["status"]=="COMPLETE"
-          assert r["trade_date"]==Path(sys.argv[1]).stem
-          print("THEME_ROUTE_SNAPSHOT_VERIFIED",r["trade_date"],
-                [(x["trend_name"],x["hotspot_type"],len(x["candidate_stocks"]))
-                 for x in r["routes"]])
+          read=lambda p:json.loads(Path(p).read_text(encoding='utf-8'))
+          handoff=read('research/trend_handoff.json')
+          date=handoff['trade_date']
+          identity_path=Path('data/research/hotspot_identity_snapshots')/(date+'.json')
+          route_path=Path('data/research/theme_stock_candidates')/(date+'.json')
+          if not identity_path.is_file() or not route_path.is_file():
+              raise ValueError('IDENTITY_FIRST_UPSTREAM_SNAPSHOTS_NOT_PUBLISHED')
+          identity=read(identity_path)
+          route=read(route_path)
+          if (not handoff.get('source',{}).get('identity_verified_before_state') or
+                  identity.get('status')!='COMPLETE' or
+                  identity.get('trade_date')!=date or
+                  identity.get('result_kind')!='hotspot_identity_snapshot' or
+                  route.get('result_kind')!='hotspot_stock_route_snapshot' or
+                  route.get('status')!='COMPLETE' or
+                  route.get('trade_date')!=date or
+                  route.get('concept_as_of_trade_date')!=date or
+                  route.get('market_scope')!='SH_SZ_MAINBOARD_ONLY' or
+                  route.get('identities_verified_before_state') is not True):
+              raise ValueError('PRESTATE_IDENTITY_OR_ROUTE_GATE_INVALID')
+          if datetime.fromisoformat(identity['resolved_at']) > datetime.fromisoformat(handoff['generated_at']):
+              raise ValueError('IDENTITY_AFTER_TREND_STATE')
+          if len(identity['identities'])!=len(handoff['signals']) or len(route['routes'])!=len(handoff['signals']):
+              raise ValueError('IDENTITY_ROUTE_HANDOFF_COUNT_MISMATCH')
+          for original,signal,routed in zip(identity['identities'],handoff['signals'],route['routes']):
+              if (original['mapping_status']!='VERIFIED' or
+                      original['hotspot_name']!=signal['trend_name'] or
+                      signal.get('board_type')!=original['board_type'] or
+                      signal.get('board_code')!=original['board_code'] or
+                      routed.get('hotspot_type')!=original['board_type'] or
+                      routed.get('board_code')!=original['board_code'] or
+                      routed.get('trend_state')!=signal['trend_state'] or
+                      routed.get('market_state')!=signal['market_state']):
+                  raise ValueError('PRESTATE_IDENTITY_ROUTE_HANDOFF_MISMATCH')
+              if routed['hotspot_type']=='INDUSTRY':
+                  if (routed.get('industry_codes')!=original['industry_codes'] or
+                          routed.get('candidate_stocks')):
+                      raise ValueError('INDUSTRY_ROUTE_CODE_ONLY_VIOLATION')
+              elif routed['hotspot_type']=='THEME':
+                  if routed.get('mapping_code')!=original['concept_code']:
+                      raise ValueError('CONCEPT_ROUTE_CODE_MISMATCH')
+                  if len(routed['candidate_stocks'])>20 or routed.get('quote_coverage',0)<.95:
+                      raise ValueError('THEME_ROUTE_DATA_GATE_FAILED')
+          print('PREPUBLISHED_IDENTITY_AND_THEME_TOP20_VERIFIED',date,
+                [(x['trend_name'],x['hotspot_type'],len(x['candidate_stocks']))
+                 for x in route['routes']])
           PY
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "$FILE"
-          if ! git diff --cached --quiet; then
-            git commit -m "research: verified daily concept Top20 routing snapshot"
-            git push origin HEAD:main
-            git fetch origin main
-            git show "origin/main:$FILE" | cmp - "$FILE"
-          fi
 
       - name: Fresh dynamic industry Top5 and selected company research
         run: |
