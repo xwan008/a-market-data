@@ -17,7 +17,11 @@ from pathlib import Path
 SW_CODE = re.compile(r"^S\d{6}$")
 CODE = re.compile(r"^\d{6}$")
 MAINBOARD = ("600", "601", "603", "605", "000", "001", "002", "003")
-KINDS = {"INDUSTRY_ECONOMICS", "TECHNOLOGY_CATALYST", "UNKNOWN"}
+KINDS = {"INDUSTRY_ECONOMICS", "TECHNOLOGY_CATALYST", "CROSS_INDUSTRY_CATALYST",
+         "POLICY_EVENT", "COMMODITY_PRICE", "UNKNOWN"}
+INDUSTRY_DRIVERS = {"INDUSTRY_ECONOMICS", "COMMODITY_PRICE"}
+THEME_DRIVERS = {"TECHNOLOGY_CATALYST", "CROSS_INDUSTRY_CATALYST",
+                 "POLICY_EVENT", "COMMODITY_PRICE"}
 
 
 def read(path):
@@ -72,12 +76,19 @@ def verify_concept_members(catalog, trade_date, code, source=None):
             catalog.get("as_of_trade_date") != trade_date or not catalog.get("source") or
             (source is not None and catalog.get("source") != source)):
         return "DATA_INSUFFICIENT", None, "CONCEPT_MEMBERSHIP_DATE_OR_SOURCE_INVALID"
+    captured_at = catalog.get("source_observed_at")
+    try:
+        if not captured_at or datetime.fromisoformat(captured_at).date().isoformat() != trade_date:
+            raise ValueError("capture date invalid")
+    except (ValueError, TypeError):
+        return "DATA_INSUFFICIENT", None, "CONCEPT_MEMBERSHIP_CAPTURE_TIME_UNVERIFIED"
     rows = [r for r in catalog.get("concepts", []) if str(r.get("concept_id")) == code]
     if len(rows) != 1:
         return "DATA_INSUFFICIENT", None, "CONCEPT_CODE_NOT_IN_VERIFIED_SNAPSHOT"
     row = rows[0]
     codes = row.get("member_codes")
     if (not isinstance(codes, list) or not codes or
+            row.get("source") != catalog["source"] or
             len(codes) != len(set(codes)) or
             any(not CODE.fullmatch(str(c)) for c in codes)):
         return "DATA_INSUFFICIENT", None, "CONCEPT_MEMBER_CODES_INVALID"
@@ -142,7 +153,7 @@ def resolve(discovery, registry, catalog=None, industry_index=None, resolved_at=
             issue = "ORIGINAL_DRIVER_EVIDENCE_MISSING"
         elif kind == "INDUSTRY":
             if (not SW_CODE.fullmatch(code) or origin_source != "SW2021_L3" or
-                    driver_kind != "INDUSTRY_ECONOMICS" or
+                    driver_kind not in INDUSTRY_DRIVERS or
                     code not in original["industry_seed_codes"]):
                 issue = "INDUSTRY_ORIGIN_OR_DRIVER_CONFLICT"
             else:
@@ -160,7 +171,7 @@ def resolve(discovery, registry, catalog=None, industry_index=None, resolved_at=
                     choice = ("INDUSTRY", code)
         elif kind == "THEME":
             if (not CODE.fullmatch(code) or
-                    driver_kind != "TECHNOLOGY_CATALYST" or
+                    driver_kind not in THEME_DRIVERS or
                     ("THEME", code) not in index or
                     origin_source != index[("THEME", code)]["source"] or
                     name not in [index[("THEME", code)]["canonical_name"]] + index[("THEME", code)].get("aliases", [])):
@@ -173,9 +184,8 @@ def resolve(discovery, registry, catalog=None, industry_index=None, resolved_at=
             if len(candidates) == 1:
                 unique = tuple(candidates[0])
                 registered = index[unique]
-                required = ("INDUSTRY_ECONOMICS" if unique[0] == "INDUSTRY"
-                            else "TECHNOLOGY_CATALYST")
-                if (driver_kind == required and
+                required = INDUSTRY_DRIVERS if unique[0] == "INDUSTRY" else THEME_DRIVERS
+                if (driver_kind in required and
                         str(driver.get("target_board_code") or "") == unique[1]):
                     choice = unique
                 else:
@@ -188,6 +198,8 @@ def resolve(discovery, registry, catalog=None, industry_index=None, resolved_at=
                 catalog, trade_date, choice[1], index[choice]["source"])
             if verdict != "VERIFIED":
                 issue = reason
+            elif datetime.fromisoformat(catalog["source_observed_at"]) > datetime.fromisoformat(resolved_at):
+                issue = "CONCEPT_CAPTURE_AFTER_IDENTITY_RESOLUTION"
             else:
                 member_codes = members
                 if not members:
