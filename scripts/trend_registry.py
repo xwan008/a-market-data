@@ -274,7 +274,12 @@ def _surge_review_errors(item, previous, day):
 
 
 def _d123_stage_errors(item, previous, day):
-    """Validate displayed phase, allowing sourced one-time legacy backfill."""
+    """D3 is a terminal yes/no verdict, NOT another ongoing tracking phase.
+
+    Market-state monitoring continues separately after a D3 verdict. A historical
+    D3 reconstruction is permitted only when an actual published close records
+    the non-confirmed/confirmed state; never manufacture a historical matrix.
+    """
     episode = item.get("episode_id", "unknown")
     stage = item.get("d123_stage")
     prior_stage = previous.get("d123_stage") if isinstance(previous, dict) else None
@@ -283,27 +288,29 @@ def _d123_stage_errors(item, previous, day):
                 (item.get("confirmation_audit") or {}).get("discovery_basis") == "ONE_DAY_SURGE"):
             return [f"{episode}:d123_stage_missing"]
         return []
-    allowed = {"D1", "D2", "D3", "POST_D3"}
-    if stage not in allowed:
-        return [f"{episode}:d123_stage_invalid"]
     errors = []
+    if stage not in {"D1", "D2", "D3"}:
+        return [f"{episode}:d123_stage_invalid"]
     trigger = item.get("d123_trigger_trade_date")
     if not isinstance(trigger, str) or DAY.fullmatch(trigger) is None or trigger > day:
         errors.append(f"{episode}:d123_trigger_invalid")
     decision = item.get("d123_decision")
-    if decision not in {"PENDING", "CONFIRMED", "NOT_CONFIRMED", "UNVERIFIED"}:
+    decision_day = item.get("d123_decision_trade_date")
+    if decision not in {"PENDING", "CONFIRMED", "NOT_CONFIRMED"}:
         errors.append(f"{episode}:d123_decision_invalid")
-    if stage in {"D1", "D2"} and decision not in {"PENDING", "CONFIRMED"}:
+    if stage == "D1" and decision != "PENDING":
+        errors.append(f"{episode}:d123_first_day_cannot_decide")
+    if stage == "D2" and decision not in {"PENDING", "CONFIRMED"}:
         errors.append(f"{episode}:d123_early_decision_invalid")
-    if stage == "D3" and decision == "PENDING":
+    if stage == "D3" and decision not in {"CONFIRMED", "NOT_CONFIRMED"}:
         errors.append(f"{episode}:d123_final_decision_missing")
-    if stage == "POST_D3" and decision == "PENDING":
-        errors.append(f"{episode}:d123_final_decision_missing")
-    if stage == "D3" and decision == "UNVERIFIED":
-        errors.append(f"{episode}:d123_d3_unverified_not_permitted")
-    if decision == "CONFIRMED" and item.get("market_state") != "趋势确认" and (
-            not isinstance(previous, dict) or previous.get("d123_decision") != "CONFIRMED"):
-        errors.append(f"{episode}:d123_confirmation_state_mismatch")
+    if decision == "PENDING":
+        if decision_day is not None:
+            errors.append(f"{episode}:d123_pending_has_decision_date")
+    elif decision in {"CONFIRMED", "NOT_CONFIRMED"}:
+        if (not isinstance(decision_day, str) or DAY.fullmatch(decision_day) is None
+                or not isinstance(trigger, str) or decision_day < trigger or decision_day > day):
+            errors.append(f"{episode}:d123_final_date_invalid")
     backfill = item.get("d123_backfill_audit")
     if prior_stage is None:
         if stage == "D1":
@@ -320,32 +327,61 @@ def _d123_stage_errors(item, previous, day):
                     not isinstance(backfill.get("review_gap"), str) or
                     len(backfill["review_gap"].strip()) < 12):
                 errors.append(f"{episode}:d123_legacy_backfill_provenance_missing")
-            # Backfilled phase must be supported by actual recorded close dates.
-            # The current close is a real session even when HOLD omits state_history.
+            history = item.get("state_history") or []
             sessions = {day}
-            for row in item.get("state_history") or []:
+            for row in history:
                 if isinstance(row, dict):
-                    value = row.get("trade_date")
-                    if isinstance(value, str) and DAY.fullmatch(value) and trigger <= value <= day:
-                        sessions.add(value)
-            required = {"D2": 2, "D3": 3, "POST_D3": 4}.get(stage, 1)
+                    dt = row.get("trade_date")
+                    if isinstance(dt, str) and DAY.fullmatch(dt) and (
+                            isinstance(trigger, str) and trigger <= dt <= day):
+                        sessions.add(dt)
+            required = {"D2": 2, "D3": 3}.get(stage, 1)
             if len(sessions) < required or trigger not in sessions:
                 errors.append(f"{episode}:d123_legacy_sessions_insufficient")
-            if stage == "POST_D3" and decision != "UNVERIFIED":
-                errors.append(f"{episode}:d123_legacy_d3_decision_not_proven")
+            if stage == "D3":
+                # Ground retrospective yes/no strictly in the *published* D3
+                # market-state record, never in a guessed follow-up result.
+                third = sorted(sessions)[2] if len(sessions) >= 3 else None
+                state_rows = [x for x in history if isinstance(x, dict) and
+                              x.get("trade_date") == decision_day]
+                hist_state = state_rows[-1].get("to") if state_rows else None
+                if (third != decision_day or
+                        not isinstance(backfill, dict) or
+                        backfill.get("d3_published_market_state") != hist_state or
+                        not isinstance(backfill.get("d3_registry_commit_sha"), str) or
+                        SHA.fullmatch(backfill["d3_registry_commit_sha"]) is None or
+                        hist_state not in TRACK or
+                        (decision == "CONFIRMED") != (hist_state == "趋势确认")):
+                    errors.append(f"{episode}:d123_legacy_d3_verdict_unsubstantiated")
+            elif decision == "CONFIRMED" and decision_day != day:
+                errors.append(f"{episode}:d123_legacy_d2_verdict_unsubstantiated")
     else:
         if trigger != previous.get("d123_trigger_trade_date"):
             errors.append(f"{episode}:d123_trigger_changed")
-        expected = {"D1": "D2", "D2": "D3", "D3": "POST_D3",
-                    "POST_D3": "POST_D3"}.get(prior_stage)
-        if stage != expected:
-            errors.append(f"{episode}:d123_progression_invalid")
-        if prior_stage in {"D3", "POST_D3"} and decision != previous.get("d123_decision"):
-            errors.append(f"{episode}:d123_final_decision_rewritten")
+        prior_decision = previous.get("d123_decision")
+        if prior_decision in {"CONFIRMED", "NOT_CONFIRMED"}:
+            # A final D2 confirmation or D3 judgement cannot be revised;
+            # a later market-state downgrade/upgrade is independent.
+            if stage != prior_stage:
+                errors.append(f"{episode}:d123_closed_stage_changed")
+            if decision != prior_decision or decision_day != previous.get("d123_decision_trade_date"):
+                errors.append(f"{episode}:d123_final_decision_rewritten")
+        else:
+            expected = {"D1": "D2", "D2": "D3"}.get(prior_stage)
+            if stage != expected:
+                errors.append(f"{episode}:d123_progression_invalid")
+            if decision in {"CONFIRMED", "NOT_CONFIRMED"} and decision_day != day:
+                errors.append(f"{episode}:d123_new_verdict_date_invalid")
         if backfill != previous.get("d123_backfill_audit"):
             errors.append(f"{episode}:d123_backfill_audit_rewritten")
-    if decision == "UNVERIFIED" and stage != "POST_D3":
-        errors.append(f"{episode}:d123_unverified_phase_invalid")
+    if (decision == "CONFIRMED" and
+            (prior_stage is None or previous.get("d123_decision") == "PENDING") and
+            item.get("market_state") != "趋势确认"):
+        errors.append(f"{episode}:d123_confirmation_state_mismatch")
+    if (decision == "NOT_CONFIRMED" and prior_stage is not None and
+            previous.get("d123_decision") == "PENDING" and
+            item.get("market_state") == "趋势确认"):
+        errors.append(f"{episode}:d123_negative_verdict_state_mismatch")
     return errors
 
 
@@ -459,7 +495,7 @@ def _same_day_revision_errors(previous, proposed, source_sha, snapshot=None, sec
         "invalidation_condition", "last_verified_trade_date", "contrary_evidence",
         "supporting_evidence", "confirmation_audit", "industry_assessments",
         "state_history", "d123_stage", "d123_trigger_trade_date", "d123_decision",
-        "d123_backfill_audit",
+        "d123_decision_trade_date", "d123_backfill_audit",
     }
     changed_ids = set()
     for eid, old in prev_by_id.items():
@@ -493,13 +529,22 @@ def _same_day_revision_errors(previous, proposed, source_sha, snapshot=None, sec
         if audit.get("decision_state") != cur.get("market_state"):
             errors.append(str(eid) + ":same_day_research_decision_mismatch")
         errors.extend(_research_audit_errors(cur, day, old))
-        if cur.get("d123_stage") != old.get("d123_stage") or cur.get("d123_trigger_trade_date") != old.get("d123_trigger_trade_date"):
-            if old.get("d123_stage") is not None:
-                errors.append(str(eid) + ":same_day_d123_stage_invalid")
-            else:
+        phase_changed = any(cur.get(key) != old.get(key) for key in
+                            ("d123_stage", "d123_trigger_trade_date",
+                             "d123_decision", "d123_decision_trade_date",
+                             "d123_backfill_audit"))
+        if phase_changed:
+            historical_fix = (
+                day == "2026-10-27" and
+                old.get("d123_stage") == "POST_D3" and
+                old.get("d123_decision") == "UNVERIFIED" and
+                cur.get("d123_stage") == "D3" and
+                cur.get("d123_decision") in {"CONFIRMED", "NOT_CONFIRMED"} and
+                cur.get("d123_trigger_trade_date") == old.get("d123_trigger_trade_date"))
+            if old.get("d123_stage") is None or historical_fix:
                 errors.extend(_d123_stage_errors(cur, None, day))
-        elif cur.get("d123_backfill_audit") != old.get("d123_backfill_audit"):
-            errors.append(str(eid) + ":same_day_d123_backfill_rewritten")
+            else:
+                errors.append(str(eid) + ":same_day_d123_stage_or_verdict_changed")
         assessments = cur.get("industry_assessments")
         if not isinstance(assessments, list) or (
                 len(assessments) != len(cur.get("industry_codes") or [])):

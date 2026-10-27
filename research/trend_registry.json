@@ -2,7 +2,7 @@
   "schema_version": 2,
   "result_kind": "a_share_trend_registry",
   "trade_date": "2026-10-27",
-  "generated_at": "2026-10-27T22:16:05+08:00",
+  "generated_at": "2026-10-27T22:49:40+08:00",
   "timezone": "Asia/Shanghai",
   "status": "COMPLETE",
   "scan_audit": {
@@ -491,6 +491,38 @@
             ]
           }
         ]
+      },
+      {
+        "previous_registry_blob_sha": "4194382308293b0c9e63b728708bf52ab953a174",
+        "previous_generated_at": "2026-10-27T22:16:05+08:00",
+        "revised_at": "2026-10-27T22:49:40+08:00",
+        "reason": "纠正之前将D3视为持续跟踪、以POST_D3/UNVERIFIED回避明确判断的设计与正式榜；依据10月22日原始提交可验证的候选状态，明确该轮D3不确认并封存，保留后续市场正常状态迁移。",
+        "changes": [
+          {
+            "episode_id": "工业自动化/机器人#2026-10-20",
+            "from": "候选趋势",
+            "to": "候选趋势",
+            "reason": "2026-10-22 D3原始正式收盘Registry结果为候选趋势而非趋势确认（SHA 7481c20170a7674bbc066455cf86c3b6cb912382）；10月23日另有新增证据确认。对22日的冻结结论标记NOT_CONFIRMED，而不补造历史独立D3八维矩阵。",
+            "evidence": [
+              {
+                "trade_date": "2026-10-27",
+                "source": "research/trend_registry.json",
+                "dimension": "MARKET_STRUCTURE",
+                "direction": "SUPPORT",
+                "impact": "NORMAL",
+                "finding": "10月27日复核10月22日原始正式收盘Registry及历史状态迁移：工业自动化/机器人10月22日维持候选趋势，彼时尚未趋势确认。"
+              },
+              {
+                "trade_date": "2026-10-27",
+                "source": "research/trend_registry.json",
+                "dimension": "INDUSTRY_FUNDAMENTALS",
+                "direction": "SUPPORT",
+                "impact": "NORMAL",
+                "finding": "核查历史首次入榜2026年10月20日、21和22日继续维持候选，23日另凭新增市场证据确认；D3的未确认是独立历史时点判断。"
+              }
+            ]
+          }
+        ]
       }
     ]
   },
@@ -649,6 +681,14 @@
           "event": "same_day_revision",
           "reason": "只补正式趋势榜D阶段展示：10月20日首次正式跟踪，21日及22日持续复核、23日曾趋势确认、26日降为候选；按正式跟踪交易日已超过D3，但22日未保存完整D3八维阶段判定，故不补造历史结论。",
           "revised_at": "2026-10-27T22:16:05+08:00"
+        },
+        {
+          "trade_date": "2026-10-27",
+          "from": "候选趋势",
+          "to": "候选趋势",
+          "event": "same_day_revision",
+          "revised_at": "2026-10-27T22:49:40+08:00",
+          "reason": "纠正错误的POST_D3/UNVERIFIED：历史正式2026-10-22收盘明确维持候选，因此本轮D3为NOT_CONFIRMED；后续市场状态更新不代表D3持续复核。未制造22日原本不存在的独立D3八维审计。"
         }
       ],
       "episode_id": "工业自动化/机器人#2026-10-20",
@@ -712,16 +752,19 @@
         "decision_state": "候选趋势",
         "specific_blocker": "需机器人与工控至少两个直接受益细分恢复持续相对强度和广度。"
       },
-      "d123_stage": "POST_D3",
+      "d123_stage": "D3",
       "d123_trigger_trade_date": "2026-10-20",
-      "d123_decision": "UNVERIFIED",
+      "d123_decision": "NOT_CONFIRMED",
       "d123_backfill_audit": {
         "asof_trade_date": "2026-10-27",
         "basis": "FORMAL_REGISTRY_SESSION_HISTORY",
         "first_formal_trade_date": "2026-10-20",
         "source": "research/trend_registry.json",
-        "review_gap": "原D3完整八维复核结论未作为独立阶段存档；POST_D3仅代表正式跟踪交易日数已超过第三日，不补造D3确认/否定结论。"
-      }
+        "review_gap": "2026-10-22正式收盘Registry当时将工业自动化/机器人维持候选趋势，明确不属于趋势确认；因此本轮D3结果为NOT_CONFIRMED。该历史发布并无单独标记D3的八维完整审查矩阵，不能补称历史已经完成额外D3审计。10月23日再独立升级趋势确认不修改10月22日结论。",
+        "d3_published_market_state": "候选趋势",
+        "d3_registry_commit_sha": "7481c20170a7674bbc066455cf86c3b6cb912382"
+      },
+      "d123_decision_trade_date": "2026-10-22"
     },
     {
       "trend_name": "油气开采/油服工程",

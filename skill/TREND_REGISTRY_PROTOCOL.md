@@ -120,11 +120,11 @@
 
 八维审计记录及不可改写的初判结论统一按第3.2节`surge_followup`字段契约执行。
 
-**正式榜显示D1/D2/D3阶段**：新一轮相对全市场的单日强势异动（包括普跌日的逆势抗跌、相对强度显著改善、下跌后的修复）可作为D1观察线索，不以绝对涨幅必须为正作为门槛；已有3日/5日结构可用于研究，但不能据此否认当日新异动的D1资格。对本轮新纳入D1复核的正式方向，在`trends[]`增加`d123_stage`（D1/D2/D3/POST_D3）、`d123_trigger_trade_date`（本轮正式启动复核的交易日）、`d123_decision`（PENDING/CONFIRMED/NOT_CONFIRMED）；每个后续有效收盘日与上一有效交易日比较，D1→D2→D3，D3必须形成有证据的阶段结论，之后为POST_D3继续正常复核。D1可为观察，D2不自动升级，D3不强制确认；状态与阶段并列展示，不能以`first_seen_trade_date`或历史第一次上涨代替本轮D1。原`surge_followup`八维证据审计仍按原适用条件独立执行，新增阶段字段不得绕开证据Gate。同日正式修订不增加阶段序号；如果漏发收盘、数据Gate失败或真实交易日遗漏，必须披露缺口，不能用下一次发布冒充已完成的D2/D3。
+**正式榜显示D1/D2/D3阶段**：本轮相对全市场的单日强势异动（包括市场普跌时的相对抗跌与下跌后的修复）可成为D1观察线索，无须绝对涨幅为正；已有3日/5日结构用于证据审查但不能否认新一轮D1。正式`trends[]`记录`d123_stage`（仅D1/D2/D3）、`d123_trigger_trade_date`、`d123_decision`（PENDING/CONFIRMED/NOT_CONFIRMED）及结论形成时的`d123_decision_trade_date`。D1开始复核，D2必须复核且**只要全部确认条件满足即可直接趋势确认，不必等D3**；若D2仍未确认，D3必须作出**趋势确认或本轮不确认**的最终明确判断，不能以PENDING、UNVERIFIED或所谓“POST_D3持续跟踪”替代。D2已确认则D2结论封存，不机械再走D3；D3作出的判断亦封存，之后仅根据新证据按常规方式复核`market_state`，**不再存在任何新的D阶段或D3持续跟踪状态**。已结论方向保留最后完成的D阶段及决策日期，用于审计显示而非表示当日仍处于D3审核。D阶段与市场状态是独立维度，D3本轮不确认的方向可在观察/候选池继续按日评估或依法退出，不得以其仍存续冒称三日审查没有结束。同日修订不计新交易日；漏审不得伪造复核记录。原`surge_followup`八维审计仍独立适用。
 
 
 
-**一次性历史存量阶段补标（2026-10-27）**：为避免只有个别方向有阶段字段，允许对当天仍有效的正式跟踪方向，依据不可改写的正式`first_seen_trade_date`、已发布的`state_history`及有效交易日顺序，补齐**正式跟踪进度**显示。此前因持续产业或商品结构入榜的方向，不能因此声称当日曾发生“仅凭单日爆发”，也不能伪造旧日八维D1/D2/D3正式复核；对已经超过第三交易日、但缺乏原D3完整审计的方向，显示`POST_D3 / UNVERIFIED`并通过`d123_backfill_audit`披露审查缺口。对仍在D2的存量方向显示`D2 / PENDING`，不得将阶段误作市场状态或阻止D2直接趋势确认。补标不得改写市场状态、episode、旧状态历史或handoff；以后每日复核按已冻结阶段顺序推进。
+**一次性历史存量阶段补标纠正（2026-10-27）**：已有D3正式收盘历史必须给出**确认/不确认**结论，不使用`POST_D3`或`UNVERIFIED`充当D3结果。对工业自动化/机器人，10月20日为D1正式入榜、10月21日为D2、10月22日为D3；10月22日存档Registry明确给出`候选趋势`，因此可确定该日**本轮不确认（NOT_CONFIRMED）**，10月23日另凭新增证据升级为趋势确认，不改变10月22日的冻结结论。旧日未保存专门的D3完整八维矩阵，必须在`d123_backfill_audit`披露该证据档案缺口、真实历史提交SHA与当时实际市场状态；禁止捏造当时已执行额外的程序审计。其他存量D1/D2照已冻结阶段继续运行；绝不因仅缺形式化D标记改变原市场状态、episode和股票交接。
 
 ## 3. 数据契约与下游资格
 
@@ -146,7 +146,7 @@
 - `core_industry_codes`为原行业代码集合里的核心真实受益三级行业；`strongest_counter`为最有力的不利证据和缺口，`decision_reason`必须明确为何维持/升级/降级当前状态；`decision_state`与实际`market_state`完全一致；
 - 非确认方向`specific_blocker`写清楚**不足以确认的哪项具体事实/结构**，禁用空泛“继续等待”；确认方向`first_sufficient_evidence_trade_date`为根据当时资料逐日追溯的首次充分证据日期，不能使用未来公开信息、不得伪造较早确认。确认时过热但趋势仍成立，应在理由里记录过热/迟到与个股WAIT边界。
 
-- **阶段展示**：当轮纳入D1—D3复核的方向在正式Registry记录`d123_stage`、`d123_trigger_trade_date`、`d123_decision`，与`market_state`并列展示。未启动本轮D1的既有方向不得捏造阶段；D3之后显示`POST_D3`，而非永远显示D3。上述字段是复核进度，不是市场确认条件。
+- **阶段展示**：正式Registry记录`d123_stage`、`d123_trigger_trade_date`、`d123_decision`、作出结论后的`d123_decision_trade_date`，与`market_state`并列展示；D2符合条件可直接CONFIRMED并结束本轮，尚待确认则在D3必须判CONFIRMED/NOT_CONFIRMED。已完成的D2/D3结论只作冻结记录，后续跟踪正常更新`market_state`而不新增或延长D阶段；不允许`POST_D3`、`UNVERIFIED`充当最终结论。
 
 - **正式账本中的验证结构**：新单日爆发方向在原`trends[]`内记录`surge_followup`：`trigger_trade_date`、依序且不可改写的`sessions[]`、`decision`（PENDING/CONFIRMED/NOT_CONFIRMED）、`decision_trade_date`。每个`sessions[]`包含真实`trade_date`及八维`dimensions`，每项给`status`、可检验的`finding`和`source`；`funding_strength`须另注明`measurement_basis`（`PRICE_VOLUME_PROXY`成交价量代理／`VERIFIED_NET_FLOW`已验证净流向／`UNVERIFIED`）及`observation_window`，**成交量代理绝不证明资金实际净流入或买方身份**；当`breadth.status=SUPPORTED`时须提供真实`sample_size`和`advancing_count`，不得用无分母百分比冒充行业广度；若`market_environment=EVENT_LIQUIDITY_SHOCK`仍在D2/D3确认，须有`event_independent_evidence`记录资金冲击之外的独立行业事实、来源与审查状态。未核实如实为UNVERIFIED/INSUFFICIENT，正常市场不应被虚报为明确净流入。**D3结束不得再PENDING**；“NOT_CONFIRMED”只冻结本次三日初判，不禁止未来有新增证据再确认。已经完成的初判不可事后改成当时已确认。
 

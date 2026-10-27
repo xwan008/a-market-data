@@ -196,42 +196,47 @@ class TrendRegistryTests(unittest.TestCase):
         self.assertIn(row["episode_id"] + ":d123_stage_missing",
                       engine._d123_stage_errors(row, None, "2026-10-28"))
 
-    def test_post_d3_downgrade_preserves_initial_judgement(self):
-        old = theme("已确认方向", "趋势确认", "2026-10-27")
-        old.update(d123_stage="D3", d123_trigger_trade_date="2026-10-27",
-                   d123_decision="CONFIRMED")
-        now = copy.deepcopy(old)
-        now.update(d123_stage="POST_D3", market_state="候选趋势")
-        self.assertEqual(engine._d123_stage_errors(now, old, "2026-10-30"), [])
+    def test_d2_can_directly_confirm_and_close(self):
+        first = theme("日内相对强势", "观察", "2026-10-27")
+        first.update(d123_stage="D1", d123_trigger_trade_date="2026-10-27",
+                     d123_decision="PENDING")
+        second = copy.deepcopy(first)
+        second.update(d123_stage="D2", market_state="趋势确认",
+                      d123_decision="CONFIRMED",
+                      d123_decision_trade_date="2026-10-28")
+        self.assertEqual(engine._d123_stage_errors(second, first, "2026-10-28"), [])
+        later = copy.deepcopy(second)
+        later["market_state"] = "候选趋势"
+        self.assertEqual(engine._d123_stage_errors(later, second, "2026-10-29"), [])
+        later["d123_stage"] = "D3"
+        self.assertIn(later["episode_id"] + ":d123_closed_stage_changed",
+                      engine._d123_stage_errors(later, second, "2026-10-29"))
 
-    def test_legacy_phase_backfill_requires_provenance(self):
-        row = theme("旧方向", "候选趋势", "2026-10-26")
-        row.update(d123_stage="D2", d123_trigger_trade_date="2026-10-26",
-                   d123_decision="PENDING")
+    def test_legacy_d3_verdict_requires_actual_published_state(self):
+        row = theme("旧方向", "候选趋势", "2026-10-20")
+        row["state_history"].extend([
+            {"trade_date": "2026-10-21", "from": "候选趋势", "to": "候选趋势"},
+            {"trade_date": "2026-10-22", "from": "候选趋势", "to": "候选趋势"}])
+        row.update(d123_stage="D3", d123_trigger_trade_date="2026-10-20",
+                   d123_decision="NOT_CONFIRMED",
+                   d123_decision_trade_date="2026-10-22")
         self.assertIn(row["episode_id"] + ":d123_legacy_backfill_provenance_missing",
                       engine._d123_stage_errors(row, None, "2026-10-27"))
         row["d123_backfill_audit"] = {
             "asof_trade_date": "2026-10-27",
             "basis": "FORMAL_REGISTRY_SESSION_HISTORY",
-            "first_formal_trade_date": "2026-10-26",
+            "first_formal_trade_date": "2026-10-20",
             "source": "research/trend_registry.json",
-            "review_gap": "原始D1阶段标记缺失，本次仅补显示，不伪造旧日八维审查"}
+            "review_gap": "D3当日未有单独的完整八维矩阵，结论从正式候选状态核验",
+            "d3_published_market_state": "候选趋势",
+            "d3_registry_commit_sha": "a" * 40}
         self.assertEqual(engine._d123_stage_errors(row, None, "2026-10-27"), [])
-        row["d123_stage"] = "POST_D3"
         row["d123_decision"] = "UNVERIFIED"
-        self.assertIn(row["episode_id"] + ":d123_legacy_sessions_insufficient",
+        self.assertIn(row["episode_id"] + ":d123_decision_invalid",
                       engine._d123_stage_errors(row, None, "2026-10-27"))
-        row["state_history"].extend([
-            {"trade_date": "2026-10-21", "from": "观察", "to": "候选趋势"},
-            {"trade_date": "2026-10-22", "from": "候选趋势", "to": "候选趋势"}])
-        row["first_seen_trade_date"] = "2026-10-20"
-        row["episode_id"] = engine.episode_key("旧方向", "2026-10-20")
-        row["state_history"][0]["trade_date"] = "2026-10-20"
-        row["d123_trigger_trade_date"] = "2026-10-20"
-        row["d123_backfill_audit"]["first_formal_trade_date"] = "2026-10-20"
-        self.assertEqual(engine._d123_stage_errors(row, None, "2026-10-27"), [])
         row["d123_decision"] = "NOT_CONFIRMED"
-        self.assertIn(row["episode_id"] + ":d123_legacy_d3_decision_not_proven",
+        row["d123_backfill_audit"]["d3_published_market_state"] = "趋势确认"
+        self.assertIn(row["episode_id"] + ":d123_legacy_d3_verdict_unsubstantiated",
                       engine._d123_stage_errors(row, None, "2026-10-27"))
 
     def test_d123_stage_display_and_daily_progression(self):
@@ -247,10 +252,13 @@ class TrendRegistryTests(unittest.TestCase):
         self.assertIn(third["episode_id"] + ":d123_final_decision_missing",
                       engine._d123_stage_errors(third, second, "2026-10-29"))
         third["d123_decision"] = "NOT_CONFIRMED"
+        third["d123_decision_trade_date"] = "2026-10-29"
         self.assertEqual(engine._d123_stage_errors(third, second, "2026-10-29"), [])
         fourth = copy.deepcopy(third)
-        fourth["d123_stage"] = "POST_D3"
         self.assertEqual(engine._d123_stage_errors(fourth, third, "2026-10-30"), [])
+        fourth["d123_stage"] = "POST_D3"
+        self.assertIn(third["episode_id"] + ":d123_stage_invalid",
+                      engine._d123_stage_errors(fourth, third, "2026-10-30"))
         second["d123_stage"] = "D1"
         self.assertIn(item["episode_id"] + ":d123_progression_invalid",
                       engine._d123_stage_errors(second, item, "2026-10-28"))
