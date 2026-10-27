@@ -23,8 +23,8 @@ trend_handoff
 
 ## 2. Routing 规则
 
-1. 使用 `research/trend_handoff.json` 中已经核验的申万三级行业代码进行行业路由。
-2. 行业身份、名称及市场状态直接沿用本轮handoff，不在公司榜中重复计算板块状态。
+1. 使用 `research/trend_handoff.json` 中已经核验的**趋势确认＋独立确认受益三级行业**代码进行行业路由；2026-10-27及之后只有`market_state=趋势确认`且代码来自`trend_registry.json#trends[].industry_assessments`的`CORE/DIRECT+趋势确认`集合才允许进入正式个股研究。handoff可以只包含宽主题的合格子集，绝不能把候选/观察/RELATED外围代码一起传下去；缺少确认行业时可为空，禁止借用上轮股票名单。
+2. 行业身份、名称及市场状态直接沿用本轮handoff，并必须与同日已通过配对Gate的正式Registry核对；不允许在个股榜中重新计算或擅自升级板块状态。非合格路由应BLOCKED，不可仅输出WAIT来绕过上游确认Gate。
 3. 数据生产层的Universe以 `data/research/company_industry_index.json` 生成；研究阶段以完成日期及覆盖校验的 `data/low_risk/index.json`、各行业manifest与声明的全部parts为公司事实权威。
 4. Manifest的 `universe_company_codes` 必须与所有parts的公司身份、顺序、总数严格一致，完成一次读取后冻结研究工作集。
 5. Routed行业不在通过完整性校验的index中时标记 `NO_UNIVERSE_MEMBER`；已有映射但日期/manifest/parts校验失败时标记明确数据错误并停止该行业研究。
