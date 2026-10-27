@@ -39,7 +39,8 @@ def sector_identity(day, sector_rows):
             {"hotspot_id": row["id"],"hotspot_name": row["name"],
              "board_type": "INDUSTRY", "board_code": row["id"].split(":",1)[1],
              "industry_codes": [row["id"].split(":",1)[1]],
-             "mapping_status": "VERIFIED"}
+             "mapping_status": "VERIFIED",
+             "driver_kind": "UNKNOWN"}
             for row in sector_rows
         ]
     }
