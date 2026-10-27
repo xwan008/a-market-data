@@ -7,6 +7,9 @@ on:
       - 'scripts/validate_trend_state_migrations.py'
       - 'scripts/trend_registry.py'
       - 'tests/test_trend_registry.py'
+      - 'tests/test_trend_context.py'
+      - 'scripts/validate_trend_context.py'
+      - 'research/trend_context.json'
       - 'skill/TREND_DISCOVERY_NEUTRAL.md'
       - 'tests/test_trend_outcome_cohort.py'
       - 'tests/test_trend_discovery_checkpoint.py'
@@ -23,6 +26,9 @@ on:
       - 'scripts/validate_trend_state_migrations.py'
       - 'scripts/trend_registry.py'
       - 'tests/test_trend_registry.py'
+      - 'tests/test_trend_context.py'
+      - 'scripts/validate_trend_context.py'
+      - 'research/trend_context.json'
       - 'skill/TREND_DISCOVERY_NEUTRAL.md'
       - 'tests/test_trend_outcome_cohort.py'
       - 'tests/test_trend_discovery_checkpoint.py'
@@ -53,7 +59,7 @@ jobs:
       - name: Run lifecycle continuity and anti-noise regression tests
         run: python -m unittest discover -s tests -p 'test_trend_*.py' -v
       - name: Validate source compiles
-        run: python -m py_compile scripts/trend_registry.py scripts/validate_trend_state_migrations.py scripts/validate_trend_publication_pair.py scripts/audit_trend_lifecycle_semantics.py scripts/validate_trend_discovery_checkpoint.py scripts/build_trend_outcome_cohort.py
+        run: python -m py_compile scripts/trend_registry.py scripts/validate_trend_state_migrations.py scripts/validate_trend_publication_pair.py scripts/validate_trend_context.py scripts/audit_trend_lifecycle_semantics.py scripts/validate_trend_discovery_checkpoint.py scripts/build_trend_outcome_cohort.py
       - name: Verify current active registry and handoff shape
         run: |
           python - <<'PY'
@@ -68,3 +74,6 @@ jobs:
           print("CURRENT_TREND_CONTRACT_OK")
           PY
 
+
+      - name: Validate published observation and commodity context
+        run: python scripts/validate_trend_context.py --registry research/trend_registry.json --context research/trend_context.json
