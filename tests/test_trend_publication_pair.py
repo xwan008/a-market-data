@@ -59,6 +59,18 @@ class PublicationPairTests(unittest.TestCase):
         r["scan_audit"]["full_market_scan_completed"] = False
         self.assertIn("full_market_scan_incomplete", m.validate(r, h))
 
+    def test_no_confirmed_industry_means_valid_empty_handoff(self):
+        r, h = fixture()
+        r["trade_date"] = h["trade_date"] = "2026-10-27"
+        r["scan_audit"]["state_migration_gate"]["current_trade_date"] = "2026-10-27"
+        r["trends"][0]["in_new_position_priority"] = False
+        h["signals"] = []
+        self.assertEqual(m.validate(r, h), [])
+        # Empty handoff is valid only when no industry was eligible.
+        r["trends"][0]["in_new_position_priority"] = True
+        self.assertIn("only_confirmed_in_priority", m.validate(r, h))
+        self.assertIn("priority_names_or_order_mismatch", m.validate(r, h))
+
     def test_old_handoff_is_rejected(self):
         r, h = fixture()
         h["trade_date"] = "2026-10-12"
