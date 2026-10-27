@@ -82,7 +82,7 @@ class SectorDiscoveryTests(unittest.TestCase):
         intraday = (root / "INTRADAY_MONITOR_CANONICAL.md").read_text(encoding="utf-8")
         # Research reviews the surge promptly but a deadline never forces
         # confirmation. The formal stock route is narrower than the registry.
-        self.assertIn("### 0.5 单日爆发后第二至第三交易日", protocol)
+        self.assertIn("### 0.5 单日爆发后的D2/D3证据复核", protocol)
         self.assertIn("不确认是合格的结论", protocol)
         self.assertIn("候选与观察均不得进入正式个股行动研究或handoff", protocol)
         self.assertIn("signals=[]", protocol)
