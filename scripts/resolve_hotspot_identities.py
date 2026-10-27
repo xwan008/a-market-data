@@ -95,7 +95,8 @@ def verify_concept_members(catalog, trade_date, code, source=None):
     return "VERIFIED", [c for c in codes if c.startswith(MAINBOARD)], "CONCEPT_MEMBERS_VERIFIED"
 
 
-def resolve(discovery, registry, catalog=None, industry_index=None, resolved_at=None):
+def resolve(discovery, registry, catalog=None, industry_index=None, resolved_at=None,
+            rechecks=None):
     if (discovery.get("schema_version") != 1 or
             discovery.get("result_kind") != "independent_hotspot_discovery_frozen" or
             discovery.get("discovery_stage") != "FROZEN_BEFORE_HISTORICAL_REVIEW" or
@@ -117,9 +118,18 @@ def resolve(discovery, registry, catalog=None, industry_index=None, resolved_at=
     except (TypeError, ValueError) as ex:
         raise ValueError("IDENTITY_RESOLUTION_TIMESTAMP_INVALID") from ex
     index, aliases = validate_registry(registry)
+    items = [(row, "INDEPENDENT_DISCOVERY") for row in discovery["hotspots"]]
+    if rechecks is not None:
+        if (rechecks.get("schema_version") != 1 or
+                rechecks.get("result_kind") != "postfreeze_active_trend_rechecks" or
+                rechecks.get("trade_date") != trade_date or
+                rechecks.get("independent_discovery_frozen_at") != discovery["frozen_at"] or
+                not isinstance(rechecks.get("hotspots"), list)):
+            raise ValueError("POSTFREEZE_RECHECK_INPUT_NOT_VERIFIED")
+        items.extend((row, "POSTFREEZE_ACTIVE_RECHECK") for row in rechecks["hotspots"])
     out = []
     used = set()
-    for item in discovery["hotspots"]:
+    for item, origin_flow in items:
         key = str(item.get("hotspot_id") or "")
         name = str(item.get("hotspot_name") or "").strip()
         if not key or key in used or not name:
@@ -132,6 +142,7 @@ def resolve(discovery, registry, catalog=None, industry_index=None, resolved_at=
             raise ValueError("HOTSPOT_DRIVER_KIND_INVALID")
         original = {
             "hotspot_id": key, "hotspot_name": name,
+            "origin_flow": origin_flow,
             "driver_kind": driver_kind,
             "driver_evidence": driver.get("sources") or [],
             "industry_seed_codes": item.get("industry_seed_codes") or [],
@@ -246,12 +257,15 @@ def main():
     parser.add_argument("--discovery", required=True)
     parser.add_argument("--registry", default="research/hotspot_identity_registry.json")
     parser.add_argument("--concept-file", default=None)
+    parser.add_argument("--rechecks",default=None,
+                        help="Recheck candidates assembled AFTER independent discovery freeze")
     parser.add_argument("--industry-index",default="data/research/company_industry_index.json")
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
     payload = resolve(read(args.discovery), read(args.registry),
                       read(args.concept_file) if args.concept_file else None,
-                      read(args.industry_index))
+                      read(args.industry_index),
+                      rechecks=read(args.rechecks) if args.rechecks else None)
     p = Path(args.output)
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
