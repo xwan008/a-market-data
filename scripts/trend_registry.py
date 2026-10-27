@@ -143,6 +143,108 @@ def _research_audit_errors(item, day, prior=None):
     return errors
 
 
+# One-day-surges get a bounded research *decision*, never an automatic
+# confirmation. The counter is made from actual completed registry-review
+# sessions, not elapsed calendar days (weekends/holidays are excluded).
+SURGE_DIMENSIONS = {"market_environment", "catalyst", "beneficiary_chain",
+                    "funding_strength", "breadth", "relative_strength",
+                    "price_structure", "counter_evidence"}
+SURGE_STATUSES = {"SUPPORTED", "COUNTER", "INSUFFICIENT", "UNVERIFIED",
+                  "ASSESSED", "NOT_APPLICABLE"}
+
+
+def _surge_review_errors(item, previous, day):
+    episode = item.get("episode_id")
+    audit = item.get("confirmation_audit") or {}
+    prior_review = previous.get("surge_followup") if isinstance(previous, dict) else None
+    review = item.get("surge_followup")
+    starts_now = (previous is None and
+                  audit.get("discovery_basis") == "ONE_DAY_SURGE")
+    if not starts_now and prior_review is None:
+        # Pre-existing industry trends and non-surge discoveries are unaffected.
+        if review is not None:
+            return [f"{episode}:surge_followup_without_surge_origin"]
+        return []
+    if not isinstance(review, dict):
+        return [f"{episode}:surge_followup_missing"]
+    errors = []
+    source_day = (day if starts_now else prior_review.get("trigger_trade_date"))
+    if review.get("trigger_trade_date") != source_day:
+        errors.append(f"{episode}:surge_trigger_date_changed")
+    old_sessions = (prior_review.get("sessions") if prior_review else [])
+    sessions = review.get("sessions")
+    if not isinstance(sessions, list):
+        return errors + [f"{episode}:surge_sessions_not_list"]
+    if not isinstance(old_sessions, list):
+        return errors + [f"{episode}:previous_surge_sessions_invalid"]
+    if sessions[:len(old_sessions)] != old_sessions:
+        errors.append(f"{episode}:surge_session_history_rewritten")
+    if prior_review and prior_review.get("decision") in {"CONFIRMED", "NOT_CONFIRMED"}:
+        # Initial three-session judgement is frozen. A later, independent
+        # confirmation may still occur based on NEW evidence.
+        if review != prior_review:
+            errors.append(f"{episode}:surge_final_judgement_rewritten")
+        return errors
+    if len(sessions) != len(old_sessions) + 1:
+        errors.append(f"{episode}:surge_review_not_updated_this_close")
+    elif not isinstance(sessions[-1], dict) or sessions[-1].get("trade_date") != day:
+        errors.append(f"{episode}:surge_review_trade_date_mismatch")
+    if len(sessions) > 3:
+        errors.append(f"{episode}:surge_review_overdue")
+    for n, row in enumerate(sessions):
+        if not isinstance(row, dict):
+            errors.append(f"{episode}:surge_session_invalid")
+            continue
+        dt = row.get("trade_date")
+        if not isinstance(dt, str) or not DAY.fullmatch(dt) or dt > day or (
+                n and (not isinstance(sessions[n-1], dict) or
+                       dt <= sessions[n-1].get("trade_date", ""))):
+            errors.append(f"{episode}:surge_session_date_invalid")
+        dimensions = row.get("dimensions")
+        if not isinstance(dimensions, dict) or set(dimensions) != SURGE_DIMENSIONS:
+            errors.append(f"{episode}:surge_evidence_matrix_incomplete")
+            continue
+        for name, evidence in dimensions.items():
+            if (not isinstance(evidence, dict) or
+                evidence.get("status") not in SURGE_STATUSES or
+                not isinstance(evidence.get("finding"), str) or
+                len(evidence["finding"].strip()) < 12 or
+                not isinstance(evidence.get("source"), str) or
+                SOURCE.fullmatch(evidence["source"]) is None):
+                errors.append(f"{episode}:{name}:surge_evidence_invalid")
+    decision = review.get("decision")
+    if decision not in {"PENDING", "CONFIRMED", "NOT_CONFIRMED"}:
+        errors.append(f"{episode}:surge_decision_invalid")
+    if len(sessions) == 1 and decision != "PENDING":
+        errors.append(f"{episode}:surge_day_one_cannot_confirm")
+    if len(sessions) >= 3 and decision == "PENDING":
+        errors.append(f"{episode}:surge_third_close_decision_missing")
+    if decision == "PENDING":
+        if review.get("decision_trade_date") is not None:
+            errors.append(f"{episode}:surge_pending_has_decision_date")
+    else:
+        if (not sessions or not isinstance(sessions[-1], dict) or
+                review.get("decision_trade_date") != sessions[-1].get("trade_date")):
+            errors.append(f"{episode}:surge_final_date_invalid")
+        if decision == "CONFIRMED":
+            if item.get("market_state") != "趋势确认":
+                errors.append(f"{episode}:surge_confirmed_state_mismatch")
+            # All real-world claims still require human/model evidence review.
+            needed = {"catalyst", "price_structure"}
+            if item.get("trend_basis") != "COMMODITY":
+                needed |= {"beneficiary_chain", "funding_strength", "breadth",
+                           "relative_strength"}
+            latest = sessions[-1].get("dimensions") if sessions and isinstance(sessions[-1], dict) else {}
+            for name in needed:
+                if (not isinstance(latest, dict) or
+                    not isinstance(latest.get(name), dict) or
+                    latest[name].get("status") != "SUPPORTED"):
+                    errors.append(f"{episode}:{name}:surge_confirmed_without_support")
+        elif decision == "NOT_CONFIRMED" and item.get("market_state") == "趋势确认":
+            errors.append(f"{episode}:surge_not_confirmed_state_mismatch")
+    return errors
+
+
 def _optional_sector_audit_valid(sector_audit, day):
     """Optional audit quality check; no hard breadth or turnover threshold."""
     if not isinstance(sector_audit, dict) or sector_audit.get("trade_date") != day:
@@ -317,8 +419,9 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
     # same Beijing cutoff. Existing 2026-10-26 registry is not rewritten.
     if day >= RESEARCH_GATE_FROM:
         for theme in proposed["trends"]:
-            errors.extend(_research_audit_errors(
-                theme, day, prior_by_id.get(theme.get("episode_id"))))
+            prior = prior_by_id.get(theme.get("episode_id"))
+            errors.extend(_research_audit_errors(theme, day, prior))
+            errors.extend(_surge_review_errors(theme, prior, day))
         for episode in continued:
             old, cur = prior_by_id[episode], curr_by_id[episode]
             old_assess = {x.get("industry_code"): x for x in
