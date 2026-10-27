@@ -226,8 +226,12 @@ def build(evidence_path, structure_path=None, structure_output_path=None, theme_
         if (routing.get("schema_version") != 1 or
             routing.get("result_kind") != "hotspot_stock_route_snapshot" or
             routing.get("status") != "COMPLETE" or routing.get("trade_date") != day or
-            routing.get("concept_as_of_trade_date") != day):
+            routing.get("concept_as_of_trade_date") != day or
+            routing.get("identities_verified_before_state") is not True or
+            routing.get("market_scope") != "SH_SZ_MAINBOARD_ONLY"):
             raise ValueError("THEME_CANDIDATES_SNAPSHOT_INVALID")
+        if (trend.get("source") or {}).get("identity_verified_before_state") is not True:
+            raise ValueError("TREND_IDENTITY_NOT_VERIFIED_BEFORE_STATE")
         routes = routing.get("routes")
         if not isinstance(routes, list):
             raise ValueError("THEME_ROUTES_INVALID")
@@ -239,6 +243,8 @@ def build(evidence_path, structure_path=None, structure_output_path=None, theme_
             if route.get("hotspot_type") == "DATA_INSUFFICIENT":
                 raise ValueError("THEME_ROUTE_COVERAGE_INSUFFICIENT")
             if (route.get("rank") != signal.get("rank") or
+                route.get("board_code") != signal.get("board_code") or
+                route.get("hotspot_type") != signal.get("board_type") or
                 route.get("trend_state") != signal.get("trend_state") or
                 route.get("market_state") != signal.get("market_state") or
                 route.get("original_industry_codes") != signal.get("industry_codes") or
@@ -258,6 +264,10 @@ def build(evidence_path, structure_path=None, structure_output_path=None, theme_
                     for i, x in enumerate(candidates, 1)
                 ):
                     raise ValueError("THEME_CANDIDATES_MEMBERSHIP_INVALID")
+            if route["hotspot_type"] == "INDUSTRY" and (
+                route.get("industry_codes") != signal.get("industry_codes") or
+                route.get("candidate_stocks")):
+                raise ValueError("INDUSTRY_CODE_ONLY_ROUTE_VIOLATION")
             route_by_name[signal["trend_name"]] = route
     industry_signals = [s for s in trend.get("signals", [])
                         if route_by_name.get(s["trend_name"], {}).get("hotspot_type") != "THEME"]
