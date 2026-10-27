@@ -47,6 +47,8 @@ def validate_items(handoff):
             raise ValueError("trend_handoff_ready_reason")
         if status=="READY" and item.get("market_state")!="趋势确认":
             raise ValueError("trend_handoff_ready_requires_confirmed_sector")
+        if handoff.get("trade_date", "") >= "2026-10-27" and item.get("market_state")!="趋势确认":
+            raise ValueError("formal_handoff_requires_confirmed_sw3")
         if status=="WAIT" and reason not in WAIT_REASONS:
             raise ValueError("trend_handoff_invalid_wait_reason")
         if item.get("rank")!=i+1:
