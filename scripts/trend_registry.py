@@ -70,10 +70,71 @@ RESEARCH_GATE_FROM = "2026-10-27"
 BEIJING = timezone(timedelta(hours=8))
 
 
+def _historical_burst_origin_errors(item, day, prior=None):
+    """When a multi-day trend is first admitted, investigate its real D1.
+
+    This is a provenance gate, NOT an automatic D1/2/3 market-state clock.
+    Previously published episodes are not retroactively forced to have it.
+    """
+    if (prior is not None or day < "2026-10-28" or
+            (item.get("confirmation_audit") or {}).get("discovery_basis") != "CONTINUING_STRUCTURE"):
+        return []
+    eid = item.get("episode_id", "unknown")
+    review = (item.get("confirmation_audit") or {}).get("historical_burst_origin_review")
+    if not isinstance(review, dict):
+        return [str(eid) + ":historical_burst_origin_review_missing"]
+    kind = review.get("review_type")
+    if kind == "NO_IDENTIFIABLE_BURST":
+        reason = review.get("reason")
+        if not isinstance(reason, str) or len(reason.strip()) < 16:
+            return [str(eid) + ":no_burst_reason_missing"]
+        return []
+    if kind != "RETROSPECTIVE_FIRST_MARKET_BURST":
+        return [str(eid) + ":historical_burst_review_type_invalid"]
+    d1 = review.get("d1_trade_date")
+    if not isinstance(d1, str) or DAY.fullmatch(d1) is None or d1 > day:
+        return [str(eid) + ":historical_burst_d1_invalid"]
+    # The discovery/entry date must never silently replace the true event.
+    sources = review.get("session_evidence")
+    if not isinstance(sources, list) or not sources:
+        return [str(eid) + ":historical_burst_source_missing"]
+    first = sources[0] if isinstance(sources[0], dict) else {}
+    if first.get("trade_date") != d1 and not any(
+            isinstance(row, dict) and row.get("trade_date") == d1
+            for row in sources):
+        return [str(eid) + ":historical_burst_d1_not_sourced"]
+    for row in sources:
+        if (not isinstance(row, dict) or not isinstance(row.get("trade_date"), str) or
+                DAY.fullmatch(row["trade_date"]) is None or row["trade_date"] > day or
+                not isinstance(row.get("snapshot_commit_sha"), str) or
+                SHA.fullmatch(row["snapshot_commit_sha"]) is None):
+            return [str(eid) + ":historical_burst_source_invalid"]
+    phase = review.get("asof_phase")
+    if phase not in {"D1", "D2", "D3", "AFTER_D3"}:
+        return [str(eid) + ":historical_burst_phase_missing"]
+    d2 = review.get("d2_trade_date")
+    d3 = review.get("d3_trade_date")
+    if phase in {"D2", "D3", "AFTER_D3"} and (
+            not isinstance(d2, str) or DAY.fullmatch(d2) is None or
+            not d1 < d2 <= day):
+        return [str(eid) + ":historical_burst_d2_invalid"]
+    if phase in {"D3", "AFTER_D3"} and (
+            not isinstance(d3, str) or DAY.fullmatch(d3) is None or
+            not d2 < d3 <= day):
+        return [str(eid) + ":historical_burst_d3_invalid"]
+    if (phase == "AFTER_D3" and review.get("historical_first_decision_status")
+            not in {"D3_REVIEW_NOT_FORMALLY_RECORDED", "D3_REVIEW_CONFIRMED_BY_PRIOR_RECORD"}):
+        return [str(eid) + ":historical_burst_old_decision_unclassified"]
+    if (d1 < item.get("first_seen_trade_date", "") and
+            review.get("review_type") != "RETROSPECTIVE_FIRST_MARKET_BURST"):
+        return [str(eid) + ":historical_burst_backdating_undisclosed"]
+    return []
+
+
 def _research_audit_errors(item, day, prior=None):
     episode = item.get("episode_id")
     audit = item.get("confirmation_audit")
-    errors = []
+    errors = _historical_burst_origin_errors(item, day, prior)
     if not isinstance(audit, dict) or audit.get("asof_trade_date") != day:
         return [f"{episode}:confirmation_audit_missing"]
     if audit.get("market_environment") not in {"NORMAL", "EVENT_LIQUIDITY_SHOCK",
