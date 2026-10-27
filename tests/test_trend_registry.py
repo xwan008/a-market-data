@@ -225,6 +225,8 @@ class TrendRegistryTests(unittest.TestCase):
             {"trade_date": "2026-10-21", "from": "观察", "to": "候选趋势"},
             {"trade_date": "2026-10-22", "from": "候选趋势", "to": "候选趋势"}])
         row["first_seen_trade_date"] = "2026-10-20"
+        row["episode_id"] = engine.episode_key("旧方向", "2026-10-20")
+        row["state_history"][0]["trade_date"] = "2026-10-20"
         row["d123_trigger_trade_date"] = "2026-10-20"
         row["d123_backfill_audit"]["first_formal_trade_date"] = "2026-10-20"
         self.assertEqual(engine._d123_stage_errors(row, None, "2026-10-27"), [])
