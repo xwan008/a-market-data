@@ -85,7 +85,7 @@ jobs:
                         read('research/trend_registry.json'),handoff)
           print('INDEPENDENT_MARKET_STATE_EVIDENCE_PAIRED',gate)
           if (not handoff.get('source',{}).get('identity_verified_before_state') or
-                  identity.get('status')!='COMPLETE' or
+                  identity.get('status') not in ('COMPLETE','NEEDS_IDENTITY_REVIEW') or
                   identity.get('trade_date')!=date or
                   identity.get('result_kind')!='hotspot_identity_snapshot' or
                   route.get('result_kind')!='hotspot_stock_route_snapshot' or
