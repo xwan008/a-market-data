@@ -22,6 +22,20 @@ def sample():
 
 
 class ContractTests(unittest.TestCase):
+    def test_prospective_candidate_wait_cannot_publish_handoff(self):
+        h=tool.project(sample(),"testsha",shadow=True)
+        h["trade_date"]="2026-10-27"
+        h["items"][0]["trade_date"]="2026-10-27"
+        row=h["items"][0]
+        row.update(status="WAIT", wait_reason="WAIT_CONFIRMATION",
+                   market_state="候选趋势", setup_type=None, entry_zone=None,
+                   entry_trigger=None, max_entry_price=None,
+                   invalidation_price=None, invalidation_rule=None,
+                   initial_risk_pct=None, upside_to_resistance_R=None,
+                   exit_plan=None)
+        with self.assertRaisesRegex(ValueError,"formal_handoff_requires_confirmed_sw3"):
+            tool.validate_items(h)
+
     def test_ready_cannot_escape_industry_market_confirmation(self):
         h=tool.project(sample(),"testsha",shadow=True)
         h["items"][0]["market_state"]="候选趋势"
