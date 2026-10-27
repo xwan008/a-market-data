@@ -79,6 +79,12 @@ def _research_audit_errors(item, day, prior=None):
     if audit.get("market_environment") not in {"NORMAL", "EVENT_LIQUIDITY_SHOCK",
                                                 "RISK_OFF", "MIXED", "UNCERTAIN"}:
         errors.append(f"{episode}:environment_unclassified")
+    environment_reason = audit.get("market_environment_reason")
+    environment_source = audit.get("market_environment_source")
+    if not isinstance(environment_reason, str) or len(environment_reason.strip()) < 12:
+        errors.append(f"{episode}:environment_reason_missing")
+    if not isinstance(environment_source, str) or SOURCE.fullmatch(environment_source) is None:
+        errors.append(f"{episode}:environment_source_invalid")
     if audit.get("driver_type") not in {"INDUSTRIAL_GROWTH", "CONTENT_COMMERCIALIZATION",
                                       "COMMODITY", "DEFENSIVE", "OTHER"}:
         errors.append(f"{episode}:driver_unclassified")
@@ -116,8 +122,8 @@ def _research_audit_errors(item, day, prior=None):
     core = audit.get("core_industry_codes")
     codes = item.get("industry_codes") or []
     if not isinstance(core, list) or not isinstance(codes, list) or (
-            len(set(core)) != len(core) or not all(isinstance(x, str) for x in core)
-            or any(x not in codes for x in core)):
+            not all(isinstance(x, str) for x in core) or
+            len(set(core)) != len(core) or any(x not in codes for x in core)):
         errors.append(f"{episode}:core_industry_identity_invalid")
     elif item.get("market_state") == "趋势确认" and item.get("trend_basis") != "COMMODITY" and not core:
         errors.append(f"{episode}:confirmed_core_missing")
