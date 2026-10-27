@@ -1,0 +1,73 @@
+name: PR60 Oct26 actual theme identity Top20 and buy shadow
+
+on:
+  push:
+    branches: [feature/hotspot-theme-identification-20261026]
+    paths:
+      - ".github/workflows/replay-oct26-theme-top20-buy.yml"
+      - "scripts/replay_oct26_theme_identity_top20_buy.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  theme-identity-to-buy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Load exact Oct26 vendor membership archived during real trading day
+        uses: actions/download-artifact@v4
+        with:
+          name: mainboard-concept-source-stability-20261026
+          run-id: 40346359777
+          github-token: ${{ github.token }}
+          path: /tmp/actual-oct26-ths
+      - name: Install existing THS ADATA connector for present-day comparison only
+        run: pip install -q adata requests
+      - name: Rebuild actual October 26 price structures
+        run: python -u scripts/build_full_market_price_structure.py
+      - name: Execute identity check then real 886069 Top20 and independent buy stage
+        run: |
+          python -u scripts/replay_oct26_theme_identity_top20_buy.py \
+            --source /tmp/actual-oct26-ths/mainboard_ths_stability_20261026.json \
+            --output-dir /tmp/oct26-theme-replay
+      - name: Hard audit and show final evidence
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/oct26-theme-replay/theme_identity_top20_buy_comparison.json').read_text())
+          assert r['original_hotspot_identity']['mapping_status']=='MAPPING_UNRESOLVED'
+          exact=r['scenario_real_oct26_exact_humanoid_concept']
+          assert exact['actual_full_members']==482
+          assert exact['actual_mainboard_members']==227
+          assert len(exact['top20'])==20
+          assert len({x['code'] for x in exact['top20']})==20
+          assert all(x['code'].startswith(('600','601','603','605','000','001','002','003'))
+                     for x in exact['top20'])
+          assert exact['buy_eligible'] is False
+          assert r['no_official_trend_or_buy_publication'] is True
+          print('THEME_IDENTITY_TOP20_BUY_FULL_AUDIT',json.dumps({
+            'original_mapping':r['original_hotspot_identity']['mapping_status'],
+            'scenario_theme':'人形机器人 886069',
+            'concept_coverage':exact['real_market_evidence']['quote_coverage'],
+            'top20':exact['top20'],
+            'top5_research_candidates':exact['top5_research_candidates'],
+            'engine_counts':exact['final_buy_status_counts'],
+            'engine_top5_groups':exact['final_engine_top5'],
+            'general_robot_status':r['scenario_live_next_day_broader_robot_concept']['status']
+          },ensure_ascii=False),flush=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pr60-oct26-real-theme-identity-top20-and-buy
+          path: /tmp/oct26-theme-replay
+          retention-days: 30
+          if-no-files-found: ignore
