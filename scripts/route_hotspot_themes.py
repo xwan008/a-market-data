@@ -321,6 +321,17 @@ def build_verified_routes(handoff, industry_index, latest, structure, identities
         raise ValueError("IDENTITY_OR_MARKET_HANDOFF_DATE_SCOPE_INVALID")
     if not (handoff.get("source") or {}).get("identity_verified_before_state") is True:
         raise ValueError("HANDOFF_NOT_ADJUDICATED_AFTER_IDENTITY")
+    if not identities.get("resolved_at") or not handoff.get("generated_at"):
+        raise ValueError("IDENTITY_TO_TREND_CHRONOLOGY_MISSING")
+    from datetime import datetime as _dt
+    try:
+        if _dt.fromisoformat(identities["resolved_at"]) > _dt.fromisoformat(handoff["generated_at"]):
+            raise ValueError("IDENTITY_RESOLVED_AFTER_TREND_STATE")
+        if catalog and catalog.get("source_observed_at"):
+            if _dt.fromisoformat(catalog["source_observed_at"]) > _dt.fromisoformat(handoff["generated_at"]):
+                raise ValueError("CONCEPT_SNAPSHOT_CAPTURED_AFTER_TREND_STATE")
+    except (TypeError, KeyError) as ex:
+        raise ValueError("IDENTITY_TO_TREND_CHRONOLOGY_INVALID") from ex
     if not 1 <= cap <= 20:
         raise ValueError("RESEARCH_CANDIDATE_CAP_INVALID")
     signals = handoff.get("signals") or []
