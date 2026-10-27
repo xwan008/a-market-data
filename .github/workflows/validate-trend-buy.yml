@@ -82,7 +82,35 @@ jobs:
         run: |
           python scripts/build_history.py
           python scripts/build_bridge.py
+      - name: Require valid paired route and same-day materialized company facts before screening smoke
+        id: smoke_inputs
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json,os,sys
+          from pathlib import Path
+          sys.path.insert(0,'scripts')
+          from validate_trend_publication_pair import validate
+          read=lambda p:json.loads(Path(p).read_text(encoding='utf-8'))
+          registry=read('research/trend_registry.json')
+          handoff=read('research/trend_handoff.json')
+          index=read('data/low_risk/index.json')
+          errors=validate(registry,handoff)
+          if errors:
+              raise SystemExit('UPSTREAM_PAIR_INVALID:'+','.join(errors))
+          day=handoff['trade_date']
+          ready=(bool(handoff['signals']) and day==index.get('trade_date')
+                 and index.get('validation',{}).get('status')=='passed')
+          print('FROZEN_SCREEN_SMOKE', 'ELIGIBLE' if ready else
+                'SKIPPED_ZERO_SIGNAL_OR_DIFFERENT_MARKET_DATA_DATE',
+                'registry',day,'company_data',index.get('trade_date'),
+                'signal_count',len(handoff['signals']))
+          with open(os.environ['GITHUB_OUTPUT'],'a',encoding='utf-8') as out:
+              out.write('ready='+('true' if ready else 'false')+'\n')
+          PY
+
       - name: Fresh company screening from frozen market inputs only
+        if: steps.smoke_inputs.outputs.ready == 'true'
         run: |
           python - <<'PY'
           import json
@@ -119,6 +147,7 @@ jobs:
           ],ensure_ascii=False))
           PY
       - name: Validate optional date-scoped company evidence when present
+        if: steps.smoke_inputs.outputs.ready == 'true'
         run: |
           python - <<'PY'
           import json
@@ -138,6 +167,7 @@ jobs:
               print('NO_DATE_SCOPED_COMPANY_EVIDENCE: SHADOW_CI_ONLY, NOT_FORMAL')
           PY
       - name: Validate published or absence-of-current evidence is not a false formal result
+        if: steps.smoke_inputs.outputs.ready == 'true'
         run: |
           python - <<'PY'
           import json
@@ -151,6 +181,7 @@ jobs:
               print('LATEST_FORMAL_VERIFIED',formal['trade_date'])
           PY
       - name: Check persisted formal SHA and monitor compatibility
+        if: steps.smoke_inputs.outputs.ready == 'true'
         run: |
           python - <<'PY'
           import json,sys
