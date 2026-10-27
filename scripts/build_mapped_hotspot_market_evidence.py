@@ -10,6 +10,8 @@ import argparse
 import json
 from pathlib import Path
 from statistics import median
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from route_hotspot_themes import get_return, is_main_board, validate_memberships, read, safe_number
 
@@ -117,7 +119,9 @@ def summarize(identity, index, latest, structure, catalog=None):
                                           else "BLOCKED_QUOTE_COVERAGE_INSUFFICIENT")
         out.append(evidence)
     return {"schema_version":1,"result_kind":"mapped_hotspot_market_evidence",
-            "trade_date":trade_date,"market_scope":"SH_SZ_MAINBOARD_ONLY",
+            "trade_date":trade_date,
+            "generated_at":datetime.now(ZoneInfo("Asia/Shanghai")).isoformat(),
+            "market_scope":"SH_SZ_MAINBOARD_ONLY",
             "purpose":"Evidence for independent market-state adjudication after identity",
             "may_assign_trend_or_market_state":False,
             "hotspots":out}
