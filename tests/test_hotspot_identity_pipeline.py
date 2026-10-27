@@ -9,6 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import resolve_hotspot_identities as resolver
 import build_mapped_hotspot_market_evidence as metrics
 import route_hotspot_themes as router
+from test_hotspot_theme_router import commercial_fixture
 
 DAY = "2026-10-26"
 
@@ -134,7 +135,8 @@ class IdentityAndRouterTest(unittest.TestCase):
         with patch("build_trend_buy_manual_research.compact_opportunity",
                    side_effect=lambda row, d: ({"opportunity_score":row["mock_score"]},None)):
             routed=router.build_verified_routes(handoff,industry,latest,structure,
-                                                ident,concept(),cap=3)
+                                                ident,concept(),cap=3,
+                                                business_evidence=commercial_fixture())
         route=routed["routes"][0]
         self.assertEqual(route["hotspot_type"],"THEME")
         self.assertEqual(route["concept_member_count"],7)
