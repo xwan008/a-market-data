@@ -51,6 +51,8 @@ def add_future_audit(after):
     for row in after["trends"]:
         row["confirmation_audit"] = {
             "asof_trade_date": day, "market_environment": "NORMAL",
+            "market_environment_reason": "当日市场风险偏好保持正常，尚无异常宽基资金证据",
+            "market_environment_source": "data/research/sector_discovery_audit.json",
             "driver_type": "COMMODITY" if row.get("trend_basis") == "COMMODITY"
                            else "INDUSTRIAL_GROWTH",
             "discovery_basis": "CONTINUING_STRUCTURE",
@@ -300,6 +302,10 @@ class TrendRegistryTests(unittest.TestCase):
         self.assertIn("A#" + OLD + ":surge_alone_cannot_progress",
                       gate.validate(before, after, SHA))
         audit["discovery_basis"] = "CONTINUING_STRUCTURE"
+        audit["market_environment_source"] = ""
+        self.assertIn("A#" + OLD + ":environment_source_invalid",
+                      gate.validate(before, after, SHA))
+        audit["market_environment_source"] = "data/research/sector_discovery_audit.json"
         after["trends"][0]["in_new_position_priority"] = True
         self.assertIn("A#" + OLD + ":only_confirmed_priority",
                       gate.validate(before, after, SHA))
