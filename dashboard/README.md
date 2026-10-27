@@ -7,6 +7,7 @@
 | 模块 | 唯一来源 | 说明 |
 | --- | --- | --- |
 | 趋势池 | `research/trend_registry.json` | 状态、证据、失效条件与状态历史 |
+| 独立观察/商品趋势 | `research/trend_context.json` | 持续观察、国际商品价格走势、独立报价日与A股传导（不产生买点） |
 | 优先趋势 | `research/trend_handoff.json` | 原始已发布 rank |
 | 趋势买点 | `research/trend_buy_handoff.json` | V2 正式 READY / WAIT、计划入场区间和风险条件 |
 | 盘中监测 | `research/intraday_monitor_state.json` | 文件缺失或无效时显示“尚无有效监测记录”，**不会推断信号** |
