@@ -81,6 +81,47 @@ class PublicationPairTests(unittest.TestCase):
         r["trends"][0]["lifecycle_status"] = "已失效"
         self.assertIn("黄金:invalidated_theme_handed_off", m.validate(r, h))
 
+    def test_prospective_handoff_requires_confirmation_and_verified_core_route(self):
+        r, h = fixture()
+        r["trade_date"] = h["trade_date"] = "2026-10-27"
+        r["scan_audit"]["state_migration_gate"]["current_trade_date"] = "2026-10-27"
+        self.assertIn("only_confirmed_in_priority", m.validate(r, h))
+        r["trends"][0]["market_state"] = "趋势确认"
+        h["signals"][0]["market_state"] = "趋势确认"
+        r["trends"][0]["industry_codes"] = ["S240401", "S240402"]
+        r["trends"][0]["industry_names"] = ["黄金", "其他贵金属"]
+        r["trends"][0]["industry_assessments"] = [
+            {"industry_code": "S240401", "industry_name": "黄金",
+             "market_state": "趋势确认", "benefit_level": "DIRECT"},
+            {"industry_code": "S240402", "industry_name": "其他贵金属",
+             "market_state": "观察", "benefit_level": "RELATED"},
+        ]
+        self.assertEqual(m.validate(r, h), [])
+        h["signals"][0]["industry_codes"] = ["S240401", "S240402"]
+        h["signals"][0]["industry_names"] = ["黄金", "其他贵金属"]
+        self.assertIn("黄金:unconfirmed_industry_route", m.validate(r, h))
+        h["signals"][0]["industry_codes"] = ["S240401"]
+        h["signals"][0]["industry_names"] = ["黄金"]
+        r["trends"][0]["industry_assessments"][1].update(
+            market_state="趋势确认", benefit_level="DIRECT")
+        self.assertIn("黄金:confirmed_route_incomplete", m.validate(r, h))
+
+    def test_commodity_confirmation_without_confirmed_equity_must_not_handoff(self):
+        r, h = fixture()
+        r["trade_date"] = h["trade_date"] = "2026-10-27"
+        r["scan_audit"]["state_migration_gate"]["current_trade_date"] = "2026-10-27"
+        r["trends"][0]["trend_basis"] = "COMMODITY"
+        r["trends"][0]["market_state"] = "趋势确认"
+        h["signals"][0]["market_state"] = "趋势确认"
+        r["trends"][0]["industry_assessments"] = [{
+            "industry_code": "S240401", "industry_name": "黄金",
+            "market_state": "观察", "benefit_level": "DIRECT"
+        }]
+        self.assertIn("黄金:unconfirmed_industry_route", m.validate(r, h))
+        r["trends"][0]["in_new_position_priority"] = False
+        h["signals"] = []
+        self.assertEqual(m.validate(r, h), [])
+
     def test_prepublication_migration_gate_required(self):
         r, h = fixture()
         del r["scan_audit"]["state_migration_gate"]
