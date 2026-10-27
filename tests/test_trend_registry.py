@@ -109,12 +109,19 @@ class TrendRegistryTests(unittest.TestCase):
         after["scan_audit"]["full_market_scan_completed"]=False
         self.assertIn("full_market_scan_incomplete",gate.validate(before,after,SHA))
 
-    def test_only_confirmed_candidate_persist(self):
+    def test_observation_continues_in_same_registry_and_cycle(self):
         before,after=fixture()
         after["trends"][0]["market_state"]="观察"
-        self.assertIn("A#"+OLD+":nontracking_persisted",gate.validate(before,after,SHA))
-        before["trends"][0]["market_state"]="观察"
-        self.assertIn("previous_contains_nontracking_theme",gate.validate(before,after,SHA))
+        after["trends"][0]["state_history"].append(
+            {"trade_date":DAY,"from":"候选趋势","to":"观察"})
+        review=after["scan_audit"]["state_migration_gate"]["reviews"][0]
+        review.update(decision="CHANGE",proposed_market_state="观察",
+                      reason="三级行业市场结构发生真实调整，观察继续跟踪",
+                      evidence=[fact("MARKET_STRUCTURE",impact="STRUCTURAL"),
+                                fact("MARKET_BREADTH")])
+        self.assertEqual(gate.validate(before,after,SHA),[])
+        after["trends"][0]["in_new_position_priority"]=True
+        self.assertIn("A#"+OLD+":observation_in_priority",gate.validate(before,after,SHA))
 
     def test_history_immutable(self):
         before,after=fixture()
@@ -189,6 +196,31 @@ class TrendRegistryTests(unittest.TestCase):
         trend["industry_assessments"][0]["market_state"] = "趋势确认"
         self.assertEqual(gate.validate(before, after, SHA), [])
 
+    def test_commodity_confirmation_without_a_share_breadth(self):
+        before,after=fixture()
+        row=after["trends"][0]
+        row["trend_basis"]="COMMODITY"
+        row["commodity_anchor"]={"instrument":"Brent futures",
+            "trade_date":DAY,"price_basis":"2026-10-19 settlement",
+            "source":"https://example.org/oil","trend_reason":"多日商品价格结构与原油供需证据交叉确认"}
+        row["market_state"]="趋势确认"
+        row["state_history"].append({"trade_date":DAY,"from":"候选趋势","to":"趋势确认"})
+        review=after["scan_audit"]["state_migration_gate"]["reviews"][0]
+        review.update(decision="CHANGE",proposed_market_state="趋势确认",
+                      evidence=[fact("MARKET_STRUCTURE","SUPPORT","STRUCTURAL"),
+                                fact("COMMODITY_ANCHOR","SUPPORT","STRUCTURAL"),
+                                fact("SUPPLY_DEMAND","SUPPORT")])
+        self.assertEqual(gate.validate(before,after,SHA),[])
+
+    def test_observation_can_be_previous_and_current_state(self):
+        before,after=fixture()
+        before["trends"][0]["market_state"]="观察"
+        after["trends"][0]["market_state"]="观察"
+        review=after["scan_audit"]["state_migration_gate"]["reviews"][0]
+        review["previous_market_state"]="观察"
+        review["proposed_market_state"]="观察"
+        self.assertEqual(gate.validate(before,after,SHA),[])
+
     def test_new_candidate_starts_new_cycle(self):
         before,after=fixture()
         after["trends"].append(theme("N",first=DAY))
@@ -225,7 +257,7 @@ class TrendRegistryTests(unittest.TestCase):
                        "industry_codes":["S630601"],"industry_names":["风电整机"]}]}
         self.assertEqual(pair.validate(after,handoff),[])
         after["trends"][0]["market_state"]="观察"
-        self.assertIn("nontracking_persisted",pair.validate(after,handoff))
+        self.assertIn("observation_in_priority",pair.validate(after,handoff))
 
 if __name__=="__main__":
     unittest.main()
