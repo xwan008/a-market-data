@@ -92,6 +92,7 @@ class UpstreamRouteCheckTests(unittest.TestCase):
         h, idx, r = fixtures()
         day = "2026-10-27"
         r["schema_version"] = 2
+        r["trends"][0]["episode_id"] = "合成方向#2026-10-27"
         h["trade_date"] = idx["trade_date"] = r["trade_date"] = day
         r["scan_audit"] = {
             "full_market_scan_completed": True,
@@ -117,6 +118,7 @@ class UpstreamRouteCheckTests(unittest.TestCase):
         h, idx, r = fixtures()
         day = "2026-10-27"
         r["schema_version"] = 2
+        r["trends"][0]["episode_id"] = "合成方向#2026-10-27"
         h["trade_date"] = r["trade_date"] = day
         r["scan_audit"] = {
             "full_market_scan_completed": True,
@@ -128,6 +130,20 @@ class UpstreamRouteCheckTests(unittest.TestCase):
             check_theme_routes(h, {}, r)["status"], "NO_ELIGIBLE_CONFIRMED_TREND")
         with self.assertRaisesRegex(ValueError, "registry_required_for_verified_handoff"):
             check_theme_routes(h, {}, None)
+
+    def test_formal_workflow_enforces_pair_and_nothing_to_publish(self):
+        root = Path(__file__).resolve().parents[1]
+        formal = (root / ".github/workflows/run-trend-buy-formal.yml").read_text()
+        direct = (root / "scripts/build_trend_buy_manual_research.py").read_text()
+        snapshot = (root / ".github/workflows/update-intraday-snapshot.yml").read_text()
+        self.assertIn("check_theme_routes(handoff,index,registry)", formal)
+        self.assertIn("NO_ELIGIBLE_CONFIRMED_TREND", formal)
+        self.assertEqual(formal.count("if: steps.admission.outputs.should_run == 'true'"), 8)
+        self.assertIn("check_theme_routes(trend,index,registry)", direct)
+        self.assertIn("NO_ELIGIBLE_CONFIRMED_TREND", direct)
+        self.assertIn("validate_pair(registry,sector_handoff)", snapshot)
+        self.assertIn("bool(sector_handoff.get('signals'))", snapshot)
+        self.assertIn("h.get('trade_date') == sector_handoff.get('trade_date')", snapshot)
 
     def test_empty_company_pool_fails(self):
         handoff, index, registry = fixtures()
