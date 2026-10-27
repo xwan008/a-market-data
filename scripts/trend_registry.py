@@ -14,7 +14,7 @@ DAY = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
 
-TRACK = {"趋势确认", "候选趋势"}
+TRACK = {"趋势确认", "候选趋势", "观察"}
 MARKET = {"趋势确认", "候选趋势", "观察", "新异动", "高潮/衰退", "失效"}
 SHA = re.compile(r"^[0-9a-f]{40}$")
 
@@ -36,7 +36,7 @@ def _valid_evidence(e, after_day):
     )
 
 
-def _market_state_evidence(evidence, direction, since, require_confirmation=False):
+def _market_state_evidence(evidence, direction, since, require_confirmation=False, commodity=False):
     """One evidence-quality rule, independent of elapsed trading-day count.
 
     Market structure must be material; breadth and relative strength provide
@@ -49,6 +49,13 @@ def _market_state_evidence(evidence, direction, since, require_confirmation=Fals
                      and e["impact"] in {"STRUCTURAL", "CRITICAL"} for e in fresh)
     breadth = any(e["dimension"] == "MARKET_BREADTH" for e in fresh)
     relative = any(e["dimension"] == "RELATIVE_STRENGTH" for e in fresh)
+    if commodity and direction == "SUPPORT":
+        anchor = any(e["dimension"] == "COMMODITY_ANCHOR" and
+                     e["impact"] in {"STRUCTURAL", "CRITICAL"} for e in fresh)
+        corroboration = any(e["dimension"] in {"SUPPLY_DEMAND", "RELATIVE_STRENGTH",
+                                                "INDUSTRY_FUNDAMENTALS"} for e in fresh)
+        return structural and anchor and corroboration if require_confirmation else (
+            structural and (anchor or corroboration))
     return structural and breadth and relative if require_confirmation else structural and (breadth or relative)
 
 
@@ -214,7 +221,7 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
                 errors.append(f"{episode}:industry_downgrade_without_primary_counter")
         if m0 != m1:
             direction = "COUNTER" if STATES[m1] < STATES[m0] else "SUPPORT"
-            if not _market_state_evidence(qualified, direction, before, require_confirmation=m1 == "趋势确认"):
+            if not _market_state_evidence(qualified, direction, before, require_confirmation=m1 == "趋势确认", commodity=now.get("trend_basis") == "COMMODITY"):
                 errors.append(f"{episode}:market_change_without_independent_evidence")
     # Prospective SW3-level routing audit. No retroactive rewriting of 10/26.
     # This checks the presence, identity and provenance of each independent
@@ -224,6 +231,10 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
             episode = theme.get("episode_id")
             assessments = theme.get("industry_assessments")
             codes, names = theme.get("industry_codes"), theme.get("industry_names")
+            if theme.get("market_state") == "观察":
+                if theme.get("in_new_position_priority") is True:
+                    errors.append(f"{episode}:observation_in_priority")
+                continue
             if not isinstance(assessments, list) or not isinstance(codes, list) or not isinstance(names, list):
                 errors.append(f"{episode}:sw3_assessments_missing")
                 continue
@@ -239,7 +250,7 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
                     continue
                 code = row.get("industry_code")
                 if (row.get("benefit_level") not in {"CORE", "DIRECT"} or
-                    row.get("market_state") not in TRACK or
+                    row.get("market_state") not in (TRACK if theme.get("trend_basis") == "COMMODITY" else TRACK - {"观察"}) or
                     row.get("evidence_trade_date") != day or
                     not isinstance(row.get("benefit_reason"), str) or
                     len(row["benefit_reason"].strip()) < 12 or
@@ -248,13 +259,31 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
                     errors.append(f"{episode}:{code}:sw3_independent_evidence_missing")
                 if row.get("market_state") == "趋势确认":
                     confirmed += 1
-            if theme.get("market_state") == "趋势确认" and confirmed < 1:
+            if (theme.get("market_state") == "趋势确认" and confirmed < 1 and
+                theme.get("trend_basis") != "COMMODITY"):
                 errors.append(f"{episode}:confirmed_without_confirmed_sw3")
 
     for item in proposed["trends"]:
         episode = item.get("episode_id")
         if item.get("market_state") not in TRACK or item.get("lifecycle_status") == "已失效":
             errors.append(f"{episode}:nontracking_persisted")
+        if item.get("market_state") == "观察" and item.get("in_new_position_priority") is True:
+            errors.append(f"{episode}:observation_in_priority")
+        if item.get("trend_basis") not in (None, "A_SHARE", "COMMODITY"):
+            errors.append(f"{episode}:invalid_trend_basis")
+        if item.get("trend_basis") == "COMMODITY":
+            anchor = item.get("commodity_anchor")
+            if (not isinstance(anchor, dict) or
+                not isinstance(anchor.get("instrument"), str) or
+                not isinstance(anchor.get("price_basis"), str) or
+                not isinstance(anchor.get("trade_date"), str) or
+                not DAY.fullmatch(anchor["trade_date"]) or
+                anchor["trade_date"] > day or
+                not isinstance(anchor.get("source"), str) or
+                not SOURCE.fullmatch(anchor["source"]) or
+                not isinstance(anchor.get("trend_reason"), str) or
+                len(anchor["trend_reason"].strip()) < 12):
+                errors.append(f"{episode}:commodity_anchor_missing")
         if item.get("trend_state") not in T_STATES:
             errors.append(f"{episode}:invalid_state")
         if episode in prior_by_id:
@@ -276,6 +305,7 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
             review = next((r for r in new_reviews if r.get("episode_id") == episode), None)
             facts = review.get("evidence", []) if isinstance(review, dict) else []
             qualified = [e for e in facts if _valid_evidence(e, day)]
-            if len(facts) != len(qualified) or not _market_state_evidence(qualified, "SUPPORT", before, True):
+            if len(facts) != len(qualified) or not _market_state_evidence(
+                    qualified, "SUPPORT", before, True, commodity=item.get("trend_basis") == "COMMODITY"):
                 errors.append(f"{episode}:new_confirmation_without_independent_evidence")
     return errors
