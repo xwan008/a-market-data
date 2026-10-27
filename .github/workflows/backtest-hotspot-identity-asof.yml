@@ -1,0 +1,96 @@
+name: PR60 immutable as-of identity-first mainboard backtest
+
+on:
+  push:
+    branches:
+      - feature/hotspot-theme-identification-20261026
+    paths:
+      - .github/workflows/backtest-hotspot-identity-asof.yml
+      - scripts/backtest_hotspot_identity_asof.py
+      - tests/test_hotspot_identity_asof_backtest.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  immutable-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Restore 14 exact original daily Git commits
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,subprocess
+          from pathlib import Path
+          manifest=json.loads(Path("research/backtests/sector_discovery_asof_manifest_20260917_20261009.json").read_text())
+          assert len(manifest["snapshots"])==14
+          for item in manifest["snapshots"]:
+              day,sha=item["trade_date"],item["commit"]
+              subprocess.run(["git","fetch","--filter=blob:none","--depth=1","--no-tags","origin",sha],
+                             check=True,stdout=subprocess.DEVNULL)
+              for original,desired in (
+                  ("data/latest.json","latest.json"),
+                  ("data/research/company_industry_index.json","company_industry_index.json")):
+                  dest=Path("/tmp/pr60_asof_inputs")/day/desired
+                  dest.parent.mkdir(parents=True,exist_ok=True)
+                  with dest.open("wb") as out:
+                      subprocess.run(["git","show",f"{sha}:{original}"],check=True,stdout=out)
+              latest=json.loads((Path("/tmp/pr60_asof_inputs")/day/"latest.json").read_text())
+              assert latest.get("trade_date")==day, "HISTORICAL_SNAPSHOT_DATE_MISMATCH"
+              assert latest.get("market_status")=="closed", "HISTORICAL_SNAPSHOT_NOT_CLOSED"
+              print("IMMUTABLE_ASOF_DAY",day,sha,flush=True)
+          PY
+      - name: Unit regression and integrity negative controls
+        run: |
+          python -m py_compile scripts/backtest_hotspot_identity_asof.py
+          python -m unittest discover -s tests -p "test_hotspot_identity_asof_backtest.py" -v
+          python -m unittest discover -s tests -p "test_hotspot_identity_pipeline.py" -v
+          python -m unittest discover -s tests -p "test_hotspot_identity_publication.py" -v
+          python -m unittest discover -s tests -p "test_hotspot_theme_router.py" -v
+      - name: Strict as-of industry replay twice and future quote poisoning control
+        run: |
+          python -u scripts/backtest_hotspot_identity_asof.py \
+            --root /tmp/pr60_asof_inputs \
+            --manifest research/backtests/sector_discovery_asof_manifest_20260917_20261009.json \
+            --output /tmp/pr60_identity_asof_report.json \
+            --legacy-output /tmp/pr60_original_sector_forward_proxy.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report=json.loads(Path("/tmp/pr60_identity_asof_report.json").read_text())
+          original=json.loads(Path("/tmp/pr60_original_sector_forward_proxy.json").read_text())
+          assert report["sessions"]==14
+          assert report["identical_second_run"]=="PASSED"
+          assert report["forward_data_mutation_test"]=="PASSED"
+          assert report["industry_code_only_routes_tested"]>=14
+          assert original["days"]==14
+          assert report["historical_concept_membership_available"] is False
+          assert report["historical_candidate_confirmed_state_reproduced"] is False
+          print("PR60_HISTORICAL_REPLAY_SUMMARY",json.dumps({
+              "sessions":report["sessions"],
+              "sectors":report["sector_observations"],
+              "metric_mismatches":report["mismatched_original_vs_new_market_quote_metrics"],
+              "code_only_routes":report["industry_code_only_routes_tested"],
+              "determinism":report["identical_second_run"],
+              "no_future_prices":report["forward_data_mutation_test"],
+              "original_industry_forward_proxy":original["summary"]
+          },ensure_ascii=False),flush=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pr60-mainboard-asof-14sessions-audit
+          path: |
+            /tmp/pr60_identity_asof_report.json
+            /tmp/pr60_original_sector_forward_proxy.json
+          retention-days: 30
+          if-no-files-found: ignore
