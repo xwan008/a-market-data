@@ -10,7 +10,8 @@ from __future__ import annotations
 import argparse
 import json
 import re
-from datetime import date
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
 from pathlib import Path
 
 SW_CODE = re.compile(r"^S\d{6}$")
@@ -64,11 +65,12 @@ def validate_registry(registry):
     return index, aliases
 
 
-def verify_concept_members(catalog, trade_date, code):
+def verify_concept_members(catalog, trade_date, code, source=None):
     if catalog is None:
         return "DATA_INSUFFICIENT", None, "CONCEPT_MEMBERSHIP_NOT_AVAILABLE"
     if (catalog.get("schema_version") != 1 or
-            catalog.get("as_of_trade_date") != trade_date or not catalog.get("source")):
+            catalog.get("as_of_trade_date") != trade_date or not catalog.get("source") or
+            (source is not None and catalog.get("source") != source)):
         return "DATA_INSUFFICIENT", None, "CONCEPT_MEMBERSHIP_DATE_OR_SOURCE_INVALID"
     rows = [r for r in catalog.get("concepts", []) if str(r.get("concept_id")) == code]
     if len(rows) != 1:
@@ -82,7 +84,7 @@ def verify_concept_members(catalog, trade_date, code):
     return "VERIFIED", [c for c in codes if c.startswith(MAINBOARD)], "CONCEPT_MEMBERS_VERIFIED"
 
 
-def resolve(discovery, registry, catalog=None):
+def resolve(discovery, registry, catalog=None, industry_index=None, resolved_at=None):
     if (discovery.get("schema_version") != 1 or
             discovery.get("result_kind") != "independent_hotspot_discovery_frozen" or
             discovery.get("discovery_stage") != "FROZEN_BEFORE_HISTORICAL_REVIEW" or
@@ -96,6 +98,13 @@ def resolve(discovery, registry, catalog=None):
             raise ValueError("DISCOVERY_FREEZE_DATE_MISMATCH")
     except ValueError:
         raise ValueError("DISCOVERY_DATE_INVALID")
+    if resolved_at is None:
+        resolved_at = datetime.now(ZoneInfo("Asia/Shanghai")).isoformat()
+    try:
+        if datetime.fromisoformat(resolved_at) < datetime.fromisoformat(discovery["frozen_at"]):
+            raise ValueError("IDENTITY_RESOLUTION_BEFORE_DISCOVERY_FREEZE")
+    except (TypeError, ValueError) as ex:
+        raise ValueError("IDENTITY_RESOLUTION_TIMESTAMP_INVALID") from ex
     index, aliases = validate_registry(registry)
     out = []
     used = set()
@@ -137,7 +146,18 @@ def resolve(discovery, registry, catalog=None):
                     code not in original["industry_seed_codes"]):
                 issue = "INDUSTRY_ORIGIN_OR_DRIVER_CONFLICT"
             else:
-                choice = ("INDUSTRY", code)
+                companies = ((industry_index or {}).get("companies") or {})
+                valid_industries = {
+                    str(v.get("industry_code")) for c, v in companies.items()
+                    if v.get("mapping_status") == "mapped" and
+                       CODE.fullmatch(str(c).zfill(6))
+                }
+                if not valid_industries:
+                    issue = "SW_MEMBERSHIP_NOT_AVAILABLE"
+                elif not set(original["industry_seed_codes"]).issubset(valid_industries):
+                    issue = "SW_INDUSTRY_CODES_NOT_IN_MEMBERSHIP_SOURCE"
+                else:
+                    choice = ("INDUSTRY", code)
         elif kind == "THEME":
             if (not CODE.fullmatch(code) or
                     driver_kind != "TECHNOLOGY_CATALYST" or
@@ -164,7 +184,8 @@ def resolve(discovery, registry, catalog=None):
                 issue = "HOTSPOT_IDENTITY_NOT_UNIQUELY_MATCHED"
         member_codes = None
         if choice and choice[0] == "THEME":
-            verdict, members, reason = verify_concept_members(catalog, trade_date, choice[1])
+            verdict, members, reason = verify_concept_members(
+                catalog, trade_date, choice[1], index[choice]["source"])
             if verdict != "VERIFIED":
                 issue = reason
             else:
@@ -172,8 +193,11 @@ def resolve(discovery, registry, catalog=None):
                 if not members:
                     issue = "CONCEPT_HAS_NO_SH_SZ_MAINBOARD_STOCKS"
         if issue:
-            state = ("DATA_INSUFFICIENT" if issue.startswith("CONCEPT_") and issue not in
-                     ("CONCEPT_ORIGIN_OR_DRIVER_CONFLICT",) else "MAPPING_UNRESOLVED")
+            state = ("DATA_INSUFFICIENT" if (
+                (issue.startswith("CONCEPT_") and issue != "CONCEPT_ORIGIN_OR_DRIVER_CONFLICT") or
+                issue.startswith("SW_MEMBERSHIP_") or
+                issue.startswith("SW_INDUSTRY_CODES_NOT_IN_")
+            ) else "MAPPING_UNRESOLVED")
             choice = None
         else:
             state = "VERIFIED"
@@ -196,6 +220,7 @@ def resolve(discovery, registry, catalog=None):
         "result_kind": "hotspot_identity_snapshot",
         "trade_date": trade_date,
         "discovery_frozen_at": discovery["frozen_at"],
+        "resolved_at": resolved_at,
         "market_scope": "SH_SZ_MAINBOARD_ONLY",
         "status": "COMPLETE" if all(x["mapping_status"] == "VERIFIED" for x in out)
                   else "NEEDS_IDENTITY_REVIEW",
@@ -209,10 +234,12 @@ def main():
     parser.add_argument("--discovery", required=True)
     parser.add_argument("--registry", default="research/hotspot_identity_registry.json")
     parser.add_argument("--concept-file", default=None)
+    parser.add_argument("--industry-index",default="data/research/company_industry_index.json")
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
     payload = resolve(read(args.discovery), read(args.registry),
-                      read(args.concept_file) if args.concept_file else None)
+                      read(args.concept_file) if args.concept_file else None,
+                      read(args.industry_index))
     p = Path(args.output)
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
