@@ -330,13 +330,34 @@ jobs:
             echo "daily market data unchanged after staging"
           else
             git commit -m "data: update daily market dataset"
-            git push origin HEAD:main
+            # Repository policy and research docs can change while the market
+            # refresh is running. Rebase only the validated data commit on main;
+            # never force-push or silently accept a same-file conflict.
+            published=false
+            for attempt in 1 2 3; do
+              git fetch origin main --quiet
+              if ! git rebase origin/main; then
+                git rebase --abort || true
+                echo "DATA_PUBLICATION_CONFLICT: cannot reconcile remote main"
+                exit 1
+              fi
+              if git push origin HEAD:main; then
+                published=true
+                break
+              fi
+              echo "Concurrent main update detected; retrying verified data commit"
+            done
+            if test "$published" != true; then
+              echo "DATA_PUBLICATION_RETRY_EXHAUSTED"
+              exit 1
+            fi
           fi
 
-          # Read back the pushed commit and the actual small auxiliary artifacts.
+          # Read back the published data, permitting later unrelated commits
+          # while checking that the exact data artifacts are still intact.
           # Optional evidence may be absent, but never claim successful Python verification then.
           git fetch origin main --quiet
-          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
+          git merge-base --is-ancestor HEAD origin/main || { echo "PUBLISHED_COMMIT_NOT_ON_MAIN"; exit 1; }
           python - <<'PY'
           import json
           import subprocess
