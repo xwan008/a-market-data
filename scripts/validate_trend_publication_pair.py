@@ -44,6 +44,11 @@ def validate(registry, handoff):
     ids = [t.get("episode_id") for t in trends]
     if not all(isinstance(x, str) and x for x in ids) or len(set(ids)) != len(ids):
         errors.append("duplicate_or_missing_episode_ids")
+    prospective = registry.get("trade_date", "") >= "2026-10-27"
+    if prospective:
+        if any(t.get("in_new_position_priority") is True and
+               t.get("market_state") != "趋势确认" for t in trends):
+            errors.append("only_confirmed_in_priority")
     priority = [t for t in trends if t.get("in_new_position_priority") is True]
     actual = [s.get("trend_name") for s in signals]
     expected = [t.get("trend_name") for t in priority]
@@ -59,9 +64,30 @@ def validate(registry, handoff):
             errors.append(f"{name}:nonsequential_rank")
         if source is None:
             continue
-        for field in ("trend_state", "market_state", "industry_codes", "industry_names"):
+        for field in (("trend_state", "market_state") if prospective
+                      else ("trend_state", "market_state", "industry_codes", "industry_names")):
             if signal.get(field) != source.get(field):
                 errors.append(f"{name}:{field}_mismatch")
+        if prospective:
+            # A confirmed commodity can exist without a confirmed A-share route.
+            # Only independently confirmed DIRECT/CORE SW3 industries may enter
+            # the stock-buy study; never pass the broad-theme route through.
+            a = source.get("industry_assessments")
+            if not isinstance(a, list):
+                errors.append(f"{name}:industry_assessments_missing")
+                a = []
+            allowed = [x for x in a if isinstance(x, dict) and
+                       x.get("market_state") == "趋势确认" and
+                       x.get("benefit_level") in {"CORE", "DIRECT"}]
+            eligible = {x.get("industry_code"): x.get("industry_name") for x in allowed}
+            route = list(zip(signal.get("industry_codes") or [],
+                             signal.get("industry_names") or []))
+            if (not route or len(route) != len(signal.get("industry_codes") or [])
+                    or any(eligible.get(code) != label for code, label in route)
+                    or len(set(code for code, _ in route)) != len(route)):
+                errors.append(f"{name}:unconfirmed_industry_route")
+            elif set(code for code, _ in route) != set(eligible):
+                errors.append(f"{name}:confirmed_route_incomplete")
         codes = signal.get("industry_codes")
         labels = signal.get("industry_names")
         if (not isinstance(codes, list) or not codes or
@@ -69,7 +95,8 @@ def validate(registry, handoff):
             errors.append(f"{name}:invalid_industry_route")
         if source.get("lifecycle_status") == "已失效":
             errors.append(f"{name}:invalidated_theme_handed_off")
-        if source.get("market_state") not in {"趋势确认", "候选趋势"}:
+        if source.get("market_state") not in ({"趋势确认"} if prospective
+                                               else {"趋势确认", "候选趋势"}):
             errors.append(f"{name}:ineligible_priority_state")
     return errors
 
