@@ -95,7 +95,7 @@ def build_verified_routes(handoff, industry_index, latest, structure, identities
             identities.get("result_kind") != "hotspot_identity_snapshot" or
             identities.get("trade_date") != day or
             identities.get("market_scope") != "SH_SZ_MAINBOARD_ONLY" or
-            identities.get("status") != "COMPLETE"):
+            identities.get("status") not in ("COMPLETE", "NEEDS_IDENTITY_REVIEW")):
         raise ValueError("IDENTITY_OR_MARKET_HANDOFF_DATE_SCOPE_INVALID")
     if not (handoff.get("source") or {}).get("identity_verified_before_state") is True:
         raise ValueError("HANDOFF_NOT_ADJUDICATED_AFTER_IDENTITY")
@@ -126,7 +126,7 @@ def build_verified_routes(handoff, industry_index, latest, structure, identities
     if not industry_companies or not quotes or not structures:
         raise ValueError("MARKET_RESEARCH_UNIVERSE_EMPTY")
     matched_concepts = {}
-    if any(a.get("board_type") == "THEME" for a in ids):
+    if any(by_name[signal["trend_name"]].get("board_type") == "THEME" for signal in signals):
         if catalog is None:
             raise ValueError("VERIFIED_CONCEPT_MEMBERSHIP_REQUIRED")
         validate_memberships(catalog, day)
@@ -156,7 +156,8 @@ def build_verified_routes(handoff, industry_index, latest, structure, identities
                 "classification_reason": "IDENTITY_ORIGIN_AND_DRIVER_VERIFIED",
             }
         elif kind == "THEME":
-            if identity.get("concept_code") != code or code not in matched_concepts:
+            if (identity.get("concept_code") != code or code not in matched_concepts or
+                    identity.get("origin_source") != catalog["source"]):
                 raise ValueError("VERIFIED_CONCEPT_CODE_OR_MEMBERSHIP_MISSING")
             members = matched_concepts[code]["member_codes"]
             scoped = {c for c in members if is_main_board(c)}
