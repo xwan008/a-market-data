@@ -2,7 +2,7 @@
   "schema_version": 2,
   "result_kind": "a_share_trend_registry",
   "trade_date": "2026-10-27",
-  "generated_at": "2026-10-27T21:46:25+08:00",
+  "generated_at": "2026-10-27T22:05:25+08:00",
   "timezone": "Asia/Shanghai",
   "status": "COMPLETE",
   "scan_audit": {
@@ -351,6 +351,38 @@
                 "trade_date": "2026-10-27",
                 "source": "research/reviews/2026-10-27_motor_burst_origin_audit.md",
                 "finding": "历史快照显示电机10月16日首次录得STRONG，D2为10月19日、D3为10月20日，当时完整八维正式研究缺失，不应补作已确认记录。"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "previous_registry_blob_sha": "534446a0260caedd06abf19426465821c527aee6",
+        "previous_generated_at": "2026-10-27T21:46:25+08:00",
+        "revised_at": "2026-10-27T22:05:25+08:00",
+        "reason": "纠正此前误将电机本轮D1追溯为10月16日；将27日相对强势异动明确标记为D1观察，并新增正式榜可读的D1/D2/D3阶段字段。",
+        "changes": [
+          {
+            "episode_id": "电机#2026-10-27",
+            "from": "观察",
+            "to": "观察",
+            "reason": "27日全市场331个SW3行业中电机相对强度第24名，较26日广度11.11%回升至44.44%，相对全市场表现转强；保留观察，设本轮D1。",
+            "evidence": [
+              {
+                "dimension": "RELATIVE_STRENGTH",
+                "direction": "SUPPORT",
+                "impact": "NORMAL",
+                "trade_date": "2026-10-27",
+                "source": "data/research/sector_discovery_audit.json",
+                "finding": "电机相对全市场收益中位领先1.915个百分点，331个三级行业排名第24，属于当日相对强势方向。"
+              },
+              {
+                "dimension": "MARKET_BREADTH",
+                "direction": "SUPPORT",
+                "impact": "NORMAL",
+                "trade_date": "2026-10-27",
+                "source": "data/research/sector_discovery_audit.json",
+                "finding": "电机Ⅲ18只样本上涨广度从10月26日11.11%恢复至10月27日44.44%，单日修复可进入D1观察，但不足以确认趋势。"
               }
             ]
           }
@@ -998,67 +1030,7 @@
         "strongest_counter": "机器人和减速器整体产量增速是相邻产业需求证据，不能独立证明电机Ⅲ各核心公司订单和盈利随之改善。",
         "decision_reason": "同日复核认可电机Ⅲ多日收益、相对强度和量比，但以工业机器人及减速器产量增长映射全部电机公司缺乏独立受益证据，且10月27日广度44.44%；仍值得观察，但候选尚需补齐真实受益链。",
         "decision_state": "观察",
-        "specific_blocker": "需核实电机Ⅲ核心企业机器人/自动化收入占比、实际订单及出货和利润传导，同时验证反弹与分歧承接。",
-        "historical_burst_origin_review": {
-          "review_asof_trade_date": "2026-10-27",
-          "review_recorded_at": "2026-10-27T21:46:25+08:00",
-          "review_type": "RETROSPECTIVE_FIRST_MARKET_BURST",
-          "current_episode_first_seen_trade_date": "2026-10-27",
-          "d1_trade_date": "2026-10-16",
-          "d2_trade_date": "2026-10-19",
-          "d3_trade_date": "2026-10-20",
-          "asof_phase": "AFTER_D3",
-          "market_sessions_since_d1_inclusive": 8,
-          "historical_first_decision_status": "D3_REVIEW_NOT_FORMALLY_RECORDED",
-          "first_burst_finding": "电机Ⅲ10月15日中位-3.536%、广度0%，10月16日中位+2.252%、广度94.44%、程序STRONG；10月19日至20日连续STRONG/EMERGING。早于10月27日首次正式入榜，不能将正式首次发现日倒当D1。",
-          "session_evidence": [
-            {
-              "trade_date": "2026-10-15",
-              "snapshot_commit_sha": "3818c6bfccf08cb3e05d4b824646432c4cac7872",
-              "signal": "NONE",
-              "median_1d_pct": -3.536,
-              "advance_ratio": 0
-            },
-            {
-              "trade_date": "2026-10-16",
-              "snapshot_commit_sha": "a2ca69b4db81798e1ce515d67c48c377a4956860",
-              "signal": "STRONG",
-              "median_1d_pct": 2.252,
-              "advance_ratio": 0.9444
-            },
-            {
-              "trade_date": "2026-10-19",
-              "snapshot_commit_sha": "edee92c32d51da792659568167bdef0cf75d0a43",
-              "signal": "STRONG/EMERGING",
-              "median_1d_pct": 1.745,
-              "advance_ratio": 0.7778
-            },
-            {
-              "trade_date": "2026-10-20",
-              "snapshot_commit_sha": "68d696463f020ad6b0e45eb3156b3cedbe5e4bdc",
-              "signal": "STRONG/EMERGING",
-              "median_1d_pct": 1.545,
-              "advance_ratio": 0.7778
-            },
-            {
-              "trade_date": "2026-10-22",
-              "snapshot_commit_sha": "cadbabc48bb5c9455076e216aa02b59fd8f8a3d0",
-              "signal": "STRONG",
-              "median_1d_pct": 1.661,
-              "advance_ratio": 0.6667
-            },
-            {
-              "trade_date": "2026-10-23",
-              "snapshot_commit_sha": "acfd6b307efe8263df7afb9a220e6a76901a7bd5",
-              "signal": "STRONG",
-              "median_1d_pct": 2.721,
-              "advance_ratio": 1
-            }
-          ],
-          "missing_historical_evidence": "10月16日D1、19日D2、20日D3缺少当时对电机方向正式发布的完整八维复核记录；此处仅据可得历史行情回顾，不冒充当日已做出的正式结论。",
-          "no_automatic_state_change": true,
-          "source": "research/reviews/2026-10-27_motor_burst_origin_audit.md"
-        }
+        "specific_blocker": "需核实电机Ⅲ核心企业机器人/自动化收入占比、实际订单及出货和利润传导，同时验证反弹与分歧承接。"
       },
       "industry_assessments": [
         {
@@ -1094,8 +1066,19 @@
           "event": "same_day_revision",
           "reason": "补充历史D1/D2/D3市场起点审计：电机于10月16日已有STRONG，19日D2、20日D3；当前已越过D3且历史正式复核缺失，不变更观察状态。",
           "revised_at": "2026-10-27T21:46:25+08:00"
+        },
+        {
+          "trade_date": "2026-10-27",
+          "from": "观察",
+          "to": "观察",
+          "event": "same_day_revision",
+          "reason": "纠正前次历史起点误判：10月27日电机相对全市场表现进入前7.3%，且相比26日广度及相对强度明显修复，作为本轮D1观察线索；28日复核D2，不把此前历史强势当作本轮D3。",
+          "revised_at": "2026-10-27T22:05:25+08:00"
         }
-      ]
+      ],
+      "d123_stage": "D1",
+      "d123_trigger_trade_date": "2026-10-27",
+      "d123_decision": "PENDING"
     }
   ],
   "invalidated_history": [

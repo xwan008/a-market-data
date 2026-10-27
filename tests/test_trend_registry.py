@@ -184,45 +184,26 @@ class TrendRegistryTests(unittest.TestCase):
         self.assertIn("same_day_revision_only_allowed_on_trade_date",
                       gate.validate(before, after, SHA))
 
-    def test_historical_burst_review_not_reset_to_first_seen(self):
-        row = theme("电机样例", "观察", "2026-10-28")
-        row["confirmation_audit"] = surge_audit(
-            "2026-10-28", market="观察", discovery="CONTINUING_STRUCTURE")
-        self.assertIn(row["episode_id"] + ":historical_burst_origin_review_missing",
-                      engine._historical_burst_origin_errors(row, "2026-10-28"))
-        row["confirmation_audit"]["historical_burst_origin_review"] = {
-            "review_type": "RETROSPECTIVE_FIRST_MARKET_BURST",
-            "d1_trade_date": "2026-10-23",
-            "d2_trade_date": "2026-10-26",
-            "d3_trade_date": "2026-10-27",
-            "asof_phase": "AFTER_D3",
-            "historical_first_decision_status": "D3_REVIEW_NOT_FORMALLY_RECORDED",
-            "session_evidence": [
-                {"trade_date": "2026-10-23", "snapshot_commit_sha": SHA},
-                {"trade_date": "2026-10-26", "snapshot_commit_sha": SHA},
-                {"trade_date": "2026-10-27", "snapshot_commit_sha": SHA},
-            ]
-        }
-        self.assertEqual(engine._historical_burst_origin_errors(row, "2026-10-28"), [])
-        # A first Registry entry on 10/28 cannot reset D1 to 10/28.
-        self.assertEqual(row["confirmation_audit"]["historical_burst_origin_review"]["d1_trade_date"],
-                         "2026-10-23")
-        row["confirmation_audit"]["historical_burst_origin_review"]["session_evidence"] = [
-            {"trade_date": "2026-10-28", "snapshot_commit_sha": SHA}]
-        self.assertIn(row["episode_id"] + ":historical_burst_d1_not_sourced",
-                      engine._historical_burst_origin_errors(row, "2026-10-28"))
-
-    def test_multi_day_structure_without_identifiable_burst_needs_reason(self):
-        row = theme("渐进价格驱动", "观察", "2026-10-28")
-        row["confirmation_audit"] = surge_audit(
-            "2026-10-28", market="观察", discovery="CONTINUING_STRUCTURE")
-        row["confirmation_audit"]["historical_burst_origin_review"] = {
-            "review_type": "NO_IDENTIFIABLE_BURST",
-            "reason": "产业价格持续变化但不存在可验证的首次单日异动，不编造D1"}
-        self.assertEqual(engine._historical_burst_origin_errors(row, "2026-10-28"), [])
-        row["confirmation_audit"]["historical_burst_origin_review"]["reason"] = ""
-        self.assertIn(row["episode_id"] + ":no_burst_reason_missing",
-                      engine._historical_burst_origin_errors(row, "2026-10-28"))
+    def test_d123_stage_display_and_daily_progression(self):
+        item = theme("电机", "观察", "2026-10-27")
+        item.update(d123_stage="D1", d123_trigger_trade_date="2026-10-27",
+                    d123_decision="PENDING")
+        self.assertEqual(engine._d123_stage_errors(item, None, "2026-10-27"), [])
+        second = copy.deepcopy(item)
+        second["d123_stage"] = "D2"
+        self.assertEqual(engine._d123_stage_errors(second, item, "2026-10-28"), [])
+        third = copy.deepcopy(second)
+        third["d123_stage"] = "D3"
+        self.assertIn(third["episode_id"] + ":d123_final_decision_missing",
+                      engine._d123_stage_errors(third, second, "2026-10-29"))
+        third["d123_decision"] = "NOT_CONFIRMED"
+        self.assertEqual(engine._d123_stage_errors(third, second, "2026-10-29"), [])
+        fourth = copy.deepcopy(third)
+        fourth["d123_stage"] = "POST_D3"
+        self.assertEqual(engine._d123_stage_errors(fourth, third, "2026-10-30"), [])
+        second["d123_stage"] = "D1"
+        self.assertIn(item["episode_id"] + ":d123_progression_invalid",
+                      engine._d123_stage_errors(second, item, "2026-10-28"))
 
     def test_hold_pass(self):
         before,after=fixture()

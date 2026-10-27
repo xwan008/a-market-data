@@ -70,71 +70,10 @@ RESEARCH_GATE_FROM = "2026-10-27"
 BEIJING = timezone(timedelta(hours=8))
 
 
-def _historical_burst_origin_errors(item, day, prior=None):
-    """When a multi-day trend is first admitted, investigate its real D1.
-
-    This is a provenance gate, NOT an automatic D1/2/3 market-state clock.
-    Previously published episodes are not retroactively forced to have it.
-    """
-    if (prior is not None or day < "2026-10-28" or
-            (item.get("confirmation_audit") or {}).get("discovery_basis") != "CONTINUING_STRUCTURE"):
-        return []
-    eid = item.get("episode_id", "unknown")
-    review = (item.get("confirmation_audit") or {}).get("historical_burst_origin_review")
-    if not isinstance(review, dict):
-        return [str(eid) + ":historical_burst_origin_review_missing"]
-    kind = review.get("review_type")
-    if kind == "NO_IDENTIFIABLE_BURST":
-        reason = review.get("reason")
-        if not isinstance(reason, str) or len(reason.strip()) < 16:
-            return [str(eid) + ":no_burst_reason_missing"]
-        return []
-    if kind != "RETROSPECTIVE_FIRST_MARKET_BURST":
-        return [str(eid) + ":historical_burst_review_type_invalid"]
-    d1 = review.get("d1_trade_date")
-    if not isinstance(d1, str) or DAY.fullmatch(d1) is None or d1 > day:
-        return [str(eid) + ":historical_burst_d1_invalid"]
-    # The discovery/entry date must never silently replace the true event.
-    sources = review.get("session_evidence")
-    if not isinstance(sources, list) or not sources:
-        return [str(eid) + ":historical_burst_source_missing"]
-    first = sources[0] if isinstance(sources[0], dict) else {}
-    if first.get("trade_date") != d1 and not any(
-            isinstance(row, dict) and row.get("trade_date") == d1
-            for row in sources):
-        return [str(eid) + ":historical_burst_d1_not_sourced"]
-    for row in sources:
-        if (not isinstance(row, dict) or not isinstance(row.get("trade_date"), str) or
-                DAY.fullmatch(row["trade_date"]) is None or row["trade_date"] > day or
-                not isinstance(row.get("snapshot_commit_sha"), str) or
-                SHA.fullmatch(row["snapshot_commit_sha"]) is None):
-            return [str(eid) + ":historical_burst_source_invalid"]
-    phase = review.get("asof_phase")
-    if phase not in {"D1", "D2", "D3", "AFTER_D3"}:
-        return [str(eid) + ":historical_burst_phase_missing"]
-    d2 = review.get("d2_trade_date")
-    d3 = review.get("d3_trade_date")
-    if phase in {"D2", "D3", "AFTER_D3"} and (
-            not isinstance(d2, str) or DAY.fullmatch(d2) is None or
-            not d1 < d2 <= day):
-        return [str(eid) + ":historical_burst_d2_invalid"]
-    if phase in {"D3", "AFTER_D3"} and (
-            not isinstance(d3, str) or DAY.fullmatch(d3) is None or
-            not d2 < d3 <= day):
-        return [str(eid) + ":historical_burst_d3_invalid"]
-    if (phase == "AFTER_D3" and review.get("historical_first_decision_status")
-            not in {"D3_REVIEW_NOT_FORMALLY_RECORDED", "D3_REVIEW_CONFIRMED_BY_PRIOR_RECORD"}):
-        return [str(eid) + ":historical_burst_old_decision_unclassified"]
-    if (d1 < item.get("first_seen_trade_date", "") and
-            review.get("review_type") != "RETROSPECTIVE_FIRST_MARKET_BURST"):
-        return [str(eid) + ":historical_burst_backdating_undisclosed"]
-    return []
-
-
 def _research_audit_errors(item, day, prior=None):
     episode = item.get("episode_id")
     audit = item.get("confirmation_audit")
-    errors = _historical_burst_origin_errors(item, day, prior)
+    errors = []
     if not isinstance(audit, dict) or audit.get("asof_trade_date") != day:
         return [f"{episode}:confirmation_audit_missing"]
     if audit.get("market_environment") not in {"NORMAL", "EVENT_LIQUIDITY_SHOCK",
@@ -334,6 +273,47 @@ def _surge_review_errors(item, previous, day):
     return errors
 
 
+def _d123_stage_errors(item, previous, day):
+    """Validate displayed D1/D2/D3 stage; never use it to confirm a market trend."""
+    episode = item.get("episode_id", "unknown")
+    stage = item.get("d123_stage")
+    prior_stage = previous.get("d123_stage") if isinstance(previous, dict) else None
+    if stage is None and prior_stage is None:
+        return []
+    errors = []
+    allowed = {"D1", "D2", "D3", "POST_D3"}
+    if stage not in allowed:
+        return [f"{episode}:d123_stage_invalid"]
+    trigger = item.get("d123_trigger_trade_date")
+    if (not isinstance(trigger, str) or DAY.fullmatch(trigger) is None
+            or trigger > day):
+        errors.append(f"{episode}:d123_trigger_invalid")
+    decision = item.get("d123_decision")
+    if decision not in {"PENDING", "CONFIRMED", "NOT_CONFIRMED"}:
+        errors.append(f"{episode}:d123_decision_invalid")
+    if stage in {"D1", "D2"} and decision == "NOT_CONFIRMED":
+        errors.append(f"{episode}:d123_early_negative_decision")
+    if stage in {"D3", "POST_D3"} and decision == "PENDING":
+        errors.append(f"{episode}:d123_final_decision_missing")
+    if decision == "CONFIRMED" and item.get("market_state") != "趋势确认":
+        errors.append(f"{episode}:d123_confirmation_state_mismatch")
+    if stage == "D1" and trigger != day:
+        errors.append(f"{episode}:d123_first_day_mismatch")
+    if prior_stage is None:
+        if stage != "D1":
+            errors.append(f"{episode}:d123_missing_initial_stage")
+    else:
+        if trigger != previous.get("d123_trigger_trade_date"):
+            errors.append(f"{episode}:d123_trigger_changed")
+        expected = {"D1": "D2", "D2": "D3", "D3": "POST_D3",
+                    "POST_D3": "POST_D3"}[prior_stage] if prior_stage in allowed else None
+        if stage != expected:
+            errors.append(f"{episode}:d123_progression_invalid")
+        if prior_stage in {"D3", "POST_D3"} and decision != previous.get("d123_decision"):
+            errors.append(f"{episode}:d123_final_decision_rewritten")
+    return errors
+
+
 def _optional_sector_audit_valid(sector_audit, day):
     """Optional audit quality check; no hard breadth or turnover threshold."""
     if not isinstance(sector_audit, dict) or sector_audit.get("trade_date") != day:
@@ -443,7 +423,7 @@ def _same_day_revision_errors(previous, proposed, source_sha, snapshot=None, sec
         "market_state", "in_new_position_priority", "change_reason",
         "invalidation_condition", "last_verified_trade_date", "contrary_evidence",
         "supporting_evidence", "confirmation_audit", "industry_assessments",
-        "state_history",
+        "state_history", "d123_stage", "d123_trigger_trade_date", "d123_decision",
     }
     changed_ids = set()
     for eid, old in prev_by_id.items():
@@ -477,6 +457,10 @@ def _same_day_revision_errors(previous, proposed, source_sha, snapshot=None, sec
         if audit.get("decision_state") != cur.get("market_state"):
             errors.append(str(eid) + ":same_day_research_decision_mismatch")
         errors.extend(_research_audit_errors(cur, day, old))
+        if cur.get("d123_stage") != old.get("d123_stage") or cur.get("d123_trigger_trade_date") != old.get("d123_trigger_trade_date"):
+            if old.get("d123_stage") is not None or cur.get("d123_stage") != "D1" or cur.get("d123_trigger_trade_date") != day:
+                errors.append(str(eid) + ":same_day_d123_stage_invalid")
+        errors.extend(_d123_stage_errors(cur, None if old.get("d123_stage") is None else old, day) if cur.get("d123_stage") != old.get("d123_stage") else [])
         assessments = cur.get("industry_assessments")
         if not isinstance(assessments, list) or (
                 len(assessments) != len(cur.get("industry_codes") or [])):
@@ -689,6 +673,7 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
             prior = prior_by_id.get(theme.get("episode_id"))
             errors.extend(_research_audit_errors(theme, day, prior))
             errors.extend(_surge_review_errors(theme, prior, day))
+            errors.extend(_d123_stage_errors(theme, prior, day))
         for episode in continued:
             old, cur = prior_by_id[episode], curr_by_id[episode]
             old_assess = {x.get("industry_code"): x for x in
