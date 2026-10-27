@@ -77,13 +77,26 @@ class ThemeBuyRoutingTests(unittest.TestCase):
                                   "trend_state": "T1", "market_state": "候选趋势",
                                   "original_industry_codes": ["S640701"],
                                   "hotspot_type": "THEME", "board_code":"BKTEST","mapping_source": "EASTMONEY_AKSHARE",
-                                  "mapping_code": "BKTEST", "concept_member_codes":
+                                  "mapping_code": "BKTEST",
+                                   "business_chain_gate": "VERIFIED_DIRECT_REVENUE_OR_SIGNED_ORDER",
+                                   "business_evidence_verified_at": DAY+"T18:32:00+08:00",
+                                   "concept_member_codes":
                                   ["000001", "000003", "000004"],
                                   "candidate_stocks": [
                                       {"rank": 1, "stock_code": "000003",
-                                       "industry_code": "S650101"},
+                                       "industry_code": "S650101",
+                                        "business_chain_status": "VERIFIED_DIRECT_COMMERCIAL_CHAIN",
+                                        "business_chain_node": "机器人伺服零部件",
+                                        "commercial_relationship": "DIRECT_COMPONENT_SUPPLIER",
+                                        "business_proof_type": "RECOGNIZED_SEGMENT_REVENUE",
+                                        "business_proof_document": "https://example.org/unit-test-000003.pdf"},
                                       {"rank": 2, "stock_code": "000004",
-                                       "industry_code": "S650101"}]}]}
+                                       "industry_code": "S650101",
+                                        "business_chain_status": "VERIFIED_DIRECT_COMMERCIAL_CHAIN",
+                                        "business_chain_node": "机器人伺服零部件",
+                                        "commercial_relationship": "DIRECT_COMPONENT_SUPPLIER",
+                                        "business_proof_type": "RECOGNIZED_SEGMENT_REVENUE",
+                                        "business_proof_document": "https://example.org/unit-test-000004.pdf"}]}]}
         self.put("route.json", self.route)
 
     def put_bytes(self, name, payload):
@@ -126,6 +139,18 @@ class ThemeBuyRoutingTests(unittest.TestCase):
         self.assertEqual([x["code"] for x in result["companies"]], ["000001"])
         self.assertEqual(result["screen_audit"]["research_scope"],
                          "dynamic_tertiary_industry_top5_after_lightweight_scan")
+
+    def test_theme_stock_missing_commercial_chain_proof_is_blocked(self):
+        self.route["routes"][0]["candidate_stocks"][0].pop("business_proof_document")
+        self.put("route.json", self.route)
+        with self.assertRaisesRegex(ValueError,"WITHOUT_VERIFIED_COMMERCIAL_CHAIN"):
+            self.run_builder()
+
+    def test_vendor_only_theme_top20_cannot_be_used_as_buy(self):
+        self.route["routes"][0].pop("business_chain_gate")
+        self.put("route.json", self.route)
+        with self.assertRaisesRegex(ValueError,"BUSINESS_CHAIN_NOT_VERIFIED_BEFORE_TOP20"):
+            self.run_builder()
 
     def test_missing_prestage_identity_flag_blocks_direct_buy(self):
         self.route.pop("identities_verified_before_state")
