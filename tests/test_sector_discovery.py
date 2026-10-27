@@ -87,6 +87,9 @@ class SectorDiscoveryTests(unittest.TestCase):
         self.assertIn("候选与观察均不得进入正式个股行动研究或handoff", protocol)
         self.assertIn("signals=[]", protocol)
         self.assertIn("market_environment_source", protocol)
+        for prohibited_named_case in ("银行", "石油", "机器人", "文化传媒",
+                                      "国家队", "ETF"):
+            self.assertNotIn(prohibited_named_case, protocol)
         self.assertIn("NO_ELIGIBLE_CONFIRMED_TREND", buy)
         self.assertIn("CORE/DIRECT+趋势确认", routing)
         self.assertIn("不得通过人工alias", routing)
