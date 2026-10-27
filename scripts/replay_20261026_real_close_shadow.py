@@ -73,7 +73,7 @@ def replay(index, latest, structure, registry, discovery, original_handoff):
     market=summarize(identity,index,latest,structure)
     # Reference discovery is the stored EXACT 10/26 sector file; it is
     # NOT the original eight independently frozen model discoveries.
-    old_metrics={x["id"]:x for x in discovery.get("all_industry_metrics") or []}
+    old_metrics={x["id"]:x for x in (read("data/research/sector_discovery_audit.json").get("sectors") or [])}
     evidence=[]
     for case,signal in zip(cases,market["hotspots"]):
         matched_old=[old_metrics.get("industry:"+code) for code in case["industry_codes"]]
