@@ -349,6 +349,11 @@ class TrendRegistryTests(unittest.TestCase):
         after["trends"].append(new)
         add_future_audit(after)
         new["confirmation_audit"]["discovery_basis"] = "ONE_DAY_SURGE"
+        new["surge_followup"] = {
+            "trigger_trade_date": "2026-10-27",
+            "sessions": [surge_session("2026-10-27")],
+            "decision": "PENDING", "decision_trade_date": None
+        }
         self.assertIn("A#" + OLD + ":sw3_assessments_missing",
                       gate.validate(before, after, SHA))
         after["trends"][0]["industry_assessments"] = [{
