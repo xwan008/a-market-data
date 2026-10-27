@@ -72,12 +72,18 @@ def add_future_audit(after):
 
 def surge_session(day, supported=False):
     state = "SUPPORTED" if supported else "ASSESSED"
-    return {"trade_date": day, "dimensions": {
+    dimensions = {
         label: {"status": state,
                 "finding": "本交易日独立复核了真实市场行情、产业证据与关键反证信息",
                 "source": "data/research/sector_discovery_audit.json"}
         for label in engine.SURGE_DIMENSIONS
-    }}
+    }
+    dimensions["funding_strength"].update(
+        measurement_basis="PRICE_VOLUME_PROXY",
+        observation_window="近5个完整交易日")
+    dimensions["breadth"].update(sample_size=6 if supported else None,
+                                 advancing_count=5 if supported else None)
+    return {"trade_date": day, "dimensions": dimensions}
 
 
 def surge_audit(day, market="观察", discovery="ONE_DAY_SURGE"):
@@ -446,6 +452,43 @@ class TrendRegistryTests(unittest.TestCase):
         self.assertIn(now["episode_id"] + ":breadth:surge_confirmed_without_support", errs)
         now["surge_followup"]["sessions"][-1] = surge_session("2026-10-28", True)
         self.assertEqual(engine._surge_review_errors(now, old, "2026-10-28"), [])
+
+    def test_money_strength_needs_provenance_and_breadth_needs_sample(self):
+        item = theme("传感器", "观察", "2026-10-27")
+        item["confirmation_audit"] = surge_audit("2026-10-27")
+        item["surge_followup"] = {
+            "trigger_trade_date": "2026-10-27",
+            "sessions": [surge_session("2026-10-27", supported=True)],
+            "decision": "PENDING", "decision_trade_date": None}
+        evidence = item["surge_followup"]["sessions"][0]["dimensions"]
+        evidence["funding_strength"]["measurement_basis"] = "UNVERIFIED"
+        evidence["breadth"]["advancing_count"] = 9
+        problems = engine._surge_review_errors(item, None, "2026-10-27")
+        self.assertIn(item["episode_id"] + ":funding_strength_basis_invalid", problems)
+        self.assertIn(item["episode_id"] + ":breadth_sample_invalid", problems)
+
+    def test_etf_market_event_cannot_confirm_without_independent_sector_support(self):
+        first = theme("科技链", "观察", "2026-10-27")
+        first["confirmation_audit"] = surge_audit("2026-10-27")
+        first["surge_followup"] = {
+            "trigger_trade_date": "2026-10-27",
+            "sessions": [surge_session("2026-10-27")],
+            "decision": "PENDING", "decision_trade_date": None}
+        current = copy.deepcopy(first)
+        current["market_state"] = "趋势确认"
+        current["confirmation_audit"] = surge_audit(
+            "2026-10-28", market="趋势确认", discovery="CONTINUING_STRUCTURE")
+        current["confirmation_audit"]["market_environment"] = "EVENT_LIQUIDITY_SHOCK"
+        current["surge_followup"]["sessions"].append(surge_session("2026-10-28", True))
+        current["surge_followup"]["decision"] = "CONFIRMED"
+        current["surge_followup"]["decision_trade_date"] = "2026-10-28"
+        self.assertIn(first["episode_id"] + ":surge_event_without_independent_sector_evidence",
+                      engine._surge_review_errors(current, first, "2026-10-28"))
+        current["surge_followup"]["event_independent_evidence"] = {
+            "status": "SUPPORTED",
+            "finding": "行业在资金冲击之前已经存在独立供需和核心价格结构",
+            "source": "https://example.org/research"}
+        self.assertEqual(engine._surge_review_errors(current, first, "2026-10-28"), [])
 
     def test_third_session_requires_yes_or_no_not_forced_confirmation(self):
         prior = theme("文化传媒", "观察", "2026-10-27")
