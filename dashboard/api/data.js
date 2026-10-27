@@ -2,6 +2,7 @@ import { authorized, noStore } from '../lib/auth.js';
 
 const FILES = {
   registry: ['research/trend_registry.json','a_share_trend_registry'],
+  context: ['research/trend_context.json','a_share_trend_context'],
   trendHandoff: ['research/trend_handoff.json','a_share_trend_handoff'],
   buyHandoff: ['research/trend_buy_handoff.json',null],
   monitor: ['research/intraday_monitor_state.json','a_share_intraday_monitor_state'],
@@ -27,7 +28,7 @@ async function getGithub(key) {
   if (!/^[\w.-]+\/[\w.-]+$/.test(repo) || !/^[\w./-]+$/.test(ref) || ref.includes('..')) return {error:'INVALID_REPOSITORY_CONFIG'};
   const url = `https://raw.githubusercontent.com/${repo}/${ref}/${path}`;
   const result = await getJson(url);
-  if (result.data && ((kind && result.data.result_kind !== kind) || (key === 'buyHandoff' && result.data.schema_version !== 'trend_buy_handoff_v2')))
+  if (result.data && ((kind && result.data.result_kind !== kind) || (key === 'buyHandoff' && result.data.schema_version !== 'trend_buy_handoff_v2') || (key === 'context' && (result.data.schema_version !== 1 || !Array.isArray(result.data.observations) || !Array.isArray(result.data.commodity_trends)))))
     return {error:'UNEXPECTED_SCHEMA'};
   return result;
 }
