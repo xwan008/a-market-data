@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "scripts/route_hotspot_themes.py"
+      - "scripts/validate_theme_business_chain.py"
       - "scripts/resolve_hotspot_identities.py"
       - "scripts/validate_hotspot_identity_publication.py"
       - "tests/test_hotspot_identity_publication.py"
@@ -34,7 +35,7 @@ jobs:
           python-version: "3.11"
       - name: Syntax verification
         run: |
-          python -m py_compile scripts/resolve_hotspot_identities.py scripts/build_mapped_hotspot_market_evidence.py scripts/validate_hotspot_identity_publication.py scripts/route_hotspot_themes.py scripts/build_trend_buy_manual_research.py scripts/fetch_concept_memberships_fuyao.py scripts/probe_concept_quote_supplement.py
+          python -m py_compile scripts/resolve_hotspot_identities.py scripts/build_mapped_hotspot_market_evidence.py scripts/validate_hotspot_identity_publication.py scripts/validate_theme_business_chain.py scripts/route_hotspot_themes.py scripts/build_trend_buy_manual_research.py scripts/fetch_concept_memberships_fuyao.py scripts/probe_concept_quote_supplement.py
           python -m py_compile tests/test_hotspot_theme_router.py tests/test_theme_buy_routing.py
       - name: New classifier and integration regression
         run: |
