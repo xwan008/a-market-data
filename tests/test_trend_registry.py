@@ -184,6 +184,20 @@ class TrendRegistryTests(unittest.TestCase):
         self.assertIn("same_day_revision_only_allowed_on_trade_date",
                       gate.validate(before, after, SHA))
 
+    def test_new_one_day_surge_requires_visible_stage(self):
+        row = theme("相对强势异动", "观察", "2026-10-28")
+        row["confirmation_audit"] = surge_audit("2026-10-28")
+        self.assertIn(row["episode_id"] + ":d123_stage_missing",
+                      engine._d123_stage_errors(row, None, "2026-10-28"))
+
+    def test_post_d3_downgrade_preserves_initial_judgement(self):
+        old = theme("已确认方向", "趋势确认", "2026-10-27")
+        old.update(d123_stage="D3", d123_trigger_trade_date="2026-10-27",
+                   d123_decision="CONFIRMED")
+        now = copy.deepcopy(old)
+        now.update(d123_stage="POST_D3", market_state="候选趋势")
+        self.assertEqual(engine._d123_stage_errors(now, old, "2026-10-30"), [])
+
     def test_d123_stage_display_and_daily_progression(self):
         item = theme("电机", "观察", "2026-10-27")
         item.update(d123_stage="D1", d123_trigger_trade_date="2026-10-27",

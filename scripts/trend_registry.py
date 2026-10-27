@@ -279,6 +279,9 @@ def _d123_stage_errors(item, previous, day):
     stage = item.get("d123_stage")
     prior_stage = previous.get("d123_stage") if isinstance(previous, dict) else None
     if stage is None and prior_stage is None:
+        if (previous is None and day >= "2026-10-28" and
+                (item.get("confirmation_audit") or {}).get("discovery_basis") == "ONE_DAY_SURGE"):
+            return [f"{episode}:d123_stage_missing"]
         return []
     errors = []
     allowed = {"D1", "D2", "D3", "POST_D3"}
@@ -295,7 +298,8 @@ def _d123_stage_errors(item, previous, day):
         errors.append(f"{episode}:d123_early_negative_decision")
     if stage in {"D3", "POST_D3"} and decision == "PENDING":
         errors.append(f"{episode}:d123_final_decision_missing")
-    if decision == "CONFIRMED" and item.get("market_state") != "趋势确认":
+    if (decision == "CONFIRMED" and item.get("market_state") != "趋势确认"
+            and (not isinstance(previous, dict) or previous.get("d123_decision") != "CONFIRMED")):
         errors.append(f"{episode}:d123_confirmation_state_mismatch")
     if stage == "D1" and trigger != day:
         errors.append(f"{episode}:d123_first_day_mismatch")
