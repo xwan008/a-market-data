@@ -98,56 +98,41 @@ def exact_history_theme(source,registry,idx,quotes,structure,outdir):
         }]
     }
     save(outdir+"/hypothetical_theme_handoff_DO_NOT_PUBLISH.json",handoff)
-    route=router.build_verified_routes(handoff,idx,quotes,structure,
-                                       identity,concept,cap=20)
-    save(outdir+"/humanoid_real_members_top20.json",route)
-    one=route["routes"][0]
-    assert one["hotspot_type"]=="THEME"
-    assert one["concept_member_count"]==482
-    assert one["concept_mainboard_member_count"]==227
-    assert len(one["candidate_stocks"])==20
-    top20=[{"rank":x["rank"],"code":x["stock_code"],
-            "name":x["stock_name"],"industry_code":x["industry_code"],
-            "opportunity_score":x["opportunity_score"]}
-           for x in one["candidate_stocks"]]
-    print("HUMANOID_REAL_20261026_TOP20",json.dumps(top20,ensure_ascii=False),flush=True)
-    save(outdir+"/humanoid_top20_flat.json",top20)
-    research_module.TREND=Path(outdir+"/hypothetical_theme_handoff_DO_NOT_PUBLISH.json")
-    research_file=Path(outdir+"/humanoid_real_technical_buy_research.json")
-    selected_structure=Path(outdir+"/humanoid_selected_company_structures.json")
-    result=research_module.build(
-        Path("research/trend_buy_company_reviews/latest.json"),
-        structure_path="data/research/full_market_price_structure.json",
-        structure_output_path=selected_structure,
-        theme_candidates_path=outdir+"/humanoid_real_members_top20.json")
-    save(research_file,result)
-    final=engine.generate(result,read(selected_structure))
-    save(outdir+"/humanoid_technical_buy_engine_result.json",final)
-    researched=[{"rank":i+1,"code":x["code"],"name":x["company_name"],
-                 "transmission":x["transmission"],
-                 "review_basis":x.get("evidence_basis")} for i,x in enumerate(result["companies"])]
-    print("HUMANOID_BUY_RESEARCH",json.dumps({
-        "mode":result["mode"],"top5_company_research":researched,
-        "pending_company_evidence":result["screen_audit"].get("source_review_pending_codes"),
-        "final_summary":final["summary"],
-        "final_top5_by_theme":[{"theme":x["trend_name"],
-            "items":[{"code":y["code"],"name":y["company_name"],
-                      "status":y["status"]} for y in x["items"]]}
-            for x in final["top5_by_theme"]]},ensure_ascii=False),flush=True)
-    return {
-        "identity":identity["identities"][0],
-        "source_capture":captured,
-        "actual_full_members":482,
-        "actual_mainboard_members":227,
-        "real_market_evidence":row,
-        "top20":top20,
-        "top5_research_candidates":researched,
-        "missing_review_evidence":result["screen_audit"].get("source_review_pending_codes"),
-        "final_buy_status_counts":final["summary"],
-        "final_engine_top5":final["top5_by_theme"],
-        "model_rejudged_status":False,
-        "buy_eligible":False,
-    }
+    try:
+        router.build_verified_routes(handoff,idx,quotes,structure,
+                                     identity,concept,cap=20)
+    except ValueError as exc:
+        if str(exc) != "THEME_BUSINESS_PROOF_REQUIRED_BEFORE_TOP20":
+            raise
+        # Original 2026-10-26 has genuine memberships and prices, but the
+        # issuer-specific segment revenue / signed contract ledger needed by
+        # the NEW hard gate does not exist. That must not be fabricated.
+        blocked={
+            "status":"BLOCKED_NO_VERIFIED_COMMERCIAL_CHAIN_EVIDENCE",
+            "identity":identity["identities"][0],
+            "source_capture":captured,
+            "actual_full_members":482,
+            "actual_mainboard_members":227,
+            "real_market_evidence":row,
+            "verified_business_chain_company_count":0,
+            "top20":[],
+            "top5_research_candidates":[],
+            "missing_review_evidence":"NO_INDEPENDENT_ISSUER_SEGMENT_REVENUE_OR_SIGNED_ORDERS_SNAPSHOT",
+            "final_buy_status_counts":{"ready":0,"wait":0,"uncertain":0,"drop":0},
+            "final_engine_top5":[],
+            "model_rejudged_status":False,
+            "buy_eligible":False,
+            "historic_vendor_only_top20_now_ineligible":True,
+        }
+        save(outdir+"/humanoid_new_commercial_gate_result.json",blocked)
+        print("HUMANOID_COMMERCIAL_GATE_REPLAY_BLOCKED",
+              json.dumps({"status":blocked["status"],
+                          "concept_member_count":482,
+                          "mainboard_member_count":227,
+                          "qualified_top20_count":0,
+                          "qualified_buy_count":0},ensure_ascii=False),flush=True)
+        return blocked
+    raise AssertionError("NO_BUSINESS_EVIDENCE_SHOULD_NEVER_PRODUCE_TOP20")
 
 
 def unresolved_original(registry,idx,source):
