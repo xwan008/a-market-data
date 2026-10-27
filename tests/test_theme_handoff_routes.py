@@ -91,6 +91,7 @@ class UpstreamRouteCheckTests(unittest.TestCase):
     def test_new_route_can_contain_only_verified_confirmed_subset(self):
         h, idx, r = fixtures()
         day = "2026-10-27"
+        r["schema_version"] = 2
         h["trade_date"] = idx["trade_date"] = r["trade_date"] = day
         r["scan_audit"] = {
             "full_market_scan_completed": True,
@@ -115,6 +116,7 @@ class UpstreamRouteCheckTests(unittest.TestCase):
     def test_zero_verified_routes_do_not_require_company_index(self):
         h, idx, r = fixtures()
         day = "2026-10-27"
+        r["schema_version"] = 2
         h["trade_date"] = r["trade_date"] = day
         r["scan_audit"] = {
             "full_market_scan_completed": True,
