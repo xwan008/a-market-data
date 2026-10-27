@@ -68,12 +68,22 @@ jobs:
           read=lambda p:json.loads(Path(p).read_text(encoding='utf-8'))
           handoff=read('research/trend_handoff.json')
           date=handoff['trade_date']
+          # Independent discovery and mapped evidence are frozen before
+          # the official 18:30 status was adjudicated. 19:00 cannot invent them.
+          from scripts.validate_hotspot_identity_publication import validate
+          discovery_path=Path('data/research/independent_hotspot_discovery')/(date+'.json')
+          market_path=Path('data/research/mapped_hotspot_market_evidence')/(date+'.json')
+          if not discovery_path.is_file() or not market_path.is_file():
+              raise ValueError('PRESTATE_DISCOVERY_OR_MARKET_EVIDENCE_MISSING')
           identity_path=Path('data/research/hotspot_identity_snapshots')/(date+'.json')
           route_path=Path('data/research/theme_stock_candidates')/(date+'.json')
           if not identity_path.is_file() or not route_path.is_file():
               raise ValueError('IDENTITY_FIRST_UPSTREAM_SNAPSHOTS_NOT_PUBLISHED')
           identity=read(identity_path)
           route=read(route_path)
+          gate=validate(read(discovery_path),identity,read(market_path),
+                        read('research/trend_registry.json'),handoff)
+          print('INDEPENDENT_MARKET_STATE_EVIDENCE_PAIRED',gate)
           if (not handoff.get('source',{}).get('identity_verified_before_state') or
                   identity.get('status')!='COMPLETE' or
                   identity.get('trade_date')!=date or
