@@ -145,6 +145,50 @@ class TrendRegistryTests(unittest.TestCase):
         r["evidence"].append(fact("INDUSTRY_FUNDAMENTALS",impact="STRUCTURAL"))
         self.assertEqual(gate.validate(before,after,SHA),[])
 
+    def test_future_sw3_routing_requires_independent_benefit_and_market_evidence(self):
+        before, after = fixture()
+        after["trade_date"] = "2026-10-27"
+        after["scan_audit"]["state_migration_gate"]["current_trade_date"] = "2026-10-27"
+        self.assertIn("A#" + OLD + ":sw3_assessments_missing",
+                      gate.validate(before, after, SHA))
+        current = after["trends"][0]
+        current["industry_assessments"] = [{
+            "industry_code": "S630601", "industry_name": "风电整机",
+            "market_state": "候选趋势", "benefit_level": "CORE",
+            "evidence_trade_date": "2026-10-27",
+            "benefit_reason": "经核实具有直接相关的订单和利润传导关系",
+            "market_reason": "本行业独立的强弱结构仍具备有效价格承接证据"
+        }]
+        self.assertEqual(gate.validate(before, after, SHA), [])
+        current["industry_assessments"][0]["benefit_level"] = "RELATED"
+        self.assertIn("A#" + OLD + ":S630601:sw3_independent_evidence_missing",
+                      gate.validate(before, after, SHA))
+
+    def test_confirmation_requires_confirmed_core_sw3_not_entire_theme(self):
+        before, after = fixture()
+        after["trade_date"] = "2026-10-27"
+        after["scan_audit"]["state_migration_gate"]["current_trade_date"] = "2026-10-27"
+        trend = after["trends"][0]
+        trend["market_state"] = "趋势确认"
+        trend["state_history"].append({"trade_date": "2026-10-27",
+                                       "from": "候选趋势", "to": "趋势确认"})
+        review = after["scan_audit"]["state_migration_gate"]["reviews"][0]
+        review.update(decision="CHANGE", proposed_market_state="趋势确认",
+                      evidence=[fact("MARKET_STRUCTURE", "SUPPORT", "STRUCTURAL", "2026-10-27"),
+                                fact("MARKET_BREADTH", "SUPPORT", "NORMAL", "2026-10-27"),
+                                fact("RELATIVE_STRENGTH", "SUPPORT", "NORMAL", "2026-10-27")])
+        trend["industry_assessments"] = [{
+            "industry_code": "S630601", "industry_name": "风电整机",
+            "market_state": "候选趋势", "benefit_level": "CORE",
+            "evidence_trade_date": "2026-10-27",
+            "benefit_reason": "经核实独立受益于真实产能订单和利润传导",
+            "market_reason": "本三级行业处于结构改善且尚未突破的阶段"
+        }]
+        self.assertIn("A#" + OLD + ":confirmed_without_confirmed_sw3",
+                      gate.validate(before, after, SHA))
+        trend["industry_assessments"][0]["market_state"] = "趋势确认"
+        self.assertEqual(gate.validate(before, after, SHA), [])
+
     def test_new_candidate_starts_new_cycle(self):
         before,after=fixture()
         after["trends"].append(theme("N",first=DAY))
