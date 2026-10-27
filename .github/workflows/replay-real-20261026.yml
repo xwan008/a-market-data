@@ -1,0 +1,105 @@
+name: Real 2026-10-26 close strict and conditional replay
+
+on:
+  push:
+    branches: [feature/hotspot-theme-identification-20261026]
+    paths:
+      - ".github/workflows/replay-real-20261026.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  real-closed-session:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Prove saved input dates and frozen eight-identity artifact completeness
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path('data/latest.json').read_text())
+          idx=json.loads(Path('data/research/company_industry_index.json').read_text())
+          reg=json.loads(Path('research/trend_registry.json').read_text())
+          frozen=Path('data/research/independent_hotspot_discovery/2026-10-26.json')
+          assert a['trade_date']=='2026-10-26' and a['market_status']=='closed'
+          assert reg['trade_date']==a['trade_date']
+          assert idx.get('companies')
+          print('REAL_DAY_QUOTES',a['trade_date'],'count',len(a['stocks']),flush=True)
+          print('RECORDED_INDEPENDENT_DISCOVERY_COUNT',reg['scan_audit'].get('independent_discovery_count'),flush=True)
+          print('ORIGINAL_FROZEN_IDENTITY_ARTIFACT_EXISTS',frozen.exists(),flush=True)
+          assert not frozen.exists(), 'Frozen artifact now exists; rerun strict full gates instead of conditional path'
+          PY
+      - name: Rebuild whole-market price structure from 2026-10-26 saved close and historical K-lines
+        run: python -u scripts/build_full_market_price_structure.py
+      - name: Genuine market structure evidence for both retrospective SW code baskets
+        run: |
+          python -u scripts/replay_20261026_real_close_shadow.py \
+            --output /tmp/replay_20261026_scoped_evidence.json
+      - name: Recompute previous published industry-code buy research independently
+        run: |
+          python -u scripts/build_trend_buy_manual_research.py \
+            --evidence research/trend_buy_company_reviews/latest.json \
+            --structure-output /tmp/replay_20261026_buy_structures.json \
+            --output /tmp/replay_20261026_buy_research.json
+          python -u scripts/trend_buy_engine.py \
+            --research /tmp/replay_20261026_buy_research.json \
+            --structure /tmp/replay_20261026_buy_structures.json \
+            --output /tmp/replay_20261026_buy_result.json
+      - name: Audit actual derived ranking versus published old-day baseline
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          read=lambda p:json.loads(Path(p).read_text(encoding='utf-8'))
+          research=read('/tmp/replay_20261026_buy_research.json')
+          result=read('/tmp/replay_20261026_buy_result.json')
+          retro=read('/tmp/replay_20261026_scoped_evidence.json')
+          prior=read('research/trend_buy_formal_result.json')
+          assert result['trade_date']==research['trade_date']==retro['trade_date']=='2026-10-26'
+          selected=lambda data:{g['trend_name']:[{'code':x['code'],'status':x['status'],
+                    'name':x['company_name']} for x in g['items']] for g in data['top5_by_theme']}
+          old=selected(prior); new=selected(result)
+          compare={
+            'trade_date':'2026-10-26',
+            'scope':'SH_SZ_MAINBOARD_ONLY',
+            'original_frozen_eight_independent_identity_records':'MISSING',
+            'real_new_identity_first_official_board_rank':'NOT_VALIDATED',
+            'real_new_identity_first_official_stock_top5':'NOT_VALIDATED',
+            'scope_only_replay_status':retro['status'],
+            'routed_sector_evidence':retro['observed_published_trends'],
+            'old_published_top5':old,
+            'independently_recomputed_on_real_old_industry_codes_top5':new,
+            'stock_top5_exact_parity':old==new,
+            'recomputed_buy_mode':result['mode'],
+            'recomputed_selected_count':research['selected_company_count'],
+            'recomputed_summary':result['summary'],
+            'strict_identity_gate':retro['strict_workflow_gates']
+          }
+          Path('/tmp/replay_20261026_comparison.json').write_text(
+              json.dumps(compare,ensure_ascii=False,indent=2)+'\n')
+          print('REAL_20261026_NEW_VS_OLD_COMPARISON',json.dumps({
+             k:compare[k] for k in ['real_new_identity_first_official_board_rank',
+             'real_new_identity_first_official_stock_top5','old_published_top5',
+             'independently_recomputed_on_real_old_industry_codes_top5',
+             'stock_top5_exact_parity','recomputed_buy_mode','recomputed_selected_count',
+             'recomputed_summary']},ensure_ascii=False),flush=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pr60-20261026-real-close-conditional-replay
+          path: |
+            /tmp/replay_20261026_scoped_evidence.json
+            /tmp/replay_20261026_buy_research.json
+            /tmp/replay_20261026_buy_structures.json
+            /tmp/replay_20261026_buy_result.json
+            /tmp/replay_20261026_comparison.json
+          retention-days: 21
+          if-no-files-found: ignore
