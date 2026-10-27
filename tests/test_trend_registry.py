@@ -40,8 +40,8 @@ def exit_theme(after,facts=None):
     audit=after["scan_audit"]["state_migration_gate"]
     audit["reviews"]=[]
     audit["exits"]=[{"episode_id":"A#"+OLD,"decision":"EXIT",
-        "previous_market_state":"候选趋势","proposed_market_state":"观察",
-        "previous_trend_state":"T1","reason":"行情结构走弱和广度收缩经独立证据核实，退出有效趋势",
+        "previous_market_state":"候选趋势","proposed_market_state":"高潮/衰退",
+        "previous_trend_state":"T1","reason":"行情结构走弱和广度收缩经独立证据核实，进入衰退并退出有效跟踪",
         "evidence":facts if facts is not None else [
             fact("MARKET_STRUCTURE",impact="STRUCTURAL"),fact("MARKET_BREADTH")]}]
 
