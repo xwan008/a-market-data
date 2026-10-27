@@ -777,6 +777,11 @@ def generate(research, structure):
     rows=[evaluate_candidate(c, (structure.get("companies") or {}).get(code), day) for c,code in zip(co,ids)]
     formal = research.get("mode") == "FORMAL"
     audit = research.get("publication_audit") or {}
+    if formal and day >= "2026-10-27" and any(
+            x.get("market_state") != "趋势确认" for x in co):
+        # Even if an incorrect handoff reached this point, reject the run
+        # before publishing any candidate-sector WAIT or READY research.
+        raise ValueError("formal_stock_research_requires_confirmed_sw3")
     if formal:
         required = ("fresh_company_research", "working_set_frozen",
                     "pre_screen_coverage", "company_research_coverage",
