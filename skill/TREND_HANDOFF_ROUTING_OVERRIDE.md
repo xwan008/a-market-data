@@ -32,6 +32,8 @@ trend_handoff
 
 ---
 
+**零信号例外（2026-10-27起）**：通过正式配对Gate且 `signals=[]` 时，没有任何三级行业进入下游，公司工作集不应初始化；19:00直接报告 `NO_ELIGIBLE_CONFIRMED_TREND`，不创建当日新买点结果，不复用旧名单。与“有信号但路由缺失、行情缺失”严格区分，后两者必须按数据错误阻断。
+
 ## 3. Unresolved / Empty 语义
 
 - handoff 行业映射成功，且 materialized index 明确 company_count == 0：
