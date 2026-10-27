@@ -4,6 +4,10 @@ on:
   pull_request:
     paths:
       - "scripts/route_hotspot_themes.py"
+      - "scripts/resolve_hotspot_identities.py"
+      - "scripts/build_mapped_hotspot_market_evidence.py"
+      - "research/hotspot_identity_registry.json"
+      - "tests/test_hotspot_identity_pipeline.py"
       - "scripts/fetch_concept_memberships_fuyao.py"
       - "scripts/probe_concept_quote_supplement.py"
       - "tests/test_fuyao_concept_provider.py"
@@ -28,12 +32,13 @@ jobs:
           python-version: "3.11"
       - name: Syntax verification
         run: |
-          python -m py_compile scripts/route_hotspot_themes.py scripts/build_trend_buy_manual_research.py scripts/fetch_concept_memberships_fuyao.py scripts/probe_concept_quote_supplement.py
+          python -m py_compile scripts/resolve_hotspot_identities.py scripts/build_mapped_hotspot_market_evidence.py scripts/route_hotspot_themes.py scripts/build_trend_buy_manual_research.py scripts/fetch_concept_memberships_fuyao.py scripts/probe_concept_quote_supplement.py
           python -m py_compile tests/test_hotspot_theme_router.py tests/test_theme_buy_routing.py
       - name: New classifier and integration regression
         run: |
           python -m unittest discover -s tests -p "test_hotspot_theme_router.py" -v
           python -m unittest discover -s tests -p "test_theme_buy_routing.py" -v
           python -m unittest discover -s tests -p "test_fuyao_concept_provider.py" -v
+          python -m unittest discover -s tests -p "test_hotspot_identity_pipeline.py" -v
       - name: Existing buy prescreen compatibility
         run: python -m unittest discover -s tests -p "test_trend_buy_prescreen.py" -v
