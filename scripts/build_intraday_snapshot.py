@@ -9,6 +9,7 @@ from statistics import median
 import fetch_market as market
 import intraday_crossday_context as crossday
 import trend_buy_handoff as trend_contract
+from validate_trend_publication_pair import validate as validate_publication_pair
 import holding_watchlist as holdings
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -261,6 +262,18 @@ def load_history_contexts(
 def main() -> int:
     now = datetime.now(market.TZ)
     trend = read_json(TREND_PATH)
+    registry = read_json(RESEARCH_DIR / "trend_registry.json")
+    errors = validate_publication_pair(registry, trend)
+    if errors:
+        print(json.dumps({"error": "invalid_upstream_trend_pair", "checks": errors},
+                         ensure_ascii=False))
+        return 2
+    if not trend.get("signals"):
+        # No new eligible sectors: no fresh stock publication or intraday
+        # snapshot. Never promote an old stock list to a current-day signal.
+        print(json.dumps({"status": "NO_ELIGIBLE_CONFIRMED_TREND",
+                          "stock_snapshot_created": False}, ensure_ascii=False))
+        return 0
     try:
         trend_buy_handoff, trend_buy_items, stock_handoff_kind = active_stock_handoff()
         holding_items = holdings.load_watchlist()
@@ -269,6 +282,12 @@ def main() -> int:
         return 2
     source_trend_trade_date = trend.get("trade_date")
     source_trend_buy_trade_date = trend_buy_handoff.get("trade_date")
+    if source_trend_trade_date != source_trend_buy_trade_date:
+        print(json.dumps({"error": "STALE_STOCK_HANDOFF_FOR_CURRENT_TREND",
+                          "trend_trade_date": source_trend_trade_date,
+                          "buy_trade_date": source_trend_buy_trade_date},
+                         ensure_ascii=False))
+        return 2
     source_handoff_trade_date_consistent = bool(
         source_trend_trade_date
         and source_trend_buy_trade_date
