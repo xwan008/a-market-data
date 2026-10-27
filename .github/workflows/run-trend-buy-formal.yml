@@ -123,6 +123,17 @@ jobs:
                       raise ValueError('CONCEPT_ROUTE_CODE_MISMATCH')
                   if len(routed['candidate_stocks'])>20 or routed.get('quote_coverage',0)<.95:
                       raise ValueError('THEME_ROUTE_DATA_GATE_FAILED')
+                  if (routed.get('business_chain_gate') != 'VERIFIED_DIRECT_REVENUE_OR_SIGNED_ORDER'
+                          or not routed.get('business_evidence_verified_at')):
+                      raise ValueError('THEME_BUSINESS_CHAIN_GATE_NOT_VERIFIED')
+                  for stock in routed['candidate_stocks']:
+                      if (stock.get('business_chain_status') != 'VERIFIED_DIRECT_COMMERCIAL_CHAIN'
+                              or stock.get('business_proof_type') not in (
+                                  'RECOGNIZED_SEGMENT_REVENUE',
+                                  'SIGNED_EXECUTABLE_CUSTOMER_ORDER'
+                              ) or not stock.get('business_chain_node')
+                              or not stock.get('business_proof_document')):
+                          raise ValueError('UNQUALIFIED_CONCEPT_MEMBER_IN_TOP20')
           print('PREPUBLISHED_IDENTITY_AND_THEME_TOP20_VERIFIED',date,
                 [(x['trend_name'],x['hotspot_type'],len(x['candidate_stocks']))
                  for x in route['routes']])
