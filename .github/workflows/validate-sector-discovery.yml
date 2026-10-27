@@ -82,6 +82,15 @@ jobs:
           assert snapshot['discovery_role']['missing_discovery_blocks_primary_research'] is False
           assert snapshot['theme_research_budget']['scope'] == 'supplemental_program_discovery_only'
           assert len(snapshot['candidate_overview']) == audit['eligible_count']
+          coverage=snapshot['discovery_coverage_audit']
+          assert coverage==audit['discovery_coverage_audit']
+          assert coverage['role']=='AUXILIARY_ONLY_NO_FORMAL_DECISIONS'
+          assert coverage['changes_handoff'] is False
+          assert coverage['thresholds_not_state_gates'] is True
+          assert coverage['counts']['sw2_groups'] > 0
+          assert coverage['sw2_feed_status']=='UNAVAILABLE_NO_VERIFIED_SOURCE'
+          assert coverage['price_feed_status']=='UNAVAILABLE_NO_VERIFIED_SOURCE'
+          assert len(coverage['sw3_watch_hints'])==coverage['counts']['sw3_extra_hints']
           assert snapshot['theme_research_budget']['max_new_theme_deep_research'] == 3
           assert snapshot['theme_research_budget']['unit'] == 'evidence_verified_theme_not_industry'
           assert len(snapshot['classification_peer_hints']) <= 3

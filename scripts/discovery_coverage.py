@@ -1,6 +1,6 @@
 """Coverage hints only: no trend/routing authority and no invented external quotes."""
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, date
 from statistics import median
 import math
 
@@ -28,7 +28,11 @@ def _feed(payload, trade_date, key):
     if not isinstance(payload, dict) or payload.get("schema_version") != 1:
         raise ValueError(key + "_schema_invalid")
     day = payload.get("as_of_trade_date")
-    if not isinstance(day, str) or len(day) != 10:
+    try:
+        if not isinstance(day, str):
+            raise ValueError("not a string")
+        date.fromisoformat(day)
+    except (TypeError, ValueError):
         raise ValueError(key + "_date_invalid")
     if day > trade_date:
         raise ValueError(key + "_future_data")
