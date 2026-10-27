@@ -92,7 +92,8 @@ class IdentityAndRouterTest(unittest.TestCase):
     def test_industry_source_passes_codes_without_members(self):
         obj=item(name="工业自动化",board_type="INDUSTRY",
                  code="S640701",driver_kind="INDUSTRY_ECONOMICS")
-        result=resolver.resolve(discovery(obj),registry())
+        result=resolver.resolve(discovery(obj),registry(),industry_index=market()[0],
+                                resolved_at=DAY+"T18:31:00+08:00")
         self.assertEqual(result["identities"][0]["mapping_status"],"VERIFIED")
         self.assertEqual(result["identities"][0]["industry_codes"],
                          ["S640701","S640702"])
@@ -102,6 +103,7 @@ class IdentityAndRouterTest(unittest.TestCase):
         self.assertEqual(evidence["hotspots"][0]["evaluation_status"],
                          "READY_FOR_INDEPENDENT_STATE_REVIEW")
         handoff={"result_kind":"a_share_trend_handoff",
+                 "generated_at":DAY+"T18:34:00+08:00",
                  "trade_date":DAY,
                  "source":{"identity_verified_before_state":True},
                  "signals":[{"rank":1,"trend_name":"工业自动化",
@@ -115,12 +117,14 @@ class IdentityAndRouterTest(unittest.TestCase):
         self.assertNotIn("concept_member_codes",routes["routes"][0])
 
     def test_concept_market_evidence_and_top20_are_separate_from_state(self):
-        ident=resolver.resolve(discovery(item()),registry(),concept())
+        ident=resolver.resolve(discovery(item()),registry(),concept(),
+                               resolved_at=DAY+"T18:31:00+08:00")
         industry,latest,structure=market()
         report=metrics.summarize(ident,industry,latest,structure,concept())
         self.assertEqual(report["hotspots"][0]["r3_breadth"],1)
         self.assertIsNone(report["hotspots"][0]["market_state"])
-        handoff={"result_kind":"a_share_trend_handoff","trade_date":DAY,
+        handoff={"result_kind":"a_share_trend_handoff",
+                 "generated_at":DAY+"T18:34:00+08:00","trade_date":DAY,
                  "source":{"identity_verified_before_state":True},
                  "signals":[{"rank":1,"trend_name":"人形机器人",
                              "board_type":"THEME","board_code":"886069",
@@ -140,9 +144,11 @@ class IdentityAndRouterTest(unittest.TestCase):
         self.assertEqual(route["market_state"],"候选趋势")
 
     def test_unverified_state_cannot_be_used_downstream(self):
-        identity=resolver.resolve(discovery(item()),registry(),concept())
+        identity=resolver.resolve(discovery(item()),registry(),concept(),
+                                   resolved_at=DAY+"T18:31:00+08:00")
         industry,latest,structure=market()
-        handoff={"result_kind":"a_share_trend_handoff","trade_date":DAY,
+        handoff={"result_kind":"a_share_trend_handoff",
+                 "generated_at":DAY+"T18:34:00+08:00","trade_date":DAY,
                  "source":{},
                  "signals":[{"rank":1,"trend_name":"人形机器人",
                              "board_type":"THEME","board_code":"886069",
