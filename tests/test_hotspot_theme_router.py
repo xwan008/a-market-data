@@ -52,6 +52,40 @@ def fixture(kind="THEME"):
     return handoff,industries,latest,structure,identity,catalog
 
 
+def chain_proof_for(code, concept="886069"):
+    """Synthetic test fixture only; fake disclosures are never real evidence."""
+    return {"stock_code":code,
+            "review_status":"VERIFIED_DIRECT_COMMERCIAL_CHAIN",
+            "review_method":"ISSUER_DISCLOSURE_CHECKED_INDEPENDENTLY",
+            "commercial_relationship":"DIRECT_COMPONENT_SUPPLIER",
+            "specific_chain_node":"机器人伺服控制产品",
+            "driver_revenue_link":"机器人增量需求带动本公司真实伺服控制产品销售收入增长（仅单元测试）",
+            "materiality_assessment":"该伺服控制业务收入属于可测量的真实业务线，仅供单元测试",
+            "commercial_proof":{
+                "type":"RECOGNIZED_SEGMENT_REVENUE",
+                "amount_cny":50000000,
+                "period_end":"2026-06-30",
+                "published_at":"2026-08-30",
+                "issuer_document_url":"https://example.org/unit-test-specific-report/"+code+".pdf",
+                "issuer_document_title":"单元测试假想公司伺服业务半年度收入报告",
+                "page_or_section":"第12页分部收入附注",
+                "specific_disclosure_excerpt":"单元测试伺服产品业务报告期内收入五千万元，本内容完全为虚构测试数据",
+                "attributable_product_or_order":"机器人伺服控制产品收入"}}
+
+
+def commercial_fixture(*, codes=MAIN, include_all=True):
+    return {
+        "schema_version":1,
+        "result_kind":"verified_theme_commercial_chain_evidence",
+        "as_of_trade_date":DAY,"scope":"SH_SZ_MAINBOARD_ONLY",
+        "verified_at":DAY+"T18:32:00+08:00",
+        "reviewer":"SYNTHETIC_UNIT_TEST_ONLY",
+        "themes":[{"concept_code":"886069",
+                   "business_driver":"机器人需求带动机器人本体和控制零部件的订单兑现",
+                   "companies":[chain_proof_for(c) for c in
+                                (codes if include_all else codes[:2])]}]}
+
+
 def mock_opportunity(item, day):
     assert day==DAY
     return ({"opportunity_score":item["mock_score"]},None)
@@ -59,6 +93,8 @@ def mock_opportunity(item, day):
 
 class VerifiedRouteTest(unittest.TestCase):
     def build(self,args,**kwargs):
+        if args[4]["identities"][0]["board_type"]=="THEME":
+            kwargs.setdefault("business_evidence",commercial_fixture())
         with patch("build_trend_buy_manual_research.compact_opportunity",
                    side_effect=mock_opportunity):
             return router.build_verified_routes(*args,**kwargs)
@@ -75,6 +111,34 @@ class VerifiedRouteTest(unittest.TestCase):
                             for x in row["candidate_stocks"]))
         self.assertNotIn("concept_up_ratio",row)
         self.assertNotIn("recognition_basis",row)
+
+    def test_no_business_evidence_disallows_vendor_concept_top20(self):
+        with self.assertRaisesRegex(ValueError,"PROOF_REQUIRED_BEFORE_TOP20"):
+            router.build_verified_routes(*fixture())
+
+    def test_only_directly_commercial_verified_stocks_count(self):
+        route=self.build(fixture(),business_evidence=commercial_fixture(
+            include_all=False))["routes"][0]
+        self.assertEqual(len(route["candidate_stocks"]),2)
+        self.assertEqual(route["business_chain_reviewed_count"],2)
+        self.assertEqual({x["stock_code"] for x in route["candidate_stocks"]},
+                         set(MAIN[:2]))
+
+    def test_no_padded_top20_when_there_are_no_verified_stocks(self):
+        empty=commercial_fixture()
+        empty["themes"][0]["companies"]=[]
+        with self.assertRaisesRegex(ValueError,"NO_VERIFIED_COMMERCIAL_CHAIN"):
+            self.build(fixture(),business_evidence=empty)
+
+    def test_unrelated_business_or_marketing_mou_rejected(self):
+        for changed in [
+            {"commercial_relationship":"APPLICATION_END_USER"},
+            {"commercial_proof":{"type":"MEMORANDUM_OF_UNDERSTANDING"}},
+        ]:
+            bad=commercial_fixture()
+            bad["themes"][0]["companies"][0].update(changed)
+            with self.assertRaisesRegex(ValueError,"PROOF_"):
+                self.build(fixture(),business_evidence=bad)
 
     def test_industry_only_passes_codes_never_industry_member_list(self):
         handoff,idx,latest,structure,ident,catalog=fixture("INDUSTRY")
