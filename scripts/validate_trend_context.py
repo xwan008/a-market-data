@@ -114,6 +114,21 @@ def validate(registry, context, previous_context=None):
             errors.append(f"{identity}:industry_link_invalid")
         if not isinstance(item.get("next_check"), str) or not item["next_check"].strip():
             errors.append(f"{identity}:next_check_missing")
+    # A-share registry may remove a candidate after genuine weakening, but a move
+    # specifically TO OBSERVATION must hand its history to the observation track.
+    gate = (registry.get("scan_audit") or {}).get("state_migration_gate") or {}
+    obs_by_episode = {x.get("episode_id"): x for x in observations if isinstance(x, dict)}
+    for transition in gate.get("exits", []):
+        if not isinstance(transition, dict) or transition.get("proposed_market_state") != "观察":
+            continue
+        episode = transition.get("episode_id")
+        if episode not in obs_by_episode:
+            errors.append(f"{episode}:downgraded_observation_missing")
+    # Context is read-only research; it must never smuggle trade-ready eligibility.
+    for item in observations + commodities:
+        if isinstance(item, dict) and any(k in item for k in
+                                           ("in_new_position_priority", "buy_status", "ready", "rank")):
+            errors.append("context_contains_trading_fields")
     if previous_context is not None:
         before = previous_context.get("trade_date")
         if (previous_context.get("result_kind") != "a_share_trend_context" or
