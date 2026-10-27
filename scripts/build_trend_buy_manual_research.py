@@ -206,6 +206,14 @@ def build(evidence_path, structure_path=None, structure_output_path=None):
     vault=read(evidence_path)
     structure=read(Path(structure_path)) if structure_path else None
     day=trend.get("trade_date")
+    if isinstance(day, str) and day >= "2026-10-27":
+        # The direct script entrypoint must enforce the same authoritative
+        # upstream gate as its scheduled workflow, not trust a bare JSON route.
+        from validate_theme_handoff_routes import check_theme_routes
+        registry=read(ROOT/"research/trend_registry.json")
+        check_theme_routes(trend,index,registry)
+        if not trend.get("signals"):
+            raise ValueError("NO_ELIGIBLE_CONFIRMED_TREND: skip company screening")
     if structure is not None and (structure.get('reference_trade_date')!=day or structure.get('contract_id')!='a-share-low-risk-price-structure'):
         raise ValueError('price_structure_trade_date_or_contract_mismatch')
     if structure is None:
