@@ -296,10 +296,188 @@ def episode_key(name, first_seen):
 
 
 
+
+def _same_day_revision_errors(previous, proposed, source_sha, snapshot=None, sector_audit=None):
+    """Allow today's corrected publication, without replaying D1/D2 or erasing history.
+
+    A revision is of today's *same* published episodes, not a new close or a
+    second discovery run. Additions/exits need a new independent discovery
+    checkpoint and are deliberately not covered by this correction path.
+    """
+    import copy
+    errors = []
+    day = previous.get("trade_date")
+    if not isinstance(day, str) or DAY.fullmatch(day) is None:
+        return ["same_day_invalid_trade_date"]
+    if datetime.now(BEIJING).date().isoformat() != day:
+        errors.append("same_day_revision_only_allowed_on_trade_date")
+    if not isinstance(source_sha, str) or SHA.fullmatch(source_sha) is None:
+        errors.append("invalid_previous_blob_sha")
+    if (previous.get("schema_version") != 2 or proposed.get("schema_version") != 2 or
+            previous.get("result_kind") != "a_share_trend_registry" or
+            proposed.get("result_kind") != "a_share_trend_registry" or
+            previous.get("status") != "COMPLETE" or proposed.get("status") != "COMPLETE"):
+        errors.append("same_day_registry_contract_invalid")
+    if snapshot is not None and (snapshot.get("trade_date") != day or
+                                 snapshot.get("point_in_time_eligible") is not True or
+                                 snapshot.get("auxiliary_only") is not True):
+        errors.append("snapshot_invalid")
+    if sector_audit is not None and not _optional_sector_audit_valid(sector_audit, day):
+        errors.append("sector_audit_invalid")
+    old_scan, new_scan = previous.get("scan_audit"), proposed.get("scan_audit")
+    if not isinstance(old_scan, dict) or not isinstance(new_scan, dict):
+        return errors + ["same_day_scan_audit_missing"]
+    if old_scan.get("full_market_scan_completed") is not True:
+        errors.append("full_market_scan_incomplete")
+    if new_scan.get("full_market_scan_completed") is not True:
+        errors.append("full_market_scan_incomplete")
+    old_copy = copy.deepcopy(old_scan)
+    new_copy = copy.deepcopy(new_scan)
+    old_revisions = old_copy.pop("same_day_revisions", [])
+    new_revisions = new_copy.pop("same_day_revisions", [])
+    if new_copy != old_copy:
+        errors.append("same_day_original_close_audit_rewritten")
+    if (not isinstance(old_revisions, list) or not isinstance(new_revisions, list)
+            or new_revisions[:-1] != old_revisions or len(new_revisions) != len(old_revisions) + 1
+            or not isinstance(new_revisions[-1], dict)):
+        return errors + ["same_day_revision_audit_missing_or_rewritten"]
+    revision = new_revisions[-1]
+    if revision.get("previous_registry_blob_sha") != source_sha:
+        errors.append("same_day_revision_baseline_sha_mismatch")
+    if revision.get("previous_generated_at") != previous.get("generated_at"):
+        errors.append("same_day_revision_parent_time_mismatch")
+    if not isinstance(revision.get("reason"), str) or len(revision["reason"].strip()) < 15:
+        errors.append("same_day_revision_reason_missing")
+    try:
+        previous_time = datetime.fromisoformat(previous["generated_at"])
+        revised_time = datetime.fromisoformat(proposed["generated_at"])
+        reviewed_time = datetime.fromisoformat(revision["revised_at"])
+        if (any(dt.tzinfo is None or dt.utcoffset() is None
+                for dt in (previous_time, revised_time, reviewed_time))
+                or reviewed_time.date() != datetime.fromisoformat(day + "T00:00:00+08:00").date()
+                or reviewed_time.astimezone(BEIJING).date().isoformat() != day
+                or revised_time.astimezone(BEIJING).date().isoformat() != day
+                or reviewed_time <= previous_time or revised_time != reviewed_time
+                or revised_time > datetime.now(BEIJING)):
+            raise ValueError("time sequence")
+    except (KeyError, TypeError, ValueError, OverflowError):
+        errors.append("same_day_revision_time_invalid")
+    prev_trends, new_trends = previous.get("trends"), proposed.get("trends")
+    if not isinstance(prev_trends, list) or not isinstance(new_trends, list) or (
+            not all(isinstance(t, dict) for t in prev_trends + new_trends)):
+        return errors + ["same_day_trends_invalid"]
+    prev_by_id = {t.get("episode_id"): t for t in prev_trends}
+    new_by_id = {t.get("episode_id"): t for t in new_trends}
+    if (len(prev_by_id) != len(prev_trends) or len(new_by_id) != len(new_trends)
+            or set(prev_by_id) != set(new_by_id)
+            or list(prev_by_id) != list(new_by_id)):
+        return errors + ["same_day_episode_set_or_order_changed"]
+    changes = revision.get("changes")
+    if not isinstance(changes, list) or not changes or not all(isinstance(x, dict) for x in changes):
+        return errors + ["same_day_changes_missing"]
+    change_by_id = {x.get("episode_id"): x for x in changes}
+    if len(change_by_id) != len(changes):
+        errors.append("same_day_duplicate_changes")
+    allowed_fields = {
+        "market_state", "in_new_position_priority", "change_reason",
+        "invalidation_condition", "last_verified_trade_date", "contrary_evidence",
+        "supporting_evidence", "confirmation_audit", "industry_assessments",
+        "state_history",
+    }
+    changed_ids = set()
+    for eid, old in prev_by_id.items():
+        cur = new_by_id[eid]
+        if old == cur:
+            continue
+        changed_ids.add(eid)
+        if old.get("trend_name") != cur.get("trend_name") or (
+                old.get("first_seen_trade_date") != cur.get("first_seen_trade_date")):
+            errors.append(str(eid) + ":same_day_identity_changed")
+        if any(old.get(key) != cur.get(key) for key in (set(old) | set(cur)) - allowed_fields):
+            errors.append(str(eid) + ":same_day_protected_fields_changed")
+        orig_history, now_history = old.get("state_history"), cur.get("state_history")
+        if not isinstance(orig_history, list) or not isinstance(now_history, list) or (
+                now_history[:len(orig_history)] != orig_history):
+            errors.append(str(eid) + ":history_rewritten")
+        elif (len(now_history) != len(orig_history) + 1
+                or not isinstance(now_history[-1], dict)
+                or now_history[-1].get("event") != "same_day_revision"
+                or now_history[-1].get("trade_date") != day
+                or now_history[-1].get("from") != old.get("market_state")
+                or now_history[-1].get("to") != cur.get("market_state")):
+            errors.append(str(eid) + ":same_day_history_event_missing")
+        if (cur.get("market_state") not in TRACK or cur.get("lifecycle_status") == "已失效"
+                or cur.get("market_state") == "观察" and cur.get("in_new_position_priority") is True
+                or cur.get("market_state") != "趋势确认" and cur.get("in_new_position_priority") is True):
+            errors.append(str(eid) + ":same_day_invalid_market_or_priority")
+        if cur.get("trend_state") != old.get("trend_state"):
+            errors.append(str(eid) + ":same_day_industry_stage_changed")
+        audit = cur.get("confirmation_audit") or {}
+        if audit.get("decision_state") != cur.get("market_state"):
+            errors.append(str(eid) + ":same_day_research_decision_mismatch")
+        errors.extend(_research_audit_errors(cur, day, old))
+        assessments = cur.get("industry_assessments")
+        if not isinstance(assessments, list) or (
+                len(assessments) != len(cur.get("industry_codes") or [])):
+            errors.append(str(eid) + ":same_day_sw3_assessments_invalid")
+        else:
+            for row in assessments:
+                if not isinstance(row, dict) or row.get("evidence_trade_date") != day or (
+                        row.get("market_state") not in TRACK):
+                    errors.append(str(eid) + ":same_day_sw3_assessments_invalid")
+                    break
+        if cur.get("surge_followup") != old.get("surge_followup"):
+            errors.append(str(eid) + ":same_day_surge_history_rewritten")
+        info = change_by_id.get(eid)
+        if not isinstance(info, dict) or info.get("from") != old.get("market_state") or (
+                info.get("to") != cur.get("market_state")):
+            errors.append(str(eid) + ":same_day_change_not_audited")
+            continue
+        evidence = info.get("evidence")
+        if not isinstance(evidence, list) or len(evidence) < 2 or (
+                not all(_valid_evidence(e, day) and e["trade_date"] == day
+                        for e in evidence)):
+            errors.append(str(eid) + ":same_day_revision_evidence_insufficient")
+            continue
+        if not isinstance(info.get("reason"), str) or len(info["reason"].strip()) < 15:
+            errors.append(str(eid) + ":same_day_change_reason_missing")
+        if cur.get("market_state") != old.get("market_state"):
+            if STATES[cur["market_state"]] > STATES[old["market_state"]]:
+                # An intraday correction to a stronger market state cannot
+                # bypass the same independent structure/participation gate.
+                if not _market_state_evidence(evidence, "SUPPORT", "0000-00-00",
+                                              require_confirmation=cur["market_state"] == "趋势确认",
+                                              commodity=cur.get("trend_basis") == "COMMODITY"):
+                    errors.append(str(eid) + ":same_day_upgrade_without_market_evidence")
+            elif old.get("market_state") == "趋势确认":
+                if not _market_state_evidence(evidence, "COUNTER", "0000-00-00",
+                                              commodity=old.get("trend_basis") == "COMMODITY"):
+                    errors.append(str(eid) + ":same_day_confirmed_downgrade_without_market_counter")
+            elif not (any(e["direction"] == "COUNTER" and e["dimension"] == "MARKET_STRUCTURE"
+                          for e in evidence) and any(
+                              e["direction"] == "COUNTER" and
+                              e["dimension"] in {"INDUSTRY_FUNDAMENTALS", "SUPPLY_DEMAND",
+                                                 "MARKET_BREADTH", "RELATIVE_STRENGTH"}
+                              for e in evidence)):
+                errors.append(str(eid) + ":same_day_candidate_downgrade_without_counter")
+        if (cur.get("supporting_evidence") or [])[:len(old.get("supporting_evidence") or [])] != (
+                old.get("supporting_evidence") or []):
+            errors.append(str(eid) + ":same_day_original_evidence_rewritten")
+    if set(change_by_id) != changed_ids:
+        errors.append("same_day_audit_coverage_mismatch")
+    if proposed.get("invalidated_history") != previous.get("invalidated_history") or (
+            proposed.get("recheck_queue") != previous.get("recheck_queue")):
+        errors.append("same_day_close_history_or_queue_rewritten")
+    return errors
+
+
 def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
     """Fail closed on unsupported updates or unreviewed exits."""
     errors = []
     before, day = previous.get("trade_date"), proposed.get("trade_date")
+    if isinstance(before, str) and before == day:
+        return _same_day_revision_errors(previous, proposed, source_sha,
+                                         snapshot=snapshot, sector_audit=sector_audit)
     if previous.get("schema_version") != 2 or proposed.get("schema_version") != 2:
         errors.append("schema_version_mismatch")
     if previous.get("result_kind") != "a_share_trend_registry" or proposed.get("result_kind") != "a_share_trend_registry":

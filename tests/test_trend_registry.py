@@ -107,6 +107,82 @@ def surge_audit(day, market="观察", discovery="ONE_DAY_SURGE"):
 
 
 class TrendRegistryTests(unittest.TestCase):
+    def _today_revision(self):
+        from datetime import datetime
+        today = datetime.now(engine.BEIJING).date().isoformat()
+        before, after = fixture()
+        before = copy.deepcopy(after)
+        before["trade_date"] = today
+        before["generated_at"] = today + "T18:35:00+08:00"
+        before["scan_audit"]["state_migration_gate"]["current_trade_date"] = today
+        before["scan_audit"]["state_migration_gate"]["previous_registry_trade_date"] = OLD
+        add_future_audit(before)
+        after = copy.deepcopy(before)
+        now = datetime.now(engine.BEIJING).isoformat(timespec="microseconds")
+        after["generated_at"] = now
+        row = after["trends"][0]
+        row["market_state"] = "观察"
+        row["change_reason"] = "重新核对行业真实受益和市场广度，原候选证据不充分，改为观察持续跟踪"
+        row["confirmation_audit"]["decision_state"] = "观察"
+        row["confirmation_audit"]["decision_reason"] = row["change_reason"]
+        row["state_history"].append({
+            "trade_date": today, "from": "候选趋势", "to": "观察",
+            "event": "same_day_revision", "reason": row["change_reason"]})
+        after["scan_audit"]["same_day_revisions"] = [{
+            "previous_registry_blob_sha": SHA,
+            "previous_generated_at": before["generated_at"],
+            "revised_at": now,
+            "reason": "复核后确认原候选中的受益链与市场广度证据尚不充分，修正原当日结论",
+            "changes": [{
+                "episode_id": row["episode_id"], "from": "候选趋势", "to": "观察",
+                "reason": row["change_reason"],
+                "evidence": [
+                    fact("MARKET_STRUCTURE", "COUNTER", "NORMAL", today),
+                    fact("INDUSTRY_FUNDAMENTALS", "COUNTER", "NORMAL", today)
+                ]
+            }]
+        }]
+        return before, after
+
+    def test_same_day_evidence_backed_republication_allowed(self):
+        before, after = self._today_revision()
+        self.assertEqual(gate.validate(before, after, SHA), [])
+        self.assertEqual(pair.validate(after, {
+            "schema_version": 1, "result_kind": "a_share_trend_handoff",
+            "trade_date": before["trade_date"], "signals": []}), [])
+
+    def test_same_day_requires_revision_provenance(self):
+        before, after = self._today_revision()
+        after["scan_audit"].pop("same_day_revisions")
+        self.assertIn("same_day_revision_audit_missing_or_rewritten",
+                      gate.validate(before, after, SHA))
+
+    def test_same_day_does_not_rewrite_original_close_or_reset_episode(self):
+        before, after = self._today_revision()
+        after["trends"][0]["first_seen_trade_date"] = after["trade_date"]
+        self.assertIn("A#"+OLD+":same_day_identity_changed",
+                      gate.validate(before, after, SHA))
+        before, after = self._today_revision()
+        after["scan_audit"]["state_migration_gate"]["previous_registry_trade_date"] = DAY
+        self.assertIn("same_day_original_close_audit_rewritten",
+                      gate.validate(before, after, SHA))
+
+    def test_same_day_block_invalid_evidence_and_wrong_sha(self):
+        before, after = self._today_revision()
+        after["scan_audit"]["same_day_revisions"][-1]["changes"][0]["evidence"] = []
+        self.assertIn("A#"+OLD+":same_day_revision_evidence_insufficient",
+                      gate.validate(before, after, SHA))
+        before, after = self._today_revision()
+        self.assertIn("same_day_revision_baseline_sha_mismatch",
+                      gate.validate(before, after, "b"*40))
+
+    def test_same_day_cannot_be_backdated(self):
+        before, after = self._today_revision()
+        before["trade_date"] = "2026-10-19"
+        after["trade_date"] = "2026-10-19"
+        self.assertIn("same_day_revision_only_allowed_on_trade_date",
+                      gate.validate(before, after, SHA))
+
     def test_hold_pass(self):
         before,after=fixture()
         self.assertEqual(gate.validate(before,after,SHA),[])
