@@ -53,6 +53,16 @@ jobs:
             --research /tmp/replay_20261026_buy_research.json \
             --structure /tmp/replay_20261026_buy_structures.json \
             --output /tmp/replay_20261026_buy_result.json
+      - name: Replay pre-20:22 ranking code on exact same Oct26 regenerated research
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --filter=blob:none --depth=1 --no-tags origin c703dc90f07523d88febfcb7e4077902140131e8
+          git show c703dc90f07523d88febfcb7e4077902140131e8:scripts/trend_buy_engine.py > /tmp/prior_20261026_trend_buy_engine.py
+          PYTHONPATH=scripts python -u /tmp/prior_20261026_trend_buy_engine.py \
+            --research /tmp/replay_20261026_buy_research.json \
+            --structure /tmp/replay_20261026_buy_structures.json \
+            --output /tmp/replay_20261026_pre2022_buy_result.json
       - name: Audit actual derived ranking versus published old-day baseline
         run: |
           python - <<'PY'
@@ -63,10 +73,11 @@ jobs:
           result=read('/tmp/replay_20261026_buy_result.json')
           retro=read('/tmp/replay_20261026_scoped_evidence.json')
           prior=read('research/trend_buy_formal_result.json')
+          earlier=read('/tmp/replay_20261026_pre2022_buy_result.json')
           assert result['trade_date']==research['trade_date']==retro['trade_date']=='2026-10-26'
           selected=lambda data:{g['trend_name']:[{'code':x['code'],'status':x['status'],
                     'name':x['company_name']} for x in g['items']] for g in data['top5_by_theme']}
-          old=selected(prior); new=selected(result)
+          old=selected(prior); new=selected(result); old_code=selected(earlier)
           compare={
             'trade_date':'2026-10-26',
             'scope':'SH_SZ_MAINBOARD_ONLY',
@@ -78,6 +89,9 @@ jobs:
             'old_published_top5':old,
             'independently_recomputed_on_real_old_industry_codes_top5':new,
             'stock_top5_exact_parity':old==new,
+            'pre2022_ranking_code_replay_top5':old_code,
+            'pre2022_exact_match_published_top5':old_code==old,
+            'new_ranking_changed_selection_vs_pre2022':new!=old_code,
             'recomputed_buy_mode':result['mode'],
             'recomputed_selected_count':research['selected_company_count'],
             'recomputed_summary':result['summary'],
@@ -89,7 +103,9 @@ jobs:
              k:compare[k] for k in ['real_new_identity_first_official_board_rank',
              'real_new_identity_first_official_stock_top5','old_published_top5',
              'independently_recomputed_on_real_old_industry_codes_top5',
-             'stock_top5_exact_parity','recomputed_buy_mode','recomputed_selected_count',
+             'stock_top5_exact_parity','pre2022_ranking_code_replay_top5',
+             'pre2022_exact_match_published_top5','new_ranking_changed_selection_vs_pre2022',
+             'recomputed_buy_mode','recomputed_selected_count',
              'recomputed_summary']},ensure_ascii=False),flush=True)
           PY
       - uses: actions/upload-artifact@v4
@@ -101,6 +117,7 @@ jobs:
             /tmp/replay_20261026_buy_research.json
             /tmp/replay_20261026_buy_structures.json
             /tmp/replay_20261026_buy_result.json
+            /tmp/replay_20261026_pre2022_buy_result.json
             /tmp/replay_20261026_comparison.json
           retention-days: 21
           if-no-files-found: ignore
