@@ -61,6 +61,15 @@ def industry_quote_parity(old_rows, market_rows):
             ("coverage","quote_coverage",0.00011),
             ("advance_ratio","r1_advance_ratio",0.00011),
             ("median_1d_pct","r1_median_pct",0.0011),
+            ("relative_1d_vs_market_median_pct",
+             "r1_relative_to_market_median_pct",0.0011),
+            ("usable_3d_count","r3_usable",0),
+            ("usable_5d_count","r5_usable",0),
+            ("breadth_3d","r3_breadth",0.00011),
+            ("breadth_5d","r5_breadth",0.00011),
+            ("median_3d_pct","r3_median_pct",0.0011),
+            ("median_5d_pct","r5_median_pct",0.0011),
+            ("median_volume_ratio_vs_20d","volume_ratio_median",0.0011),
         ]:
             a,b = old.get(old_key), new.get(new_key)
             if a is None and b is None:
