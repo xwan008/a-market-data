@@ -47,10 +47,12 @@ class PublicationPairTests(unittest.TestCase):
         r["scan_audit"]["state_migration_gate"]["mode"] = "v2_cutover"
         self.assertIn("migration_gate_missing", m.validate(r, h))
 
-    def test_nontracking_rejected(self):
+    def test_observation_persisted_without_priority(self):
         r, h = fixture()
         r["trends"][1]["market_state"] = "观察"
-        self.assertIn("nontracking_persisted", m.validate(r, h))
+        self.assertEqual(m.validate(r, h), [])
+        r["trends"][1]["in_new_position_priority"] = True
+        self.assertIn("observation_in_priority", m.validate(r, h))
 
     def test_incomplete_scan_rejected(self):
         r, h = fixture()
