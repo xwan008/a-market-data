@@ -36,14 +36,22 @@ jobs:
           from pathlib import Path
           sys.path.insert(0, 'scripts')
           from trend_buy_handoff import validate_items
+          from validate_trend_publication_pair import validate as validate_pair
           ready = False
           try:
               h = json.loads(Path('research/trend_buy_handoff.json').read_text(encoding='utf-8'))
               fb = Path('research/trend_buy_formal_result.json').read_bytes()
               f = json.loads(fb)
+              registry = json.loads(Path('research/trend_registry.json').read_text(encoding='utf-8'))
+              sector_handoff = json.loads(Path('research/trend_handoff.json').read_text(encoding='utf-8'))
+              errors=validate_pair(registry,sector_handoff)
+              if errors:
+                  raise ValueError('UPSTREAM_PAIR_INVALID:'+','.join(errors))
               sha = hashlib.sha1(b'blob '+str(len(fb)).encode()+b'\0'+fb).hexdigest()
               validate_items(h)
-              ready = (h.get('shadow') is False and h.get('source_formal_blob_sha') == sha
+              ready = (bool(sector_handoff.get('signals'))
+                       and h.get('trade_date') == sector_handoff.get('trade_date')
+                       and h.get('shadow') is False and h.get('source_formal_blob_sha') == sha
                        and f.get('status') == 'COMPLETE' and f.get('production_eligible') is True
                        and f.get('run_id') == h.get('source_run_id')
                        and f.get('trade_date') == h.get('trade_date'))
