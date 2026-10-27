@@ -34,6 +34,7 @@
 
 - **观察持续性**：`research/trend_context.json`（schema_version=1，result_kind=`a_share_trend_context`）与当日正式registry交易日期一致。对观察持久记录`episode_id`、已核验申万三级行业、证据日期、下一轮核验条件；不能因为A股正式池仅容纳候选/确认，就删除观察。观察↔候选由真实市场结构证据判断，观察晋级在新正式episode字段`source_observation_episode_id`标注此前研究，独立context写入迁移审计；正式买点资格仍来自handoff。只在已实质失效且有证据时EXIT。
 - **三级行业独立判断**：全市场扫描须包含已映射的申万三级行业，逐行业评估3/5日相对强度、广度、结构、分歧承接和真实主营/利润受益。宽主题可用于发现，但不得把相关三级行业整体同步大涨作为某个已核实核心三级行业确认的额外硬门槛；也不可用单只强势股冒充三级行业扩散。与A股产业T0/T1/T2分别叙述，不人为新增映射系统。
+- **2026-10-27起正式榜三级行业Gate（不追改历史）**：每个`trends[]`正式条目的`industry_codes/industry_names`须与`industry_assessments[]`逐项一一对应。每个三级行业单独记录`industry_code`、`industry_name`、`benefit_level`（仅`CORE`/`DIRECT`）、`market_state`（仅候选趋势/趋势确认）、`evidence_trade_date`（本交易日）、可溯源的`benefit_reason`和`market_reason`。未核验真实受益或仍处观察的相关三级行业不得混入正式A股行业路由，可在context观察中保留。主题`market_state=趋势确认`至少须有一个单独确认的受益三级行业；其他受益行业可分别保留候选，不要求全部确认。校验位于`scripts/trend_registry.py`；程序只校验证据结构和对应关系，不自动确定市场结论或改写主题。
 - **商品趋势单独确认与展示**：独立评估和记录商品报价/合约/时间、相对走势、供需证据及反证，允许商品价格趋势确认而A股仍候选/观察。A股无映射或映射不充分必须报告缺口，**不能据此不发布已经证实的商品价格趋势**；不能把商品涨价直接写成行业盈利T1/T2、A股趋势确认或个股READY。商品可在外盘新收盘尚未发布时沿用最近已核实报价，但须明确价格日期、资料来源与缺口，不虚构同日最终价。
 - **context配对/连续性校验**：生成拟发布registry/handoff/context后，继续运行原迁移Gate及原成对Gate；再运行`python scripts/validate_trend_context.py --registry /tmp/proposed_registry.json --context /tmp/proposed_context.json --previous-context /tmp/previous_context.json`。首次确实没有旧context时省略最后参数，此后不可跳过。保留中的观察/商品episode不可静默删除，晋级或证伪退出需有`transitions`事实和原因。状态、报价和证据日期不得晚于研究日期。三份文件都需提交后READBACK，并报告是否属于同一交易日；若因多文件提交造成部分更新，必须报告部分发布，不得假称完整。
 
