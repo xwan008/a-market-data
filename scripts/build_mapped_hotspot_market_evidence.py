@@ -10,6 +10,7 @@ import argparse
 import json
 from pathlib import Path
 from statistics import median
+from math import ceil
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -33,8 +34,14 @@ def summarize(identity, index, latest, structure, catalog=None):
             raise ValueError("MARKET_EVIDENCE_CONCEPT_ASOF_MISMATCH")
         validate_memberships(catalog, trade_date)
         concept_by_code = {x["concept_id"]: x for x in catalog["concepts"]}
-    market_returns = [value for x in stocks.values()
-                      if (value := get_return(x)) is not None]
+    # Match the existing discovery benchmark: only the same mapped SW
+    # mainboard research universe, not any extra raw provider tickers.
+    market_returns = [
+        value for code, desc in companies.items()
+        if (desc.get("mapping_status") == "mapped" and
+            desc.get("industry_code") and is_main_board(str(code).zfill(6)))
+        if (value := get_return(stocks.get(str(code).zfill(6)) or {})) is not None
+    ]
     if not market_returns:
         raise ValueError("NO_VALID_MARKET_RETURN_DATA")
     market_med = median(market_returns)
@@ -107,12 +114,16 @@ def summarize(identity, index, latest, structure, catalog=None):
                     round(median(volumes),3) if len(volumes)>=max(3,len(daily)//2) else None}
         for window in (3,5):
             usable = len(recent[window])
-            ok = usable >= max(3,int(len(daily)*.8))
+            # Keep existing sector-discovery meanings: breadth requires
+            # ceil(80% of valid daily samples), median has a separate
+            # >= max(3, floor(usable/2)) evidence threshold.
+            breadth_ok = usable >= max(3,ceil(len(daily)*.8))
+            median_ok = usable >= max(3,len(daily)//2)
             result[f"r{window}_usable"] = usable
             result[f"r{window}_breadth"] = (
-                round(sum(v>0 for _,v in recent[window])/usable,4) if ok else None)
+                round(sum(v>0 for _,v in recent[window])/usable,4) if breadth_ok else None)
             result[f"r{window}_median_pct"] = (
-                round(median(v for _,v in recent[window]),3) if ok else None)
+                round(median(v for _,v in recent[window]),3) if median_ok else None)
         evidence.update(result)
         evidence["evaluation_status"] = ("READY_FOR_INDEPENDENT_STATE_REVIEW"
                                           if len(daily)>=5 and quote_coverage>=.95
