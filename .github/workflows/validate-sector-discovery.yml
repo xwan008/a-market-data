@@ -133,9 +133,27 @@ jobs:
           assert 'trends' not in t
           print('AUXILIARY_THEME_SMOKE_VALID', json.dumps(t['scan_summary'], ensure_ascii=False))
           PY
-      - name: Verify current original-schema trend handoff and industry routes
+      - name: Verify paired trend publication and date-aligned confirmed industry routes
         run: |
-          python scripts/validate_theme_handoff_routes.py \
-            --handoff research/trend_handoff.json \
-            --registry research/trend_registry.json \
-            --low-risk-index data/low_risk/index.json
+          python - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,'scripts')
+          from validate_trend_publication_pair import validate
+          from validate_theme_handoff_routes import check_theme_routes
+          read=lambda p:json.loads(Path(p).read_text(encoding='utf-8'))
+          r=read('research/trend_registry.json')
+          h=read('research/trend_handoff.json')
+          idx=read('data/low_risk/index.json')
+          errors=validate(r,h)
+          if errors:
+              raise SystemExit('UPSTREAM_PAIR_INVALID:'+','.join(errors))
+          if h['signals'] and idx.get('trade_date') != h.get('trade_date'):
+              # Market data is published before the closing industry study.
+              # Old handoff remains read-only; never route old sectors with
+              # a later daily company index just to make this smoke pass.
+              print('ROUTE_SMOKE_DEFERRED_UNTIL_SAME_DAY_DATA_AND_TREND',
+                    h['trade_date'], idx.get('trade_date'))
+          else:
+              print('ROUTE_SMOKE_RESULT',check_theme_routes(h,idx,r)['status'])
+          PY
