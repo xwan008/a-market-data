@@ -10,6 +10,8 @@
 
 快照必须同时满足：result_kind=a_share_intraday_market_snapshot；snapshot.trade_date=today；captured_at 距真实扫描时间 0–15 分钟；validation.status=passed；validation.quote_coverage>=0.90；manifest_errors=[]；source_trend_trade_date/source_trend_buy_trade_date 均非空且相等，source_handoff_trade_date_consistent 若提供必须为 true。趋势买点 handoff 的覆盖率、来源版本与校验须与快照一致；不能以外部价格弥补缺失。任何核心 Gate 失败则报告 SNAPSHOT_INVALID / HANDOFF_SOURCE_MISMATCH / DATA_INSUFFICIENT，不产生本轮动作或状态迁移。
 
+**零买点榜兼容边界**：若上游已通过正式配对Gate，但当日 `trend_handoff.json#signals=[]`，按趋势榜最新规则可以合法不发布当日新趋势买点榜。盘中监测不得把上一日 `trend_buy_formal_result.json` / `trend_buy_handoff.json` 伪装成今天已发布的股票买点，也不得复制旧股票作为今日READY/WAIT。若因此缺少本节要求的同日有效快照/买点交接，仍严格按现有Gate报告 `NO_VALID_TREND_BUY_HANDOFF` 或 `HANDOFF_SOURCE_MISMATCH`，不发布依据过期数据的新建仓建议、不伪造或持久化本轮监测结论；原有持仓退出计划的实际执行必须另据已核实的数据和用户规则，不能拿旧买点榜替代。**本段只明确合法空榜与数据失配的区别，不放宽盘中快照Gate、不新增扫描源或持仓动作。**
+
 ## 2. 七个完整交易日的历史数据约定
 
 - 板块读取 snapshot.trends[*].history_context.seven_day：window_sessions=7（八个有效收盘价、七个收益区间）、median_constituent_return_pct（当前冻结成分股七日涨幅的中位数）、positive_constituent_ratio、sample_count、target_count、coverage_ratio、status。它不是板块指数涨幅，也不是指数超额收益。仅 status=available 且必要覆盖与日期自洽时作为充分历史佐证；partial 必须显式标注样本局限；unavailable 不推断。
