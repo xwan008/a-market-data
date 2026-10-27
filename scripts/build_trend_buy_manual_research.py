@@ -256,8 +256,27 @@ def build(evidence_path, structure_path=None, structure_output_path=None, theme_
                     not isinstance(route.get("concept_member_codes"), list)):
                     raise ValueError("THEME_MAPPING_UNVERIFIED")
                 candidates = route.get("candidate_stocks")
+                if (route.get("business_chain_gate") != "VERIFIED_DIRECT_REVENUE_OR_SIGNED_ORDER"
+                        or not route.get("business_evidence_verified_at")):
+                    raise ValueError("THEME_BUSINESS_CHAIN_NOT_VERIFIED_BEFORE_TOP20")
                 if not isinstance(candidates, list) or len(candidates) > 20:
                     raise ValueError("THEME_CANDIDATES_CAP_INVALID")
+                if any(
+                    x.get("business_chain_status") != "VERIFIED_DIRECT_COMMERCIAL_CHAIN"
+                    or not x.get("business_chain_node")
+                    or x.get("commercial_relationship") not in {
+                        "DIRECT_COMPONENT_SUPPLIER",
+                        "DIRECT_EQUIPMENT_OR_ROBOT_MAKER",
+                        "DIRECT_SYSTEM_INTEGRATOR",
+                        "DIRECT_COMMERCIAL_CONTROL_SOFTWARE",
+                    }
+                    or x.get("business_proof_type") not in {
+                        "RECOGNIZED_SEGMENT_REVENUE", "SIGNED_EXECUTABLE_CUSTOMER_ORDER"
+                    }
+                    or not str(x.get("business_proof_document", "")).startswith("https://")
+                    for x in candidates
+                ):
+                    raise ValueError("THEME_STOCK_WITHOUT_VERIFIED_COMMERCIAL_CHAIN")
                 codes = [x.get("stock_code") for x in candidates]
                 if len(codes) != len(set(codes)) or any(
                     x.get("rank") != i or x.get("stock_code") not in route["concept_member_codes"]
