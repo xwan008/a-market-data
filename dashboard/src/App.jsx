@@ -429,14 +429,15 @@ function BuyInspector({item}){
    :<div className="buy-inspector-risk"><strong>失效规则</strong><p>{safeText(item.invalidation_rule)}</p><small>READY 为条件性计划，须核对最新行情，并非实时交易指令。</small></div>}
  </div>
 }
-function Buy({buy,selected,setSelected,status}){
+function Buy({buy,selected,setSelected,status,archivedBuy,hasEmptyTrendHandoff}){
  const items=rankedBuyRows(asArray(buy?.items));
  const [filter,setFilter]=useState('全部'),[query,setQuery]=useState(''),[group,setGroup]=useState('全部板块');
  const markets=[...new Set(items.map(i=>i.trend_name).filter(Boolean))];
  const shown=items.filter(i=>(filter==='全部'||i.status===filter)&&(group==='全部板块'||i.trend_name===group)&&`${i.company_name||''}${i.code||''}`.includes(query));
  const focus=shown.find(i=>i.code===selected?.code)||shown[0];
  return <>
-  <PageIntro title="趋势买点观察" desc="READY 显示条件性入场计划；WAIT 只显示上一交易日观察参考，不代表当日可买。" date={buy?.trade_date}/>
+  <PageIntro title="趋势买点观察" desc="仅展示与最新正式趋势交接同日的买点研究；WAIT 只用于观察。" date={buy?.trade_date}/>
+   {!buy&&<div className="buy-inspector-caution" role="status"><CircleAlert size={14}/><span>{hasEmptyTrendHandoff?'最新趋势交接没有合格确认行业，本轮不发布股票买点榜。':'最新正式趋势交接与股票买点结果尚未匹配，不能将旧名单作为当期信号。'}{archivedBuy?.trade_date?' 最近一份历史买点榜日期：'+archivedBuy.trade_date+'（仅为历史记录）。':''}</span></div>}
   <div className="buy-summary" aria-label="趋势买点发布状态">
    <div className="buy-stat-card buy-stat-ready">
     <div className="buy-stat-heading"><span className="buy-stat-icon"><Check size={15}/></span><Badge>READY</Badge></div>
@@ -732,6 +733,14 @@ export default function App(){
  const login=async password=>{setLoadingLogin(true);setLoginError('');try{const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password})});if(!r.ok){setLoginError(r.status===503?'服务器尚未配置访问密钥':'密码错误或服务不可用');return;}setAuthenticated(true)}catch{setLoginError('服务暂时无法连接')}finally{setLoadingLogin(false)}};
  const logout=async()=>{try{await fetch('/api/auth',{method:'DELETE'})}finally{setAuthenticated(false);setPayload(null);setSection('overview')}};
  const datasets=payload?.datasets||{}, status=payload?.status||{};
+ const registryDay=datasets.registry?.trade_date;
+ const trendHandoff=datasets.trendHandoff;
+ const handoffSignals=trendHandoff?.signals;
+ const activeHandoff=Boolean(registryDay&&trendHandoff?.trade_date===registryDay&&
+   Array.isArray(handoffSignals)&&handoffSignals.length>0&&
+   (registryDay<'2026-10-27'||handoffSignals.every(x=>x.market_state==='趋势确认')));
+ const activeBuy=activeHandoff&&datasets.buyHandoff?.trade_date===registryDay?
+   datasets.buyHandoff:null;
  const ledger=useMemo(()=>summarizeTrades(datasets.airtable),[datasets.airtable]);
  const portfolio=useMemo(()=>attachRiskPlans(ledger,datasets.riskPlans,status.riskPlans),[ledger,datasets.riskPlans,status.riskPlans]);
  if(authenticated===null)return <div className="boot-screen"><img className="brand-wordmark" src="/wordmark.svg" alt="识势 w.x."/><div className="spinner"/></div>;
@@ -742,9 +751,9 @@ export default function App(){
    <main className="main-content">
     {payload?.fetchError&&<div className="fetch-warning"><CircleAlert size={17}/>{payload.fetchError}，展示上次成功加载的数据。</div>}
     {!payload?<Skeleton/>:<div className="view-enter" key={section}>
-     {section==='overview'&&<Overview registry={datasets.registry} trendHandoff={datasets.trendHandoff} buy={datasets.buyHandoff} monitor={datasets.monitor} holdingSnapshot={datasets.holdingSnapshot} holdingCharts={datasets.holdingCharts} portfolio={portfolio} status={status} onSection={setSection} monitorUi={monitorUi} setMonitorUi={setMonitorUi}/>}
+     {section==='overview'&&<Overview registry={datasets.registry} trendHandoff={datasets.trendHandoff} buy={activeBuy} monitor={datasets.monitor} holdingSnapshot={datasets.holdingSnapshot} holdingCharts={datasets.holdingCharts} portfolio={portfolio} status={status} onSection={setSection} monitorUi={monitorUi} setMonitorUi={setMonitorUi}/>}
      {section==='trends'&&<Trends registry={datasets.registry} trendHandoff={datasets.trendHandoff} monitor={datasets.monitor} archive={datasets.crossdayArchive} selected={selectedTrend} setSelected={setSelectedTrend}/>}
-     {section==='buy'&&<Buy buy={datasets.buyHandoff} selected={selectedBuy} setSelected={setSelectedBuy} status={status}/>}
+     {section==='buy'&&<Buy buy={activeBuy} archivedBuy={datasets.buyHandoff} hasEmptyTrendHandoff={trendHandoff?.trade_date===registryDay&&Array.isArray(handoffSignals)&&handoffSignals.length===0} selected={selectedBuy} setSelected={setSelectedBuy} status={status}/>}
      {section==='portfolio'&&<Portfolio data={portfolio} status={status} monitor={datasets.monitor} holdingSnapshot={datasets.holdingSnapshot}/>}
      {section==='validation'&&<TrendValidation/>}
     </div>}
