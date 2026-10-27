@@ -87,9 +87,14 @@ jobs:
               raise ValueError('PRESTATE_IDENTITY_OR_ROUTE_GATE_INVALID')
           if datetime.fromisoformat(identity['resolved_at']) > datetime.fromisoformat(handoff['generated_at']):
               raise ValueError('IDENTITY_AFTER_TREND_STATE')
-          if len(identity['identities'])!=len(handoff['signals']) or len(route['routes'])!=len(handoff['signals']):
+          by_name={x['hotspot_name']:x for x in identity['identities']}
+          if (len(by_name)!=len(identity['identities']) or
+                  len(route['routes'])!=len(handoff['signals'])):
               raise ValueError('IDENTITY_ROUTE_HANDOFF_COUNT_MISMATCH')
-          for original,signal,routed in zip(identity['identities'],handoff['signals'],route['routes']):
+          for signal,routed in zip(handoff['signals'],route['routes']):
+              original=by_name.get(signal['trend_name'])
+              if original is None:
+                  raise ValueError('IDENTITY_MISSING_FOR_PUBLISHED_TREND')
               if (original['mapping_status']!='VERIFIED' or
                       original['hotspot_name']!=signal['trend_name'] or
                       signal.get('board_type')!=original['board_type'] or
