@@ -186,7 +186,7 @@ def resolve(discovery, registry, catalog=None):
             "origin_source": origin_source,
             "identity_candidates": candidates,
             "market_scope": "SH_SZ_MAINBOARD_ONLY",
-            "industry_codes": [choice[1]] if choice and choice[0] == "INDUSTRY" else [],
+            "industry_codes": original["industry_seed_codes"] if choice and choice[0] == "INDUSTRY" else [],
             "concept_code": choice[1] if choice and choice[0] == "THEME" else None,
             "concept_mainboard_member_count": len(member_codes) if member_codes is not None else None,
         }
