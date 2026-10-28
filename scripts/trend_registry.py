@@ -161,7 +161,7 @@ def _surge_review_errors(item, previous, day):
         return [f"{episode}:previous_surge_followup_invalid"]
     review = item.get("surge_followup")
     starts_now = (previous is None and
-                  audit.get("discovery_basis") == "ONE_DAY_SURGE")
+                  item.get("initial_discovery_basis", audit.get("discovery_basis")) == "ONE_DAY_SURGE")
     if not starts_now and prior_review is None:
         # Pre-existing industry trends and non-surge discoveries are unaffected.
         if review is not None:
@@ -298,8 +298,12 @@ def _d123_stage_errors(item, previous, day):
     decision_day = item.get("d123_decision_trade_date")
     if decision not in {"PENDING", "CONFIRMED", "NOT_CONFIRMED"}:
         errors.append(f"{episode}:d123_decision_invalid")
-    if stage == "D1" and decision != "PENDING":
-        errors.append(f"{episode}:d123_first_day_cannot_decide")
+    if stage == "D1" and decision not in {"PENDING", "CONFIRMED"}:
+        errors.append(f"{episode}:d123_first_day_invalid_decision")
+    if stage == "D1" and decision == "CONFIRMED" and (
+            item.get("initial_discovery_basis", (item.get("confirmation_audit") or {}).get("discovery_basis")) == "ONE_DAY_SURGE"
+            or item.get("market_state") != "趋势确认"):
+        errors.append(f"{episode}:d123_day_one_surge_cannot_confirm")
     if stage == "D2" and decision not in {"PENDING", "CONFIRMED"}:
         errors.append(f"{episode}:d123_early_decision_invalid")
     if stage == "D3" and decision not in {"CONFIRMED", "NOT_CONFIRMED"}:
@@ -314,6 +318,20 @@ def _d123_stage_errors(item, previous, day):
     backfill = item.get("d123_backfill_audit")
     if prior_stage is None:
         if stage == "D1":
+            if day >= "2026-10-28":
+                initial = item.get("initial_discovery_basis")
+                trigger_evidence = item.get("d123_trigger_evidence")
+                if initial not in {"ONE_DAY_SURGE", "CONTINUING_STRUCTURE",
+                                   "SUSTAINED_FUNDAMENTAL", "COMMODITY_STRUCTURE"} or (
+                        initial != (item.get("confirmation_audit") or {}).get("discovery_basis")):
+                    errors.append(f"{episode}:initial_discovery_basis_missing_or_mismatch")
+                if (not _valid_evidence(trigger_evidence, day) or
+                        trigger_evidence.get("trade_date") != day or
+                        trigger_evidence.get("direction") != "SUPPORT" or
+                        trigger_evidence.get("dimension") not in {
+                            "MARKET_STRUCTURE", "MARKET_BREADTH", "RELATIVE_STRENGTH",
+                            "COMMODITY_ANCHOR", "MAJOR_CATALYST"}):
+                    errors.append(f"{episode}:fresh_d1_trigger_missing")
             if trigger != day:
                 errors.append(f"{episode}:d123_first_day_mismatch")
         else:
@@ -356,6 +374,10 @@ def _d123_stage_errors(item, previous, day):
             elif decision == "CONFIRMED" and decision_day != day:
                 errors.append(f"{episode}:d123_legacy_d2_verdict_unsubstantiated")
     else:
+        if previous.get("initial_discovery_basis") != item.get("initial_discovery_basis"):
+            errors.append(f"{episode}:initial_discovery_basis_rewritten")
+        if previous.get("d123_trigger_evidence") != item.get("d123_trigger_evidence"):
+            errors.append(f"{episode}:d123_trigger_evidence_rewritten")
         if trigger != previous.get("d123_trigger_trade_date"):
             errors.append(f"{episode}:d123_trigger_changed")
         prior_decision = previous.get("d123_decision")
@@ -382,6 +404,54 @@ def _d123_stage_errors(item, previous, day):
             previous.get("d123_decision") == "PENDING" and
             item.get("market_state") == "趋势确认"):
         errors.append(f"{episode}:d123_negative_verdict_state_mismatch")
+    return errors
+
+
+def _d123_terminal_exit_errors(review, prior, day):
+    """D3 research timeout is not a fabricated market-structure invalidation."""
+    episode = prior.get("episode_id", "unknown")
+    errors = []
+    old_stage, old_decision = prior.get("d123_stage"), prior.get("d123_decision")
+    if not ((old_stage == "D2" and old_decision == "PENDING") or
+            (old_stage == "D3" and old_decision == "NOT_CONFIRMED")):
+        return [f"{episode}:d3_timeout_prior_stage_invalid"]
+    if review.get("proposed_market_state") != "失效":
+        errors.append(f"{episode}:d3_timeout_exit_state_invalid")
+    final = review.get("d123_final_audit")
+    if not isinstance(final, dict):
+        return errors + [f"{episode}:d3_timeout_final_audit_missing"]
+    virtual = dict(prior)
+    virtual.update(final)
+    if (virtual.get("d123_stage") != "D3" or
+            virtual.get("d123_decision") != "NOT_CONFIRMED" or
+            virtual.get("market_state") not in {"观察", "候选趋势"} or
+            virtual.get("d123_trigger_trade_date") != prior.get("d123_trigger_trade_date")):
+        errors.append(f"{episode}:d3_timeout_verdict_invalid")
+    if old_stage == "D2" and virtual.get("d123_decision_trade_date") != day:
+        errors.append(f"{episode}:d3_timeout_verdict_not_current")
+    if old_stage == "D3" and virtual.get("d123_decision_trade_date") != prior.get("d123_decision_trade_date"):
+        errors.append(f"{episode}:d3_timeout_legacy_verdict_rewritten")
+    if not isinstance(final.get("confirmation_audit"), dict):
+        errors.append(f"{episode}:d3_timeout_research_snapshot_missing")
+    else:
+        errors.extend(_research_audit_errors(virtual, day, prior))
+    dimensions = final.get("dimensions")
+    if not isinstance(dimensions, dict) or set(dimensions) != SURGE_DIMENSIONS:
+        errors.append(f"{episode}:d3_timeout_eight_dimensions_missing")
+    else:
+        for name, item in dimensions.items():
+            if (not isinstance(item, dict) or item.get("status") not in SURGE_STATUSES or
+                    not isinstance(item.get("finding"), str) or
+                    len(item["finding"].strip()) < 12 or
+                    not isinstance(item.get("source"), str) or
+                    SOURCE.fullmatch(item["source"]) is None):
+                errors.append(f"{episode}:d3_timeout_{name}_unsubstantiated")
+    errors.extend(_d123_stage_errors(virtual, prior, day))
+    if prior.get("surge_followup") is not None:
+        if not isinstance(final.get("surge_followup"), dict):
+            errors.append(f"{episode}:d3_timeout_surge_final_missing")
+        else:
+            errors.extend(_surge_review_errors(virtual, prior, day))
     return errors
 
 
@@ -688,10 +758,16 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
         valid = [f for f in evidence if _valid_evidence(f, day)]
         if len(valid) != len(evidence):
             errors.append(f"{episode}:exit_evidence_invalid")
-        if not _market_state_evidence(valid, "COUNTER", before,
-                                      require_confirmation=prior.get("trend_basis") == "COMMODITY",
-                                      commodity=prior.get("trend_basis") == "COMMODITY"):
-            errors.append(f"{episode}:exit_without_independent_market_counter")
+        reason_code = review.get("exit_reason_code")
+        if reason_code == "D3_NOT_CONFIRMED" and day >= "2026-10-28":
+            errors.extend(_d123_terminal_exit_errors(review, prior, day))
+        elif reason_code == "MARKET_INVALIDATED" or (reason_code is None and day < "2026-10-28"):
+            if not _market_state_evidence(valid, "COUNTER", before,
+                                           require_confirmation=prior.get("trend_basis") == "COMMODITY",
+                                           commodity=prior.get("trend_basis") == "COMMODITY"):
+                errors.append(f"{episode}:exit_without_independent_market_counter")
+        else:
+            errors.append(f"{episode}:exit_reason_code_missing_or_invalid")
     for episode in continued:
         prior = prior_by_id[episode]
         now = curr_by_id[episode]
@@ -758,6 +834,9 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
             errors.extend(_research_audit_errors(theme, day, prior))
             errors.extend(_surge_review_errors(theme, prior, day))
             errors.extend(_d123_stage_errors(theme, prior, day))
+            if (day >= "2026-10-28" and theme.get("d123_stage") == "D3" and
+                    theme.get("d123_decision") == "NOT_CONFIRMED"):
+                errors.append(f"{theme.get('episode_id')}:d3_not_confirmed_must_exit")
         for episode in continued:
             old, cur = prior_by_id[episode], curr_by_id[episode]
             old_assess = {x.get("industry_code"): x for x in
