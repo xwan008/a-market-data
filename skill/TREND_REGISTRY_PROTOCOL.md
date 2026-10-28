@@ -136,6 +136,8 @@
 
 **历史数据兼容边界**：以下审计及handoff资格约束仅适用于`trade_date >= 2026-10-27`的新发布Registry/Handoff；此前已经冻结的正式结果、episode和状态不得回写。缺乏真实证据或要求的审计结构时，必须保持上一版正式文件不变并报告BLOCKED，禁止编造字段通过校验。
 
+**字段层级**：`trends[]`顶层的`initial_discovery_basis`、`d123_trigger_evidence`、`d123_stage`及`d123_*decision*`属于episode及阶段审计；其中首次发现依据和触发证据一旦建立不得随日后行情改写。逐日可更新的`discovery_basis`、产业催化和状态证据则存入`confirmation_audit`。D3退出当天的完整终结审计保存在`scan_audit.state_migration_gate.exits[].d123_final_audit`，不得只写在已删除的`trends[]`条目中。
+
 **每条有效趋势（观察/候选/确认）在`research/trend_registry.json#trends[]`必须包含`confirmation_audit`对象**，按北京时间18:30前已经可得的实际资料填写：
 
 - `asof_trade_date`＝当轮收盘日；
