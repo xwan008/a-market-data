@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
 from collections import defaultdict
 from datetime import date, datetime
@@ -176,70 +177,126 @@ def _theme_metrics(theme, groups, stock_data, market_median):
 
 
 
-def _crosscheck_shortlist(sector_audit, groups, themes, taxonomy, limit=3):
-    """At most three objective leads across all auxiliary sources, not a trend ranking."""
+def _percentile(values, value):
+    """Cross-sectional midrank makes unlike metrics comparable."""
+    if value is None:
+        return 50.0
+    from bisect import bisect_left, bisect_right
+    ordered = sorted(x for x in values if x is not None)
+    if len(ordered) < 2:
+        return 50.0
+    a, b = bisect_left(ordered, value), bisect_right(ordered, value)
+    return 100 * (a + b - 1) / (2 * (len(ordered) - 1))
+
+
+def _crosscheck_shortlist(sector_audit, groups, themes, taxonomy,
+                          features, market_median, market_breadth, limit=3):
+    """Single grouped top-three: 30/20/25/15/10; auxiliary research only."""
     pool = []
+    taxonomy_codes = {code for t in taxonomy for code in t["core_industry_codes"]}
+    weights = {"relative_strength": 30, "breadth": 20,
+               "industry_resonance": 25, "volume_participation": 15,
+               "recent_structure": 10}
 
-    def add(source_id, name, kind, industry_codes, members, channels, quality,
-            rs, breadth, acceleration, median3, median5, usable):
-        if not channels or quality not in ("OK", "SMALL_SAMPLE") or usable < 3:
+    def add(t, kind, name, identity):
+        core = t["core_industry_codes"]
+        members = set().union(*(groups.get(code, set()) for code in core))
+        n = t["usable_stock_count"]
+        if not t["channels"] or t["sample_quality"] not in ("OK", "SMALL_SAMPLE") or n < 3:
             return
-        # A common scale across SW-L3, concepts and mapped themes. The small-
-        # sample factor affects review priority only, never trend eligibility.
-        score = round((rs or 0) + max((breadth or 0) - .5, 0) * 3
-                      + max(acceleration or 0, 0) * .35, 3)
-        priority = round(score * min(usable / 5, 1), 3)
-        item = {
-            "source_id": source_id, "name": name, "kind": kind,
-            "industry_codes": industry_codes, "channels": channels,
-            "sample_quality": quality, "usable_stock_count": usable,
-            "score": score, "review_priority_score": priority,
-            "relative_strength_1d_vs_market_median_pct": rs,
-            "advance_ratio": breadth, "median_return_3d_pct": median3,
-            "median_return_5d_pct": median5,
-        }
-        pool.append((item, set(members)))
+        valid = [features[s] for s in sorted(members) if features.get(s) is not None]
+        if len(valid) != n:
+            raise ValueError("composite_membership_mismatch:" + identity)
+        rising = sum(x["r1"] > 0 for x in valid)
+        # Shrink 5/5 breadth toward market breadth; never grant a direct
+        # bonus proportional to market-cap or number of listed companies.
+        breadth = (rising + 8 * market_breadth) / (n + 8)
+        sub = [r for r in t["core_industries"] if r["valid"] >= 3]
+        strong_sub = [r for r in sub
+                      if r["breadth_1d"] is not None and r["breadth_1d"] >= .6
+                      and r["median_return_1d_pct"] is not None
+                      and r["median_return_1d_pct"] > market_median]
+        share = len(strong_sub) / len(sub) if sub else 0
+        # Reward genuine cross-subindustry participation without excluding
+        # focused single-industry surges.
+        diversity = min(math.log1p(len(strong_sub)) / math.log(5), 1)
+        resonance = share * (.6 + .4 * diversity)
+        volume = t["median_volume_ratio_vs_20d"]
+        activity = math.log(max(float(volume), .05)) if volume is not None else None
+        d3, d5 = t["median_return_3d_pct"], t["median_return_5d_pct"]
+        recent = d3 + .5 * d5 if d3 is not None and d5 is not None else None
+        pool.append({
+            "source_id": identity, "name": name, "kind": kind,
+            "industry_codes": core, "channels": t["channels"],
+            "sample_quality": t["sample_quality"],
+            "usable_stock_count": n, "advancing_count": rising,
+            "industry_count": len(sub), "strong_industry_count": len(strong_sub),
+            "relative_strength_1d_vs_market_median_pct":
+                t["relative_strength_1d_vs_market_median_pct"],
+            "advance_ratio": t["breadth_1d"],
+            "median_return_1d_pct": t["median_return_1d_pct"],
+            "median_return_3d_pct": d3, "median_return_5d_pct": d5,
+            "median_volume_ratio_vs_20d": volume,
+            "volume_evidence_basis": "PRICE_VOLUME_PROXY" if activity is not None else "UNVERIFIED",
+            "_members": members,
+            "_metrics": {
+                "relative_strength": t["relative_strength_1d_vs_market_median_pct"],
+                "breadth": breadth, "industry_resonance": resonance,
+                "volume_participation": activity, "recent_structure": recent},
+        })
 
-    for theme in themes + taxonomy:
-        core = theme["core_industry_codes"]
-        members = set().union(*(groups[code] for code in core))
-        add(theme["evidence_group_type"] + ":" + theme["theme_id"],
-            theme["theme_name"], theme["evidence_group_type"], core, members,
-            theme["channels"], theme["sample_quality"],
-            theme["relative_strength_1d_vs_market_median_pct"],
-            theme["breadth_1d"], theme["acceleration_3d_vs_5d"],
-            theme["median_return_3d_pct"], theme["median_return_5d_pct"],
-            theme["usable_stock_count"])
+    for t in themes + taxonomy:
+        add(t, t["evidence_group_type"], t["theme_name"],
+            t["evidence_group_type"] + ":" + t["theme_id"])
 
     if sector_audit is not None:
         for row in sector_audit["sectors"]:
-            # Concept stock membership is not in this snapshot; do not rank an
-            # undeduplicable concept as though it were a verified industry.
             if row.get("kind") != "industry":
                 continue
             code = row["id"].split(":", 1)[1]
             members = groups.get(code, set())
             if code not in groups or len(members) != row["member_count"]:
                 raise ValueError("sector_audit_industry_membership_mismatch:" + code)
-            add(row["id"], row["name"], "industry",
-                [code], members, row["channels"],
-                row["sample_quality"], row["relative_1d_vs_market_median_pct"],
-                row["advance_ratio"], row.get("acceleration_3d_vs_5d"),
-                row.get("median_3d_pct"), row.get("median_5d_pct"),
-                row["usable_count"] if "usable_count" in row else row["member_count"])
+            # Fallback only when SW2 taxonomy is absent/incomplete; a single
+            # SW3 must not compete with its already available SW2 parent.
+            if code not in taxonomy_codes:
+                t = _theme_metrics(
+                    {"theme_id": code, "theme_name": row["name"],
+                     "industries": [{"code": code, "role": "core"}]},
+                    groups, features, market_median)
+                if 3 <= len(members) <= 4 and t["sample_quality"] == "LOW_SAMPLE":
+                    t["sample_quality"] = "SMALL_SAMPLE"
+                    t["channels"] = row.get("channels", [])
+                add(t, "SW3_FALLBACK", row["name"], row["id"])
 
-    pool.sort(key=lambda pair: (-pair[0]["review_priority_score"],
-                                -pair[0]["score"], pair[0]["source_id"]))
-    chosen = []
-    for item, members in pool:
-        if any(members and prior_members and
-               len(members & prior_members) / len(members | prior_members) >= .85
-               for _, prior_members in chosen):
+    references = {factor: [p["_metrics"][factor] for p in pool
+                           if p["_metrics"][factor] is not None]
+                  for factor in weights}
+    for item in pool:
+        breakdown = {factor: round(_percentile(references[factor],
+                                               item["_metrics"][factor]), 2)
+                     for factor in weights}
+        total = round(sum(weights[f] * breakdown[f] / 100 for f in weights), 3)
+        item["score"] = total
+        item["review_priority_score"] = round(
+            total * min(item["usable_stock_count"] / 5, 1), 3)
+        item["component_scores"] = breakdown
+        item["component_weights"] = dict(weights)
+        del item["_metrics"]
+    pool.sort(key=lambda row: (-row["review_priority_score"],
+                               -row["score"], row["source_id"]))
+    selected = []
+    for item in pool:
+        member_set = item.pop("_members")
+        if any(member_set and old and
+               len(member_set & old) / len(member_set | old) >= .85
+               for _, old in selected):
             continue
-        chosen.append((item, members))
-        if len(chosen) == limit:
+        selected.append((item, member_set))
+        if len(selected) == limit:
             break
-    return [dict(item, rank=i + 1) for i, (item, _) in enumerate(chosen)]
+    return [dict(item, rank=i + 1) for i, (item, _) in enumerate(selected)]
+
 
 def build(latest, industry_index, structure, catalog, sector_audit=None,
           max_research=3, max_unmapped=8, retrospective=False):
@@ -314,7 +371,9 @@ def build(latest, industry_index, structure, catalog, sector_audit=None,
         return {k: v for k, v in t.items() if k not in ("core_industries",)}
     research = [brief(t) for t in candidates]
     # Only this final list is handed to the model for supplemental cross-checking.
-    crosscheck = _crosscheck_shortlist(sector_audit, groups, detailed, taxonomy)
+    crosscheck = _crosscheck_shortlist(
+        sector_audit, groups, detailed, taxonomy, features,
+        market_median, sum(x > 0 for x in valid) / len(valid))
 
     identity = {}
     for theme in catalog["themes"]:
@@ -377,7 +436,8 @@ def build(latest, industry_index, structure, catalog, sector_audit=None,
             "invalid_or_low_sample_themes": sum(t["sample_quality"] != "OK" for t in detailed),
             "sector_audit_status": "MATCHED" if sector_audit else "UNAVAILABLE",
             "all_theme_detail_retention": "computed_in_memory_not_persisted",
-            "crosscheck_shortlist_count": len(crosscheck)
+            "crosscheck_shortlist_count": len(crosscheck),
+            "crosscheck_scoring": "SW2_AND_VERIFIED_THEME_COMPOSITE_30_20_25_15_10"
         },
         "research_candidates": research,
         "crosscheck_shortlist": crosscheck,

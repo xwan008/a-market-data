@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-from build_theme_evidence import build
+from build_theme_evidence import build, _theme_metrics, _crosscheck_shortlist
 
 
 def sample_data():
@@ -286,6 +286,68 @@ class ThemeEvidenceTests(unittest.TestCase):
         data[3]["base_industry_groups"][2]["sw_level2_code"] = "100100"
         with self.assertRaisesRegex(ValueError, "taxonomy_code_hierarchy_mismatch"):
             build(*data)
+
+    def test_broad_resonance_beats_single_small_spike(self):
+        groups, features = {}, {}
+        cases = [("S100101", 5, 5.4, 1, 2, 1),
+                 ("S200101", 8, 3.5, 1.8, -4, -7),
+                 ("S200102", 8, 3.4, 1.8, -4, -7),
+                 ("S200103", 8, 3.3, 1.8, -4, -7),
+                 ("S200104", 8, 3.2, 1.8, -4, -7)]
+        for sector, n, change, volume, three, five in cases:
+            groups[sector] = set()
+            for i in range(n):
+                symbol = sector + "_" + str(i)
+                groups[sector].add(symbol)
+                features[symbol] = {"r1": change, "r3": three, "r5": five,
+                                    "volume": volume}
+        themes = []
+        for key, codes in [("Small spike", ["S100101"]),
+                           ("Broad participation", [x[0] for x in cases[1:]])]:
+            t = _theme_metrics(
+                {"theme_id": key, "theme_name": key,
+                 "industries": [{"code": code, "role": "core"} for code in codes]},
+                groups, features, .5)
+            t["evidence_group_type"] = "SW_L2_TAXONOMY"
+            themes.append(t)
+        result = _crosscheck_shortlist(None, groups, [], themes, features, .5, .5)
+        self.assertEqual(result[0]["name"], "Broad participation")
+        self.assertEqual(result[0]["industry_count"], 4)
+        self.assertEqual(result[0]["advancing_count"], 32)
+        self.assertLess(result[0]["median_return_3d_pct"], 0)
+        self.assertEqual(result[0]["component_weights"], {
+            "relative_strength": 30, "breadth": 20,
+            "industry_resonance": 25, "volume_participation": 15,
+            "recent_structure": 10})
+        self.assertEqual(result[0]["volume_evidence_basis"], "PRICE_VOLUME_PROXY")
+
+    def test_negative_three_five_day_does_not_prevent_new_surge(self):
+        groups, features = {}, {}
+        for sector in ("S100101", "S100102"):
+            groups[sector] = set()
+            for i in range(6):
+                stock = sector + "-" + str(i)
+                groups[sector].add(stock)
+                features[stock] = {"r1": 3, "r3": -5, "r5": -10, "volume": 1.5}
+        t = _theme_metrics(
+            {"theme_id": "new", "theme_name": "New surge",
+             "industries": [{"code": code, "role": "core"} for code in groups]},
+            groups, features, .3)
+        t["evidence_group_type"] = "SW_L2_TAXONOMY"
+        result = _crosscheck_shortlist(None, groups, [], [t], features, .3, .5)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["strong_industry_count"], 2)
+        self.assertEqual(result[0]["median_return_5d_pct"], -10)
+
+    def test_single_composite_shortlist_has_auditable_components(self):
+        result = build(*sample_data())
+        self.assertEqual(result["scan_summary"]["crosscheck_scoring"],
+                         "SW2_AND_VERIFIED_THEME_COMPOSITE_30_20_25_15_10")
+        self.assertLessEqual(len(result["crosscheck_shortlist"]), 3)
+        self.assertTrue(all(sum(x["component_weights"].values()) == 100
+                            and len(x["component_scores"]) == 5
+                            for x in result["crosscheck_shortlist"]))
+
 
     def test_regression_flags_model_first_protocol_and_source(self):
         protocol = (Path(__file__).resolve().parents[1]
