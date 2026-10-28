@@ -83,8 +83,8 @@ class SectorDiscoveryTests(unittest.TestCase):
         # Research reviews the surge promptly but a deadline never forces
         # confirmation. The formal stock route is narrower than the registry.
         self.assertIn("### 2.2 单日爆发后的D1/D2/D3证据复核", protocol)
-        self.assertIn("D3必须作出", protocol)
-        self.assertIn("不必等D3", protocol)
+        self.assertIn("D3必须明确选择", protocol)
+        self.assertIn("不再推进D3", protocol)
         self.assertIn("不确认是合格的结论", protocol)
         self.assertIn("候选与观察不得进入股票handoff", protocol)
         self.assertIn("signals=[]", protocol)
