@@ -476,7 +476,11 @@ def main():
     print(json.dumps({"trade_date": snapshot["trade_date"], "status": snapshot["status"],
                       "evaluated": snapshot["scan_summary"]["themes_evaluated"],
                       "candidates": len(snapshot["research_candidates"]),
-                      "unmapped": len(snapshot["unmapped_industry_alerts"])},
+                      "unmapped": len(snapshot["unmapped_industry_alerts"]),
+                      "composite_top3": [
+                          {"name": x["name"], "score": x["score"],
+                           "source_id": x["source_id"]}
+                          for x in snapshot["crosscheck_shortlist"]]},
                      ensure_ascii=False))
 
 
