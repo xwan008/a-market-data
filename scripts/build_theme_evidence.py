@@ -266,7 +266,10 @@ def _crosscheck_shortlist(sector_audit, groups, themes, taxonomy,
                     groups, features, market_median)
                 if 3 <= len(members) <= 4 and t["sample_quality"] == "LOW_SAMPLE":
                     t["sample_quality"] = "SMALL_SAMPLE"
-                    t["channels"] = row.get("channels", [])
+                # This fallback reuses the already date-validated L3 signal;
+                # recomputing its STRONG channel against a different market
+                # sample can silently erase a legitimate discovery hint.
+                t["channels"] = row.get("channels", [])
                 add(t, "SW3_FALLBACK", row["name"], row["id"])
 
     references = {factor: [p["_metrics"][factor] for p in pool
