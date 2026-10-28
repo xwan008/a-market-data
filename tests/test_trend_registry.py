@@ -769,6 +769,8 @@ class TrendRegistryTests(unittest.TestCase):
             "transmission_gap": "油服订单、资本开支及利润尚未兑现，单列产业景气风险而非商品趋势硬门槛。",
             "market_blockers": ["MULTI_SESSION_PRICE_STRUCTURE_INSUFFICIENT"] if d3 else [],
         }
+        if d3:
+            audit["commodity_price_review"]["completed_price_structure"]["status"] = "INSUFFICIENT"
         return row, day
 
     def test_foreign_open_session_does_not_block_confirmed_commodity_trend(self):
@@ -807,6 +809,10 @@ class TrendRegistryTests(unittest.TestCase):
         review["market_blockers"] = ["NO_VERIFIABLE_COMPLETED_PRICES"]
         self.assertIn(row["episode_id"] + ":commodity_d3_price_reference_contradiction",
                       engine._commodity_price_review_errors(row, day))
+        review["market_blockers"] = ["MULTI_SESSION_PRICE_STRUCTURE_INSUFFICIENT"]
+        review["completed_price_structure"]["status"] = "SUPPORTED"
+        self.assertIn(row["episode_id"] + ":commodity_d3_blockers_contradict_supporting_evidence",
+                      engine._commodity_price_review_errors(row, day))
 
     def test_commodity_price_cutoff_and_stale_source_are_audited(self):
         row, day = self._foreign_commodity_price_case()
@@ -820,6 +826,9 @@ class TrendRegistryTests(unittest.TestCase):
                       engine._commodity_price_review_errors(row, day))
         review["current_quote"]["observed_at"] = "2026-10-29T17:00:00+08:00"
         self.assertEqual(engine._commodity_price_review_errors(row, day), [])
+        review["completed_reference"]["trade_date"] = "2026-10-27"
+        self.assertIn(row["episode_id"] + ":commodity_latest_completed_reference_mismatch",
+                      engine._commodity_price_review_errors(row, day))
 
     def _d3_timeout_case(self, legacy=False):
         day = "2026-10-29"

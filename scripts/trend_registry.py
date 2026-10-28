@@ -167,6 +167,11 @@ def _commodity_price_review_errors(item, day):
             errors.append(f"{episode}:commodity_completed_session_invalid")
         else:
             seen.add(session["trade_date"])
+    if reference_status == "AVAILABLE" and sessions and isinstance(reference, dict):
+        verified_dates = [s.get("trade_date") for s in sessions if isinstance(s, dict)
+                          and isinstance(s.get("trade_date"), str)]
+        if (verified_dates and reference.get("trade_date") != max(verified_dates)):
+            errors.append(f"{episode}:commodity_latest_completed_reference_mismatch")
     driver = review.get("independent_supply_driver")
     if not isinstance(driver, dict) or (
             driver.get("status") not in {"SUPPORTED", "INSUFFICIENT", "COUNTER", "UNVERIFIED"}
@@ -188,9 +193,24 @@ def _commodity_price_review_errors(item, day):
                 or any(code not in COMMODITY_MARKET_BLOCKERS for code in blockers)
                 or len(set(blockers)) != len(blockers)):
             errors.append(f"{episode}:commodity_d3_market_blockers_invalid")
-        elif (reference_status == "AVAILABLE" and
-              "NO_VERIFIABLE_COMPLETED_PRICES" in blockers):
-            errors.append(f"{episode}:commodity_d3_price_reference_contradiction")
+        else:
+            if (reference_status == "AVAILABLE" and
+                    "NO_VERIFIABLE_COMPLETED_PRICES" in blockers):
+                errors.append(f"{episode}:commodity_d3_price_reference_contradiction")
+            compatible = {
+                "NO_VERIFIABLE_COMPLETED_PRICES": reference_status == "UNAVAILABLE",
+                "MULTI_SESSION_PRICE_STRUCTURE_INSUFFICIENT":
+                    structure.get("status") in {"INSUFFICIENT", "UNVERIFIED"} or len(seen) < 2,
+                "PRICE_STRUCTURE_COUNTER_EVIDENCE": structure.get("status") == "COUNTER",
+                "INDEPENDENT_SUPPLY_DRIVER_INSUFFICIENT":
+                    driver.get("status") in {"INSUFFICIENT", "UNVERIFIED"},
+                "INDEPENDENT_SUPPLY_DRIVER_COUNTER_EVIDENCE":
+                    driver.get("status") == "COUNTER",
+                "PRICE_SOURCE_RELIABILITY_GAP":
+                    reference_status == "UNAVAILABLE" or structure.get("status") == "UNVERIFIED",
+            }
+            if not any(compatible.get(code, False) for code in blockers):
+                errors.append(f"{episode}:commodity_d3_blockers_contradict_supporting_evidence")
     return errors
 
 
