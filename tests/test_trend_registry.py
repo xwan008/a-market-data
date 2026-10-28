@@ -723,6 +723,104 @@ class TrendRegistryTests(unittest.TestCase):
         self.assertIn(row["episode_id"] + ":fresh_d1_trigger_missing",
                       engine._d123_stage_errors(row, None, day))
 
+
+    def _foreign_commodity_price_case(self, state="候选趋势", d3=False):
+        day = "2026-10-29"
+        row = theme("跨市场商品", state, "2026-10-27")
+        row.update(trend_basis="COMMODITY", d123_stage="D3" if d3 else "D2",
+                   d123_trigger_trade_date="2026-10-27",
+                   d123_decision="NOT_CONFIRMED" if d3 else "PENDING")
+        add_future_audit({"trade_date": day, "trends": [row]})
+        audit = row["confirmation_audit"]
+        audit["discovery_basis"] = "COMMODITY_STRUCTURE"
+        audit["commodity_price_review"] = {
+            "reference_status": "AVAILABLE",
+            "completed_reference": {
+                "instrument": "ICE Brent crude futures",
+                "trade_date": "2026-10-28", "price_basis": "SETTLEMENT",
+                "source": "https://example.org/overseas-settlement",
+                "available_at": "2026-10-29T06:00:00+08:00",
+            },
+            "current_session_status": "OPEN",
+            "current_quote": {
+                "observed_at": "2026-10-29T17:00:00+08:00",
+                "price_basis": "INTRADAY",
+                "source": "https://example.org/open-market",
+                "finding": "海外交易所目前尚未结算，本时段盘中行情仅作及时性辅助。",
+            },
+            "completed_price_structure": {
+                "status": "SUPPORTED",
+                "finding": "最新两个已经完成的海外交易时段价格结构尚有可靠连续性证据。",
+                "source": "https://example.org/overseas-settlement",
+                "completed_sessions": [
+                    {"trade_date": "2026-10-27", "price_basis": "SETTLEMENT",
+                     "source": "https://example.org/day-one",
+                     "available_at": "2026-10-28T06:00:00+08:00"},
+                    {"trade_date": "2026-10-28", "price_basis": "SETTLEMENT",
+                     "source": "https://example.org/day-two",
+                     "available_at": "2026-10-29T06:00:00+08:00"},
+                ],
+            },
+            "independent_supply_driver": {
+                "status": "SUPPORTED",
+                "finding": "海外供给扰动具有独立发布的可核验事实与持续性风险佐证。",
+                "source": "https://example.org/independent-supply",
+            },
+            "transmission_gap": "油服订单、资本开支及利润尚未兑现，单列产业景气风险而非商品趋势硬门槛。",
+            "market_blockers": ["MULTI_SESSION_PRICE_STRUCTURE_INSUFFICIENT"] if d3 else [],
+        }
+        return row, day
+
+    def test_foreign_open_session_does_not_block_confirmed_commodity_trend(self):
+        row, day = self._foreign_commodity_price_case(state="趋势确认")
+        row["d123_decision"] = "CONFIRMED"
+        self.assertEqual(engine._commodity_price_review_errors(row, day), [])
+        # A foreign exchange's currently open session is not a missing close.
+        row["confirmation_audit"]["commodity_price_review"]["current_quote"] = None
+        self.assertEqual(engine._commodity_price_review_errors(row, day), [])
+
+    def test_commodity_confirmation_still_needs_completed_multi_session_evidence(self):
+        row, day = self._foreign_commodity_price_case(state="趋势确认")
+        review = row["confirmation_audit"]["commodity_price_review"]
+        review["completed_price_structure"]["completed_sessions"].pop()
+        self.assertIn(row["episode_id"] + ":commodity_confirmation_without_completed_structure_and_supply",
+                      engine._commodity_price_review_errors(row, day))
+        review["completed_price_structure"]["completed_sessions"].append({
+            "trade_date": "2026-10-28", "price_basis": "SETTLEMENT",
+            "source": "https://example.org/day-two",
+            "available_at": "2026-10-29T06:00:00+08:00",
+        })
+        review["independent_supply_driver"]["status"] = "UNVERIFIED"
+        self.assertIn(row["episode_id"] + ":commodity_confirmation_without_completed_structure_and_supply",
+                      engine._commodity_price_review_errors(row, day))
+
+    def test_commodity_d3_cannot_use_missing_same_day_close_or_profit_only(self):
+        row, day = self._foreign_commodity_price_case(d3=True)
+        review = row["confirmation_audit"]["commodity_price_review"]
+        self.assertEqual(engine._commodity_price_review_errors(row, day), [])
+        review["market_blockers"] = ["CURRENT_FOREIGN_SESSION_UNSETTLED"]
+        self.assertIn(row["episode_id"] + ":commodity_d3_market_blockers_invalid",
+                      engine._commodity_price_review_errors(row, day))
+        review["market_blockers"] = ["DOWNSTREAM_PROFIT_NOT_REALIZED"]
+        self.assertIn(row["episode_id"] + ":commodity_d3_market_blockers_invalid",
+                      engine._commodity_price_review_errors(row, day))
+        review["market_blockers"] = ["NO_VERIFIABLE_COMPLETED_PRICES"]
+        self.assertIn(row["episode_id"] + ":commodity_d3_price_reference_contradiction",
+                      engine._commodity_price_review_errors(row, day))
+
+    def test_commodity_price_cutoff_and_stale_source_are_audited(self):
+        row, day = self._foreign_commodity_price_case()
+        review = row["confirmation_audit"]["commodity_price_review"]
+        review["completed_reference"]["available_at"] = "2026-10-29T19:30:00+08:00"
+        self.assertIn(row["episode_id"] + ":commodity_completed_reference_invalid",
+                      engine._commodity_price_review_errors(row, day))
+        review["completed_reference"]["available_at"] = "2026-10-29T06:00:00+08:00"
+        review["current_quote"]["observed_at"] = "2026-10-29T19:30:00+08:00"
+        self.assertIn(row["episode_id"] + ":commodity_intraday_quote_invalid",
+                      engine._commodity_price_review_errors(row, day))
+        review["current_quote"]["observed_at"] = "2026-10-29T17:00:00+08:00"
+        self.assertEqual(engine._commodity_price_review_errors(row, day), [])
+
     def _d3_timeout_case(self, legacy=False):
         day = "2026-10-29"
         previous = theme("复核到期行业", "候选趋势", "2026-10-27")

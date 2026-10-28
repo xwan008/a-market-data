@@ -70,6 +70,130 @@ RESEARCH_GATE_FROM = "2026-10-27"
 BEIJING = timezone(timedelta(hours=8))
 
 
+
+# Foreign-market price closes are asynchronous with the Beijing 18:30 cutoff.
+# Requiring a foreign *same-calendar-day* settlement would systematically
+# erase eligible trends. This only verifies shape / point-in-time provenance;
+# the research model still has to judge the economic and price evidence.
+COMMODITY_REVIEW_FROM = "2026-10-29"
+COMMODITY_MARKET_BLOCKERS = {
+    "NO_VERIFIABLE_COMPLETED_PRICES",
+    "MULTI_SESSION_PRICE_STRUCTURE_INSUFFICIENT",
+    "PRICE_STRUCTURE_COUNTER_EVIDENCE",
+    "INDEPENDENT_SUPPLY_DRIVER_INSUFFICIENT",
+    "INDEPENDENT_SUPPLY_DRIVER_COUNTER_EVIDENCE",
+    "PRICE_SOURCE_RELIABILITY_GAP",
+}
+
+
+def _commodity_price_review_errors(item, day):
+    episode = item.get("episode_id", "unknown")
+    if item.get("trend_basis") != "COMMODITY" or day < COMMODITY_REVIEW_FROM:
+        return []
+    errors = []
+    audit = item.get("confirmation_audit") or {}
+    review = audit.get("commodity_price_review")
+    if not isinstance(review, dict):
+        return [f"{episode}:commodity_price_review_missing"]
+
+    cutoff = datetime.fromisoformat(day + "T18:30:00+08:00")
+
+    def available(value):
+        try:
+            moment = datetime.fromisoformat(value)
+            return (moment.tzinfo is not None and moment.utcoffset() is not None
+                    and moment.astimezone(BEIJING) <= cutoff)
+        except (TypeError, ValueError, OverflowError):
+            return False
+
+    def sourced(value):
+        return isinstance(value, str) and SOURCE.fullmatch(value) is not None
+
+    def explanation(value):
+        return isinstance(value, str) and len(value.strip()) >= 12
+
+    reference_status = review.get("reference_status")
+    reference = review.get("completed_reference")
+    if reference_status not in {"AVAILABLE", "UNAVAILABLE"}:
+        errors.append(f"{episode}:commodity_reference_status_invalid")
+    if reference_status == "AVAILABLE":
+        if (not isinstance(reference, dict)
+                or not explanation(reference.get("instrument"))
+                or not isinstance(reference.get("trade_date"), str)
+                or DAY.fullmatch(reference.get("trade_date", "")) is None
+                or reference["trade_date"] > day
+                or reference.get("price_basis") not in {"SETTLEMENT", "OFFICIAL_CLOSE", "VERIFIED_DAILY_FIX"}
+                or not sourced(reference.get("source"))
+                or not available(reference.get("available_at"))):
+            errors.append(f"{episode}:commodity_completed_reference_invalid")
+    elif reference is not None:
+        errors.append(f"{episode}:commodity_unavailable_reference_must_be_null")
+    elif not explanation(review.get("reference_gap")):
+        errors.append(f"{episode}:commodity_reference_gap_missing")
+    if review.get("current_session_status") not in {
+            "OPEN", "SETTLED", "CLOSED", "HOLIDAY", "UNAVAILABLE"}:
+        errors.append(f"{episode}:commodity_current_session_invalid")
+    quote = review.get("current_quote")
+    if quote is not None and (
+            not isinstance(quote, dict)
+            or quote.get("price_basis") != "INTRADAY"
+            or not available(quote.get("observed_at"))
+            or not sourced(quote.get("source"))
+            or not explanation(quote.get("finding"))):
+        errors.append(f"{episode}:commodity_intraday_quote_invalid")
+
+    structure = review.get("completed_price_structure")
+    if not isinstance(structure, dict):
+        errors.append(f"{episode}:commodity_completed_structure_missing")
+        structure = {}
+    if (structure.get("status") not in {"SUPPORTED", "INSUFFICIENT", "COUNTER", "UNVERIFIED"}
+            or not explanation(structure.get("finding"))
+            or not sourced(structure.get("source"))):
+        errors.append(f"{episode}:commodity_completed_structure_invalid")
+    sessions = structure.get("completed_sessions")
+    if not isinstance(sessions, list):
+        errors.append(f"{episode}:commodity_completed_sessions_missing")
+        sessions = []
+    seen = set()
+    for session in sessions:
+        if (not isinstance(session, dict)
+                or not isinstance(session.get("trade_date"), str)
+                or DAY.fullmatch(session.get("trade_date", "")) is None
+                or session["trade_date"] > day
+                or session["trade_date"] in seen
+                or session.get("price_basis") not in {"SETTLEMENT", "OFFICIAL_CLOSE", "VERIFIED_DAILY_FIX"}
+                or not sourced(session.get("source"))
+                or not available(session.get("available_at"))):
+            errors.append(f"{episode}:commodity_completed_session_invalid")
+        else:
+            seen.add(session["trade_date"])
+    driver = review.get("independent_supply_driver")
+    if not isinstance(driver, dict) or (
+            driver.get("status") not in {"SUPPORTED", "INSUFFICIENT", "COUNTER", "UNVERIFIED"}
+            or not explanation(driver.get("finding"))
+            or not sourced(driver.get("source"))):
+        errors.append(f"{episode}:commodity_supply_driver_invalid")
+        driver = {}
+    if not explanation(review.get("transmission_gap")):
+        errors.append(f"{episode}:commodity_transmission_gap_missing")
+
+    if item.get("market_state") == "趋势确认":
+        if (reference_status != "AVAILABLE" or structure.get("status") != "SUPPORTED"
+                or len(seen) < 2 or driver.get("status") != "SUPPORTED"):
+            errors.append(f"{episode}:commodity_confirmation_without_completed_structure_and_supply")
+
+    if item.get("d123_stage") == "D3" and item.get("d123_decision") == "NOT_CONFIRMED":
+        blockers = review.get("market_blockers")
+        if (not isinstance(blockers, list) or not blockers
+                or any(code not in COMMODITY_MARKET_BLOCKERS for code in blockers)
+                or len(set(blockers)) != len(blockers)):
+            errors.append(f"{episode}:commodity_d3_market_blockers_invalid")
+        elif (reference_status == "AVAILABLE" and
+              "NO_VERIFIABLE_COMPLETED_PRICES" in blockers):
+            errors.append(f"{episode}:commodity_d3_price_reference_contradiction")
+    return errors
+
+
 def _research_audit_errors(item, day, prior=None):
     episode = item.get("episode_id")
     audit = item.get("confirmation_audit")
@@ -140,6 +264,7 @@ def _research_audit_errors(item, day, prior=None):
         sufficient = audit.get("first_sufficient_evidence_trade_date")
         if not isinstance(sufficient, str) or not DAY.fullmatch(sufficient) or sufficient > day:
             errors.append(f"{episode}:first_sufficient_evidence_date_missing")
+    errors.extend(_commodity_price_review_errors(item, day))
     return errors
 
 
