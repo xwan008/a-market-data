@@ -704,6 +704,120 @@ class TrendRegistryTests(unittest.TestCase):
         self.assertIn(old["episode_id"] + ":surge_review_trade_date_mismatch",
                       engine._surge_review_errors(current, old, "2026-10-28"))
 
+    def test_new_d1_can_confirm_only_with_independent_structure_and_trigger(self):
+        day = "2026-10-28"
+        row = theme("新周期独立趋势", "趋势确认", day)
+        row["confirmation_audit"] = surge_audit(
+            day, market="趋势确认", discovery="CONTINUING_STRUCTURE")
+        row.update(initial_discovery_basis="CONTINUING_STRUCTURE",
+                   d123_stage="D1", d123_trigger_trade_date=day,
+                   d123_decision="CONFIRMED", d123_decision_trade_date=day,
+                   d123_trigger_evidence=fact(
+                       "MARKET_STRUCTURE", "SUPPORT", "STRUCTURAL", day))
+        self.assertEqual(engine._d123_stage_errors(row, None, day), [])
+        row["initial_discovery_basis"] = "ONE_DAY_SURGE"
+        self.assertIn(row["episode_id"] + ":d123_day_one_surge_cannot_confirm",
+                      engine._d123_stage_errors(row, None, day))
+        row["initial_discovery_basis"] = "CONTINUING_STRUCTURE"
+        row.pop("d123_trigger_evidence")
+        self.assertIn(row["episode_id"] + ":fresh_d1_trigger_missing",
+                      engine._d123_stage_errors(row, None, day))
+
+    def _d3_timeout_case(self, legacy=False):
+        day = "2026-10-29"
+        previous = theme("复核到期行业", "候选趋势", "2026-10-27")
+        previous.update(d123_stage="D2", d123_decision="PENDING",
+                        d123_trigger_trade_date="2026-10-27",
+                        d123_decision_trade_date=None)
+        verdict_day = day
+        if legacy:
+            previous.update(d123_stage="D3", d123_decision="NOT_CONFIRMED",
+                            d123_decision_trade_date="2026-10-28")
+            verdict_day = "2026-10-28"
+        final = {
+            "d123_stage": "D3", "d123_decision": "NOT_CONFIRMED",
+            "d123_decision_trade_date": verdict_day,
+            "d123_trigger_trade_date": "2026-10-27",
+            "market_state": "候选趋势",
+            "confirmation_audit": surge_audit(
+                day, market="候选趋势", discovery="CONTINUING_STRUCTURE"),
+            "dimensions": surge_session(day)["dimensions"],
+        }
+        review = {
+            "exit_reason_code": "D3_NOT_CONFIRMED",
+            "proposed_market_state": "失效",
+            "d123_final_audit": final,
+        }
+        return previous, review, day
+
+    def test_d3_timeout_is_audited_exit_without_fake_market_breakdown(self):
+        previous, review, day = self._d3_timeout_case()
+        self.assertEqual(engine._d123_terminal_exit_errors(review, previous, day), [])
+        review["d123_final_audit"]["dimensions"].pop("breadth")
+        self.assertIn(previous["episode_id"] + ":d3_timeout_eight_dimensions_missing",
+                      engine._d123_terminal_exit_errors(review, previous, day))
+        review["d123_final_audit"]["dimensions"] = surge_session(day)["dimensions"]
+        review["d123_final_audit"]["d123_decision"] = "PENDING"
+        self.assertIn(previous["episode_id"] + ":d3_timeout_verdict_invalid",
+                      engine._d123_terminal_exit_errors(review, previous, day))
+
+    def test_legacy_d3_not_confirmed_exits_without_changing_old_verdict(self):
+        previous, review, day = self._d3_timeout_case(legacy=True)
+        self.assertEqual(engine._d123_terminal_exit_errors(review, previous, day), [])
+        review["d123_final_audit"]["d123_decision_trade_date"] = day
+        self.assertIn(previous["episode_id"] + ":d3_timeout_legacy_verdict_rewritten",
+                      engine._d123_terminal_exit_errors(review, previous, day))
+
+    def test_full_gate_allows_d3_timeout_but_blocks_unreviewed_exit(self):
+        before, after = fixture()
+        before["trade_date"] = "2026-10-28"
+        after["trade_date"] = "2026-10-29"
+        gate_data = after["scan_audit"]["state_migration_gate"]
+        gate_data["previous_registry_trade_date"] = "2026-10-28"
+        gate_data["current_trade_date"] = "2026-10-29"
+        prior, review, day = self._d3_timeout_case()
+        before["trends"] = [prior]
+        after["trends"] = []
+        gate_data["reviews"] = []
+        gate_data["exits"] = [{
+            "episode_id": prior["episode_id"], "decision": "EXIT",
+            "previous_market_state": "候选趋势",
+            "proposed_market_state": "失效",
+            "previous_trend_state": "T1",
+            "reason": "本轮第三次真实有效收盘已经到期，但结构与产业证据不足确认",
+            "evidence": [],
+            **review
+        }]
+        self.assertEqual(gate.validate(before, after, SHA), [])
+        gate_data["exits"][0].pop("d123_final_audit")
+        self.assertIn(prior["episode_id"] + ":d3_timeout_final_audit_missing",
+                      gate.validate(before, after, SHA))
+        gate_data["exits"][0]["exit_reason_code"] = "MARKET_INVALIDATED"
+        self.assertIn(prior["episode_id"] + ":exit_without_independent_market_counter",
+                      gate.validate(before, after, SHA))
+
+    def test_d3_not_confirmed_cannot_stay_in_current_registry(self):
+        before, after = fixture()
+        before["trade_date"] = "2026-10-28"
+        after["trade_date"] = "2026-10-29"
+        gate_data = after["scan_audit"]["state_migration_gate"]
+        gate_data["previous_registry_trade_date"] = "2026-10-28"
+        gate_data["current_trade_date"] = "2026-10-29"
+        prior, _, day = self._d3_timeout_case(legacy=True)
+        before["trends"] = [prior]
+        after["trends"] = [copy.deepcopy(prior)]
+        gate_data["reviews"][0].update(
+            episode_id=prior["episode_id"])
+        add_future_audit(after)
+        after["trends"][0]["industry_assessments"] = [{
+            "industry_code": "S630601", "industry_name": "风电整机",
+            "benefit_level": "CORE", "market_state": "候选趋势",
+            "evidence_trade_date": day,
+            "benefit_reason": "本轮产业供应链真实受益存在可核实的经营数据",
+            "market_reason": "本轮市场结构仍不足以确认，不能继续保留过期研究"}]
+        self.assertIn(prior["episode_id"] + ":d3_not_confirmed_must_exit",
+                      gate.validate(before, after, SHA))
+
     def test_handoff_contract_stable(self):
         before,after=fixture()
         after["trends"][0]["in_new_position_priority"]=True
