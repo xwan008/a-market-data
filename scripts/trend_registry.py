@@ -487,6 +487,15 @@ def _same_day_revision_errors(previous, proposed, source_sha, snapshot=None, sec
     checkpoint and are deliberately not covered by this correction path.
     """
     import copy
+    # Same-day repair of an independently frozen discovery that an old D3
+    # clean-up incorrectly deferred: additions require a separate strict Gate.
+    prev_entries = previous.get("trends")
+    next_entries = proposed.get("trends")
+    if isinstance(prev_entries, list) and isinstance(next_entries, list) and (
+            [x.get("episode_id") for x in prev_entries if isinstance(x, dict)] !=
+            [x.get("episode_id") for x in next_entries if isinstance(x, dict)]):
+        return _same_day_frozen_d1_correction_errors(
+            previous, proposed, source_sha, snapshot, sector_audit)
     errors = []
     day = previous.get("trade_date")
     if not isinstance(day, str) or DAY.fullmatch(day) is None:
@@ -669,6 +678,167 @@ def _same_day_revision_errors(previous, proposed, source_sha, snapshot=None, sec
         errors.append("same_day_close_history_or_queue_rewritten")
     return errors
 
+
+
+def _same_day_frozen_d1_correction_errors(previous, proposed, source_sha,
+                                          snapshot=None, sector_audit=None):
+    """Strict exception: restore an already independently frozen D1 discovery.
+
+    Never allow a second run of D1/D2, a new research winner, or mutation of the
+    original full-close audit. The first publish remains visible in Git history.
+    """
+    import copy
+    errors = []
+    day = previous.get("trade_date")
+    if not isinstance(day, str) or not DAY.fullmatch(day) or day != proposed.get("trade_date"):
+        return ["same_day_d1_invalid_date"]
+    if datetime.now(BEIJING).date().isoformat() != day:
+        errors.append("same_day_revision_only_allowed_on_trade_date")
+    if not isinstance(source_sha, str) or not SHA.fullmatch(source_sha):
+        errors.append("invalid_previous_blob_sha")
+    if (previous.get("schema_version") != 2 or proposed.get("schema_version") != 2 or
+            previous.get("result_kind") != "a_share_trend_registry" or
+            proposed.get("result_kind") != "a_share_trend_registry" or
+            previous.get("status") != "COMPLETE" or proposed.get("status") != "COMPLETE"):
+        errors.append("same_day_registry_contract_invalid")
+    if snapshot is not None and (snapshot.get("trade_date") != day or
+                                 snapshot.get("point_in_time_eligible") is not True or
+                                 snapshot.get("auxiliary_only") is not True):
+        errors.append("snapshot_invalid")
+    if sector_audit is not None and not _optional_sector_audit_valid(sector_audit, day):
+        errors.append("sector_audit_invalid")
+    old_scan, new_scan = previous.get("scan_audit"), proposed.get("scan_audit")
+    if not isinstance(old_scan, dict) or not isinstance(new_scan, dict):
+        return errors + ["same_day_scan_audit_missing"]
+    if old_scan.get("full_market_scan_completed") is not True or (
+            not isinstance(old_scan.get("independent_discovery_frozen_at"), str)):
+        errors.append("same_day_original_discovery_not_frozen")
+    old_copy, new_copy = copy.deepcopy(old_scan), copy.deepcopy(new_scan)
+    old_revisions = old_copy.pop("same_day_revisions", [])
+    new_revisions = new_copy.pop("same_day_revisions", [])
+    if new_copy != old_copy:
+        errors.append("same_day_original_close_audit_rewritten")
+    if (not isinstance(old_revisions, list) or not isinstance(new_revisions, list) or
+            new_revisions[:-1] != old_revisions or
+            len(new_revisions) != len(old_revisions) + 1 or
+            not isinstance(new_revisions[-1], dict)):
+        return errors + ["same_day_revision_audit_missing_or_rewritten"]
+    revision = new_revisions[-1]
+    if revision.get("previous_registry_blob_sha") != source_sha:
+        errors.append("same_day_revision_baseline_sha_mismatch")
+    if revision.get("previous_generated_at") != previous.get("generated_at"):
+        errors.append("same_day_revision_parent_time_mismatch")
+    if not isinstance(revision.get("reason"), str) or len(revision["reason"].strip()) < 15:
+        errors.append("same_day_revision_reason_missing")
+    try:
+        original_at = datetime.fromisoformat(previous["generated_at"])
+        revised_at = datetime.fromisoformat(revision["revised_at"])
+        proposed_at = datetime.fromisoformat(proposed["generated_at"])
+        if (any(t.tzinfo is None or t.utcoffset() is None
+                for t in (original_at, revised_at, proposed_at)) or
+                not original_at < revised_at == proposed_at or
+                revised_at.astimezone(BEIJING).date().isoformat() != day or
+                revised_at > datetime.now(BEIJING)):
+            raise ValueError("invalid revision time")
+    except (TypeError, ValueError, KeyError, OverflowError):
+        errors.append("same_day_revision_time_invalid")
+    old_items, next_items = previous.get("trends"), proposed.get("trends")
+    if (not isinstance(old_items, list) or not isinstance(next_items, list) or
+            not all(isinstance(t, dict) for t in old_items + next_items)):
+        return errors + ["same_day_trends_invalid"]
+    if len(next_items) <= len(old_items) or next_items[:len(old_items)] != old_items:
+        return errors + ["same_day_original_trends_rewritten_or_no_addition"]
+    added = next_items[len(old_items):]
+    ids = [t.get("episode_id") for t in next_items]
+    names = [t.get("trend_name") for t in next_items]
+    if len(set(ids)) != len(ids) or len(set(names)) != len(names):
+        errors.append("same_day_duplicate_trend_identity")
+    if (proposed.get("invalidated_history") != previous.get("invalidated_history") or
+            proposed.get("recheck_queue") != previous.get("recheck_queue")):
+        errors.append("same_day_close_history_or_queue_rewritten")
+    if revision.get("changes") not in ([], None):
+        errors.append("same_day_addition_cannot_modify_existing_episodes")
+    appended_audits = revision.get("new_episodes")
+    if not isinstance(appended_audits, list) or len(appended_audits) != len(added):
+        return errors + ["same_day_new_d1_audit_missing"]
+    by_audit = {x.get("episode_id"): x for x in appended_audits if isinstance(x, dict)}
+    if len(by_audit) != len(added) or set(by_audit) != {t.get("episode_id") for t in added}:
+        errors.append("same_day_new_d1_audit_coverage_mismatch")
+    original_candidates = old_scan.get("candidate_disposition_audit") or []
+    exits = (old_scan.get("state_migration_gate") or {}).get("exits") or []
+    for item in added:
+        name, eid = item.get("trend_name"), item.get("episode_id")
+        audit = by_audit.get(eid) or {}
+        independent = next((c for c in original_candidates if isinstance(c, dict) and
+                            c.get("candidate_name") == name and
+                            c.get("origin") == "MODEL_INDEPENDENT" and
+                            c.get("decision") == "D3_EXIT_NEW_TRIGGER_DEFERRED"), None)
+        prior_id = audit.get("prior_exited_episode_id")
+        prior = next((e for e in exits if isinstance(e, dict) and
+                      e.get("episode_id") == prior_id and
+                      e.get("exit_reason_code") == "D3_NOT_CONFIRMED"), None)
+        final = (prior or {}).get("d123_final_audit") or {}
+        if (independent is None or prior is None or
+                not isinstance(prior_id, str) or
+                prior_id != name + "#" + final.get("d123_trigger_trade_date", "") or
+                final.get("d123_decision") != "NOT_CONFIRMED" or
+                not isinstance(final.get("d123_decision_trade_date"), str) or
+                final["d123_decision_trade_date"] >= day or
+                audit.get("original_candidate_name") != name or
+                audit.get("original_candidate_origin") != "MODEL_INDEPENDENT" or
+                audit.get("original_candidate_decision") != "D3_EXIT_NEW_TRIGGER_DEFERRED" or
+                audit.get("initial_independent_discovery_frozen_at") !=
+                    old_scan.get("independent_discovery_frozen_at")):
+            errors.append(str(eid) + ":same_day_d1_not_frozen_prior_exit")
+        if (item.get("episode_id") != episode_key(name, day) or
+                item.get("first_seen_trade_date") != day or
+                item.get("last_verified_trade_date") != day or
+                item.get("market_state") != "观察" or
+                item.get("in_new_position_priority") is not False or
+                item.get("trend_basis") != "A_SHARE" or
+                item.get("lifecycle_status") != "有效" or
+                item.get("initial_discovery_basis") != "ONE_DAY_SURGE" or
+                item.get("d123_stage") != "D1" or
+                item.get("d123_trigger_trade_date") != day or
+                item.get("d123_decision") != "PENDING" or
+                item.get("d123_decision_trade_date") is not None):
+            errors.append(str(eid) + ":same_day_d1_identity_or_qualification_invalid")
+        if not isinstance(item.get("supporting_evidence"), list) or (
+                not item.get("supporting_evidence")):
+            errors.append(str(eid) + ":same_day_d1_evidence_missing")
+        facts = audit.get("evidence")
+        if (not isinstance(facts, list) or len(facts) < 3 or
+                any(not _valid_evidence(f, day) or f.get("trade_date") != day
+                    for f in facts) or
+                not _market_state_evidence(facts, "SUPPORT", "0000-00-00")):
+            errors.append(str(eid) + ":same_day_d1_new_market_evidence_invalid")
+        if item.get("d123_trigger_evidence") != (
+                facts[0] if isinstance(facts, list) and facts else None):
+            errors.append(str(eid) + ":same_day_d1_trigger_audit_mismatch")
+        if (not isinstance(item.get("state_history"), list) or
+                len(item["state_history"]) != 1 or
+                item["state_history"][0].get("trade_date") != day or
+                item["state_history"][0].get("from") is not None or
+                item["state_history"][0].get("to") != "观察"):
+            errors.append(str(eid) + ":same_day_d1_state_history_invalid")
+        assessments = item.get("industry_assessments")
+        if (not isinstance(assessments, list) or
+                len(assessments) != len(item.get("industry_codes") or []) or
+                [a.get("industry_name") for a in assessments if isinstance(a, dict)] !=
+                    item.get("industry_names") or
+                [a.get("industry_code") for a in assessments if isinstance(a, dict)] !=
+                    item.get("industry_codes") or
+                any(not isinstance(a, dict) or a.get("market_state") != "观察" or
+                    a.get("evidence_trade_date") != day for a in assessments)):
+            errors.append(str(eid) + ":same_day_d1_industry_mapping_invalid")
+        if (independent is not None and
+                not set(independent.get("covered_industries") or []).issuperset(
+                    item.get("industry_names") or [])):
+            errors.append(str(eid) + ":same_day_d1_new_industry_not_discovered")
+        errors.extend(_research_audit_errors(item, day, None))
+        errors.extend(_d123_stage_errors(item, None, day))
+        errors.extend(_surge_review_errors(item, None, day))
+    return errors
 
 def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
     """Fail closed on unsupported updates or unreviewed exits."""
@@ -935,8 +1105,24 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
             errors.append(f"{episode}:invalid_state")
         if episode in prior_by_id:
             continue
-        if item.get("trend_name") in {t.get("trend_name") for t in previous["trends"]}:
-            errors.append(f"{episode}:active_cycle_restarted")
+        old_same_name = next(
+            (t for t in previous["trends"] if t.get("trend_name") == item.get("trend_name")), None)
+        if old_same_name is not None:
+            old_exit = by_exit.get(old_same_name.get("episode_id")) or {}
+            # Old D3 was truly frozen before this close; the old record was
+            # merely retained by a legacy publishing rule. Never reset a
+            # currently-active D1/D2 or today's newly expired D3.
+            frozen_prior = (old_same_name.get("d123_stage") == "D3" and
+                old_same_name.get("d123_decision") == "NOT_CONFIRMED" and
+                isinstance(old_same_name.get("d123_decision_trade_date"), str) and
+                old_same_name["d123_decision_trade_date"] < day)
+            independently_found = any(
+                isinstance(c, dict) and c.get("candidate_name") == item.get("trend_name") and
+                c.get("origin") == "MODEL_INDEPENDENT"
+                for c in (scan.get("candidate_disposition_audit") or []))
+            if not (frozen_prior and old_exit.get("exit_reason_code") == "D3_NOT_CONFIRMED"
+                    and independently_found and item.get("d123_stage") == "D1"):
+                errors.append(f"{episode}:active_cycle_restarted")
         name = item.get("trend_name")
         if (item.get("first_seen_trade_date") != day or
                 episode != episode_key(name, day) or

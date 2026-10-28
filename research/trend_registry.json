@@ -2,7 +2,7 @@
   "schema_version": 2,
   "result_kind": "a_share_trend_registry",
   "trade_date": "2026-10-28",
-  "generated_at": "2026-10-28T18:39:00+08:00",
+  "generated_at": "2026-10-28T19:12:50.110+08:00",
   "timezone": "Asia/Shanghai",
   "status": "COMPLETE",
   "scan_audit": {
@@ -478,7 +478,52 @@
       ],
       "new_confirmation_reviews": []
     },
-    "same_day_revisions": []
+    "same_day_revisions": [
+      {
+        "previous_registry_blob_sha": "4a8a12177d123bc79a48e27fbf4b3462f4757964",
+        "previous_generated_at": "2026-10-28T18:39:00+08:00",
+        "revised_at": "2026-10-28T19:12:50.110+08:00",
+        "reason": "纠正2026-10-28首次全市场独立发现已确认新异动却因旧D3同轮清理而被错误延期的流程判断；旧D3冻结审计保留，补录本轮工业自动化D1观察，不重跑行情日或调整下游资格。",
+        "changes": [],
+        "new_episodes": [
+          {
+            "episode_id": "工业自动化/机器人#2026-10-28",
+            "original_candidate_name": "工业自动化/机器人",
+            "original_candidate_origin": "MODEL_INDEPENDENT",
+            "original_candidate_decision": "D3_EXIT_NEW_TRIGGER_DEFERRED",
+            "prior_exited_episode_id": "工业自动化/机器人#2026-10-20",
+            "initial_independent_discovery_frozen_at": "2026-10-28T18:34:00+08:00",
+            "reason": "原始模型独立全市场发现已冻结此新方向，旧D3未确认结论日期为10月22日，按本轮新证据独立补录D1；不伪造新的独立扫描。",
+            "evidence": [
+              {
+                "dimension": "MARKET_STRUCTURE",
+                "direction": "SUPPORT",
+                "impact": "STRUCTURAL",
+                "trade_date": "2026-10-28",
+                "source": "data/research/sector_discovery_audit.json",
+                "finding": "机器人6只样本当日中位+3.325%、5日+6.29%；工控12只当日中位+4.932%、5日+1.89%，形成区别于10月27日弱势的新结构改善。"
+              },
+              {
+                "dimension": "MARKET_BREADTH",
+                "direction": "SUPPORT",
+                "impact": "NORMAL",
+                "trade_date": "2026-10-28",
+                "source": "data/research/sector_discovery_audit.json",
+                "finding": "机器人6/6、工控12/12、激光2/2、其他自动化设备3/3共23只样本当日上涨；激光仅2只，样本薄弱需单列。"
+              },
+              {
+                "dimension": "RELATIVE_STRENGTH",
+                "direction": "SUPPORT",
+                "impact": "NORMAL",
+                "trade_date": "2026-10-28",
+                "source": "data/research/sector_discovery_audit.json",
+                "finding": "机器人相对全市场中位领先2.585个百分点、工控领先4.192个百分点，其他自动化设备领先2.693个百分点。"
+              }
+            ]
+          }
+        ]
+      }
+    ]
   },
   "trends": [
     {
@@ -937,6 +982,218 @@
         "decision": "PENDING",
         "decision_trade_date": null
       }
+    },
+    {
+      "trend_name": "工业自动化/机器人",
+      "episode_id": "工业自动化/机器人#2026-10-28",
+      "first_seen_trade_date": "2026-10-28",
+      "last_verified_trade_date": "2026-10-28",
+      "market_state": "观察",
+      "trend_state": "T0",
+      "trend_basis": "A_SHARE",
+      "commodity_anchor": null,
+      "lifecycle_status": "有效",
+      "industry_codes": [
+        "S640701",
+        "S640702",
+        "S640703",
+        "S640704"
+      ],
+      "industry_names": [
+        "机器人",
+        "工控设备",
+        "激光设备",
+        "其他自动化设备"
+      ],
+      "industry_assessments": [
+        {
+          "industry_code": "S640701",
+          "industry_name": "机器人",
+          "benefit_level": "CORE",
+          "market_state": "观察",
+          "evidence_trade_date": "2026-10-28",
+          "benefit_reason": "机器人设备是自动化设备制造的直接环节；产量增速可作需求线索，具体企业订单仍须核实。",
+          "market_reason": "6只样本当日中位+3.325%、广度100%；相对市场+2.585个百分点；3日1.36%、5日6.29%。"
+        },
+        {
+          "industry_code": "S640702",
+          "industry_name": "工控设备",
+          "benefit_level": "DIRECT",
+          "market_state": "观察",
+          "evidence_trade_date": "2026-10-28",
+          "benefit_reason": "工控设备直接涉及自动控制及制造业自动化投入；行业整体盈利传导尚未验证。",
+          "market_reason": "12只样本当日中位+4.932%、广度100%；相对市场+4.192个百分点；3日-0.43%、5日1.89%。"
+        },
+        {
+          "industry_code": "S640703",
+          "industry_name": "激光设备",
+          "benefit_level": "RELATED",
+          "market_state": "观察",
+          "evidence_trade_date": "2026-10-28",
+          "benefit_reason": "该细分仅与工业自动化部分环节相关，业务分散或样本较少，不能视为已确认核心受益。",
+          "market_reason": "2只样本当日中位+4.606%、广度100%；相对市场+3.866个百分点；3日样本不足、5日样本不足。"
+        },
+        {
+          "industry_code": "S640704",
+          "industry_name": "其他自动化设备",
+          "benefit_level": "RELATED",
+          "market_state": "观察",
+          "evidence_trade_date": "2026-10-28",
+          "benefit_reason": "该细分仅与工业自动化部分环节相关，业务分散或样本较少，不能视为已确认核心受益。",
+          "market_reason": "3只样本当日中位+3.433%、广度100%；相对市场+2.693个百分点；3日0.84%、5日0.33%。"
+        }
+      ],
+      "supporting_evidence": [
+        {
+          "dimension": "MARKET_STRUCTURE",
+          "direction": "SUPPORT",
+          "impact": "STRUCTURAL",
+          "trade_date": "2026-10-28",
+          "source": "data/research/sector_discovery_audit.json",
+          "finding": "机器人6只样本当日中位+3.325%、5日+6.29%；工控12只当日中位+4.932%、5日+1.89%，形成区别于10月27日弱势的新结构改善。"
+        },
+        {
+          "dimension": "MARKET_BREADTH",
+          "direction": "SUPPORT",
+          "impact": "NORMAL",
+          "trade_date": "2026-10-28",
+          "source": "data/research/sector_discovery_audit.json",
+          "finding": "机器人6/6、工控12/12、激光2/2、其他自动化设备3/3共23只样本当日上涨；激光仅2只，样本薄弱需单列。"
+        },
+        {
+          "dimension": "RELATIVE_STRENGTH",
+          "direction": "SUPPORT",
+          "impact": "NORMAL",
+          "trade_date": "2026-10-28",
+          "source": "data/research/sector_discovery_audit.json",
+          "finding": "机器人相对全市场中位领先2.585个百分点、工控领先4.192个百分点，其他自动化设备领先2.693个百分点。"
+        }
+      ],
+      "contrary_evidence": [
+        {
+          "dimension": "INDUSTRY_FUNDAMENTALS",
+          "direction": "COUNTER",
+          "impact": "NORMAL",
+          "trade_date": "2026-10-28",
+          "source": "https://www.stats.gov.cn/sj/zxfbhjd/202610/t20261019_1965618.html",
+          "finding": "工业机器人产量增长是行业层面信号，不能替代核心公司今日订单、利润率和交付的核实。"
+        },
+        {
+          "dimension": "MARKET_STRUCTURE",
+          "direction": "COUNTER",
+          "impact": "NORMAL",
+          "trade_date": "2026-10-28",
+          "source": "data/research/sector_discovery_audit.json",
+          "finding": "工控设备3日中位-0.43%，激光仅2只样本；今天共同上涨尚未证明分歧后的持续承接。"
+        }
+      ],
+      "invalidation_conditions": [
+        "若下次有效收盘核心机器人及工控扩散消失、相对强度回落且缺少订单受益佐证，则按D2证据维持或退出；最迟D3未确认必须终结。"
+      ],
+      "etf_tools": [],
+      "participation_timing": "D1观察，无股票新仓研究资格；下一有效收盘检查核心扩散、相对强度、回撤承接和订单兑现。",
+      "in_new_position_priority": false,
+      "priority_rank": null,
+      "change_reason": "2026-10-28原始模型独立扫描已冻结工业自动化跨细分新异动，但同轮旧D3清理被误作为禁止新D1的理由；纠正为独立新episode的D1观察，旧2026-10-22 D3未确认结论与退出审计均不追改。",
+      "state_history": [
+        {
+          "trade_date": "2026-10-28",
+          "from": null,
+          "to": "观察",
+          "event": "new_observed_trend",
+          "reason": "原始独立扫描今日发现机器人、工控等跨细分新异动；前轮D3已于10月22日未确认，新D1以今日新市场证据独立建立，仅观察不确认。"
+        }
+      ],
+      "confirmation_audit": {
+        "asof_trade_date": "2026-10-28",
+        "market_environment": "NORMAL",
+        "market_environment_reason": "全市场中位上涨0.74%，约四分之三个股上涨，成长制造与科技领涨，风险偏好修复不能替代行业独立趋势证据。",
+        "market_environment_source": "data/latest.json",
+        "driver_type": "INDUSTRIAL_GROWTH",
+        "discovery_basis": "ONE_DAY_SURGE",
+        "catalyst_kind": "SUSTAINED_DRIVER",
+        "catalyst_fact": "国家统计局披露前三季度工业机器人产量同比增长29.1%，但本轮10月28日新D1主要由独立市场扫描发现的跨细分结构改善触发；新增订单、盈利未核实。",
+        "catalyst_source": "https://www.stats.gov.cn/sj/zxfbhjd/202610/t20261019_1965618.html",
+        "catalyst_available_at": "2026-10-19T10:00:00+08:00",
+        "core_industry_codes": [
+          "S640701",
+          "S640702"
+        ],
+        "strongest_counter": "工控3日结构仍负、激光样本仅2只，机器人与工控本轮尚无新增订单或利润率共振证据。",
+        "decision_reason": "10月28日机器人6/6、工控12/12及另两细分合计23/23上涨，核心相对强势并有机器人5日结构；独立新触发成立，但单日扩散不能确认，故D1观察。",
+        "decision_state": "观察",
+        "specific_blocker": "需机器人和工控分歧后的多日承接以及核心公司订单、出货和利润率独立证据。"
+      },
+      "initial_discovery_basis": "ONE_DAY_SURGE",
+      "d123_trigger_evidence": {
+        "dimension": "MARKET_STRUCTURE",
+        "direction": "SUPPORT",
+        "impact": "STRUCTURAL",
+        "trade_date": "2026-10-28",
+        "source": "data/research/sector_discovery_audit.json",
+        "finding": "机器人6只样本当日中位+3.325%、5日+6.29%；工控12只当日中位+4.932%、5日+1.89%，形成区别于10月27日弱势的新结构改善。"
+      },
+      "d123_stage": "D1",
+      "d123_trigger_trade_date": "2026-10-28",
+      "d123_decision": "PENDING",
+      "d123_decision_trade_date": null,
+      "d123_backfill_audit": null,
+      "surge_followup": {
+        "trigger_trade_date": "2026-10-28",
+        "sessions": [
+          {
+            "trade_date": "2026-10-28",
+            "dimensions": {
+              "market_environment": {
+                "status": "ASSESSED",
+                "finding": "全市场中位上涨0.74%，属于风险偏好修复背景，不能把同步上涨单独视作独立产业趋势确认。",
+                "source": "data/latest.json"
+              },
+              "catalyst": {
+                "status": "ASSESSED",
+                "finding": "前三季度工业机器人产量同比增长29.1%是已公开产业线索；10月28日没有新核实的独立订单催化，今日新触发来自市场结构。",
+                "source": "https://www.stats.gov.cn/sj/zxfbhjd/202610/t20261019_1965618.html"
+              },
+              "beneficiary_chain": {
+                "status": "INSUFFICIENT",
+                "finding": "机器人和工控与制造自动化有直接业务关联，但本日没有核实覆盖核心样本的新增订单、交付及利润率共同改善。",
+                "source": "https://www.stats.gov.cn/sj/zxfbhjd/202610/t20261019_1965618.html"
+              },
+              "funding_strength": {
+                "status": "ASSESSED",
+                "finding": "机器人量比中位2.419、工控1.323，代表成交参与度而不是净买入，不能推定具体交易主体。",
+                "source": "data/research/sector_discovery_audit.json",
+                "measurement_basis": "PRICE_VOLUME_PROXY",
+                "observation_window": "相对20个交易日成交量中位数"
+              },
+              "breadth": {
+                "status": "SUPPORTED",
+                "finding": "四细分23只可用样本均上涨：机器人6/6、工控12/12、激光2/2、其他自动化设备3/3；小样本细分须谨慎。",
+                "source": "data/research/sector_discovery_audit.json",
+                "sample_size": 23,
+                "advancing_count": 23
+              },
+              "relative_strength": {
+                "status": "SUPPORTED",
+                "finding": "机器人相对市场中位+2.585个百分点，工控+4.192，激光+3.866，其他自动化设备+2.693。",
+                "source": "data/research/sector_discovery_audit.json"
+              },
+              "price_structure": {
+                "status": "ASSESSED",
+                "finding": "机器人5日中位+6.29%，工控5日+1.89%但3日-0.43%，反映核心仍有多日结构分化；当日共同上行未经过新的回撤承接。",
+                "source": "data/research/sector_discovery_audit.json"
+              },
+              "counter_evidence": {
+                "status": "COUNTER",
+                "finding": "工控3日中位-0.43%，激光仅2只样本；订单与利润共同兑现仍缺当期独立核实，不能据单日扩散确认。",
+                "source": "data/research/sector_discovery_audit.json"
+              }
+            }
+          }
+        ],
+        "decision": "PENDING",
+        "decision_trade_date": null
+      }
     }
   ],
   "invalidated_history": [
@@ -1039,4 +1296,3 @@
   ],
   "recheck_queue": []
 }
-
