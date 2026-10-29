@@ -1,79 +1,29 @@
 {
   "schema_version": 2,
   "result_kind": "a_share_trend_registry",
-  "trade_date": "2026-10-28",
-  "generated_at": "2026-10-28T19:12:50.110+08:00",
+  "trade_date": "2026-10-29",
+  "generated_at": "2026-10-29T23:38:00+08:00",
   "timezone": "Asia/Shanghai",
   "status": "COMPLETE",
   "scan_audit": {
     "mode": "full_close",
-    "trade_date": "2026-10-28",
+    "trade_date": "2026-10-29",
     "full_market_scan_completed": true,
-    "independent_discovery_frozen_at": "2026-10-28T18:34:00+08:00",
-    "independent_discovery_count": 3,
+    "independent_discovery_frozen_at": "2026-10-29T18:30:00+08:00",
+    "independent_discovery_count": 5,
     "quote_universe_count": 3138,
     "valid_quote_count": 3138,
     "industry_mapped_count": 3138,
-    "source_latest_blob_sha": "2ee3e88046ce30e389d4fcb176dbf6d036b662f0",
-    "auxiliary_snapshot_trade_date": "2026-10-28",
+    "source_latest_blob_sha": "86bb2ec5a07ae3f609da633bfa74f009936b1a9f",
+    "auxiliary_snapshot_trade_date": "2026-10-29",
     "auxiliary_snapshot_status": "COMPLETE",
     "prior_baseline_mode": "previous_valid_close",
     "notes": [
-      "申万三级331个行业全部扫描；概念成员数据不可用，未将概念缺口冒充行业缺失。",
-      "Python交叉复核仅作客观量价查漏，不自动决定趋势状态。",
-      "同日布伦特报价截至北京时间18:30尚未正式收盘，仅作盘中证据。"
+      "申万三级331个行业全部扫描；概念成员数据不可用，未把概念缺口冒充研究否决。",
+      "Python综合Top-3为城商行、航天装备、国有大型银行，均与模型独立冻结方向重合，未新增第四个正式方向。",
+      "全市场个股中位下跌2.036%，市场环境评估为RISK_OFF；成交量仅作价量代理。"
     ],
     "candidate_disposition_audit": [
-      {
-        "candidate_name": "工业自动化/机器人",
-        "covered_industries": [
-          "机器人",
-          "工控设备",
-          "激光设备",
-          "其他自动化设备"
-        ],
-        "origin": "MODEL_INDEPENDENT",
-        "decision": "D3_EXIT_NEW_TRIGGER_DEFERRED",
-        "supporting_evidence": "机器人、工控和其他自动化设备当日全部上涨，机器人已有5日结构。",
-        "market_assessment": "出现新的跨细分爆发，但旧活跃episode须先执行历史D3期限退出，同一收盘不得连续换episode。",
-        "industry_assessment": "工业机器人产量与标准催化成立，订单利润仍待核。",
-        "decisive_reason": "旧D3 episode本轮依法退出；今日新触发保留在候选去向审计，等待下一次独立扫描确认是否形成新周期。",
-        "missing_evidence": "退出后的独立持续异动、回撤承接、核心订单与利润率。",
-        "recheck_trigger": "下一有效收盘独立扫描再次发现持续跨细分相对强度并出现真实订单证据。"
-      },
-      {
-        "candidate_name": "汽车零部件",
-        "covered_industries": [
-          "车身附件及饰件",
-          "底盘与发动机系统",
-          "其他汽车零部件",
-          "汽车电子电气系统"
-        ],
-        "origin": "MODEL_INDEPENDENT",
-        "decision": "D1_OBSERVATION_PERSISTED",
-        "supporting_evidence": "底盘、车身和其他零部件广度超过80%，部分3日/5日为正。",
-        "market_assessment": "单日广泛爆发，尚需分歧承接。",
-        "industry_assessment": "新能源与出口增长，但汽车总销量同比下降，受益分化。",
-        "decisive_reason": "仅以D1观察进入，不由单日普涨确认。",
-        "missing_evidence": "订单、客户结构、利润率与持续承接。",
-        "recheck_trigger": "下一有效收盘核心细分继续相对强势且订单证据改善。"
-      },
-      {
-        "candidate_name": "油气开采/油服工程",
-        "covered_industries": [
-          "油气开采Ⅲ",
-          "油田服务",
-          "油气及炼化工程"
-        ],
-        "origin": "MODEL_INDEPENDENT",
-        "decision": "D3_NOT_CONFIRMED_EXIT",
-        "supporting_evidence": "油服和工程当日全上涨且3日/5日为正。",
-        "market_assessment": "A股结构改善，但商品主导锚当日未收盘。",
-        "industry_assessment": "供给风险支持盘中油价，资本开支与订单传导不足。",
-        "decisive_reason": "D3缺少最终商品价格和供需终局证据，按期限退出。",
-        "missing_evidence": "最终商品收盘、供需、资本开支和订单。",
-        "recheck_trigger": "未来独立扫描发现新的最终商品趋势和A股持续扩散。"
-      },
       {
         "candidate_name": "银行",
         "covered_industries": [
@@ -82,710 +32,469 @@
           "城商行Ⅲ",
           "农商行Ⅲ"
         ],
+        "origin": "MODEL_INDEPENDENT_AND_PYTHON_CROSSCHECK",
+        "decision": "D1_CANDIDATE_PERSISTED",
+        "supporting_evidence": "四类银行当日、3日、5日结构均为正；城商行和国有行进入程序Top-3。",
+        "market_assessment": "普跌中跨类型强势且多日延续，但含防御轮动成分。",
+        "industry_assessment": "部分三季报显示营收、净息差与资产质量改善，尚非全行业同步。",
+        "decisive_reason": "四类银行均形成当日、3日和5日正结构，广度77.78%至100%，并有部分三季报基本面佐证；以新D1候选重启，但不确认。",
+        "missing_evidence": "需更多银行三季报交叉验证净息差、资产质量和中收，并观察风险偏好正常化后的承接。",
+        "recheck_trigger": "下一有效收盘验证风险偏好正常化后的承接及更多三季报。"
+      },
+      {
+        "candidate_name": "航天装备",
+        "covered_industries": [
+          "航天装备Ⅲ"
+        ],
+        "origin": "MODEL_INDEPENDENT_AND_PYTHON_CROSSCHECK",
+        "decision": "D1_CANDIDATE_PERSISTED",
+        "supporting_evidence": "当日+4.572%、3日+3.31%、5日+7.19%、量比3.151，并有连续发射任务。",
+        "market_assessment": "独立强势但样本仅5只，军工宽链未同步。",
+        "industry_assessment": "发射活动持续，上市公司订单与利润传导待核。",
+        "decisive_reason": "航天装备5只样本中4只上涨，当日相对市场+6.608个百分点，3日、5日结构为正且量比3.151；有持续发射事实，但样本窄和订单盈利缺口使其仅为D1候选。",
+        "missing_evidence": "需上市公司订单、交付与利润传导，以及航天装备内部回撤承接和更广泛样本验证。",
+        "recheck_trigger": "下一有效收盘验证回撤承接、订单与交付。"
+      },
+      {
+        "candidate_name": "煤炭",
+        "covered_industries": [
+          "动力煤",
+          "焦煤"
+        ],
         "origin": "MODEL_INDEPENDENT",
-        "decision": "D3_NOT_CONFIRMED_EXIT",
-        "supporting_evidence": "四类银行3日结构仍为正。",
-        "market_assessment": "当日全部弱于市场，广度仅22%至33%。",
-        "industry_assessment": "息差、资产质量和中收改善未闭环。",
-        "decisive_reason": "D3仍不足确认，按期限退出。",
-        "missing_evidence": "基本面闭环与风险偏好正常化后的承接。",
-        "recheck_trigger": "新一轮独立异动并伴随三季报基本面改善。"
+        "decision": "D1_OBSERVATION_PERSISTED",
+        "supporting_evidence": "两细分A股均有正向3日/5日结构。",
+        "market_assessment": "相对抗跌但量比低于1。",
+        "industry_assessment": "动力煤、焦煤价格与库存信号分化。",
+        "decisive_reason": "动力煤和焦煤A股均有正向3日/5日结构，但商品第一锚与库存信号分化，建立D1观察而非候选。",
+        "missing_evidence": "需动力煤/焦煤价格、库存和供需第一锚持续一致，并验证A股放量承接及利润传导。",
+        "recheck_trigger": "商品价格、库存供需与A股放量承接同时改善。"
       },
       {
-        "candidate_name": "改性塑料",
+        "candidate_name": "保险",
         "covered_industries": [
-          "改性塑料"
+          "保险Ⅲ"
         ],
-        "origin": "PYTHON_CROSSCHECK",
-        "decision": "REJECTED_ONE_DAY_REBOUND",
-        "supporting_evidence": "5只样本当日全部上涨、中位+5.074%。",
-        "market_assessment": "3日-1.81%、5日-0.85%，缺少连续结构。",
-        "industry_assessment": "未核实产品价差、订单和利润率共同改善。",
-        "decisive_reason": "单日修复不足以建立正式观察。",
-        "missing_evidence": "价差、订单、利润率和多日承接。",
-        "recheck_trigger": "形成独立多日结构并出现产品价差改善。"
+        "origin": "MODEL_INDEPENDENT",
+        "decision": "REJECTED_DEFENSIVE_ROTATION",
+        "supporting_evidence": "5只样本当日+1.701%、5日+4.44%，广度80%。",
+        "market_assessment": "普跌环境下相对强势，但仅5只样本且3日+1.1%。",
+        "industry_assessment": "未取得新业务价值、保费结构及投资收益的新增行业闭环。",
+        "decisive_reason": "缺少独立基本面催化，按防御轮动处理，不建立正式episode。",
+        "missing_evidence": "新业务价值、保费结构、投资收益与正常市场中的承接。",
+        "recheck_trigger": "行业基本面与多日相对强度同时改善。"
       },
       {
-        "candidate_name": "非金属材料",
+        "candidate_name": "航空运输",
         "covered_industries": [
-          "非金属材料Ⅲ"
+          "航空运输"
         ],
-        "origin": "PYTHON_CROSSCHECK",
-        "decision": "REJECTED_ONE_DAY_REBOUND",
-        "supporting_evidence": "5只样本当日全部上涨、中位+4.603%。",
-        "market_assessment": "3日-0.2%、5日-1.64%，仍属单日修复。",
-        "industry_assessment": "宽分类主营分散，未形成共同利润驱动。",
-        "decisive_reason": "缺少真实共同受益链和连续结构。",
-        "missing_evidence": "产品价格、订单及多日扩散。",
-        "recheck_trigger": "共同产业驱动与多日结构同时成立。"
+        "origin": "MODEL_INDEPENDENT",
+        "decision": "REJECTED_DEFENSIVE_ROTATION",
+        "supporting_evidence": "8只样本当日+0.995%、3日+0.77%、5日+3.01%。",
+        "market_assessment": "相对抗跌但量比1.069，独立强度有限。",
+        "industry_assessment": "未取得客座率、票价、油价与盈利共同改善的新证据。",
+        "decisive_reason": "缺少可归因产业催化和盈利传导，不建立正式episode。",
+        "missing_evidence": "客运量、客座率、票价、航油成本和利润率。",
+        "recheck_trigger": "经营指标与独立市场结构同步改善。"
       },
       {
-        "candidate_name": "半导体/PCB",
+        "candidate_name": "城商行/国有大型银行程序复核",
         "covered_industries": [
-          "印制电路板",
-          "半导体设备",
-          "半导体材料",
-          "集成电路封测"
+          "城商行Ⅲ",
+          "国有大型银行Ⅲ"
         ],
-        "origin": "PYTHON_CROSSCHECK",
-        "decision": "REJECTED_ONE_DAY_REBOUND",
-        "supporting_evidence": "多个细分当日广度接近100%。",
-        "market_assessment": "关键细分3日和5日仍大幅为负，未修复原退潮。",
-        "industry_assessment": "标准与产业支持存在，但当日反弹不能证明盈利传导。",
-        "decisive_reason": "单日反弹不重启旧episode。",
-        "missing_evidence": "多日结构、分歧承接与盈利兑现。",
-        "recheck_trigger": "连续收复多日结构且核心行业相对强度持续。"
+        "origin": "PYTHON_CROSSCHECK_OVERLAP",
+        "decision": "MERGED_WITH_BANK",
+        "supporting_evidence": "分别位列程序综合Top-3第1与第3。",
+        "market_assessment": "与模型先行冻结的银行方向重合，不作为第二份独立证据。",
+        "industry_assessment": "已纳入银行宽主题基本面核验。",
+        "decisive_reason": "合并进银行D1候选。",
+        "missing_evidence": "同银行正式条目。",
+        "recheck_trigger": "同银行正式条目。"
       }
     ],
     "state_migration_gate": {
       "mode": "full_close",
-      "previous_registry_blob_sha": "c1e6e79deed826616939aee84084ccd377fb8aa1",
-      "previous_registry_trade_date": "2026-10-27",
-      "current_trade_date": "2026-10-28",
+      "previous_registry_blob_sha": "25facd6f0bcb9aafb154342321c27a82c5753e39",
+      "previous_registry_trade_date": "2026-10-28",
+      "current_trade_date": "2026-10-29",
       "reviews": [
         {
-          "episode_id": "电机#2026-10-27",
-          "decision": "CHANGE",
-          "previous_market_state": "观察",
-          "proposed_market_state": "候选趋势",
-          "previous_trend_state": "T0",
-          "proposed_trend_state": "T0",
-          "reason": "D2复核显示18只电机样本当日广度77.78%、5日中位+6.595%、量比2.204并相对市场转强，市场由观察升候选；但3日中位仍为-0.475%，且订单和利润受益链未闭环，不能确认。",
-          "evidence": [
-            {
-              "dimension": "MARKET_STRUCTURE",
-              "direction": "SUPPORT",
-              "impact": "STRUCTURAL",
-              "trade_date": "2026-10-28",
-              "source": "data/research/sector_discovery_audit.json",
-              "finding": "电机18只样本5日中位+6.595%、量比2.204，价格结构与参与度改善。"
-            },
-            {
-              "dimension": "MARKET_BREADTH",
-              "direction": "SUPPORT",
-              "impact": "NORMAL",
-              "trade_date": "2026-10-28",
-              "source": "data/research/sector_discovery_audit.json",
-              "finding": "电机18只样本中14只上涨，广度77.78%。"
-            },
-            {
-              "dimension": "RELATIVE_STRENGTH",
-              "direction": "SUPPORT",
-              "impact": "NORMAL",
-              "trade_date": "2026-10-28",
-              "source": "data/research/sector_discovery_audit.json",
-              "finding": "电机当日中位+1.486%，相对全市场中位领先0.746个百分点。"
-            }
-          ]
-        },
-        {
-          "episode_id": "商贸零售#2026-10-27",
+          "episode_id": "汽车零部件#2026-10-28",
           "decision": "HOLD",
           "previous_market_state": "观察",
           "proposed_market_state": "观察",
           "previous_trend_state": "T0",
           "proposed_trend_state": "T0",
-          "reason": "D2复核显示百货仍有3日/5日正结构，但超市当日下跌且3日转负，多业态零售当日无相对优势；宽主题受益与盈利传导仍未闭环，维持观察。",
+          "reason": "D2出现显著回撤且无承接，但尚未到D3；保留观察至下一有效收盘终局。",
           "evidence": [
             {
               "dimension": "MARKET_STRUCTURE",
               "direction": "COUNTER",
-              "impact": "NORMAL",
-              "trade_date": "2026-10-28",
+              "impact": "STRUCTURAL",
+              "trade_date": "2026-10-29",
               "source": "data/research/sector_discovery_audit.json",
-              "finding": "超市3日中位转负，多业态当日无相对优势，百货仅接近市场。"
+              "finding": "四个细分当日中位-2.75%至-3.84%，3日均为负；底盘5日仍+0.42%，其余接近或低于0"
             },
             {
               "dimension": "MARKET_BREADTH",
               "direction": "COUNTER",
               "impact": "NORMAL",
-              "trade_date": "2026-10-28",
+              "trade_date": "2026-10-29",
               "source": "data/research/sector_discovery_audit.json",
-              "finding": "超市7只样本仅2只上涨，多业态15只仅7只上涨。"
+              "finding": "底盘4/67、车身3/26、其他2/32、汽车电子1/17上涨"
+            }
+          ]
+        },
+        {
+          "episode_id": "工业自动化/机器人#2026-10-28",
+          "decision": "HOLD",
+          "previous_market_state": "观察",
+          "proposed_market_state": "观察",
+          "previous_trend_state": "T0",
+          "proposed_trend_state": "T0",
+          "reason": "D2跨细分普遍回撤且无承接，但尚未到D3；保留观察至下一有效收盘终局。",
+          "evidence": [
+            {
+              "dimension": "MARKET_STRUCTURE",
+              "direction": "COUNTER",
+              "impact": "STRUCTURAL",
+              "trade_date": "2026-10-29",
+              "source": "data/research/sector_discovery_audit.json",
+              "finding": "机器人当日-5.23%、3日-5.245%；工控当日-4.723%、3日-3.655%，跨细分反转"
+            },
+            {
+              "dimension": "MARKET_BREADTH",
+              "direction": "COUNTER",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-29",
+              "source": "data/research/sector_discovery_audit.json",
+              "finding": "机器人0/6、工控0/12、激光0/2、其他自动化0/3上涨"
             }
           ]
         }
       ],
       "exits": [
         {
-          "episode_id": "工业自动化/机器人#2026-10-20",
-          "decision": "EXIT",
-          "previous_market_state": "候选趋势",
-          "proposed_market_state": "失效",
-          "previous_trend_state": "T1",
-          "proposed_trend_state": "T1",
-          "exit_reason_code": "D3_NOT_CONFIRMED",
-          "reason": "历史上已冻结为D3未确认的旧episode按2026-10-28起存量兼容规则到期退出；今日新异动另建D1。",
-          "evidence": [
-            {
-              "dimension": "MARKET_STRUCTURE",
-              "direction": "COUNTER",
-              "impact": "NORMAL",
-              "trade_date": "2026-10-28",
-              "source": "data/research/sector_discovery_audit.json",
-              "finding": "历史上已冻结为D3未确认的旧episode按2026-10-28起存量兼容规则到期退出；今日新异动另建D1。"
-            }
-          ],
-          "d123_final_audit": {
-            "d123_stage": "D3",
-            "d123_trigger_trade_date": "2026-10-20",
-            "d123_decision": "NOT_CONFIRMED",
-            "d123_decision_trade_date": "2026-10-22",
-            "market_state": "候选趋势",
-            "confirmation_audit": {
-              "asof_trade_date": "2026-10-28",
-              "market_environment": "NORMAL",
-              "market_environment_reason": "全市场中位上涨0.74%，约四分之三个股上涨，成长制造与科技领涨，属于风险偏好修复但并非单一行业独立确认。",
-              "market_environment_source": "data/latest.json",
-              "driver_type": "INDUSTRIAL_GROWTH",
-              "discovery_basis": "CONTINUING_STRUCTURE",
-              "catalyst_kind": "SUSTAINED_DRIVER",
-              "catalyst_fact": "工业机器人产量与今日自动化再扩散均为正向线索，但该旧episode的D3已于10月22日冻结为未确认。",
-              "catalyst_source": "https://www.stats.gov.cn/sj/zxfbhjd/202610/t20261019_1965618.html",
-              "catalyst_available_at": "2026-10-19T10:00:00+08:00",
-              "core_industry_codes": [
-                "S640701",
-                "S640702"
-              ],
-              "strongest_counter": "旧episode在10月22日D3正式结果仍为候选，按新协议不得继续保留；今日异动另建新D1。",
-              "decision_reason": "执行历史存量兼容：旧D3未确认episode到期退出，不将今日新异动倒填为旧周期确认。",
-              "decision_state": "候选趋势",
-              "specific_blocker": "旧周期已在D3未确认，今日证据只能形成新episode。"
-            },
-            "dimensions": {
-              "market_environment": {
-                "status": "ASSESSED",
-                "finding": "全市场中位上涨0.74%，约四分之三个股上涨，成长制造与科技领涨，属于风险偏好修复但并非单一行业独立确认。",
-                "source": "data/latest.json"
-              },
-              "catalyst": {
-                "status": "ASSESSED",
-                "finding": "工业机器人产量与今日自动化再扩散均为正向线索，但该旧episode的D3已于10月22日冻结为未确认。",
-                "source": "https://www.stats.gov.cn/sj/zxfbhjd/202610/t20261019_1965618.html"
-              },
-              "beneficiary_chain": {
-                "status": "INSUFFICIENT",
-                "finding": "旧周期D3未确认，今日新催化不得倒填旧周期。",
-                "source": "https://www.stats.gov.cn/sj/zxfbhjd/202610/t20261019_1965618.html"
-              },
-              "funding_strength": {
-                "status": "ASSESSED",
-                "finding": "今日自动化量比上升仅是价量代理，不证明旧周期D3已确认。",
-                "source": "data/research/sector_discovery_audit.json"
-              },
-              "breadth": {
-                "status": "ASSESSED",
-                "finding": "今日自动化跨细分上涨属于新异动，不能改变旧D3冻结结论。",
-                "source": "data/research/sector_discovery_audit.json"
-              },
-              "relative_strength": {
-                "status": "ASSESSED",
-                "finding": "今日自动化相对强势属于新episode触发。",
-                "source": "data/research/sector_discovery_audit.json"
-              },
-              "price_structure": {
-                "status": "ASSESSED",
-                "finding": "旧episode在10月22日正式状态为候选，D3未确认已冻结。",
-                "source": "data/research/sector_discovery_audit.json"
-              },
-              "counter_evidence": {
-                "status": "COUNTER",
-                "finding": "旧episode在10月22日D3正式结果仍为候选，按新协议不得继续保留；今日异动另建新D1。",
-                "source": "https://www.stats.gov.cn/sj/zxfbhjd/202610/t20261019_1965618.html"
-              }
-            }
-          }
-        },
-        {
-          "episode_id": "油气开采/油服工程#2026-10-26",
+          "episode_id": "电机#2026-10-27",
           "decision": "EXIT",
           "previous_market_state": "候选趋势",
           "proposed_market_state": "失效",
           "previous_trend_state": "T0",
           "proposed_trend_state": "T0",
           "exit_reason_code": "D3_NOT_CONFIRMED",
-          "reason": "D3终局时商品最终收盘不可得、供需与订单传导未闭环，按期限未确认退出；不伪称产业失效。",
+          "reason": "第三个有效收盘仍未满足趋势确认，按D3期限退出；这不等于产业逻辑失效。",
           "evidence": [
             {
               "dimension": "MARKET_STRUCTURE",
               "direction": "COUNTER",
-              "impact": "NORMAL",
-              "trade_date": "2026-10-28",
-              "source": "https://www.reuters.com/world/asia-pacific/oil-prices-rise-after-attack-saudi-arabian-refinery-reignites-supply-concerns-2026-10-28/",
-              "finding": "D3终局时商品最终收盘不可得、供需与订单传导未闭环，按期限未确认退出；不伪称产业失效。"
-            }
-          ],
-          "d123_final_audit": {
-            "d123_stage": "D3",
-            "d123_trigger_trade_date": "2026-10-26",
-            "d123_decision": "NOT_CONFIRMED",
-            "d123_decision_trade_date": "2026-10-28",
-            "market_state": "候选趋势",
-            "confirmation_audit": {
-              "asof_trade_date": "2026-10-28",
-              "market_environment": "NORMAL",
-              "market_environment_reason": "全市场中位上涨0.74%，约四分之三个股上涨，成长制造与科技领涨，属于风险偏好修复但并非单一行业独立确认。",
-              "market_environment_source": "data/latest.json",
-              "driver_type": "COMMODITY",
-              "discovery_basis": "COMMODITY_STRUCTURE",
-              "catalyst_kind": "COMMODITY_SUPPLY",
-              "catalyst_fact": "10月28日布伦特盘中因沙特炼厂遇袭上涨约1.4%，但北京时间18:30尚非正式收盘，不能作为当日最终价格确认。",
-              "catalyst_source": "https://www.reuters.com/world/asia-pacific/oil-prices-rise-after-attack-saudi-arabian-refinery-reignites-supply-concerns-2026-10-28/",
-              "catalyst_available_at": "2026-10-28T17:30:00+08:00",
-              "core_industry_codes": [
-                "S750101"
-              ],
-              "strongest_counter": "商品第一锚截至截止时点没有当日最终收盘，开采环节当日仅50%上涨且5日结构仍负。",
-              "decision_reason": "油服与工程A股结构改善，但商品主导趋势缺少当日最终价格和独立供需终局证据，D3不确认。",
-              "decision_state": "候选趋势",
-              "specific_blocker": "缺少可用的当日最终商品收盘和完整供需、资本开支与订单传导闭环。"
-            },
-            "dimensions": {
-              "market_environment": {
-                "status": "ASSESSED",
-                "finding": "全市场中位上涨0.74%，约四分之三个股上涨，成长制造与科技领涨，属于风险偏好修复但并非单一行业独立确认。",
-                "source": "data/latest.json"
-              },
-              "catalyst": {
-                "status": "INSUFFICIENT",
-                "finding": "10月28日布伦特盘中因沙特炼厂遇袭上涨约1.4%，但北京时间18:30尚非正式收盘，不能作为当日最终价格确认。",
-                "source": "https://www.reuters.com/world/asia-pacific/oil-prices-rise-after-attack-saudi-arabian-refinery-reignites-supply-concerns-2026-10-28/"
-              },
-              "beneficiary_chain": {
-                "status": "INSUFFICIENT",
-                "finding": "油价向油服资本开支、订单和利润的传导仍未闭环。",
-                "source": "https://www.reuters.com/world/asia-pacific/oil-prices-rise-after-attack-saudi-arabian-refinery-reignites-supply-concerns-2026-10-28/"
-              },
-              "funding_strength": {
-                "status": "ASSESSED",
-                "finding": "油服和工程量比约1，虽上涨但不足证明持续资金净流入。",
-                "source": "data/research/sector_discovery_audit.json"
-              },
-              "breadth": {
-                "status": "ASSESSED",
-                "finding": "油服7/7、工程4/4上涨，但开采仅2/4上涨。",
-                "source": "data/research/sector_discovery_audit.json"
-              },
-              "relative_strength": {
-                "status": "ASSESSED",
-                "finding": "油服和工程相对市场领先，但开采环节落后0.622个百分点。",
-                "source": "data/research/sector_discovery_audit.json"
-              },
-              "price_structure": {
-                "status": "ASSESSED",
-                "finding": "油服和工程3日、5日为正，开采5日仍负；商品当日未收盘。",
-                "source": "data/research/sector_discovery_audit.json"
-              },
-              "counter_evidence": {
-                "status": "COUNTER",
-                "finding": "商品第一锚截至截止时点没有当日最终收盘，开采环节当日仅50%上涨且5日结构仍负。",
-                "source": "https://www.reuters.com/world/asia-pacific/oil-prices-rise-after-attack-saudi-arabian-refinery-reignites-supply-concerns-2026-10-28/"
-              }
-            }
-          }
-        },
-        {
-          "episode_id": "银行#2026-10-26",
-          "decision": "EXIT",
-          "previous_market_state": "候选趋势",
-          "proposed_market_state": "失效",
-          "previous_trend_state": "T1",
-          "proposed_trend_state": "T1",
-          "exit_reason_code": "D3_NOT_CONFIRMED",
-          "reason": "D3终局时当日相对强度和广度转弱，且息差、资产质量与中收证据未闭环，按期限未确认退出。",
-          "evidence": [
-            {
-              "dimension": "MARKET_STRUCTURE",
-              "direction": "COUNTER",
-              "impact": "NORMAL",
-              "trade_date": "2026-10-28",
+              "impact": "STRUCTURAL",
+              "trade_date": "2026-10-29",
               "source": "data/research/sector_discovery_audit.json",
-              "finding": "D3终局时当日相对强度和广度转弱，且息差、资产质量与中收证据未闭环，按期限未确认退出。"
+              "finding": "电机当日-3.663%、3日-2.47%、5日-0.915%，D3未形成持续趋势。"
+            },
+            {
+              "dimension": "MARKET_BREADTH",
+              "direction": "COUNTER",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-29",
+              "source": "data/research/sector_discovery_audit.json",
+              "finding": "18只电机样本仅2只上涨，广度11.11%。"
+            },
+            {
+              "dimension": "INDUSTRY_FUNDAMENTALS",
+              "direction": "COUNTER",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-29",
+              "source": "https://www.stats.gov.cn/sj/zxfbhjd/202610/t20261019_1965618.html",
+              "finding": "机器人产量线索仍不能证明电机行业订单与利润普遍改善。"
             }
           ],
           "d123_final_audit": {
             "d123_stage": "D3",
-            "d123_trigger_trade_date": "2026-10-26",
+            "d123_trigger_trade_date": "2026-10-27",
             "d123_decision": "NOT_CONFIRMED",
-            "d123_decision_trade_date": "2026-10-28",
+            "d123_decision_trade_date": "2026-10-29",
             "market_state": "候选趋势",
             "confirmation_audit": {
-              "asof_trade_date": "2026-10-28",
-              "market_environment": "NORMAL",
-              "market_environment_reason": "全市场中位上涨0.74%，约四分之三个股上涨，成长制造与科技领涨，属于风险偏好修复但并非单一行业独立确认。",
-              "market_environment_source": "data/latest.json",
-              "driver_type": "DEFENSIVE",
+              "asof_trade_date": "2026-10-29",
+              "market_environment": "RISK_OFF",
+              "market_environment_reason": "全市场个股中位下跌2.036%，D3仍按行业独立结构与产业证据终局。",
+              "market_environment_source": "data/research/sector_discovery_audit.json",
+              "driver_type": "INDUSTRIAL_GROWTH",
               "discovery_basis": "CONTINUING_STRUCTURE",
               "catalyst_kind": "SUSTAINED_DRIVER",
-              "catalyst_fact": "四类银行3日结构仍为正，但今日全部弱于全市场且没有新的息差、资产质量或中收闭环。",
-              "catalyst_source": "data/research/sector_discovery_audit.json",
-              "catalyst_available_at": "2026-10-28T17:02:42+08:00",
+              "catalyst_fact": "工业机器人前三季度产量同比增长29.1%，电机板块出现5日结构和显著量能，但该需求不能覆盖全部电机公司。",
+              "catalyst_source": "https://www.stats.gov.cn/sj/zxfbhjd/202610/t20261019_1965618.html",
+              "catalyst_available_at": "2026-10-19T10:00:00+08:00",
               "core_industry_codes": [
-                "S480201",
-                "S480301",
-                "S480401",
-                "S480501"
+                "S630101"
               ],
-              "strongest_counter": "四类银行当日广度仅22.22%至33.33%，相对全市场落后0.74至1.21个百分点。",
-              "decision_reason": "多日防御结构仍在，但风险偏好修复日承接不足且基本面缺口未补，D3不确认。",
+              "strongest_counter": "电机当日、3日和5日结构均转负且广度仅11.11%。",
+              "decision_reason": "第三个有效收盘仍未满足趋势确认，按D3期限退出；这不等于产业逻辑失效。",
               "decision_state": "候选趋势",
-              "specific_blocker": "缺少风险偏好正常化后的相对强度和当期息差、资产质量、中收改善证据。"
+              "specific_blocker": "缺少持续相对强度、广度承接及核心企业订单与利润率闭环。"
             },
             "dimensions": {
               "market_environment": {
                 "status": "ASSESSED",
-                "finding": "全市场中位上涨0.74%，约四分之三个股上涨，成长制造与科技领涨，属于风险偏好修复但并非单一行业独立确认。",
-                "source": "data/latest.json"
+                "finding": "全市场个股中位下跌2.036%，为RISK_OFF环境；D3仍需行业自身确认。",
+                "source": "data/research/sector_discovery_audit.json"
               },
               "catalyst": {
                 "status": "ASSESSED",
-                "finding": "四类银行3日结构仍为正，但今日全部弱于全市场且没有新的息差、资产质量或中收闭环。",
-                "source": "data/research/sector_discovery_audit.json"
+                "finding": "工业机器人增长线索未转化为电机行业订单与利润改善。",
+                "source": "https://www.stats.gov.cn/sj/zxfbhjd/202610/t20261019_1965618.html"
               },
               "beneficiary_chain": {
                 "status": "INSUFFICIENT",
-                "finding": "银行盈利链的息差、资产质量和中收证据未闭环。",
-                "source": "data/research/sector_discovery_audit.json"
+                "finding": "电机终端暴露分散，核心公司订单、出货和利润率未形成共同闭环。",
+                "source": "https://www.stats.gov.cn/sj/zxfbhjd/202610/t20261019_1965618.html"
               },
               "funding_strength": {
                 "status": "ASSESSED",
-                "finding": "银行量比接近1且当日相对弱，未见独立持续参与。",
-                "source": "data/research/sector_discovery_audit.json"
+                "finding": "成交量仅作价格成交代理，未验证净流入。",
+                "source": "data/research/sector_discovery_audit.json",
+                "measurement_basis": "PRICE_VOLUME_PROXY",
+                "observation_window": "相对20个交易日成交量中位数"
               },
               "breadth": {
                 "status": "COUNTER",
-                "finding": "四类银行上涨广度仅22.22%至33.33%。",
-                "source": "data/research/sector_discovery_audit.json"
+                "finding": "电机18只样本中仅2只上涨，广度降至11.11%。",
+                "source": "data/research/sector_discovery_audit.json",
+                "sample_size": 18,
+                "advancing_count": 2
               },
               "relative_strength": {
                 "status": "COUNTER",
-                "finding": "四类银行相对全市场落后0.74至1.21个百分点。",
+                "finding": "电机相对市场落后1.627个百分点。",
                 "source": "data/research/sector_discovery_audit.json"
               },
               "price_structure": {
-                "status": "ASSESSED",
-                "finding": "银行3日结构仍正，但当日承接弱且未达到确认。",
+                "status": "COUNTER",
+                "finding": "电机当日-3.663%、3日-2.47%、5日-0.915%，D2候选结构未延续。",
                 "source": "data/research/sector_discovery_audit.json"
               },
               "counter_evidence": {
                 "status": "COUNTER",
-                "finding": "四类银行当日广度仅22.22%至33.33%，相对全市场落后0.74至1.21个百分点。",
+                "finding": "市场结构、广度与受益链在D3均未满足确认。",
+                "source": "data/research/sector_discovery_audit.json"
+              }
+            }
+          }
+        },
+        {
+          "episode_id": "商贸零售#2026-10-27",
+          "decision": "EXIT",
+          "previous_market_state": "观察",
+          "proposed_market_state": "失效",
+          "previous_trend_state": "T0",
+          "proposed_trend_state": "T0",
+          "exit_reason_code": "D3_NOT_CONFIRMED",
+          "reason": "第三个有效收盘仍未满足趋势确认，按D3期限退出；这不等于产业逻辑失效。",
+          "evidence": [
+            {
+              "dimension": "MARKET_STRUCTURE",
+              "direction": "COUNTER",
+              "impact": "STRUCTURAL",
+              "trade_date": "2026-10-29",
+              "source": "data/research/sector_discovery_audit.json",
+              "finding": "百货、超市、多业态3日结构均为负，D3未形成持续趋势。"
+            },
+            {
+              "dimension": "MARKET_BREADTH",
+              "direction": "COUNTER",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-29",
+              "source": "data/research/sector_discovery_audit.json",
+              "finding": "42只样本仅8只上涨，跨业态扩散不足。"
+            },
+            {
+              "dimension": "INDUSTRY_FUNDAMENTALS",
+              "direction": "COUNTER",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-29",
+              "source": "https://www.stats.gov.cn/sj/zxfb/202610/t20261019_1972514.html",
+              "finding": "同店、客流与利润率缺少跨业态共同改善。"
+            }
+          ],
+          "d123_final_audit": {
+            "d123_stage": "D3",
+            "d123_trigger_trade_date": "2026-10-27",
+            "d123_decision": "NOT_CONFIRMED",
+            "d123_decision_trade_date": "2026-10-29",
+            "market_state": "观察",
+            "confirmation_audit": {
+              "asof_trade_date": "2026-10-29",
+              "market_environment": "RISK_OFF",
+              "market_environment_reason": "全市场个股中位下跌2.036%，D3仍按行业独立结构与产业证据终局。",
+              "market_environment_source": "data/research/sector_discovery_audit.json",
+              "driver_type": "OTHER",
+              "discovery_basis": "CONTINUING_STRUCTURE",
+              "catalyst_kind": "SUSTAINED_DRIVER",
+              "catalyst_fact": "前三季度及9月社零同比均增长1.1%，但不同零售业态经营分化。",
+              "catalyst_source": "https://www.stats.gov.cn/sj/zxfb/202610/t20261019_1972514.html",
+              "catalyst_available_at": "2026-10-19T10:00:00+08:00",
+              "core_industry_codes": [
+                "S450301",
+                "S450302",
+                "S450303"
+              ],
+              "strongest_counter": "三类零售3日结构均为负、跨业态广度不足。",
+              "decision_reason": "第三个有效收盘仍未满足趋势确认，按D3期限退出；这不等于产业逻辑失效。",
+              "decision_state": "观察",
+              "specific_blocker": "缺少跨业态相对强度、同店客流和利润率共同改善。"
+            },
+            "dimensions": {
+              "market_environment": {
+                "status": "ASSESSED",
+                "finding": "全市场个股中位下跌2.036%，为RISK_OFF环境；D3仍需行业自身确认。",
+                "source": "data/research/sector_discovery_audit.json"
+              },
+              "catalyst": {
+                "status": "ASSESSED",
+                "finding": "社零弱增长未转化为跨业态盈利改善。",
+                "source": "https://www.stats.gov.cn/sj/zxfb/202610/t20261019_1972514.html"
+              },
+              "beneficiary_chain": {
+                "status": "INSUFFICIENT",
+                "finding": "百货、超市、多业态经营与利润传导仍分化。",
+                "source": "https://www.stats.gov.cn/sj/zxfb/202610/t20261019_1972514.html"
+              },
+              "funding_strength": {
+                "status": "ASSESSED",
+                "finding": "成交量仅作价格成交代理，未验证净流入。",
+                "source": "data/research/sector_discovery_audit.json",
+                "measurement_basis": "PRICE_VOLUME_PROXY",
+                "observation_window": "相对20个交易日成交量中位数"
+              },
+              "breadth": {
+                "status": "COUNTER",
+                "finding": "百货4/20、超市1/7、多业态3/15上涨，三类合计仅8/42上涨。",
+                "source": "data/research/sector_discovery_audit.json",
+                "sample_size": 42,
+                "advancing_count": 8
+              },
+              "relative_strength": {
+                "status": "COUNTER",
+                "finding": "三类零售相对市场仅-0.496至-0.057个百分点，没有独立强势。",
+                "source": "data/research/sector_discovery_audit.json"
+              },
+              "price_structure": {
+                "status": "COUNTER",
+                "finding": "百货、超市、多业态3日中位均为负；仅百货和多业态5日仍小幅为正。",
+                "source": "data/research/sector_discovery_audit.json"
+              },
+              "counter_evidence": {
+                "status": "COUNTER",
+                "finding": "跨业态扩散与盈利证据在D3仍未闭环。",
                 "source": "data/research/sector_discovery_audit.json"
               }
             }
           }
         }
       ],
-      "new_confirmation_reviews": []
+      "new_episodes": [
+        {
+          "episode_id": "银行#2026-10-29",
+          "trend_name": "银行",
+          "first_seen_trade_date": "2026-10-29",
+          "market_state": "候选趋势",
+          "trend_state": "T1",
+          "reason": "四类银行均形成当日、3日和5日正结构，广度77.78%至100%，并有部分三季报基本面佐证；以新D1候选重启，但不确认。",
+          "evidence": [
+            {
+              "dimension": "MARKET_STRUCTURE",
+              "direction": "SUPPORT",
+              "impact": "STRUCTURAL",
+              "trade_date": "2026-10-29",
+              "source": "data/research/sector_discovery_audit.json",
+              "finding": "四类银行当日、3日和5日中位均为正，形成跨类型持续结构。"
+            },
+            {
+              "dimension": "MARKET_BREADTH",
+              "direction": "SUPPORT",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-29",
+              "source": "data/research/sector_discovery_audit.json",
+              "finding": "42只银行样本中40只上涨，城商行、国有行、农商行广度100%。"
+            },
+            {
+              "dimension": "FUNDAMENTAL",
+              "direction": "SUPPORT",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-29",
+              "source": "https://www.nbcb.com.cn/about_nbcb/information_diclosure/bank_news/202610/t20261029_1233685.shtml",
+              "finding": "宁波银行前三季营收及净利双位数增长、不良率0.76%；只代表部分样本。"
+            }
+          ]
+        },
+        {
+          "episode_id": "航天装备#2026-10-29",
+          "trend_name": "航天装备",
+          "first_seen_trade_date": "2026-10-29",
+          "market_state": "候选趋势",
+          "trend_state": "T0",
+          "reason": "航天装备5只样本中4只上涨，当日相对市场+6.608个百分点，3日、5日结构为正且量比3.151；有持续发射事实，但样本窄和订单盈利缺口使其仅为D1候选。",
+          "evidence": [
+            {
+              "dimension": "MARKET_STRUCTURE",
+              "direction": "SUPPORT",
+              "impact": "STRUCTURAL",
+              "trade_date": "2026-10-29",
+              "source": "data/research/sector_discovery_audit.json",
+              "finding": "航天装备当日+4.572%、3日+3.31%、5日+7.19%、量比3.151。"
+            },
+            {
+              "dimension": "MARKET_BREADTH",
+              "direction": "SUPPORT",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-29",
+              "source": "data/research/sector_discovery_audit.json",
+              "finding": "5只样本中4只上涨，广度80%。"
+            },
+            {
+              "dimension": "CATALYST",
+              "direction": "SUPPORT",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-29",
+              "source": "https://m.spacechina.com/n2018089/n2018131/index.html",
+              "finding": "10月23日至25日连续完成多次航天发射任务。"
+            }
+          ]
+        },
+        {
+          "episode_id": "煤炭#2026-10-29",
+          "trend_name": "煤炭",
+          "first_seen_trade_date": "2026-10-29",
+          "market_state": "观察",
+          "trend_state": "T0",
+          "reason": "动力煤和焦煤A股均有正向3日/5日结构，但商品第一锚与库存信号分化，建立D1观察而非候选。",
+          "evidence": [
+            {
+              "dimension": "MARKET_STRUCTURE",
+              "direction": "SUPPORT",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-29",
+              "source": "data/research/sector_discovery_audit.json",
+              "finding": "动力煤当日+1.304%、3日+1.92%、5日+2.38%；焦煤当日+0.475%、3日+1.91%、5日+1.78%。"
+            },
+            {
+              "dimension": "COMMODITY_ANCHOR",
+              "direction": "COUNTER",
+              "impact": "NORMAL",
+              "trade_date": "2026-10-29",
+              "source": "https://www.sxcoal.com/",
+              "finding": "动力煤现货弱稳、焦煤价格持平且库存增加，第一锚未形成一致强化。"
+            }
+          ]
+        }
+      ]
     },
-    "same_day_revisions": [
-      {
-        "previous_registry_blob_sha": "4a8a12177d123bc79a48e27fbf4b3462f4757964",
-        "previous_generated_at": "2026-10-28T18:39:00+08:00",
-        "revised_at": "2026-10-28T19:12:50.110+08:00",
-        "reason": "纠正2026-10-28首次全市场独立发现已确认新异动却因旧D3同轮清理而被错误延期的流程判断；旧D3冻结审计保留，补录本轮工业自动化D1观察，不重跑行情日或调整下游资格。",
-        "changes": [],
-        "new_episodes": [
-          {
-            "episode_id": "工业自动化/机器人#2026-10-28",
-            "original_candidate_name": "工业自动化/机器人",
-            "original_candidate_origin": "MODEL_INDEPENDENT",
-            "original_candidate_decision": "D3_EXIT_NEW_TRIGGER_DEFERRED",
-            "prior_exited_episode_id": "工业自动化/机器人#2026-10-20",
-            "initial_independent_discovery_frozen_at": "2026-10-28T18:34:00+08:00",
-            "reason": "原始模型独立全市场发现已冻结此新方向，旧D3未确认结论日期为10月22日，按本轮新证据独立补录D1；不伪造新的独立扫描。",
-            "evidence": [
-              {
-                "dimension": "MARKET_STRUCTURE",
-                "direction": "SUPPORT",
-                "impact": "STRUCTURAL",
-                "trade_date": "2026-10-28",
-                "source": "data/research/sector_discovery_audit.json",
-                "finding": "机器人6只样本当日中位+3.325%、5日+6.29%；工控12只当日中位+4.932%、5日+1.89%，形成区别于10月27日弱势的新结构改善。"
-              },
-              {
-                "dimension": "MARKET_BREADTH",
-                "direction": "SUPPORT",
-                "impact": "NORMAL",
-                "trade_date": "2026-10-28",
-                "source": "data/research/sector_discovery_audit.json",
-                "finding": "机器人6/6、工控12/12、激光2/2、其他自动化设备3/3共23只样本当日上涨；激光仅2只，样本薄弱需单列。"
-              },
-              {
-                "dimension": "RELATIVE_STRENGTH",
-                "direction": "SUPPORT",
-                "impact": "NORMAL",
-                "trade_date": "2026-10-28",
-                "source": "data/research/sector_discovery_audit.json",
-                "finding": "机器人相对全市场中位领先2.585个百分点、工控领先4.192个百分点，其他自动化设备领先2.693个百分点。"
-              }
-            ]
-          }
-        ]
-      }
-    ]
+    "same_day_revisions": []
   },
   "trends": [
-    {
-      "trend_name": "电机",
-      "episode_id": "电机#2026-10-27",
-      "first_seen_trade_date": "2026-10-27",
-      "last_verified_trade_date": "2026-10-27",
-      "market_state": "候选趋势",
-      "trend_state": "T0",
-      "trend_basis": "A_SHARE",
-      "lifecycle_status": "有效",
-      "industry_codes": [
-        "S630101"
-      ],
-      "industry_names": [
-        "电机"
-      ],
-      "in_new_position_priority": false,
-      "supporting_evidence": [
-        {
-          "trade_date": "2026-10-27",
-          "source": "data/research/sector_discovery_audit.json",
-          "description": "电机18只样本3日中位+2.655%、5日+3.16%、量比1.922，且相对全市场中位领先约1.92个百分点。"
-        },
-        {
-          "trade_date": "2026-10-27",
-          "source": "https://www.stats.gov.cn/sj/zxfb/202610/t20261020_1972579.html",
-          "description": "国家统计局披露前三季度工业机器人产量同比增长29.1%、机器人减速器增长44.4%，提供电机需求侧辅助验证。"
-        }
-      ],
-      "contrary_evidence": [
-        {
-          "trade_date": "2026-10-27",
-          "source": "data/research/sector_discovery_audit.json",
-          "description": "电机当日中位-0.433%、上涨广度44.44%，行业业务暴露分散，尚缺覆盖样本的订单与利润率同步改善。"
-        },
-        {
-          "trade_date": "2026-10-27",
-          "source": "data/research/sector_discovery_audit.json",
-          "description": "电机Ⅲ当日中位收益-0.433%，上涨广度44.44%，但3日中位+2.655%、5日+3.16%、量比1.9215，存在延续线索且尚不构成无争议的行业共振。"
-        },
-        {
-          "trade_date": "2026-10-27",
-          "source": "https://www.stats.gov.cn/sj/zxfb/202610/t20261020_1972579.html",
-          "description": "机器人和减速器整体产量增速是相邻产业需求证据，不能独立证明电机Ⅲ各核心公司订单和盈利随之改善。"
-        }
-      ],
-      "invalidation_condition": "保持观察且不生成个股handoff；后续只有在真实受益链与市场多日参与重新得到独立验证时才能升候选，否则依据实际结构反证审查退出。",
-      "change_reason": "D2复核显示18只电机样本当日广度77.78%、5日中位+6.595%、量比2.204并相对市场转强，市场由观察升候选；但3日中位仍为-0.475%，且订单和利润受益链未闭环，不能确认。",
-      "confirmation_audit": {
-        "asof_trade_date": "2026-10-28",
-        "market_environment": "NORMAL",
-        "market_environment_reason": "全市场中位上涨0.74%，约四分之三个股上涨，成长制造与科技领涨，属于风险偏好修复但并非单一行业独立确认。",
-        "market_environment_source": "data/latest.json",
-        "driver_type": "INDUSTRIAL_GROWTH",
-        "discovery_basis": "CONTINUING_STRUCTURE",
-        "catalyst_kind": "SUSTAINED_DRIVER",
-        "catalyst_fact": "工业机器人前三季度产量同比增长29.1%，电机板块出现5日结构和显著量能，但该需求不能覆盖全部电机公司。",
-        "catalyst_source": "https://www.stats.gov.cn/sj/zxfbhjd/202610/t20261019_1965618.html",
-        "catalyst_available_at": "2026-10-19T10:00:00+08:00",
-        "core_industry_codes": [
-          "S630101"
-        ],
-        "strongest_counter": "电机3日中位仍为-0.475%，机器人需求映射到行业订单和利润的证据不完整。",
-        "decision_reason": "多日价格结构、广度和量能足以由观察升候选，但真实受益链不足以确认。",
-        "decision_state": "候选趋势",
-        "specific_blocker": "需核心公司订单、出货和利润率改善，并验证当前放量后的回撤承接。"
-      },
-      "industry_assessments": [
-        {
-          "industry_code": "S630101",
-          "industry_name": "电机",
-          "benefit_level": "UNVERIFIED",
-          "market_state": "候选趋势",
-          "evidence_trade_date": "2026-10-28",
-          "benefit_reason": "机器人和高端制造需求可能带动电机出货，但核心公司业务暴露和利润传导仍待核验。",
-          "market_reason": "18只样本当日中位+1.486%、广度77.78%、5日+6.595%、量比2.204，3日仍-0.475%。"
-        }
-      ],
-      "state_history": [
-        {
-          "trade_date": "2026-10-27",
-          "from": null,
-          "to": "候选趋势",
-          "event": "new_verified_trend",
-          "reason": "电机行业3日和5日结构持续、量能放大，并有机器人产量线索；订单盈利仍待闭环，按T0候选起步。"
-        },
-        {
-          "trade_date": "2026-10-27",
-          "from": "候选趋势",
-          "to": "观察",
-          "event": "same_day_revision",
-          "reason": "同日复核认可电机Ⅲ多日收益、相对强度和量比，但以工业机器人及减速器产量增长映射全部电机公司缺乏独立受益证据，且10月27日广度44.44%；仍值得观察，但候选尚需补齐真实受益链。",
-          "revised_at": "2026-10-27T20:56:04+08:00"
-        },
-        {
-          "trade_date": "2026-10-27",
-          "from": "观察",
-          "to": "观察",
-          "event": "same_day_revision",
-          "reason": "补充历史D1/D2/D3市场起点审计：电机于10月16日已有STRONG，19日D2、20日D3；当前已越过D3且历史正式复核缺失，不变更观察状态。",
-          "revised_at": "2026-10-27T21:46:25+08:00"
-        },
-        {
-          "trade_date": "2026-10-27",
-          "from": "观察",
-          "to": "观察",
-          "event": "same_day_revision",
-          "reason": "纠正前次历史起点误判：10月27日电机相对全市场表现进入前7.3%，且相比26日广度及相对强度明显修复，作为本轮D1观察线索；28日复核D2，不把此前历史强势当作本轮D3。",
-          "revised_at": "2026-10-27T22:05:25+08:00"
-        },
-        {
-          "trade_date": "2026-10-28",
-          "from": "观察",
-          "to": "候选趋势",
-          "event": "market_state_change",
-          "reason": "D2复核显示18只电机样本当日广度77.78%、5日中位+6.595%、量比2.204并相对市场转强，市场由观察升候选；但3日中位仍为-0.475%，且订单和利润受益链未闭环，不能确认。"
-        }
-      ],
-      "d123_stage": "D2",
-      "d123_trigger_trade_date": "2026-10-27",
-      "d123_decision": "PENDING",
-      "d123_decision_trade_date": null
-    },
-    {
-      "trend_name": "商贸零售",
-      "episode_id": "商贸零售#2026-10-27",
-      "first_seen_trade_date": "2026-10-27",
-      "last_verified_trade_date": "2026-10-27",
-      "market_state": "观察",
-      "trend_state": "T0",
-      "trend_basis": "A_SHARE",
-      "lifecycle_status": "有效",
-      "industry_codes": [
-        "S450301",
-        "S450302",
-        "S450303"
-      ],
-      "industry_names": [
-        "百货",
-        "超市",
-        "多业态零售"
-      ],
-      "in_new_position_priority": false,
-      "supporting_evidence": [
-        {
-          "trade_date": "2026-10-27",
-          "source": "data/research/sector_discovery_audit.json",
-          "description": "百货、超市和多业态零售3日中位约+3.30%至+4.12%，5日均为正，量比约1.34至1.40。"
-        },
-        {
-          "trade_date": "2026-10-27",
-          "source": "https://www.stats.gov.cn/sj/zxfb/202610/t20261019_1972514.html",
-          "description": "国家统计局披露前三季度社会消费品零售总额同比增长1.1%，9月同比增长1.1%，需求弱复苏仍在。"
-        }
-      ],
-      "contrary_evidence": [
-        {
-          "trade_date": "2026-10-27",
-          "source": "data/latest.json",
-          "description": "社零增速仅1.1%，且尚未取得百货、超市和多业态零售同店、客流、毛利率同步改善证据。"
-        },
-        {
-          "trade_date": "2026-10-27",
-          "source": "data/research/sector_discovery_audit.json",
-          "description": "三级行业结构分化：百货当日上涨广度45%、中位收益-0.097%，超市与多业态零售虽维持相对强势，尚不能代替全主题一致的结构承接。"
-        },
-        {
-          "trade_date": "2026-10-27",
-          "source": "https://www.stats.gov.cn/sj/zxfb/202610/t20261019_1972514.html",
-          "description": "已公开社零数据整体增长仅1.1%，其中百货店与超市零售额表现相反，不能用整体社零同比推断三类业态经营同步改善。"
-        }
-      ],
-      "invalidation_condition": "保持观察且不生成个股handoff；后续只有在真实受益链与市场多日参与重新得到独立验证时才能升候选，否则依据实际结构反证审查退出。",
-      "change_reason": "D2复核显示百货仍有3日/5日正结构，但超市当日下跌且3日转负，多业态零售当日无相对优势；宽主题受益与盈利传导仍未闭环，维持观察。",
-      "confirmation_audit": {
-        "asof_trade_date": "2026-10-28",
-        "market_environment": "NORMAL",
-        "market_environment_reason": "全市场中位上涨0.74%，约四分之三个股上涨，成长制造与科技领涨，属于风险偏好修复但并非单一行业独立确认。",
-        "market_environment_source": "data/latest.json",
-        "driver_type": "OTHER",
-        "discovery_basis": "CONTINUING_STRUCTURE",
-        "catalyst_kind": "SUSTAINED_DRIVER",
-        "catalyst_fact": "前三季度及9月社零同比均增长1.1%，但不同零售业态经营分化。",
-        "catalyst_source": "https://www.stats.gov.cn/sj/zxfb/202610/t20261019_1972514.html",
-        "catalyst_available_at": "2026-10-19T10:00:00+08:00",
-        "core_industry_codes": [
-          "S450301",
-          "S450302",
-          "S450303"
-        ],
-        "strongest_counter": "超市当日中位-0.965%、广度28.57%、3日中位-0.17%，宽主题没有同步扩散。",
-        "decision_reason": "百货和多业态仍有多日结构，但超市走弱且行业盈利证据不足，D2维持观察。",
-        "decision_state": "观察",
-        "specific_blocker": "需各业态同店、客流与利润率改善，并在分歧日保持跨业态相对强度。"
-      },
-      "industry_assessments": [
-        {
-          "industry_code": "S450301",
-          "industry_name": "百货",
-          "benefit_level": "UNVERIFIED",
-          "market_state": "观察",
-          "evidence_trade_date": "2026-10-28",
-          "benefit_reason": "客流和可选消费修复可能传导同店销售，但行业级利润改善尚未验证。",
-          "market_reason": "20只样本当日中位+0.684%、3日+0.86%、5日+2.175%，但仅接近市场中位。"
-        },
-        {
-          "industry_code": "S450302",
-          "industry_name": "超市",
-          "benefit_level": "DIRECT",
-          "market_state": "观察",
-          "evidence_trade_date": "2026-10-28",
-          "benefit_reason": "必选消费和门店效率直接影响超市经营，但当期同店与利润率缺少交叉验证。",
-          "market_reason": "7只样本当日中位-0.965%、广度28.57%、3日-0.17%，结构转弱。"
-        },
-        {
-          "industry_code": "S450303",
-          "industry_name": "多业态零售",
-          "benefit_level": "UNVERIFIED",
-          "market_state": "观察",
-          "evidence_trade_date": "2026-10-28",
-          "benefit_reason": "消费客流与渠道效率可能改善收入，但不同业态暴露并不一致。",
-          "market_reason": "15只样本当日中位0%、3日+1.43%、5日+2.52%，但当日弱于市场。"
-        }
-      ],
-      "state_history": [
-        {
-          "trade_date": "2026-10-27",
-          "from": null,
-          "to": "候选趋势",
-          "event": "new_verified_trend",
-          "reason": "零售三细分形成连续多日相对强势，并有社零弱复苏支撑；盈利闭环不足，按T0候选起步。"
-        },
-        {
-          "trade_date": "2026-10-27",
-          "from": "候选趋势",
-          "to": "观察",
-          "event": "same_day_revision",
-          "reason": "同日复核认为商贸零售3个三级行业的3日/5日强势与整体社零正增长不足以构成两类独立确认依据；超市与百货经营数据分化，宽主题共同受益尚未核实，按观察跟踪而非首次候选。",
-          "revised_at": "2026-10-27T20:56:04+08:00"
-        },
-        {
-          "trade_date": "2026-10-27",
-          "from": "观察",
-          "to": "观察",
-          "event": "same_day_revision",
-          "reason": "只补正式趋势榜D阶段展示：10月27日首次正式跟踪，百货、超市、多业态零售当日相对全市场较强；本轮D1观察，不因为存在3日结构就倒推旧D1。",
-          "revised_at": "2026-10-27T22:16:05+08:00"
-        },
-        {
-          "trade_date": "2026-10-28",
-          "from": "观察",
-          "to": "观察",
-          "event": "verified_maintained",
-          "reason": "D2复核显示百货仍有3日/5日正结构，但超市当日下跌且3日转负，多业态零售当日无相对优势；宽主题受益与盈利传导仍未闭环，维持观察。"
-        }
-      ],
-      "d123_stage": "D2",
-      "d123_trigger_trade_date": "2026-10-27",
-      "d123_decision": "PENDING",
-      "d123_decision_trade_date": null
-    },
     {
       "episode_id": "汽车零部件#2026-10-28",
       "trend_name": "汽车零部件",
@@ -813,36 +522,36 @@
           "industry_name": "车身附件及饰件",
           "benefit_level": "DIRECT",
           "market_state": "观察",
-          "evidence_trade_date": "2026-10-28",
+          "evidence_trade_date": "2026-10-29",
           "benefit_reason": "该细分属于汽车零部件真实产业环节，但车型、客户与新能源暴露差异导致受益并不一致。",
-          "market_reason": "26只样本当日广度88.46%、3日+1.23%、5日+1.74%。"
+          "market_reason": "26只样本当日中位-3.84%、广度11.54%、3日-2.695%、5日-0.305%。"
         },
         {
           "industry_code": "S280203",
           "industry_name": "底盘与发动机系统",
           "benefit_level": "CORE",
           "market_state": "观察",
-          "evidence_trade_date": "2026-10-28",
+          "evidence_trade_date": "2026-10-29",
           "benefit_reason": "该细分属于汽车零部件真实产业环节，但车型、客户与新能源暴露差异导致受益并不一致。",
-          "market_reason": "67只样本广度82.09%、3日+1.13%、5日+2.91%、量比1.592。"
+          "market_reason": "67只样本当日中位-3.612%、广度5.97%、3日-1.83%、5日+0.42%。"
         },
         {
           "industry_code": "S280205",
           "industry_name": "其他汽车零部件",
           "benefit_level": "DIRECT",
           "market_state": "观察",
-          "evidence_trade_date": "2026-10-28",
+          "evidence_trade_date": "2026-10-29",
           "benefit_reason": "该细分属于汽车零部件真实产业环节，但车型、客户与新能源暴露差异导致受益并不一致。",
-          "market_reason": "32只样本广度93.75%、3日+0.89%，5日仅+0.19%。"
+          "market_reason": "32只样本当日中位-2.959%、广度6.25%、3日-2.475%、5日-0.575%。"
         },
         {
           "industry_code": "S280206",
           "industry_name": "汽车电子电气系统",
           "benefit_level": "RELATED",
           "market_state": "观察",
-          "evidence_trade_date": "2026-10-28",
+          "evidence_trade_date": "2026-10-29",
           "benefit_reason": "该细分属于汽车零部件真实产业环节，但车型、客户与新能源暴露差异导致受益并不一致。",
-          "market_reason": "17只样本广度88.24%、5日+1.69%，但3日-0.52%。"
+          "market_reason": "17只样本当日中位-2.749%、广度5.88%、3日-2.39%、5日-0.105%。"
         }
       ],
       "supporting_evidence": [
@@ -890,13 +599,20 @@
           "to": "观察",
           "event": "new_observed_trend",
           "reason": "底盘、车身及其他汽车零部件出现广泛上涨并有部分3日/5日结构；但本轮主要由单日共振触发，且汽车总需求同比仍弱，建立D1观察。"
+        },
+        {
+          "trade_date": "2026-10-29",
+          "from": "观察",
+          "to": "观察",
+          "event": "verified_maintained",
+          "reason": "D2出现显著反向证据，不能升级；因本轮尚处第二个有效收盘，保留观察至下一有效收盘D3终局。"
         }
       ],
       "confirmation_audit": {
-        "asof_trade_date": "2026-10-28",
-        "market_environment": "NORMAL",
-        "market_environment_reason": "全市场中位上涨0.74%，约四分之三个股上涨，成长制造与科技领涨，属于风险偏好修复但并非单一行业独立确认。",
-        "market_environment_source": "data/latest.json",
+        "asof_trade_date": "2026-10-29",
+        "market_environment": "RISK_OFF",
+        "market_environment_reason": "全市场个股中位下跌2.036%，多数成长制造方向回撤，需区分系统性风险与行业独立结构。",
+        "market_environment_source": "data/research/sector_discovery_audit.json",
         "driver_type": "INDUSTRIAL_GROWTH",
         "discovery_basis": "ONE_DAY_SURGE",
         "catalyst_kind": "SUSTAINED_DRIVER",
@@ -907,10 +623,10 @@
           "S280203",
           "S280205"
         ],
-        "strongest_counter": "汽车总销量同比下降，零部件宽主题内部主营差异大，单日共振不能证明盈利趋势。",
-        "decision_reason": "底盘、车身及其他汽车零部件出现广泛上涨并有部分3日/5日结构；但本轮主要由单日共振触发，且汽车总需求同比仍弱，建立D1观察。",
+        "strongest_counter": "四个汽车零部件细分均弱于市场，D1广度未获次日承接。",
+        "decision_reason": "D2出现显著反向证据，不能升级；因本轮尚处第二个有效收盘，保留观察至下一有效收盘D3终局。",
         "decision_state": "观察",
-        "specific_blocker": "需核实真实订单、客户结构与利润率，并验证底盘、车身和其他零部件的持续承接。"
+        "specific_blocker": "缺少分歧承接、持续相对强度，以及订单、交付和利润率闭环。"
       },
       "initial_discovery_basis": "ONE_DAY_SURGE",
       "d123_trigger_evidence": {
@@ -921,7 +637,7 @@
         "source": "data/research/sector_discovery_audit.json",
         "finding": "底盘、车身及其他零部件合计125只样本中108只上涨，形成新一轮广泛异动。"
       },
-      "d123_stage": "D1",
+      "d123_stage": "D2",
       "d123_trigger_trade_date": "2026-10-28",
       "d123_decision": "PENDING",
       "d123_decision_trade_date": null,
@@ -977,17 +693,67 @@
                 "source": "https://www.miit.gov.cn/gxsj/tjfx/zbgy/qc/art/2026/art_8a878aeeb8a34a5b88975c5bbe94f7bf.html"
               }
             }
+          },
+          {
+            "trade_date": "2026-10-29",
+            "dimensions": {
+              "market_environment": {
+                "status": "ASSESSED",
+                "finding": "全市场个股中位下跌2.036%，为RISK_OFF环境；行业相对强度仍须独立判断。",
+                "source": "data/research/sector_discovery_audit.json"
+              },
+              "catalyst": {
+                "status": "ASSESSED",
+                "finding": "9月新能源汽车销量与出口增长仍是产业线索，但没有新的行业级订单催化。",
+                "source": "https://www.miit.gov.cn/gxsj/tjfx/zbgy/qc/art/2026/art_8a878aeeb8a34a5b88975c5bbe94f7bf.html"
+              },
+              "beneficiary_chain": {
+                "status": "INSUFFICIENT",
+                "finding": "零部件不同客户和车型暴露分化，尚无订单与利润率共同改善。",
+                "source": "https://www.miit.gov.cn/gxsj/tjfx/zbgy/qc/art/2026/art_8a878aeeb8a34a5b88975c5bbe94f7bf.html"
+              },
+              "funding_strength": {
+                "status": "ASSESSED",
+                "finding": "量比仅代表成交代理且未形成价格承接，不能推定净流入。",
+                "source": "data/research/sector_discovery_audit.json",
+                "measurement_basis": "PRICE_VOLUME_PROXY",
+                "observation_window": "相对20个交易日成交量中位数"
+              },
+              "breadth": {
+                "status": "COUNTER",
+                "finding": "底盘4/67、车身3/26、其他2/32、汽车电子1/17上涨",
+                "source": "data/research/sector_discovery_audit.json",
+                "sample_size": 142,
+                "advancing_count": 10
+              },
+              "relative_strength": {
+                "status": "COUNTER",
+                "finding": "四个零部件细分相对全市场落后0.714至1.805个百分点。",
+                "source": "data/research/sector_discovery_audit.json"
+              },
+              "price_structure": {
+                "status": "COUNTER",
+                "finding": "四个细分当日中位-2.75%至-3.84%，3日均为负；底盘5日仍+0.42%，其余接近或低于0",
+                "source": "data/research/sector_discovery_audit.json"
+              },
+              "counter_evidence": {
+                "status": "COUNTER",
+                "finding": "D1广泛上涨次日扩散快速消失，尚未出现分歧承接。",
+                "source": "data/research/sector_discovery_audit.json"
+              }
+            }
           }
         ],
         "decision": "PENDING",
         "decision_trade_date": null
-      }
+      },
+      "last_verified_trade_date": "2026-10-29"
     },
     {
       "trend_name": "工业自动化/机器人",
       "episode_id": "工业自动化/机器人#2026-10-28",
       "first_seen_trade_date": "2026-10-28",
-      "last_verified_trade_date": "2026-10-28",
+      "last_verified_trade_date": "2026-10-29",
       "market_state": "观察",
       "trend_state": "T0",
       "trend_basis": "A_SHARE",
@@ -1011,36 +777,36 @@
           "industry_name": "机器人",
           "benefit_level": "CORE",
           "market_state": "观察",
-          "evidence_trade_date": "2026-10-28",
+          "evidence_trade_date": "2026-10-29",
           "benefit_reason": "机器人设备是自动化设备制造的直接环节；产量增速可作需求线索，具体企业订单仍须核实。",
-          "market_reason": "6只样本当日中位+3.325%、广度100%；相对市场+2.585个百分点；3日1.36%、5日6.29%。"
+          "market_reason": "6只样本当日中位-5.23%、广度0%、3日-5.245%、5日+0.45%。"
         },
         {
           "industry_code": "S640702",
           "industry_name": "工控设备",
           "benefit_level": "DIRECT",
           "market_state": "观察",
-          "evidence_trade_date": "2026-10-28",
+          "evidence_trade_date": "2026-10-29",
           "benefit_reason": "工控设备直接涉及自动控制及制造业自动化投入；行业整体盈利传导尚未验证。",
-          "market_reason": "12只样本当日中位+4.932%、广度100%；相对市场+4.192个百分点；3日-0.43%、5日1.89%。"
+          "market_reason": "12只样本当日中位-4.723%、广度0%、3日-3.655%、5日-3.065%。"
         },
         {
           "industry_code": "S640703",
           "industry_name": "激光设备",
           "benefit_level": "RELATED",
           "market_state": "观察",
-          "evidence_trade_date": "2026-10-28",
+          "evidence_trade_date": "2026-10-29",
           "benefit_reason": "该细分仅与工业自动化部分环节相关，业务分散或样本较少，不能视为已确认核心受益。",
-          "market_reason": "2只样本当日中位+4.606%、广度100%；相对市场+3.866个百分点；3日样本不足、5日样本不足。"
+          "market_reason": "2只样本当日中位-7.121%、广度0%，样本不足。"
         },
         {
           "industry_code": "S640704",
           "industry_name": "其他自动化设备",
           "benefit_level": "RELATED",
           "market_state": "观察",
-          "evidence_trade_date": "2026-10-28",
+          "evidence_trade_date": "2026-10-29",
           "benefit_reason": "该细分仅与工业自动化部分环节相关，业务分散或样本较少，不能视为已确认核心受益。",
-          "market_reason": "3只样本当日中位+3.433%、广度100%；相对市场+2.693个百分点；3日0.84%、5日0.33%。"
+          "market_reason": "3只样本当日中位-2.644%、广度0%、3日-6.20%、5日-2.31%。"
         }
       ],
       "supporting_evidence": [
@@ -1102,13 +868,20 @@
           "to": "观察",
           "event": "new_observed_trend",
           "reason": "原始独立扫描今日发现机器人、工控等跨细分新异动；前轮D3已于10月22日未确认，新D1以今日新市场证据独立建立，仅观察不确认。"
+        },
+        {
+          "trade_date": "2026-10-29",
+          "from": "观察",
+          "to": "观察",
+          "event": "verified_maintained",
+          "reason": "D2出现显著反向证据，不能升级；因本轮尚处第二个有效收盘，保留观察至下一有效收盘D3终局。"
         }
       ],
       "confirmation_audit": {
-        "asof_trade_date": "2026-10-28",
-        "market_environment": "NORMAL",
-        "market_environment_reason": "全市场中位上涨0.74%，约四分之三个股上涨，成长制造与科技领涨，风险偏好修复不能替代行业独立趋势证据。",
-        "market_environment_source": "data/latest.json",
+        "asof_trade_date": "2026-10-29",
+        "market_environment": "RISK_OFF",
+        "market_environment_reason": "全市场个股中位下跌2.036%，多数成长制造方向回撤，需区分系统性风险与行业独立结构。",
+        "market_environment_source": "data/research/sector_discovery_audit.json",
         "driver_type": "INDUSTRIAL_GROWTH",
         "discovery_basis": "ONE_DAY_SURGE",
         "catalyst_kind": "SUSTAINED_DRIVER",
@@ -1119,10 +892,10 @@
           "S640701",
           "S640702"
         ],
-        "strongest_counter": "工控3日结构仍负、激光样本仅2只，机器人与工控本轮尚无新增订单或利润率共振证据。",
-        "decision_reason": "10月28日机器人6/6、工控12/12及另两细分合计23/23上涨，核心相对强势并有机器人5日结构；独立新触发成立，但单日扩散不能确认，故D1观察。",
+        "strongest_counter": "机器人、工控、激光与其他自动化全部下跌，且机器人、工控明显弱于市场。",
+        "decision_reason": "D2出现显著反向证据，不能升级；因本轮尚处第二个有效收盘，保留观察至下一有效收盘D3终局。",
         "decision_state": "观察",
-        "specific_blocker": "需机器人和工控分歧后的多日承接以及核心公司订单、出货和利润率独立证据。"
+        "specific_blocker": "缺少分歧承接、持续相对强度，以及订单、交付和利润率闭环。"
       },
       "initial_discovery_basis": "ONE_DAY_SURGE",
       "d123_trigger_evidence": {
@@ -1133,7 +906,7 @@
         "source": "data/research/sector_discovery_audit.json",
         "finding": "机器人6只样本当日中位+3.325%、5日+6.29%；工控12只当日中位+4.932%、5日+1.89%，形成区别于10月27日弱势的新结构改善。"
       },
-      "d123_stage": "D1",
+      "d123_stage": "D2",
       "d123_trigger_trade_date": "2026-10-28",
       "d123_decision": "PENDING",
       "d123_decision_trade_date": null,
@@ -1189,11 +962,445 @@
                 "source": "data/research/sector_discovery_audit.json"
               }
             }
+          },
+          {
+            "trade_date": "2026-10-29",
+            "dimensions": {
+              "market_environment": {
+                "status": "ASSESSED",
+                "finding": "全市场个股中位下跌2.036%，为RISK_OFF环境；行业相对强度仍须独立判断。",
+                "source": "data/research/sector_discovery_audit.json"
+              },
+              "catalyst": {
+                "status": "ASSESSED",
+                "finding": "工业机器人产量增长仍是已有产业线索，但没有新的订单、交付或利润率催化。",
+                "source": "https://www.stats.gov.cn/sj/zxfbhjd/202610/t20261019_1965618.html"
+              },
+              "beneficiary_chain": {
+                "status": "INSUFFICIENT",
+                "finding": "机器人、工控、激光与其他自动化没有形成订单和盈利同步验证。",
+                "source": "https://www.stats.gov.cn/sj/zxfbhjd/202610/t20261019_1965618.html"
+              },
+              "funding_strength": {
+                "status": "ASSESSED",
+                "finding": "量比仅为成交代理，价格下跌且无核实净流入。",
+                "source": "data/research/sector_discovery_audit.json",
+                "measurement_basis": "PRICE_VOLUME_PROXY",
+                "observation_window": "相对20个交易日成交量中位数"
+              },
+              "breadth": {
+                "status": "COUNTER",
+                "finding": "机器人0/6、工控0/12、激光0/2、其他自动化0/3上涨",
+                "source": "data/research/sector_discovery_audit.json",
+                "sample_size": 23,
+                "advancing_count": 0
+              },
+              "relative_strength": {
+                "status": "COUNTER",
+                "finding": "机器人、工控、激光分别落后全市场3.194、2.688、5.085个百分点。",
+                "source": "data/research/sector_discovery_audit.json"
+              },
+              "price_structure": {
+                "status": "COUNTER",
+                "finding": "机器人当日-5.23%、3日-5.245%；工控当日-4.723%、3日-3.655%，跨细分反转",
+                "source": "data/research/sector_discovery_audit.json"
+              },
+              "counter_evidence": {
+                "status": "COUNTER",
+                "finding": "D1跨细分普涨次日完全反转，尚无分歧承接。",
+                "source": "data/research/sector_discovery_audit.json"
+              }
+            }
           }
         ],
         "decision": "PENDING",
         "decision_trade_date": null
       }
+    },
+    {
+      "trend_name": "银行",
+      "episode_id": "银行#2026-10-29",
+      "first_seen_trade_date": "2026-10-29",
+      "last_verified_trade_date": "2026-10-29",
+      "market_state": "候选趋势",
+      "trend_state": "T1",
+      "trend_basis": "A_SHARE",
+      "commodity_anchor": null,
+      "lifecycle_status": "有效",
+      "industry_codes": [
+        "S480201",
+        "S480301",
+        "S480401",
+        "S480501"
+      ],
+      "industry_names": [
+        "国有大型银行Ⅲ",
+        "股份制银行Ⅲ",
+        "城商行Ⅲ",
+        "农商行Ⅲ"
+      ],
+      "in_new_position_priority": false,
+      "priority_rank": null,
+      "supporting_evidence": [
+        {
+          "dimension": "MARKET_STRUCTURE",
+          "direction": "SUPPORT",
+          "impact": "STRUCTURAL",
+          "trade_date": "2026-10-29",
+          "source": "data/research/sector_discovery_audit.json",
+          "finding": "四类银行当日、3日和5日中位均为正，形成跨类型持续结构。"
+        },
+        {
+          "dimension": "MARKET_BREADTH",
+          "direction": "SUPPORT",
+          "impact": "NORMAL",
+          "trade_date": "2026-10-29",
+          "source": "data/research/sector_discovery_audit.json",
+          "finding": "42只银行样本中40只上涨，城商行、国有行、农商行广度100%。"
+        },
+        {
+          "dimension": "FUNDAMENTAL",
+          "direction": "SUPPORT",
+          "impact": "NORMAL",
+          "trade_date": "2026-10-29",
+          "source": "https://www.nbcb.com.cn/about_nbcb/information_diclosure/bank_news/202610/t20261029_1233685.shtml",
+          "finding": "宁波银行前三季营收及净利双位数增长、不良率0.76%；只代表部分样本。"
+        }
+      ],
+      "contrary_evidence": [
+        {
+          "dimension": "INDUSTRY_FUNDAMENTALS",
+          "direction": "COUNTER",
+          "impact": "NORMAL",
+          "trade_date": "2026-10-29",
+          "source": "https://www.nbcb.com.cn/about_nbcb/information_diclosure/bank_news/202610/t20261029_1233685.shtml",
+          "finding": "需更多银行三季报交叉验证净息差、资产质量和中收，并观察风险偏好正常化后的承接。"
+        }
+      ],
+      "invalidation_conditions": [
+        "普跌环境中高股息防御轮动可能放大相对强势，且行业净息差与资产质量并非全部同步改善。"
+      ],
+      "etf_tools": [],
+      "participation_timing": "仅观察，不形成正式新仓参与信号。",
+      "change_reason": "四类银行均形成当日、3日和5日正结构，广度77.78%至100%，并有部分三季报基本面佐证；以新D1候选重启，但不确认。",
+      "confirmation_audit": {
+        "asof_trade_date": "2026-10-29",
+        "market_environment": "RISK_OFF",
+        "market_environment_reason": "全市场个股中位下跌2.036%，银行上涨需剔除防御轮动影响。",
+        "market_environment_source": "data/research/sector_discovery_audit.json",
+        "driver_type": "DEFENSIVE",
+        "discovery_basis": "CONTINUING_STRUCTURE",
+        "catalyst_kind": "SUSTAINED_DRIVER",
+        "catalyst_fact": "宁波银行前三季营收、净利双位数增长且不良率0.76%；兴业银行营收增速转正、净息差环比企稳、不良率1.08%。这些事实支持部分银行基本面，但不能代表全行业同步改善。",
+        "catalyst_source": "https://www.nbcb.com.cn/about_nbcb/information_diclosure/bank_news/202610/t20261029_1233685.shtml",
+        "catalyst_available_at": "2026-10-29T16:44:14+08:00",
+        "core_industry_codes": [
+          "S480201",
+          "S480301",
+          "S480401",
+          "S480501"
+        ],
+        "strongest_counter": "普跌环境中高股息防御轮动可能放大相对强势，且行业净息差与资产质量并非全部同步改善。",
+        "decision_reason": "四类银行均形成当日、3日和5日正结构，广度77.78%至100%，并有部分三季报基本面佐证；以新D1候选重启，但不确认。",
+        "decision_state": "候选趋势",
+        "specific_blocker": "需更多银行三季报交叉验证净息差、资产质量和中收，并观察风险偏好正常化后的承接。"
+      },
+      "industry_assessments": [
+        {
+          "industry_code": "S480201",
+          "industry_name": "国有大型银行Ⅲ",
+          "benefit_level": "DIRECT",
+          "market_state": "候选趋势",
+          "evidence_trade_date": "2026-10-29",
+          "benefit_reason": "银行直接受益于息差企稳、资产质量稳定及中收改善，但各类型兑现分化。",
+          "market_reason": "6只样本当日+2.144%、广度100%、3日+3.095%、5日+2.725%。"
+        },
+        {
+          "industry_code": "S480301",
+          "industry_name": "股份制银行Ⅲ",
+          "benefit_level": "DIRECT",
+          "market_state": "候选趋势",
+          "evidence_trade_date": "2026-10-29",
+          "benefit_reason": "银行直接受益于息差企稳、资产质量稳定及中收改善，但各类型兑现分化。",
+          "market_reason": "9只样本当日+1.421%、广度77.78%、3日+2.02%、5日+2.68%。"
+        },
+        {
+          "industry_code": "S480401",
+          "industry_name": "城商行Ⅲ",
+          "benefit_level": "CORE",
+          "market_state": "候选趋势",
+          "evidence_trade_date": "2026-10-29",
+          "benefit_reason": "银行直接受益于息差企稳、资产质量稳定及中收改善，但各类型兑现分化。",
+          "market_reason": "17只样本当日+1.787%、广度100%、3日+3.31%、5日+4.18%。"
+        },
+        {
+          "industry_code": "S480501",
+          "industry_name": "农商行Ⅲ",
+          "benefit_level": "DIRECT",
+          "market_state": "候选趋势",
+          "evidence_trade_date": "2026-10-29",
+          "benefit_reason": "银行直接受益于息差企稳、资产质量稳定及中收改善，但各类型兑现分化。",
+          "market_reason": "10只样本当日+1.336%、广度100%、3日+1.325%、5日+3.165%。"
+        }
+      ],
+      "state_history": [
+        {
+          "trade_date": "2026-10-29",
+          "from": null,
+          "to": "候选趋势",
+          "event": "new_verified_trend",
+          "reason": "四类银行均形成当日、3日和5日正结构，广度77.78%至100%，并有部分三季报基本面佐证；以新D1候选重启，但不确认。"
+        }
+      ],
+      "initial_discovery_basis": "CONTINUING_STRUCTURE",
+      "d123_trigger_evidence": {
+        "dimension": "MARKET_STRUCTURE",
+        "direction": "SUPPORT",
+        "impact": "STRUCTURAL",
+        "trade_date": "2026-10-29",
+        "source": "data/research/sector_discovery_audit.json",
+        "finding": "四类银行当日、3日和5日中位均为正，形成跨类型持续结构。"
+      },
+      "d123_stage": "D1",
+      "d123_trigger_trade_date": "2026-10-29",
+      "d123_decision": "PENDING",
+      "d123_decision_trade_date": null,
+      "d123_backfill_audit": null,
+      "surge_followup": null
+    },
+    {
+      "trend_name": "航天装备",
+      "episode_id": "航天装备#2026-10-29",
+      "first_seen_trade_date": "2026-10-29",
+      "last_verified_trade_date": "2026-10-29",
+      "market_state": "候选趋势",
+      "trend_state": "T0",
+      "trend_basis": "A_SHARE",
+      "commodity_anchor": null,
+      "lifecycle_status": "有效",
+      "industry_codes": [
+        "S650101"
+      ],
+      "industry_names": [
+        "航天装备Ⅲ"
+      ],
+      "in_new_position_priority": false,
+      "priority_rank": null,
+      "supporting_evidence": [
+        {
+          "dimension": "MARKET_STRUCTURE",
+          "direction": "SUPPORT",
+          "impact": "STRUCTURAL",
+          "trade_date": "2026-10-29",
+          "source": "data/research/sector_discovery_audit.json",
+          "finding": "航天装备当日+4.572%、3日+3.31%、5日+7.19%、量比3.151。"
+        },
+        {
+          "dimension": "MARKET_BREADTH",
+          "direction": "SUPPORT",
+          "impact": "NORMAL",
+          "trade_date": "2026-10-29",
+          "source": "data/research/sector_discovery_audit.json",
+          "finding": "5只样本中4只上涨，广度80%。"
+        },
+        {
+          "dimension": "CATALYST",
+          "direction": "SUPPORT",
+          "impact": "NORMAL",
+          "trade_date": "2026-10-29",
+          "source": "https://m.spacechina.com/n2018089/n2018131/index.html",
+          "finding": "10月23日至25日连续完成多次航天发射任务。"
+        }
+      ],
+      "contrary_evidence": [
+        {
+          "dimension": "INDUSTRY_FUNDAMENTALS",
+          "direction": "COUNTER",
+          "impact": "NORMAL",
+          "trade_date": "2026-10-29",
+          "source": "https://m.spacechina.com/n2018089/n2018131/index.html",
+          "finding": "需上市公司订单、交付与利润传导，以及航天装备内部回撤承接和更广泛样本验证。"
+        }
+      ],
+      "invalidation_conditions": [
+        "仅5只样本，航空装备3日和5日仍为负，航天强势未扩散至军工装备宽链。"
+      ],
+      "etf_tools": [],
+      "participation_timing": "仅观察，不形成正式新仓参与信号。",
+      "change_reason": "航天装备5只样本中4只上涨，当日相对市场+6.608个百分点，3日、5日结构为正且量比3.151；有持续发射事实，但样本窄和订单盈利缺口使其仅为D1候选。",
+      "confirmation_audit": {
+        "asof_trade_date": "2026-10-29",
+        "market_environment": "RISK_OFF",
+        "market_environment_reason": "全市场个股中位下跌2.036%，航天装备在普跌中独立走强。",
+        "market_environment_source": "data/research/sector_discovery_audit.json",
+        "driver_type": "INDUSTRIAL_GROWTH",
+        "discovery_basis": "CONTINUING_STRUCTURE",
+        "catalyst_kind": "SUSTAINED_DRIVER",
+        "catalyst_fact": "10月23日至25日连续完成遥感卫星及低轨卫星互联网发射，证明发射任务持续；但发射成功不等于上市公司订单与盈利同步兑现。",
+        "catalyst_source": "https://m.spacechina.com/n2018089/n2018131/index.html",
+        "catalyst_available_at": "2026-10-25T23:00:00+08:00",
+        "core_industry_codes": [
+          "S650101"
+        ],
+        "strongest_counter": "仅5只样本，航空装备3日和5日仍为负，航天强势未扩散至军工装备宽链。",
+        "decision_reason": "航天装备5只样本中4只上涨，当日相对市场+6.608个百分点，3日、5日结构为正且量比3.151；有持续发射事实，但样本窄和订单盈利缺口使其仅为D1候选。",
+        "decision_state": "候选趋势",
+        "specific_blocker": "需上市公司订单、交付与利润传导，以及航天装备内部回撤承接和更广泛样本验证。"
+      },
+      "industry_assessments": [
+        {
+          "industry_code": "S650101",
+          "industry_name": "航天装备Ⅲ",
+          "benefit_level": "CORE",
+          "market_state": "候选趋势",
+          "evidence_trade_date": "2026-10-29",
+          "benefit_reason": "航天装备直接参与火箭、卫星及配套制造，但上市公司实际订单与利润兑现待核。",
+          "market_reason": "5只样本当日+4.572%、广度80%、3日+3.31%、5日+7.19%、量比3.151。"
+        }
+      ],
+      "state_history": [
+        {
+          "trade_date": "2026-10-29",
+          "from": null,
+          "to": "候选趋势",
+          "event": "new_verified_trend",
+          "reason": "航天装备5只样本中4只上涨，当日相对市场+6.608个百分点，3日、5日结构为正且量比3.151；有持续发射事实，但样本窄和订单盈利缺口使其仅为D1候选。"
+        }
+      ],
+      "initial_discovery_basis": "CONTINUING_STRUCTURE",
+      "d123_trigger_evidence": {
+        "dimension": "MARKET_STRUCTURE",
+        "direction": "SUPPORT",
+        "impact": "STRUCTURAL",
+        "trade_date": "2026-10-29",
+        "source": "data/research/sector_discovery_audit.json",
+        "finding": "航天装备当日+4.572%、3日+3.31%、5日+7.19%、量比3.151。"
+      },
+      "d123_stage": "D1",
+      "d123_trigger_trade_date": "2026-10-29",
+      "d123_decision": "PENDING",
+      "d123_decision_trade_date": null,
+      "d123_backfill_audit": null,
+      "surge_followup": null
+    },
+    {
+      "trend_name": "煤炭",
+      "episode_id": "煤炭#2026-10-29",
+      "first_seen_trade_date": "2026-10-29",
+      "last_verified_trade_date": "2026-10-29",
+      "market_state": "观察",
+      "trend_state": "T0",
+      "trend_basis": "A_SHARE",
+      "commodity_anchor": null,
+      "lifecycle_status": "有效",
+      "industry_codes": [
+        "S740101",
+        "S740102"
+      ],
+      "industry_names": [
+        "动力煤",
+        "焦煤"
+      ],
+      "in_new_position_priority": false,
+      "priority_rank": null,
+      "supporting_evidence": [
+        {
+          "dimension": "MARKET_STRUCTURE",
+          "direction": "SUPPORT",
+          "impact": "NORMAL",
+          "trade_date": "2026-10-29",
+          "source": "data/research/sector_discovery_audit.json",
+          "finding": "动力煤当日+1.304%、3日+1.92%、5日+2.38%；焦煤当日+0.475%、3日+1.91%、5日+1.78%。"
+        },
+        {
+          "dimension": "COMMODITY_ANCHOR",
+          "direction": "COUNTER",
+          "impact": "NORMAL",
+          "trade_date": "2026-10-29",
+          "source": "https://www.sxcoal.com/",
+          "finding": "动力煤现货弱稳、焦煤价格持平且库存增加，第一锚未形成一致强化。"
+        }
+      ],
+      "contrary_evidence": [
+        {
+          "dimension": "INDUSTRY_FUNDAMENTALS",
+          "direction": "COUNTER",
+          "impact": "NORMAL",
+          "trade_date": "2026-10-29",
+          "source": "https://www.sxcoal.com/",
+          "finding": "需动力煤/焦煤价格、库存和供需第一锚持续一致，并验证A股放量承接及利润传导。"
+        }
+      ],
+      "invalidation_conditions": [
+        "动力煤量比0.845、焦煤0.952，成交参与不足；商品现货、库存和复产预期并未一致强化。"
+      ],
+      "etf_tools": [],
+      "participation_timing": "仅观察，不形成正式新仓参与信号。",
+      "change_reason": "动力煤和焦煤A股均有正向3日/5日结构，但商品第一锚与库存信号分化，建立D1观察而非候选。",
+      "confirmation_audit": {
+        "asof_trade_date": "2026-10-29",
+        "market_environment": "RISK_OFF",
+        "market_environment_reason": "全市场个股中位下跌2.036%，煤炭相对抗跌。",
+        "market_environment_source": "data/research/sector_discovery_audit.json",
+        "driver_type": "OTHER",
+        "discovery_basis": "CONTINUING_STRUCTURE",
+        "catalyst_kind": "SUSTAINED_DRIVER",
+        "catalyst_fact": "10月28日CCI动力煤指数690.68元/吨、环比上涨3.77元，但动力煤现货10月29日弱稳；焦煤指数持平且精煤库存环比增加，商品和库存信号分化。",
+        "catalyst_source": "https://www.sxcoal.com/",
+        "catalyst_available_at": "2026-10-29T15:05:00+08:00",
+        "core_industry_codes": [
+          "S740101",
+          "S740102"
+        ],
+        "strongest_counter": "动力煤量比0.845、焦煤0.952，成交参与不足；商品现货、库存和复产预期并未一致强化。",
+        "decision_reason": "动力煤和焦煤A股均有正向3日/5日结构，但商品第一锚与库存信号分化，建立D1观察而非候选。",
+        "decision_state": "观察",
+        "specific_blocker": "需动力煤/焦煤价格、库存和供需第一锚持续一致，并验证A股放量承接及利润传导。"
+      },
+      "industry_assessments": [
+        {
+          "industry_code": "S740101",
+          "industry_name": "动力煤",
+          "benefit_level": "CORE",
+          "market_state": "观察",
+          "evidence_trade_date": "2026-10-29",
+          "benefit_reason": "煤价直接影响资源品盈利，但当前现货与库存信号分化。",
+          "market_reason": "15只样本当日+1.304%、广度86.67%、3日+1.92%、5日+2.38%，量比0.845。"
+        },
+        {
+          "industry_code": "S740102",
+          "industry_name": "焦煤",
+          "benefit_level": "DIRECT",
+          "market_state": "观察",
+          "evidence_trade_date": "2026-10-29",
+          "benefit_reason": "焦煤价格和库存直接影响盈利，但复产预期和库存上升构成反证。",
+          "market_reason": "11只样本当日+0.475%、广度63.64%、3日+1.91%、5日+1.78%，量比0.952。"
+        }
+      ],
+      "state_history": [
+        {
+          "trade_date": "2026-10-29",
+          "from": null,
+          "to": "观察",
+          "event": "new_observed_trend",
+          "reason": "动力煤和焦煤A股均有正向3日/5日结构，但商品第一锚与库存信号分化，建立D1观察而非候选。"
+        }
+      ],
+      "initial_discovery_basis": "CONTINUING_STRUCTURE",
+      "d123_trigger_evidence": {
+        "dimension": "MARKET_STRUCTURE",
+        "direction": "SUPPORT",
+        "impact": "NORMAL",
+        "trade_date": "2026-10-29",
+        "source": "data/research/sector_discovery_audit.json",
+        "finding": "动力煤当日+1.304%、3日+1.92%、5日+2.38%；焦煤当日+0.475%、3日+1.91%、5日+1.78%。"
+      },
+      "d123_stage": "D1",
+      "d123_trigger_trade_date": "2026-10-29",
+      "d123_decision": "PENDING",
+      "d123_decision_trade_date": null,
+      "d123_backfill_audit": null,
+      "surge_followup": null
     }
   ],
   "invalidated_history": [
@@ -1296,3 +1503,4 @@
   ],
   "recheck_queue": []
 }
+
