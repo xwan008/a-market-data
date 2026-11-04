@@ -403,14 +403,13 @@ def opportunity_key(row):
 
 
 def top5_rank_details(row):
-    """The sole final Top5 internal sort key, independent of trade admission.
+    """Rank existing Top5: actionable READY first, then near-term strength.
 
-    PR #54 historically defined prior-close acceptance observation, NOT this
-    complete rank formula. The actual key compares overextension, 5-day trend
-    tier, recent signal tier, absolute MA20 distance, optional held-support
-    observation distance, then volume/relative strength and code. READY/WAIT,
-    60/120d structural plans, historical resistance R and financial scores
-    cannot raise rank. A close-support observation is NOT a trade stop or R.
+    READY/WAIT admission is computed separately; ranking cannot grant entry.
+    Within each status: overextension, 5-day trend, observed breakout/support,
+    relative/volume strength, MA20 distance, observed support distance, code.
+    MA60 position is minor context, not an entry confirmation; observed close
+    support cannot supply a trade stop or actual risk/reward R.
     """
     ctx = row.get("technical_context") or {}
     ev = row.get("phase_evidence") or {}
@@ -468,20 +467,24 @@ def top5_rank_details(row):
     position_distance = abs(gap) if val(gap) else 100.
     def normalized(v, start, span):
         return min(1., max(0., (v - start) / span)) if val(v) else 0.
+    # Ranking context only: standing over MA60 is NOT proof of a fresh cross.
+    ma60_above = bool(pos(p) and pos(ctx.get("ma60")) and p >= ctx["ma60"])
     volume_strength = (
-        .25 * normalized(ratio, 1., 2.)
-        + .20 * normalized(ctx.get("volume_ratio_5d_vs_20d"), 1., 1.5)
-        + .25 * normalized(loc, 50., 50.)
-        + .20 * normalized(ctx.get("relative_strength_20d_vs_market_pct"), 0., 15.)
-        + .10 * normalized(up5, 2., 3.)
+        .24 * normalized(ratio, 1., 2.)
+        + .16 * normalized(ctx.get("volume_ratio_5d_vs_20d"), 1., 1.5)
+        + .20 * normalized(loc, 50., 50.)
+        + .31 * normalized(ctx.get("relative_strength_20d_vs_market_pct"), 0., 15.)
+        + .06 * normalized(up5, 2., 3.)
+        + .03 * int(ma60_above)
     )
-    # Lexicographic comparison; weighted volume evidence is only a late tie-breaker.
+    # READY always precedes WAIT; within a status, momentum precedes MA20 gap.
+    ready_tier = 0 if row.get("status") == "READY" else 1
     ranking_key = (
-        int(overextended), trend_tier, signal_tier,
-        round(position_distance, 5),
+        ready_tier, int(overextended), trend_tier, signal_tier,
+        -round(volume_strength, 6), round(position_distance, 5),
         0 if observation_distance is not None else 1,
         round(observation_distance, 5) if observation_distance is not None else 100.,
-        -round(volume_strength, 6), row.get("code") or ""
+        row.get("code") or ""
     )
     return {
         "ranking_key": ranking_key,
@@ -497,6 +500,8 @@ def top5_rank_details(row):
         "overextended": overextended,
         "abs_ma20_distance_pct": (round(position_distance, 2) if val(gap) else None),
         "volume_strength": round(volume_strength, 4),
+        "ma60_above": ma60_above,
+        "ready_priority": ready_tier == 0,
         "no_r_assumed": True,
         "ignores_formal_60day_confirmation": True,
     }
@@ -509,11 +514,11 @@ def top5_rank_key(row):
 
 
 def dynamic_top5_by_theme(ready, wait, research):
-    """Rank up to five names per theme, including evidence-backed trend watches.
+    """Rank up to five names per theme, with READY before any WAIT.
 
-    Immediate/nearby entry candidates come first. When fewer than five qualify,
-    include only WAIT stocks with observable trend evidence; never invent a buy
-    zone or fill the list merely to reach five. Cooling/failed structures stay out.
+    WAIT remains a clearly labeled observation, not a next-day buy recommendation.
+    Never invent a trade plan or fill the list just to reach five.
+    Cooling/failed structures stay out.
     """
     sectors = sorted({str(x.get("trend_name") or "") for x in research.get("companies", [])
                       if x.get("trend_name")})
@@ -593,8 +598,9 @@ def dynamic_top5_by_theme(ready, wait, research):
 def add_attention_priorities(groups, ready, wait, research):
     """Explain real Top5 rank evidence; independently report trade-risk context.
 
-    The supplied members and order are fixed. No READY, risk/reward, old tier,
-    fundamental score or confirmed 60-day plan can alter ranking explanations.
+    The supplied members and order are fixed. READY precedes WAIT, but ranking
+    never changes admission; reward/risk and fundamentals are not extra
+    within-status rank factors.
     """
     signal_labels = {
         "FRESH_BREAK_AND_RECENT_SUPPORT_HOLD":
@@ -659,11 +665,17 @@ def add_attention_priorities(groups, ready, wait, research):
             if details["overextended"]:
                 position_text += "；短线过热标记参与排序"
             item["attention_rank"] = rank
+            status_text = ("READY先于WAIT；仅下一交易日条件性入场"
+                           if row["status"] == "READY" else "WAIT仅供观察，尚不可买")
+            ma60_text = ("；MA60上方小幅加分（不代表刚突破）"
+                         if details["ma60_above"] else "")
             item["attention_judgement"] = (
-                "Top5关注排序依据：" + trend_labels[details["trend_tier"]]
+                "Top5排序依据：" + status_text
+                + "；" + trend_labels[details["trend_tier"]]
                 + "；" + signal_labels[details["follow_signal"]]
-                + position_text
-                + "；量价强度仅为后序排序比较项；此名次不是交易买入许可"
+                + f"；量价及相对强度综合{details['volume_strength']:.3f}，先于MA20距离比较"
+                + ma60_text + position_text
+                + "；排序分数不是次日上涨概率，WAIT不是买入许可"
             )
             # Risk notes are separate from rank reasons. A high rank may be WAIT.
             if row["status"] == "READY":
@@ -682,7 +694,7 @@ def add_attention_priorities(groups, ready, wait, research):
                 risk_notes.append("尚无可计算的独立阻力赔率，不能视为上方空间无限")
             if details["recent_support_pattern"] == "SAME_DAY_SWEEP_RECLAIM":
                 risk_notes.append("此前收盘参考区盘中被刺破后收复，不据当日最低价新造止损或实际R")
-            risk_notes.append("历史阻力和1.5R为交易准入检查，不决定Top5名次")
+            risk_notes.append("历史阻力和1.5R影响READY准入，不作为同状态内排序加分")
             item["attention_resistance_check"] = {
                 "status": space_status,
                 "resistance_price": overhead.get("price"),
