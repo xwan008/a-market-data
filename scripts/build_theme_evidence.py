@@ -15,7 +15,7 @@ from pathlib import Path
 from statistics import median
 from zoneinfo import ZoneInfo
 
-from build_sector_discovery import number, read_json, stock_features
+from build_sector_discovery import THEME_CROSSCHECK_LIMIT, number, read_json, stock_features
 from price_inputs import load_momentum_shards
 
 TZ = ZoneInfo("Asia/Shanghai")
@@ -149,15 +149,37 @@ def _theme_metrics(theme, groups, stock_data, market_median):
     emerging = bool(quality == "OK" and breadth >= .6 and med1 >= .35
                     and rs >= .3 and accel is not None and accel >= .35)
     channels = (["STRONG"] if strong else []) + (["EMERGING"] if emerging else [])
-    # Core-only sector breakdown; related sectors never inflate trend evidence.
+    # Preserve every L3 code as independent evidence. Aggregated theme strength
+    # is a discovery hint, not confirmation for all constituent industries.
+    industry_names = {i["code"]: i.get("name") for i in theme["industries"]
+                      if i["role"] == "core"}
     industry_rows = []
     for code in core:
-        observations = [stock_data[x]["r1"] for x in groups[code]
-                        if stock_data.get(x) is not None]
-        industry_rows.append({"code": code, "n": len(groups[code]),
-                              "valid": len(observations),
-                              "breadth_1d": _pct(sum(x > 0 for x in observations), len(observations)),
-                              "median_return_1d_pct": _med(observations)})
+        available_sub = [stock_data[x] for x in sorted(groups[code])
+                         if stock_data.get(x) is not None]
+        observations = _rows(available_sub, "r1")
+        sub3, sub5 = _rows(available_sub, "r3"), _rows(available_sub, "r5")
+        volumes = [v for v in _rows(available_sub, "volume") if v > 0]
+        minimum = max(3, math.ceil(len(available_sub) * .8))
+        med3 = _med(sub3) if len(sub3) >= minimum else None
+        med5 = _med(sub5) if len(sub5) >= minimum else None
+        breadth1 = _pct(sum(x > 0 for x in observations), len(observations))
+        breadth3 = _pct(sum(x > 0 for x in sub3), len(sub3)) if med3 is not None else None
+        breadth5 = _pct(sum(x > 0 for x in sub5), len(sub5)) if med5 is not None else None
+        med1 = _med(observations)
+        persistent = bool(len(available_sub) >= 5 and med1 is not None
+                          and med1 > market_median and breadth1 >= .6
+                          and med3 is not None and med3 > 0 and breadth3 >= .6
+                          and med5 is not None and med5 > 0 and breadth5 >= .5)
+        industry_rows.append({
+            "code": code, "name": industry_names.get(code),
+            "n": len(groups[code]), "valid": len(observations),
+            "breadth_1d": breadth1, "breadth_3d": breadth3, "breadth_5d": breadth5,
+            "median_return_1d_pct": med1, "median_return_3d_pct": med3,
+            "median_return_5d_pct": med5,
+            "median_volume_ratio_vs_20d": _med(volumes) if len(volumes) >= minimum else None,
+            "persistent_structure_hint": persistent
+        })
     valid_breadths = [x["breadth_1d"] for x in industry_rows if x["valid"] >= 5
                       and x["breadth_1d"] is not None]
     divergence = round(max(valid_breadths) - min(valid_breadths), 4) if len(valid_breadths) >= 2 else None
@@ -190,8 +212,11 @@ def _percentile(values, value):
 
 
 def _crosscheck_shortlist(sector_audit, groups, themes, taxonomy,
-                          features, market_median, market_breadth, limit=3):
-    """Single grouped top-three: 30/20/25/15/10; auxiliary research only."""
+                          features, market_median, market_breadth, limit=THEME_CROSSCHECK_LIMIT):
+    """Grouped top-ten: composite 7 + up to 3 persistent multi-industry hints.
+
+    Only supplemental research prioritization; never produces trend/handoff status.
+    """
     pool = []
     taxonomy_codes = {code for t in taxonomy for code in t["core_industry_codes"]}
     weights = {"relative_strength": 30, "breadth": 20,
@@ -231,6 +256,19 @@ def _crosscheck_shortlist(sector_audit, groups, themes, taxonomy,
             "sample_quality": t["sample_quality"],
             "usable_stock_count": n, "advancing_count": rising,
             "industry_count": len(sub), "strong_industry_count": len(strong_sub),
+            "persistent_industry_count": sum(
+                r["persistent_structure_hint"] for r in sub),
+            "industry_evidence": [
+                {"industry_code": r["code"], "industry_name": r["name"],
+                 "member_count": r["n"], "usable_count": r["valid"],
+                 "median_return_1d_pct": r["median_return_1d_pct"],
+                 "median_return_3d_pct": r["median_return_3d_pct"],
+                 "median_return_5d_pct": r["median_return_5d_pct"],
+                 "breadth_1d": r["breadth_1d"], "breadth_3d": r["breadth_3d"],
+                 "breadth_5d": r["breadth_5d"],
+                 "median_volume_ratio_vs_20d": r["median_volume_ratio_vs_20d"],
+                 "persistent_structure_hint": r["persistent_structure_hint"]}
+                for r in t["core_industries"]],
             "relative_strength_1d_vs_market_median_pct":
                 t["relative_strength_1d_vs_market_median_pct"],
             "advance_ratio": t["breadth_1d"],
@@ -289,20 +327,39 @@ def _crosscheck_shortlist(sector_audit, groups, themes, taxonomy,
     pool.sort(key=lambda row: (-row["review_priority_score"],
                                -row["score"], row["source_id"]))
     selected = []
-    for item in pool:
-        member_set = item.pop("_members")
-        if any(member_set and old and
-               len(member_set & old) / len(member_set | old) >= .85
-               for _, old in selected):
-            continue
-        selected.append((item, member_set))
-        if len(selected) == limit:
-            break
+
+    def append_distinct(candidates, capacity, track):
+        for item in candidates:
+            if len(selected) >= capacity:
+                break
+            member_set = item["_members"]
+            if any(member_set and old and
+                   len(member_set & old) / len(member_set | old) >= .85
+                   for _, old in selected):
+                continue
+            if any(item["source_id"] == prior["source_id"] for prior, _ in selected):
+                continue
+            lead = {k: v for k, v in item.items() if k != "_members"}
+            lead["selection_track"] = track
+            selected.append((lead, member_set))
+
+    # One-day market-wide surges can occupy the entire composite ranking.
+    # Reserve up to three of ten independent *theme* slots for confirmed
+    # multi-L3 price persistence hints. This is not a trend confirmation gate.
+    sustained_seats = min(3, limit // 3)
+    append_distinct(pool, limit - sustained_seats, "COMPOSITE")
+    sustained = sorted(
+        (x for x in pool if x["persistent_industry_count"] >= 2),
+        key=lambda x: (-x["persistent_industry_count"],
+                       -(x["median_return_3d_pct"] or 0),
+                       -x["review_priority_score"], x["source_id"]))
+    append_distinct(sustained, limit, "MULTI_L3_PERSISTENCE")
+    append_distinct(pool, limit, "COMPOSITE_FILL")
     return [dict(item, rank=i + 1) for i, (item, _) in enumerate(selected)]
 
 
 def build(latest, industry_index, structure, catalog, sector_audit=None,
-          max_research=3, max_unmapped=8, retrospective=False):
+          max_research=THEME_CROSSCHECK_LIMIT, max_unmapped=8, retrospective=False):
     trade_date = str(latest.get("trade_date") or "")
     if not trade_date or latest.get("market_status") != "closed":
         raise ValueError("completed_market_session_required")
@@ -440,6 +497,7 @@ def build(latest, industry_index, structure, catalog, sector_audit=None,
             "sector_audit_status": "MATCHED" if sector_audit else "UNAVAILABLE",
             "all_theme_detail_retention": "computed_in_memory_not_persisted",
             "crosscheck_shortlist_count": len(crosscheck),
+            "crosscheck_limit": THEME_CROSSCHECK_LIMIT,
             "crosscheck_scoring": "SW2_AND_VERIFIED_THEME_COMPOSITE_30_20_25_15_10"
         },
         "research_candidates": research,
@@ -457,7 +515,7 @@ def main():
     p.add_argument("--catalog", default="research/theme_industry_catalog.json")
     p.add_argument("--sector-audit", default="data/research/sector_discovery_audit.json")
     p.add_argument("--output", default="data/research/theme_evidence_snapshot.json")
-    p.add_argument("--max-research", type=int, default=3)
+    p.add_argument("--max-research", type=int, default=THEME_CROSSCHECK_LIMIT)
     p.add_argument("--max-unmapped", type=int, default=8)
     p.add_argument("--allow-retrospective-smoke", action="store_true")
     args = p.parse_args()
@@ -477,7 +535,7 @@ def main():
                       "evaluated": snapshot["scan_summary"]["themes_evaluated"],
                       "candidates": len(snapshot["research_candidates"]),
                       "unmapped": len(snapshot["unmapped_industry_alerts"]),
-                      "composite_top3": [
+                      "composite_top10": [
                           {"name": x["name"], "score": x["score"],
                            "source_id": x["source_id"]}
                           for x in snapshot["crosscheck_shortlist"]]},

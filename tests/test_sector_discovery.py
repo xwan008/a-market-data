@@ -179,7 +179,7 @@ class SectorDiscoveryTests(unittest.TestCase):
                          {"S100101", "S300101"})
         self.assertEqual(len(snap["model_research_candidates"]), 1)
         self.assertEqual(len(snap["deferred_candidates"]), 1)
-        self.assertEqual(snap["theme_research_budget"]["max_new_theme_deep_research"], 1)
+        self.assertEqual(snap["theme_research_budget"]["max_new_theme_deep_research"], 10)
         self.assertTrue(snap["theme_research_budget"]["refill_from_candidate_overview_after_merging"])
         self.assertEqual(snap["all_industry_metrics"],
                          "data/research/sector_discovery_audit.json#sectors")

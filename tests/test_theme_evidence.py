@@ -71,7 +71,7 @@ class ThemeEvidenceTests(unittest.TestCase):
         self.assertTrue(all(lead["usable_stock_count"] >= 3 for lead in leads))
         self.assertEqual(result["scan_summary"]["crosscheck_shortlist_count"], 2)
 
-    def test_crosscheck_caps_all_sources_at_three_and_is_deterministic(self):
+    def test_crosscheck_caps_themes_at_ten_and_is_deterministic(self):
         latest, index, structure, catalog, audit = sample_data()
         for group in range(4):
             industry_code = f"S{group + 4}00101"
@@ -96,9 +96,9 @@ class ThemeEvidenceTests(unittest.TestCase):
         audit["industry_count"] = 7
         first = build(latest, index, structure, catalog, audit)
         second = build(latest, index, structure, catalog, audit)
-        self.assertEqual(len(first["crosscheck_shortlist"]), 3)
+        self.assertEqual(len(first["crosscheck_shortlist"]), 6)
         self.assertEqual(first["crosscheck_shortlist"], second["crosscheck_shortlist"])
-        self.assertEqual(len({lead["source_id"] for lead in first["crosscheck_shortlist"]}), 3)
+        self.assertEqual(len({lead["source_id"] for lead in first["crosscheck_shortlist"]}), 6)
 
     def test_small_sample_industry_can_enter_crosscheck_but_is_discounted(self):
         latest, index, structure, catalog, audit = sample_data()
@@ -343,11 +343,66 @@ class ThemeEvidenceTests(unittest.TestCase):
         result = build(*sample_data())
         self.assertEqual(result["scan_summary"]["crosscheck_scoring"],
                          "SW2_AND_VERIFIED_THEME_COMPOSITE_30_20_25_15_10")
-        self.assertLessEqual(len(result["crosscheck_shortlist"]), 3)
+        self.assertLessEqual(len(result["crosscheck_shortlist"]), 10)
         self.assertTrue(all(sum(x["component_weights"].values()) == 100
                             and len(x["component_scores"]) == 5
                             for x in result["crosscheck_shortlist"]))
 
+
+    def test_ten_theme_slots_keep_level3_identity_and_reserve_sustained_breadth(self):
+        groups, features = {}, {}
+        def add_industry(code, count, change, r3, r5, volume):
+            groups[code] = set()
+            for i in range(count):
+                stock = code + "-" + str(i)
+                groups[code].add(stock)
+                features[stock] = {"r1": change, "r3": r3, "r5": r5,
+                                   "volume": volume}
+
+        # Several disconnected one-day spikes should not crowd out a
+        # slower multi-L3 photovoltaic structure, even when all are positive.
+        for i in range(12):
+            add_industry(f"S70{i:04d}", 6, 9, -5, -8, 2.0)
+        photovoltaic_codes = ["S630501", "S630502", "S630503", "S630504", "S630505"]
+        for code, count, change, r3, r5 in [
+            ("S630501", 6, 2.5, 4, -1),
+            ("S630502", 8, 3.0, 7, 4),
+            ("S630503", 2, 5, 6, 2),
+            ("S630504", 11, 2.8, 6, .3),
+            ("S630505", 2, 4, 6, 1),
+        ]:
+            add_industry(code, count, change, r3, r5, 1.5)
+        taxonomy = []
+        for i in range(12):
+            code = f"S70{i:04d}"
+            t = _theme_metrics(
+                {"theme_id": code, "theme_name": "Spike " + str(i),
+                 "industries": [{"code": code, "name": "Spike " + str(i),
+                                 "role": "core"}]}, groups, features, .5)
+            t["evidence_group_type"] = "SW_L2_TAXONOMY"
+            taxonomy.append(t)
+        pv = _theme_metrics(
+            {"theme_id": "sw_l2_6305", "theme_name": "光伏设备",
+             "industries": [
+                 {"code": code, "name": "Photovoltaic " + str(i), "role": "core"}
+                 for i, code in enumerate(photovoltaic_codes)]},
+            groups, features, .5)
+        pv["evidence_group_type"] = "SW_L2_TAXONOMY"
+        taxonomy.append(pv)
+        result = _crosscheck_shortlist(None, groups, [], taxonomy,
+                                       features, .5, .5)
+        self.assertEqual(len(result), 10)
+        self.assertEqual(len({x["source_id"] for x in result}), 10)
+        chosen = next(x for x in result if x["name"] == "光伏设备")
+        self.assertEqual(chosen["selection_track"], "MULTI_L3_PERSISTENCE")
+        self.assertEqual(chosen["persistent_industry_count"], 2)
+        self.assertEqual(chosen["industry_codes"], photovoltaic_codes)
+        self.assertEqual([x["industry_code"] for x in chosen["industry_evidence"]],
+                         photovoltaic_codes)
+        self.assertEqual(chosen["industry_evidence"][2]["usable_count"], 2)
+        self.assertFalse(chosen["industry_evidence"][2]["persistent_structure_hint"])
+        self.assertNotIn("market_state", chosen)
+        self.assertNotIn("in_new_position_priority", chosen)
 
     def test_regression_flags_model_first_protocol_and_source(self):
         protocol = (Path(__file__).resolve().parents[1]

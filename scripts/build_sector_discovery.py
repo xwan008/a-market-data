@@ -16,6 +16,9 @@ from discovery_coverage import build_coverage_review
 
 TZ = ZoneInfo("Asia/Shanghai")
 
+# Industry-level seed capacity stays at 3; theme-level cross-check is independent.
+THEME_CROSSCHECK_LIMIT = 10
+
 
 def number(value):
     try:
@@ -280,7 +283,7 @@ def build(latest, industry_index, structure, concept_payload=None, review_cap=3,
             "does_not_limit_model_independent_research": True,
             "optional_refill_uses_independent_industry_evidence": True,
             "unit": "evidence_verified_theme_not_industry",
-            "max_new_theme_deep_research": review_cap,
+            "max_new_theme_deep_research": THEME_CROSSCHECK_LIMIT,
             "initial_seed_industry_count": len(selected),
             "seed_industries_are_not_hard_theme_limit": True,
             "refill_from_candidate_overview_after_merging": True,
