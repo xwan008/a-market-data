@@ -1,0 +1,89 @@
+name: Theme Review 3-vs-10 Point-in-Time Shadow
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/shadow_backtest_theme_review.py"
+      - "tests/test_theme_review_shadow.py"
+      - "research/backtests/theme_review_shadow_manifest_20261012_20261105.json"
+      - ".github/workflows/theme-review-shadow.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  shadow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Unit tests and syntax preflight
+        run: |
+          python -m unittest discover -s tests -p 'test_theme_review_shadow.py' -v
+          python -m unittest discover -s tests -p 'test_theme_evidence.py' -v
+          python -m py_compile scripts/shadow_backtest_theme_review.py scripts/build_theme_evidence.py
+      - name: Retrieve only immutable as-of daily commits and frozen October 11 catalog
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          from pathlib import Path
+          root = Path("/tmp/theme_review_asof")
+          manifest = json.loads(Path("research/backtests/theme_review_shadow_manifest_20261012_20261105.json").read_text(encoding="utf-8"))
+          catalog_commit=manifest["catalog_frozen_commit"]
+          subprocess.run(["git","fetch","--filter=blob:none","--depth=1","--no-tags","origin",catalog_commit],check=True)
+          catalog=root/"catalog_20261011.json"
+          catalog.parent.mkdir(parents=True,exist_ok=True)
+          with catalog.open("wb") as out:
+              subprocess.run(["git","show",f"{catalog_commit}:research/theme_industry_catalog.json"],check=True,stdout=out)
+          old=json.loads(catalog.read_text(encoding="utf-8"))
+          assert old["catalog_as_of_date"]=="2026-10-11"
+          for item in manifest["snapshots"]:
+              day,sha=item["trade_date"],item["commit"]
+              subprocess.run(["git","fetch","--filter=blob:none","--depth=1","--no-tags","origin",sha],check=True,stdout=subprocess.DEVNULL)
+              for source,name in [("data/latest.json","latest.json"),
+                                  ("data/research/company_industry_index.json","company_industry_index.json")]:
+                  target=root/day/name
+                  target.parent.mkdir(parents=True,exist_ok=True)
+                  with target.open("wb") as out:
+                      subprocess.run(["git","show",f"{sha}:{source}"],check=True,stdout=out)
+              saved=json.loads((root/day/"latest.json").read_text(encoding="utf-8"))
+              assert saved["trade_date"]==day, (day,saved["trade_date"])
+              assert saved["market_status"]=="closed",day
+              print("SHADOW_ASOF_READY",day,sha,flush=True)
+          PY
+      - name: Execute frozen decision replay and ex-post forward checks
+        run: |
+          python scripts/shadow_backtest_theme_review.py \
+            --root /tmp/theme_review_asof \
+            --catalog /tmp/theme_review_asof/catalog_20261011.json \
+            --manifest research/backtests/theme_review_shadow_manifest_20261012_20261105.json \
+            --output /tmp/theme_review_shadow_20261012_20261105.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("/tmp/theme_review_shadow_20261012_20261105.json").read_text(encoding="utf-8"))
+          assert r["days"]>=15
+          assert all(not x["future_inputs_used"] and not x["model_registry_written"] for x in r["daily"])
+          assert all(len(x["old3"])<=3 and len(x["new10"])<=10 for x in r["daily"])
+          assert all(lead["industry_codes"]==[z["industry_code"] for z in lead["evidence"]]
+                     for day in r["daily"] for lead in day["new10"])
+          assert r["status"]=="SHADOW_ONLY_NO_FORMAL_TRADE_SIGNAL"
+          print("SHADOW_GATES_PASS",r["days"])
+          with open(Path.home() / "unused.txt", "w") as unused:
+              unused.write("")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: theme-review-shadow-20261012-20261105
+          path: /tmp/theme_review_shadow_20261012_20261105.json
+          if-no-files-found: ignore
+          retention-days: 90
