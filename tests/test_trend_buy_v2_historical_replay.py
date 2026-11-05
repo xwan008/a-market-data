@@ -80,6 +80,27 @@ class ReplayTests(unittest.TestCase):
         self.assertIsNone(out)
         self.assertEqual(error, "ASOF_CLOSE_VS_HISTORY_BASIS_MISMATCH")
 
+    def test_publication_must_precede_next_open(self):
+        self.assertTrue(replay.published_before_next_open(
+            "2026-10-20T19:00:00+08:00", "2026-10-21"))
+        self.assertFalse(replay.published_before_next_open(
+            "2026-10-21T10:01:00+08:00", "2026-10-21"))
+        self.assertTrue(replay.published_before_next_open(
+            "2026-10-21T09:30:00+08:00", "2026-10-21"))
+
+    def test_regime_uses_only_asof_completed_context(self):
+        row={"current_price":10,"trend_phase":"REPAIRING",
+             "technical_context":{"ma60":11,
+                 "ma20_slope_5d_pct":-2}}
+        self.assertEqual(replay.asof_regime(row),
+            "REPAIR_BELOW_MA60_FALLING_MA20")
+        self.assertEqual(replay.asof_regime({
+             **row, "technical_context":{"ma60":9,
+                 "ma20_slope_5d_pct":-2}}), "OTHER_VERIFIED_STRUCTURE")
+        self.assertEqual(replay.asof_regime({
+             **row, "technical_context":{"ma60":11}}),
+             "UNKNOWN_STRUCTURE")
+
     def test_summary_does_not_claim_significance(self):
         data = [{"horizon": 3, "asof": "2026-10-09", "theme": "航空",
                  "old_top1": "600001", "v2_top1": "600002",
