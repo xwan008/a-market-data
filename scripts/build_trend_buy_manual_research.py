@@ -124,7 +124,14 @@ def scores(industry_rows):
         attraction=.5 if category is None else max(0,min(1,.5+.5*(relevant_growth-costs.get(i,.5))))
         current,ma20,ma60=c["price"],c["ma20"],c["ma60"]
         break_state=str(c.get("break_state") or "")
-        if any(x in break_state for x in ("break_confirmed","invalidated","confirmed_break")):trend=0
+        # Direction matters: a confirmed *bullish* structure break is not
+        # structural invalidation. In particular, gold 600988 on 2026-11-05
+        # was wrongly scored trend=0 despite "bullish_structure_break_confirmed".
+        # Still require the conservative MA positioning check below; a bullish
+        # break label alone does NOT grant full trend score or READY status.
+        confirmed_break=any(x in break_state for x in ("break_confirmed","confirmed_break"))
+        if "invalidated" in break_state or (
+                confirmed_break and not break_state.startswith("bullish_")):trend=0
         elif current>=ma20>=ma60:trend=1
         elif current>=ma60:trend=.75
         elif current>=ma20:trend=.5
