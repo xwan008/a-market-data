@@ -213,7 +213,7 @@ def _percentile(values, value):
 
 def _crosscheck_shortlist(sector_audit, groups, themes, taxonomy,
                           features, market_median, market_breadth, limit=THEME_CROSSCHECK_LIMIT):
-    """Grouped top-ten: composite 7 + up to 3 persistent multi-industry hints.
+    """Grouped top-ten: composite 5 + up to 5 persistent multi-industry hints.
 
     Only supplemental research prioritization; never produces trend/handoff status.
     """
@@ -344,9 +344,9 @@ def _crosscheck_shortlist(sector_audit, groups, themes, taxonomy,
             selected.append((lead, member_set))
 
     # One-day market-wide surges can occupy the entire composite ranking.
-    # Reserve up to three of ten independent *theme* slots for confirmed
-    # multi-L3 price persistence hints. This is not a trend confirmation gate.
-    sustained_seats = min(3, limit // 3)
+    # Reserve up to half the ten independent *theme* slots for multi-L3
+    # price persistence hints. This is not a trend confirmation gate.
+    sustained_seats = limit // 2
     append_distinct(pool, limit - sustained_seats, "COMPOSITE")
     sustained = sorted(
         (x for x in pool if x["persistent_industry_count"] >= 2),
