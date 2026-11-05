@@ -113,6 +113,47 @@ class V2RelativeEntryTests(unittest.TestCase):
         self.assertIsNone(x["risk_reward_R"])
         self.assertIn("NO_R", x["space_basis"])
 
+
+    def test_frozen_pre_screen_uses_unpenalized_leader_and_separate_entry(self):
+        records = []
+        for i in range(7):
+            code = str(i).zfill(6)
+            records.append({
+                "code": code, "industry_code": "S421001", "fundamental_score": .5,
+                "excluded_reason": None,
+                "opportunity": {
+                    "price_structure_score": 1 - i * .12,
+                    "volume_quality_score": 1 - i * .11,
+                    "relative_strength_score": 1 - i * .1,
+                    "opportunity_score": i * .12,
+                }
+            })
+        screened = {
+            "trade_date": DAY,
+            "screen_audit": {
+                "lightweight_scanned": records,
+                "pre_screen_selected": [
+                    {"industry_code": "S421001", "code": str(i).zfill(6)}
+                    for i in range(2, 7)],
+            },
+        }
+        out = shadow.shadow_prescreen(screened, DAY)
+        result = out["industry_comparison"][0]
+        picks = result["shadow_candidates"]
+        self.assertEqual([x["code"] for x in picks[:3]], ["000000", "000001", "000002"])
+        self.assertEqual([x["selection_channel"] for x in picks[:3]],
+                         ["TREND_LEADER"] * 3)
+        self.assertEqual(len({x["code"] for x in picks}), len(picks))
+        self.assertIn("000000", result["new_review_required"])
+        self.assertEqual(out["fundamental_scores"]["000001"], .5)
+
+    def test_frozen_prescreen_rejects_wrong_date(self):
+        with self.assertRaisesRegex(ValueError, "trade_date_mismatch"):
+            shadow.shadow_prescreen({"trade_date": "2026-11-06",
+                                     "screen_audit": {"lightweight_scanned": []}},
+                                    DAY)
+
+
     def test_empty_published_theme_does_not_fill_five(self):
         formal = {"trade_date": DAY, "ready": [], "wait": [],
                   "top5_by_theme": [{"trend_name": "空行业", "items": []}]}
