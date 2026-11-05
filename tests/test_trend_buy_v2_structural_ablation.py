@@ -50,6 +50,7 @@ class StructuralAblationTests(unittest.TestCase):
     def test_above_ma60_rising_ma20_not_automatically_punished(self):
         r=candidate(phase="INITIATING",ma60=9.1,slope=2,
                     return3=5,previous5=3,rs=10)
+        r["technical_context"]["attention_resistance"]["price"]=12.0
         out=mod.score_structural(r,DAY)
         self.assertEqual(sum(out["structural_penalties"].values()),0)
         self.assertEqual(out["v20_baseline_score"],out["v21_structural_score"])
