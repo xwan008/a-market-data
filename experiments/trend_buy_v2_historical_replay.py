@@ -163,6 +163,9 @@ def summarize(samples):
             continue
         top1_diffs = [x["v2_top1_return_pct"] - x["old_top1_return_pct"] for x in rows]
         top3_diffs = [x["v2_top3_return_pct"] - x["old_top3_return_pct"] for x in rows]
+        changed = [x for x in rows if x["old_top1"] != x["v2_top1"]]
+        changed_diffs = [x["v2_top1_return_pct"] - x["old_top1_return_pct"]
+                         for x in changed]
         by_horizon.append({
             "horizon": horizon, "cohorts": len(rows),
             "distinct_dates": len({x["asof"] for x in rows}),
@@ -172,6 +175,10 @@ def summarize(samples):
             "top1_mean_difference_pp": round(statistics.mean(top1_diffs), 3),
             "top1_median_difference_pp": round(statistics.median(top1_diffs), 3),
             "v2_top1_won_fraction": round(sum(d > 0 for d in top1_diffs) / len(rows), 3),
+            "changed_top1_cohorts": len(changed),
+            "v2_top1_won_fraction_given_changed": (
+                round(sum(d > 0 for d in changed_diffs) / len(changed_diffs), 3)
+                if changed_diffs else None),
             "top3_mean_difference_pp": round(statistics.mean(top3_diffs), 3),
             "old_top1_mean_mae_pct": round(statistics.mean(x["old_top1_mae_pct"] for x in rows), 3),
             "v2_top1_mean_mae_pct": round(statistics.mean(x["v2_top1_mae_pct"] for x in rows), 3),
@@ -260,8 +267,9 @@ def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04"):
             })
     summary = summarize(samples)
     # Not enough independent trading dates to claim stable model improvement.
-    enough = all(x["distinct_dates"] >= 20 and x["cohorts"] >= 40
-                 for x in summary if x.get("cohorts"))
+    enough = (len(summary) == len(HORIZONS)
+              and all(x.get("distinct_dates", 0) >= 20
+                      and x.get("cohorts", 0) >= 40 for x in summary))
     return {
         "mode": "HISTORICAL_SHADOW_INDICATIVE_NOT_TRADING_BACKTEST",
         "strategy": "next_session_open_to_horizon_close_no_cost_or_fill_constraints",
