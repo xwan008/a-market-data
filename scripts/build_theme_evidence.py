@@ -212,7 +212,8 @@ def _percentile(values, value):
 
 
 def _crosscheck_shortlist(sector_audit, groups, themes, taxonomy,
-                          features, market_median, market_breadth, limit=THEME_CROSSCHECK_LIMIT):
+                          features, market_median, market_breadth, limit=THEME_CROSSCHECK_LIMIT,
+                          persistence_seats=None):
     """Grouped top-ten: composite 5 + up to 5 persistent multi-industry hints.
 
     Only supplemental research prioritization; never produces trend/handoff status.
@@ -346,7 +347,8 @@ def _crosscheck_shortlist(sector_audit, groups, themes, taxonomy,
     # One-day market-wide surges can occupy the entire composite ranking.
     # Reserve up to half the ten independent *theme* slots for multi-L3
     # price persistence hints. This is not a trend confirmation gate.
-    sustained_seats = limit // 2
+    sustained_seats = (limit // 2 if persistence_seats is None
+                       else min(max(0, persistence_seats), limit))
     append_distinct(pool, limit - sustained_seats, "COMPOSITE")
     sustained = sorted(
         (x for x in pool if x["persistent_industry_count"] >= 2),
@@ -359,13 +361,14 @@ def _crosscheck_shortlist(sector_audit, groups, themes, taxonomy,
 
 
 def build(latest, industry_index, structure, catalog, sector_audit=None,
-          max_research=THEME_CROSSCHECK_LIMIT, max_unmapped=8, retrospective=False):
+          max_research=THEME_CROSSCHECK_LIMIT, max_unmapped=8, retrospective=False,
+          crosscheck_limit=THEME_CROSSCHECK_LIMIT, persistence_seats=None):
     trade_date = str(latest.get("trade_date") or "")
     if not trade_date or latest.get("market_status") != "closed":
         raise ValueError("completed_market_session_required")
     if str(structure.get("reference_trade_date") or "") != trade_date:
         raise ValueError("structure_date_mismatch")
-    if max_research < 1 or max_unmapped < 0:
+    if max_research < 1 or max_unmapped < 0 or crosscheck_limit < 1:
         raise ValueError("invalid_review_limits")
     groups, names = _industry_map(industry_index)
     is_retrospective = _validate_catalog(catalog, trade_date, names, retrospective)
@@ -433,7 +436,8 @@ def build(latest, industry_index, structure, catalog, sector_audit=None,
     # Only this final list is handed to the model for supplemental cross-checking.
     crosscheck = _crosscheck_shortlist(
         sector_audit, groups, detailed, taxonomy, features,
-        market_median, sum(x > 0 for x in valid) / len(valid))
+        market_median, sum(x > 0 for x in valid) / len(valid),
+        limit=crosscheck_limit, persistence_seats=persistence_seats)
 
     identity = {}
     for theme in catalog["themes"]:
@@ -497,7 +501,7 @@ def build(latest, industry_index, structure, catalog, sector_audit=None,
             "sector_audit_status": "MATCHED" if sector_audit else "UNAVAILABLE",
             "all_theme_detail_retention": "computed_in_memory_not_persisted",
             "crosscheck_shortlist_count": len(crosscheck),
-            "crosscheck_limit": THEME_CROSSCHECK_LIMIT,
+            "crosscheck_limit": crosscheck_limit,
             "crosscheck_scoring": "SW2_AND_VERIFIED_THEME_COMPOSITE_30_20_25_15_10"
         },
         "research_candidates": research,
