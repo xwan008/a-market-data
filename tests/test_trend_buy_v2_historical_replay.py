@@ -54,8 +54,22 @@ class ReplayTests(unittest.TestCase):
                                     sorted(rows), {"600001": (rows, "qfq")})
         self.assertIsNone(error)
         self.assertAlmostEqual(got["return_pct"], 10)
+        self.assertAlmostEqual(got["open_gap_pct"], 10)
+        self.assertFalse(got["possible_price_limit_locked_open"])
         self.assertAlmostEqual(got["mae_pct"], -100 * .5 / 11)
         self.assertAlmostEqual(got["mfe_pct"], 100 * 2.5 / 11)
+
+    def test_one_price_limit_open_is_only_an_unfillable_proxy(self):
+        bars={"2026-11-05":{"close":10,"low":9.8,"high":10.2},
+              "2026-11-06":{"open":11,"close":11,"low":11,"high":11},
+              "2026-11-09":{"open":10.9,"close":10.5,"low":10.4,"high":11}}
+        result, reason=replay.outcome(
+            {"date":"2026-11-05","code":"600001","current_price":10},
+            "2026-11-06","2026-11-09",sorted(bars),
+            {"600001":(bars,"qfq")})
+        self.assertIsNone(reason)
+        self.assertTrue(result["possible_price_limit_locked_open"])
+        self.assertAlmostEqual(result["open_gap_pct"],10)
 
     def test_missing_session_excluded_not_interpolated(self):
         rows = {"2026-11-05": {"close": 10},
