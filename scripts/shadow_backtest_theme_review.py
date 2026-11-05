@@ -102,17 +102,21 @@ def replay(root, manifest, catalog, start="2026-10-12"):
         args = [latest, index, structure, catalog, sector_audit]
         legacy = build_theme(*args, max_research=3,
                              crosscheck_limit=3, persistence_seats=0)
+        pure_capacity = build_theme(*args, max_research=10,
+                                    crosscheck_limit=10, persistence_seats=0)
         current = build_theme(*args, max_research=10,
                               crosscheck_limit=10, persistence_seats=5)
         # A full taxonomy/curated pool is a denominator for coverage checks,
         # not an extra selection strategy or input to any ranked shortlist.
         whole = build_theme(*args, max_research=10,
                             crosscheck_limit=200, persistence_seats=0)
-        old3, new10 = legacy["crosscheck_shortlist"], current["crosscheck_shortlist"]
+        old3 = legacy["crosscheck_shortlist"]
+        pure10 = pure_capacity["crosscheck_shortlist"]
+        new10 = current["crosscheck_shortlist"]
         full = whole["crosscheck_shortlist"]
         persistent = [x for x in full if x["persistent_industry_count"] >= 2]
         if not all(x["industry_codes"] == [v["industry_code"] for v in x["industry_evidence"]]
-                   for x in old3 + new10):
+                   for x in old3 + pure10 + new10):
             raise ValueError("SW3_EVIDENCE_AND_ROUTING_IDENTITY_MISMATCH:" + day)
         if any("market_state" in x or "in_new_position_priority" in x
                for x in new10):
@@ -127,14 +131,18 @@ def replay(root, manifest, catalog, start="2026-10-12"):
                 {"name": x["name"], "industry_code": x["id"].split(":")[-1]}
                 for x in sector_snapshot["model_research_candidates"]],
             "old3": [compact_lead(x) for x in old3],
+            "pure10": [compact_lead(x) for x in pure10],
             "new10": [compact_lead(x) for x in new10],
             "old3_covers_new": sum(captured(x, new10) for x in old3),
             "new_exclusive_theme_count": sum(not captured(x, old3) for x in new10),
             "persistent_themes_eligible": len(persistent),
             "persistent_themes_captured_old3": sum(captured(x, old3) for x in persistent),
+            "persistent_themes_captured_pure10": sum(captured(x, pure10) for x in persistent),
             "persistent_themes_captured_new10": sum(captured(x, new10) for x in persistent),
             "photovoltaic": {
                 "old_rank": next((x["rank"] for x in old3 if x["source_id"]
+                                 == "SW_L2_TAXONOMY:sw_l2_6305"), None),
+                "pure10_rank": next((x["rank"] for x in pure10 if x["source_id"]
                                  == "SW_L2_TAXONOMY:sw_l2_6305"), None),
                 "new_rank": next((x["rank"] for x in new10 if x["source_id"]
                                  == "SW_L2_TAXONOMY:sw_l2_6305"), None),
@@ -142,11 +150,12 @@ def replay(root, manifest, catalog, start="2026-10-12"):
                                  == "SW_L2_TAXONOMY:sw_l2_6305"), None),
             }
         })
-        contexts.append((i, old3, new10, latest, index))
+        contexts.append((i, old3, pure10, new10, latest, index))
 
-    for i, old3, new10, latest, index in contexts:
+    for i, old3, pure10, new10, latest, index in contexts:
         day, sha, _, _ = days[i]
-        for strategy, leads in [("old3", old3), ("new10", new10),
+        for strategy, leads in [("old3", old3), ("pure10", pure10),
+                                ("new10", new10),
                                 ("new_exclusive", [x for x in new10
                                                   if not captured(x, old3)])]:
             for lead in leads:
@@ -188,28 +197,34 @@ def replay(root, manifest, catalog, start="2026-10-12"):
         "lookback_snapshots": len(days), "source": "immutable Git historical daily commits",
         "comparison": {
             "old3": "2026-11-04 pre-change composite top-3, no persistence reservation",
+            "pure10": "capacity-only ablation: old ranking expanded to ten, no persistence reserve",
             "new10": "grouped composite top-5 plus up to five multi-L3 persistence seats",
             "denominator": "full eligible deduplicated theme/taxonomy pool",
             "selection_timestamp": "after each archived close; not an intraday replay",
         },
         "summary": {
             "mean_old3_count": round(sum(len(x["old3"]) for x in daily)/len(daily), 3),
+            "mean_pure10_count": round(sum(len(x["pure10"]) for x in daily)/len(daily), 3),
             "mean_new10_count": round(sum(len(x["new10"]) for x in daily)/len(daily), 3),
             "persistent_theme_opportunities": total_persistent,
             "persistent_old_captured": sum(d["persistent_themes_captured_old3"] for d in daily),
+            "persistent_pure10_captured": sum(d["persistent_themes_captured_pure10"] for d in daily),
             "persistent_new_captured": sum(d["persistent_themes_captured_new10"] for d in daily),
             "persistent_old_recall": ratio(
                 sum(d["persistent_themes_captured_old3"] for d in daily), total_persistent),
+            "persistent_pure10_recall": ratio(
+                sum(d["persistent_themes_captured_pure10"] for d in daily), total_persistent),
             "persistent_new_recall": ratio(
                 sum(d["persistent_themes_captured_new10"] for d in daily), total_persistent),
             "old3_retained_in_new10": sum(d["old3_covers_new"] for d in daily),
             "old3_total": sum(len(d["old3"]) for d in daily),
             "new_exclusive_theme_instances": sum(d["new_exclusive_theme_count"] for d in daily),
             "photovoltaic_old3_days": sum(d["photovoltaic"]["old_rank"] is not None for d in daily),
+            "photovoltaic_pure10_days": sum(d["photovoltaic"]["pure10_rank"] is not None for d in daily),
             "photovoltaic_new10_days": sum(d["photovoltaic"]["new_rank"] is not None for d in daily),
             "forward_outcomes": {
                 strategy: summarize_outcomes(forward_rows, strategy)
-                for strategy in ("old3", "new10", "new_exclusive")},
+                for strategy in ("old3", "pure10", "new10", "new_exclusive")},
         },
         "warnings": [
             "Rules were developed after observing 2026-11-04 photovoltaic strength: in-sample / hindsight selection bias.",
@@ -245,6 +260,7 @@ def main():
         "summary": result["summary"],
         "photovoltaic_recent": [
             {"date": x["trade_date"], "old": x["photovoltaic"]["old_rank"],
+             "pure10": x["photovoltaic"]["pure10_rank"],
              "new": x["photovoltaic"]["new_rank"],
              "track": x["photovoltaic"]["new_track"]}
             for x in result["daily"] if x["trade_date"] >= "2026-11-02"],
