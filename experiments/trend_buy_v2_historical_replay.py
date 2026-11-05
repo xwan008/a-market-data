@@ -151,6 +151,13 @@ def outcome(row, next_date, target_date, calendar, histories):
     }, None
 
 
+def published_before_next_open(published_at, next_session_date):
+    """A ranking becomes observable only AFTER the actual Git publication."""
+    release = datetime.fromisoformat(published_at).astimezone(TZ)
+    open_time = datetime.fromisoformat(next_session_date + "T09:30:00+08:00")
+    return release <= open_time
+
+
 def asof_regime(row):
     """As-of market structure for diagnostics, never a trade filter."""
     ctx = row.get("technical_context") or {}
@@ -249,8 +256,8 @@ def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2"
         future = [d for d in calendar if d > date]
         # Published after the next open is NOT a trade known at that open.
         # Git's first publication time is a stronger gate than as-of date.
-        if future and datetime.fromisoformat(cohort["published_at"]).astimezone(TZ) > (
-                datetime.fromisoformat(future[0] + "T09:30:00+08:00")):
+        if future and not published_before_next_open(
+                cohort["published_at"], future[0]):
             skipped["PUBLICATION_AFTER_NEXT_SESSION_OPEN"] += len(HORIZONS)
             continue
         for horizon in HORIZONS:
