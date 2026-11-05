@@ -7,6 +7,8 @@ on:
       - 'tests/test_trend_buy_v2_relative_entry_shadow.py'
       - 'experiments/trend_buy_v2_historical_replay.py'
       - 'tests/test_trend_buy_v2_historical_replay.py'
+      - 'experiments/trend_buy_v2_secondary_entries_shadow.py'
+      - 'tests/test_trend_buy_v2_secondary_entries_shadow.py'
       - 'research/shadow/TREND_BUY_V2_RELATIVE_ENTRY_2026-11-05.md'
       - '.github/workflows/validate-trend-buy-v2-shadow.yml'
   workflow_dispatch:
@@ -120,3 +122,27 @@ jobs:
           name: v2-relative-entry-historical-shadow
           path: /tmp/v2-historical-shadow.json
           retention-days: 14
+      - name: Validate secondary entry shapes only with completed as-of K lines
+        run: |
+          python -m unittest discover -s tests -p 'test_trend_buy_v2_secondary_entries_shadow.py' -v
+          python experiments/trend_buy_v2_secondary_entries_shadow.py \
+            --output /tmp/v2-secondary-entry-shadow.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result=json.loads(Path('/tmp/v2-secondary-entry-shadow.json').read_text())
+          assert result['mode']=='SECONDARY_ENTRY_SHAPES_SHADOW_ONLY'
+          assert all(x['signal']['trade_invalidation_price'] is None for x in result['items'])
+          assert all(x['signal']['trade_R'] is None for x in result['items'])
+          print('V2_SECONDARY_ENTRY_COUNT',len(result['items']))
+          print('V2_SECONDARY_PASSING',json.dumps([
+             {'stock':x['name'],'code':x['code'],
+              'follow':x['signal']['trend_follow'],
+              'consolidation':x['signal']['consolidation_rebreak']}
+             for x in result['items']
+             if x['signal']['trend_follow'] or x['signal']['consolidation_rebreak']],
+             ensure_ascii=False))
+          print('V2_SECONDARY_ERRORS',json.dumps([
+             {'code':x['code'],'error':x['signal']['error']}
+             for x in result['items'] if x['signal'].get('error')],ensure_ascii=False))
+          PY
