@@ -77,8 +77,7 @@ jobs:
                      for day in r["daily"] for lead in day["new10"])
           assert r["status"]=="SHADOW_ONLY_NO_FORMAL_TRADE_SIGNAL"
           print("SHADOW_GATES_PASS",r["days"])
-          with open(Path.home() / "unused.txt", "w") as unused:
-              unused.write("")
+
           PY
       - uses: actions/upload-artifact@v4
         if: always()

@@ -41,6 +41,19 @@ class ThemeShadowBacktestTests(unittest.TestCase):
             "4": {"mapping_status": "mapped", "industry_code": "S270103"}}}
         self.assertEqual(members(index, ["S630502"]), {"000002"})
 
+    def test_even_observation_count_uses_statistical_median(self):
+        rows = [
+            {"strategy": "old3", "outcomes": {
+                "1": {"status": "OBSERVED", "return_pct": -2, "relative_pct": -1,
+                      "weak_continuation_proxy": True},
+                "2": {"status": "NOT_YET_OBSERVABLE"}}},
+            {"strategy": "old3", "outcomes": {
+                "1": {"status": "OBSERVED", "return_pct": 3, "relative_pct": 2,
+                      "weak_continuation_proxy": False},
+                "2": {"status": "NOT_YET_OBSERVABLE"}}}]
+        self.assertEqual(summarize_outcomes(rows, "old3")["horizons"]["1"]
+                         ["median_forward_return_pct"], .5)
+
     def test_unobservable_excluded_from_weak_rate(self):
         rows = [
             {"strategy": "new10", "outcomes": {

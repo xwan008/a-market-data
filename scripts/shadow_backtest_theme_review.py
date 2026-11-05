@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
-from collections import defaultdict
+from statistics import median
 from pathlib import Path
 
 from backtest_sector_discovery_asof import (
@@ -67,7 +67,7 @@ def summarize_outcomes(outcomes, variant):
                 "observed": len(valid),
                 "not_observable_or_incomplete": len(rows) - len(valid),
                 "median_forward_return_pct": round(
-                    sorted(x["return_pct"] for x in valid)[len(valid)//2], 4),
+                    median(x["return_pct"] for x in valid), 4),
                 "relative_positive_count": sum(x["relative_pct"] > 0 for x in valid),
                 "absolute_positive_count": sum(x["return_pct"] > 0 for x in valid),
                 "weak_continuation_count": sum(x["weak_continuation_proxy"] for x in valid),
