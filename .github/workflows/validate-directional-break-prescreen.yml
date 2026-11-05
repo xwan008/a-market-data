@@ -1,0 +1,44 @@
+name: Directional break pre-screen semantics (isolated)
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/build_trend_buy_manual_research.py'
+      - 'tests/test_trend_buy_prescreen.py'
+      - '.github/workflows/validate-directional-break-prescreen.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  directional-break:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Unit tests for preserved breakout direction and date guards
+        run: |
+          python -m unittest discover -s tests -p 'test_trend_buy_prescreen.py' -v
+          python -m py_compile scripts/build_trend_buy_manual_research.py
+      - name: Frozen gold directional semantic smoke
+        run: |
+          python - <<'PY'
+          import sys,json
+          from pathlib import Path
+          sys.path.insert(0,'scripts')
+          from build_trend_buy_manual_research import scores,hard_reason
+          frozen=json.loads(Path('data/low_risk/by_industry/S240401.json').read_text())
+          assert frozen['trade_date']=='2026-11-05'
+          eligible=[x for x in frozen['companies'] if hard_reason(x) is None]
+          vals={x['code']:score for x,score in zip(eligible,scores(eligible))}
+          target=next(x for x in eligible if x['code']=='600988')
+          assert target['break_state']=='bullish_structure_break_confirmed'
+          assert vals['600988'][4]==.5
+          assert vals['600988'][0] > .4
+          print('GOLD_BULLISH_BREAK_HEALTH',vals['600988'][4])
+          print('GOLD_BULLISH_BREAK_FUNDAMENTAL',vals['600988'][0])
+          print('NO_AUTO_BUY_ORDER')
+          PY
