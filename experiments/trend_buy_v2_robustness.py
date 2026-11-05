@@ -11,6 +11,7 @@ import argparse
 from collections import defaultdict
 from itertools import product
 import json
+import math
 from pathlib import Path
 import statistics
 
@@ -107,8 +108,38 @@ def robust_summary(rows):
     chronological = sorted(days.items())
     first_cut = max(1, int(len(chronological) * 0.6))
     early, late = chronological[:first_cut], chronological[first_cut:]
+    executable_proxy_available = [
+        r for r in rows
+        if all(isinstance(r.get(k), (int, float))
+               and not isinstance(r.get(k), bool)
+               and math.isfinite(r[k])
+               for k in ("old_top1_open_gap_pct", "v2_top1_open_gap_pct"))
+    ]
+    no_large_gap = [
+        r for r in executable_proxy_available
+        if r["old_top1_open_gap_pct"] < 5
+        and r["v2_top1_open_gap_pct"] < 5
+        and not r.get("old_top1_possible_limit_locked")
+        and not r.get("v2_top1_possible_limit_locked")
+    ]
+    possible_limit = [
+        r for r in executable_proxy_available
+        if r.get("old_top1_possible_limit_locked")
+        or r.get("v2_top1_possible_limit_locked")
+    ]
     return {
         "cohorts": len(rows),
+        "open_gap_diagnostic_coverage": len(executable_proxy_available),
+        "v2_top1_mean_next_open_gap_pct": (
+            round_or_none(avg([r["v2_top1_open_gap_pct"]
+                               for r in executable_proxy_available]))),
+        "old_top1_mean_next_open_gap_pct": (
+            round_or_none(avg([r["old_top1_open_gap_pct"]
+                               for r in executable_proxy_available]))),
+        "both_top1_open_gap_below_5pct_cohorts": len(no_large_gap),
+        "both_top1_open_gap_below_5pct_mean_diff_pp": (
+            round_or_none(avg([diff_pp(r) for r in no_large_gap]))),
+        "possible_one_price_limit_open_cohorts": len(possible_limit),
         "distinct_dates": len(days),
         "distinct_themes": len({r["theme"] for r in rows}),
         "changed_top1_cohorts": len(changed),
@@ -160,6 +191,7 @@ def run(reports):
                     "Sign-flip p is exploratory, not evidence of independent causal strategy effect",
                     "Chronological early/later splits are NOT held-out strategy discovery data",
                     "Next-open mark-to-market outcome is not a tradable fill/stop result",
+            "Open gap <5% is a descriptive sensitivity subset, not a guaranteed fill; board/ST limit status unverified",
                     "Small date count, duplicate companies, missing previous as-of facts and survivor filtering",
                     "A negative result cannot establish that the original production method is profitable",
                 ]}
@@ -228,6 +260,9 @@ def main():
                 "nonoverlap_by_theme_cohorts",
                 "nonoverlap_by_theme_mean_diff_pp",
                 "date_jackknife_mean_range_pp",
+                "both_top1_open_gap_below_5pct_cohorts",
+                "both_top1_open_gap_below_5pct_mean_diff_pp",
+                "possible_one_price_limit_open_cohorts",
             )} for h,b in v["by_horizon"].items()
         } for k,v in result["versions"].items()},
     }, ensure_ascii=False))
