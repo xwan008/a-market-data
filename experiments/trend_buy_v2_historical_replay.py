@@ -18,6 +18,7 @@ import subprocess
 from zoneinfo import ZoneInfo
 
 from trend_buy_v2_relative_entry_shadow import rerank_formal, numeric, positive
+from trend_buy_v2_structural_ablation import rerank_structural
 
 ROOT = Path(__file__).resolve().parents[1]
 TZ = ZoneInfo("Asia/Shanghai")
@@ -186,14 +187,17 @@ def summarize(samples):
     return by_horizon
 
 
-def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04"):
+def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2"):
+    if ranking not in ("V2","V21_STRUCTURAL"):
+        raise ValueError("unknown_shadow_ranker")
     snapshots, publication_rejections = published_snapshots(repo, min_date, max_date)
     stock_cache, stock_set, cohorts = {}, set(), []
     for snap in snapshots:
         formal = snap["formal"]
         peers, peer_status = historical_fundamentals(snap, repo)
         try:
-            v2 = rerank_formal(formal, peers)
+            v2 = (rerank_structural(formal, peers)
+                  if ranking=="V21_STRUCTURAL" else rerank_formal(formal, peers))
         except (ValueError, KeyError) as e:
             cohorts.append({"date": snap["date"], "invalid": str(e), "commit": snap["commit"]})
             continue
@@ -272,6 +276,7 @@ def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04"):
                       and x.get("cohorts", 0) >= 40 for x in summary))
     return {
         "mode": "HISTORICAL_SHADOW_INDICATIVE_NOT_TRADING_BACKTEST",
+        "ranking":ranking,
         "strategy": "next_session_open_to_horizon_close_no_cost_or_fill_constraints",
         "selection": "earliest_asof_formal_commit_within_36h_then_frozen_peer_fundamentals",
         "asof_dates": [x["date"] for x in snapshots],
@@ -296,10 +301,11 @@ def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04"):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--min-date", default="2026-10-09")
+    ap.add_argument("--ranking", choices=("V2","V21_STRUCTURAL"), default="V2")
     ap.add_argument("--max-date", default="2026-11-04")
     ap.add_argument("--output", type=Path, help="Optional shadow-only JSON output")
     args = ap.parse_args()
-    result = replay(ROOT, args.min_date, args.max_date)
+    result = replay(ROOT, args.min_date, args.max_date, args.ranking)
     output = json.dumps(result, indent=2, ensure_ascii=False) + "\n"
     if args.output:
         path = args.output.resolve()
