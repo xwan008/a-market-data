@@ -82,6 +82,7 @@ class ReplayTests(unittest.TestCase):
 
     def test_summary_does_not_claim_significance(self):
         data = [{"horizon": 3, "asof": "2026-10-09", "theme": "航空",
+                 "old_top1": "600001", "v2_top1": "600002",
                  "old_top1_return_pct": 1, "v2_top1_return_pct": 2,
                  "old_top3_return_pct": 1.1, "v2_top3_return_pct": 2.2,
                  "old_top1_mae_pct": -3, "v2_top1_mae_pct": -4}]
