@@ -18,9 +18,11 @@ def series():
         date="2026-09-%02d"%(i+1)
         rows.append({"date":date,"open":10,"high":10.2,"low":9.8,
                      "close":10,"volume":100})
-    rows[-2]={"date":"2026-11-03","open":10.3,"high":10.8,"low":10.25,
-              "close":10.7,"volume":120}
-    rows[-1]={"date":ASOF,"open":10.8,"high":11.14,"low":10.7,
+    rows[-3]={"date":"2026-11-02","open":10.6,"high":10.75,"low":10.52,
+              "close":10.68,"volume":120}
+    rows[-2]={"date":"2026-11-03","open":10.7,"high":10.92,"low":10.69,
+              "close":10.85,"volume":130}
+    rows[-1]={"date":ASOF,"open":10.93,"high":11.14,"low":10.91,
               "close":11.1,"volume":280}
     return rows
 
