@@ -233,19 +233,90 @@ def rerank_formal(formal, peer_scores=None):
             "groups": groups}
 
 
+
+def shadow_prescreen(frozen_research, trade_date):
+    """Run the 3+2 candidate coverage comparison on frozen lightweight facts.
+
+    Does not grant business review to newly included companies, or touch formal
+    Top5. All leader/entry scores are derived from one completed date only.
+    """
+    if frozen_research.get("trade_date") != trade_date:
+        raise ValueError("frozen_prescreen_trade_date_mismatch")
+    audit = frozen_research.get("screen_audit") or {}
+    scanned = audit.get("lightweight_scanned")
+    if not isinstance(scanned, list):
+        raise ValueError("frozen_screen_audit_missing")
+    groups = {}
+    scores = {}
+    for row in scanned:
+        code, industry = row.get("code"), row.get("industry_code")
+        if not isinstance(industry, str) or not industry:
+            raise ValueError("frozen_industry_missing")
+        f = row.get("fundamental_score")
+        if numeric(f) and 0 <= f <= 1:
+            if code in scores and abs(scores[code] - f) > 1e-8:
+                raise ValueError("ambiguous_duplicate_peer_fundamental")
+            scores[code] = f
+        opp = row.get("opportunity")
+        if row.get("excluded_reason") or not isinstance(opp, dict) or not numeric(f):
+            continue
+        parts = (opp.get("price_structure_score"),
+                 opp.get("volume_quality_score"),
+                 opp.get("relative_strength_score"),
+                 opp.get("opportunity_score"))
+        if any(not numeric(x) for x in parts):
+            continue
+        price_score, volume_score, strength_score, entry_proxy = parts
+        leader_score = (.65 * (.25 * price_score + .40 * volume_score
+                               + .35 * strength_score) + .35 * f)
+        entry_score = .70 * entry_proxy + .30 * f
+        groups.setdefault(industry, []).append({
+            "code": code, "industry_code": industry,
+            "leader_score": round(clip(leader_score), 6),
+            "entry_score": round(clip(entry_score), 6),
+        })
+    baseline = {}
+    for row in audit.get("pre_screen_selected") or []:
+        baseline.setdefault(row["industry_code"], []).append(row["code"])
+    comparison = []
+    for industry in sorted(groups):
+        picks = dual_channel_select(groups[industry])
+        old = baseline.get(industry, [])
+        new = [p["code"] for p in picks]
+        comparison.append({
+            "industry_code": industry,
+            "baseline_candidates": old,
+            "shadow_candidates": picks,
+            "new_review_required": sorted(set(new) - set(old)),
+            "only_original_reviewed_names_are_trade_ranked": True,
+        })
+    return {"scope": "FROZEN_HARD_ELIGIBLE_LIGHTWEIGHT_ONLY",
+            "industry_comparison": comparison, "fundamental_scores": scores,
+            "not_a_business_review_or_buy_signal": True}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--formal", type=Path,
                     default=Path(__file__).resolve().parents[1] /
                     "research/trend_buy_formal_result.json")
+    ap.add_argument("--frozen-screen", type=Path,
+                    help="Optional same-day frozen lightweight research input for 3+2 pre-screen audit")
     ap.add_argument("--peer-scores", type=Path,
                     help="Optional frozen same-day map code to peer score [0,1]")
     ap.add_argument("--output", type=Path,
                     help="Optional SHADOW path, NEVER a formal output path")
     args = ap.parse_args()
     formal = json.loads(args.formal.read_text(encoding="utf-8"))
-    scores = json.loads(args.peer_scores.read_text(encoding="utf-8")) if args.peer_scores else {}
+    screening = (shadow_prescreen(json.loads(args.frozen_screen.read_text(encoding="utf-8")),
+                                  formal["trade_date"]) if args.frozen_screen else None)
+    scores = screening["fundamental_scores"] if screening else {}
+    if args.peer_scores:
+        scores.update(json.loads(args.peer_scores.read_text(encoding="utf-8")))
     result = rerank_formal(formal, scores)
+    if screening:
+        result["dual_channel_pre_screen"] = screening["industry_comparison"]
+        result["candidate_pre_screen_not_recomputed"] = False
     text = json.dumps(result, ensure_ascii=False, indent=2) + "\n"
     if args.output:
         path = args.output.resolve()
