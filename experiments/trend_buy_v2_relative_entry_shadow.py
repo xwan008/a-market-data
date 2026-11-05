@@ -73,7 +73,8 @@ def dual_channel_select(rows, limit=5, trend_slots=3, tie=.03):
     if len(picks) == limit and limit >= 5:
         next_candidates = [x for x in entries if x["code"] not in included]
         if next_candidates:
-            threshold = min(x["entry_score"] for x in picks)
+            entry_picks = [x for x in picks if x["selection_channel"] == "ENTRY_OPPORTUNITY"]
+            threshold = min(x["entry_score"] for x in (entry_picks or picks))
             if next_candidates[0]["entry_score"] >= threshold - tie:
                 take(next_candidates[0], "NEAR_TIE_SIXTH")
     return picks
@@ -89,7 +90,7 @@ def nearest_overhead(ctx, price, trade_date):
         level, date = obj.get("price"), obj.get("date")
         if not (positive(level) and level > price):
             continue
-        if isinstance(date, str) and date > trade_date:
+        if not isinstance(date, str) or date > trade_date:
             continue
         if key == "attention_resistance" and (
             obj.get("status") != "VERIFIED" or
@@ -100,7 +101,7 @@ def nearest_overhead(ctx, price, trade_date):
         candidates.append((level, date, obj.get("source") or "asof_structure"))
     if not candidates:
         return None
-    level, date, source = min(candidates)
+    level, date, source = min(candidates, key=lambda x: x[0])
     return {"price": round(level, 4), "date": date, "source": source}
 
 
@@ -109,7 +110,7 @@ def score_company(row, trade_date, fundamental=None):
         raise ValueError("not_researched_eligible_company")
     if not positive(row.get("current_price")):
         raise ValueError("non_positive_current_price")
-    if row.get("data_date") not in (None, trade_date):
+    if row.get("data_date") != trade_date:
         raise ValueError("future_or_mismatched_technical_date")
     ctx, ev = row.get("technical_context") or {}, row.get("phase_evidence") or {}
     p = row["current_price"]
