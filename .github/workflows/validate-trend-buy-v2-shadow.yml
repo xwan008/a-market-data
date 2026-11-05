@@ -9,6 +9,7 @@ on:
       - 'tests/test_trend_buy_v2_historical_replay.py'
       - 'experiments/trend_buy_v2_secondary_entries_shadow.py'
       - 'tests/test_trend_buy_v2_secondary_entries_shadow.py'
+      - 'experiments/trend_buy_v2_gold_root_cause_audit.py'
       - 'research/shadow/TREND_BUY_V2_RELATIVE_ENTRY_2026-11-05.md'
       - '.github/workflows/validate-trend-buy-v2-shadow.yml'
   workflow_dispatch:
@@ -146,3 +147,22 @@ jobs:
              {'code':x['code'],'error':x['signal']['error']}
              for x in result['items'] if x['signal'].get('error')],ensure_ascii=False))
           PY
+      - name: Frozen entire-gold-industry candidate root-cause audit
+        run: |
+          python experiments/trend_buy_v2_gold_root_cause_audit.py \
+            --date 2026-11-05 \
+            --output /tmp/v2-gold-root-cause-shadow.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report=json.loads(Path('/tmp/v2-gold-root-cause-shadow.json').read_text())
+          assert report['mode']=='FROZEN_GOLD_CANDIDATE_AUDIT_NO_FORMAL_CHANGE'
+          assert len(report['scanned']) == report['hard_eligible']
+          print('GOLD_ROOT_CAUSE_ROWS',json.dumps(report['scanned'],ensure_ascii=False))
+          PY
+      - name: Upload gold root-cause audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: v2-gold-frozen-root-cause
+          path: /tmp/v2-gold-root-cause-shadow.json
+          retention-days: 14
