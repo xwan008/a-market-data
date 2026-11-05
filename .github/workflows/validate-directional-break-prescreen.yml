@@ -22,6 +22,7 @@ jobs:
       - name: Unit tests for preserved breakout direction and date guards
         run: |
           python -m unittest discover -s tests -p 'test_trend_buy_prescreen.py' -v
+          python -m unittest discover -s tests -p 'test_trend_buy_full_pipeline.py' -v
           python -m py_compile scripts/build_trend_buy_manual_research.py
       - name: Frozen gold directional semantic smoke
         run: |
