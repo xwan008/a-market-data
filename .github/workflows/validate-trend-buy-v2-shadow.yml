@@ -15,7 +15,7 @@ permissions:
 jobs:
   shadow-only:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -45,3 +45,33 @@ jobs:
           PY
           AFTER=$(sha256sum research/trend_buy_formal_result.json research/trend_buy_handoff.json)
           test "$BEFORE" = "$AFTER"
+      - name: Recompute 3 plus 2 shadow coverage from same-day frozen hard-eligible universe
+        run: |
+          python scripts/build_trend_buy_manual_research.py \
+            --evidence research/trend_buy_company_reviews/latest.json \
+            --output /tmp/v2-frozen-screen.json
+          python experiments/trend_buy_v2_relative_entry_shadow.py \
+            --frozen-screen /tmp/v2-frozen-screen.json \
+            --output /tmp/trend-buy-v2-frozen-shadow.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result=json.loads(Path('/tmp/trend-buy-v2-frozen-shadow.json').read_text())
+          screen=json.loads(Path('/tmp/v2-frozen-screen.json').read_text())
+          assert result['candidate_pre_screen_not_recomputed'] is False
+          assert len(result['dual_channel_pre_screen'])>0
+          assert screen['screen_audit']['hard_eligible']>=screen['selected_company_count']
+          for x in result['dual_channel_pre_screen']:
+              picks=x['shadow_candidates']
+              assert len(picks)<=6
+              assert len({p['code'] for p in picks})==len(picks)
+          for group in result['groups']:
+              print('V2_FROZEN_RANK',group['trend_name'],
+                    [x['company_name'] for x in group['items']])
+          print('V2_FROZEN_PRE_SCREEN',json.dumps([
+              {'industry':g['industry_code'],
+               'old':g['baseline_candidates'],
+               'new':[x['code'] for x in g['shadow_candidates']],
+               'new_reviews_required':g['new_review_required']}
+              for g in result['dual_channel_pre_screen']],ensure_ascii=False))
+          PY
