@@ -84,7 +84,7 @@ def detect(rows, trade_date, frozen_close):
         range_pct=100*(max(closes)/min(closes)-1)
         volume_avg=sum(x["volume"] for x in window)/days
         prior_avg=sum(x["volume"] for x in r[-days-21:-days-1])/20
-        if (range_pct<=4 and volume_avg<=prior_avg*1.1
+        if (len(r)>=days+21 and range_pct<=4 and volume_avg<=prior_avg*1.1
                 and today["close"]>max(highs)*1.002
                 and volratio is not None and volratio>=1.2
                 and close_pos>=.65):
