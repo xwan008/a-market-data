@@ -1,0 +1,47 @@
+name: Trend-buy V2 relative-entry shadow
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/trend_buy_v2_relative_entry_shadow.py'
+      - 'tests/test_trend_buy_v2_relative_entry_shadow.py'
+      - 'research/shadow/TREND_BUY_V2_RELATIVE_ENTRY_2026-11-05.md'
+      - '.github/workflows/validate-trend-buy-v2-shadow.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  shadow-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Unit tests for relative rank, no fabricated R and no future pivots
+        run: python -m unittest discover -s tests -p 'test_trend_buy_v2_relative_entry_shadow.py' -v
+      - name: Generate shadow without touching formal files
+        run: |
+          BEFORE=$(sha256sum research/trend_buy_formal_result.json research/trend_buy_handoff.json)
+          python experiments/trend_buy_v2_relative_entry_shadow.py --output /tmp/trend-buy-v2-shadow.json
+          test -s /tmp/trend-buy-v2-shadow.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          shadow=json.loads(Path('/tmp/trend-buy-v2-shadow.json').read_text())
+          formal=json.loads(Path('research/trend_buy_formal_result.json').read_text())
+          assert shadow['mode']=='SHADOW_ONLY_NO_FORMAL_PUBLICATION'
+          assert shadow['trade_date']==formal['trade_date']
+          for group in shadow['groups']:
+              baseline=next(x for x in formal['top5_by_theme'] if x['trend_name']==group['trend_name'])
+              assert {x['code'] for x in group['items']}=={x['code'] for x in baseline['items']}
+              assert all(x['risk_reward_R'] is None or x['space_basis']=='CONFIRMED_ENTRY_STOP_AND_HISTORICAL_RESISTANCE' for x in group['items'])
+          print('V2_SHADOW_GROUPS',len(shadow['groups']))
+          for g in shadow['groups']:
+              print('V2_SHADOW_RANK',g['trend_name'],[x['company_name'] for x in g['items']])
+          PY
+          AFTER=$(sha256sum research/trend_buy_formal_result.json research/trend_buy_handoff.json)
+          test "$BEFORE" = "$AFTER"
