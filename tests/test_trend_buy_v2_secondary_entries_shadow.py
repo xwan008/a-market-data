@@ -56,7 +56,7 @@ class ShapeTests(unittest.TestCase):
             bars[i]={"date":"2026-10-%02d"%(20+i+7),
                      "open":10.1,"high":10.3,"low":9.96,
                      "close":10.1,"volume":80}
-        bars[-1]={"date":ASOF,"open":10.3,"high":10.66,
+        bars[-1]={"date":ASOF,"open":10.4,"high":10.66,
                   "low":10.35,"close":10.62,"volume":200}
         x=mod.detect(bars,ASOF,10.62)
         self.assertTrue(x["consolidation_rebreak"])
