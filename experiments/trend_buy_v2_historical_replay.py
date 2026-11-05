@@ -142,8 +142,20 @@ def outcome(row, next_date, target_date, calendar, histories):
     close = h[target_date]["close"]
     low = min(h[d]["low"] for d in dates)
     high = max(h[d]["high"] for d in dates)
+    gap_pct = 100 * (entry / asof_close - 1)
+    first_bar = h[next_date]
+    # Near-limit one-price open is a *possible* no-fill, not proof of an
+    # unfillable market order. ST/board special cases remain unverified.
+    limit_pct = (20 if code.startswith(("300", "301", "688", "689"))
+                 else 30 if code.startswith(("8", "4")) else 10)
+    one_price = (positive(first_bar.get("high"))
+                 and positive(first_bar.get("low"))
+                 and abs(first_bar["high"] / first_bar["low"] - 1) < .0006)
+    locked_up_proxy = bool(gap_pct >= limit_pct - .25 and one_price)
     return {
         "return_pct": 100 * (close / entry - 1),
+        "open_gap_pct": gap_pct,
+        "possible_price_limit_locked_open": locked_up_proxy,
         "mae_pct": 100 * (low / entry - 1),
         "mfe_pct": 100 * (high / entry - 1),
         "entry_open": entry,
@@ -287,6 +299,10 @@ def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2"
                 "old_top1": old[0], "v2_top1": new[0],
                 "old_top1_regime": cohort["asof_regimes"][old[0]],
                 "v2_top1_regime": cohort["asof_regimes"][new[0]],
+                "old_top1_open_gap_pct": round(old_top1["open_gap_pct"], 5),
+                "v2_top1_open_gap_pct": round(v2_top1["open_gap_pct"], 5),
+                "old_top1_possible_limit_locked": old_top1["possible_price_limit_locked_open"],
+                "v2_top1_possible_limit_locked": v2_top1["possible_price_limit_locked_open"],
                 "old_top1_return_pct": round(old_top1["return_pct"], 5),
                 "v2_top1_return_pct": round(v2_top1["return_pct"], 5),
                 "old_top1_mae_pct": round(old_top1["mae_pct"], 5),
@@ -321,6 +337,7 @@ def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2"
             "Next-open hypothetical is not an actual fill; no price-limit, volume, fees or slippage simulation",
             "Earliest formal publication strictly precedes assumed next-session open; otherwise skipped",
             "No trade invalidation stop or first-touch 1.5R outcomes are claimed",
+            "Next-open gap and possible one-price-limit-up are diagnostic proxies, not verified fills or price-limit status",
             "Pre-screen membership fixed at previously published Top5: dual-channel extra candidates need review",
             "Frozen financial inputs missing on some dates are marked neutral rather than backfilled",
             "Historical scoring formula is experimental and was not selected using outcome optimization",
