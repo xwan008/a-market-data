@@ -115,6 +115,17 @@ def robust_summary(rows):
                and math.isfinite(r[k])
                for k in ("old_top1_open_gap_pct", "v2_top1_open_gap_pct"))
     ]
+    pairwise_rows = [
+        r for r in rows
+        if all(isinstance(r.get(k), (int,float))
+               and not isinstance(r.get(k),bool)
+               and math.isfinite(r[k])
+               for k in ("old_pairwise_accuracy","v2_pairwise_accuracy"))
+    ]
+    pairwise_by_day = defaultdict(list)
+    for r in pairwise_rows:
+        pairwise_by_day[r["asof"]].append(
+            100 * (r["v2_pairwise_accuracy"] - r["old_pairwise_accuracy"]))
     no_large_gap = [
         r for r in executable_proxy_available
         if r["old_top1_open_gap_pct"] < 5
@@ -129,6 +140,16 @@ def robust_summary(rows):
     ]
     return {
         "cohorts": len(rows),
+        "pairwise_accuracy_coverage": len(pairwise_rows),
+        "old_pairwise_accuracy_mean_pct": (
+            round_or_none(avg([100*r["old_pairwise_accuracy"] for r in pairwise_rows]))),
+        "v2_pairwise_accuracy_mean_pct": (
+            round_or_none(avg([100*r["v2_pairwise_accuracy"] for r in pairwise_rows]))),
+        "pairwise_accuracy_improvement_mean_pp": round_or_none(avg(
+            [100 * (r["v2_pairwise_accuracy"] - r["old_pairwise_accuracy"])
+             for r in pairwise_rows])),
+        "pairwise_accuracy_date_clustered_improvement_pp": round_or_none(avg(
+            [avg(x) for x in pairwise_by_day.values()])),
         "open_gap_diagnostic_coverage": len(executable_proxy_available),
         "v2_top1_mean_next_open_gap_pct": (
             round_or_none(avg([r["v2_top1_open_gap_pct"]
@@ -263,6 +284,9 @@ def main():
                 "both_top1_open_gap_below_5pct_cohorts",
                 "both_top1_open_gap_below_5pct_mean_diff_pp",
                 "possible_one_price_limit_open_cohorts",
+                "pairwise_accuracy_coverage",
+                "pairwise_accuracy_improvement_mean_pp",
+                "pairwise_accuracy_date_clustered_improvement_pp",
             )} for h,b in v["by_horizon"].items()
         } for k,v in result["versions"].items()},
     }, ensure_ascii=False))
