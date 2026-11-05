@@ -6,6 +6,8 @@ on:
       - 'experiments/trend_buy_v2_relative_entry_shadow.py'
       - 'tests/test_trend_buy_v2_relative_entry_shadow.py'
       - 'experiments/trend_buy_v2_historical_replay.py'
+      - 'experiments/trend_buy_v2_robustness.py'
+      - 'tests/test_trend_buy_v2_robustness.py'
       - 'tests/test_trend_buy_v2_historical_replay.py'
       - 'experiments/trend_buy_v2_secondary_entries_shadow.py'
       - 'tests/test_trend_buy_v2_secondary_entries_shadow.py'
@@ -213,4 +215,45 @@ jobs:
           path: |
             /tmp/v21-structural-shadow.json
             /tmp/v21-structural-backtest-shadow.json
+          retention-days: 14
+
+      - name: Validate event-level/date-cluster robustness of the replay
+        run: |
+          python -m unittest discover -s tests -p 'test_trend_buy_v2_robustness.py' -v
+          python experiments/trend_buy_v2_robustness.py \
+            --v2 /tmp/v2-historical-shadow.json \
+            --v21 /tmp/v21-structural-backtest-shadow.json \
+            --output /tmp/v2-robustness-shadow.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/v2-robustness-shadow.json').read_text())
+          assert x['mode']=='SHADOW_HISTORICAL_ROBUSTNESS_NON_TRADE'
+          assert x['promotion_eligible'] is False
+          assert x['comparability']['identical_cohort_keys']
+          for name, version in x['versions'].items():
+              for horizon, row in version['by_horizon'].items():
+                  assert row['cohorts'] > 0
+                  assert row['nonoverlap_by_theme_cohorts'] <= row['cohorts']
+                  assert row['unique_theme_old_new_tuple_cohorts'] <= row['cohorts']
+                  assert row['distinct_dates'] <= row['cohorts']
+                  print('V2_ROBUST_HORIZON',name,horizon,json.dumps({
+                      key:row.get(key) for key in [
+                          'cohorts', 'distinct_dates',
+                          'equal_cohort_mean_diff_pp','equal_date_mean_diff_pp',
+                          'date_jackknife_mean_range_pp',
+                          'changed_top1_cohorts','changed_top1_only_mean_diff_pp',
+                          'nonoverlap_by_theme_cohorts',
+                          'nonoverlap_by_theme_mean_diff_pp',
+                          'unique_theme_old_new_tuple_cohorts',
+                          'unique_theme_old_new_tuple_mean_diff_pp',
+                          'date_cluster_exploratory_signflip_p',
+                          'by_v2_top1_asof_regime',
+                      ]},ensure_ascii=False))
+          PY
+      - name: Upload historical robustness report
+        uses: actions/upload-artifact@v4
+        with:
+          name: v2-event-clustered-shadow
+          path: /tmp/v2-robustness-shadow.json
           retention-days: 14
