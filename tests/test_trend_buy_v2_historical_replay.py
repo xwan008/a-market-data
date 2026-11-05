@@ -101,12 +101,26 @@ class ReplayTests(unittest.TestCase):
              **row, "technical_context":{"ma60":11}}),
              "UNKNOWN_STRUCTURE")
 
+    def test_pairwise_rank_concordance_evaluates_all_stocks(self):
+        moves={"A":{"return_pct":3},"B":{"return_pct":2},
+               "C":{"return_pct":1}}
+        self.assertAlmostEqual(
+            replay.pairwise_order_accuracy(["A","B","C"],moves),1)
+        self.assertAlmostEqual(
+            replay.pairwise_order_accuracy(["C","B","A"],moves),0)
+        ties={"A":{"return_pct":1},"B":{"return_pct":1}}
+        self.assertEqual(replay.pairwise_order_accuracy(["A","B"],ties),.5)
+        with self.assertRaisesRegex(ValueError,"unique_rank"):
+            replay.pairwise_order_accuracy(["A","A"],moves)
+
     def test_summary_does_not_claim_significance(self):
         data = [{"horizon": 3, "asof": "2026-10-09", "theme": "航空",
                  "old_top1": "600001", "v2_top1": "600002",
                  "old_top1_return_pct": 1, "v2_top1_return_pct": 2,
                  "old_top3_return_pct": 1.1, "v2_top3_return_pct": 2.2,
-                 "old_top1_mae_pct": -3, "v2_top1_mae_pct": -4}]
+                 "old_top1_mae_pct": -3, "v2_top1_mae_pct": -4,
+                 "old_pairwise_accuracy": .5,
+                 "v2_pairwise_accuracy": .7}]
         got = replay.summarize(data)
         self.assertEqual(got[0]["cohorts"], 1)
         self.assertEqual(got[0]["top1_mean_difference_pp"], 1)
