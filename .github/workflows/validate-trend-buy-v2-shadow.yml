@@ -10,6 +10,9 @@ on:
       - 'experiments/trend_buy_v2_secondary_entries_shadow.py'
       - 'tests/test_trend_buy_v2_secondary_entries_shadow.py'
       - 'experiments/trend_buy_v2_gold_root_cause_audit.py'
+      - 'experiments/trend_buy_v2_structural_ablation.py'
+      - 'tests/test_trend_buy_v2_structural_ablation.py'
+      - 'research/shadow/TREND_BUY_V21_GOLD_AUDITED_EARNINGS_2026-11-05.json'
       - 'research/shadow/TREND_BUY_V2_RELATIVE_ENTRY_2026-11-05.md'
       - '.github/workflows/validate-trend-buy-v2-shadow.yml'
   workflow_dispatch:
@@ -165,4 +168,49 @@ jobs:
         with:
           name: v2-gold-frozen-root-cause
           path: /tmp/v2-gold-root-cause-shadow.json
+          retention-days: 14
+      - name: Compare structural continuation adjustment with historical V2; shadow only
+        run: |
+          python -m unittest discover -s tests -p 'test_trend_buy_v2_structural_ablation.py' -v
+          python experiments/trend_buy_v2_structural_ablation.py \
+            --frozen-screen /tmp/v2-frozen-screen.json \
+            --disclosures research/shadow/TREND_BUY_V21_GOLD_AUDITED_EARNINGS_2026-11-05.json \
+            --output /tmp/v21-structural-shadow.json
+          python experiments/trend_buy_v2_historical_replay.py \
+            --ranking V21_STRUCTURAL --min-date 2026-10-09 --max-date 2026-11-04 \
+            --output /tmp/v21-structural-backtest-shadow.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          old=json.loads(Path('/tmp/v2-historical-shadow.json').read_text())
+          new=json.loads(Path('/tmp/v21-structural-backtest-shadow.json').read_text())
+          same_day=json.loads(Path('/tmp/v21-structural-shadow.json').read_text())
+          assert old['asof_dates']==new['asof_dates']
+          assert old['ranking']=='V2' and new['ranking']=='V21_STRUCTURAL'
+          assert new['mode']=='HISTORICAL_SHADOW_INDICATIVE_NOT_TRADING_BACKTEST'
+          assert not new['enough_independent_evidence_for_production_upgrade']
+          assert same_day['mode']=='SHADOW_NO_TRADE_OR_FORMAL_UPGRADE'
+          for group in same_day['groups']:
+              assert all(not x['upgrade_to_ready'] for x in group['items'])
+              print('V21_RANK',group['trend_name'],
+                    [x['company_name'] for x in group['items']])
+              if '黄金' in group['trend_name']:
+                  print('V21_GOLD_BREAKDOWN',json.dumps([{
+                    'name':x['company_name'],
+                    'v20':x['v20_baseline_score'],
+                    'v21':x['v21_structural_score'],
+                    'penalties':x['structural_penalties'],
+                    'earnings_evidence':x['earnings_penalty_basis'],
+                    'earnings_penalty':x['audited_earnings_penalty']}
+                    for x in group['items']],ensure_ascii=False))
+          print('V21_REPLAY_SUMMARY',json.dumps(new['summary'],ensure_ascii=False))
+          print('V20_REPLAY_SUMMARY',json.dumps(old['summary'],ensure_ascii=False))
+          PY
+      - name: Upload candidate structural adjustment research
+        uses: actions/upload-artifact@v4
+        with:
+          name: v21-structural-counterfactual-shadow
+          path: |
+            /tmp/v21-structural-shadow.json
+            /tmp/v21-structural-backtest-shadow.json
           retention-days: 14
