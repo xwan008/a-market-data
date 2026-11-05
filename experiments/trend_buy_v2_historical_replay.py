@@ -151,6 +151,19 @@ def outcome(row, next_date, target_date, calendar, histories):
     }, None
 
 
+def asof_regime(row):
+    """As-of market structure for diagnostics, never a trade filter."""
+    ctx = row.get("technical_context") or {}
+    ma60, price = ctx.get("ma60"), row.get("current_price")
+    slope = ctx.get("ma20_slope_5d_pct")
+    if not (positive(price) and positive(ma60) and numeric(slope)):
+        return "UNKNOWN_STRUCTURE"
+    if (row.get("trend_phase") == "REPAIRING"
+            and price < ma60 and slope < 0):
+        return "REPAIR_BELOW_MA60_FALLING_MA20"
+    return "OTHER_VERIFIED_STRUCTURE"
+
+
 def mean(rows, key):
     return statistics.mean(r[key] for r in rows)
 
@@ -216,6 +229,7 @@ def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2"
                 "published_at": snap["published_at"],
                 "old_codes": old, "v2_codes": new,
                 "peers": peer_status,
+                "asof_regimes": {code: asof_regime(lookup[code]) for code in old},
                 "rows": {code: {"code": code, "date": snap["date"],
                                 "current_price": lookup[code]["current_price"]}
                          for code in old},
@@ -233,6 +247,12 @@ def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2"
             skipped["ASOF_DATE_MISSING_FROM_HISTORY"] += 1
             continue
         future = [d for d in calendar if d > date]
+        # Published after the next open is NOT a trade known at that open.
+        # Git's first publication time is a stronger gate than as-of date.
+        if future and datetime.fromisoformat(cohort["published_at"]).astimezone(TZ) > (
+                datetime.fromisoformat(future[0] + "T09:30:00+08:00")):
+            skipped["PUBLICATION_AFTER_NEXT_SESSION_OPEN"] += len(HORIZONS)
+            continue
         for horizon in HORIZONS:
             if len(future) < horizon:
                 skipped[f"NOT_YET_{horizon}_SESSIONS"] += 1
@@ -258,6 +278,8 @@ def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2"
                 "future_first_session": next_date, "future_target_session": target_date,
                 "fundamentals": cohort["peers"],
                 "old_top1": old[0], "v2_top1": new[0],
+                "old_top1_regime": cohort["asof_regimes"][old[0]],
+                "v2_top1_regime": cohort["asof_regimes"][new[0]],
                 "old_top1_return_pct": round(old_top1["return_pct"], 5),
                 "v2_top1_return_pct": round(v2_top1["return_pct"], 5),
                 "old_top1_mae_pct": round(old_top1["mae_pct"], 5),
@@ -290,6 +312,7 @@ def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2"
             "Overlapping cohorts and repeated tickers reduce independent observations",
             "Historical bars may be backward-adjusted and corporate action mismatches are excluded",
             "Next-open hypothetical is not an actual fill; no price-limit, volume, fees or slippage simulation",
+            "Earliest formal publication strictly precedes assumed next-session open; otherwise skipped",
             "No trade invalidation stop or first-touch 1.5R outcomes are claimed",
             "Pre-screen membership fixed at previously published Top5: dual-channel extra candidates need review",
             "Frozen financial inputs missing on some dates are marked neutral rather than backfilled",
