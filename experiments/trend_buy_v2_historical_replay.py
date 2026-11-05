@@ -183,6 +183,25 @@ def asof_regime(row):
     return "OTHER_VERIFIED_STRUCTURE"
 
 
+def pairwise_order_accuracy(order, moves):
+    """Rank pair concordance with *future* returns (outcome only).
+
+    Earlier-ranked stocks should outperform later-ranked stocks. A return tie
+    counts half. All pairs in a complete cohort must be observed.
+    """
+    if len(order) < 2 or len(set(order)) != len(order):
+        raise ValueError("valid_unique_rank_order_required")
+    if any(x not in moves for x in order):
+        raise ValueError("missing_pairwise_outcome")
+    wins, pairs = 0.0, 0
+    for i, first in enumerate(order):
+        for second in order[i+1:]:
+            a,b = moves[first]["return_pct"], moves[second]["return_pct"]
+            wins += 1.0 if a > b else .5 if abs(a-b) <= 1e-10 else 0.0
+            pairs += 1
+    return wins / pairs
+
+
 def mean(rows, key):
     return statistics.mean(r[key] for r in rows)
 
@@ -196,6 +215,8 @@ def summarize(samples):
             continue
         top1_diffs = [x["v2_top1_return_pct"] - x["old_top1_return_pct"] for x in rows]
         top3_diffs = [x["v2_top3_return_pct"] - x["old_top3_return_pct"] for x in rows]
+        pairwise_diffs = [100 * (x["v2_pairwise_accuracy"] - x["old_pairwise_accuracy"])
+                          for x in rows]
         changed = [x for x in rows if x["old_top1"] != x["v2_top1"]]
         changed_diffs = [x["v2_top1_return_pct"] - x["old_top1_return_pct"]
                          for x in changed]
@@ -213,6 +234,11 @@ def summarize(samples):
                 round(sum(d > 0 for d in changed_diffs) / len(changed_diffs), 3)
                 if changed_diffs else None),
             "top3_mean_difference_pp": round(statistics.mean(top3_diffs), 3),
+            "old_pairwise_accuracy_pct": round(100 * statistics.mean(
+                x["old_pairwise_accuracy"] for x in rows), 3),
+            "v2_pairwise_accuracy_pct": round(100 * statistics.mean(
+                x["v2_pairwise_accuracy"] for x in rows), 3),
+            "pairwise_accuracy_difference_pp": round(statistics.mean(pairwise_diffs), 3),
             "old_top1_mean_mae_pct": round(statistics.mean(x["old_top1_mae_pct"] for x in rows), 3),
             "v2_top1_mean_mae_pct": round(statistics.mean(x["v2_top1_mae_pct"] for x in rows), 3),
         })
@@ -297,6 +323,8 @@ def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2"
                 "future_first_session": next_date, "future_target_session": target_date,
                 "fundamentals": cohort["peers"],
                 "old_top1": old[0], "v2_top1": new[0],
+                "old_pairwise_accuracy": round(pairwise_order_accuracy(old, moves), 6),
+                "v2_pairwise_accuracy": round(pairwise_order_accuracy(new, moves), 6),
                 "old_top1_regime": cohort["asof_regimes"][old[0]],
                 "v2_top1_regime": cohort["asof_regimes"][new[0]],
                 "old_top1_open_gap_pct": round(old_top1["open_gap_pct"], 5),
