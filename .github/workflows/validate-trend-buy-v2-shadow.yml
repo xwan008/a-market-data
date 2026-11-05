@@ -97,6 +97,22 @@ jobs:
           print('V2_REPLAY_SUMMARY',json.dumps(report['summary'],ensure_ascii=False))
           print('V2_REPLAY_EXCLUSIONS',json.dumps(report['skipped'],ensure_ascii=False))
           print('V2_REPLAY_CAN_PROMOTE',report['enough_independent_evidence_for_production_upgrade'])
+          winners={}
+          for row in report['samples']:
+              if row['horizon']!=5: continue
+              d=row['v2_top1_return_pct']-row['old_top1_return_pct']
+              winners.setdefault(row['theme'],[]).append(d)
+          print('V2_REPLAY_BY_THEME_H5',json.dumps({
+              k:{'cohorts':len(v),'mean_diff_pp':round(sum(v)/len(v),3)}
+              for k,v in sorted(winners.items())},ensure_ascii=False))
+          loss=sorted((x for x in report['samples'] if x['horizon']==5),
+                      key=lambda x:x['v2_top1_return_pct']-x['old_top1_return_pct'])
+          print('V2_REPLAY_WORST_H5',json.dumps([{
+              'date':x['asof'],'theme':x['theme'],
+              'original':x['old_top1'],'v2':x['v2_top1'],
+              'diff_pp':round(x['v2_top1_return_pct']-x['old_top1_return_pct'],3),
+              'published':x['published_at'],'fundamental_source':x['fundamentals']
+          } for x in loss[:8]],ensure_ascii=False))
           PY
       - name: Upload isolated historical research report
         uses: actions/upload-artifact@v4
