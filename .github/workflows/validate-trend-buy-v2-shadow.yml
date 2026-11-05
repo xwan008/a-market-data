@@ -5,6 +5,8 @@ on:
     paths:
       - 'experiments/trend_buy_v2_relative_entry_shadow.py'
       - 'tests/test_trend_buy_v2_relative_entry_shadow.py'
+      - 'experiments/trend_buy_v2_historical_replay.py'
+      - 'tests/test_trend_buy_v2_historical_replay.py'
       - 'research/shadow/TREND_BUY_V2_RELATIVE_ENTRY_2026-11-05.md'
       - '.github/workflows/validate-trend-buy-v2-shadow.yml'
   workflow_dispatch:
@@ -15,9 +17,11 @@ permissions:
 jobs:
   shadow-only:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -75,3 +79,28 @@ jobs:
                'new_reviews_required':g['new_review_required']}
               for g in result['dual_channel_pre_screen']],ensure_ascii=False))
           PY
+      - name: Historical point-in-time replay; NEVER use outcome bars for selection
+        run: |
+          python -m unittest discover -s tests -p 'test_trend_buy_v2_historical_replay.py' -v
+          python experiments/trend_buy_v2_historical_replay.py \
+            --min-date 2026-10-09 --max-date 2026-11-04 \
+            --output /tmp/v2-historical-shadow.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report=json.loads(Path('/tmp/v2-historical-shadow.json').read_text())
+          assert report['mode']=='HISTORICAL_SHADOW_INDICATIVE_NOT_TRADING_BACKTEST'
+          assert report['published_snapshots']>0
+          assert report['enough_independent_evidence_for_production_upgrade'] is False or all(
+              x.get('distinct_dates',0)>=20 for x in report['summary'] if x['cohorts'])
+          print('V2_REPLAY_SNAPSHOTS',report['published_snapshots'])
+          print('V2_REPLAY_SUMMARY',json.dumps(report['summary'],ensure_ascii=False))
+          print('V2_REPLAY_EXCLUSIONS',json.dumps(report['skipped'],ensure_ascii=False))
+          print('V2_REPLAY_CAN_PROMOTE',report['enough_independent_evidence_for_production_upgrade'])
+          PY
+      - name: Upload isolated historical research report
+        uses: actions/upload-artifact@v4
+        with:
+          name: v2-relative-entry-historical-shadow
+          path: /tmp/v2-historical-shadow.json
+          retention-days: 14
