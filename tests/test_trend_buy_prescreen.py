@@ -55,5 +55,41 @@ class PreScreenTests(unittest.TestCase):
         b,_=mod.compact_opportunity(technical(chase_risk="high"),DAY)
         self.assertLess(b["opportunity_score"],a["opportunity_score"])
 
+
+    def test_confirmed_bullish_structure_break_does_not_mean_invalidated(self):
+        def row(state):
+            return {"code":state,"name":"synthetic","price":10,
+                    "ma20":9.8,"ma60":11.0,"pe_ttm":15,
+                    "revenue_yoy":10,"net_profit_yoy":12,
+                    "roe":10,"basic_eps":0.3,
+                    "operating_cashflow_per_share":.1,
+                    "break_state":state}
+        a=mod.scores([row("intact"),row("bullish_structure_break_confirmed")])
+        # Price is above MA20, below MA60: a repair has trend health 0.5.
+        self.assertEqual(a[0][4],.5)
+        self.assertEqual(a[1][4],.5)
+        self.assertEqual(a[0][0],a[1][0])
+
+    def test_confirmed_bearish_or_undirected_break_is_still_rejected(self):
+        def row(state):
+            return {"code":state,"name":"synthetic","price":10,
+                    "ma20":9.8,"ma60":9.5,"pe_ttm":15,
+                    "revenue_yoy":10,"net_profit_yoy":12,"roe":10,
+                    "basic_eps":.3,"operating_cashflow_per_share":.1,
+                    "break_state":state}
+        states=["intact","bearish_structure_break_confirmed",
+                "undirected_break_confirmed","structure_invalidated"]
+        out=mod.scores([row(s) for s in states])
+        self.assertEqual(out[0][4],1)
+        self.assertEqual([x[4] for x in out[1:]], [0,0,0])
+
+    def test_bullish_break_below_both_mas_stays_low_quality_not_high(self):
+        x={"code":"test","name":"synthetic","price":8,"ma20":10,"ma60":11,
+           "pe_ttm":15,"revenue_yoy":10,"net_profit_yoy":12,"roe":10,
+           "basic_eps":.3,"operating_cashflow_per_share":.1,
+           "break_state":"bullish_structure_break_confirmed"}
+        self.assertEqual(mod.scores([x])[0][4],.25)
+
+
 if __name__=="__main__":
     unittest.main()
