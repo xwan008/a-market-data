@@ -18,6 +18,10 @@ def sample(day, theme, old, new, delta, horizon=5, end="2026-10-31",
             "v2_top1_regime": regime,
             "old_top1_return_pct": 1.0,
             "v2_top1_return_pct": 1.0 + delta,
+            "old_top1_open_gap_pct": 0,
+            "v2_top1_open_gap_pct": 0,
+            "old_top1_possible_limit_locked": False,
+            "v2_top1_possible_limit_locked": False,
             "future_first_session": "2026-10-20",
             "future_target_session": end}
 
@@ -76,6 +80,19 @@ class RobustnessTests(unittest.TestCase):
         diff=robust.run({"V2":good,
                          "V21_STRUCTURAL":report("V21_STRUCTURAL",[off])})
         self.assertFalse(diff["comparability"]["identical_cohort_keys"])
+
+    def test_large_gap_and_one_price_limit_proxy_are_sensitivity_only(self):
+        a=sample("2026-10-16","A","a","b",-5)
+        b=sample("2026-10-20","B","c","d",2)
+        c=sample("2026-10-21","C","e","f",-8)
+        a["v2_top1_open_gap_pct"]=6.4
+        c["v2_top1_possible_limit_locked"]=True
+        metrics=robust.robust_summary([a,b,c])
+        self.assertEqual(metrics["cohorts"],3)
+        self.assertEqual(metrics["open_gap_diagnostic_coverage"],3)
+        self.assertEqual(metrics["both_top1_open_gap_below_5pct_cohorts"],1)
+        self.assertEqual(metrics["both_top1_open_gap_below_5pct_mean_diff_pp"],2)
+        self.assertEqual(metrics["possible_one_price_limit_open_cohorts"],1)
 
     def test_outcome_date_must_be_strictly_after_asof(self):
         a=sample("2026-10-20","A","a","b",1)
