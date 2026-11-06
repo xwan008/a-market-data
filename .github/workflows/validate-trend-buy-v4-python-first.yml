@@ -5,6 +5,8 @@ on:
     paths:
       - 'experiments/trend_buy_v4_python_prescreen_shadow.py'
       - 'tests/test_trend_buy_v4_python_prescreen_shadow.py'
+      - 'experiments/trend_buy_v4_historical_frozen_replay.py'
+      - 'tests/test_trend_buy_v4_historical_frozen_replay.py'
       - 'scripts/audit_weekly_financial_fields.py'
       - 'tests/test_weekly_financial_field_audit.py'
       - '.github/workflows/update-weekly-research.yml'
@@ -18,7 +20,7 @@ permissions:
 jobs:
   v4-python-first:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -88,6 +90,37 @@ jobs:
               },ensure_ascii=False))
           print('V4_NO_FORMAL_PROMOTION_BEFORE_NEW_EVIDENCE')
           PY
+      - name: Reconstruct previous dates from original Git commits (future bars outcomes only)
+        run: |
+          python -m unittest discover -s tests -p 'test_trend_buy_v4_historical_frozen_replay.py' -v
+          python experiments/trend_buy_v4_historical_frozen_replay.py \
+            --dates 2026-11-03,2026-11-04,2026-11-05 \
+            --output /tmp/v4-historical-frozen-shadow.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/v4-historical-frozen-shadow.json').read_text())
+          assert x['mode']=='V4_HISTORICAL_FROZEN_PROGRAM_ONLY_EXPLORATORY'
+          assert x['rules']['future_bars_only_for_outcomes']
+          assert x['rules']['new_candidates_require_model_review']
+          assert len(x['asof_snapshots'])>0, x['failed_dates']
+          for day in x['asof_snapshots']:
+              for g in day['groups']:
+                  assert len(g['v4'])<=5
+                  assert len(g['v4'])==len(set(g['v4']))
+                  print('V4_HISTORICAL_INDUSTRY',json.dumps({
+                      'date':day['date'],
+                      'source_commit':day['source_commit'][:12],
+                      'industry':g['industry_name'],
+                      'original':g['original'],
+                      'v4':g['v4'],
+                      'new_unreviewed':g['new_model_reviews_needed'],
+                      'one_two_day_exploratory_baskets':
+                           g['possible_unreviewed_basket_outcome'],
+                      'history_excluded':g['excluded_due_history'],
+                  },ensure_ascii=False))
+          print('V4_HISTORICAL_FAILED_DATES',json.dumps(x['failed_dates'],ensure_ascii=False))
+          PY
       - name: Check formal artifacts byte-for-byte unchanged
         run: |
           test "$(git hash-object research/trend_buy_formal_result.json)" = "$(git rev-parse HEAD:research/trend_buy_formal_result.json)"
@@ -101,4 +134,5 @@ jobs:
             /tmp/v4-frozen-baseline-shadow.json
             /tmp/v4-python-first-shadow.json
             /tmp/v4-weekly-financial-fields-shadow.json
+            /tmp/v4-historical-frozen-shadow.json
           retention-days: 14
