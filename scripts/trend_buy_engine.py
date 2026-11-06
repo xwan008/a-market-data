@@ -868,7 +868,7 @@ def generate(research, structure):
         x["rank"]=i
     return {
         "schema_version":"trend_buy_result_v2",
-        "prescreen_version":research.get("prescreen_version","LEGACY"),
+        "prescreen_version":research.get("prescreen_version","AUDIT_ONLY"),
         "run_id":research.get("run_id") or f"shadow-trend-buy-{day}",
         "result_kind":"a_share_trend_buy_result",
         "status":"COMPLETE", "trade_date":day, "mode":research.get("mode","SHADOW"),
