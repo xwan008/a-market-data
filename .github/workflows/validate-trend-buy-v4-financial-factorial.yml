@@ -1,0 +1,90 @@
+name: V4 vs original core-finance 2x2 shadow
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/build_trend_buy_manual_research.py'
+      - 'experiments/trend_buy_v4_python_prescreen_shadow.py'
+      - 'experiments/trend_buy_v4_financial_factorial_shadow.py'
+      - 'tests/test_trend_buy_v4_financial_factorial.py'
+      - '.github/workflows/validate-trend-buy-v4-financial-factorial.yml'
+      - 'research/shadow/TREND_BUY_V4_FINANCIAL_FACTORIAL_2026-11-06.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  financial-factorial:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test original legacy score parity and as-of finance gate
+        run: python -m unittest discover -s tests -p 'test_trend_buy_v4_financial_factorial.py' -v
+      - name: Fetch immutable source-provenance finance snapshot from current main
+        run: |
+          git fetch origin main --quiet
+          git show origin/main:data/research/core_profit_refresh_latest.json \
+            > /tmp/v4-dated-main-core-finance-shadow.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/v4-dated-main-core-finance-shadow.json').read_text())
+          assert x['source']=='eastmoney_RPT_F10_FINANCE_MAINFINADATA'
+          assert x['asof_trade_date']=='2026-11-05'
+          assert x['stocks']==3177
+          assert x['after_deduct_growth_usable']==3140
+          assert len(x['records'])==3177
+          print('VERIFIED_F10_SOURCE',x['asof_trade_date'],x['after_deduct_growth_usable'])
+          PY
+      - name: Recompute original Python baseline with same frozen research
+        run: |
+          python scripts/build_trend_buy_manual_research.py \
+            --evidence research/trend_buy_company_reviews/latest.json \
+            --output /tmp/v4-factorial-frozen-original-shadow.json
+      - name: Compare original vs V4 with and without identical core-finance evidence
+        run: |
+          python experiments/trend_buy_v4_financial_factorial_shadow.py \
+            --root . \
+            --screen /tmp/v4-factorial-frozen-original-shadow.json \
+            --finance /tmp/v4-dated-main-core-finance-shadow.json \
+            --output /tmp/v4-financial-factorial-shadow.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result=json.loads(Path('/tmp/v4-financial-factorial-shadow.json').read_text())
+          assert result['asof_date']=='2026-11-05'
+          assert result['model_reviews_executed']==0
+          assert result['trade_readiness_unchanged'] is True
+          assert result['source_provenance']=='eastmoney_RPT_F10_FINANCE_MAINFINADATA'
+          assert len(result['industry_groups'])==3
+          for item in result['industry_groups']:
+              assert len(item['cases'])==4
+              assert item['core_evidence_patched_count']<=item['hard_eligible_count']
+              assert all(len(stocks)<=5 for stocks in item['cases'].values())
+              assert all(len(stocks)==len(set(stocks))
+                         for stocks in item['cases'].values())
+              print('FINANCIAL_2x2_CASE',json.dumps({
+                  k:item[k] for k in
+                  ('industry_code','core_evidence_patched_count','source_audit','cases',
+                   'core_only_change_codes','v4_core_change_codes')},ensure_ascii=False))
+          print('FINANCIAL_2x2_NO_FORWARD_RETURN_FOR_2026_11_05')
+          PY
+      - name: Prove official trade artifact byte-for-byte unchanged
+        run: |
+          git diff --exit-code -- research/trend_buy_formal_result.json research/trend_buy_handoff.json
+          test "$(git hash-object research/trend_buy_formal_result.json)" = "$(git rev-parse HEAD:research/trend_buy_formal_result.json)"
+          test "$(git hash-object research/trend_buy_handoff.json)" = "$(git rev-parse HEAD:research/trend_buy_handoff.json)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v4-original-financial-factorial-frozen-20261105
+          path: |
+            /tmp/v4-financial-factorial-shadow.json
+            /tmp/v4-factorial-frozen-original-shadow.json
+          retention-days: 14
