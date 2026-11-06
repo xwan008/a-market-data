@@ -16,6 +16,8 @@ def item(code, sector, price, ma20, ma60, support, market="候选趋势",
         "status":"WAIT","wait_reason":"WAIT_CONFIRMATION",
         "current_price":price,"market_state":market,
         "transmission":trans,"structure_confirmed":confirmed,
+        "model_priority":int(code[-3:]),
+        "model_reason":"经财务和公告核验的研究关注次序，不等于交易入场许可",
         "technical_context":{
             "ma20":ma20,"ma60":ma60,"support_invalidation":support,
             "volume_ratio_1d_vs_20d":vol1,
@@ -28,7 +30,7 @@ def item(code, sector, price, ma20, ma60, support, market="候选趋势",
 
 
 def research(names):
-    return {"trade_date":"2026-10-09","companies":[{"trend_name":n} for n in names],
+    return {"trade_date":"2026-10-09","prescreen_version":"CANONICAL","companies":[{"trend_name":n} for n in names],
             "screen_audit":{"pre_screen_selected":[]}}
 
 
@@ -39,6 +41,8 @@ class EarlyFocusTests(unittest.TestCase):
             item("600489","黄金",22.95,23.7695,23.5001,22.55,vol1=1.3,rel=2),
             item("002128","煤炭",28.8,28.5,27.7,27.4,confirmed=True),
         ]
+        wait[0]["model_priority"]=2
+        wait[1]["model_priority"]=1
         picks=engine.select_focus_watchlist([],wait,research(["黄金","煤炭"]))
         self.assertEqual(len(picks),2)
         gold=next(x for x in picks if x["trend_name"]=="黄金")
@@ -106,7 +110,7 @@ class EarlyFocusTests(unittest.TestCase):
     def test_no_wait_and_ready(self):
         p=engine.select_focus_watchlist([],[],research(["黄金"]))[0]
         self.assertEqual(p["status"],"NO_CURRENT_BUY_OPPORTUNITY")
-        self.assertEqual(engine.select_focus_watchlist([{"code":"600000","company_name":"合成可执行样本","trend_name":"黄金","status":"READY","current_price":10,"market_state":"趋势确认","structure_confirmed":True,"setup_type":"BREAKOUT","entry_zone":[10,10.1],"invalidation_price":9.6,"initial_risk_pct":4}],[],research(["黄金"]))[0]["status"],"CURRENT_READY_FOCUS")
+        self.assertEqual(engine.select_focus_watchlist([{"code":"600000","company_name":"合成可执行样本","trend_name":"黄金","status":"READY","current_price":10,"market_state":"趋势确认","structure_confirmed":True,"setup_type":"BREAKOUT","entry_zone":[10,10.1],"invalidation_price":9.6,"initial_risk_pct":4,"model_priority":1,"model_reason":"正式交易计划仅为条件性提示"}],[],research(["黄金"]))[0]["status"],"CURRENT_READY_FOCUS")
 
     def test_no_one_dropped_and_more_flow_signals_rank_higher(self):
         a=item("000001","工业",10,9.7,9.5,9.3,vol1=.5,rel=-5)
