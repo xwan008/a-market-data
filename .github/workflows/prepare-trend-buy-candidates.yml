@@ -4,6 +4,11 @@ on:
     branches: [main]
     paths:
       - 'research/trend_handoff.json'
+      - 'data/low_risk/index.json'
+      - 'data/research/core_profit_refresh_latest.json'
+      - 'scripts/prepare_trend_buy_candidates.py'
+      - 'scripts/trend_buy_prescreen_core.py'
+      - 'scripts/build_trend_buy_manual_research.py'
       - '.github/workflows/prepare-trend-buy-candidates.yml'
   workflow_dispatch:
 
@@ -44,7 +49,7 @@ jobs:
                  and bool(upstream.get('signals')))
           with open(os.environ['GITHUB_OUTPUT'],'a') as out:
               out.write('run='+('true' if allow else 'false')+'\n')
-          print('PRESCREEN_SAME_DAY_PRESCREEN_STATUS',json.dumps({
+          print('PROGRAM_ADMISSION_DAY_STATUS',json.dumps({
               'today':now,'sector_date':day,'index_date':idx.get('trade_date'),
               'sector_signals':len(upstream.get('signals') or []),
               'will_run':allow},ensure_ascii=False))
@@ -61,7 +66,7 @@ jobs:
           assert x['mode']=='PROGRAM_VERIFIED_MODEL_RESEARCH_PENDING'
           assert x['checks']['model_invocations']==0
           assert all(1<=len(g['selected_codes'])<=5 for g in x['industries'])
-          print('PRESCREEN_MODEL_SCOPE_FREEZE',x['trade_date'],x['selected_company_count'])
+          print('PROGRAM_MODEL_SCOPE_FREEZE',x['trade_date'],x['selected_company_count'])
           PY
       - name: Commit only research admission; read back exact content
         if: steps.admission.outputs.run == 'true'
@@ -72,7 +77,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add research/trend_buy_candidates/latest.json
           if git diff --cached --quiet; then
-            echo 'PRESCREEN_SAME_DAY_ADMISSION_ALREADY_COMMITTED'
+            echo 'PROGRAM_ADMISSION_ALREADY_COMMITTED'
             exit 0
           fi
           git commit -m 'research: freeze canonical Python research intake'
@@ -93,7 +98,7 @@ jobs:
               git fetch origin main --quiet
               git show origin/main:research/trend_buy_candidates/latest.json | \
                 cmp - research/trend_buy_candidates/latest.json
-              echo 'PRESCREEN_PROGRAM_CANDIDATES_PUBLISHED_AND_READBACK'
+              echo 'PROGRAM_CANDIDATES_PUBLISHED_AND_READBACK'
               exit 0
             fi
             sleep "$i"

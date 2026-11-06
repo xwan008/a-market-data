@@ -22,33 +22,24 @@ def read(path):
 
 
 def validate_fresh_review_scope(evidence, research):
-    """Require selected-company reviews, allowing only audited thematic rejections."""
+    """Every frozen program-selected company must be reviewed exactly once.
+
+    A negative business verdict remains in the selected cohort as DROP;
+    it never opens a replacement slot or expands the program admission.
+    """
     reviews=evidence["reviews"]
-    review_codes=[row["code"] for row in reviews]
-    selected_codes=[row["code"] for row in research["companies"]]
-    if len(set(review_codes))!=len(review_codes):
+    reviewed=[r["code"] for r in reviews]
+    selected=[r["code"] for r in research["companies"]]
+    if len(set(reviewed))!=len(reviewed):
         raise ValueError("RESEARCH_DUPLICATE_REVIEW")
-    if len(set(selected_codes))!=len(selected_codes):
+    if len(set(selected))!=len(selected):
         raise ValueError("RESEARCH_DUPLICATE_SELECTED")
-    by_code={row["code"]:row for row in reviews}
-    selected=set(selected_codes)
-    missing=selected-set(by_code)
+    missing=set(selected)-set(reviewed)
+    extra=set(reviewed)-set(selected)
     if missing:
         raise ValueError("RESEARCH_SELECTED_REVIEW_MISSING:"+",".join(sorted(missing)))
-
-    # A negative review has to remain available to justify the next-ranked
-    # replacement; it must never become a selected research candidate.
-    extra=set(by_code)-selected
-    audit=research["screen_audit"]
-    replacements=set(audit["research_replacements"])
-    rejected={row["code"] for row in audit["pre_screened_out"]
-              if row["reason"]=="THEME_NOT_SUPPORTED"}
-    if extra!=replacements or extra!=rejected:
-        raise ValueError("RESEARCH_NEGATIVE_REPLACEMENT_AUDIT_MISMATCH")
-    if any(by_code[code]["transmission"]!="NOT_SUPPORTED" for code in extra):
-        raise ValueError("RESEARCH_EXTRA_REVIEW_NOT_NEGATIVE")
-    if any(by_code[code]["transmission"]=="NOT_SUPPORTED" for code in selected):
-        raise ValueError("RESEARCH_REJECTED_COMPANY_SELECTED")
+    if extra:
+        raise ValueError("RESEARCH_UNSELECTED_REVIEW_FORBIDDEN:"+",".join(sorted(extra)))
 
 
 
@@ -220,8 +211,13 @@ def build(evidence_path, structure_path=None, structure_output_path=None,
     vault=read(evidence_path)
     admission_by_industry=None
     admission_contract=None
+    finance_snapshot=None
+    financial_patch=None
     if admission_path is not None:
-        from prepare_trend_buy_candidates import validate_admission,prepare
+        from prepare_trend_buy_candidates import (
+            validate_admission,prepare,validated_core_patch)
+        finance_snapshot=read(ROOT/"data/research/core_profit_refresh_latest.json")
+        financial_patch=validated_core_patch
         admission_contract=read(Path(admission_path))
         admission_by_industry=validate_admission(ROOT,admission_contract)
         # No model may provide an arbitrary look-alike file to force preferred
@@ -297,7 +293,8 @@ def build(evidence_path, structure_path=None, structure_output_path=None,
     selected=[]
     audit["lightweight_scanned"]=[]
     audit["research_slots_per_industry"]={}
-    audit["research_replacements"]=[]
+    audit["financial_scoring_mode"]=("VERIFIED_CORE" if finance_snapshot is not None
+                                     else "AUDIT_INPUT")
     for code in industries:
         items=universe[code]
         valid=[]
@@ -308,8 +305,17 @@ def build(evidence_path, structure_path=None, structure_output_path=None,
             else:
                 valid.append(c)
         audit["hard_eligible"]+=len(valid)
+        # The published audit must explain the SAME audited-core financial
+        # calculations that were used to freeze the program selection.
+        if finance_snapshot is not None:
+            scored=[{**c,**financial_patch(
+                c,finance_snapshot["records"].get(c["code"]),day)[0]}
+                    for c in valid]
+            financial_scores=scores(scored,financial_mode="CORE_FIRST")
+        else:
+            financial_scores=scores(valid)
         ranked=[]
-        for c,metric in zip(valid,scores(valid)):
+        for c,metric in zip(valid,financial_scores):
             price_structure=((structure.get("companies") or {}).get(c["code"])
                              if structure is not None else scoped.get(c["code"],c))
             if technical_cache is not None:
@@ -325,15 +331,15 @@ def build(evidence_path, structure_path=None, structure_output_path=None,
                "valuation_match":metric[3],"trend_health":metric[4],
                "growth_risk":metric[5],
                "opportunity":opportunity,"excluded_reason":reason}
-            if opportunity is not None:
-                d["combined_score"]=round(opportunity["opportunity_score"],6)
-                ranked.append((c,d))
-            else:
-                d["combined_score"]=None
-                audit["pre_screened_out"].append({
-                    "code":c["code"],"industry_code":code,"reason":reason})
+            d["audit_opportunity_score"]=(round(opportunity["opportunity_score"],6)
+                                          if opportunity is not None else None)
+            # Audit all hard-eligible companies; entry unavailability does NOT
+            # remove an otherwise valid leadership candidate.
+            ranked.append((c,d))
             audit["lightweight_scanned"].append(d)
-        ranked.sort(key=lambda row:(-row[1]["combined_score"],row[0]["code"]))
+        ranked.sort(key=lambda row:(row[1]["audit_opportunity_score"] is None,
+                                    -(row[1]["audit_opportunity_score"] or 0),
+                                    row[0]["code"]))
         if audit_only:
             # Full eligible company audit only, no alternative
             # Top5 ranking/selection or model research is performed here.
@@ -341,29 +347,23 @@ def build(evidence_path, structure_path=None, structure_output_path=None,
             for c,d in ranked:
                 audit["pre_screened_out"].append({
                     "code":c["code"],"industry_code":code,
-                    "reason":"PRESCREEN_PYTHON_PROGRAM_SELECTION_PENDING"})
+                    "reason":"PROGRAM_SELECTION_PENDING"})
             continue
-        accepted=[]
-        if admission_by_industry is not None:
-            eligible_lookup={c["code"]:(c,d) for c,d in ranked}
-            chosen=admission_by_industry[code]
-            if any(c not in eligible_lookup for c in chosen):
-                raise ValueError("PRESCREEN_SELECTED_NOT_IN_HARD_ELIGIBLE_OPPORTUNITY:"+code)
-            for company_code in chosen:
-                c,d=eligible_lookup[company_code]
-                if review.get(company_code,{}).get("transmission")=="NOT_SUPPORTED":
-                    audit["pre_screened_out"].append({
-                        "code":company_code,"industry_code":code,
-                        "reason":"THEME_NOT_SUPPORTED"})
-                    audit["research_replacements"].append(company_code)
-                else:
-                    accepted.append((c,d))
-            chosen_set=set(chosen)
-            for c,d in ranked:
-                if c["code"] not in chosen_set:
-                    audit["pre_screened_out"].append({
-                        "code":c["code"],"industry_code":code,
-                        "reason":"NOT_PRESCREEN_PROGRAM_TOP5"})
+        if admission_by_industry is None:
+            raise ValueError("ADMISSION_REQUIRED_FOR_COMPANY_RESEARCH")
+        eligible_lookup={c["code"]:(c,d) for c,d in ranked}
+        chosen=admission_by_industry[code]
+        if any(company_code not in eligible_lookup for company_code in chosen):
+            raise ValueError("PROGRAM_SELECTED_NOT_HARD_ELIGIBLE:"+code)
+        # Keep the entire frozen program selection, including verified negative
+        # findings. NOT_SUPPORTED is judged DROP downstream, not removed here.
+        accepted=[eligible_lookup[company_code] for company_code in chosen]
+        chosen_set=set(chosen)
+        for c,d in ranked:
+            if c["code"] not in chosen_set:
+                audit["pre_screened_out"].append({
+                    "code":c["code"],"industry_code":code,
+                    "reason":"NOT_PROGRAM_SELECTED"})
         audit["research_slots_per_industry"][code]=len(accepted)
         for c,d in accepted:
             audit["pre_screen_selected"].append(d)
@@ -469,7 +469,7 @@ def build(evidence_path, structure_path=None, structure_output_path=None,
             "run_id":"trend-buy-research-asof-"+day,
             "trade_date":day,"coverage_complete":True,
             "selected_company_count":len(candidate),"publication_audit":gate,
-            "source_research_protocol":"date_scoped_dynamic_pre_screen_top5_company_reviews",
+            "source_research_protocol":"canonical_frozen_program_company_reviews",
             "screen_audit":audit,"companies":candidate}
     if structure_output_path:
         if structure is None:

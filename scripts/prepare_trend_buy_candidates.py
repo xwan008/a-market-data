@@ -110,9 +110,13 @@ def prepare(root=ROOT):
         for row in peer_rows:
             patch,reason=validated_core_patch(
                 row,finance["records"].get(row["code"]),day)
+            # Report period, announcement/update date and source all matched.
+            # This flag describes provenance, not a claim of earnings quality.
+            if reason in ("VALIDATED","NO_NEW_FIELDS"):
+                patch={**patch,"financial_publication_date_verified":True}
+                count+=1
             if patch:
                 validated_overlay[row["code"]]=patch
-                count+=1
             patched.append({**row,**patch})
         evidence_counts[industry]=count
         for row,metric in zip(peer_rows,scanner.scores(patched,financial_mode="CORE_FIRST")):
@@ -134,7 +138,7 @@ def prepare(root=ROOT):
             "industry_code":g["industry_code"],
             "selected_codes":codes,
             "source_hard_eligible_count":g["hard_eligible_count"],
-            "source_core_profit_matched_count":evidence_counts[g["industry_code"]],
+            "source_financial_provenance_verified_count":evidence_counts[g["industry_code"]],
             "reason":"PYTHON_3_LEADERS_2_ENTRY_FINANCE_CORE_FIRST",
         })
     if set(industries)!={g["industry_code"] for g in groups}:
@@ -177,7 +181,7 @@ def validate_admission(root,admission):
             or src.get("frozen_company_index_sha256")!=digest(root/"data/low_risk/index.json")
             or src.get("finance_evidence_sha256")!=digest(root/"data/research/core_profit_refresh_latest.json")
             or not admission.get("industries")):
-        raise ValueError("ADMISSION_ADMISSION_SOURCE_STALE_OR_UNVERIFIED")
+        raise ValueError("ADMISSION_SOURCE_STALE_OR_UNVERIFIED")
     finance=read(root/"data/research/core_profit_refresh_latest.json")
     validate_financial_source(finance,day)
     valid_regions={

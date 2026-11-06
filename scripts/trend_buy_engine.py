@@ -404,15 +404,8 @@ def opportunity_key(row):
             row.get("code") or "")
 
 
-def top5_rank_details(row):
-    """Rank existing Top5: actionable READY first, then near-term strength.
-
-    READY/WAIT admission is computed separately; ranking cannot grant entry.
-    Within each status: overextension, 5-day trend, observed breakout/support,
-    relative/volume strength, MA20 distance, observed support distance, code.
-    MA60 position is minor context, not an entry confirmation; observed close
-    support cannot supply a trade stop or actual risk/reward R.
-    """
+def technical_observation_details(row):
+    """Price observations only, never selection, ranking or a trade permission."""
     ctx = row.get("technical_context") or {}
     ev = row.get("phase_evidence") or {}
     recent = ctx.get("recent_acceptance") or {}
@@ -433,19 +426,19 @@ def top5_rank_details(row):
     # Two current-cycle observations can coexist: the breakout no longer
     # hides the previous 1–3-day support and its sweep/reclaim.
     if strong_break and hold:
-        signal_tier, signal = 0, "FRESH_BREAK_AND_RECENT_SUPPORT_HOLD"
+        signal = "FRESH_BREAK_AND_RECENT_SUPPORT_HOLD"
     elif strong_break and sweep:
-        signal_tier, signal = 1, "FRESH_BREAK_AND_RECENT_SWEEP_RECLAIM"
+        signal = "FRESH_BREAK_AND_RECENT_SWEEP_RECLAIM"
     elif hold:
-        signal_tier, signal = 2, "RECENT_SUPPORT_HOLD"
+        signal = "RECENT_SUPPORT_HOLD"
     elif sweep:
-        signal_tier, signal = 3, "RECENT_SWEEP_RECLAIM"
+        signal = "RECENT_SWEEP_RECLAIM"
     elif strong_break:
-        signal_tier, signal = 4, "FRESH_5D_BREAK_FOLLOW"
+        signal = "FRESH_5D_BREAK_FOLLOW"
     elif fresh:
-        signal_tier, signal = 5, "UNCONFIRMED_5D_BREAK"
+        signal = "UNCONFIRMED_5D_BREAK"
     else:
-        signal_tier, signal = 6, "RECENT_TREND_WATCH"
+        signal = "RECENT_TREND_WATCH"
 
     # This trend tier explicitly uses 5d return and 5d positive-day count.
     # Other contexts such as 10d return can affect the separate chase_risk flag.
@@ -467,29 +460,7 @@ def top5_rank_details(row):
         observation_distance = None
         risk_basis = "UNKNOWN_NOT_ZERO"
     position_distance = abs(gap) if val(gap) else 100.
-    def normalized(v, start, span):
-        return min(1., max(0., (v - start) / span)) if val(v) else 0.
-    # Ranking context only: standing over MA60 is NOT proof of a fresh cross.
-    ma60_above = bool(pos(p) and pos(ctx.get("ma60")) and p >= ctx["ma60"])
-    volume_strength = (
-        .24 * normalized(ratio, 1., 2.)
-        + .16 * normalized(ctx.get("volume_ratio_5d_vs_20d"), 1., 1.5)
-        + .20 * normalized(loc, 50., 50.)
-        + .31 * normalized(ctx.get("relative_strength_20d_vs_market_pct"), 0., 15.)
-        + .06 * normalized(up5, 2., 3.)
-        + .03 * int(ma60_above)
-    )
-    # READY always precedes WAIT; within a status, momentum precedes MA20 gap.
-    ready_tier = 0 if row.get("status") == "READY" else 1
-    ranking_key = (
-        ready_tier, int(overextended), trend_tier, signal_tier,
-        -round(volume_strength, 6), round(position_distance, 5),
-        0 if observation_distance is not None else 1,
-        round(observation_distance, 5) if observation_distance is not None else 100.,
-        row.get("code") or ""
-    )
     return {
-        "ranking_key": ranking_key,
         "trend_tier": trend_tier, "follow_signal": signal,
         "recent_support_pattern": pattern,
         "recent_support_close_band": recent.get("support_close_band"),
@@ -501,110 +472,51 @@ def top5_rank_details(row):
         "risk_basis": risk_basis,
         "overextended": overextended,
         "abs_ma20_distance_pct": (round(position_distance, 2) if val(gap) else None),
-        "volume_strength": round(volume_strength, 4),
-        "ma60_above": ma60_above,
-        "ready_priority": ready_tier == 0,
         "no_r_assumed": True,
-        "ignores_formal_60day_confirmation": True,
     }
 
 
 
-def top5_rank_key(row):
-    """Deterministic order of *already-selected* Top5; fundamentals unused."""
-    return top5_rank_details(row)["ranking_key"]
-
 
 def dynamic_top5_by_theme(ready, wait, research):
-    """Rank up to five names per theme, with READY before any WAIT.
-
-    WAIT remains a clearly labeled observation, not a next-day buy recommendation.
-    Never invent a trade plan or fill the list just to reach five.
-    Cooling/failed structures stay out.
-    """
-    sectors = sorted({str(x.get("trend_name") or "") for x in research.get("companies", [])
-                      if x.get("trend_name")})
-
-    def trend_watch_signal(row):
-        if row.get("status") != "WAIT" or row.get("transmission") not in {"SUPPORTED", "EARLY_EVIDENCE"}:
-            return False
-        ctx, evidence = row.get("technical_context") or {}, row.get("phase_evidence") or {}
-        if not (pos(row.get("current_price")) and pos(ctx.get("ma20")) and pos(ctx.get("ma60"))):
-            return False
-        if row.get("trend_phase") in {"REACCELERATING", "INITIATING", "REPAIRING", "PULLBACK"}:
-            return True
-        if ctx.get("higher_low") is True and evidence.get("pullback_low_holds") is True:
-            return True
-        return (evidence.get("fresh_break") is True
-                and ((val(ctx.get("volume_ratio_1d_vs_20d"))
-                      and ctx["volume_ratio_1d_vs_20d"] >= 1.1)
-                     or (val(ctx.get("close_location_pct"))
-                         and ctx["close_location_pct"] >= 60)))
-
-    def trend_watch_key(row):
-        ctx, evidence = row.get("technical_context") or {}, row.get("phase_evidence") or {}
-        break_signal = evidence.get("fresh_break") is True and (
-            (val(ctx.get("volume_ratio_1d_vs_20d")) and ctx["volume_ratio_1d_vs_20d"] >= 1.1)
-            or (val(ctx.get("close_location_pct")) and ctx["close_location_pct"] >= 60))
-        higher_low = ctx.get("higher_low") is True and evidence.get("pullback_low_holds") is True
-        phase = row.get("trend_phase")
-        phase_rank = {"REACCELERATING": 0, "INITIATING": 1, "REPAIRING": 2,
-                      "PULLBACK": 3, "TRANSITION": 4}.get(phase, 5)
-        signal_score = 2 * int(break_signal) + 2 * int(higher_low) + int(phase_rank < 4)
-        dist = ctx.get("distance_to_ma20_pct")
-        if not val(dist) and pos(ctx.get("ma20")) and pos(row.get("current_price")):
-            dist = (row["current_price"] / ctx["ma20"] - 1) * 100
-        return (-signal_score, phase_rank, abs(dist) if val(dist) else 100,
-                row.get("code") or "")
-
-    canonical_mode = research.get("prescreen_version") == "CANONICAL"
-    def ordering_key(row):
-        if not canonical_mode:
-            return top5_rank_key(row)
-        priority = row.get("model_priority")
-        if not isinstance(priority,int) or isinstance(priority,bool):
-            raise ValueError("PRESCREEN_UNREVIEWED_RANK_NOT_ALLOWED")
-        # Admission still requires READY/WAIT independently: model rank is
-        # a *relative research order*, never an authorization to trade.
-        return (0 if row.get("status")=="READY" else 1,
-                priority,top5_rank_key(row))
-
-    groups = []
+    """One official Top5: rank all qualifying READY/WAIT before the five-name cap."""
+    if research.get("prescreen_version") != "CANONICAL":
+        raise ValueError("CANONICAL_MODEL_RANK_REQUIRED")
+    sectors=sorted({str(x.get("trend_name") or "")
+                    for x in research.get("companies",[]) if x.get("trend_name")})
+    groups=[]
     for sector in sectors:
-        primary, watches = [], []
-        for row in ready + wait:
-            if row.get("trend_name") != sector or row.get("trend_phase") in {"COOLING", "FAILED"}:
-                continue
-            ref = early_watch_reference(row)
-            p, trigger = row.get("current_price"), ref.get("reference_trigger_price")
-            distance = abs(trigger / p - 1) * 100 if pos(p) and pos(trigger) else 100
-            feasible = ref.get("reference_zone") is not None
-            near = distance <= 8
-            if row.get("status") == "READY" or near or feasible:
-                primary.append(row)
-            elif trend_watch_signal(row):
-                watches.append(row)
-        primary.sort(key=ordering_key)
-        watches.sort(key=ordering_key if canonical_mode else trend_watch_key)
-        selected = primary[:5]
-        selected.extend(watches[:max(0, 5 - len(selected))])
-        # Apply the same final ranking after including any fallback watches.
-        selected.sort(key=ordering_key)
-        primary_codes = {row["code"] for row in primary}
+        eligible=[r for r in ready+wait if r.get("trend_name")==sector
+                  and r.get("status") in {"READY","WAIT"}
+                  and r.get("trend_phase") not in {"COOLING","FAILED"}]
+        ranks=[r.get("model_priority") for r in eligible]
+        if any(type(rank) is not int or not 1<=rank<=100 for rank in ranks):
+            raise ValueError("MODEL_RESEARCH_RANK_MISSING_OR_INVALID")
+        if len(ranks)!=len(set(ranks)):
+            raise ValueError("DUPLICATE_MODEL_RANK_WITHIN_THEME:"+sector)
+        selected=sorted(eligible,key=lambda r:(
+            0 if r["status"]=="READY" else 1,r["model_priority"],r["code"]))[:5]
+        nearby_codes=set()
+        for row in eligible:
+            ref=early_watch_reference(row)
+            p,trigger=row.get("current_price"),ref.get("reference_trigger_price")
+            near=bool(pos(p) and pos(trigger) and abs(trigger/p-1)*100<=8)
+            if row["status"]=="READY" or near or ref.get("reference_zone") is not None:
+                nearby_codes.add(row["code"])
         groups.append({
-            "trend_name": sector,
-            "qualified_opportunity_count": len(primary),
-            "trend_watch_candidate_count": len(watches),
-            "items": [{
-                "code": row["code"], "company_name": row["company_name"],
-                "status": row["status"], "trend_phase": row.get("trend_phase"),
-                "entry_opportunity": ("READY" if row["status"] == "READY"
-                                      else "EARLY_NOT_READY" if row["code"] in primary_codes
-                                      else "TREND_WATCH_ONLY"),
-                "current_price": row.get("current_price"),
-                "reference": early_watch_reference(row),
-                "decision_reason": row.get("decision_reason"),
-            } for row in selected]
+            "trend_name":sector,
+            "qualified_opportunity_count":len(nearby_codes),
+            "trend_watch_candidate_count":len(eligible)-len(nearby_codes),
+            "items":[{
+                "code":row["code"],"company_name":row["company_name"],
+                "status":row["status"],"trend_phase":row.get("trend_phase"),
+                "entry_opportunity":("READY" if row["status"]=="READY"
+                    else "EARLY_NOT_READY" if row["code"] in nearby_codes
+                    else "TREND_WATCH_ONLY"),
+                "current_price":row.get("current_price"),
+                "reference":early_watch_reference(row),
+                "decision_reason":row.get("decision_reason"),
+            } for row in selected],
         })
     return groups
 
@@ -672,37 +584,23 @@ def add_attention_priorities(groups, ready, wait, research):
             row = lookup[item["code"]]
             (valid_zone, reward_r, space_status, overheated,
              ma20_distance, overhead) = trade_risk_context(row, item)
-            details = top5_rank_details(row)
+            details = technical_observation_details(row)
             position = details["abs_ma20_distance_pct"]
             position_text = (f"；距MA20绝对偏离{position:.2f}%"
                              if position is not None else "；MA20距离证据缺失")
             if details["overextended"]:
-                position_text += ("；短线追高风险需独立校验"
-                                  if research.get("prescreen_version")=="CANONICAL"
-                                  else "；短线过热标记参与排序")
+                position_text += "；短线追高风险需独立校验"
             item["attention_rank"] = rank
             status_text = ("READY先于WAIT；仅下一交易日条件性入场"
                            if row["status"] == "READY" else "WAIT仅供观察，尚不可买")
-            ma60_text = ("；MA60上方小幅加分（不代表刚突破）"
-                         if details["ma60_above"] else "")
-            if research.get("prescreen_version")=="CANONICAL":
-                item["attention_judgement"] = (
-                    "模型同主题相对研究次序：" + status_text
-                    + "；模型研究判断："+str(row.get("model_reason") or "未提供")
-                    + "；" + trend_labels[details["trend_tier"]]
-                    + "；" + signal_labels[details["follow_signal"]]
-                    + position_text
-                    + "；模型次序不是收益预测，WAIT不是买入许可"
-                )
-            else:
-                item["attention_judgement"] = (
-                    "Top5排序依据：" + status_text
-                    + "；" + trend_labels[details["trend_tier"]]
-                    + "；" + signal_labels[details["follow_signal"]]
-                    + f"；量价及相对强度综合{details['volume_strength']:.3f}，先于MA20距离比较"
-                    + ma60_text + position_text
-                    + "；排序分数不是次日上涨概率，WAIT不是买入许可"
-                )
+            item["attention_judgement"] = (
+                "模型同主题相对研究次序：" + status_text
+                + "；模型研究判断："+str(row.get("model_reason") or "未提供")
+                + "；" + trend_labels[details["trend_tier"]]
+                + "；" + signal_labels[details["follow_signal"]]
+                + position_text
+                + "；模型次序不是收益预测，WAIT不是买入许可"
+            )
             # Risk notes are separate from rank reasons. A high rank may be WAIT.
             if row["status"] == "READY":
                 risk_notes = ["READY仅为下一交易日条件性计划，非即时买单"]
