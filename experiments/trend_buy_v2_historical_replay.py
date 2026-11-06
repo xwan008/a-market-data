@@ -19,6 +19,7 @@ from zoneinfo import ZoneInfo
 
 from trend_buy_v2_relative_entry_shadow import rerank_formal, numeric, positive
 from trend_buy_v2_structural_ablation import rerank_structural
+from trend_buy_v3_minimal_overheat_shadow import rerank_formal as rerank_v3_soft_overheat
 
 ROOT = Path(__file__).resolve().parents[1]
 TZ = ZoneInfo("Asia/Shanghai")
@@ -270,7 +271,7 @@ def summarize(samples):
 
 
 def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2", snapshot_policy="EARLIEST_COMPLETE", price_basis_policy="STRICT"):
-    if ranking not in ("V2","V21_STRUCTURAL"):
+    if ranking not in ("V2","V21_STRUCTURAL","V3_SOFT_OVERHEAT"):
         raise ValueError("unknown_shadow_ranker")
     snapshots, publication_rejections = published_snapshots(repo, min_date, max_date, snapshot_policy)
     stock_cache, stock_set, cohorts, coverage_audit = {}, set(), [], []
@@ -278,8 +279,9 @@ def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2"
         formal = snap["formal"]
         peers, peer_status = historical_fundamentals(snap, repo)
         try:
-            v2 = (rerank_structural(formal, peers)
-                  if ranking=="V21_STRUCTURAL" else rerank_formal(formal, peers))
+            v2 = (rerank_structural(formal, peers) if ranking=="V21_STRUCTURAL"
+                  else rerank_v3_soft_overheat(formal, peers) if ranking=="V3_SOFT_OVERHEAT"
+                  else rerank_formal(formal, peers))
         except (ValueError, KeyError) as e:
             cohorts.append({"date": snap["date"], "invalid": str(e), "commit": snap["commit"]})
             coverage_audit.extend({
@@ -470,7 +472,7 @@ def main():
     ap.add_argument("--price-basis-policy",
                     choices=("STRICT","REFERENCE_ADJUSTED_SENSITIVITY"),
                     default="STRICT")
-    ap.add_argument("--ranking", choices=("V2","V21_STRUCTURAL"), default="V2")
+    ap.add_argument("--ranking", choices=("V2","V21_STRUCTURAL","V3_SOFT_OVERHEAT"), default="V2")
     ap.add_argument("--max-date", default="2026-11-04")
     ap.add_argument("--output", type=Path, help="Optional shadow-only JSON output")
     args = ap.parse_args()
