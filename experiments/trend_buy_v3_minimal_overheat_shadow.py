@@ -31,10 +31,14 @@ def eligibility_and_key(row, trade_date):
     base=details["ranking_key"]
     if len(base)!=9:
         raise ValueError("unexpected_rank_key_schema")
-    gap=details["abs_ma20_distance_pct"]
-    # Historical validated distance is required for a risk-adjusted ranking.
-    # Missing gap is not assumed to be "safe".
-    excess=max(0., gap-engine.MAX_MA20_DISTANCE_PCT) if engine.val(gap) else 15.
+    ctx=row.get("technical_context") or {}
+    gap=ctx.get("distance_to_ma20_pct")
+    if not engine.val(gap) and engine.pos(ctx.get("ma20")) and engine.pos(row.get("current_price")):
+        gap=100*(row["current_price"]/ctx["ma20"]-1)
+    # Only above-MA20 overextension is "chasing". A stock trading far BELOW
+    # MA20 is a recovery/downtrend issue, not a high-price extension.
+    # Unverified data cannot be assumed safe.
+    excess=max(0.,gap-engine.MAX_MA20_DISTANCE_PCT) if engine.val(gap) else 15.
     cost=min(MAX_PENALTY, PENALTY_PER_MA20_PCT_OVER_8*excess)
     adjusted_strength=round(details["volume_strength"]-cost, 6)
     # Preserve published tiers: READY gate, positive five-day trend, verified
