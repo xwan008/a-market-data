@@ -25,6 +25,7 @@ jobs:
           from price_inputs import SelectedStockStructures
           root=Path('.')
           admission=prepare()
+          Path('/tmp/independent_admission.json').write_text(json.dumps(admission,ensure_ascii=False),encoding='utf-8')
           day=admission['trade_date']
           assert day=='2026-11-05'
           finance=read(root/'data/research/core_profit_refresh_latest.json')
@@ -70,15 +71,8 @@ jobs:
              echo INDEPENDENT_FRESH_MODEL_REVIEW_PENDING
              exit 0
           fi
-          python scripts/build_trend_buy_manual_research.py \\
-             --evidence research/independent_buy_replay_20261105_reviews.json \\
-             --admission /tmp/independent_admission.json \\
-             --structure-output /tmp/independent_scoped_structure.json \\
-             --output /tmp/independent_fresh_research.json
-          python scripts/trend_buy_engine.py \\
-             --research /tmp/independent_fresh_research.json \\
-             --structure /tmp/independent_scoped_structure.json \\
-             --output /tmp/independent_result.json
+          python scripts/build_trend_buy_manual_research.py --evidence research/independent_buy_replay_20261105_reviews.json --admission /tmp/independent_admission.json --structure-output /tmp/independent_scoped_structure.json --output /tmp/independent_fresh_research.json
+          python scripts/trend_buy_engine.py --research /tmp/independent_fresh_research.json --structure /tmp/independent_scoped_structure.json --output /tmp/independent_result.json
           python - <<'PY'
           import json
           from pathlib import Path
