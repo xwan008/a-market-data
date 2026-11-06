@@ -102,6 +102,14 @@ class V4PrescreenTests(unittest.TestCase):
                 out=v4.run(ROOT,screen,index)
         g=out["industry_groups"][0]
         self.assertLessEqual(g["model_research_slots_required"],5)
+        self.assertEqual({x["code"] for x in g["model_deep_review_packets"]},
+                         set(g["v4_research_codes"]))
+        self.assertEqual(len(g["model_deep_review_packets"]),len(g["v4_research_codes"]))
+        self.assertTrue(all(x["deep_review_status"]=="PENDING_IN_SHADOW"
+                            for x in g["model_deep_review_packets"]))
+        self.assertTrue(all(x["source_requirements"]["expected_growth_revision"]
+                            =="DATE_STAMPED_FACT_OR_UNKNOWN"
+                            for x in g["model_deep_review_packets"]))
         self.assertEqual(out["mode"],"SHADOW_PROGRAM_ONLY_NO_MODEL_CALL")
         self.assertFalse(out["rules"]["business_review_in_python"])
         self.assertTrue(out["rules"]["ready_wait_and_handoff_untouched"])
