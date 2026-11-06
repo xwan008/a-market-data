@@ -90,6 +90,60 @@ class V4MainlinePromotionTests(unittest.TestCase):
             self.assertFalse(old["publication_audit"]["fresh_company_research"])
             self.assertEqual(old["selected_company_count"],15)
 
+    def test_complete_synthetic_model_reviews_can_reach_formal_risk_engine(self):
+        # Tests contract wiring only, NOT real issuer evidence or an executable
+        # financial recommendation. All synthetic inputs live in /tmp.
+        intake_result=intake.prepare(ROOT)
+        d=intake_result["trade_date"]
+        reviews=[]
+        next_rank=1
+        for group in intake_result["industries"]:
+            for code in group["selected_codes"]:
+                reviews.append({
+                    "code":code,
+                    "transmission":"SUPPORTED",
+                    "review_evidence_date":d,
+                    "review_basis":"SYNTHETIC_UNIT_TEST_ONLY",
+                    "source_review":"SYNTHETIC TEST: placeholder proof to exercise Python→model→risk interface only.",
+                    "source_materials":[{
+                        "asof":d,"published_at":d,
+                        "url":"https://example.org/test-fixture-not-real-source"}],
+                    "research_falsifier":"SYNTHETIC: real negative evidence invalidates hypothesis",
+                    "early_evidence_risk_review_passed":True,
+                    "evidence_gap":False,
+                    "v4_model_rank":next_rank,
+                    "v4_model_reason":"SYNTHETIC: simulated comparison of income, cashflow, expectations and actual peer strength.",
+                })
+                next_rank+=1
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder)
+            admission=root/"v4_research_admission.json"
+            evidence=root/"synthetic_only.json"
+            structures=root/"technical.json"
+            admission.write_text(json.dumps(intake_result,ensure_ascii=False))
+            evidence.write_text(json.dumps({
+                "as_of_date":d,"reviews":reviews,
+                "explicit_no_prior_formal_or_archive_input":True,
+            },ensure_ascii=False))
+            result=builder.build(
+                evidence,structure_output_path=structures,
+                v4_admission_path=admission)
+            self.assertEqual(result["mode"],"FORMAL")
+            self.assertEqual(result["prescreen_version"],"V4_B1")
+            self.assertEqual(result["selected_company_count"],15)
+            self.assertTrue(all(result["publication_audit"].values()))
+            output=engine.generate(result,json.loads(structures.read_text()))
+            self.assertTrue(output["production_eligible"])
+            self.assertEqual(output["prescreen_version"],"V4_B1")
+            self.assertEqual(output["coverage"]["judged"],15)
+            self.assertTrue(all(len(x["items"])<=5 for x in output["top5_by_theme"]))
+            self.assertTrue(all(x["status"]=="WAIT" or x["status"]=="READY"
+                for x in output["ready"]+output["wait"]))
+            self.assertTrue(all(x.get("entry_zone") is None
+                for x in output["wait"]))
+            self.assertTrue(all(x.get("v4_model_priority") is not None
+                for x in output["ready"]+output["wait"]))
+
     def test_original_pipeline_without_v4_does_not_change(self):
         d=builder.build(ROOT/"research/trend_buy_company_reviews/latest.json")
         self.assertEqual(d["prescreen_version"],"LEGACY")
