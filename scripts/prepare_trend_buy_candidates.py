@@ -126,7 +126,7 @@ def prepare(root=ROOT):
             audit["quality"]=metric[2]
             audit["valuation_match"]=metric[3]
             audit["growth_risk"]=metric[5]
-    # Sole stock selection is the audited 正式 dual channel.
+    # Sole stock selection prioritizes all entry-qualified peers, with watch-only fallback.
     prescreen_output=prescreen.run(root,scan,industry_index=index,
                      financial_overlay=validated_overlay)
     groups=[]
@@ -139,7 +139,10 @@ def prepare(root=ROOT):
             "selected_codes":codes,
             "source_hard_eligible_count":g["hard_eligible_count"],
             "source_financial_provenance_verified_count":evidence_counts[g["industry_code"]],
-            "reason":"PYTHON_3_LEADERS_2_ENTRY_FINANCE_CORE_FIRST",
+            "reason":"PYTHON_UNIFIED_ENTRY_FIRST_FINANCE_CORE_FIRST",
+            "selection_policy":"ENTRY_FIRST_NO_QUOTAS",
+            "entry_selected_count":g["selection_evidence"]["entry_selected_count"],
+            "watch_fallback_count":g["selection_evidence"]["watch_fallback_count"],
         })
     if set(industries)!={g["industry_code"] for g in groups}:
         raise ValueError("ADMISSION_ALL_CONFIRMED_SW3_COVERAGE_REQUIRED")
@@ -147,6 +150,7 @@ def prepare(root=ROOT):
         "schema_version":"trend_buy_research_admission",
         "prescreen_version":"CANONICAL",
         "mode":"PROGRAM_VERIFIED_MODEL_RESEARCH_PENDING",
+        "selection_policy":"ENTRY_FIRST_NO_QUOTAS",
         "trade_date":day,
         "industry_count":len(groups),
         "selected_company_count":sum(len(g["selected_codes"]) for g in groups),
@@ -175,6 +179,7 @@ def validate_admission(root,admission):
     src=admission.get("source") or {}
     if (admission.get("schema_version")!="trend_buy_research_admission"
             or admission.get("prescreen_version")!="CANONICAL"
+            or admission.get("selection_policy")!="ENTRY_FIRST_NO_QUOTAS"
             or admission.get("trade_date")!=day
             or idx.get("trade_date")!=day
             or src.get("confirmed_handoff_sha256")!=digest(root/"research/trend_handoff.json")
@@ -195,7 +200,13 @@ def validate_admission(root,admission):
         codes=g.get("selected_codes")
         if (not sector or sector not in valid_regions or sector in by_sector
                 or not isinstance(codes,list) or not 1<=len(codes)<=5
-                or len(codes)!=len(set(codes))):
+                or len(codes)!=len(set(codes))
+                or g.get("selection_policy")!="ENTRY_FIRST_NO_QUOTAS"
+                or g.get("reason")!="PYTHON_UNIFIED_ENTRY_FIRST_FINANCE_CORE_FIRST"
+                or type(g.get("entry_selected_count")) is not int
+                or type(g.get("watch_fallback_count")) is not int
+                or g["entry_selected_count"]+g["watch_fallback_count"]!=len(codes)
+                or not all(isinstance(x,str) for x in codes)):
             raise ValueError("ADMISSION_ADMISSION_SECTOR_OR_BUDGET_INVALID")
         by_sector[sector]=codes
         all_codes+=codes
