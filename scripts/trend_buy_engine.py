@@ -566,15 +566,20 @@ def dynamic_top5_by_theme(ready, wait, research):
             raise ValueError("PRESCREEN_UNREVIEWED_RANK_NOT_ALLOWED")
         # Admission still requires READY/WAIT independently: model rank is
         # a *relative research order*, never an authorization to trade.
+        # Unique model ranks are required by the formal gate.
+        # Technical observation scores cannot break ties or override ranks.
         return (0 if row.get("status")=="READY" else 1,
-                priority,top5_rank_key(row))
+                priority,row.get("code") or "")
 
     groups = []
     for sector in sectors:
         primary, watches = [], []
+        canonical_candidates = []
         for row in ready + wait:
             if row.get("trend_name") != sector or row.get("trend_phase") in {"COOLING", "FAILED"}:
                 continue
+            if canonical_mode:
+                canonical_candidates.append(row)
             ref = early_watch_reference(row)
             p, trigger = row.get("current_price"), ref.get("reference_trigger_price")
             distance = abs(trigger / p - 1) * 100 if pos(p) and pos(trigger) else 100
@@ -582,14 +587,19 @@ def dynamic_top5_by_theme(ready, wait, research):
             near = distance <= 8
             if row.get("status") == "READY" or near or feasible:
                 primary.append(row)
-            elif trend_watch_signal(row):
+            elif canonical_mode or trend_watch_signal(row):
                 watches.append(row)
-        primary.sort(key=ordering_key)
-        watches.sort(key=ordering_key if canonical_mode else trend_watch_key)
-        selected = primary[:5]
-        selected.extend(watches[:max(0, 5 - len(selected))])
-        # Apply the same final ranking after including any fallback watches.
-        selected.sort(key=ordering_key)
+        if canonical_mode:
+            # Classification is informational, not an admission or ordering gate.
+            # Take the overall status+model-rank Top5 before presentation labels.
+            selected = sorted(canonical_candidates,key=ordering_key)[:5]
+        else:
+            # Historical analysis fixtures retain their archived order only.
+            primary.sort(key=ordering_key)
+            watches.sort(key=trend_watch_key)
+            selected = primary[:5]
+            selected.extend(watches[:max(0,5-len(selected))])
+            selected.sort(key=ordering_key)
         primary_codes = {row["code"] for row in primary}
         groups.append({
             "trend_name": sector,
