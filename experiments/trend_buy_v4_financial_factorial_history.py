@@ -31,7 +31,7 @@ def run(dates,finance,root=ROOT):
                 "Re-ranked Python candidate baskets only: not reviewed model Top5 or real execution",
                 "Original sector sets and quote snapshots taken from first actually published original Git commit",
                 "Future bars are used for outcome only, not for program scoring",
-                "Only at-most-two subsequent completed sessions, small and dependent sample",
+                "Only horizons with fully available subsequent sessions are scored; small and dependent sample",
                 "Not suitable for statistical ranking improvement claims"]}
     for day in dates:
         record=records.get(day)
@@ -66,11 +66,11 @@ def run(dates,finance,root=ROOT):
                     errors={}
                     for code in all_codes:
                         returns,error=hist.future_returns(root,code,day,
-                                            frozen_prices.get(code),horizons=(1,2))
+                                            frozen_prices.get(code),horizons=(1,2,3,5,10))
                         if error:errors[code]=error
                         else:observations[code]=returns
                     metrics={}
-                    for horizon in ("1","2"):
+                    for horizon in ("1","2","3","5","10"):
                         if all(code in observations and observations[code][horizon] is not None
                                for code in all_codes):
                             returns={arm:round(
