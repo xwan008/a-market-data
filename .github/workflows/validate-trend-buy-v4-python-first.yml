@@ -1,0 +1,82 @@
+name: V4 Python-first SW3 prescreen shadow
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/trend_buy_v4_python_prescreen_shadow.py'
+      - 'tests/test_trend_buy_v4_python_prescreen_shadow.py'
+      - 'research/shadow/TREND_BUY_V4_PYTHON_FIRST_2026-11-06.md'
+      - '.github/workflows/validate-trend-buy-v4-python-first.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  v4-python-first:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test pure-Python financial and momentum screening
+        run: |
+          python -m unittest discover -s tests -p 'test_trend_buy_v4_python_prescreen_shadow.py' -v
+          python -m py_compile experiments/trend_buy_v4_python_prescreen_shadow.py
+      - name: Generate exact formal baseline pre-screen in memory; no research upgrades
+        run: |
+          python scripts/build_trend_buy_manual_research.py \
+            --evidence research/trend_buy_company_reviews/latest.json \
+            --output /tmp/v4-frozen-baseline-shadow.json
+      - name: V4 five-per-SW3 Python-only candidate counterfactual
+        run: |
+          python experiments/trend_buy_v4_python_prescreen_shadow.py \
+            --screen /tmp/v4-frozen-baseline-shadow.json \
+            --output /tmp/v4-python-first-shadow.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/v4-python-first-shadow.json').read_text())
+          baseline=json.loads(Path('/tmp/v4-frozen-baseline-shadow.json').read_text())
+          assert r['asof_date']==baseline['trade_date']
+          assert r['mode']=='SHADOW_PROGRAM_ONLY_NO_MODEL_CALL'
+          assert r['rules']['max_model_reviews_per_sw3']==5
+          assert r['rules']['ready_wait_and_handoff_untouched'] is True
+          assert len(r['industry_groups'])==len(baseline['screen_audit']['industry_manifests'])
+          for g in r['industry_groups']:
+              assert len(g['v4_research_codes'])<=5
+              assert len(g['v4_research_codes'])==len(set(g['v4_research_codes']))
+              assert set(g['new_research_required_codes']).isdisjoint(
+                  set(g['original_research_codes']))
+              assert all(x['asof_date']==r['asof_date'] for x in g['selected_candidates'])
+              assert all(not x['financial_publication_date_verified']
+                         for x in g['selected_candidates'])
+              print('V4_SW3_COMPARE',json.dumps({
+                  'industry':g['industry_name'],'industry_code':g['industry_code'],
+                  'previous':g['original_research_codes'],
+                  'v4':g['v4_research_codes'],
+                  'new_model_review_needed':g['new_research_required_codes'],
+                  'scanned':g['original_hard_eligible'],
+                  'history_rejected':g['history_exclusions'],
+                  'core_profit_known_on_v4':sum(
+                      x['core_profit_growth_verified'] for x in g['selected_candidates']),
+              },ensure_ascii=False))
+          print('V4_NO_FORMAL_PROMOTION_BEFORE_NEW_EVIDENCE')
+          PY
+      - name: Check formal artifacts byte-for-byte unchanged
+        run: |
+          test "$(git hash-object research/trend_buy_formal_result.json)" = "$(git rev-parse HEAD:research/trend_buy_formal_result.json)"
+          test "$(git hash-object research/trend_buy_handoff.json)" = "$(git rev-parse HEAD:research/trend_buy_handoff.json)"
+          git diff --exit-code -- research/trend_buy_formal_result.json research/trend_buy_handoff.json
+      - name: Archive shadow-only research without triggering model
+        uses: actions/upload-artifact@v4
+        with:
+          name: v4-python-first-sw3-prescreen-shadow
+          path: |
+            /tmp/v4-frozen-baseline-shadow.json
+            /tmp/v4-python-first-shadow.json
+          retention-days: 14
