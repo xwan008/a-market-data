@@ -129,9 +129,12 @@ def select_company_rows(rows, audit_rows, date, root, history_cache,
             # The original hard-screen may have rejected this company; never
             # add a company without the original hard-filter audit.
             continue
-        if previous.get("excluded_reason") is not None or not previous.get("opportunity"):
-            excluded.append({"code":code,"reason":previous.get("excluded_reason") or "NO_VERIFIED_OPPORTUNITY"})
-            continue
+        # A missing current entry setup is NOT a hard leadership exclusion.
+        # The two research channels use independent eligibility.
+        entry_observation=previous.get("opportunity") or {}
+        entry_eligible=(previous.get("excluded_reason") is None
+                        and number(entry_observation.get("entry_score"))
+                        and number(entry_observation.get("price_structure_score")))
         if code in known_unsupported:
             excluded.append({"code":code,"reason":"PREVIOUSLY_VERIFIED_NOT_SUPPORTED"})
             continue
@@ -166,11 +169,14 @@ def select_company_rows(rows, audit_rows, date, root, history_cache,
             "asof_price":row["price"],
             "fundamental_score":previous["fundamental_score"],
             "financial_report_period_end":row.get("report_date"),
-            "financial_publication_date_verified":False,
+            "financial_publication_date_verified":row.get("financial_publication_date_verified") is True,
             "core_profit_growth_verified":core_available,
             "financial_evidence_gaps":core_notes,
-            "entry_reference_score":previous["opportunity"].get("entry_score"),
-            "price_structure_score":previous["opportunity"].get("price_structure_score"),
+            "entry_channel_eligible":bool(entry_eligible),
+            "entry_ineligibility_reason":(None if entry_eligible
+                                          else previous.get("excluded_reason") or "ENTRY_EVIDENCE_MISSING"),
+            "entry_reference_score":(entry_observation.get("entry_score") if entry_eligible else 0.0),
+            "price_structure_score":(entry_observation.get("price_structure_score") if entry_eligible else 0.0),
             "history":f,
         })
     return entries,excluded
@@ -213,14 +219,15 @@ def dual_channel(entries, slots=MAX_RESEARCH_PER_INDUSTRY):
         entry=e["entry_reference_score"]
         structure=e["price_structure_score"]
         if not all(number(v) for v in (entry,structure)):
-            return [],{"reason":"ENTRY_EVIDENCE_MISSING"}
+            return [],{"reason":"ENTRY_EVIDENCE_INVALID"}
         e["leader_channel_score"]=round(.80*continued+
                                         .20*e["fundamental_score"],6)
         e["entry_channel_score"]=round(.65*entry+
                                        .20*structure+
                                        .15*e["fundamental_score"],6)
     leader_order=sorted(entries,key=lambda e:(-e["leader_channel_score"],e["code"]))
-    entry_order=sorted(entries,key=lambda e:(-e["entry_channel_score"],e["code"]))
+    entry_order=sorted((e for e in entries if e["entry_channel_eligible"]),
+                       key=lambda e:(-e["entry_channel_score"],e["code"]))
     picked=[]
     for channel,ordered,take in (
         ("LEADERSHIP",leader_order,LEADER_SLOTS),
@@ -234,7 +241,8 @@ def dual_channel(entries, slots=MAX_RESEARCH_PER_INDUSTRY):
             item=dict(e)
             item["selected_channel"]=channel
             picked.append(item)
-    # With fewer than five fully eligible peers, do not fabricate members.
+    # Unfilled entry seats may be backfilled by fully verified leadership peers.
+    # This backfill is visibly labeled and never claims to be an entry setup.
     if len(picked)<min(slots,len(entries)):
         for e in leader_order:
             if len(picked)>=min(slots,len(entries)):
@@ -246,6 +254,8 @@ def dual_channel(entries, slots=MAX_RESEARCH_PER_INDUSTRY):
         "peer_return_medians_pct":reference,
         "leader_top5_codes":[x["code"] for x in leader_order[:5]],
         "entry_top5_codes":[x["code"] for x in entry_order[:5]],
+        "entry_evidence_eligible_count":len(entry_order),
+        "backfill_count":sum(x["selected_channel"]=="BACKFILL" for x in picked),
         "max_model_research_per_sw3":5,
     }
 
