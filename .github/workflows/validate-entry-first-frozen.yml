@@ -1,0 +1,51 @@
+name: Validate entry-first prescreen on immutable Nov 5 market inputs
+on:
+  pull_request:
+    paths:
+      - 'scripts/trend_buy_prescreen_core.py'
+      - 'scripts/prepare_trend_buy_candidates.py'
+      - 'tests/test_trend_buy_admission.py'
+      - 'skill/TREND_BUY_CANONICAL.md'
+      - '.github/workflows/validate-entry-first-frozen.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  frozen-nov5:
+    name: Entry-first frozen replay regression (tests only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: candidate
+      - uses: actions/checkout@v4
+        with:
+          ref: 2766e8a328e4df0ec5a11edf591d13dfd85c1b97
+          path: frozen
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Inject proposed selection code into the immutable market fixture
+        run: |
+          cp candidate/scripts/trend_buy_prescreen_core.py frozen/scripts/trend_buy_prescreen_core.py
+          cp candidate/scripts/prepare_trend_buy_candidates.py frozen/scripts/prepare_trend_buy_candidates.py
+          cp candidate/tests/test_trend_buy_admission.py frozen/tests/test_trend_buy_admission.py
+      - name: Run entry-priority, fallback, policy-contract and complete risk-gate regressions
+        working-directory: frozen
+        run: |
+          python -m unittest discover -s tests -p 'test_trend_buy_admission.py' -v
+          python - <<'PY'
+          import json,sys
+          sys.path.insert(0,'scripts')
+          from prepare_trend_buy_candidates import prepare
+          x=prepare()
+          assert x['trade_date']=='2026-11-05'
+          assert x['selection_policy']=='ENTRY_FIRST_NO_QUOTAS'
+          assert all(g['entry_selected_count']+g['watch_fallback_count']==len(g['selected_codes']) for g in x['industries'])
+          print('ENTRY_FIRST_FROZEN_NOV05_REGRESSION',json.dumps({
+            'date':x['trade_date'],
+            'industry_count':x['industry_count'],
+            'groups':x['industries']
+          },ensure_ascii=False))
+          PY
