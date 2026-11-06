@@ -6,6 +6,7 @@ on:
       - 'scripts/build_trend_buy_manual_research.py'
       - 'experiments/trend_buy_v4_python_prescreen_shadow.py'
       - 'experiments/trend_buy_v4_financial_factorial_shadow.py'
+      - 'experiments/trend_buy_v4_financial_factorial_history.py'
       - 'tests/test_trend_buy_v4_financial_factorial.py'
       - '.github/workflows/validate-trend-buy-v4-financial-factorial.yml'
       - 'research/shadow/TREND_BUY_V4_FINANCIAL_FACTORIAL_2026-11-06.md'
@@ -76,6 +77,29 @@ jobs:
                    'core_only_change_codes','v4_core_change_codes')},ensure_ascii=False))
           print('FINANCIAL_2x2_NO_FORWARD_RETURN_FOR_2026_11_05')
           PY
+      - name: Reconstruct 11/03-11/05 original publications and audit 1/2-day forward outcomes
+        run: |
+          python experiments/trend_buy_v4_financial_factorial_history.py \
+            --dates 2026-11-03,2026-11-04,2026-11-05 \
+            --finance /tmp/v4-dated-main-core-finance-shadow.json \
+            --output /tmp/v4-financial-factorial-history-shadow.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data=json.loads(Path('/tmp/v4-financial-factorial-history-shadow.json').read_text())
+          assert data['mode']=='CORE_FINANCE_2x2_HISTORICAL_RETROSPECTIVE_SENSITIVITY'
+          assert data['no_new_company_model_reviews']
+          assert data['no_formal_strategy_change']
+          assert len(data['completed'])>0, data['failed']
+          for day in data['completed']:
+              for group in day['groups']:
+                  assert all(len(codes)<=5 for codes in group['cases'].values())
+                  assert len(group['cases'])==4
+          print('HISTORICAL_FINANCIAL_FACTORIAL_COVERAGE',
+                json.dumps({'dates':len(data['completed']),
+                            'groups':sum(len(d['groups']) for d in data['completed']),
+                            'excluded':data['failed']},ensure_ascii=False))
+          PY
       - name: Prove official trade artifact byte-for-byte unchanged
         run: |
           git diff --exit-code -- research/trend_buy_formal_result.json research/trend_buy_handoff.json
@@ -87,4 +111,5 @@ jobs:
           path: |
             /tmp/v4-financial-factorial-shadow.json
             /tmp/v4-factorial-frozen-original-shadow.json
+            /tmp/v4-financial-factorial-history-shadow.json
           retention-days: 14
