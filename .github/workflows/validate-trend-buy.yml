@@ -6,8 +6,9 @@ on:
       - 'scripts/price_inputs.py'
       - 'scripts/build_history.py'
       - 'scripts/build_trend_buy_manual_research.py'
-      - 'scripts/v4_prepare_research_candidates.py'
-      - 'scripts/v4_python_prescreen_core.py'
+      - 'scripts/prepare_trend_buy_candidates.py'
+      - 'scripts/trend_buy_prescreen_core.py'
+      - 'tests/test_trend_buy_admission.py'
       - 'scripts/trend_buy_engine.py'
       - 'scripts/trend_buy_handoff.py'
       - 'tests/test_trend_buy_handoff.py'
@@ -40,8 +41,8 @@ on:
       - 'tests/test_trend_buy_dynamic_top5.py'
       - 'tests/test_trend_buy_prescreen.py'
       - 'scripts/build_trend_buy_manual_research.py'
-      - 'scripts/v4_prepare_research_candidates.py'
-      - 'scripts/v4_python_prescreen_core.py'
+      - 'scripts/prepare_trend_buy_candidates.py'
+      - 'scripts/trend_buy_prescreen_core.py'
       - 'skill/PRE_SCREEN_RESEARCH_SCOPE_OVERRIDE.md'
       - 'skill/TREND_BUY_CANONICAL.md'
       - 'scripts/validate_theme_handoff_routes.py'
@@ -80,6 +81,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_theme_handoff_routes.py' -v
           python -m unittest discover -s tests -p 'test_trend_buy_snapshot_bridge.py' -v
           python -m unittest discover -s tests -p 'test_trend_buy_full_pipeline.py' -v
+          python -m unittest discover -s tests -p 'test_trend_buy_admission.py' -v
       - name: Unit-test shard momentum and frozen-date gates
         run: python -m unittest discover -s tests -p 'test_price_inputs.py' -v
       - name: Refresh frozen 65-day shard technical evidence
@@ -129,10 +131,11 @@ jobs:
           }),encoding='utf-8')
           print('FRESH_SOURCE_DATE',day)
           PY
-          python scripts/v4_prepare_research_candidates.py --output /tmp/trend_buy_v4_candidates_smoke.json
+          mkdir -p /tmp/trend_buy_candidates
+          python scripts/prepare_trend_buy_candidates.py --output /tmp/trend_buy_candidates/latest.json
           python scripts/build_trend_buy_manual_research.py \
             --evidence /tmp/fresh-company-evidence.json \
-            --v4-admission /tmp/trend_buy_v4_candidates_smoke.json \
+            --admission /tmp/trend_buy_candidates/latest.json \
             --output /tmp/fresh-company-screen.json
           python - <<'PY'
           import json
@@ -140,8 +143,8 @@ jobs:
           o=json.loads(Path('/tmp/fresh-company-screen.json').read_text())
           a=o['screen_audit']
           assert o['mode']=='SHADOW' and o['publication_audit']['company_research_coverage'] is False
-          assert o['prescreen_version']=='V4_B1'
-          assert a['research_scope']=='v4_b1_python_top5_before_model_review'
+          assert o['prescreen_version']=='CANONICAL'
+          assert a['research_scope']=='python_top5_before_model_review'
           assert a['source_review_pending_count']==o['selected_company_count']
           print('FRESH_SCREEN_AUDIT',json.dumps({
             'date':o['trade_date'],'universe':a['universe'],
@@ -174,7 +177,7 @@ jobs:
               else:
                   print('DATE_SCOPED_RESEARCH_EVIDENCE_PRESENT',day,len(evidence.get('reviews',[])))
           else:
-              print('NO_DATE_SCOPED_COMPANY_EVIDENCE: SHADOW_CI_ONLY, NOT_FORMAL')
+              print('NO_DATE_SCOPED_COMPANY_EVIDENCE: RESEARCH_PENDING, NOT_FORMAL')
           PY
       - name: Validate published or absence-of-current evidence is not a false formal result
         if: steps.smoke_inputs.outputs.ready == 'true'
@@ -207,4 +210,4 @@ jobs:
           print('PERSISTED_MAINLINE_HANDOFF_VALID',len(items))
           PY
       - name: Syntax check trend-buy modules
-        run: python -m py_compile scripts/v4_prepare_research_candidates.py scripts/v4_python_prescreen_core.py scripts/build_full_market_price_structure.py scripts/build_trend_buy_manual_research.py scripts/trend_buy_engine.py scripts/trend_buy_handoff.py scripts/build_intraday_snapshot.py
+        run: python -m py_compile scripts/prepare_trend_buy_candidates.py scripts/trend_buy_prescreen_core.py scripts/build_full_market_price_structure.py scripts/build_trend_buy_manual_research.py scripts/trend_buy_engine.py scripts/trend_buy_handoff.py scripts/build_intraday_snapshot.py
