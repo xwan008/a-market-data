@@ -5,6 +5,11 @@ on:
     # 19:35 Asia/Shanghai, after 19:00 official daily buy research
     - cron: '35 11 * * 1-5'
   workflow_dispatch:
+  push:
+    branches:
+      - feature/trend-buy-v4-nightly-shadow-freeze-20261106
+    paths:
+      - '.github/workflows/v4-nightly-shadow-freeze.yml'
   pull_request:
     paths:
       - '.github/workflows/v4-nightly-shadow-freeze.yml'
