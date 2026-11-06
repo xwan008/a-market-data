@@ -17,7 +17,7 @@ import tempfile
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/"scripts"))
 import build_trend_buy_manual_research as old
-import v4_financial_factorial_core as four
+import v4_python_prescreen_core as v4
 
 
 def read(path):
@@ -28,9 +28,33 @@ def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+F10_SOURCE="eastmoney_RPT_F10_FINANCE_MAINFINADATA"
+
+def usable(value):
+    import math
+    return (isinstance(value,(int,float)) and not isinstance(value,bool)
+            and math.isfinite(value))
+
+def validated_core_patch(company, record,asof):
+    if not isinstance(record,dict) or record.get("source_report")!=F10_SOURCE:
+        return {}, "FINANCE_SOURCE_UNKNOWN"
+    period=company.get("report_date")
+    if not isinstance(period,str) or period!=record.get("report_date"):
+        return {}, "FINANCE_REPORT_PERIOD_MISMATCH"
+    for name in ("report_date","notice_date","update_date"):
+        value=record.get(name)
+        if not isinstance(value,str) or not value or value>asof:
+            return {}, "FINANCE_NOT_AVAILABLE_ASOF:"+name
+    patch={}
+    for key in ("deduct_net_profit_yoy","deduct_net_profit",
+                "nonrecurring_profit_share_pct","deduct_basic_eps"):
+        if usable(record.get(key)) and not usable(company.get(key)):
+            patch[key]=record[key]
+    return patch,"VALIDATED" if patch else "NO_NEW_FIELDS"
+
 def validate_financial_source(finance, day):
     stamp=finance.get("asof_trade_date")
-    if (finance.get("source")!=four.SOURCE or not isinstance(stamp,str)
+    if (finance.get("source")!=F10_SOURCE or not isinstance(stamp,str)
             or not isinstance(finance.get("records"),dict)):
         raise ValueError("V4_F10_PROVENANCE_MISSING")
     delta=(date.fromisoformat(day)-date.fromisoformat(stamp)).days
@@ -38,8 +62,10 @@ def validate_financial_source(finance, day):
         raise ValueError("V4_F10_SOURCE_DATE_NOT_VALID_FOR_CURRENT_SIGNAL")
     return stamp
 
-
 def prepare(root=ROOT):
+    """One V4-B1 selection only; no legacy/A1/B0 parallel score runs."""
+    from collections import defaultdict
+    from copy import deepcopy
     trend=read(root/"research/trend_handoff.json")
     index=read(root/"data/low_risk/index.json")
     day=trend.get("trade_date")
@@ -47,7 +73,6 @@ def prepare(root=ROOT):
         raise ValueError("V4_ASOF_INPUT_MISMATCH")
     if not trend.get("signals"):
         raise ValueError("V4_NO_UPSTREAM_CONFIRMED_SW3")
-    # The builder rechecks the original upstream registry + CORE/DIRECT routing.
     finance_path=root/"data/research/core_profit_refresh_latest.json"
     finance=read(finance_path)
     finance_stamp=validate_financial_source(finance,day)
@@ -58,28 +83,66 @@ def prepare(root=ROOT):
             "as_of_date":day,
             "reviews":[],
         },ensure_ascii=False),encoding="utf-8")
-        # Run the hard screen on ALL eligible companies. With zero deep
-        # reviews it can never create a FORMAL result, only SHA-audited input.
-        legacy=old.build(empty)
-        if legacy["mode"]!="SHADOW" or not legacy["screen_audit"]["hard_eligible"]:
-            raise ValueError("V4_PRE_RESEARCH_FAILED_CLOSED")
-        factor=four.run(root,legacy,finance)
+        # Existing hard-filter and compact opportunity calculators are reused
+        # solely for cheap full-universe audit, NOT for a second publication.
+        lightweight=old.build(empty)
+    if (lightweight["mode"]!="SHADOW" or
+            not lightweight["screen_audit"]["hard_eligible"]):
+        raise ValueError("V4_PRE_RESEARCH_FAILED_CLOSED")
+    scan=deepcopy(lightweight)
+    audited=scan["screen_audit"]["lightweight_scanned"]
+    scan_by_code={row["code"]:row for row in audited}
+    if len(scan_by_code)!=len(audited):
+        raise ValueError("V4_SCANNED_DUPLICATE_COMPANY")
+    industries=defaultdict(list)
+    for row in audited:
+        industries[row["industry_code"]].append(row["code"])
+    validated_overlay={}
+    evidence_counts={}
+    for industry,codes in industries.items():
+        frozen=v4.frozen_industry_rows(root,index,industry,day)
+        eligible=set(codes)
+        peer_rows=[row for row in frozen if row["code"] in eligible]
+        if len(peer_rows)!=len(codes):
+            raise ValueError("V4_HARD_ELIGIBLE_FROZEN_SCOPE_MISMATCH")
+        patched=[]
+        count=0
+        for row in peer_rows:
+            patch,reason=validated_core_patch(
+                row,finance["records"].get(row["code"]),day)
+            if patch:
+                validated_overlay[row["code"]]=patch
+                count+=1
+            patched.append({**row,**patch})
+        evidence_counts[industry]=count
+        for row,metric in zip(peer_rows,old.scores(patched,financial_mode="CORE_FIRST")):
+            audit=scan_by_code[row["code"]]
+            audit["fundamental_score"]=metric[0]
+            audit["growth"]=metric[1]
+            audit["quality"]=metric[2]
+            audit["valuation_match"]=metric[3]
+            audit["growth_risk"]=metric[5]
+            opportunity=audit.get("opportunity")
+            if opportunity is not None:
+                audit["combined_score"]=round(
+                    .70*opportunity["opportunity_score"]+.30*metric[0],6)
+    # Sole stock selection is the audited V4 dual channel.
+    v4_output=v4.run(root,scan,industry_index=index,
+                     financial_overlay=validated_overlay)
     groups=[]
-    for g in factor["industry_groups"]:
-        codes=g["cases"]["V4_CORE_FIRST"]
-        if len(codes)>5 or len(codes)!=len(set(codes)):
-            raise ValueError("V4_PER_SW3_MODEL_BUDGET_EXCEEDED")
-        if len(codes)==0:
-            raise ValueError("V4_NO_VALID_MEMBER_FOR_CONFIRMED_INDUSTRY:"+g["industry_code"])
+    for g in v4_output["industry_groups"]:
+        codes=g["v4_research_codes"]
+        if len(codes)>5 or len(codes)!=len(set(codes)) or not codes:
+            raise ValueError("V4_PER_SW3_MODEL_BUDGET_OR_COVERAGE_INVALID")
         groups.append({
             "industry_code":g["industry_code"],
             "selected_codes":codes,
-            "source_hard_eligible_count":g["hard_eligible_count"],
-            "source_core_profit_matched_count":g["core_evidence_patched_count"],
+            "source_hard_eligible_count":g["original_hard_eligible"],
+            "source_core_profit_matched_count":evidence_counts[g["industry_code"]],
             "reason":"PYTHON_3_LEADERS_2_ENTRY_FINANCE_CORE_FIRST",
         })
-    if not groups:
-        raise ValueError("V4_NO_VALID_CANDIDATES")
+    if set(industries)!={g["industry_code"] for g in groups}:
+        raise ValueError("V4_ALL_CONFIRMED_SW3_COVERAGE_REQUIRED")
     return {
         "schema_version":"trend_buy_v4_research_admission_v1",
         "prescreen_version":"V4_B1",
@@ -93,7 +156,7 @@ def prepare(root=ROOT):
             "frozen_company_index_sha256":digest(root/"data/low_risk/index.json"),
             "finance_evidence_sha256":digest(finance_path),
             "finance_report_asof_date":finance_stamp,
-            "finance_report_source":four.SOURCE,
+            "finance_report_source":F10_SOURCE,
         },
         "checks":{
             "only_confirmed_industries":True,
