@@ -131,7 +131,7 @@ def stock_history(root, code, cache):
     return rows, stock.get("history_basis")
 
 
-def outcome(row, next_date, target_date, calendar, histories):
+def outcome(row, next_date, target_date, calendar, histories, price_basis_policy="STRICT"):
     code = row["code"]
     h, basis = histories[code]
     if next_date not in h or target_date not in h or row["date"] not in h:
@@ -139,8 +139,22 @@ def outcome(row, next_date, target_date, calendar, histories):
     asof_close = h[row["date"]]["close"]
     frozen_close = row["current_price"]
     # An unaligned adjusted history can create fake returns. Skip, do not patch.
-    if abs(asof_close / frozen_close - 1) > .015:
-        return None, "ASOF_CLOSE_VS_HISTORY_BASIS_MISMATCH"
+    if price_basis_policy not in ("STRICT","REFERENCE_ADJUSTED_SENSITIVITY"):
+        raise ValueError("unknown_historical_price_basis_policy")
+    basis_ratio = asof_close / frozen_close
+    gap_from_frozen = abs(basis_ratio - 1)
+    adjusted_basis_accepted = False
+    if gap_from_frozen > .015:
+        # The current history may be retrospectively reference-adjusted.
+        # In a separate exploratory cohort only, allow small differences when
+        # provenance identifies that basis. Never silently relax strict data.
+        if (price_basis_policy=="REFERENCE_ADJUSTED_SENSITIVITY"
+                and isinstance(basis, str)
+                and "reference_adjusted" in basis
+                and gap_from_frozen <= .03):
+            adjusted_basis_accepted = True
+        else:
+            return None, "ASOF_CLOSE_VS_HISTORY_BASIS_MISMATCH"
     entry = h[next_date].get("open")
     if not positive(entry):
         return None, "NEXT_OPEN_MISSING"
@@ -168,6 +182,8 @@ def outcome(row, next_date, target_date, calendar, histories):
         "mfe_pct": 100 * (high / entry - 1),
         "entry_open": entry,
         "history_basis": basis,
+        "basis_ratio_to_frozen": round(basis_ratio,6),
+        "adjusted_basis_sensitivity_accepted":adjusted_basis_accepted,
     }, None
 
 
@@ -253,7 +269,7 @@ def summarize(samples):
     return by_horizon
 
 
-def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2", snapshot_policy="EARLIEST_COMPLETE"):
+def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2", snapshot_policy="EARLIEST_COMPLETE", price_basis_policy="STRICT"):
     if ranking not in ("V2","V21_STRUCTURAL"):
         raise ValueError("unknown_shadow_ranker")
     snapshots, publication_rejections = published_snapshots(repo, min_date, max_date, snapshot_policy)
@@ -341,7 +357,7 @@ def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2"
             missing_by_code={}
             for code in old:
                 result, error = outcome(cohort["rows"][code], next_date, target_date,
-                                        calendar, histories)
+                                        calendar, histories, price_basis_policy)
                 if error:
                     errors.add(error)
                     missing_by_code[code]=error
@@ -366,6 +382,9 @@ def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2"
                 "protocol_epoch": cohort["protocol_epoch"],
                 "published_member_count":len(old),
                 "old_top1": old[0], "v2_top1": new[0],
+                "adjusted_basis_sensitivity_codes":sorted(
+                    code for code,m in moves.items()
+                    if m["adjusted_basis_sensitivity_accepted"]),
                 "old_pairwise_accuracy": round(pairwise_order_accuracy(old, moves), 6),
                 "v2_pairwise_accuracy": round(pairwise_order_accuracy(new, moves), 6),
                 "old_top1_regime": cohort["asof_regimes"][old[0]],
@@ -410,6 +429,7 @@ def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2"
         "mode": "HISTORICAL_SHADOW_INDICATIVE_NOT_TRADING_BACKTEST",
         "ranking":ranking,
         "snapshot_policy":snapshot_policy,
+        "price_basis_policy":price_basis_policy,
         "strategy": "next_session_open_to_horizon_close_no_cost_or_fill_constraints",
         "selection": ("first_rankable_formal_commit_within_36h"
                       if snapshot_policy=="FIRST_RANKABLE"
@@ -426,7 +446,8 @@ def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2"
         "enough_independent_evidence_for_production_upgrade": enough,
         "limitations": [
             "Overlapping cohorts and repeated tickers reduce independent observations",
-            "Historical bars may be backward-adjusted and corporate action mismatches are excluded",
+            "Historical bars may be backward-adjusted and corporate action mismatches are excluded under STRICT",
+            "REFERENCE_ADJUSTED_SENSITIVITY allows 1.5%-3% as-of mismatch only when shard basis explicitly says reference_adjusted; preliminary, not trade-grade",
             "Next-open hypothetical is not an actual fill; no price-limit, volume, fees or slippage simulation",
             "Earliest formal publication strictly precedes assumed next-session open; otherwise skipped",
             "No trade invalidation stop or first-touch 1.5R outcomes are claimed",
@@ -446,11 +467,15 @@ def main():
     ap.add_argument("--min-date", default="2026-10-09")
     ap.add_argument("--snapshot-policy", choices=("EARLIEST_COMPLETE","FIRST_RANKABLE"),
                     default="EARLIEST_COMPLETE")
+    ap.add_argument("--price-basis-policy",
+                    choices=("STRICT","REFERENCE_ADJUSTED_SENSITIVITY"),
+                    default="STRICT")
     ap.add_argument("--ranking", choices=("V2","V21_STRUCTURAL"), default="V2")
     ap.add_argument("--max-date", default="2026-11-04")
     ap.add_argument("--output", type=Path, help="Optional shadow-only JSON output")
     args = ap.parse_args()
-    result = replay(ROOT, args.min_date, args.max_date, args.ranking, args.snapshot_policy)
+    result = replay(ROOT, args.min_date, args.max_date, args.ranking,
+                    args.snapshot_policy, args.price_basis_policy)
     output = json.dumps(result, indent=2, ensure_ascii=False) + "\n"
     if args.output:
         path = args.output.resolve()
