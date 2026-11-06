@@ -6,6 +6,8 @@ on:
       - 'experiments/trend_buy_v2_relative_entry_shadow.py'
       - 'tests/test_trend_buy_v2_relative_entry_shadow.py'
       - 'experiments/trend_buy_v2_historical_replay.py'
+      - 'experiments/trend_buy_v3_minimal_overheat_shadow.py'
+      - 'tests/test_trend_buy_v3_minimal_overheat_shadow.py'
       - 'research/shadow/TREND_BUY_V2_HISTORICAL_SECTOR_EXPANSION_2026-11-06.md'
       - 'experiments/trend_buy_v2_robustness.py'
       - 'tests/test_trend_buy_v2_robustness.py'
@@ -400,4 +402,75 @@ jobs:
             /tmp/v2-basis-sensitivity-shadow.json
             /tmp/v21-basis-sensitivity-shadow.json
             /tmp/v2-basis-sensitive-robust-shadow.json
+          retention-days: 14
+      - name: Isolate A-share overheat-ranking flaw, no trade rule change
+        run: |
+          python -m unittest discover -s tests -p 'test_trend_buy_v3_minimal_overheat_shadow.py' -v
+          python experiments/trend_buy_v2_historical_replay.py \
+            --snapshot-policy FIRST_RANKABLE \
+            --ranking V3_SOFT_OVERHEAT --min-date 2026-10-09 --max-date 2026-11-05 \
+            --output /tmp/v3-soft-overheat-shadow.json
+          python - <<'PY'
+          import json
+          from collections import defaultdict
+          from pathlib import Path
+          v2=json.loads(Path('/tmp/v2-sector-wide-shadow.json').read_text())
+          v21=json.loads(Path('/tmp/v21-sector-wide-shadow.json').read_text())
+          v3=json.loads(Path('/tmp/v3-soft-overheat-shadow.json').read_text())
+          assert v3['snapshot_policy']=='FIRST_RANKABLE'
+          assert v3['price_basis_policy']=='STRICT'
+          assert v3['ranking']=='V3_SOFT_OVERHEAT'
+          assert v2['asof_dates']==v3['asof_dates']==v21['asof_dates']
+          key=lambda r:(r['asof'],r['theme'],r['horizon'])
+          a={key(r):r for r in v2['samples']}
+          b={key(r):r for r in v21['samples']}
+          c={key(r):r for r in v3['samples']}
+          assert set(a)==set(b)==set(c)
+          assert v3['cohort_count']==v2['cohort_count']
+          assert not v3['enough_independent_evidence_for_production_upgrade']
+          for h in (1,2,3,5,10):
+              rows=[c[k] for k in c if k[2]==h]
+              if not rows:
+                  continue
+              def mean_diff(v):
+                  return round(sum(v)/len(v),4)
+              d=lambda r:r['v2_top1_return_pct']-r['old_top1_return_pct']
+              print('V3_HORIZON',h,json.dumps({
+                 'cohorts':len(rows),
+                 'dates':len({r['asof'] for r in rows}),
+                 'themes':len({r['theme'] for r in rows}),
+                 'original_diff':0,
+                 'v2_relative_to_baseline_pp':mean_diff([d(a[key(r)]) for r in rows]),
+                 'v21_relative_to_baseline_pp':mean_diff([d(b[key(r)]) for r in rows]),
+                 'v3_relative_to_baseline_pp':mean_diff([d(r) for r in rows]),
+                 'v3_full_top5_pairwise_accuracy_pct':mean_diff([
+                     100*r['v2_pairwise_accuracy'] for r in rows]),
+                 'old_full_top5_pairwise_accuracy_pct':mean_diff([
+                     100*r['old_pairwise_accuracy'] for r in rows]),
+                 'top1_switches_v3':sum(r['old_top1']!=r['v2_top1'] for r in rows),
+                 'v3_wins_when_switched':sum(
+                     d(r)>0 for r in rows if r['old_top1']!=r['v2_top1']),
+              },ensure_ascii=False))
+          important=('固态电池','风电设备','银行','文化传媒/影视院线','游戏','黄金/贵金属')
+          for r in sorted(c.values(),key=lambda x:(x['asof'],x['theme'],x['horizon'])):
+              if r['theme'] in important and r['horizon'] in (1,5,10):
+                  k=key(r)
+                  print('V3_IMPORTANT_COHORT',json.dumps({
+                      'asof':r['asof'],'theme':r['theme'],'horizon':r['horizon'],
+                      'old_top1':r['old_top1'],
+                      'v2_top1':a[k]['v2_top1'],
+                      'v21_top1':b[k]['v2_top1'],
+                      'v3_top1':r['v2_top1'],
+                      'old_return':r['old_top1_return_pct'],
+                      'v2_return':a[k]['v2_top1_return_pct'],
+                      'v3_return':r['v2_top1_return_pct'],
+                      'market_state':r['market_state_category'],
+                  },ensure_ascii=False))
+          print('V3_VERDICT_SHADOW_ONLY_NO_PARAMETER_OPTIMIZATION')
+          PY
+      - name: Upload minimal rule-change ablation for audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3-single-rule-a-share-overheat-shadow
+          path: /tmp/v3-soft-overheat-shadow.json
           retention-days: 14
