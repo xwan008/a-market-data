@@ -211,8 +211,13 @@ def build(evidence_path, structure_path=None, structure_output_path=None,
     vault=read(evidence_path)
     admission_by_industry=None
     admission_contract=None
+    finance_snapshot=None
+    financial_patch=None
     if admission_path is not None:
-        from prepare_trend_buy_candidates import validate_admission,prepare
+        from prepare_trend_buy_candidates import (
+            validate_admission,prepare,validated_core_patch)
+        finance_snapshot=read(ROOT/"data/research/core_profit_refresh_latest.json")
+        financial_patch=validated_core_patch
         admission_contract=read(Path(admission_path))
         admission_by_industry=validate_admission(ROOT,admission_contract)
         # No model may provide an arbitrary look-alike file to force preferred
@@ -288,6 +293,8 @@ def build(evidence_path, structure_path=None, structure_output_path=None,
     selected=[]
     audit["lightweight_scanned"]=[]
     audit["research_slots_per_industry"]={}
+    audit["financial_scoring_mode"]=("VERIFIED_CORE" if finance_snapshot is not None
+                                     else "AUDIT_INPUT")
     for code in industries:
         items=universe[code]
         valid=[]
@@ -298,8 +305,17 @@ def build(evidence_path, structure_path=None, structure_output_path=None,
             else:
                 valid.append(c)
         audit["hard_eligible"]+=len(valid)
+        # The published audit must explain the SAME audited-core financial
+        # calculations that were used to freeze the program selection.
+        if finance_snapshot is not None:
+            scored=[{**c,**financial_patch(
+                c,finance_snapshot["records"].get(c["code"]),day)[0]}
+                    for c in valid]
+            financial_scores=scores(scored,financial_mode="CORE_FIRST")
+        else:
+            financial_scores=scores(valid)
         ranked=[]
-        for c,metric in zip(valid,scores(valid)):
+        for c,metric in zip(valid,financial_scores):
             price_structure=((structure.get("companies") or {}).get(c["code"])
                              if structure is not None else scoped.get(c["code"],c))
             if technical_cache is not None:
