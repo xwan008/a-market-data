@@ -153,7 +153,7 @@ jobs:
           print('FRESH_SCREEN_CANDIDATES',json.dumps([
             {'code':c['code'],'name':c['company_name'],
              'theme':c['trend_name'],'industry':c['industry_code'],
-             'prescreen':next((x['combined_score'] for x in a['pre_screen_selected']
+             'entry_observation':next((x.get('audit_opportunity_score') for x in a['pre_screen_selected']
                                if x['code']==c['code']),None)}
             for c in o['companies']
           ],ensure_ascii=False))
