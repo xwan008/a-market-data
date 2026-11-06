@@ -117,6 +117,48 @@ jobs:
           print('WEEKLY_CORE_FINANCIAL_PASS',r['after_deduct_growth_usable'],r['stocks'])
           PY
 
+      - name: Persist verified F10 evidence snapshot for V4 shadow input
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/weekly-core-profit-shadow.json').read_text(encoding='utf-8'))
+          market=json.loads(Path('data/latest.json').read_text(encoding='utf-8'))
+          total=r['stocks']
+          assert total>=3000
+          assert r['asof_date']==market['trade_date']
+          assert r['source']=='eastmoney_RPT_F10_FINANCE_MAINFINADATA'
+          assert r['after_deduct_growth_usable']/total>=.75
+          assert not r['source_data_retrieval_incomplete']
+          assert (r['after_deduct_growth_usable']
+                  ==market['fundamental_stats']['deduct_profit_growth_usable'])
+          for code,entry in r['records'].items():
+              assert code==entry['code']
+              assert entry['report_date']<=r['asof_date']
+              assert entry['notice_date']<=r['asof_date']
+              assert not entry['update_date'] or entry['update_date']<=r['asof_date']
+          snapshot={
+              'schema_version':1,
+              'result_kind':'date_verified_financial_only_evidence',
+              'asof_trade_date':r['asof_date'],
+              'generated_at':r['generated_at'],
+              'source':r['source'],
+              'stocks':r['stocks'],
+              'prior_deduct_growth_usable':r['prior_deduct_growth_usable'],
+              'after_deduct_growth_usable':r['after_deduct_growth_usable'],
+              'after_core_amount_usable':r['after_core_amount_usable'],
+              'records':r['records'],
+              'no_republication_of_old_formal_trend_buy':True,
+          }
+          destination=Path('data/research/core_profit_refresh_latest.json')
+          destination.parent.mkdir(parents=True,exist_ok=True)
+          destination.write_text(
+              json.dumps(snapshot,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          assert json.loads(destination.read_text())['asof_trade_date']==market['trade_date']
+          print('V4_WEEKLY_CORE_EVIDENCE_READBACK',snapshot['asof_trade_date'],
+                snapshot['after_deduct_growth_usable'],snapshot['stocks'])
+          PY
+
       - name: Validate weekly financial coverage
         shell: bash
         run: |
