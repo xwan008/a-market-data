@@ -186,10 +186,10 @@ def compact_opportunity(structure, trade_date):
     price_score=(.65*phase_quality
         +.20*int(structure.get("higher_low") is True)
         +.15*int(context.get("fresh_break") is True))
-    v1=structure.get("volume_ratio_1d_vs_20d")
+    volume_ratio=structure.get("volume_ratio_1d_vs_20d")
     v5=structure.get("volume_ratio_5d_vs_20d")
     loc=structure.get("close_location_pct")
-    volume_score=(.35*clamp01(v1/2.2) if isnum(v1) else 0)
+    volume_score=(.35*clamp01(volume_ratio/2.2) if isnum(volume_ratio) else 0)
     volume_score+=(.35*clamp01(v5/1.6) if isnum(v5) else 0)
     volume_score+=(.30*clamp01(loc/100) if isnum(loc) else 0)
     rs=structure.get("relative_strength_20d_vs_market_pct")
@@ -496,7 +496,7 @@ def main():
     p.add_argument("--structure-output",default=None,help="Write only selected candidates to an ephemeral technical input")
     p.add_argument("--output",required=True)
     p.add_argument("--admission",required=True,
-                   help="Mandatory program-frozen same-day 现行-B1 selection; no legacy formal fallback")
+                   help="Mandatory frozen same-day program candidate selection; no alternative formal path")
     a=p.parse_args()
     out=build(Path(a.evidence),a.structure,a.structure_output,
               a.admission)
