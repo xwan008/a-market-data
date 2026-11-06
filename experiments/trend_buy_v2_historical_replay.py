@@ -23,7 +23,7 @@ from trend_buy_v2_structural_ablation import rerank_structural
 ROOT = Path(__file__).resolve().parents[1]
 TZ = ZoneInfo("Asia/Shanghai")
 FORMAL_PATH = "research/trend_buy_formal_result.json"
-HORIZONS = (3, 5, 10)
+HORIZONS = (1, 2, 3, 5, 10)
 
 
 def git(args, repo=ROOT):
@@ -39,12 +39,14 @@ def historical_file(commit, path, repo=ROOT):
         return None
 
 
-def published_snapshots(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04"):
+def published_snapshots(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", policy="EARLIEST_COMPLETE"):
     """Earliest completed original publication per trade date, not hindsight reruns.
 
     Publication must be within 36 hours after the as-of session's 15:00 close;
     this deliberately excludes archived/backfilled retrospective selections.
     """
+    if policy not in ("EARLIEST_COMPLETE", "FIRST_RANKABLE"):
+        raise ValueError("unknown_publication_policy")
     raw = git(["log", "--format=%H%x09%cI", "--", FORMAL_PATH], repo)
     accepted, rejected = {}, []
     for line in reversed(raw.splitlines()):
@@ -66,6 +68,12 @@ def published_snapshots(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04")
             continue
         if not (close_time <= release <= close_time + timedelta(hours=36)):
             rejected.append({"date": day, "reason": "publication_outside_36_hours"})
+            continue
+        if (policy == "FIRST_RANKABLE" and not any(
+                isinstance(g.get("items"), list) and len(g["items"]) >= 1
+                for g in formal.get("top5_by_theme") or [])):
+            rejected.append({"date": day, "reason": "rankless_complete_before_first_rankable",
+                             "commit": sha})
             continue
         if day not in accepted:
             accepted[day] = {"date": day, "commit": sha,
@@ -245,11 +253,11 @@ def summarize(samples):
     return by_horizon
 
 
-def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2"):
+def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2", snapshot_policy="EARLIEST_COMPLETE"):
     if ranking not in ("V2","V21_STRUCTURAL"):
         raise ValueError("unknown_shadow_ranker")
-    snapshots, publication_rejections = published_snapshots(repo, min_date, max_date)
-    stock_cache, stock_set, cohorts = {}, set(), []
+    snapshots, publication_rejections = published_snapshots(repo, min_date, max_date, snapshot_policy)
+    stock_cache, stock_set, cohorts, coverage_audit = {}, set(), [], []
     for snap in snapshots:
         formal = snap["formal"]
         peers, peer_status = historical_fundamentals(snap, repo)
@@ -258,14 +266,27 @@ def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2"
                   if ranking=="V21_STRUCTURAL" else rerank_formal(formal, peers))
         except (ValueError, KeyError) as e:
             cohorts.append({"date": snap["date"], "invalid": str(e), "commit": snap["commit"]})
+            coverage_audit.extend({
+                "date":snap["date"], "theme":g.get("trend_name"),
+                "published_members":len(g.get("items") or []),
+                "eligibility":"RANKER_EXCEPTION", "error":str(e)}
+                for g in formal.get("top5_by_theme") or [])
             continue
         baseline = {x["trend_name"]: x for x in formal.get("top5_by_theme") or []}
         for group in v2["groups"]:
             theme = group["trend_name"]
             old = [x["code"] for x in baseline[theme]["items"]]
             new = [x["code"] for x in group["items"]]
-            if len(old) < 3 or len(old) != len(new) or set(old) != set(new):
+            if len(old) < 2 or len(old) != len(new) or set(old) != set(new):
+                coverage_audit.append({
+                    "date":snap["date"], "theme":theme,
+                    "published_members":len(old),
+                    "eligibility":"NOT_COMPARABLE_LT_2_OR_MISMATCH"})
                 continue
+            coverage_audit.append({
+                "date":snap["date"], "theme":theme,
+                "published_members":len(old),
+                "eligibility":"VALID_RANKED_COHORT"})
             stock_set.update(old)
             lookup = {r["code"]: r for r in (formal.get("ready") or []) + (formal.get("wait") or [])}
             cohorts.append({
@@ -343,6 +364,22 @@ def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2"
                     moves[c]["return_pct"] for c in old), 5),
             })
     summary = summarize(samples)
+    achieved = defaultdict(lambda: defaultdict(set))
+    for r in samples:
+        achieved[r["theme"]][r["horizon"]].add(r["asof"])
+    published_by_theme = defaultdict(set)
+    comparable_by_theme = defaultdict(set)
+    for r in coverage_audit:
+        published_by_theme[r["theme"]].add(r["date"])
+        if r["eligibility"] == "VALID_RANKED_COHORT":
+            comparable_by_theme[r["theme"]].add(r["date"])
+    theme_coverage = [
+        {"theme":theme,
+         "published_dates":sorted(published_by_theme[theme]),
+         "comparable_dates":sorted(comparable_by_theme[theme]),
+         "completed_horizon_counts":{
+             str(h):len(achieved[theme][h]) for h in HORIZONS}}
+        for theme in sorted(published_by_theme)]
     # Not enough independent trading dates to claim stable model improvement.
     enough = (len(summary) == len(HORIZONS)
               and all(x.get("distinct_dates", 0) >= 20
@@ -350,12 +387,17 @@ def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2"
     return {
         "mode": "HISTORICAL_SHADOW_INDICATIVE_NOT_TRADING_BACKTEST",
         "ranking":ranking,
+        "snapshot_policy":snapshot_policy,
         "strategy": "next_session_open_to_horizon_close_no_cost_or_fill_constraints",
-        "selection": "earliest_asof_formal_commit_within_36h_then_frozen_peer_fundamentals",
+        "selection": ("first_rankable_formal_commit_within_36h"
+                      if snapshot_policy=="FIRST_RANKABLE"
+                      else "earliest_complete_formal_commit_within_36h"),
         "asof_dates": [x["date"] for x in snapshots],
         "published_snapshots": len(snapshots), "cohort_count": len([
             x for x in cohorts if "invalid" not in x]),
         "summary": summary, "samples": samples,
+        "theme_coverage":theme_coverage,
+        "coverage_audit":coverage_audit,
         "skipped": dict(sorted(skipped.items())),
         "publication_rejections": publication_rejections[:30],
         "enough_independent_evidence_for_production_upgrade": enough,
@@ -369,6 +411,9 @@ def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2"
             "Pre-screen membership fixed at previously published Top5: dual-channel extra candidates need review",
             "Frozen financial inputs missing on some dates are marked neutral rather than backfilled",
             "Historical scoring formula is experimental and was not selected using outcome optimization",
+            "FIRST_RANKABLE uses earliest complete ranked publication and flags earlier rankless posts; it is NOT the strict first-complete policy",
+            "Changing protocol epochs (Oct 9 older pre-screen and Oct 27 confirmed-only) are NOT homogeneous strategy observations",
+            "2-company cohorts contribute only one pair to pairwise concordance and are not comparable to 5-company cohorts without stratification",
         ],
     }
 
@@ -376,11 +421,13 @@ def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2"
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--min-date", default="2026-10-09")
+    ap.add_argument("--snapshot-policy", choices=("EARLIEST_COMPLETE","FIRST_RANKABLE"),
+                    default="EARLIEST_COMPLETE")
     ap.add_argument("--ranking", choices=("V2","V21_STRUCTURAL"), default="V2")
     ap.add_argument("--max-date", default="2026-11-04")
     ap.add_argument("--output", type=Path, help="Optional shadow-only JSON output")
     args = ap.parse_args()
-    result = replay(ROOT, args.min_date, args.max_date, args.ranking)
+    result = replay(ROOT, args.min_date, args.max_date, args.ranking, args.snapshot_policy)
     output = json.dumps(result, indent=2, ensure_ascii=False) + "\n"
     if args.output:
         path = args.output.resolve()
@@ -391,7 +438,7 @@ def main():
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(output, encoding="utf-8")
     print(json.dumps({k: v for k, v in result.items() if k not in (
-        "samples", "publication_rejections"
+        "samples", "publication_rejections", "coverage_audit"
     )}, ensure_ascii=False))
 
 
