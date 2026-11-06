@@ -73,6 +73,10 @@ jobs:
           for g in r['industry_groups']:
               assert len(g['v4_research_codes'])<=5
               assert len(g['v4_research_codes'])==len(set(g['v4_research_codes']))
+              assert len(g['model_deep_review_packets'])==len(g['v4_research_codes'])
+              assert all(x['deep_review_status']=='PENDING_IN_SHADOW'
+                         for x in g['model_deep_review_packets'])
+              assert {x['code'] for x in g['model_deep_review_packets']}==set(g['v4_research_codes'])
               assert set(g['new_research_required_codes']).isdisjoint(
                   set(g['original_research_codes']))
               assert all(x['asof_date']==r['asof_date'] for x in g['selected_candidates'])
