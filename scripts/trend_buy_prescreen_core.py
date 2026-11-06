@@ -1,14 +1,5 @@
 #!/usr/bin/env python3
-"""V4 program-first pre-screen, SHADOW ONLY.
-
-Python scans ALL hard-eligible companies in each already-confirmed SW3 industry.
-It chooses at most FIVE companies for subsequent MODEL research: three sustained
-leaders and two nearer-entry candidates. There are NO model calls here.
-
-Only previously frozen company and prior-to-asof history data enter selection;
-no later prices, contemporaneous news inference, or invented analyst forecasts.
-The formal pre-screen, READY/WAIT, official handoff and ranking are untouched.
-"""
+"""Program-only prescreen for canonical trend-buy research. No model or trade action."""
 from __future__ import annotations
 
 import argparse
@@ -22,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 MAX_RESEARCH_PER_INDUSTRY = 5
 LEADER_SLOTS = 3
 ENTRY_SLOTS = 2
-VERSION = "v4_python_first_prescreen_shadow_v1"
+VERSION = "trend_buy_program_prescreen"
 
 
 def number(value):
@@ -111,14 +102,14 @@ def metrics(rows):
         peak=max(peak,p)
         worst=min(worst,100*(p/peak-1))
     vol20=median(r["volume"] for r in rows[-21:-1])
-    v1=rows[-1]["volume"]/vol20 if vol20>0 else None
+    day_volume_ratio=rows[-1]["volume"]/vol20 if vol20>0 else None
     return {
         "returns_pct":returns,
         "positive_days_10":up10,
         "max_close_drawdown_10_pct":round(worst,4),
-        "volume_1d_vs_prior20_median":round(v1,4) if v1 is not None else None,
+        "volume_1d_vs_prior20_median":round(day_volume_ratio,4) if day_volume_ratio is not None else None,
         "extreme_recent_acceleration_observation":bool(
-            returns["5"]>12 and v1 is not None and v1>3),
+            returns["5"]>12 and day_volume_ratio is not None and day_volume_ratio>3),
     }
 
 
@@ -180,8 +171,6 @@ def select_company_rows(rows, audit_rows, date, root, history_cache,
             "financial_evidence_gaps":core_notes,
             "entry_reference_score":previous["opportunity"].get("entry_score"),
             "price_structure_score":previous["opportunity"].get("price_structure_score"),
-            "legacy_pre_screen_score":previous.get("combined_score"),
-            "legacy_opportunity":previous["opportunity"],
             "history":f,
         })
     return entries,excluded
@@ -190,7 +179,7 @@ def select_company_rows(rows, audit_rows, date, root, history_cache,
 def dual_channel(entries, slots=MAX_RESEARCH_PER_INDUSTRY):
     """No over-cap ties. Leadership and entry are intentionally independent."""
     if slots!=5:
-        raise ValueError("v4_fixed_five_company_model_budget")
+        raise ValueError("prescreen_fixed_five_company_model_budget")
     if not entries:
         return [], {"reason":"NO_FULLY_VERIFIED_CANDIDATES"}
     n=len(entries)
@@ -219,7 +208,7 @@ def dual_channel(entries, slots=MAX_RESEARCH_PER_INDUSTRY):
         p=e["peer_percentiles"]
         if not all(number(p[h]) for h in ("10","20","60")) or not number(rank):
             return [],{"reason":"PEER_PERCENTILE_INCOMPLETE"}
-        # Fixed transparent V4-Lite hypothesis; NOT tuned on hindsight returns.
+        # Fixed transparent research hypothesis; NOT tuned on hindsight returns.
         continued=(.40*p["20"]+.30*p["60"]+.20*p["10"]+.10*rank)
         entry=e["entry_reference_score"]
         structure=e["price_structure_score"]
@@ -290,7 +279,7 @@ def model_deep_review_packets(picked, trade_date):
             "negative_counterevidence":"REQUIRED",
             "no_imputed_price_target_or_win_probability":True,
         },
-        "deep_review_status":"PENDING_IN_SHADOW",
+        "deep_review_status":"PENDING",
         "may_promote_ready_without_python_risk_gate":False,
     } for company in picked]
 
@@ -302,19 +291,14 @@ def run(root, screen, industry_index=None, selected_date=None,
         raise ValueError("frozen_screen_date_mismatch")
     audit=screen.get("screen_audit") or {}
     scanned=audit.get("lightweight_scanned")
-    selected=audit.get("pre_screen_selected")
-    if (not isinstance(scanned,list) or not isinstance(selected,list) or
-        audit.get("hard_eligible")!=len(scanned)):
+    if (not isinstance(scanned,list) or audit.get("hard_eligible")!=len(scanned)):
         raise ValueError("frozen_screen_lightweight_coverage_missing")
     index=industry_index or read_json(root/"data/low_risk/index.json")
     if index.get("trade_date")!=date:
         raise ValueError("frozen_working_set_index_date_mismatch")
     groups=defaultdict(list)
-    baseline=defaultdict(list)
     for row in scanned:
         groups[row["industry_code"]].append(row)
-    for row in selected:
-        baseline[row["industry_code"]].append(row["code"])
     selected_industries=sorted(groups)
     if allowed_codes is not None:
         selected_industries=[c for c in selected_industries if c in allowed_codes]
@@ -327,31 +311,24 @@ def run(root, screen, industry_index=None, selected_date=None,
                   for row in rows]
         company,excluded=select_company_rows(rows,groups[code],date,root,cache)
         picked,details=dual_channel(company)
-        found={x["code"] for x in picked}
-        original=baseline.get(code,[])
         output.append({
             "industry_code":code,
             "industry_name":rows[0].get("industry_name") if rows else None,
             "all_frozen_companies":len(rows),
-            "original_hard_eligible":len(groups[code]),
+            "hard_eligible_count":len(groups[code]),
             "eligible_with_new_technical_evidence":len(company),
             "history_exclusions":excluded,
-            "original_research_codes":original,
-            "v4_research_codes":[x["code"] for x in picked],
-            "original_count":len(original),
-            "new_research_required_codes":sorted(found-set(original)),
-            "original_candidates_omitted":sorted(set(original)-found),
+            "research_codes":[x["code"] for x in picked],
             "model_research_slots_required":len(picked),
             "selection_evidence":details,
             "selected_candidates":picked,
             "model_deep_review_packets":model_deep_review_packets(picked,date),
-            "reconstruction_fully_verified":bool(picked) and not any(
-                x["code"] in set(original) for x in excluded),
+            "reconstruction_fully_verified":bool(picked),
             "requires_fresh_business_review_before_formal_use":True,
         })
     return {
         "version":VERSION,
-        "mode":"SHADOW_PROGRAM_ONLY_NO_MODEL_CALL",
+        "mode":"PROGRAM_ONLY_NO_MODEL_CALL",
         "asof_date":date,
         "industry_groups":output,
         "rules":{
@@ -373,10 +350,9 @@ def main():
     parser.add_argument("--output",type=Path,required=True)
     args=parser.parse_args()
     output=args.output.resolve()
-    if ("shadow" not in str(output).lower()
-        or any(s in str(output) for s in (
-            "trend_buy_formal_result","trend_buy_handoff"))):
-        raise ValueError("shadow_only_output_required")
+    if any(s in str(output) for s in (
+            "trend_buy_formal_result","trend_buy_handoff")):
+        raise ValueError("prescreen_cannot_write_formal_output")
     result=run(args.root.resolve(),read_json(args.screen))
     output.parent.mkdir(parents=True,exist_ok=True)
     output.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
@@ -384,9 +360,7 @@ def main():
         "mode":result["mode"],"date":result["asof_date"],
         "industry_groups":[{
             "industry":x["industry_code"],
-            "original":x["original_research_codes"],
-            "v4":x["v4_research_codes"],
-            "new_research_required":x["new_research_required_codes"],
+            "selected":x["research_codes"],
             "eligible":x["eligible_with_new_technical_evidence"],
             "excluded":len(x["history_exclusions"])}
             for x in result["industry_groups"]]

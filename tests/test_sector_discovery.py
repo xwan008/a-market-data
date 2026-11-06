@@ -78,7 +78,6 @@ class SectorDiscoveryTests(unittest.TestCase):
         protocol = (root / "TREND_REGISTRY_PROTOCOL.md").read_text(encoding="utf-8")
         buy = (root / "TREND_BUY_CANONICAL.md").read_text(encoding="utf-8")
         routing = (root / "TREND_HANDOFF_ROUTING_OVERRIDE.md").read_text(encoding="utf-8")
-        prescreen = (root / "PRE_SCREEN_RESEARCH_SCOPE_OVERRIDE.md").read_text(encoding="utf-8")
         intraday = (root / "INTRADAY_MONITOR_CANONICAL.md").read_text(encoding="utf-8")
         # Research reviews the surge promptly but a deadline never forces
         # confirmation. The formal stock route is narrower than the registry.
@@ -96,7 +95,7 @@ class SectorDiscoveryTests(unittest.TestCase):
         self.assertIn("NO_ELIGIBLE_CONFIRMED_TREND", buy)
         self.assertIn("CORE/DIRECT+趋势确认", routing)
         self.assertIn("不得通过人工alias", routing)
-        self.assertIn("绝不能据此跳过上游唯一", prescreen)
+        self.assertIn("只接收同日期已确认且直接受益的申万三级行业", buy)
         self.assertIn("不得把上一日", intraday)
         # Reject legacy descriptions that silently restore old permissions.
         for obsolete in (

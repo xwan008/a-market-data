@@ -78,6 +78,9 @@ class TrendTests(unittest.TestCase):
     def test_prospective_formal_run_rejects_candidate_sector_before_research(self):
         r,s=inputs()
         r["mode"]="FORMAL"
+        r["prescreen_version"]="CANONICAL"
+        r["companies"][0]["model_priority"]=1
+        r["companies"][0]["model_reason"]="已核验主营传导与基本面，但即使数据完整也不能让未确认行业进入正式买点研究"
         r["trade_date"]=s["reference_trade_date"]="2026-10-27"
         s["companies"]["600001"]["data_date"]="2026-10-27"
         r["companies"][0]["market_state"]="候选趋势"

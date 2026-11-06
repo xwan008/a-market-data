@@ -183,7 +183,7 @@ class DynamicStageTests(unittest.TestCase):
                          ["600002","600001"])
         self.assertEqual([x["status"] for x in first["items"]], ["WAIT","WAIT"])
 
-    def test_legacy_breakout_gate_and_old_price_stop_cannot_change_rank(self):
+    def test_historical_breakout_gate_and_old_price_stop_cannot_change_rank(self):
         def stock(code, prior_support):
             x=wait_stock(code,"INITIATING",p=10,ma20=9.6,ma60=9.5)
             x["data_date"]="2026-10-23"

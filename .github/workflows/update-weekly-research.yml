@@ -117,7 +117,7 @@ jobs:
           print('WEEKLY_CORE_FINANCIAL_PASS',r['after_deduct_growth_usable'],r['stocks'])
           PY
 
-      - name: Persist verified F10 evidence snapshot for V4 shadow input
+      - name: Persist verified F10 evidence snapshot for canonical prescreen
         run: |
           python - <<'PY'
           import json
@@ -155,7 +155,7 @@ jobs:
           destination.write_text(
               json.dumps(snapshot,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
           assert json.loads(destination.read_text())['asof_trade_date']==market['trade_date']
-          print('V4_WEEKLY_CORE_EVIDENCE_READBACK',snapshot['asof_trade_date'],
+          print('PRESCREEN_WEEKLY_CORE_EVIDENCE_READBACK',snapshot['asof_trade_date'],
                 snapshot['after_deduct_growth_usable'],snapshot['stocks'])
           PY
 
