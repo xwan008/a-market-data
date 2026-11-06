@@ -244,7 +244,7 @@ def rank_entry_first(entries, slots=MAX_RESEARCH_PER_INDUSTRY):
         "peer_return_medians_pct":reference,
         "entry_evidence_eligible_count":len(entry_order),
         "entry_selected_count":min(len(entry_order),slots),
-        "watch_fallback_count":max(0,remaining),
+        "watch_fallback_count":min(remaining,len(watch_order)),
         "entry_top5_codes":[x["code"] for x in entry_order[:5]],
         "watch_fallback_top5_codes":[x["code"] for x in watch_order[:5]],
         "max_model_research_per_sw3":5,
