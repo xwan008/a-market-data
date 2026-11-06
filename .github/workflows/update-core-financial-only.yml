@@ -1,0 +1,107 @@
+name: Refresh Core Financial Evidence Only (No Quotes)
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/external-trigger-core-profit.txt'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-core-financial-evidence
+  cancel-in-progress: false
+
+jobs:
+  refresh-core-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install requests
+      - name: Read-only quote and data date audit before public financial refresh
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          j=json.loads(Path('data/latest.json').read_text())
+          assert len(j.get('stocks') or {})>=3000
+          assert j['market_status'] in ('closed','closed_or_no_trade')
+          assert j.get('trade_date')
+          print('F10_ONLY_ORIGINAL_DATA_DATE',j['trade_date'])
+          PY
+      - name: Run full-market date-verified F10 financial evidence refresh
+        run: |
+          python scripts/refresh_core_financial_only.py \
+            --input data/latest.json \
+            --output /tmp/core-only-financial-shadow.json \
+            --batch-size 40 --workers 4 --min-core-coverage 0.75
+      - name: Persist standalone source audit without altering previously published frozen prices
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report=json.loads(Path('/tmp/core-only-financial-shadow.json').read_text())
+          assert report['after_deduct_growth_usable']/report['stocks']>=.75
+          assert not report['source_data_retrieval_incomplete']
+          source=json.loads(Path('data/latest.json').read_text())
+          assert source['trade_date']==report['asof_date']
+          target={
+              'schema_version':1,
+              'result_kind':'date_verified_financial_only_evidence',
+              'asof_trade_date':report['asof_date'],
+              'generated_at':report['generated_at'],
+              'source':report['source'],
+              'stocks':report['stocks'],
+              'prior_deduct_growth_usable':report['prior_deduct_growth_usable'],
+              'after_deduct_growth_usable':report['after_deduct_growth_usable'],
+              'after_core_amount_usable':report['after_core_amount_usable'],
+              'records':report['records'],
+              'no_republication_of_old_formal_trend_buy':True,
+          }
+          p=Path('data/research/core_profit_refresh_latest.json')
+          p.parent.mkdir(parents=True,exist_ok=True)
+          p.write_text(json.dumps(target,ensure_ascii=False,indent=2)+'\n')
+          print('CORE_FINANCE_PERSIST_SOURCE',target['asof_trade_date'],
+                target['after_deduct_growth_usable'],target['stocks'])
+          PY
+          git diff --exit-code -- data/latest.json research/trend_buy_formal_result.json research/trend_buy_handoff.json
+      - name: Commit ONLY separately dated core financial evidence, not quote snapshots
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/research/core_profit_refresh_latest.json
+          git commit -m 'data: backfill date-verified core financial evidence'
+          for attempt in 1 2 3; do
+            git fetch origin main --quiet
+            if ! git rebase origin/main; then
+              git rebase --abort || true
+              exit 1
+            fi
+            python - <<'PY'
+          import json,subprocess
+          from pathlib import Path
+          source=json.loads(subprocess.check_output(
+              ['git','show','origin/main:data/latest.json']))
+          evidence=json.loads(Path('data/research/core_profit_refresh_latest.json').read_text())
+          assert source['trade_date']==evidence['asof_trade_date'], 'dated_finance_snapshot_advanced_skip'
+          PY
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            sleep "$attempt"
+          done
+          exit 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: core-financial-only-date-verified
+          path: /tmp/core-only-financial-shadow.json
+          retention-days: 14

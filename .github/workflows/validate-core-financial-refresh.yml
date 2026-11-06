@@ -1,0 +1,77 @@
+name: Financial core profit source probe (read only)
+on:
+  pull_request:
+    paths:
+      - 'experiments/financial_field_source_probe.py'
+      - '.github/workflows/validate-core-financial-refresh.yml'
+      - 'scripts/refresh_core_financial_only.py'
+      - 'tests/test_core_financial_refresh.py'
+      - '.github/workflows/update-weekly-research.yml'
+      - '.github/workflows/update-core-financial-only.yml'
+      - 'research/shadow/CORE_FINANCIAL_REFRESH_2026-11-06.md'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install requests
+      - name: Probe latest and prior year public report field coverage
+        run: python experiments/financial_field_source_probe.py
+      - name: Validate both scheduled workflow YAML files
+        run: |
+          python -m pip install pyyaml
+          python - <<'PY'
+          import yaml
+          from pathlib import Path
+          for name in ('update-weekly-research.yml','update-core-financial-only.yml'):
+              p=Path('.github/workflows')/name
+              doc=yaml.safe_load(p.read_text(encoding='utf-8'))
+              assert 'jobs' in doc, name
+              print('VALID_WORKFLOW_YAML',name,len(doc['jobs']))
+          PY
+      - name: Financial as-of date, duplicate and no-overwrite regressions
+        run: |
+          python -m unittest discover -s tests -p 'test_core_financial_refresh.py' -v
+          python -m py_compile scripts/refresh_core_financial_only.py
+      - name: LIVE full-market F10 backfill into shadow artifact (NO main/quote writes)
+        run: |
+          python scripts/refresh_core_financial_only.py \
+            --input data/latest.json \
+            --output /tmp/verified-core-financial-shadow.json \
+            --batch-size 40 --workers 4 --min-core-coverage 0.75
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          s=json.loads(Path('/tmp/verified-core-financial-shadow.json').read_text())
+          assert s['mode']=='CORE_FINANCIAL_ONLY_BACKFILL_SHADOW_REVIEW'
+          assert s['market_snapshot_unmodified_in_report'] is True
+          assert s['after_deduct_growth_usable']>=s['prior_deduct_growth_usable']
+          assert s['after_deduct_growth_usable']/s['stocks']>=.75
+          assert not s['source_data_retrieval_incomplete']
+          for code,r in s['records'].items():
+              assert r['notice_date']<=s['asof_date']
+              assert r['report_date']<=s['asof_date']
+              assert not r['update_date'] or r['update_date']<=s['asof_date']
+              assert r['code']==code
+          print('FINANCIAL_ONLY_LIVE_PROOF',json.dumps({
+              k:s[k] for k in ('asof_date','stocks','batch_count',
+                  'prior_deduct_growth_usable','after_deduct_growth_usable',
+                  'after_core_amount_usable','updated_stocks')},ensure_ascii=False))
+          PY
+      - name: Upload full-market source-verifiable financial-only results
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-financial-full-market-readonly-shadow
+          path: /tmp/verified-core-financial-shadow.json
+          retention-days: 14
+      - name: Verify snapshot and official output files unchanged
+        run: |
+          git diff --exit-code -- data/latest.json research/trend_buy_formal_result.json research/trend_buy_handoff.json
