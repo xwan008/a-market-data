@@ -296,7 +296,7 @@ def model_deep_review_packets(picked, trade_date):
 
 
 def run(root, screen, industry_index=None, selected_date=None,
-        allowed_codes=None):
+        allowed_codes=None, financial_overlay=None):
     date=screen.get("trade_date")
     if not isinstance(date,str) or selected_date not in (None,date):
         raise ValueError("frozen_screen_date_mismatch")
@@ -322,6 +322,9 @@ def run(root, screen, industry_index=None, selected_date=None,
     output=[]
     for code in selected_industries:
         rows=frozen_industry_rows(root,index,code,date)
+        if financial_overlay is not None:
+            rows=[{**row,**financial_overlay.get(row["code"],{})}
+                  for row in rows]
         company,excluded=select_company_rows(rows,groups[code],date,root,cache)
         picked,details=dual_channel(company)
         found={x["code"] for x in picked}
