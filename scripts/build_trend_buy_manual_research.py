@@ -210,7 +210,9 @@ def compact_opportunity(structure, trade_date):
 
 
 def build(evidence_path, structure_path=None, structure_output_path=None,
-          v4_admission_path=None):
+          v4_admission_path=None, audit_only=False):
+    if audit_only and v4_admission_path is not None:
+        raise ValueError("V4_AUDIT_ONLY_CANNOT_BE_FORMAL")
     trend=read(TREND)
     index=read(INDEX)
     vault=read(evidence_path)
@@ -330,6 +332,15 @@ def build(evidence_path, structure_path=None, structure_output_path=None,
                     "code":c["code"],"industry_code":code,"reason":reason})
             audit["lightweight_scanned"].append(d)
         ranked.sort(key=lambda row:(-row[1]["combined_score"],row[0]["code"]))
+        if audit_only:
+            # Internal V4 full eligible company scan only, no competing old
+            # Top5 ranking/selection or model research is performed here.
+            audit["research_slots_per_industry"][code]=0
+            for c,d in ranked:
+                audit["pre_screened_out"].append({
+                    "code":c["code"],"industry_code":code,
+                    "reason":"V4_PYTHON_PROGRAM_SELECTION_PENDING"})
+            continue
         accepted=[]
         if v4_by_industry is not None:
             eligible_lookup={c["code"]:(c,d) for c,d in ranked}
@@ -470,7 +481,7 @@ def build(evidence_path, structure_path=None, structure_output_path=None,
     gate["structure_same_day"]=True
     result={"schema_version":"trend_buy_research_v2",
             "prescreen_version":"V4_B1" if v4_by_industry is not None else "LEGACY",
-            "mode":"FORMAL" if not missing_review and not missing_v4_model_rank else "SHADOW",
+            "mode":"SHADOW" if audit_only else ("FORMAL" if not missing_review and not missing_v4_model_rank else "SHADOW"),
             "run_id":"trend-buy-research-asof-"+day,
             "trade_date":day,"coverage_complete":True,
             "selected_company_count":len(candidate),"publication_audit":gate,
