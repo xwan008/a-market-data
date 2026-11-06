@@ -2,6 +2,9 @@ name: Update Weekly Research Data
 
 on:
   workflow_dispatch:
+  schedule:
+    # Sunday 18:30 China time: fall back only if the 17:00 external weekly refresh did not complete.
+    - cron: '30 10 * * 0'
   push:
     branches:
       - main
@@ -16,7 +19,50 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  check_weekly_freshness:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.guard.outputs.should_run }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Skip native Sunday fallback when external Sunday finance refresh succeeded
+        id: guard
+        shell: bash
+        env:
+          TRIGGER_EVENT: ${{ github.event_name }}
+        run: |
+          python - <<'PY'
+          import json,os
+          from datetime import datetime
+          from pathlib import Path
+          from zoneinfo import ZoneInfo
+          allowed=True
+          reason="manual_or_external_push"
+          if os.environ.get("TRIGGER_EVENT")=="schedule":
+              now=datetime.now(ZoneInfo("Asia/Shanghai"))
+              try:
+                  current=json.loads(Path("data/latest.json").read_text(encoding="utf-8"))
+                  stamp=datetime.fromisoformat(current.get("generated_at","")).astimezone(
+                      ZoneInfo("Asia/Shanghai"))
+                  stats=current.get("fundamental_stats") or {}
+                  n=len(current.get("stocks") or {})
+                  core=int(stats.get("deduct_profit_growth_usable") or 0)
+                  if (stamp.date()==now.date() and stamp.hour>=16
+                          and n>=3000 and core/n>=.75):
+                      allowed=False
+                      reason="externally_refreshed_this_sunday_with_core_financial_coverage"
+                  else:
+                      reason="native_weekly_fallback_needed"
+              except (OSError,ValueError,TypeError):
+                  reason="native_weekly_fallback_missing_audit"
+          with open(os.environ["GITHUB_OUTPUT"],"a",encoding="utf-8") as f:
+              f.write("should_run="+("true" if allowed else "false")+"\n")
+          print("WEEKLY_FINANCE_RUN_DECISION",reason,allowed)
+          PY
+
   update:
+    needs: check_weekly_freshness
+    if: needs.check_weekly_freshness.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -51,6 +97,25 @@ jobs:
           python scripts/restore_valuation_fallback.py \
             --current data/latest.json \
             --previous /tmp/latest.previous.json
+
+      - name: Enrich core earnings from verified F10 batches (no quote refresh)
+        run: |
+          python scripts/refresh_core_financial_only.py \
+            --input data/latest.json \
+            --output /tmp/weekly-core-profit-shadow.json \
+            --batch-size 40 --workers 4 --min-core-coverage 0.75 --apply
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/weekly-core-profit-shadow.json').read_text())
+          p=json.loads(Path('data/latest.json').read_text())
+          assert p['trade_date']==r['asof_date']
+          assert r['after_deduct_growth_usable']/r['stocks']>=.75
+          assert (p['fundamental_stats']['deduct_profit_growth_usable']
+                  ==r['after_deduct_growth_usable'])
+          assert not r['source_data_retrieval_incomplete']
+          print('WEEKLY_CORE_FINANCIAL_PASS',r['after_deduct_growth_usable'],r['stocks'])
+          PY
 
       - name: Validate weekly financial coverage
         shell: bash
