@@ -157,8 +157,8 @@ def evaluate_candidate(c, structure, trade_date):
         "structure_confirmed": False,
         "data_date": trade_date, "price_basis": "completed_daily_bar",
         "research_falsifier": c.get("research_falsifier"), "source_review": c.get("source_review"),
-        "v4_model_priority":c.get("v4_model_priority"),
-        "v4_model_reason":c.get("v4_model_reason"),
+        "model_priority":c.get("model_priority"),
+        "model_reason":c.get("model_reason"),
         "trend_phase": (structure or {}).get("trend_phase", "TRANSITION"),
         "phase_evidence": (structure or {}).get("phase_evidence") or {},
     }
@@ -557,13 +557,13 @@ def dynamic_top5_by_theme(ready, wait, research):
         return (-signal_score, phase_rank, abs(dist) if val(dist) else 100,
                 row.get("code") or "")
 
-    v4_mode = research.get("prescreen_version") == "V4_B1"
+    canonical_mode = research.get("prescreen_version") == "CANONICAL"
     def ordering_key(row):
-        if not v4_mode:
+        if not canonical_mode:
             return top5_rank_key(row)
-        priority = row.get("v4_model_priority")
+        priority = row.get("model_priority")
         if not isinstance(priority,int) or isinstance(priority,bool):
-            raise ValueError("V4_UNREVIEWED_RANK_NOT_ALLOWED")
+            raise ValueError("PRESCREEN_UNREVIEWED_RANK_NOT_ALLOWED")
         # Admission still requires READY/WAIT independently: model rank is
         # a *relative research order*, never an authorization to trade.
         return (0 if row.get("status")=="READY" else 1,
@@ -585,7 +585,7 @@ def dynamic_top5_by_theme(ready, wait, research):
             elif trend_watch_signal(row):
                 watches.append(row)
         primary.sort(key=ordering_key)
-        watches.sort(key=ordering_key if v4_mode else trend_watch_key)
+        watches.sort(key=ordering_key if canonical_mode else trend_watch_key)
         selected = primary[:5]
         selected.extend(watches[:max(0, 5 - len(selected))])
         # Apply the same final ranking after including any fallback watches.
@@ -678,17 +678,17 @@ def add_attention_priorities(groups, ready, wait, research):
                              if position is not None else "；MA20距离证据缺失")
             if details["overextended"]:
                 position_text += ("；短线追高风险需独立校验"
-                                  if research.get("prescreen_version")=="V4_B1"
+                                  if research.get("prescreen_version")=="CANONICAL"
                                   else "；短线过热标记参与排序")
             item["attention_rank"] = rank
             status_text = ("READY先于WAIT；仅下一交易日条件性入场"
                            if row["status"] == "READY" else "WAIT仅供观察，尚不可买")
             ma60_text = ("；MA60上方小幅加分（不代表刚突破）"
                          if details["ma60_above"] else "")
-            if research.get("prescreen_version")=="V4_B1":
+            if research.get("prescreen_version")=="CANONICAL":
                 item["attention_judgement"] = (
-                    "V4模型同主题相对研究次序：" + status_text
-                    + "；模型研究判断："+str(row.get("v4_model_reason") or "未提供")
+                    "模型同主题相对研究次序：" + status_text
+                    + "；模型研究判断："+str(row.get("model_reason") or "未提供")
                     + "；" + trend_labels[details["trend_tier"]]
                     + "；" + signal_labels[details["follow_signal"]]
                     + position_text
@@ -814,21 +814,23 @@ def generate(research, structure):
         raise ValueError("selected_coverage_mismatch")
     rows=[evaluate_candidate(c, (structure.get("companies") or {}).get(code), day) for c,code in zip(co,ids)]
     formal = research.get("mode") == "FORMAL"
-    if research.get("prescreen_version")=="V4_B1":
+    if formal and research.get("prescreen_version") != "CANONICAL":
+        raise ValueError("FORMAL_REQUIRES_CANONICAL_SCREEN")
+    if research.get("prescreen_version")=="CANONICAL":
         if research.get("mode")=="FORMAL":
             positions={}
             for c in co:
                 if c.get("transmission") not in ("SUPPORTED","EARLY_EVIDENCE"):
                     continue
-                pos_val=c.get("v4_model_priority")
-                explain=c.get("v4_model_reason")
+                pos_val=c.get("model_priority")
+                explain=c.get("model_reason")
                 if (not isinstance(pos_val,int) or isinstance(pos_val,bool)
                         or not 1<=pos_val<=100
                         or not isinstance(explain,str) or len(explain.strip())<24):
-                    raise ValueError("V4_MODEL_RESEARCH_RANK_OR_REASON_MISSING")
+                    raise ValueError("PRESCREEN_MODEL_RESEARCH_RANK_OR_REASON_MISSING")
                 theme=c.get("trend_name")
                 if pos_val in positions.setdefault(theme,set()):
-                    raise ValueError("V4_MODEL_RANK_DUPLICATED_WITHIN_THEME")
+                    raise ValueError("PRESCREEN_MODEL_RANK_DUPLICATED_WITHIN_THEME")
                 positions[theme].add(pos_val)
     audit = research.get("publication_audit") or {}
     if formal and day >= "2026-10-27" and any(
