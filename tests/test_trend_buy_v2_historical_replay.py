@@ -118,6 +118,36 @@ class ReplayTests(unittest.TestCase):
         self.assertIsNone(out)
         self.assertEqual(error, "ASOF_CLOSE_VS_HISTORY_BASIS_MISMATCH")
 
+    def test_reference_adjusted_basis_is_opt_in_and_bounded(self):
+        bars={
+            "2026-10-13":{"close":9.82,"low":9.6,"high":10},
+            "2026-10-14":{"open":9.9,"close":10.0,"low":9.8,"high":10.1},
+            "2026-10-15":{"open":10.1,"close":10.3,"low":10,"high":10.4}
+        }
+        row={"date":"2026-10-13","code":"601288","current_price":10}
+        history={"601288":(bars,"tencent_qfq_plus_live_tail+reference_adjusted")}
+        args=(row,"2026-10-14","2026-10-15",sorted(bars),history)
+        strict,error=replay.outcome(*args)
+        self.assertIsNone(strict)
+        self.assertEqual(error,"ASOF_CLOSE_VS_HISTORY_BASIS_MISMATCH")
+        result,error=replay.outcome(*args,
+                       price_basis_policy="REFERENCE_ADJUSTED_SENSITIVITY")
+        self.assertIsNone(error)
+        self.assertTrue(result["adjusted_basis_sensitivity_accepted"])
+        self.assertAlmostEqual(result["basis_ratio_to_frozen"],.982)
+        other,reason=replay.outcome(row,"2026-10-14","2026-10-15",
+                       sorted(bars),{"601288":(bars,"unverified_raw")},
+                       price_basis_policy="REFERENCE_ADJUSTED_SENSITIVITY")
+        self.assertIsNone(other)
+        self.assertEqual(reason,"ASOF_CLOSE_VS_HISTORY_BASIS_MISMATCH")
+        wide={"2026-10-13":{"close":9.3,"low":9.1,"high":9.4},
+              **{k:v for k,v in bars.items() if k!="2026-10-13"}}
+        bad,reason=replay.outcome(row,"2026-10-14","2026-10-15",
+                       sorted(wide),{"601288":(wide,"reference_adjusted")},
+                       price_basis_policy="REFERENCE_ADJUSTED_SENSITIVITY")
+        self.assertIsNone(bad)
+        self.assertEqual(reason,"ASOF_CLOSE_VS_HISTORY_BASIS_MISMATCH")
+
     def test_publication_must_precede_next_open(self):
         self.assertTrue(replay.published_before_next_open(
             "2026-10-20T19:00:00+08:00", "2026-10-21"))
