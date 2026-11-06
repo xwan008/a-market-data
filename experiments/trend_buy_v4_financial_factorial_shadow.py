@@ -127,8 +127,8 @@ def run(root, frozen, finance):
                     "code":row["code"],
                     "legacy_fundamental_score":old_score[0],
                     "core_first_fundamental_score":new_score[0],
-                    "core_profit_yoy":patched[len(changed)]["deduct_net_profit_yoy"]
-                        if False else per_industry_patches.get(row["code"],{}).get("deduct_net_profit_yoy"),
+                    "core_profit_yoy":per_industry_patches.get(
+                        row["code"],{}).get("deduct_net_profit_yoy"),
                 })
         # A1: same opportunity gate/combined formula, but core-first
         # financial subscore. Keep previously verified NOT_SUPPORTED exclusions.
