@@ -16,7 +16,7 @@ from pathlib import Path
 import statistics
 
 EXPECTED_RANKINGS = ("V2", "V21_STRUCTURAL")
-HORIZONS = (3, 5, 10)
+HORIZONS = (1, 2, 3, 5, 10)
 
 
 def avg(xs):
