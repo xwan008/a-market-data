@@ -85,7 +85,7 @@ def prepare(root=ROOT):
         },ensure_ascii=False),encoding="utf-8")
         # Existing hard-filter and compact opportunity calculators are reused
         # solely for cheap full-universe audit, NOT for a second publication.
-        lightweight=old.build(empty)
+        lightweight=old.build(empty,audit_only=True)
     if (lightweight["mode"]!="SHADOW" or
             not lightweight["screen_audit"]["hard_eligible"]):
         raise ValueError("V4_PRE_RESEARCH_FAILED_CLOSED")
