@@ -189,6 +189,8 @@ def robust_summary(rows):
         "later_dates": len(late),
         "later_dates_mean_pp": round_or_none(avg([v for _,v in late])),
         "by_v2_top1_asof_regime": by_group(rows, "v2_top1_regime"),
+        "by_market_state_category": by_group(rows, "market_state_category"),
+        "by_protocol_epoch": by_group(rows, "protocol_epoch"),
         "by_theme": by_group(rows, "theme"),
         "worst_5_changed": [
             {"asof": r["asof"], "theme": r["theme"],
