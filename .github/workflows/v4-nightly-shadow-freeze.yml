@@ -69,7 +69,14 @@ jobs:
         run: |
           git fetch --no-tags --depth=1 origin \
             feature/trend-buy-v4-financial-factorial-shadow-20261106
-          echo "V4_SHADOW_RESEARCH_CODE_SHA=$(git rev-parse FETCH_HEAD)"
+          V4_EXPECTED_RESEARCH_SHA=4749d6c51b614eeb9761646771d8e3d8fa68f030
+          V4_ACTUAL_RESEARCH_SHA="$(git rev-parse FETCH_HEAD)"
+          test "$V4_ACTUAL_RESEARCH_SHA" = "$V4_EXPECTED_RESEARCH_SHA" || {
+            echo "V4_SHADOW_RESEARCH_COMMIT_CHANGED_REQUIRES_REVIEW"
+            exit 1
+          }
+          echo "$V4_ACTUAL_RESEARCH_SHA" > /tmp/v4-nightly-program-commit.txt
+          echo "V4_SHADOW_RESEARCH_CODE_SHA=$V4_ACTUAL_RESEARCH_SHA"
           mkdir -p experiments
           for path in \
             scripts/build_trend_buy_manual_research.py \
@@ -130,6 +137,46 @@ jobs:
             "$(git rev-parse HEAD:research/trend_buy_formal_result.json)"
           test "$(git hash-object research/trend_buy_handoff.json)" = \
             "$(git rev-parse HEAD:research/trend_buy_handoff.json)"
+      - name: Save source-checked manifest for 20:15 model research
+        env:
+          CI_RUN_ID: ${{ github.run_id }}
+        run: |
+          python - <<'PY'
+          import json,os,subprocess
+          from pathlib import Path
+          source=json.loads(Path('research/trend_buy_formal_result.json').read_text())
+          handoff=json.loads(Path('research/trend_handoff.json').read_text())
+          finance=json.loads(Path('data/research/core_profit_refresh_latest.json').read_text())
+          result=json.loads(Path('/tmp/v4-nightly-candidates-shadow.json').read_text())
+          def blob(path):
+              return subprocess.check_output(
+                  ['git','rev-parse','HEAD:'+path],text=True).strip()
+          manifest={
+              'mode':'V4_B1_PROGRAM_ONLY_COMPLETE',
+              'market_date':source['trade_date'],
+              'confirmed_sector_date':handoff['trade_date'],
+              'finance_source_date':finance['asof_trade_date'],
+              'finance_source':'eastmoney_RPT_F10_FINANCE_MAINFINADATA',
+              'official_result_git_blob_sha':blob('research/trend_buy_formal_result.json'),
+              'industry_handoff_git_blob_sha':blob('research/trend_handoff.json'),
+              'frozen_industry_index_git_blob_sha':blob('data/low_risk/index.json'),
+              'finance_git_blob_sha':blob('data/research/core_profit_refresh_latest.json'),
+              'research_code_commit':Path('/tmp/v4-nightly-program-commit.txt').read_text().strip(),
+              'github_actions_run_id':os.environ['CI_RUN_ID'],
+              'no_model_research_yet':True,
+              'model_max_stocks_per_sw3':5,
+              'industry_count':len(result['industry_groups']),
+              'industry_codes':[x['industry_code'] for x in result['industry_groups']],
+              'model_research_ready':True,
+              'production_promoted':False,
+          }
+          assert manifest['market_date']==manifest['confirmed_sector_date']==result['asof_date']
+          assert all(0<len(x['cases']['V4_CORE_FIRST'])<=5
+                     for x in result['industry_groups'])
+          out=Path('/tmp/v4-nightly-candidate-manifest.json')
+          out.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
+          print('V4_VERIFIED_PYTHON_HANDOFF',json.dumps(manifest,ensure_ascii=False))
+          PY
       - name: Save same-date program-only candidates for after-20:15 model research
         uses: actions/upload-artifact@v4
         with:
@@ -137,4 +184,5 @@ jobs:
           path: |
             /tmp/v4-nightly-original-shadow.json
             /tmp/v4-nightly-candidates-shadow.json
+            /tmp/v4-nightly-candidate-manifest.json
           retention-days: 35
