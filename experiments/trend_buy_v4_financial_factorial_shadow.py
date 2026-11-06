@@ -39,8 +39,12 @@ def validated_patch(company, record, asof, source_asof):
     period=company.get("report_date")
     if not isinstance(period,str) or not period or record.get("report_date")!=period:
         return None,"REPORT_PERIOD_MISMATCH"
-    if source_asof<asof:
-        return None,"SOURCE_SNAPSHOT_BEFORE_ASOF"
+    # A prior F10 snapshot is chronologically safe: its facts were known
+    # before this signal date. It may be stale, so subsequent model research
+    # must still check any newer company disclosures. A later source snapshot
+    # requires explicit report / notice / update as-of filtering below.
+    if not isinstance(source_asof,str) or len(source_asof)!=10:
+        return None,"SOURCE_SNAPSHOT_DATE_NOT_VERIFIED"
     for key in ("report_date","notice_date","update_date"):
         stamp=record.get(key)
         if key=="update_date" and stamp is None:
@@ -178,6 +182,8 @@ def run(root, frozen, finance):
         "source_finance_snapshot_asof":f_asof,
         "source_provenance":SOURCE,
         "source_snapshot_is_retrospective":f_asof>date,
+        "source_snapshot_precedes_current_day":f_asof<date,
+        "older_source_may_miss_new_disclosures":f_asof<date,
         "mode":"SHADOW_FOUR_WAY_UNREVIEWED_PRESCREEN",
         "arm_definitions":{
             "ORIGINAL_LEGACY":"Published legacy Python score; exact first five",
