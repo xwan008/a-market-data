@@ -261,6 +261,40 @@ def dual_channel(entries, slots=MAX_RESEARCH_PER_INDUSTRY):
     }
 
 
+def model_deep_review_packets(picked, trade_date):
+    """At most 5 bounded review requests, NEVER requests for the whole sector."""
+    if len(picked)>MAX_RESEARCH_PER_INDUSTRY:
+        raise ValueError("model_review_scope_exceeds_five")
+    return [{
+        "code":company["code"],
+        "company_name":company["name"],
+        "industry_code":company["industry_code"],
+        "asof_date":trade_date,
+        "selected_channel":company["selected_channel"],
+        "program_evidence":{
+            "peer_relative_return_pp":{
+                horizon:company["history"]["relative_to_sw3_median_"+horizon+"d_pp"]
+                for horizon in ("10","20","60")},
+            "continuity_days_10":company["history"]["positive_days_10"],
+            "current_entry_reference_score":company["entry_reference_score"],
+            "financial_basic_score":company["fundamental_score"],
+            "core_earnings_growth_verified":company["core_profit_growth_verified"],
+            "financial_evidence_gaps":company["financial_evidence_gaps"],
+        },
+        "source_requirements":{
+            "published_no_later_than":trade_date,
+            "business_and_sector_transmission":"REQUIRE_VERIFIABLE_DISCLOSURE",
+            "core_profit_and_cashflow":"REQUIRE_OR_MARK_UNKNOWN",
+            "expected_growth_revision":"DATE_STAMPED_FACT_OR_UNKNOWN",
+            "market_prior_expectation":"UNKNOWN_UNLESS_HISTORICAL_SOURCE",
+            "negative_counterevidence":"REQUIRED",
+            "no_imputed_price_target_or_win_probability":True,
+        },
+        "deep_review_status":"PENDING_IN_SHADOW",
+        "may_promote_ready_without_python_risk_gate":False,
+    } for company in picked]
+
+
 def run(root, screen, industry_index=None, selected_date=None,
         allowed_codes=None):
     date=screen.get("trade_date")
@@ -307,6 +341,7 @@ def run(root, screen, industry_index=None, selected_date=None,
             "model_research_slots_required":len(picked),
             "selection_evidence":details,
             "selected_candidates":picked,
+            "model_deep_review_packets":model_deep_review_packets(picked,date),
             "reconstruction_fully_verified":bool(picked) and not any(
                 x["code"] in set(original) for x in excluded),
             "requires_fresh_business_review_before_formal_use":True,
