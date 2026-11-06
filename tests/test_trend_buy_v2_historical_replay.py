@@ -41,6 +41,30 @@ class ReplayTests(unittest.TestCase):
         self.assertTrue(any(x["reason"] == "publication_outside_36_hours"
                             for x in rejected))
 
+    def test_first_rankable_does_not_select_rankless_early_publication(self):
+        # Oct 9 evening was originally complete but did not yet publish Top5.
+        # Oct 10 17:00+08 is the first actually ranked Top5, before Oct 12 open.
+        raw=("late\\t2026-10-11T08:00:00+00:00\\n"
+             "ranked\\t2026-10-10T09:00:34+00:00\\n"
+             "rankless\\t2026-10-10T05:38:48+00:00\\n").replace("\\\\t", "\\t").replace("\\\\n", "\\n")
+        prior={"trade_date":"2026-10-09","status":"COMPLETE",
+               "production_eligible":True,"top5_by_theme":[]}
+        later={**prior,"top5_by_theme":[{"trend_name":"固态电池",
+            "items":[{"code":"603659"},{"code":"002812"}]}]}
+        content={"rankless":prior,"ranked":later,"late":later}
+        with patch.object(replay,"git",return_value=raw),patch.object(
+            replay,"historical_file",side_effect=lambda sha,*_:content[sha]):
+            early,_=replay.published_snapshots(
+                min_date="2026-10-09",max_date="2026-10-09",
+                policy="EARLIEST_COMPLETE")
+            usable,rejected=replay.published_snapshots(
+                min_date="2026-10-09",max_date="2026-10-09",
+                policy="FIRST_RANKABLE")
+        self.assertEqual(early[0]["commit"],"rankless")
+        self.assertEqual(usable[0]["commit"],"ranked")
+        self.assertTrue(any(x["reason"]=="rankless_complete_before_first_rankable"
+                            for x in rejected))
+
     def test_next_open_not_asof_close_and_mae_uses_future_low(self):
         rows = {"2026-11-05": {"close": 10, "low": 9.6, "high": 10.2},
                 "2026-11-06": {"open": 11, "close": 12,
@@ -136,8 +160,10 @@ class ReplayTests(unittest.TestCase):
                  "old_pairwise_accuracy": .5,
                  "v2_pairwise_accuracy": .7}]
         got = replay.summarize(data)
-        self.assertEqual(got[0]["cohorts"], 1)
-        self.assertEqual(got[0]["top1_mean_difference_pp"], 1)
+        self.assertEqual([x["horizon"] for x in got], [1,2,3,5,10])
+        self.assertEqual(got[2]["cohorts"], 1)
+        self.assertEqual(got[2]["top1_mean_difference_pp"], 1)
+        self.assertEqual(got[0]["cohorts"], 0)
         self.assertEqual(got[1]["cohorts"], 0)
 
 if __name__ == "__main__":
