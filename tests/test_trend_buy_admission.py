@@ -1,7 +1,6 @@
-"""现行 can replace the program and model ranking only when both are real.
+"""Entry-first canonical admission, frozen review and model/READY separation.
 
-Previous company reviews cannot be silently reused for the canonical selection
-because its 15 company slots differ from the same-day 现行 Python selection.
+Prior company reviews cannot be silently reused after the admission changes.
 """
 from copy import deepcopy
 import importlib.util
@@ -40,36 +39,64 @@ class CanonicalAdmissionTests(unittest.TestCase):
         self.assertEqual(a["trade_date"],"2026-11-05")
         self.assertEqual(len(mapping),3)
         self.assertEqual(a["selected_company_count"],15)
+        self.assertEqual(a["selection_policy"],"ENTRY_FIRST_NO_QUOTAS")
         self.assertTrue(all(len(codes)<=5 for codes in mapping.values()))
-        self.assertEqual(mapping["S720401"],[
-            "603258","002624","002605","002517","603444"])
+        self.assertTrue(all(g["selection_policy"]=="ENTRY_FIRST_NO_QUOTAS"
+                            for g in a["industries"]))
+        self.assertTrue(all(g["entry_selected_count"]+g["watch_fallback_count"]
+                            ==len(g["selected_codes"]) for g in a["industries"]))
         self.assertFalse(a["checks"]["model_invocations"])
 
-    def test_leader_remains_eligible_when_entry_setup_is_unavailable(self):
-        import trend_buy_prescreen_core as core
+    @staticmethod
+    def synthetic_competitors(entry_flags, *, strong_first=True):
         entries=[]
-        for i in range(6):
-            leader=i==0
+        for i,qualified in enumerate(entry_flags):
+            trend=100-i*8 if strong_first else 15+i*8
             entries.append({
                 "code":f"{600100+i:06d}",
                 "history":{
-                    "returns_pct":{"10":30-i*4,"20":45-i*6,"60":75-i*8},
-                    "positive_days_10":10-i,
+                    "returns_pct":{"10":trend*.4,"20":trend*.65,"60":trend},
+                    "positive_days_10":max(1,10-i),
                 },
                 "fundamental_score":0.5,
-                "entry_channel_eligible":not leader,
-                "entry_reference_score":0.0 if leader else 0.9-i*0.02,
-                "price_structure_score":0.0 if leader else 0.8,
+                "entry_channel_eligible":qualified,
+                "entry_reference_score":(.99-i*.03) if qualified else 0.0,
+                "price_structure_score":0.8 if qualified else 0.0,
             })
-        selected, audit=core.dual_channel(entries)
+        return entries
+
+    def test_six_entry_qualified_compete_without_leadership_reservation(self):
+        import trend_buy_prescreen_core as core
+        # Strongest two historic leaders lack current entry evidence.
+        entries=self.synthetic_competitors([False,False,True,True,True,True,True,True])
+        selected,audit=core.rank_entry_first(entries)
         self.assertEqual(len(selected),5)
-        self.assertEqual(len(set(row["code"] for row in selected)),5)
-        self.assertEqual(selected[0]["code"],"600100")
-        self.assertEqual(selected[0]["selected_channel"],"LEADERSHIP")
-        self.assertNotIn("600100",[x["code"] for x in selected
-                                   if x["selected_channel"]=="ENTRY_LOCATION"])
-        self.assertEqual(sum(x["selected_channel"]=="ENTRY_LOCATION"
-                             for x in selected),2)
+        self.assertEqual({x["code"] for x in selected},
+                         {"600102","600103","600104","600105","600106"})
+        self.assertTrue(all(x["selected_channel"]=="ENTRY_PRIORITY"
+                            for x in selected))
+        self.assertEqual(audit["entry_selected_count"],5)
+        self.assertEqual(audit["watch_fallback_count"],0)
+        self.assertEqual(audit["selection_policy"],"ENTRY_FIRST_NO_QUOTAS")
+
+    def test_entry_shortage_adds_explicit_watch_fallback_not_fake_buy(self):
+        import trend_buy_prescreen_core as core
+        entries=self.synthetic_competitors([False,True,False,False,True,False])
+        selected,audit=core.rank_entry_first(entries)
+        self.assertEqual([x["code"] for x in selected[:2]],["600101","600104"])
+        self.assertEqual([x["code"] for x in selected[2:]],
+                         ["600100","600102","600103"])
+        self.assertEqual([x["selected_channel"] for x in selected],
+                         ["ENTRY_PRIORITY"]*2+["WATCH_FALLBACK"]*3)
+        self.assertTrue(audit["entry_proxy_does_not_authorize_ready"])
+
+    def test_eligible_competition_uses_entry_score_not_pure_leader_return(self):
+        import trend_buy_prescreen_core as core
+        entries=self.synthetic_competitors([True]*6)
+        entries[0]["entry_reference_score"]=0.05
+        selected,_=core.rank_entry_first(entries)
+        self.assertNotIn("600100",[x["code"] for x in selected])
+        self.assertEqual(len(selected),5)
 
     def test_model_rank_can_include_remote_wait_before_nearby_group(self):
         nearby=[shape(f"{600110+i:06d}",i+2,
@@ -103,6 +130,14 @@ class CanonicalAdmissionTests(unittest.TestCase):
     def test_admission_mutation_fails_closed(self):
         a=intake.prepare(ROOT)
         tampered=deepcopy(a)
+        tampered["selection_policy"]="LEADERS_3_ENTRY_2"
+        with self.assertRaisesRegex(ValueError,"ADMISSION"):
+            intake.validate_admission(ROOT,tampered)
+        tampered=deepcopy(a)
+        tampered["industries"][0]["reason"]="PYTHON_3_LEADERS_2_ENTRY_FINANCE_CORE_FIRST"
+        with self.assertRaisesRegex(ValueError,"ADMISSION"):
+            intake.validate_admission(ROOT,tampered)
+        tampered=deepcopy(a)
         tampered["trade_date"]="2026-11-06"
         with self.assertRaisesRegex(ValueError,"ADMISSION"):
             intake.validate_admission(ROOT,tampered)
@@ -134,8 +169,8 @@ class CanonicalAdmissionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             candidate=Path(d)/"trend_buy_research_admission.json"
             candidate.write_text(json.dumps(a,ensure_ascii=False))
-            # The research pipeline must NOT silently reuse 11/05 original 16
-            # reviews to give 现行 a fake formal COMPLETE result.
+            # The pipeline must NOT silently reuse the prior 16 reviews to
+            # forge a current formal COMPLETE result.
             old=builder.build(ROOT/"research/trend_buy_company_reviews/latest.json",
                               admission_path=candidate)
             self.assertEqual(old["prescreen_version"],"CANONICAL")
