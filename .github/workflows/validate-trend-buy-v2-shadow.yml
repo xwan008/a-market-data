@@ -349,3 +349,55 @@ jobs:
             /tmp/v21-sector-wide-shadow.json
             /tmp/v2-sector-wide-robust-shadow.json
           retention-days: 14
+      - name: Bank historical QFQ as-of basis conversion sensitivity - never overwrite strict
+        run: |
+          python experiments/trend_buy_v2_historical_replay.py \
+            --snapshot-policy FIRST_RANKABLE \
+            --price-basis-policy REFERENCE_ADJUSTED_SENSITIVITY \
+            --ranking V2 --min-date 2026-10-09 --max-date 2026-11-05 \
+            --output /tmp/v2-basis-sensitivity-shadow.json
+          python experiments/trend_buy_v2_historical_replay.py \
+            --snapshot-policy FIRST_RANKABLE \
+            --price-basis-policy REFERENCE_ADJUSTED_SENSITIVITY \
+            --ranking V21_STRUCTURAL --min-date 2026-10-09 --max-date 2026-11-05 \
+            --output /tmp/v21-basis-sensitivity-shadow.json
+          python experiments/trend_buy_v2_robustness.py \
+            --v2 /tmp/v2-basis-sensitivity-shadow.json \
+            --v21 /tmp/v21-basis-sensitivity-shadow.json \
+            --output /tmp/v2-basis-sensitive-robust-shadow.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          strict=json.loads(Path('/tmp/v2-sector-wide-shadow.json').read_text())
+          sensitivity=json.loads(Path('/tmp/v2-basis-sensitivity-shadow.json').read_text())
+          v21=json.loads(Path('/tmp/v21-basis-sensitivity-shadow.json').read_text())
+          assert strict['price_basis_policy']=='STRICT'
+          assert sensitivity['price_basis_policy']=='REFERENCE_ADJUSTED_SENSITIVITY'
+          assert strict['asof_dates']==sensitivity['asof_dates']
+          assert len(sensitivity['samples'])>=len(strict['samples'])
+          assert not sensitivity['enough_independent_evidence_for_production_upgrade']
+          for label in ('银行','固态电池','风电','文化传媒','游戏'):
+              old=[x for x in strict['theme_coverage'] if label in x['theme']]
+              new=[x for x in sensitivity['theme_coverage'] if label in x['theme']]
+              print('BASIS_SECTOR_COVERAGE',label,json.dumps({
+                  'strict':old,'sensitivity':new},ensure_ascii=False))
+          print('BASIS_NEWLY_INCLUDED',json.dumps([
+              {k:r.get(k) for k in
+               ('asof','theme','horizon','old_top1','v2_top1',
+                'old_top1_return_pct','v2_top1_return_pct',
+                'adjusted_basis_sensitivity_codes','market_state_category')}
+              for r in sensitivity['samples']
+              if r['adjusted_basis_sensitivity_codes'] and
+                 (r['horizon'] in (1,5,10))],ensure_ascii=False))
+          print('BASIS_SENSITIVITY_RETURN_SUMMARY',json.dumps({
+              'V2':sensitivity['summary'],'V21':v21['summary']},ensure_ascii=False))
+          PY
+      - name: Upload nonproduction adjusted-basis sensitivity separately
+        uses: actions/upload-artifact@v4
+        with:
+          name: v2-adjusted-basis-bank-sensitivity-shadow
+          path: |
+            /tmp/v2-basis-sensitivity-shadow.json
+            /tmp/v21-basis-sensitivity-shadow.json
+            /tmp/v2-basis-sensitive-robust-shadow.json
+          retention-days: 14
