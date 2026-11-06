@@ -58,14 +58,21 @@ class EarlyFocusTests(unittest.TestCase):
         self.assertLess(p["reference_trigger_distance_pct"],5)
         self.assertTrue(p["not_buy_order"])
 
-    def test_confirmed_wait_follows_current_setup_without_becoming_ready(self):
+    def test_v4_model_ranks_confirmed_wait_without_becoming_ready(self):
         earlier=item("002128","煤炭",28.8,28.5,27.7,27.557,
                      vol1=.85,rel=-1,confirmed=True)
         earlier.update({"setup_type":"PULLBACK","entry_zone":[28.656,29.146],
                         "invalidation_price":27.557,"initial_risk_pct":5.45})
         volume=item("601918","煤炭",11.58,10.752,10.3,10.35,
                     vol1=1.9,rel=4,confirmed=False)
+        # V4's as-of model deep-review rank decides relative WAIT focus;
+        # verified trade setup is *not* promoted to READY by attention rank.
         researched=research(["煤炭"])
+        researched["prescreen_version"]="V4_B1"
+        earlier["v4_model_priority"]=1
+        volume["v4_model_priority"]=2
+        earlier["v4_model_reason"]="公司业务和现金流已核验，但本次独立买点条件仍待确认"
+        volume["v4_model_reason"]="行业传导证据待进一步核查，近端涨势不可直接等同买入"
         groups=engine.dynamic_top5_by_theme([], [volume,earlier], researched)
         self.assertEqual({x["code"] for x in groups[0]["items"]}, {"002128","601918"})
         self.assertEqual(groups[0]["items"][0]["code"],"002128")
