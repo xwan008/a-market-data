@@ -89,13 +89,20 @@ def hard_reason(c):
         return "REVENUE_AND_PROFIT_COLLAPSE"
     return None
 
-def scores(industry_rows):
+def scores(industry_rows, *, financial_mode="LEGACY"):
+    """LEGACY is production-identical; CORE_FIRST is shadow-only source ablation."""
+    if financial_mode not in ("LEGACY","CORE_FIRST"):
+        raise ValueError("unsupported_financial_scoring_mode")
+    def profit_growth(c):
+        if financial_mode=="CORE_FIRST" and isnum(c.get("deduct_net_profit_yoy")):
+            return fnum(c,"deduct_net_profit_yoy")
+        if isnum(c.get("deduct_basic_eps_yoy")):
+            return fnum(c,"deduct_basic_eps_yoy")
+        return fnum(c,"net_profit_yoy")
     arr=industry_rows
     n=len(arr)
     rev=percentile([fnum(c,"revenue_yoy") for c in arr])
-    profits=percentile([fnum(c,"deduct_basic_eps_yoy")
-                        if isnum(c.get("deduct_basic_eps_yoy")) else fnum(c,"net_profit_yoy")
-                        for c in arr])
+    profits=percentile([profit_growth(c) for c in arr])
     roe=percentile([fnum(c,"roe") for c in arr])
     metrics=[]
     for c in arr:
@@ -112,9 +119,11 @@ def scores(industry_rows):
         gr=(rev[i]+profits[i])*.5
         a,b=fnum(c,"basic_eps"),fnum(c,"deduct_basic_eps")
         noncore=abs(a-b)/max(abs(a),.01)*100 if a is not None and b is not None else None
+        if (financial_mode=="CORE_FIRST" and
+                isnum(c.get("nonrecurring_profit_share_pct"))):
+            noncore=abs(c["nonrecurring_profit_share_pct"])
         quality=.5*(1 if (c.get("operating_cashflow_per_share") or 0)>0 else 0)+.5*(.5 if noncore is None else 1 if noncore<20 else 0)
-        core=fnum(c,"deduct_basic_eps_yoy")
-        if core is None: core=fnum(c,"net_profit_yoy")
+        core=profit_growth(c)
         abnormal=bool(isnum(core) and core>200 and
                       (not pos(c.get("operating_cashflow_per_share"))
                        or (c.get("revenue_yoy") or 0)<10 or (noncore is not None and noncore>=20)))
