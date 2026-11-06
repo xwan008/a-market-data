@@ -100,6 +100,27 @@ jobs:
                             'groups':sum(len(d['groups']) for d in data['completed']),
                             'excluded':data['failed']},ensure_ascii=False))
           PY
+      - name: Expanded old dates with verified as-of disclosure or explicit exclusion
+        run: |
+          python experiments/trend_buy_v4_financial_factorial_history.py \
+            --dates 2026-10-27,2026-10-28,2026-10-29,2026-10-30,2026-11-02 \
+            --finance /tmp/v4-dated-main-core-finance-shadow.json \
+            --output /tmp/v4-financial-factorial-older-shadow.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('/tmp/v4-financial-factorial-older-shadow.json').read_text())
+          print('OLD_PERIOD_2x2_SCOPE',json.dumps({
+              'actual_published_dates':[x['date'] for x in d['completed']],
+              'industry_cohorts':sum(len(x['groups']) for x in d['completed']),
+              'skipped_dates':d['failed']},ensure_ascii=False))
+          for x in d['completed']:
+              for g in x['groups']:
+                  for h,metric in g['horizon_metrics'].items():
+                      if metric is not None:
+                          print('OLDER_2x2_HORIZON',x['date'],g['industry_code'],h,
+                                json.dumps(metric,ensure_ascii=False))
+          PY
       - name: Prove official trade artifact byte-for-byte unchanged
         run: |
           git diff --exit-code -- research/trend_buy_formal_result.json research/trend_buy_handoff.json
@@ -112,4 +133,5 @@ jobs:
             /tmp/v4-financial-factorial-shadow.json
             /tmp/v4-factorial-frozen-original-shadow.json
             /tmp/v4-financial-factorial-history-shadow.json
+            /tmp/v4-financial-factorial-older-shadow.json
           retention-days: 14
