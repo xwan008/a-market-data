@@ -139,6 +139,7 @@ class CanonicalAdmissionTests(unittest.TestCase):
             old=builder.build(ROOT/"research/trend_buy_company_reviews/latest.json",
                               admission_path=candidate)
             self.assertEqual(old["prescreen_version"],"CANONICAL")
+            self.assertEqual(old["screen_audit"]["financial_scoring_mode"],"VERIFIED_CORE")
             self.assertEqual(old["mode"],"SHADOW")
             self.assertGreater(old["screen_audit"]["source_review_pending_count"],0)
             self.assertTrue(old["screen_audit"]["model_rank_missing_codes"])
@@ -185,6 +186,7 @@ class CanonicalAdmissionTests(unittest.TestCase):
                 admission_path=admission)
             self.assertEqual(result["mode"],"FORMAL")
             self.assertEqual(result["prescreen_version"],"CANONICAL")
+            self.assertEqual(result["screen_audit"]["financial_scoring_mode"],"VERIFIED_CORE")
             self.assertEqual(result["selected_company_count"],15)
             self.assertTrue(all(result["publication_audit"].values()))
             output=engine.generate(result,json.loads(structures.read_text()))
