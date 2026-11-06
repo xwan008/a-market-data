@@ -14,10 +14,15 @@ SELECT=("KCFJCXSYJLR","KCFJCXSYJLRTZ","DEDUCT_PARENT_NETPROFIT",
         "PARENTNETPROFIT","PARENTNETPROFITTZ","NOTICE_DATE","REPORTDATE")
 
 def query(report, period, code=None):
-    filt=f"(REPORTDATE='{period}')"
-    if code:filt+=f"(SECURITY_CODE='{code}')"
+    if report=="RPT_F10_FINANCE_MAINFINADATA":
+        filt=(f'(SECUCODE="{code}")' if code else
+              f'(REPORT_DATE="{period}")')
+    else:
+        filt=f"(REPORTDATE='{period}')"
+        if code:filt+=f"(SECURITY_CODE='{code}')"
     r=requests.get(URL,params={
-        "sortColumns":"REPORTDATE,SECURITY_CODE","sortTypes":"-1,1",
+        "sortColumns":("REPORT_DATE" if report=="RPT_F10_FINANCE_MAINFINADATA" else "REPORTDATE,SECURITY_CODE"),
+        "sortTypes":("-1" if report=="RPT_F10_FINANCE_MAINFINADATA" else "-1,1"),
         "pageSize":100,"pageNumber":1,
         "reportName":report,"columns":"ALL","filter":filt,
         "source":"WEB","client":"WEB"},
@@ -40,6 +45,9 @@ if __name__=="__main__":
         ("RPT_LICO_FN_CPD","2026-09-30",None),
         ("RPT_LICO_FN_CPD","2025-09-30",None),
         ("RPT_LICO_FN_CPD","2026-09-30","000506"),
+        ("RPT_F10_FINANCE_MAINFINADATA","2026-09-30",None),
+        ("RPT_F10_FINANCE_MAINFINADATA","2026-09-30","000506.SZ"),
+        ("RPT_F10_FINANCE_MAINFINADATA","2026-09-30","600519.SH"),
     ]
     for report,period,code in reports:
         try:
