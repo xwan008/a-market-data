@@ -312,6 +312,21 @@ jobs:
           print('WIDE_COHORT_AUDIT',json.dumps(wide['coverage_audit'],
                                              ensure_ascii=False))
           print('WIDE_SKIPPED',json.dumps(wide['skipped'],ensure_ascii=False))
+          print('WIDE_TARGET_EXCLUSIONS',json.dumps([
+              x for x in wide['outcome_exclusions']
+              if any(s in x['theme'] for s in ('风电','固态电池','银行','文化传媒','游戏'))
+          ],ensure_ascii=False))
+          print('WIDE_TARGET_CASES',json.dumps([
+              {k:x.get(k) for k in
+                  ('asof','theme','horizon','published_member_count',
+                   'old_top1','v2_top1','old_top1_return_pct',
+                   'v2_top1_return_pct','market_state_category',
+                   'fundamentals')}
+              for x in wide['samples']
+              if (x['horizon'] in (1,5,10)
+                  and any(t in x['theme'] for t in
+                          ('风电','固态电池','银行','文化传媒','游戏')))
+          ],ensure_ascii=False))
           print('WIDE_RETURN_SUMMARY',json.dumps({
               'v2':wide['summary'],'v21':v21['summary']},ensure_ascii=False))
           for version,r in robust['versions'].items():
