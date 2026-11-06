@@ -11,8 +11,6 @@ from statistics import median
 
 ROOT = Path(__file__).resolve().parents[1]
 MAX_RESEARCH_PER_INDUSTRY = 5
-LEADER_SLOTS = 3
-ENTRY_SLOTS = 2
 VERSION = "trend_buy_program_prescreen"
 
 
@@ -129,8 +127,8 @@ def select_company_rows(rows, audit_rows, date, root, history_cache,
             # The original hard-screen may have rejected this company; never
             # add a company without the original hard-filter audit.
             continue
-        # A missing current entry setup is NOT a hard leadership exclusion.
-        # The two research channels use independent eligibility.
+        # A missing current entry setup is not a hard evidence exclusion.
+        # It can enter research only as an explicitly labeled watch fallback.
         entry_observation=previous.get("opportunity") or {}
         entry_eligible=(previous.get("excluded_reason") is None
                         and number(entry_observation.get("entry_score"))
@@ -182,8 +180,13 @@ def select_company_rows(rows, audit_rows, date, root, history_cache,
     return entries,excluded
 
 
-def dual_channel(entries, slots=MAX_RESEARCH_PER_INDUSTRY):
-    """No over-cap ties. Leadership and entry are intentionally independent."""
+def rank_entry_first(entries, slots=MAX_RESEARCH_PER_INDUSTRY):
+    """Entry-qualified candidates compete for ALL five seats; no channel quotas.
+
+    Trend-only names are research fallbacks ONLY when fewer than five verified
+    entry-proxy candidates exist. Qualification is NOT confirmed READY and may
+    never bypass the separate completed-bar entry/stop/reward risk gate.
+    """
     if slots!=5:
         raise ValueError("prescreen_fixed_five_company_model_budget")
     if not entries:
@@ -214,7 +217,7 @@ def dual_channel(entries, slots=MAX_RESEARCH_PER_INDUSTRY):
         p=e["peer_percentiles"]
         if not all(number(p[h]) for h in ("10","20","60")) or not number(rank):
             return [],{"reason":"PEER_PERCENTILE_INCOMPLETE"}
-        # Fixed transparent research hypothesis; NOT tuned on hindsight returns.
+        # The recorded sub-scores remain observable evidence, not two quotas.
         continued=(.40*p["20"]+.30*p["60"]+.20*p["10"]+.10*rank)
         entry=e["entry_reference_score"]
         structure=e["price_structure_score"]
@@ -225,38 +228,27 @@ def dual_channel(entries, slots=MAX_RESEARCH_PER_INDUSTRY):
         e["entry_channel_score"]=round(.65*entry+
                                        .20*structure+
                                        .15*e["fundamental_score"],6)
-    leader_order=sorted(entries,key=lambda e:(-e["leader_channel_score"],e["code"]))
     entry_order=sorted((e for e in entries if e["entry_channel_eligible"]),
-                       key=lambda e:(-e["entry_channel_score"],e["code"]))
-    picked=[]
-    for channel,ordered,take in (
-        ("LEADERSHIP",leader_order,LEADER_SLOTS),
-        ("ENTRY_LOCATION",entry_order,ENTRY_SLOTS)
-    ):
-        for e in ordered:
-            if sum(x["selected_channel"]==channel for x in picked)>=take:
-                break
-            if e["code"] in {x["code"] for x in picked}:
-                continue
-            item=dict(e)
-            item["selected_channel"]=channel
-            picked.append(item)
-    # Unfilled entry seats may be backfilled by fully verified leadership peers.
-    # This backfill is visibly labeled and never claims to be an entry setup.
-    if len(picked)<min(slots,len(entries)):
-        for e in leader_order:
-            if len(picked)>=min(slots,len(entries)):
-                break
-            if e["code"] not in {x["code"] for x in picked}:
-                picked.append({**e,"selected_channel":"BACKFILL"})
-    return picked,{
+                       key=lambda e:(-e["entry_channel_score"],
+                                     -e["leader_channel_score"],e["code"]))
+    watch_order=sorted((e for e in entries if not e["entry_channel_eligible"]),
+                       key=lambda e:(-e["leader_channel_score"],e["code"]))
+    selected=[{**e,"selected_channel":"ENTRY_PRIORITY"}
+              for e in entry_order[:slots]]
+    remaining=slots-len(selected)
+    selected.extend({**e,"selected_channel":"WATCH_FALLBACK"}
+                    for e in watch_order[:remaining])
+    return selected,{
+        "selection_policy":"ENTRY_FIRST_NO_QUOTAS",
         "scored_peer_count":len(entries),
         "peer_return_medians_pct":reference,
-        "leader_top5_codes":[x["code"] for x in leader_order[:5]],
-        "entry_top5_codes":[x["code"] for x in entry_order[:5]],
         "entry_evidence_eligible_count":len(entry_order),
-        "backfill_count":sum(x["selected_channel"]=="BACKFILL" for x in picked),
+        "entry_selected_count":min(len(entry_order),slots),
+        "watch_fallback_count":min(remaining,len(watch_order)),
+        "entry_top5_codes":[x["code"] for x in entry_order[:5]],
+        "watch_fallback_top5_codes":[x["code"] for x in watch_order[:5]],
         "max_model_research_per_sw3":5,
+        "entry_proxy_does_not_authorize_ready":True,
     }
 
 
@@ -321,7 +313,7 @@ def run(root, screen, industry_index=None, selected_date=None,
             rows=[{**row,**financial_overlay.get(row["code"],{})}
                   for row in rows]
         company,excluded=select_company_rows(rows,groups[code],date,root,cache)
-        picked,details=dual_channel(company)
+        picked,details=rank_entry_first(company)
         output.append({
             "industry_code":code,
             "industry_name":rows[0].get("industry_name") if rows else None,
@@ -346,6 +338,7 @@ def run(root, screen, industry_index=None, selected_date=None,
             "upstream_confirmed_sw3_unchanged":True,
             "python_scans_hard_eligible_only":True,
             "max_model_reviews_per_sw3":5,
+            "selection_policy":"ENTRY_FIRST_NO_QUOTAS",
             "forecast_consensus_source":"NOT_AVAILABLE_NO_IMPUTATION",
             "business_review_in_python":False,
             "ready_wait_and_handoff_untouched":True,
