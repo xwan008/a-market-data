@@ -53,8 +53,8 @@ class CoreFactorialTest(unittest.TestCase):
         self.assertIsNone(values)
         self.assertIn("UNDISCLOSED",reason)
         values,reason=factor.validated_patch(stock,source,DAY,"2026-11-04")
-        self.assertIsNone(values)
-        self.assertEqual(reason,"SOURCE_SNAPSHOT_BEFORE_ASOF")
+        self.assertEqual(reason,"VALID_MATCH")
+        self.assertEqual(values["deduct_net_profit_yoy"],127.1)
         values,reason=factor.validated_patch({**stock,"report_date":"2026-06-30"},
                                                  source,DAY,DAY)
         self.assertIsNone(values)
