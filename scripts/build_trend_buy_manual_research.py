@@ -209,10 +209,24 @@ def compact_opportunity(structure, trade_date):
             "reference_is_not_buy_signal":True}, None
 
 
-def build(evidence_path, structure_path=None, structure_output_path=None):
+def build(evidence_path, structure_path=None, structure_output_path=None,
+          v4_admission_path=None):
     trend=read(TREND)
     index=read(INDEX)
     vault=read(evidence_path)
+    v4_by_industry=None
+    v4_contract=None
+    if v4_admission_path is not None:
+        from v4_prepare_research_candidates import validate_admission,prepare
+        v4_contract=read(Path(v4_admission_path))
+        v4_by_industry=validate_admission(ROOT,v4_contract)
+        # No model may provide an arbitrary look-alike file to force preferred
+        # tickers into formal publication: reproduce Python research selection.
+        expected=prepare(ROOT)
+        if ([x["selected_codes"] for x in expected["industries"]]
+                != [x["selected_codes"] for x in v4_contract["industries"]]
+                or expected["trade_date"]!=v4_contract["trade_date"]):
+            raise ValueError("V4_ADMISSION_REPLAY_NOT_IDENTICAL")
     structure=read(Path(structure_path)) if structure_path else None
     day=trend.get("trade_date")
     if isinstance(day, str) and day >= "2026-10-27":
@@ -317,23 +331,44 @@ def build(evidence_path, structure_path=None, structure_output_path=None):
             audit["lightweight_scanned"].append(d)
         ranked.sort(key=lambda row:(-row[1]["combined_score"],row[0]["code"]))
         accepted=[]
-        for c,d in ranked:
-            # A specifically researched and falsified thematic link can release
-            # this research slot to the next ranked peer, WITHOUT deep-researching
-            # the whole eligible universe.
-            prior=review.get(c["code"])
-            if prior and prior.get("transmission")=="NOT_SUPPORTED":
-                audit["pre_screened_out"].append({
-                    "code":c["code"],"industry_code":code,"reason":"THEME_NOT_SUPPORTED"})
-                audit["research_replacements"].append(c["code"])
-                continue
-            if len(accepted)<5 or (len(accepted)==5 and
-                                   accepted[4][1]["combined_score"]-d["combined_score"]<=.03):
-                if len(accepted)<6:
+        if v4_by_industry is not None:
+            eligible_lookup={c["code"]:(c,d) for c,d in ranked}
+            chosen=v4_by_industry[code]
+            if any(c not in eligible_lookup for c in chosen):
+                raise ValueError("V4_SELECTED_NOT_IN_HARD_ELIGIBLE_OPPORTUNITY:"+code)
+            for company_code in chosen:
+                c,d=eligible_lookup[company_code]
+                if review.get(company_code,{}).get("transmission")=="NOT_SUPPORTED":
+                    audit["pre_screened_out"].append({
+                        "code":company_code,"industry_code":code,
+                        "reason":"THEME_NOT_SUPPORTED"})
+                    audit["research_replacements"].append(company_code)
+                else:
                     accepted.append((c,d))
+            chosen_set=set(chosen)
+            for c,d in ranked:
+                if c["code"] not in chosen_set:
+                    audit["pre_screened_out"].append({
+                        "code":c["code"],"industry_code":code,
+                        "reason":"NOT_V4_PROGRAM_TOP5"})
+        else:
+            for c,d in ranked:
+                # A specifically researched and falsified thematic link can release
+                # this research slot to the next ranked peer, WITHOUT deep-researching
+                # the whole eligible universe.
+                prior=review.get(c["code"])
+                if prior and prior.get("transmission")=="NOT_SUPPORTED":
+                    audit["pre_screened_out"].append({
+                        "code":c["code"],"industry_code":code,"reason":"THEME_NOT_SUPPORTED"})
+                    audit["research_replacements"].append(c["code"])
                     continue
-            audit["pre_screened_out"].append({
-                "code":c["code"],"industry_code":code,"reason":"NOT_DYNAMIC_PRE_SCREEN_TOP5"})
+                if len(accepted)<5 or (len(accepted)==5 and
+                                       accepted[4][1]["combined_score"]-d["combined_score"]<=.03):
+                    if len(accepted)<6:
+                        accepted.append((c,d))
+                        continue
+                audit["pre_screened_out"].append({
+                    "code":c["code"],"industry_code":code,"reason":"NOT_DYNAMIC_PRE_SCREEN_TOP5"})
         audit["research_slots_per_industry"][code]=len(accepted)
         for c,d in accepted:
             audit["pre_screen_selected"].append(d)
@@ -348,6 +383,7 @@ def build(evidence_path, structure_path=None, structure_output_path=None):
     candidate=[]
     no_source=[]
     missing_review=[]
+    missing_v4_model_rank=[]
     for c in selected:
         item=review.get(c["code"])
         if item is None:
@@ -367,6 +403,13 @@ def build(evidence_path, structure_path=None, structure_output_path=None):
             raise ValueError("source_outside_asof:"+c["code"])
         if status=="UNCERTAIN" and not sources:
             no_source.append(c["code"])
+        model_priority=item.get("v4_model_rank")
+        model_reason=item.get("v4_model_reason")
+        if v4_by_industry is not None and status in ("SUPPORTED","EARLY_EVIDENCE"):
+            if (not isinstance(model_priority,int) or isinstance(model_priority,bool)
+                or not 1<=model_priority<=100
+                or not isinstance(model_reason,str) or len(model_reason.strip())<24):
+                missing_v4_model_rank.append(c["code"])
         signal=next((z for z in trend["signals"] if c["industry_code"] in z["industry_codes"]),None)
         trend_name=(signal or {}).get("trend_name") or ""
         if not trend_name or not signal.get("market_state") or not signal.get("trend_state"):
@@ -391,6 +434,8 @@ def build(evidence_path, structure_path=None, structure_output_path=None):
             "early_evidence_risk_review_passed":item.get("early_evidence_risk_review_passed") is True,
             "material_risk_unresolved":obvious_quality_risk,
             "research_falsifier":item.get("research_falsifier"),
+            "v4_model_priority":model_priority if v4_by_industry is not None else None,
+            "v4_model_reason":model_reason if v4_by_industry is not None else None,
             "source_review":item["source_review"],
             "source_materials":sources,
             "evidence_basis":item["review_basis"],
@@ -398,7 +443,12 @@ def build(evidence_path, structure_path=None, structure_output_path=None):
                                        "noncore_eps_share_pct":round(noncore,2) if noncore is not None else None},
         })
     audit["selected_company_count"]=len(candidate)
-    audit["research_scope"]="dynamic_tertiary_industry_top5_after_lightweight_scan"
+    audit["research_scope"]=("v4_b1_python_top5_before_model_review"
+                                if v4_by_industry is not None
+                                else "dynamic_tertiary_industry_top5_after_lightweight_scan")
+    audit["prescreen_version"]="V4_B1" if v4_by_industry is not None else "LEGACY"
+    audit["v4_model_rank_missing_codes"]=missing_v4_model_rank
+    audit["v4_verified_program_admission"]=bool(v4_by_industry is not None)
     audit["pre_screen_coverage_complete"]=(len(audit["lightweight_scanned"])==audit["hard_eligible"])
     audit["source_review_complete_count"]=len(candidate)-len(missing_review)
     audit["source_review_pending_count"]=len(missing_review)
@@ -415,11 +465,12 @@ def build(evidence_path, structure_path=None, structure_output_path=None):
     # structure_same_day verified by trend_buy_engine at actual Kline input;
     # emitted gate means pre-reviewed declaration, not a forged structure result.
     gate={k:True for k in required}
-    gate["fresh_company_research"]=not missing_review
-    gate["company_research_coverage"]=not missing_review
+    gate["fresh_company_research"]=not missing_review and not missing_v4_model_rank
+    gate["company_research_coverage"]=not missing_review and not missing_v4_model_rank
     gate["structure_same_day"]=True
     result={"schema_version":"trend_buy_research_v2",
-            "mode":"FORMAL" if not missing_review else "SHADOW",
+            "prescreen_version":"V4_B1" if v4_by_industry is not None else "LEGACY",
+            "mode":"FORMAL" if not missing_review and not missing_v4_model_rank else "SHADOW",
             "run_id":"trend-buy-research-asof-"+day,
             "trade_date":day,"coverage_complete":True,
             "selected_company_count":len(candidate),"publication_audit":gate,
@@ -449,8 +500,11 @@ def main():
     p.add_argument("--structure",default=None,help="Optional legacy fixture, not used by production")
     p.add_argument("--structure-output",default=None,help="Write only selected candidates to an ephemeral technical input")
     p.add_argument("--output",required=True)
+    p.add_argument("--v4-admission",default=None,
+                   help="Program-frozen same-day 3+2 V4 selection; must be complete")
     a=p.parse_args()
-    out=build(Path(a.evidence),a.structure,a.structure_output)
+    out=build(Path(a.evidence),a.structure,a.structure_output,
+              a.v4_admission)
     path=Path(a.output)
     path.parent.mkdir(parents=True,exist_ok=True)
     path.write_text(json.dumps(out,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
