@@ -311,7 +311,7 @@ def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2"
     cache = {}
     histories = {code: stock_history(repo, code, cache) for code in stock_set}
     calendar = sorted({day for rows, _ in histories.values() for day in rows})
-    samples, skipped = [], defaultdict(int)
+    samples, skipped, outcome_exclusions = [], defaultdict(int), []
     for cohort in cohorts:
         if "invalid" in cohort:
             skipped["INVALID_HISTORICAL_FORMAL"] += 1
@@ -326,24 +326,34 @@ def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2"
         if future and not published_before_next_open(
                 cohort["published_at"], future[0]):
             skipped["PUBLICATION_AFTER_NEXT_SESSION_OPEN"] += len(HORIZONS)
+            outcome_exclusions.append({"date":date,"theme":cohort["theme"],
+                "reason":"PUBLICATION_AFTER_NEXT_SESSION_OPEN"})
             continue
         for horizon in HORIZONS:
             if len(future) < horizon:
                 skipped[f"NOT_YET_{horizon}_SESSIONS"] += 1
+                outcome_exclusions.append({"date":date,"theme":cohort["theme"],
+                    "horizon":horizon,"reason":"NOT_ENOUGH_FUTURE_SESSIONS"})
                 continue
             next_date, target_date = future[0], future[horizon-1]
             moves = {}
             errors = set()
+            missing_by_code={}
             for code in old:
                 result, error = outcome(cohort["rows"][code], next_date, target_date,
                                         calendar, histories)
                 if error:
                     errors.add(error)
+                    missing_by_code[code]=error
                 else:
                     moves[code] = result
             # Complete-case cohort avoids silently selecting only survivors.
             if len(moves) != len(old):
                 skipped["INCOMPLETE_COHORT:" + ",".join(sorted(errors))] += 1
+                outcome_exclusions.append({"date":date,"theme":cohort["theme"],
+                    "horizon":horizon,
+                    "reason":"INCOMPLETE_COHORT",
+                    "problem_codes":missing_by_code})
                 continue
             old_top1, v2_top1 = moves[old[0]], moves[new[0]]
             samples.append({
@@ -410,6 +420,7 @@ def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2"
         "summary": summary, "samples": samples,
         "theme_coverage":theme_coverage,
         "coverage_audit":coverage_audit,
+        "outcome_exclusions":outcome_exclusions,
         "skipped": dict(sorted(skipped.items())),
         "publication_rejections": publication_rejections[:30],
         "enough_independent_evidence_for_production_upgrade": enough,
@@ -450,7 +461,7 @@ def main():
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(output, encoding="utf-8")
     print(json.dumps({k: v for k, v in result.items() if k not in (
-        "samples", "publication_rejections", "coverage_audit"
+        "samples", "publication_rejections", "coverage_audit", "outcome_exclusions"
     )}, ensure_ascii=False))
 
 
