@@ -289,12 +289,20 @@ def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2"
                 "eligibility":"VALID_RANKED_COHORT"})
             stock_set.update(old)
             lookup = {r["code"]: r for r in (formal.get("ready") or []) + (formal.get("wait") or [])}
+            market_states=sorted({lookup[code].get("market_state") or "UNKNOWN" for code in old})
+            market_state_category=("CONFIRMED_ONLY"
+                                   if market_states==["趋势确认"]
+                                   else "NONCONFIRMED_OR_MIXED")
             cohorts.append({
                 "date": snap["date"], "theme": theme,
                 "commit": snap["commit"],
                 "published_at": snap["published_at"],
                 "old_codes": old, "v2_codes": new,
                 "peers": peer_status,
+                "market_state_category":market_state_category,
+                "market_states":market_states,
+                "protocol_epoch": ("PRE_2026_10_27" if snap["date"]<"2026-10-27"
+                                    else "CONFIRMED_ONLY_2026_10_27_PLUS"),
                 "asof_regimes": {code: asof_regime(lookup[code]) for code in old},
                 "rows": {code: {"code": code, "date": snap["date"],
                                 "current_price": lookup[code]["current_price"]}
@@ -343,6 +351,10 @@ def replay(repo=ROOT, min_date="2026-10-09", max_date="2026-11-04", ranking="V2"
                 "published_at": cohort["published_at"], "commit": cohort["commit"],
                 "future_first_session": next_date, "future_target_session": target_date,
                 "fundamentals": cohort["peers"],
+                "market_state_category": cohort["market_state_category"],
+                "market_states": cohort["market_states"],
+                "protocol_epoch": cohort["protocol_epoch"],
+                "published_member_count":len(old),
                 "old_top1": old[0], "v2_top1": new[0],
                 "old_pairwise_accuracy": round(pairwise_order_accuracy(old, moves), 6),
                 "v2_pairwise_accuracy": round(pairwise_order_accuracy(new, moves), 6),
