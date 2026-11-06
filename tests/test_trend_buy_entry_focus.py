@@ -16,7 +16,7 @@ def item(code, sector, price, ma20, ma60, support, market="候选趋势",
         "status":"WAIT","wait_reason":"WAIT_CONFIRMATION",
         "current_price":price,"market_state":market,
         "transmission":trans,"structure_confirmed":confirmed,
-        "model_priority":int(code[-3:]),
+        "model_priority":int(code[-3:])%99+1,
         "model_reason":"经财务和公告核验的研究关注次序，不等于交易入场许可",
         "technical_context":{
             "ma20":ma20,"ma60":ma60,"support_invalidation":support,
