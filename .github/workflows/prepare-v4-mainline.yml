@@ -1,0 +1,108 @@
+name: V4 mainline research admission before model
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'research/trend_handoff.json'
+      - '.github/workflows/prepare-v4-mainline.yml'
+      - '.github/external-trigger-v4-formal.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: v4-mainline-research-admission
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Confirm current-day closed upstream and working set
+        id: admission
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+          upstream=json.loads(Path('research/trend_handoff.json').read_text())
+          idx=json.loads(Path('data/low_risk/index.json').read_text())
+          now=datetime.now(ZoneInfo('Asia/Shanghai')).date().isoformat()
+          day=upstream.get('trade_date')
+          allow=(day==now and idx.get('trade_date')==now
+                 and idx.get('validation',{}).get('status')=='passed'
+                 and bool(upstream.get('signals')))
+          with open(os.environ['GITHUB_OUTPUT'],'a') as out:
+              out.write('run='+('true' if allow else 'false')+'\n')
+          print('V4_SAME_DAY_PRESCREEN_STATUS',json.dumps({
+              'today':now,'sector_date':day,'index_date':idx.get('trade_date'),
+              'sector_signals':len(upstream.get('signals') or []),
+              'will_run':allow},ensure_ascii=False))
+          PY
+      - name: Freeze V4-B1 program-only candidates (research starts after this)
+        if: steps.admission.outputs.run == 'true'
+        run: |
+          python scripts/v4_prepare_research_candidates.py \
+            --output research/trend_buy_v4_candidates/latest.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('research/trend_buy_v4_candidates/latest.json').read_text())
+          assert x['mode']=='PROGRAM_VERIFIED_MODEL_RESEARCH_PENDING'
+          assert x['checks']['model_invocations']==0
+          assert all(1<=len(g['selected_codes'])<=5 for g in x['industries'])
+          print('V4_MODEL_SCOPE_FREEZE',x['trade_date'],x['selected_company_count'])
+          PY
+      - name: Commit only research admission; read back exact content
+        if: steps.admission.outputs.run == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add research/trend_buy_v4_candidates/latest.json
+          if git diff --cached --quiet; then
+            echo 'V4_SAME_DAY_ADMISSION_ALREADY_COMMITTED'
+            exit 0
+          fi
+          git commit -m 'research: freeze current confirmed V4-B1 Python research intake'
+          for i in 1 2 3; do
+            git fetch origin main --quiet
+            if ! git rebase origin/main; then
+              git rebase --abort || true
+              exit 1
+            fi
+            python - <<'PY'
+          from pathlib import Path
+          import sys
+          sys.path.insert(0,'scripts')
+          from v4_prepare_research_candidates import validate_admission,read
+          validate_admission(Path('.'),read(Path('research/trend_buy_v4_candidates/latest.json')))
+          PY
+            if git push origin HEAD:main; then
+              git fetch origin main --quiet
+              git show origin/main:research/trend_buy_v4_candidates/latest.json | \
+                cmp - research/trend_buy_v4_candidates/latest.json
+              echo 'V4_PROGRAM_CANDIDATES_PUBLISHED_AND_READBACK'
+              exit 0
+            fi
+            sleep "$i"
+          done
+          exit 1
+      - uses: actions/upload-artifact@v4
+        if: steps.admission.outputs.run == 'true'
+        with:
+          name: v4-mainline-python-admission
+          path: research/trend_buy_v4_candidates/latest.json
+          retention-days: 35

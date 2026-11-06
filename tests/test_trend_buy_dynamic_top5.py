@@ -71,11 +71,11 @@ class DynamicStageTests(unittest.TestCase):
                      if k != "note"},
                     {k: v for k, v in new["attention_resistance_check"].items()
                      if k != "note"})
-                self.assertTrue(new["attention_judgement"].startswith("Top5关注排序依据："))
-                self.assertIn("不是交易买入许可", new["attention_judgement"])
+                self.assertTrue(new["attention_judgement"].startswith("Top5排序依据："))
+                self.assertIn("WAIT不是买入许可", new["attention_judgement"])
                 self.assertNotIn("PR #", new["attention_judgement"])
                 self.assertNotIn("试错成本", new["attention_judgement"])
-                self.assertIn("历史阻力和1.5R为交易准入检查",
+                self.assertIn("历史阻力和1.5R影响READY准入",
                               new["attention_resistance_check"]["note"])
         self.assertEqual([x["code"] for x in result[1]["items"]],
                          ["603275", "603416", "002979", "603025", "603583"])
@@ -121,7 +121,13 @@ class DynamicStageTests(unittest.TestCase):
         engine.add_attention_priorities(another, [altered], [], research)
         second = another[0]["items"][0]
         self.assertEqual(second["attention_rank"], 1)
-        self.assertEqual(second["attention_judgement"], explanation)
+        # Only admission status text changes; price observation and
+        # independent downside risk narrative remain supported by same bars.
+        self.assertNotEqual(second["attention_judgement"], explanation)
+        self.assertIn("READY先于WAIT",second["attention_judgement"])
+        self.assertIn("WAIT仅供观察",explanation)
+        self.assertIn("盘中刺破后收复",second["attention_judgement"])
+        self.assertIn("失效条件未定",second["attention_judgement"])
         self.assertNotEqual(second["attention_resistance_check"]["note"],
                             first["attention_resistance_check"]["note"])
 
@@ -216,7 +222,10 @@ class DynamicStageTests(unittest.TestCase):
         old60["status"]="READY"
         old60["invalidation_price"]=9.9
         old60["entry_zone"]=[10,10.1]
-        self.assertEqual(key,engine.top5_rank_key(old60))
+        next_key=engine.top5_rank_key(old60)
+        self.assertEqual(next_key[1:],key[1:])
+        self.assertEqual(next_key[0],0)  # Explicit READY is ranked ahead.
+        self.assertEqual(key[0],1)       # Original WAIT cannot be ranked READY.
         self.assertNotEqual(old60["status"],sweep["status"])
         self.assertEqual(engine.top5_rank_details(sweep)["recent_support_pattern"],
                          "SAME_DAY_SWEEP_RECLAIM")
@@ -390,7 +399,7 @@ class DynamicStageTests(unittest.TestCase):
         self.assertEqual(by_code["600002"]["attention_rank"], 2)
         self.assertEqual(by_code["600001"]["attention_rank"], 1)
         self.assertIsNone(by_code["600002"]["reference"]["reference_zone"])
-        self.assertIn("不是交易买入许可", by_code["600002"]["attention_judgement"])
+        self.assertIn("WAIT不是买入许可", by_code["600002"]["attention_judgement"])
 
     def test_overhead_constraint_demotes_overheated_confirmed_wait_without_changing_focus(self):
         hot = wait_stock("600001", "REACCELERATING", p=10, ma20=9.2,
@@ -536,7 +545,7 @@ class DynamicStageTests(unittest.TestCase):
             [], [weak,strong],research)[0]["items"]], ["600001","600002"])
         engine.add_attention_priorities([g], [], [weak, strong], research)
         self.assertEqual([x["attention_rank"] for x in g["items"]], [1, 2])
-        self.assertIn("历史阻力和1.5R为交易准入检查",
+        self.assertIn("历史阻力和1.5R影响READY准入",
                       g["items"][0]["attention_resistance_check"]["note"])
         focus = engine.select_focus_watchlist([], [weak, strong], research, [g])
         self.assertEqual(focus[0]["code"], "600001")

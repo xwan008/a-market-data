@@ -6,6 +6,8 @@ on:
       - 'scripts/price_inputs.py'
       - 'scripts/build_history.py'
       - 'scripts/build_trend_buy_manual_research.py'
+      - 'scripts/v4_prepare_research_candidates.py'
+      - 'scripts/v4_python_prescreen_core.py'
       - 'scripts/trend_buy_engine.py'
       - 'scripts/trend_buy_handoff.py'
       - 'tests/test_trend_buy_handoff.py'
@@ -38,6 +40,8 @@ on:
       - 'tests/test_trend_buy_dynamic_top5.py'
       - 'tests/test_trend_buy_prescreen.py'
       - 'scripts/build_trend_buy_manual_research.py'
+      - 'scripts/v4_prepare_research_candidates.py'
+      - 'scripts/v4_python_prescreen_core.py'
       - 'skill/PRE_SCREEN_RESEARCH_SCOPE_OVERRIDE.md'
       - 'skill/TREND_BUY_CANONICAL.md'
       - 'scripts/validate_theme_handoff_routes.py'
@@ -125,13 +129,19 @@ jobs:
           }),encoding='utf-8')
           print('FRESH_SOURCE_DATE',day)
           PY
-          python scripts/build_trend_buy_manual_research.py --evidence /tmp/fresh-company-evidence.json --output /tmp/fresh-company-screen.json
+          python scripts/v4_prepare_research_candidates.py --output /tmp/trend_buy_v4_candidates_smoke.json
+          python scripts/build_trend_buy_manual_research.py \
+            --evidence /tmp/fresh-company-evidence.json \
+            --v4-admission /tmp/trend_buy_v4_candidates_smoke.json \
+            --output /tmp/fresh-company-screen.json
           python - <<'PY'
           import json
           from pathlib import Path
           o=json.loads(Path('/tmp/fresh-company-screen.json').read_text())
           a=o['screen_audit']
           assert o['mode']=='SHADOW' and o['publication_audit']['company_research_coverage'] is False
+          assert o['prescreen_version']=='V4_B1'
+          assert a['research_scope']=='v4_b1_python_top5_before_model_review'
           assert a['source_review_pending_count']==o['selected_company_count']
           print('FRESH_SCREEN_AUDIT',json.dumps({
             'date':o['trade_date'],'universe':a['universe'],
@@ -197,4 +207,4 @@ jobs:
           print('PERSISTED_MAINLINE_HANDOFF_VALID',len(items))
           PY
       - name: Syntax check trend-buy modules
-        run: python -m py_compile scripts/build_full_market_price_structure.py scripts/build_trend_buy_manual_research.py scripts/trend_buy_engine.py scripts/trend_buy_handoff.py scripts/build_intraday_snapshot.py
+        run: python -m py_compile scripts/v4_prepare_research_candidates.py scripts/v4_python_prescreen_core.py scripts/build_full_market_price_structure.py scripts/build_trend_buy_manual_research.py scripts/trend_buy_engine.py scripts/trend_buy_handoff.py scripts/build_intraday_snapshot.py
