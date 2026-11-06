@@ -31,6 +31,7 @@ def item(n,trend=10,entry=.5,finance=.6):
         "industry_code":"S123456","asof_date":DAY,
         "fundamental_score":finance,"entry_reference_score":entry,
         "price_structure_score":.6,
+        "core_profit_growth_verified":False,"financial_evidence_gaps":["CORE_PROFIT_GROWTH_NOT_AVAILABLE"],
         "history":{"returns_pct":{
             "5":trend*.2,"10":trend*.5,"20":trend,"60":trend*2},
             "positive_days_10":max(1,min(10,n%10+1)),
