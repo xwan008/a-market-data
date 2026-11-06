@@ -104,8 +104,10 @@ class EarlyFocusTests(unittest.TestCase):
         x=item("123456","矿业",11,10.9,10.7,10.5)
         x["technical_context"]={}
         p=engine.select_focus_watchlist([], [x], research(["矿业"]))[0]
-        self.assertEqual(p["status"],"NO_CURRENT_BUY_OPPORTUNITY")
-        self.assertIsNone(p["code"])
+        self.assertEqual(p["status"],"EARLY_FOCUS_NOT_READY")
+        self.assertEqual(p["code"],"123456")
+        self.assertIsNone(p["reference"]["reference_zone"])
+        self.assertIn("尚缺可靠", "；".join(p["remaining_blocks_to_ready"]))
 
     def test_no_wait_and_ready(self):
         p=engine.select_focus_watchlist([],[],research(["黄金"]))[0]
