@@ -79,6 +79,13 @@ jobs:
           })
           PY
 
+      - name: Read-only V4 core earnings field completeness audit
+        run: |
+          python scripts/audit_weekly_financial_fields.py \
+            --latest data/latest.json \
+            --output /tmp/v4-weekly-financial-fields-shadow.json
+          echo "Core earnings field coverage is diagnostic; 95% general gate remains unchanged."
+
       - name: Rebuild quote shards with refreshed fundamentals
         run: python scripts/build_bridge.py
 
