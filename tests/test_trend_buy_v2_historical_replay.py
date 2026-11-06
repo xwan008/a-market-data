@@ -46,7 +46,7 @@ class ReplayTests(unittest.TestCase):
         # Oct 10 17:00+08 is the first actually ranked Top5, before Oct 12 open.
         raw=("late\\t2026-10-11T08:00:00+00:00\\n"
              "ranked\\t2026-10-10T09:00:34+00:00\\n"
-             "rankless\\t2026-10-10T05:38:48+00:00\\n").replace("\\\\t", "\\t").replace("\\\\n", "\\n")
+             "rankless\\t2026-10-10T05:38:48+00:00\\n").replace(chr(92)+"t",chr(9)).replace(chr(92)+"n",chr(10))
         prior={"trade_date":"2026-10-09","status":"COMPLETE",
                "production_eligible":True,"top5_by_theme":[]}
         later={**prior,"top5_by_theme":[{"trend_name":"固态电池",
