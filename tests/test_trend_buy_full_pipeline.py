@@ -1,4 +1,4 @@
-"""The sole production V2 pipeline is publishable only after its explicit gates."""
+"""Only canonical publication passes all evidence and risk gates."""
 import hashlib
 import importlib.util
 import json
@@ -70,13 +70,14 @@ def fixture():
             "pre_screen_coverage","company_research_coverage",
             "structure_same_day","no_future_evidence","json_schema_valid")}
     research={"schema_version":"trend_buy_research_v2","trade_date":"2026-10-09",
-       "mode":"FORMAL","run_id":"2026-10-09T19-00-test","coverage_complete":True,
+       "mode":"FORMAL","prescreen_version":"CANONICAL","run_id":"2026-10-09T19-00-test","coverage_complete":True,
        "selected_company_count":1,"publication_audit":audit,
        "companies":[{"code":"600001","company_name":"纯虚构测试股票","industry_code":"S000000",
           "industry_name":"纯测试","asof_price":20.2,
           "trend_name":"测试趋势","market_state":"趋势确认","trend_state":"T1","filter_passed":True,"theme_link_verified":True,
           "transmission":"SUPPORTED","source_review":"2026-10-09 synthetic proof",
-          "research_falsifier":"商业传导被证伪"}]}
+          "research_falsifier":"商业传导被证伪",
+          "model_priority":1,"model_reason":"公司主营传导与财务质量完成核验，潜在反证存在独立风险门槛，不保证可以买入。"}]}
     structure={"contract_id":"a-share-low-risk-price-structure",
        "reference_trade_date":"2026-10-09",
        "companies":{"600001":{

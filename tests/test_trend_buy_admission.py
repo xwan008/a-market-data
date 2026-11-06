@@ -1,7 +1,7 @@
-"""V4 can replace the program and model ranking only when both are real.
+"""现行 can replace the program and model ranking only when both are real.
 
-The current 11/05 old company research should NOT be promoted through V4
-because its 15 company slots differ from the same-day V4 Python selection.
+Previous company reviews cannot be silently reused for the canonical selection
+because its 15 company slots differ from the same-day 现行 Python selection.
 """
 from copy import deepcopy
 import importlib.util
@@ -14,7 +14,7 @@ from unittest.mock import patch
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/"scripts"))
-import v4_prepare_research_candidates as intake
+import prepare_trend_buy_candidates as intake
 import build_trend_buy_manual_research as builder
 import trend_buy_engine as engine
 
@@ -29,11 +29,11 @@ def shape(code,priority,reason,phase="INITIATING"):
             "ma20":9.8,"ma60":9.4,"volume_ratio_1d_vs_20d":1.5,
             "close_location_pct":80,"distance_to_ma20_pct":2,
             "relative_strength_20d_vs_market_pct":3},
-        "v4_model_priority":priority,"v4_model_reason":reason,
+        "model_priority":priority,"model_reason":reason,
     }
 
 
-class V4MainlinePromotionTests(unittest.TestCase):
+class CanonicalAdmissionTests(unittest.TestCase):
     def test_python_admission_is_current_replayable_and_five_max(self):
         a=intake.prepare(ROOT)
         mapping=intake.validate_admission(ROOT,a)
@@ -49,44 +49,44 @@ class V4MainlinePromotionTests(unittest.TestCase):
         a=intake.prepare(ROOT)
         tampered=deepcopy(a)
         tampered["trade_date"]="2026-11-06"
-        with self.assertRaisesRegex(ValueError,"V4_ADMISSION"):
+        with self.assertRaisesRegex(ValueError,"ADMISSION"):
             intake.validate_admission(ROOT,tampered)
         tampered=deepcopy(a)
         tampered["industries"][0]["selected_codes"]+=["000001"]
-        with self.assertRaisesRegex(ValueError,"V4_ADMISSION"):
+        with self.assertRaisesRegex(ValueError,"ADMISSION"):
             intake.validate_admission(ROOT,tampered)
         tampered=deepcopy(a)
         tampered["source"]["finance_evidence_sha256"]="not_same_file"
-        with self.assertRaisesRegex(ValueError,"V4_ADMISSION"):
+        with self.assertRaisesRegex(ValueError,"ADMISSION"):
             intake.validate_admission(ROOT,tampered)
 
-    def test_v4_model_rank_changes_attention_but_not_trade_ready(self):
+    def test_model_rank_changes_attention_but_not_trade_ready(self):
         first=shape("002517",2,"经营现金流持续改善，行业持续强势，但存在较高追高风险")
         second=shape("603444",1,"盈利质量较稳，当前价格结构需要等待回踩承接确认")
-        research={"prescreen_version":"V4_B1","trade_date":"2026-11-05",
+        research={"prescreen_version":"CANONICAL","trade_date":"2026-11-05",
                   "companies":[{"trend_name":"游戏"}]}
         group=engine.dynamic_top5_by_theme([], [first,second],research)
         self.assertEqual([x["code"] for x in group[0]["items"]],
                          ["603444","002517"])
         engine.add_attention_priorities(group,[],[first,second],research)
         self.assertTrue(group[0]["items"][0]["attention_judgement"].startswith(
-            "V4模型同主题相对研究次序："))
+            "模型同主题相对研究次序："))
         self.assertEqual(group[0]["items"][0]["status"],"WAIT")
         self.assertEqual(group[0]["items"][0]["attention_rank"],1)
 
-    def test_current_reviews_do_not_cover_new_v4_companies(self):
+    def test_current_reviews_do_not_cover_new_canonical_companies(self):
         a=intake.prepare(ROOT)
         with tempfile.TemporaryDirectory() as d:
-            candidate=Path(d)/"v4_research_admission.json"
+            candidate=Path(d)/"trend_buy_research_admission.json"
             candidate.write_text(json.dumps(a,ensure_ascii=False))
             # The research pipeline must NOT silently reuse 11/05 original 16
-            # reviews to give V4 a fake formal COMPLETE result.
+            # reviews to give 现行 a fake formal COMPLETE result.
             old=builder.build(ROOT/"research/trend_buy_company_reviews/latest.json",
-                              v4_admission_path=candidate)
-            self.assertEqual(old["prescreen_version"],"V4_B1")
+                              admission_path=candidate)
+            self.assertEqual(old["prescreen_version"],"CANONICAL")
             self.assertEqual(old["mode"],"SHADOW")
             self.assertGreater(old["screen_audit"]["source_review_pending_count"],0)
-            self.assertTrue(old["screen_audit"]["v4_model_rank_missing_codes"])
+            self.assertTrue(old["screen_audit"]["model_rank_missing_codes"])
             self.assertFalse(old["publication_audit"]["fresh_company_research"])
             self.assertEqual(old["selected_company_count"],15)
 
@@ -111,13 +111,13 @@ class V4MainlinePromotionTests(unittest.TestCase):
                     "research_falsifier":"SYNTHETIC: real negative evidence invalidates hypothesis",
                     "early_evidence_risk_review_passed":True,
                     "evidence_gap":False,
-                    "v4_model_rank":next_rank,
-                    "v4_model_reason":"SYNTHETIC: simulated comparison of income, cashflow, expectations and actual peer strength.",
+                    "model_rank":next_rank,
+                    "model_reason":"SYNTHETIC: simulated comparison of income, cashflow, expectations and actual peer strength.",
                 })
                 next_rank+=1
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder)
-            admission=root/"v4_research_admission.json"
+            admission=root/"trend_buy_research_admission.json"
             evidence=root/"synthetic_only.json"
             structures=root/"technical.json"
             admission.write_text(json.dumps(intake_result,ensure_ascii=False))
@@ -127,28 +127,26 @@ class V4MainlinePromotionTests(unittest.TestCase):
             },ensure_ascii=False))
             result=builder.build(
                 evidence,structure_output_path=structures,
-                v4_admission_path=admission)
+                admission_path=admission)
             self.assertEqual(result["mode"],"FORMAL")
-            self.assertEqual(result["prescreen_version"],"V4_B1")
+            self.assertEqual(result["prescreen_version"],"CANONICAL")
             self.assertEqual(result["selected_company_count"],15)
             self.assertTrue(all(result["publication_audit"].values()))
             output=engine.generate(result,json.loads(structures.read_text()))
             self.assertTrue(output["production_eligible"])
-            self.assertEqual(output["prescreen_version"],"V4_B1")
+            self.assertEqual(output["prescreen_version"],"CANONICAL")
             self.assertEqual(output["coverage"]["judged"],15)
             self.assertTrue(all(len(x["items"])<=5 for x in output["top5_by_theme"]))
             self.assertTrue(all(x["status"]=="WAIT" or x["status"]=="READY"
                 for x in output["ready"]+output["wait"]))
             self.assertTrue(all(x.get("entry_zone") is None
                 for x in output["wait"]))
-            self.assertTrue(all(x.get("v4_model_priority") is not None
+            self.assertTrue(all(x.get("model_priority") is not None
                 for x in output["ready"]+output["wait"]))
 
-    def test_original_pipeline_without_v4_does_not_change(self):
-        d=builder.build(ROOT/"research/trend_buy_company_reviews/latest.json")
-        self.assertEqual(d["prescreen_version"],"LEGACY")
-        self.assertEqual(d["mode"],"FORMAL")
-        self.assertEqual(d["selected_company_count"],16)
+    def test_formal_research_requires_frozen_admission(self):
+        with self.assertRaisesRegex(ValueError,"ADMISSION_REQUIRED"):
+            builder.build(ROOT/"research/trend_buy_company_reviews/latest.json")
 
 if __name__=="__main__":
     unittest.main()
