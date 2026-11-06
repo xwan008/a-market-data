@@ -500,8 +500,8 @@ def main():
     p.add_argument("--structure",default=None,help="Optional legacy fixture, not used by production")
     p.add_argument("--structure-output",default=None,help="Write only selected candidates to an ephemeral technical input")
     p.add_argument("--output",required=True)
-    p.add_argument("--v4-admission",default=None,
-                   help="Program-frozen same-day 3+2 V4 selection; must be complete")
+    p.add_argument("--v4-admission",required=True,
+                   help="Mandatory program-frozen same-day V4-B1 selection; no legacy formal fallback")
     a=p.parse_args()
     out=build(Path(a.evidence),a.structure,a.structure_output,
               a.v4_admission)
