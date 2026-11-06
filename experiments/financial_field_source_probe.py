@@ -13,13 +13,15 @@ SELECT=("KCFJCXSYJLR","KCFJCXSYJLRTZ","DEDUCT_PARENT_NETPROFIT",
         "DEDUCT_PARENT_NETPROFIT_YOY","EPSKCJB","DEDUCT_BASIC_EPS",
         "PARENTNETPROFIT","PARENTNETPROFITTZ","NOTICE_DATE","REPORTDATE")
 
-def query(report, period, code=None):
+def query(report, period, code=None, filter_expr=None):
     if report=="RPT_F10_FINANCE_MAINFINADATA":
         filt=(f'(SECUCODE="{code}")' if code else
               f'(REPORT_DATE="{period}")')
     else:
         filt=f"(REPORTDATE='{period}')"
         if code:filt+=f"(SECURITY_CODE='{code}')"
+    if filter_expr is not None:
+        filt=filter_expr
     r=requests.get(URL,params={
         "sortColumns":("REPORT_DATE" if report=="RPT_F10_FINANCE_MAINFINADATA" else "REPORTDATE,SECURITY_CODE"),
         "sortTypes":("-1" if report=="RPT_F10_FINANCE_MAINFINADATA" else "-1,1"),
@@ -48,10 +50,12 @@ if __name__=="__main__":
         ("RPT_F10_FINANCE_MAINFINADATA","2026-09-30",None),
         ("RPT_F10_FINANCE_MAINFINADATA","2026-09-30","000506.SZ"),
         ("RPT_F10_FINANCE_MAINFINADATA","2026-09-30","600519.SH"),
+        ("RPT_F10_FINANCE_MAINFINADATA","2026-09-30","(SECUCODE in (\"000506.SZ\",\"600519.SH\"))"),
+        ("RPT_F10_FINANCE_MAINFINADATA","2026-09-30","(SECUCODE=\"000506.SZ\")(REPORT_DATE=\"2026-09-30\")"),
     ]
     for report,period,code in reports:
         try:
-            result=query(report,period,code)
+            result=query(report,period,None,filter_expr=code) if code and code.startswith("(") else query(report,period,code)
             print("CORE_PROFIT_SOURCE_PROBE "+json.dumps({
                 "report":report,"period":period,"code":code,
                 **result},ensure_ascii=False))
