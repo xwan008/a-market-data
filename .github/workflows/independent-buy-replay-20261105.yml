@@ -1,0 +1,94 @@
+name: Independent 2026-11-05 trend buy replay (non-publication)
+on:
+  push:
+    branches: [research/independent-buy-replay-20261105]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  fresh-frozen-inputs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Independently recompute program admission and raw financial/technical evidence
+        run: |
+          python - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,'scripts')
+          from prepare_trend_buy_candidates import prepare,read,validated_core_patch
+          from trend_buy_prescreen_core import frozen_industry_rows,history_for,completed_history,metrics
+          from price_inputs import SelectedStockStructures
+          root=Path('.')
+          admission=prepare()
+          day=admission['trade_date']
+          assert day=='2026-11-05'
+          finance=read(root/'data/research/core_profit_refresh_latest.json')
+          index=read(root/'data/low_risk/index.json')
+          price_builder=SelectedStockStructures(day)
+          arr=[]
+          cache={}
+          keys=['price','pe_ttm','pb','revenue_yoy','net_profit_yoy',
+                'deduct_net_profit_yoy','deduct_basic_eps_yoy','operating_cashflow_per_share',
+                'nonrecurring_profit_share_pct','report_date','ma20','ma60']
+          for industry in admission['industries']:
+            ind=industry['industry_code']
+            members={r['code']:r for r in frozen_industry_rows(root,index,ind,day)}
+            for code in industry['selected_codes']:
+              raw=members[code]
+              patch,why=validated_core_patch(raw,finance['records'].get(code),day)
+              company={**raw,**patch}
+              series,error=completed_history(history_for(root,code,cache),day,raw['price'])
+              if error: raise ValueError('INPUT_HISTORY_INVALID:'+code+':'+error)
+              tech=price_builder.get(code,raw)
+              arr.append({'industry_code':ind,'code':code,'name':raw.get('name'),
+                'financial_data':{k:company.get(k) for k in keys},
+                'financial_source_reason':why,
+                'past_returns':metrics(series),
+                'technical':{k:tech.get(k) for k in [
+                  'data_status','data_date','current_price','trend_phase','structure_type',
+                  'ma20','ma60','low_risk_eligible','chase_risk','distance_to_ma20_pct',
+                  'volume_ratio_1d_vs_20d','close_location_pct','higher_low',
+                  'support_invalidation','attention_resistance','phase_evidence',
+                  'technical_context']},
+                'finance_record':{k:(finance['records'].get(code) or {}).get(k) for k in [
+                  'notice_date','update_date','report_date','deduct_net_profit_yoy',
+                  'deduct_net_profit','source_report']}})
+          print('INDEPENDENT_REPLAY_CANDIDATES='+json.dumps(admission['industries'],ensure_ascii=False,separators=(',',':')))
+          for row in arr:
+            print('INDEPENDENT_REPLAY_STOCK='+json.dumps(row,ensure_ascii=False,separators=(',',':'),default=str))
+          assert len(arr)==15
+          print('INDEPENDENT_INPUT_COVERAGE_OK',len(arr))
+          PY
+      - name: Prepare independent review risk result (when new review file exists)
+        run: |
+          if [ ! -f research/independent_buy_replay_20261105_reviews.json ]; then
+             echo INDEPENDENT_FRESH_MODEL_REVIEW_PENDING
+             exit 0
+          fi
+          python scripts/build_trend_buy_manual_research.py \\
+             --evidence research/independent_buy_replay_20261105_reviews.json \\
+             --admission /tmp/independent_admission.json \\
+             --structure-output /tmp/independent_scoped_structure.json \\
+             --output /tmp/independent_fresh_research.json
+          python scripts/trend_buy_engine.py \\
+             --research /tmp/independent_fresh_research.json \\
+             --structure /tmp/independent_scoped_structure.json \\
+             --output /tmp/independent_result.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/independent_result.json').read_text())
+          print('INDEPENDENT_REPLAY_RESULT='+json.dumps({
+            'trade_date':x['trade_date'],'summary':x['summary'],
+            'top5_by_theme':x['top5_by_theme'],
+            'ready':[{'code':r['code'],'status':r['status'],'entry_zone':r.get('entry_zone'),'invalidation_price':r.get('invalidation_price')} for r in x['ready']],
+            'wait':[{'code':r['code'],'status':r['status'],'wait_reason':r.get('wait_reason'),'decision_reason':r.get('decision_reason'),'trend_phase':r.get('trend_phase')} for r in x['wait']],
+            'drop':[{'code':r['code'],'status':r['status'],'decision_reason':r.get('decision_reason')} for r in x['drop']],
+            'uncertain':[{'code':r['code'],'status':r['status'],'decision_reason':r.get('decision_reason')} for r in x['uncertain']]
+          },ensure_ascii=False,separators=(',',':')))
+          PY
