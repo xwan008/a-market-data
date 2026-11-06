@@ -6,6 +6,7 @@ on:
       - 'experiments/trend_buy_v2_relative_entry_shadow.py'
       - 'tests/test_trend_buy_v2_relative_entry_shadow.py'
       - 'experiments/trend_buy_v2_historical_replay.py'
+      - 'research/shadow/TREND_BUY_V2_HISTORICAL_SECTOR_EXPANSION_2026-11-06.md'
       - 'experiments/trend_buy_v2_robustness.py'
       - 'tests/test_trend_buy_v2_robustness.py'
       - 'tests/test_trend_buy_v2_historical_replay.py'
@@ -265,4 +266,71 @@ jobs:
         with:
           name: v2-event-clustered-shadow
           path: /tmp/v2-robustness-shadow.json
+          retention-days: 14
+
+      - name: Wide historical first-rankable replay including wind, batteries, banks, culture, games
+        run: |
+          python experiments/trend_buy_v2_historical_replay.py \
+            --snapshot-policy FIRST_RANKABLE \
+            --ranking V2 --min-date 2026-10-09 --max-date 2026-11-05 \
+            --output /tmp/v2-sector-wide-shadow.json
+          python experiments/trend_buy_v2_historical_replay.py \
+            --snapshot-policy FIRST_RANKABLE \
+            --ranking V21_STRUCTURAL --min-date 2026-10-09 --max-date 2026-11-05 \
+            --output /tmp/v21-sector-wide-shadow.json
+          python experiments/trend_buy_v2_robustness.py \
+            --v2 /tmp/v2-sector-wide-shadow.json \
+            --v21 /tmp/v21-sector-wide-shadow.json \
+            --output /tmp/v2-sector-wide-robust-shadow.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          old=json.loads(Path('/tmp/v2-historical-shadow.json').read_text())
+          wide=json.loads(Path('/tmp/v2-sector-wide-shadow.json').read_text())
+          v21=json.loads(Path('/tmp/v21-sector-wide-shadow.json').read_text())
+          robust=json.loads(Path('/tmp/v2-sector-wide-robust-shadow.json').read_text())
+          assert wide['snapshot_policy']=='FIRST_RANKABLE'
+          assert wide['published_snapshots']>=old['published_snapshots']
+          assert robust['comparability']['identical_cohort_keys']
+          assert not wide['enough_independent_evidence_for_production_upgrade']
+          assert not v21['enough_independent_evidence_for_production_upgrade']
+          assert robust['promotion_eligible'] is False
+          names=['风电','固态电池','银行','文化传媒','游戏']
+          for label in names:
+              groups=[x for x in wide['theme_coverage'] if label in x['theme']]
+              assert groups, 'missing_historically_ranked_topic:'+label
+              for group in groups:
+                  print('WIDE_THEME_COVERAGE',label,json.dumps(group,ensure_ascii=False))
+          print('WIDE_SCOPE_FORMALS',json.dumps({
+              'strict_snapshot_count':old['published_snapshots'],
+              'first_rankable_count':wide['published_snapshots'],
+              'strict_complete_samples':len(old['samples']),
+              'wide_complete_samples':len(wide['samples']),
+              'asof_dates':wide['asof_dates']},ensure_ascii=False))
+          print('WIDE_FORMAL_REJECTIONS',json.dumps(wide['publication_rejections'],
+                                                   ensure_ascii=False))
+          print('WIDE_COHORT_AUDIT',json.dumps(wide['coverage_audit'],
+                                             ensure_ascii=False))
+          print('WIDE_SKIPPED',json.dumps(wide['skipped'],ensure_ascii=False))
+          print('WIDE_RETURN_SUMMARY',json.dumps({
+              'v2':wide['summary'],'v21':v21['summary']},ensure_ascii=False))
+          for version,r in robust['versions'].items():
+              for horizon,row in r['by_horizon'].items():
+                  print('WIDE_ROBUSTNESS',version,horizon,json.dumps({
+                      k:row.get(k) for k in [
+                          'cohorts','distinct_dates','distinct_themes',
+                          'equal_date_mean_diff_pp','nonoverlap_by_theme_cohorts',
+                          'nonoverlap_by_theme_mean_diff_pp',
+                          'pairwise_accuracy_improvement_mean_pp',
+                          'by_market_state_category','by_protocol_epoch',
+                          'by_theme']},ensure_ascii=False))
+          PY
+      - name: Upload wide historical cohort and as-of exclusion audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: v2-historical-five-sector-expanded-shadow
+          path: |
+            /tmp/v2-sector-wide-shadow.json
+            /tmp/v21-sector-wide-shadow.json
+            /tmp/v2-sector-wide-robust-shadow.json
           retention-days: 14
