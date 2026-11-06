@@ -5,9 +5,7 @@ on:
     paths:
       - 'research/trend_handoff.json'
       - '.github/workflows/prepare-v4-mainline.yml'
-  schedule:
-    # Beijing 18:45 on weekdays, after confirmed sector research
-    - cron: '45 10 * * 1-5'
+      - '.github/external-trigger-v4-formal.txt'
   workflow_dispatch:
 
 permissions:
