@@ -7,9 +7,11 @@ on:
   workflow_dispatch:
   push:
     branches:
+      - main
       - feature/trend-buy-v4-nightly-shadow-freeze-20261106
     paths:
       - '.github/workflows/v4-nightly-shadow-freeze.yml'
+      - '.github/external-trigger-v4-shadow.txt'
   pull_request:
     paths:
       - '.github/workflows/v4-nightly-shadow-freeze.yml'
