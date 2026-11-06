@@ -5,6 +5,9 @@ on:
     paths:
       - 'experiments/trend_buy_v4_python_prescreen_shadow.py'
       - 'tests/test_trend_buy_v4_python_prescreen_shadow.py'
+      - 'scripts/audit_weekly_financial_fields.py'
+      - 'tests/test_weekly_financial_field_audit.py'
+      - '.github/workflows/update-weekly-research.yml'
       - 'research/shadow/TREND_BUY_V4_PYTHON_FIRST_2026-11-06.md'
       - '.github/workflows/validate-trend-buy-v4-python-first.yml'
   workflow_dispatch:
@@ -27,6 +30,24 @@ jobs:
         run: |
           python -m unittest discover -s tests -p 'test_trend_buy_v4_python_prescreen_shadow.py' -v
           python -m py_compile experiments/trend_buy_v4_python_prescreen_shadow.py
+      - name: Prove weekly financial core fields and warning do not change data
+        run: |
+          python -m unittest discover -s tests -p 'test_weekly_financial_field_audit.py' -v
+          python scripts/audit_weekly_financial_fields.py \
+            --latest data/latest.json \
+            --output /tmp/v4-weekly-financial-fields-shadow.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/v4-weekly-financial-fields-shadow.json').read_text())
+          assert x['mode']=='V4_WEEKLY_FINANCIAL_FIELD_COVERAGE_ONLY'
+          assert x['data_quality_warning_not_failure']
+          print('V4_FINANCIAL_FIELD_COVERAGE',json.dumps({
+              'stocks':x['stock_count'],
+              'general_financial_usable':x['reported_financial_usable'],
+              'core_profit_growth_available':x['core_profit_growth_available'],
+              'by_field':x['field_coverage']},ensure_ascii=False))
+          PY
       - name: Generate exact formal baseline pre-screen in memory; no research upgrades
         run: |
           python scripts/build_trend_buy_manual_research.py \
@@ -79,4 +100,5 @@ jobs:
           path: |
             /tmp/v4-frozen-baseline-shadow.json
             /tmp/v4-python-first-shadow.json
+            /tmp/v4-weekly-financial-fields-shadow.json
           retention-days: 14
