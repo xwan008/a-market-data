@@ -45,6 +45,61 @@ class CanonicalAdmissionTests(unittest.TestCase):
             "603258","002624","002605","002517","603444"])
         self.assertFalse(a["checks"]["model_invocations"])
 
+    def test_leader_remains_eligible_when_entry_setup_is_unavailable(self):
+        import trend_buy_prescreen_core as core
+        entries=[]
+        for i in range(6):
+            leader=i==0
+            entries.append({
+                "code":f"{600100+i:06d}",
+                "history":{
+                    "returns_pct":{"10":30-i*4,"20":45-i*6,"60":75-i*8},
+                    "positive_days_10":10-i,
+                },
+                "fundamental_score":0.5,
+                "entry_channel_eligible":not leader,
+                "entry_reference_score":0.0 if leader else 0.9-i*0.02,
+                "price_structure_score":0.0 if leader else 0.8,
+            })
+        selected, audit=core.dual_channel(entries)
+        self.assertEqual(len(selected),5)
+        self.assertEqual(len(set(row["code"] for row in selected)),5)
+        self.assertEqual(selected[0]["code"],"600100")
+        self.assertEqual(selected[0]["selected_channel"],"LEADERSHIP")
+        self.assertNotIn("600100",[x["code"] for x in selected
+                                   if x["selected_channel"]=="ENTRY_LOCATION"])
+        self.assertEqual(sum(x["selected_channel"]=="ENTRY_LOCATION"
+                             for x in selected),2)
+
+    def test_model_rank_can_include_remote_wait_before_nearby_group(self):
+        nearby=[shape(f"{600110+i:06d}",i+2,
+                      "同日已确认公司公告和主营逻辑，仍应由风险Gate限制交易执行")
+                for i in range(5)]
+        remote=shape("600199",1,"公司核验完成，尚待远端观察位置确认，本次不存在即时买点",
+                     phase="TRANSITION")
+        remote["technical_context"].update(ma20=15.0,ma60=16.0)
+        remote["phase_evidence"]={}
+        research={"prescreen_version":"CANONICAL",
+                  "trade_date":"2026-11-05",
+                  "companies":[{"trend_name":"游戏"}]}
+        group=engine.dynamic_top5_by_theme([],nearby+[remote],research)[0]
+        codes=[item["code"] for item in group["items"]]
+        self.assertEqual(codes[0],"600199")
+        self.assertNotIn("600114",codes)
+        self.assertEqual(len(codes),5)
+        self.assertEqual(group["items"][0]["entry_opportunity"],"TREND_WATCH_ONLY")
+
+    def test_ready_always_precedes_better_ranked_wait(self):
+        ready=shape("600120",90,"已确认完整交易形态，但仍仅属于条件性计划")
+        ready["status"]="READY"
+        wait=shape("600121",1,"候选公司模型名次更靠前，但未通过独立买点风险核验")
+        research={"prescreen_version":"CANONICAL",
+                  "trade_date":"2026-11-05",
+                  "companies":[{"trend_name":"游戏"}]}
+        group=engine.dynamic_top5_by_theme([ready],[wait],research)[0]
+        self.assertEqual([item["code"] for item in group["items"]],
+                         ["600120","600121"])
+
     def test_admission_mutation_fails_closed(self):
         a=intake.prepare(ROOT)
         tampered=deepcopy(a)
@@ -101,7 +156,7 @@ class CanonicalAdmissionTests(unittest.TestCase):
             for code in group["selected_codes"]:
                 reviews.append({
                     "code":code,
-                    "transmission":"SUPPORTED",
+                    "transmission":"NOT_SUPPORTED" if not reviews else "SUPPORTED",
                     "review_evidence_date":d,
                     "review_basis":"SYNTHETIC_UNIT_TEST_ONLY",
                     "source_review":"SYNTHETIC TEST: placeholder proof to exercise Python→model→risk interface only.",
@@ -136,6 +191,8 @@ class CanonicalAdmissionTests(unittest.TestCase):
             self.assertTrue(output["production_eligible"])
             self.assertEqual(output["prescreen_version"],"CANONICAL")
             self.assertEqual(output["coverage"]["judged"],15)
+            self.assertEqual(len(output["drop"]),1)
+            self.assertEqual(result["selected_company_count"],intake_result["selected_company_count"])
             self.assertTrue(all(len(x["items"])<=5 for x in output["top5_by_theme"]))
             self.assertTrue(all(x["status"]=="WAIT" or x["status"]=="READY"
                 for x in output["ready"]+output["wait"]))
