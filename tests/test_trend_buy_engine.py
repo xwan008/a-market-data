@@ -78,6 +78,7 @@ class TrendTests(unittest.TestCase):
     def test_prospective_formal_run_rejects_candidate_sector_before_research(self):
         r,s=inputs()
         r["mode"]="FORMAL"
+        r["prescreen_version"]="CANONICAL"
         r["trade_date"]=s["reference_trade_date"]="2026-10-27"
         s["companies"]["600001"]["data_date"]="2026-10-27"
         r["companies"][0]["market_state"]="候选趋势"
