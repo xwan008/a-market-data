@@ -277,7 +277,8 @@ def model_deep_review_packets(picked, trade_date):
             "continuity_days_10":company["history"]["positive_days_10"],
             "current_entry_reference_score":company["entry_reference_score"],
             "financial_basic_score":company["fundamental_score"],
-            "core_earnings_growth_verified":company["core_profit_growth_verified"],
+            "core_earnings_growth_available":company["core_profit_growth_verified"],
+            "financial_publication_date_verified":company["financial_publication_date_verified"],
             "financial_evidence_gaps":company["financial_evidence_gaps"],
         },
         "source_requirements":{
