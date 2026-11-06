@@ -80,6 +80,8 @@ jobs:
           from scripts.v4_prepare_research_candidates import validate_admission
           by_industry=validate_admission(Path('.'),admission)
           wanted={code for codes in by_industry.values() for code in codes}
+          company_industry={company:industry for industry,codes in by_industry.items()
+                            for company in codes}
           reviewed={r['code'] for r in evidence['reviews']}
           assert reviewed==wanted,('V4_REVIEW_SCOPE_MISMATCH',
                  sorted(wanted-reviewed),sorted(reviewed-wanted))
@@ -92,7 +94,7 @@ jobs:
                   assert type(rank) is int and 1<=rank<=100,('V4_MODEL_RANK',x['code'])
                   assert isinstance(reason,str) and len(reason.strip())>=24,('V4_MODEL_REASON',x['code'])
                   theme=next((h['trend_name'] for h in handoff['signals']
-                              if x['industry_code'] in h['industry_codes']),None)
+                              if company_industry[x['code']] in h['industry_codes']),None)
                   assert theme,('V4_THEME_NOT_FOUND',x['code'])
                   if rank in model_ranks.setdefault(theme,set()):
                       raise AssertionError('V4_DUPLICATE_RANK:'+theme+':'+str(rank))
