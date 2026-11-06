@@ -11,7 +11,9 @@ spec.loader.exec_module(engine)
 def company(**kw):
     return {"code":"600001","company_name":"合成样本","trend_name":"示例主题","industry_code":"S630702",
             "transmission":"SUPPORTED","market_state":"趋势确认","trend_state":"T1","theme_link_verified":True,"filter_passed":True,
-            "material_risk_unresolved":False,"source_review":"synthetic test","research_falsifier":"theme invalidated",**kw}
+            "material_risk_unresolved":False,"source_review":"synthetic test",
+             "model_priority":1,"model_reason":"经财务和公告核验的交易研究，模型名次仅供条件性关注",
+             "research_falsifier":"theme invalidated",**kw}
 
 def structure(**changes):
     x={"data_status":"verified","data_date":"2026-10-09","history_points":180,"low_risk_eligible":True,
@@ -28,7 +30,8 @@ def inputs(c=None,s=None):
     s=structure() if s is None else s
     c.setdefault("asof_price",s["current_price"])
     return ({"schema_version":"trend_buy_research_v2","trade_date":"2026-10-09","coverage_complete":True,
-             "selected_company_count":1,"companies":[c],"mode":"SHADOW"},
+             "selected_company_count":1,"companies":[c],"mode":"SHADOW",
+              "prescreen_version":"CANONICAL"},
             {"contract_id":"a-share-low-risk-price-structure","reference_trade_date":"2026-10-09",
              "companies":{"600001":s}})
 
