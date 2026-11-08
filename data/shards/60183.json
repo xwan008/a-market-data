@@ -1,8 +1,8 @@
 {
   "schema_version": 7,
-  "generated_at": "2026-11-06T17:01:11.518081+08:00",
+  "generated_at": "2026-11-08T17:00:43.935281+08:00",
   "trade_date": "2026-11-06",
-  "market_status": "closed",
+  "market_status": "closed_or_no_trade",
   "shard_key_length": 5,
   "shard": "60183",
   "stocks": {
@@ -31,7 +31,7 @@
         "roe": 10.48,
         "revenue_yoy": 9.8351344341,
         "net_profit_yoy": 4.48,
-        "deduct_net_profit_yoy": null,
+        "deduct_net_profit_yoy": 4.143179482238,
         "operating_cashflow_per_share": 18.911349889183,
         "gross_margin": null,
         "revenue": 19507503000.0,
@@ -41,12 +41,17 @@
         "deduct_basic_eps_prev_year": 2.24,
         "deduct_basic_eps_yoy": 1.3392857142856984,
         "sources": {
-          "valuation": "eastmoney_market_cross_section",
-          "financial": "eastmoney_RPT_LICO_FN_CPD"
+          "valuation": "previous_verified_snapshot",
+          "financial": "eastmoney_RPT_LICO_FN_CPD",
+          "core_profit": "eastmoney_RPT_F10_FINANCE_MAINFINADATA"
         },
         "warnings": [
           "valuation_stale_fallback"
-        ]
+        ],
+        "deduct_net_profit": 9856877000.0,
+        "nonrecurring_profit_share_pct": 0.616,
+        "core_profit_notice_date": "2026-10-29",
+        "core_profit_update_date": "2026-10-29"
       },
       "trend": {
         "points": 65,
