@@ -24,12 +24,17 @@ MARKET = {"趋势确认", "候选趋势", "观察", "新异动", "高潮/衰退"
 SHA = re.compile(r"^[0-9a-f]{40}$")
 
 
-def _quality_gate_errors(proposed, day):
+def _quality_gate_errors(proposed, day, previous=None):
     """Apply to the proposed close only; frozen historical input stays read-only."""
     if day < START_DATE:
         return []
     errors = []
     cache = {}
+    previous = previous if isinstance(previous, dict) else {}
+    old_rows = {r.get("episode_id"): r for r in previous.get("trends", [])
+                if isinstance(r, dict)}
+    first_cutover = previous.get("trade_date", "") < START_DATE
+    legacy_holds = set()
     scan = proposed.get("scan_audit")
     scan = scan if isinstance(scan, dict) else {}
     migration = scan.get("state_migration_gate")
@@ -39,12 +44,27 @@ def _quality_gate_errors(proposed, day):
         if not isinstance(row, dict):
             continue
         episode = row.get("episode_id", "unknown")
+        old = old_rows.get(episode) or {}
+        same_states = (bool(old) and row.get("market_state") == old.get("market_state")
+                       and row.get("trend_state") == old.get("trend_state")
+                       and row.get("in_new_position_priority") == old.get("in_new_position_priority"))
+        old_industry_states = {
+            a.get("industry_code"): a.get("market_state")
+            for a in old.get("industry_assessments", []) if isinstance(a, dict)}
+        new_industry_states = {
+            a.get("industry_code"): a.get("market_state")
+            for a in row.get("industry_assessments", []) if isinstance(a, dict)}
+        safe_hold = same_states and old_industry_states == new_industry_states
+        legacy_hold = first_cutover and safe_hold
+        if legacy_hold:
+            legacy_holds.add(episode)
         audit = row.get("confirmation_audit")
         audit = audit if isinstance(audit, dict) else {}
         gaps = row.get("evidence_gaps")
         if not isinstance(gaps, list) or any(
                 not isinstance(g, str) or len(g.strip()) < 12 for g in gaps):
-            errors.append(f"{episode}:evidence_gaps_invalid")
+            if not (legacy_hold and gaps is None and old.get("evidence_gaps") is None):
+                errors.append(f"{episode}:evidence_gaps_invalid")
         counters = row.get("contrary_evidence")
         if not isinstance(counters, list):
             errors.append(f"{episode}:contrary_evidence_invalid")
@@ -54,7 +74,12 @@ def _quality_gate_errors(proposed, day):
         status = audit.get("strongest_counter_status")
         strongest = audit.get("strongest_counter")
         strongest = strongest if isinstance(strongest, str) else ""
-        if status == "NONE_VERIFIED":
+        if (legacy_hold and status is None
+                and (old.get("confirmation_audit") or {}).get("strongest_counter_status") is None
+                and counters == (old.get("contrary_evidence") or [])
+                and strongest == (old.get("confirmation_audit") or {}).get("strongest_counter", "")):
+            pass
+        elif status == "NONE_VERIFIED":
             if counters or "尚无已核实反证" not in strongest:
                 errors.append(f"{episode}:counter_status_conflicts_with_evidence")
         elif status == "VERIFIED_ADVERSE_FACT":
@@ -66,21 +91,28 @@ def _quality_gate_errors(proposed, day):
             errors.append(f"{episode}:counter_status_missing")
         source = audit.get("catalyst_source")
         review = audit.get("catalyst_source_review")
-        review_errors = source_review_errors(
-            review, source, audit.get("catalyst_fact", ""), day, cache)
+        old_audit = old.get("confirmation_audit") or {}
+        inherited_source = (legacy_hold and review is None
+                            and old_audit.get("catalyst_source_review") is None
+                            and source == old_audit.get("catalyst_source")
+                            and audit.get("catalyst_fact") == old_audit.get("catalyst_fact"))
+        review_errors = ([] if inherited_source else source_review_errors(
+            review, source, audit.get("catalyst_fact", ""), day, cache))
         if review_errors:
-            if (row.get("market_state") == "观察"
-                    and audit.get("catalyst_kind") == "UNVERIFIED"
-                    and isinstance(review, dict)
-                    and review.get("status") == "UNVERIFIED"
-                    and review_errors == ["source_unverified"]
-                    and gaps):
-                pass
-            else:
-                errors.extend(f"{episode}:catalyst_{e}" for e in review_errors)
+            explicitly_unverified = (isinstance(review, dict)
+                                     and review.get("status") == "UNVERIFIED"
+                                     and review_errors == ["source_unverified"]
+                                     and isinstance(gaps, list) and bool(gaps))
+            new_observation = (not old and row.get("market_state") == "观察"
+                               and audit.get("catalyst_kind") == "UNVERIFIED")
+            # An unavailable web page cannot undo a previous valid HOLD.
+            # A promotion or new stock route must still fail closed.
+            if not (explicitly_unverified and (safe_hold or new_observation)):
+                errors.extend(f"{episode}:catalyst_{err}" for err in review_errors)
         logic = row.get("industry_logic")
         if not isinstance(logic, dict):
-            errors.append(f"{episode}:industry_logic_missing")
+            if not (legacy_hold and logic is None and old.get("industry_logic") is None):
+                errors.append(f"{episode}:industry_logic_missing")
         elif (not isinstance(logic.get("leading_indicator"), str)
               or len(logic["leading_indicator"].strip()) < 4
               or not isinstance(logic.get("transmission_reason"), str)
@@ -156,6 +188,11 @@ def _quality_gate_errors(proposed, day):
             continue
         for evidence in group:
             if not isinstance(evidence, dict):
+                continue
+            old = old_rows.get(episode) or {}
+            if (episode in legacy_holds and evidence in
+                    ((old.get("contrary_evidence") or []) +
+                     (old.get("supporting_evidence") or []))):
                 continue
             errors.extend(f"{episode}:{e}" for e in counter_errors(evidence))
             if (evidence.get("dimension") in {"MAJOR_CATALYST", "INDUSTRY_FUNDAMENTALS",
@@ -1138,7 +1175,7 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
     errors = []
     before, day = previous.get("trade_date"), proposed.get("trade_date")
     if isinstance(day, str) and DAY.fullmatch(day):
-        errors.extend(_quality_gate_errors(proposed, day))
+        errors.extend(_quality_gate_errors(proposed, day, previous))
     if isinstance(before, str) and before == day:
         return errors + _same_day_revision_errors(previous, proposed, source_sha,
                                                   snapshot=snapshot, sector_audit=sector_audit)

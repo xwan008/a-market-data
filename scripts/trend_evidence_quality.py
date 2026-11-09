@@ -6,6 +6,7 @@ whether that passage supports the economic inference.
 """
 from datetime import datetime, timedelta, timezone
 from html.parser import HTMLParser
+import hashlib
 from pathlib import Path
 import ipaddress
 import json
@@ -99,12 +100,16 @@ def source_review_errors(review, source, claim, day, cache=None):
         return ["source_review_missing"]
     if review.get("source") != source:
         return ["source_review_url_mismatch"]
+    if review["status"] == "MISMATCH":
+        return ["source_mismatch"]
     if review["status"] != "VERIFIED":
         return ["source_unverified"]
     cutoff = _moment(day + "T18:30:00+08:00")
     published = _moment(review.get("published_at"))
     available = _moment(review.get("available_at"))
-    if not published or not available or not published <= available <= cutoff:
+    is_local = isinstance(source, str) and source.startswith(("data/", "research/"))
+    if (not available or available > cutoff
+            or (not is_local and (not published or published > available))):
         return ["source_after_cutoff_or_date_unverified"]
     excerpt = review.get("excerpt")
     anchor = review.get("claim_anchor")
@@ -122,11 +127,27 @@ def source_review_errors(review, source, claim, day, cache=None):
             path.relative_to(root)
             if not path.is_file() or path.stat().st_size > 2_000_000:
                 raise ValueError("local source missing or too large")
-            body = path.read_text(encoding="utf-8")
+            raw = path.read_bytes()
+            body = raw.decode("utf-8")
             payload = json.loads(body)
             generated = _moment(payload.get("generated_at")) if isinstance(payload, dict) else None
-            if generated is None or generated != published or available != published:
-                return ["source_publication_time_mismatch"]
+            if generated is not None:
+                if not published or generated != published or available < generated:
+                    return ["source_publication_time_mismatch"]
+            else:
+                # Some same-session market snapshots have an as-of trade date
+                # but no publication timestamp. Verify their identity via Git
+                # blob SHA instead of inventing a published_at timestamp.
+                snap_day = payload.get("trade_date") if isinstance(payload, dict) else None
+                blob_sha = hashlib.sha1(
+                    b"blob " + str(len(raw)).encode("ascii") + b"\\0" + raw
+                ).hexdigest()
+                if (published is not None or not isinstance(snap_day, str)
+                        or not re.fullmatch(r"\\d{4}-\\d{2}-\\d{2}", snap_day)
+                        or snap_day > day or snap_day != review.get("snapshot_trade_date")
+                        or blob_sha != review.get("snapshot_blob_sha")
+                        or available.astimezone(BEIJING).date().isoformat() < snap_day):
+                    return ["source_snapshot_provenance_mismatch"]
         except (OSError, ValueError, UnicodeError, json.JSONDecodeError):
             return ["source_page_unverifiable"]
         return [] if _compact(excerpt) in _compact(body) else ["source_excerpt_not_on_page"]
