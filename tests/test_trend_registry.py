@@ -118,6 +118,56 @@ class TrendRegistryTests(unittest.TestCase):
         old["finding"] = missing["finding"]
         self.assertTrue(engine._valid_evidence(old, "2026-11-10"))
 
+    def test_prepublication_full_close_rejects_pseudo_counter_without_blocking_empty_handoff(self):
+        """Exercise the production migration + paired-publication gates together."""
+        import json
+        from pathlib import Path
+
+        root = Path(__file__).resolve().parents[1]
+        frozen = json.loads((root / "research/trend_registry.json").read_text())
+        frozen_handoff = json.loads((root / "research/trend_handoff.json").read_text())
+        self.assertEqual(frozen["trade_date"], "2026-11-09")
+        self.assertEqual(frozen_handoff["signals"], [])
+        self.assertEqual(pair.validate(frozen, frozen_handoff), [])
+
+        before, proposed = fixture()
+        before["trade_date"] = "2026-11-09"
+        proposed["trade_date"] = "2026-11-10"
+        migration = proposed["scan_audit"]["state_migration_gate"]
+        migration.update(previous_registry_trade_date="2026-11-09",
+                         current_trade_date="2026-11-10")
+        add_future_audit(proposed)
+        row = proposed["trends"][0]
+        row["industry_assessments"] = [{
+            "industry_code": "S630601", "industry_name": "风电整机",
+            "benefit_level": "CORE", "market_state": "候选趋势",
+            "evidence_trade_date": "2026-11-10",
+            "benefit_reason": "公司产品所在产业链受益关系已有独立主营核对资料",
+            "market_reason": "核心行业尚需持续观察市场广度及相对强弱结构"}]
+        row["trend_state"] = "T0"
+        row["state_history"].append({
+            "trade_date": "2026-11-10", "from": "T1", "to": "T0"})
+        migration["reviews"][0].update(decision="CHANGE", proposed_trend_state="T0")
+        missing = fact("INDUSTRY_FUNDAMENTALS", impact="STRUCTURAL",
+                       date="2026-11-10")
+        missing["finding"] = "产业订单尚未形成全链条收入和利润兑现闭环"
+        migration["reviews"][0]["evidence"] = [missing]
+        row["contrary_evidence"] = [missing]
+        empty = {"schema_version": 1, "result_kind": "a_share_trend_handoff",
+                 "trade_date": "2026-11-10", "signals": []}
+        self.assertEqual(pair.validate(proposed, empty), [])
+        invalid = gate.validate(before, proposed, SHA)
+        self.assertIn(row["episode_id"] + ":unverifiable_evidence", invalid)
+        self.assertIn(row["episode_id"] + ":industry_downgrade_without_primary_counter", invalid)
+        self.assertIn(row["episode_id"] + ":missing_proof_mislabeled_counter", invalid)
+
+        adverse = copy.deepcopy(missing)
+        adverse["finding"] = "主要产品销售价格同比下降且行业需求实际收缩"
+        migration["reviews"][0]["evidence"] = [adverse]
+        row["contrary_evidence"] = [adverse]
+        self.assertEqual(gate.validate(before, proposed, SHA), [])
+        self.assertEqual(pair.validate(proposed, empty), [])
+
     def _today_revision(self):
         from datetime import datetime
         today = datetime.now(engine.BEIJING).date().isoformat()
