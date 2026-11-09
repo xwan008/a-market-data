@@ -57,6 +57,29 @@
 
 读取上一有效交易日正式趋势账本中处于观察、候选趋势或趋势确认，且产业生命周期未失效的方向，对真实隔夜增量证据进行复核；无新事实则保留原状态与证据日期，不在早间改写正式收盘registry/handoff。已确认真正退出的方向不再自动继承；正式榜内观察方向必须继续读取、复核，不得遗忘。**读取上一收盘Registry/Handoff时执行下述历史输入只读校验，通过后再复核。**校验失败时报告REGISTRY_BASELINE_UNAVAILABLE。
 
+### 1.1.1｜跨市场商品数据新鲜度复核（06:30和18:30）
+
+**第一锚研究必须使用截至本轮研究时点最新可核验的已完成交易时段，不是机械地要求“海外今天收盘”。** 06:30检查上一有效收盘Registry中所有有效 \`trend_basis=COMMODITY\` 方向；18:30则在**拟发布**Registry成对验证前，检查拟发布商品证据是否仍为截至18:30已可获得的最新报价。不能仅因为前一自然日是周末就认定陈旧，也不能以周末/时区差异掩盖上个工作日已完成的结算价。
+
+1. **每轮重新取证，交易日历感知**：按真实 \`commodity_anchor.instrument\` 核对对应交易所/报价市场的交易规则、节假日、休市、夏令时/冬令时和当轮市场时段；记录有来源的 \`market_status\`：\`OPEN\` / \`DAILY_BREAK\` / \`WEEKEND\` / \`HOLIDAY\` / \`CLOSED\`，无法查证时 \`UNKNOWN\`，不得假装已核实。交易日历核验时间必须属于本轮北京时间自然日；商品没有全球统一的收盘或休市时间，不能用COMEX日历解释LME、上海期货或伦敦现货的报价状态。
+2. **完成时段价与盘中价分开审计**：\`latest_completed\`记录与原\`completed_reference\`同一具体商品/定价市场的最新已公布结算/正式收盘价的交易日、报价类型、来源、可得时间；若市场为OPEN，另核实\`latest_quote\`的盘中报价时间及来源。禁止用研究时点之后才发布的结算、另一合约、过期缓存或盘中数据冒充当时最新已完成报价。市场休市且参考日期确实最新时可判\`CURRENT\`；无可靠日历、价格或来源必须标注无法核验，不能静默判定数据新鲜。
+3. **只读交叉校验**：逐个有效商品方向，制作临时证据文件\`/tmp/commodity_freshness_evidence.json\`，格式为\`{"asof":"2026-11-09T06:30:00+08:00","markets":[{"episode_id":"...","instrument":"...","market_status":"WEEKEND","calendar_source":"https://...","calendar_checked_at":"2026-11-09T06:25:00+08:00","latest_completed":{"trade_date":"2026-11-06","price_basis":"SETTLEMENT","source":"https://...","available_at":"2026-11-07T06:00:00+08:00"},"latest_quote":null}]}\`。日期和时刻仅作**字段结构示例**，必须换成当轮真实已核实证据。日历与价格来源仍须由研究者独立检查，校验脚本只验证时序、一致性与缺漏，不能证明输入价格真实、也不联网获取价格。
+4. **06:30增量检查（旧基线只读）**：
+   
+   ~~~bash
+   python scripts/validate_commodity_freshness.py --registry /tmp/previous_registry.json --evidence /tmp/commodity_freshness_evidence.json --mode morning
+   ~~~
+
+   \`NEW_COMPLETED_SESSION\`、\`NEW_QUOTE\`表示有应纳入研究的新证据（不是自动升降级）；须在中文早间报告逐项说明上轮参考日/新参考日、来源、市场是否开盘、支持或削弱了何种原判断。无变化时注明\`CURRENT\`；\`NOT_REQUIRED_CLOSED\`表示对应已核实休市且不强制要求盘中报价。早间**不**改写正式收盘registry/handoff，不产生股票handoff或买点信号。
+5. **18:30拟发布前检查（仅校验拟发布商品锚）**：
+   
+   ~~~bash
+   python scripts/validate_commodity_freshness.py --registry /tmp/proposed_registry.json --evidence /tmp/commodity_freshness_evidence.json --mode close
+   ~~~
+
+   \`STALE_COMPLETED_REFERENCE\`、\`STALE_QUOTE\`、\`UNVERIFIED\`等必须先补证核对，不得把已知旧报价当作当日完成复核；校验失败应报告\`COMMODITY_FRESHNESS_UNVERIFIED\`并注明具体主题、数据源和缺口，必要时阻断依赖该数据的商品状态迁移或整个不合格正式发布，不能借数据缺失随意宣布趋势失效。完成价新鲜不代表价格趋势自动确认，仍严格适用既有独立供需、产业T、申万三级和handoff Gate。
+6. **保留既有历史契约**：不修改已冻结历史Registry或handoff、不在旧历史回放上强加未来才引入的Gate、不另建正式商品榜；新鲜度证据临时保存或在当轮研究报告中披露，不回写既有状态字段，也不被股票买点任务视为READY。
+
 ### 1.2 18:30｜正式收盘研究
 
 确认交易日期、收盘行情完成度和行业覆盖；仅在全市场扫描确实完整时将`scan_audit.full_market_scan_completed`记录为true。质量不足时阻断且**不能把本轮未发现解释成旧趋势失效**。
@@ -213,6 +236,7 @@ python scripts/validate_trend_publication_pair.py \
 ## 5. 每轮检查清单
 
 - [ ] 06:30复核上轮观察/候选/确认；18:30先验证交易日、全行业及主要概念行情覆盖，再独立发现。
+- [ ] 若存在有效COMMODITY方向，06:30按当时最新已完成海外时段和交易日历做增量新鲜度检查；18:30对拟发布商品锚再校验最新可得参考价与盘中价，不能凭休市或陈旧缓存判断。
 - [ ] 独立首轮冻结前不读取旧registry、handoff或历史主题名单。
 - [ ] 旧有效趋势每个都有且仅有一条继续复核或退出审计；有新证据才能迁移或退出。
 - [ ] `trends`直接包含观察、候选、确认；只有已确认且有独立CORE/DIRECT确认三级行业的主题才能进入handoff；`signals=[]`合法、无新股票榜；商品价格作为原趋势证据推进而非独立发布。
