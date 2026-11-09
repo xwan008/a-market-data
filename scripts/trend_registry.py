@@ -2,6 +2,10 @@
 """Active trend continuity and evidence-backed exit validation."""
 import re
 from datetime import datetime, timezone, timedelta
+try:
+    from scripts.trend_evidence_quality import START_DATE, counter_errors, source_review_errors
+except ModuleNotFoundError:
+    from trend_evidence_quality import START_DATE, counter_errors, source_review_errors
 
 STATES = {"失效": 0, "高潮/衰退": 1, "观察": 2, "新异动": 2,
           "候选趋势": 3, "趋势确认": 4}
@@ -18,6 +22,150 @@ DAY = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 TRACK = {"趋势确认", "候选趋势", "观察"}
 MARKET = {"趋势确认", "候选趋势", "观察", "新异动", "高潮/衰退", "失效"}
 SHA = re.compile(r"^[0-9a-f]{40}$")
+
+
+def _quality_gate_errors(proposed, day):
+    """Apply to the proposed close only; frozen historical input stays read-only."""
+    if day < START_DATE:
+        return []
+    errors = []
+    cache = {}
+    scan = proposed.get("scan_audit")
+    scan = scan if isinstance(scan, dict) else {}
+    migration = scan.get("state_migration_gate")
+    migration = migration if isinstance(migration, dict) else {}
+    evidence_groups = []
+    for row in proposed.get("trends") or []:
+        if not isinstance(row, dict):
+            continue
+        episode = row.get("episode_id", "unknown")
+        audit = row.get("confirmation_audit")
+        audit = audit if isinstance(audit, dict) else {}
+        gaps = row.get("evidence_gaps")
+        if not isinstance(gaps, list) or any(
+                not isinstance(g, str) or len(g.strip()) < 12 for g in gaps):
+            errors.append(f"{episode}:evidence_gaps_invalid")
+        counters = row.get("contrary_evidence")
+        if not isinstance(counters, list):
+            errors.append(f"{episode}:contrary_evidence_invalid")
+            counters = []
+        evidence_groups.append((episode, counters))
+        evidence_groups.append((episode, row.get("supporting_evidence") or []))
+        status = audit.get("strongest_counter_status")
+        strongest = audit.get("strongest_counter")
+        strongest = strongest if isinstance(strongest, str) else ""
+        if status == "NONE_VERIFIED":
+            if counters or "尚无已核实反证" not in strongest:
+                errors.append(f"{episode}:counter_status_conflicts_with_evidence")
+        elif status == "VERIFIED_ADVERSE_FACT":
+            if not counters or any(word in strongest
+                                   for word in ("未披露", "尚未兑现", "待验证", "仍需验证",
+                                                "缺少", "尚未形成", "尚未获得", "尚待")):
+                errors.append(f"{episode}:counter_status_conflicts_with_evidence")
+        else:
+            errors.append(f"{episode}:counter_status_missing")
+        source = audit.get("catalyst_source")
+        review = audit.get("catalyst_source_review")
+        review_errors = source_review_errors(
+            review, source, audit.get("catalyst_fact", ""), day, cache)
+        if review_errors:
+            if (row.get("market_state") == "观察"
+                    and audit.get("catalyst_kind") == "UNVERIFIED"
+                    and isinstance(review, dict)
+                    and review.get("status") == "UNVERIFIED"
+                    and review_errors == ["source_unverified"]
+                    and gaps):
+                pass
+            else:
+                errors.extend(f"{episode}:catalyst_{e}" for e in review_errors)
+        logic = row.get("industry_logic")
+        if not isinstance(logic, dict):
+            errors.append(f"{episode}:industry_logic_missing")
+        elif (not isinstance(logic.get("leading_indicator"), str)
+              or len(logic["leading_indicator"].strip()) < 4
+              or not isinstance(logic.get("transmission_reason"), str)
+              or len(logic["transmission_reason"].strip()) < 12):
+            errors.append(f"{episode}:industry_leading_indicator_invalid")
+        elif "航天" in (row.get("trend_name") or ""):
+            if (logic.get("profile") != "AEROSPACE"
+                    or logic.get("launch_or_network_status") not in {"VERIFIED", "UNVERIFIED"}
+                    or logic.get("listed_company_benefit_status") not in {"VERIFIED", "UNVERIFIED"}
+                    or not isinstance(logic.get("benefit_reason"), str)
+                    or len(logic["benefit_reason"].strip()) < 12):
+                errors.append(f"{episode}:aerospace_driver_review_invalid")
+            if (row.get("in_new_position_priority")
+                    and logic.get("listed_company_benefit_status") != "VERIFIED"):
+                errors.append(f"{episode}:aerospace_benefit_unverified_for_handoff")
+            for status_key, source_key, fact_key, review_key in (
+                    ("launch_or_network_status", "launch_source", "launch_fact",
+                     "launch_source_review"),
+                    ("listed_company_benefit_status", "benefit_source", "benefit_fact",
+                     "benefit_source_review")):
+                if logic.get(status_key) == "VERIFIED":
+                    source_value = logic.get(source_key)
+                    fact_value = logic.get(fact_key)
+                    if (not isinstance(source_value, str) or not SOURCE.fullmatch(source_value)
+                            or not isinstance(fact_value, str) or len(fact_value.strip()) < 12):
+                        errors.append(f"{episode}:{status_key}_evidence_missing")
+                    else:
+                        errors.extend(f"{episode}:{status_key}_{e}" for e in source_review_errors(
+                            logic.get(review_key), source_value, fact_value, day, cache))
+        elif "燃气" in (row.get("trend_name") or ""):
+            models = logic.get("business_models")
+            theme_codes = row.get("industry_codes") or []
+            if (logic.get("profile") != "GAS"
+                    or not isinstance(models, list) or not models
+                    or not all(isinstance(m, dict)
+                               and m.get("type") in {"UPSTREAM_PRODUCER", "CITY_GAS_OPERATOR", "OTHER"}
+                               and isinstance(m.get("industry_codes"), list)
+                               and m["industry_codes"]
+                               and all(c in theme_codes for c in m["industry_codes"])
+                               and m.get("price_cost_transmission") in {"VERIFIED", "UNVERIFIED", "ADVERSE", "NOT_APPLICABLE"}
+                               and isinstance(m.get("reason"), str)
+                               and len(m["reason"].strip()) >= 12 for m in models)):
+                errors.append(f"{episode}:gas_business_model_review_invalid")
+            eligible_codes = {
+                a.get("industry_code") for a in row.get("industry_assessments", [])
+                if isinstance(a, dict) and a.get("market_state") == "趋势确认"
+                and a.get("benefit_level") in {"CORE", "DIRECT"}}
+            if (row.get("in_new_position_priority") and isinstance(models, list) and
+                    any(set(m.get("industry_codes") or []) & eligible_codes
+                        and m.get("price_cost_transmission") != "VERIFIED"
+                        for m in models if isinstance(m, dict))):
+                errors.append(f"{episode}:gas_transmission_unverified_for_handoff")
+            for model in models if isinstance(models, list) else []:
+                if not isinstance(model, dict) or model.get("price_cost_transmission") not in {"VERIFIED", "ADVERSE"}:
+                    continue
+                source_value = model.get("source")
+                fact_value = model.get("fact")
+                if (not isinstance(source_value, str) or not SOURCE.fullmatch(source_value)
+                        or not isinstance(fact_value, str) or len(fact_value.strip()) < 12):
+                    errors.append(f"{episode}:gas_transmission_evidence_missing")
+                else:
+                    errors.extend(f"{episode}:gas_transmission_{e}" for e in source_review_errors(
+                        model.get("source_review"), source_value, fact_value, day, cache))
+        elif logic.get("profile") not in {"OTHER", "COMMODITY", "AEROSPACE", "GAS"}:
+            errors.append(f"{episode}:industry_logic_invalid")
+    for name in ("reviews", "exits", "new_confirmation_reviews"):
+        for review in migration.get(name, []) or []:
+            if isinstance(review, dict):
+                evidence_groups.append((review.get("episode_id", "unknown"),
+                                        review.get("evidence") or []))
+    for episode, group in evidence_groups:
+        if not isinstance(group, list):
+            continue
+        for evidence in group:
+            if not isinstance(evidence, dict):
+                continue
+            errors.extend(f"{episode}:{e}" for e in counter_errors(evidence))
+            if (evidence.get("dimension") in {"MAJOR_CATALYST", "INDUSTRY_FUNDAMENTALS",
+                                               "SUPPLY_DEMAND"}
+                    and isinstance(evidence.get("source"), str)
+                    and evidence["source"].startswith(("https://", "http://"))):
+                errors.extend(f"{episode}:evidence_{e}" for e in source_review_errors(
+                    evidence.get("source_review"), evidence["source"],
+                    evidence.get("finding", ""), day, cache))
+    return errors
 
 def _valid_evidence(e, after_day):
     """Verify provenance/shape, not the truth of external market claims."""
@@ -989,9 +1137,11 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
     """Fail closed on unsupported updates or unreviewed exits."""
     errors = []
     before, day = previous.get("trade_date"), proposed.get("trade_date")
+    if isinstance(day, str) and DAY.fullmatch(day):
+        errors.extend(_quality_gate_errors(proposed, day))
     if isinstance(before, str) and before == day:
-        return _same_day_revision_errors(previous, proposed, source_sha,
-                                         snapshot=snapshot, sector_audit=sector_audit)
+        return errors + _same_day_revision_errors(previous, proposed, source_sha,
+                                                  snapshot=snapshot, sector_audit=sector_audit)
     if previous.get("schema_version") != 2 or proposed.get("schema_version") != 2:
         errors.append("schema_version_mismatch")
     if previous.get("result_kind") != "a_share_trend_registry" or proposed.get("result_kind") != "a_share_trend_registry":
@@ -1287,3 +1437,4 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
                     qualified, "SUPPORT", before, True, commodity=item.get("trend_basis") == "COMMODITY"):
                 errors.append(f"{episode}:new_confirmation_without_independent_evidence")
     return errors
+
