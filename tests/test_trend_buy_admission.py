@@ -48,7 +48,11 @@ class CanonicalAdmissionTests(unittest.TestCase):
         handoff=json.loads((ROOT/"research/trend_handoff.json").read_text())
         if handoff.get("signals"):
             self.skipTest("current_handoff_has_confirmed_industries")
-        with self.assertRaisesRegex(ValueError,"ADMISSION_NO_UPSTREAM_CONFIRMED_SW3"):
+        idx=json.loads((ROOT/"data/low_risk/index.json").read_text())
+        expected=("ADMISSION_NO_UPSTREAM_CONFIRMED_SW3"
+                  if handoff.get("trade_date")==idx.get("trade_date")
+                  else "ADMISSION_ASOF_INPUT_MISMATCH")
+        with self.assertRaisesRegex(ValueError,expected):
             intake.prepare(ROOT)
 
     def test_python_admission_is_current_replayable_and_five_max(self):
