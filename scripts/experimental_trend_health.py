@@ -20,6 +20,23 @@ SCHEMA = "experimental_trend_health_v1"
 HISTORY_DAYS = 20
 OBSERVATION_DAYS = 120
 LABELS = {0: "正常/未触发", 1: "放缓", 2: "衰减", 3: "高风险"}
+PROTECTION_RANK = {"持有": 0, "警戒": 1, "防御": 2, "退出": 3}
+
+
+def protection_decision(health_rank, curr):
+    """Research-only protection state. Never a personal sell order or a formal Gate."""
+    # EXIT requires independent price, relative-strength and breadth weakness;
+    # a single severe day or high-risk health rank is insufficient.
+    broken = (curr["m3"] < 0 and curr["m5"] < 0
+              and curr["r"] < 0 and curr["b3"] <= 0.35
+              and curr["b1"] <= 0.25)
+    if broken:
+        return "退出", "RED", "3/5日核心结构同时转负、弱于市场且广度明显收缩；优先核查既定持仓退出条件"
+    if health_rank >= 2 or (curr["m3"] < 0 and curr["r"] <= 0 and curr["b1"] <= 0.25):
+        return "防御", "ORANGE", "多维衰减或结构与广度同步走弱；暂停追高并复核保护位"
+    if health_rank >= 1 or (curr["r"] < 0 and curr["b1"] <= 0.25):
+        return "警戒", "YELLOW", "已出现初步退潮信号；观察承接并检查原风险计划"
+    return "持有", "GREEN", "当前未触发实验保护信号；仍须遵守原持仓风险计划"
 
 
 def finite(value):
@@ -84,7 +101,9 @@ def health_one(theme, snapshots):
     base = {"episode_id": theme.get("episode_id"), "trend_name": name,
             "formal_market_state": theme.get("market_state"),
             "role": "NON_BINDING_SHADOW_ONLY", "market_invalidation": False,
-            "new_position_eligibility_changed": False}
+            "new_position_eligibility_changed": False,
+            "protection_status": "待评估", "protection_color": "GRAY",
+            "protection_is_trade_instruction": False}
     if theme.get("trend_basis", "A_SHARE") != "A_SHARE":
         return {**base, "health": "未评估", "status": "COMMODITY_FIRST_ANCHOR",
                 "reason": "商品第一锚需要自身多日价格和供需证据；A股扩散不得替代商品趋势健康度。"}
@@ -122,7 +141,11 @@ def health_one(theme, snapshots):
         signals.append("SEVERE_SAME_DAY_CONTRACTION")
     score = int(rs_slow) + int(momentum_slow) + int(breadth_narrow)
     rank = 3 if (score == 3 or severe_divergence) else min(score, 2)
+    protection, color, protection_reason = protection_decision(rank, curr)
     return {**base, "health": LABELS[rank], "status": "ASSESSED",
+            "protection_status": protection, "protection_color": color,
+            "protection_rank": PROTECTION_RANK[protection],
+            "protection_reason": protection_reason,
             "health_rank": rank, "signal_count": score, "signals": signals,
             "dimensions": {"relative_strength_decay": rs_slow,
                            "momentum_decay": momentum_slow,
@@ -184,6 +207,11 @@ def build(registry, sector, previous=None):
             "WORSENED" if a is not None and b is not None and b > a
             else "IMPROVED" if a is not None and b is not None and b < a
             else "UNCHANGED" if a is not None and b is not None else "NOT_COMPARABLE")
+        c, d = prev.get("protection_rank") if prev else None, row.get("protection_rank")
+        row["protection_change_vs_previous_observation"] = (
+            "WORSENED" if c is not None and d is not None and d > c
+            else "IMPROVED" if c is not None and d is not None and d < c
+            else "UNCHANGED" if c is not None and d is not None else "NOT_COMPARABLE")
     prev_observations.append({"trade_date": day, "trends": observations})
     prev_observations.sort(key=lambda x: x["trade_date"])
     return {
