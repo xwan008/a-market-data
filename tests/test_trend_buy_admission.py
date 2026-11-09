@@ -40,7 +40,16 @@ class CanonicalAdmissionTests(unittest.TestCase):
         idx=json.loads((ROOT/"data/low_risk/index.json").read_text())
         if handoff.get("trade_date")!=idx.get("trade_date"):
             self.skipTest("confirmed_sector_and_market_working_set_dates_not_paired")
+        if not handoff.get("signals"):
+            self.skipTest("no_eligible_confirmed_industry_in_current_handoff")
         return handoff["trade_date"]
+
+    def test_empty_formal_handoff_does_not_open_stock_admission(self):
+        handoff=json.loads((ROOT/"research/trend_handoff.json").read_text())
+        if handoff.get("signals"):
+            self.skipTest("current_handoff_has_confirmed_industries")
+        with self.assertRaisesRegex(ValueError,"ADMISSION_NO_UPSTREAM_CONFIRMED_SW3"):
+            intake.prepare(ROOT)
 
     def test_python_admission_is_current_replayable_and_five_max(self):
         self.require_current_paired_working_set()
@@ -259,3 +268,4 @@ class CanonicalAdmissionTests(unittest.TestCase):
 
 if __name__=="__main__":
     unittest.main()
+
