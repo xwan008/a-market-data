@@ -30,6 +30,8 @@ class HealthTest(unittest.TestCase):
         result = mod.health_one(theme(), days)
         self.assertEqual(result["health"], "衰减")
         self.assertEqual(result["signal_count"], 2)
+        self.assertEqual(result["protection_status"], "防御")
+        self.assertEqual(result["protection_color"], "ORANGE")
         self.assertFalse(result["market_invalidation"])
 
     def test_game_day_6_high_risk_not_invalidated(self):
@@ -39,10 +41,34 @@ class HealthTest(unittest.TestCase):
                 metric("2026-11-06", -.719, .495, b3=.5, b5=1.0, b1=0)]
         result = mod.health_one(theme(), days)
         self.assertEqual(result["health"], "高风险")
+        self.assertEqual(result["protection_status"], "防御")
+        self.assertFalse(result["protection_is_trade_instruction"])
         self.assertFalse(result["market_invalidation"])
+
+    def test_exit_requires_multiday_structural_evidence(self):
+        days = [metric("2026-11-03", 2, 4),
+                metric("2026-11-04", 1, 3),
+                metric("2026-11-05", -0.6, 1),
+                metric("2026-11-06", -1, -2, b3=.2, b5=.2, b1=.05)]
+        days[-1]["industries"]["S720401"]["m5"] = -3
+        result = mod.health_one(theme(), days)
+        self.assertEqual(result["protection_status"], "退出")
+        self.assertEqual(result["protection_color"], "RED")
+        self.assertFalse(result["market_invalidation"])
+        self.assertFalse(result["protection_is_trade_instruction"])
+
+    def test_one_warning_is_not_exit(self):
+        days = [metric("2026-11-03", 0.4, 2),
+                metric("2026-11-04", 0.4, 2),
+                metric("2026-11-05", 0.4, 2),
+                metric("2026-11-06", 0.4, 2, b3=.5, b5=.9, b1=.9)]
+        result = mod.health_one(theme(), days)
+        self.assertEqual(result["protection_status"], "警戒")
+        self.assertEqual(result["protection_color"], "YELLOW")
 
     def test_missing_history_and_commodity(self):
         self.assertEqual(mod.health_one(theme(), [metric("2026-11-06", 1, 3)])["health"], "待积累")
+        self.assertEqual(mod.health_one(theme(), [metric("2026-11-06", 1, 3)])["protection_status"], "待评估")
         self.assertEqual(mod.health_one(theme("COMMODITY"), [])["status"], "COMMODITY_FIRST_ANCHOR")
 
     def test_dates_idempotence_and_formal_unchanged(self):
@@ -60,6 +86,7 @@ class HealthTest(unittest.TestCase):
         self.assertEqual(len(second["sector_history"]), 1)
         self.assertEqual(len(second["daily_observations"]), 1)
         self.assertEqual(second["latest"][0]["health"], "待积累")
+        self.assertEqual(second["latest"][0]["protection_status"], "待评估")
         sector["trade_date"] = "2026-11-05"
         with self.assertRaisesRegex(ValueError, "ASOF_DATE_MISMATCH"):
             mod.build(registry, sector, first)
