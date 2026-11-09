@@ -107,6 +107,27 @@ def surge_audit(day, market="观察", discovery="ONE_DAY_SURGE"):
 
 
 class TrendRegistryTests(unittest.TestCase):
+    def test_missing_profit_proof_is_not_market_counter(self):
+        missing = fact("INDUSTRY_FUNDAMENTALS", date="2026-11-10")
+        missing["finding"] = "板块上涨但尚未形成覆盖全链的订单、利润兑现闭环"
+        self.assertFalse(engine._valid_evidence(missing, "2026-11-10"))
+        adverse = fact("INDUSTRY_FUNDAMENTALS", date="2026-11-10")
+        adverse["finding"] = "核心产品价格同比下降，上市公司毛利率明显恶化"
+        self.assertTrue(engine._valid_evidence(adverse, "2026-11-10"))
+        old = fact("INDUSTRY_FUNDAMENTALS", date="2026-11-09")
+        old["finding"] = missing["finding"]
+        self.assertTrue(engine._valid_evidence(old, "2026-11-10"))
+
+    def test_new_counter_gap_on_current_registry_row_rejected(self):
+        row = theme()
+        row["confirmation_audit"] = surge_audit("2026-11-10")
+        row["confirmation_audit"]["discovery_basis"] = "CONTINUING_STRUCTURE"
+        row["contrary_evidence"] = [{
+            **fact("INDUSTRY_FUNDAMENTALS", date="2026-11-10"),
+            "finding": "上游价格上涨但公司仍缺收入和利润兑现闭环"}]
+        errors = engine._research_audit_errors(row, "2026-11-10")
+        self.assertIn(row["episode_id"] + ":missing_proof_mislabeled_counter", errors)
+
     def _today_revision(self):
         from datetime import datetime
         today = datetime.now(engine.BEIJING).date().isoformat()

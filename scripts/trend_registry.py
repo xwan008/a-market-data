@@ -19,6 +19,20 @@ TRACK = {"趋势确认", "候选趋势", "观察"}
 MARKET = {"趋势确认", "候选趋势", "观察", "新异动", "高潮/衰退", "失效"}
 SHA = re.compile(r"^[0-9a-f]{40}$")
 
+def _pseudo_counter_gap(e):
+    """Reject the known missing-proof false-counter pattern only."""
+    if not isinstance(e, dict) or e.get("direction") != "COUNTER":
+        return False
+    finding = e.get("finding") or ""
+    if not isinstance(finding, str):
+        return False
+    return (("尚未形成" in finding or "尚缺" in finding or "仍缺" in finding)
+            and "闭环" in finding
+            and not any(fact in finding for fact in
+                        ("同比下降", "环比下降", "价格下跌", "结构破位",
+                         "均为负", "跌破", "明显走弱", "库存增加")))
+
+
 def _valid_evidence(e, after_day):
     """Verify provenance/shape, not the truth of external market claims."""
     if not isinstance(e, dict):
@@ -33,6 +47,7 @@ def _valid_evidence(e, after_day):
         and day <= after_day
         and isinstance(e.get("source"), str) and SOURCE.fullmatch(e["source"]) is not None
         and isinstance(e.get("finding"), str) and len(e["finding"].strip()) >= 10
+        and not (day >= "2026-11-10" and _pseudo_counter_gap(e))
         and (window is None or (isinstance(window, int) and not isinstance(window, bool) and window > 0))
     )
 
@@ -284,6 +299,13 @@ def _research_audit_errors(item, day, prior=None):
         sufficient = audit.get("first_sufficient_evidence_trade_date")
         if not isinstance(sufficient, str) or not DAY.fullmatch(sufficient) or sufficient > day:
             errors.append(f"{episode}:first_sufficient_evidence_date_missing")
+    # Keep frozen historical findings untouched; check new counters only.
+    if day >= "2026-11-10":
+        for evidence in item.get("contrary_evidence") or []:
+            if (isinstance(evidence, dict)
+                    and evidence.get("trade_date", "") >= "2026-11-10"
+                    and _pseudo_counter_gap(evidence)):
+                errors.append(f"{episode}:missing_proof_mislabeled_counter")
     errors.extend(_commodity_price_review_errors(item, day))
     return errors
 
