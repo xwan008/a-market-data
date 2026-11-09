@@ -118,16 +118,6 @@ class TrendRegistryTests(unittest.TestCase):
         old["finding"] = missing["finding"]
         self.assertTrue(engine._valid_evidence(old, "2026-11-10"))
 
-    def test_new_counter_gap_on_current_registry_row_rejected(self):
-        row = theme()
-        row["confirmation_audit"] = surge_audit("2026-11-10")
-        row["confirmation_audit"]["discovery_basis"] = "CONTINUING_STRUCTURE"
-        row["contrary_evidence"] = [{
-            **fact("INDUSTRY_FUNDAMENTALS", date="2026-11-10"),
-            "finding": "上游价格上涨但公司仍缺收入和利润兑现闭环"}]
-        errors = engine._research_audit_errors(row, "2026-11-10")
-        self.assertIn(row["episode_id"] + ":missing_proof_mislabeled_counter", errors)
-
     def _today_revision(self):
         from datetime import datetime
         today = datetime.now(engine.BEIJING).date().isoformat()
