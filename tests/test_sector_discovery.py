@@ -38,11 +38,17 @@ class SectorDiscoveryTests(unittest.TestCase):
         self.assertIsNone(hot["breadth_3d"])
         self.assertIsNone(hot["breadth_5d"])
 
-    def test_industry_only_does_not_claim_concept_coverage(self):
+    def test_sw3_only_scan_reports_complete_with_no_legacy_inputs(self):
         snap, audit = build(*inputs())
-        self.assertEqual(snap["status"], "INDUSTRY_ONLY_PARTIAL")
+        self.assertEqual(snap["status"], "COMPLETE")
         self.assertEqual(audit["industry_count"], 2)
-        self.assertEqual(audit["concept_coverage_status"], "UNAVAILABLE_NO_MEMBERSHIP")
+        self.assertEqual(audit["scan_scope"], "MAPPED_SW_LEVEL3_ONLY")
+        self.assertEqual(snap["scan_audit"]["scan_scope"], "MAPPED_SW_LEVEL3_ONLY")
+        self.assertEqual(len(audit["sectors"]), audit["industry_count"])
+        self.assertTrue(all(x["kind"] == "industry" for x in audit["sectors"]))
+        self.assertNotIn("concept_count", audit)
+        self.assertNotIn("concept_coverage_status", audit)
+        self.assertNotIn("coverage_limitations", snap)
         hot = next(x for x in audit["sectors"] if x["id"] == "industry:S100101")
         self.assertEqual(hot["breadth_3d"], 1.0)
         self.assertEqual(hot["breadth_5d"], 1.0)
@@ -106,37 +112,16 @@ class SectorDiscoveryTests(unittest.TestCase):
         ):
             self.assertNotIn(obsolete, protocol)
 
-    def test_verified_concept_and_future_prevention(self):
+    def test_missing_mapped_stock_quotes_still_fail_coverage_gate(self):
         latest, index, structure = inputs()
-        c = {"schema_version": 1, "source": "verified provider",
-             "as_of_trade_date": "2026-10-08",
-             "concepts": [{"concept_id": "foo", "name": "Sample cross theme",
-                           "source": "verified provider",
-                           "member_codes": [f"{i:06d}" for i in range(1, 7)]}]}
-        snap, audit = build(latest, index, structure, c)
-        self.assertEqual(snap["status"], "COMPLETE")
-        self.assertEqual(audit["concept_count"], 1)
-        self.assertEqual(len(snap["model_research_candidates"]), 1)
-        self.assertEqual(audit["overlap_deduplicated_count"], 1)
-        c["as_of_trade_date"] = "2026-10-10"
-        with self.assertRaisesRegex(ValueError, "future"):
-            build(latest, index, structure, c)
-
-    def test_stale_membership_is_not_silently_accepted(self):
-        latest, index, structure = inputs()
-        c = {"schema_version": 1, "source": "verified provider",
-             "as_of_trade_date": "2026-09-01", "concepts": []}
-        snap, audit = build(latest, index, structure, c)
-        self.assertEqual(snap["status"], "INDUSTRY_ONLY_PARTIAL")
-        self.assertEqual(audit["concept_coverage_status"], "STALE_MEMBERSHIP")
+        del latest["stocks"]["000001"]
+        del latest["stocks"]["000002"]
+        with self.assertRaisesRegex(ValueError, "mapped_quote_coverage_below_90pct"):
+            build(latest, index, structure)
 
     def test_bounded_model_research_keeps_deferred_audit(self):
         latest, index, structure = inputs()
-        c = {"schema_version": 1, "source": "verified provider",
-             "as_of_trade_date": "2026-10-09", "concepts": [
-                 {"concept_id": "hot", "name": "Hot concept", "source": "verified provider",
-                  "member_codes": [f"{i:06d}" for i in range(1, 7)]}]}
-        # Two distinct strong industries plus a fully overlapping concept alias.
+        # Two separate industries compete for the limited research queue.
         for i in range(13, 25):
             code = f"{i:06d}"
             hot = i < 19
@@ -149,9 +134,9 @@ class SectorDiscoveryTests(unittest.TestCase):
                 "phase_evidence": {"return_3d_pct": 5 if hot else -2,
                                    "return_5d_pct": 2 if hot else -3,
                                    "volume_ratio_1d": 2 if hot else .8}}
-        snap, audit = build(latest, index, structure, c, review_cap=1)
+        snap, audit = build(latest, index, structure, review_cap=1)
         self.assertEqual(audit["eligible_count"], 2)
-        self.assertEqual(audit["overlap_deduplicated_count"], 1)
+        self.assertEqual(audit["overlap_deduplicated_count"], 0)
         self.assertEqual(len(snap["model_research_candidates"]), 1)
         self.assertEqual(len(snap["deferred_candidates"]), 1)
         self.assertEqual(sum(r["reason"] == "CAPACITY_DEFERRED" for r in audit["sectors"]), 1)
@@ -280,7 +265,8 @@ class SectorDiscoveryTests(unittest.TestCase):
                         "price_basis": "close", "quote_at": "2026-10-09T15:00:00+08:00",
                         "price": 100, "unit": "test unit", "change_5d_pct": 3,
                         "research_sw3_codes": ["S200101"], "source": "test source"}]}
-        snap, _ = build(latest, index, structure, None, 3, sw2, anchors)
+        snap, _ = build(latest, index, structure, review_cap=3,
+                  sw2_indices=sw2, price_anchors=anchors)
         result = snap["discovery_coverage_audit"]
         self.assertEqual(result["counts"]["official_indices"], 1)
         self.assertEqual(result["counts"]["price_anchors"], 1)
@@ -288,11 +274,13 @@ class SectorDiscoveryTests(unittest.TestCase):
         self.assertFalse(result["price_anchor_hints"][0]["beneficiary_verified"])
         sw2["indices"][0]["quote_at"] = "2026-10-09T19:00:00+08:00"
         with self.assertRaisesRegex(ValueError, "indices_invalid"):
-            build(latest, index, structure, None, 3, sw2, anchors)
+            build(latest, index, structure, review_cap=3,
+                  sw2_indices=sw2, price_anchors=anchors)
         sw2["indices"][0]["quote_at"] = "2026-10-09T15:00:00+08:00"
         anchors["as_of_trade_date"] = "2026-10-10"
         with self.assertRaisesRegex(ValueError, "future_data"):
-            build(latest, index, structure, None, 3, sw2, anchors)
+            build(latest, index, structure, review_cap=3,
+                  sw2_indices=sw2, price_anchors=anchors)
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ import argparse
 import json
 import math
 from collections import defaultdict
-from datetime import date, datetime
+from datetime import datetime
 from pathlib import Path
 from statistics import median
 from zoneinfo import ZoneInfo
@@ -57,40 +57,7 @@ def stock_features(code, latest, structure, trade_date):
     }
 
 
-def validate_concepts(payload, trade_date):
-    if payload is None:
-        return [], "UNAVAILABLE_NO_MEMBERSHIP"
-    if payload.get("schema_version") != 1 or not payload.get("source"):
-        raise ValueError("concept_membership_missing_schema_or_source")
-    asof = str(payload.get("as_of_trade_date") or "")
-    if not asof or date.fromisoformat(asof) > date.fromisoformat(trade_date):
-        raise ValueError("concept_membership_future_or_undated")
-    if (date.fromisoformat(trade_date) - date.fromisoformat(asof)).days > 20:
-        return [], "STALE_MEMBERSHIP"
-    concepts = payload.get("concepts")
-    if not isinstance(concepts, list):
-        raise ValueError("concept_membership_missing_concepts")
-    rows, seen = [], set()
-    for c in concepts:
-        identity = str(c.get("concept_id") or "")
-        name = str(c.get("name") or "")
-        members = c.get("member_codes")
-        if not identity or not name or identity in seen or not isinstance(members, list):
-            raise ValueError("concept_membership_invalid_identity")
-        if str(c.get("as_of_trade_date") or asof) > trade_date:
-            raise ValueError("concept_membership_future_item")
-        if not c.get("source"):
-            raise ValueError("concept_membership_missing_item_source")
-        codes = {str(code).zfill(6) for code in members}
-        if not codes or any(len(code) != 6 or not code.isdigit() for code in codes):
-            raise ValueError("concept_membership_invalid_codes")
-        seen.add(identity)
-        rows.append({"id": "concept:" + identity, "name": name, "codes": codes,
-                     "kind": "concept", "source": c["source"]})
-    return rows, "VERIFIED" if rows else "EMPTY_VERIFIED"
-
-
-def build(latest, industry_index, structure, concept_payload=None, review_cap=3,
+def build(latest, industry_index, structure, review_cap=3,
           sw2_indices=None, price_anchors=None):
     trade_date = str(latest.get("trade_date") or "")
     if not trade_date or latest.get("market_status") != "closed":
@@ -113,12 +80,11 @@ def build(latest, industry_index, structure, concept_payload=None, review_cap=3,
         industries[sector]["name"] = item["sw_level3_name"]
         industries[sector]["codes"].add(code)
         mapped.add(code)
-    concepts, concept_status = validate_concepts(concept_payload, trade_date)
     groups = [
         {"id": "industry:" + key, "name": data["name"], "codes": data["codes"],
          "kind": "industry", "source": "data/research/company_industry_index.json"}
         for key, data in sorted(industries.items())
-    ] + concepts
+    ]
 
     codes = set().union(*(g["codes"] for g in groups)) if groups else set()
     features = {code: stock_features(code, latest, structure, trade_date) for code in codes}
@@ -179,7 +145,7 @@ def build(latest, industry_index, structure, concept_payload=None, review_cap=3,
     # Deduplicate near-identical membership; keep source provenance in full audit.
     members_by_id = {g["id"]: g["codes"] for g in groups}
     pool = sorted((r for r in rows if r["channels"]),
-                  key=lambda r: (-r["score"], r["kind"] != "concept", r["id"]))
+                  key=lambda r: (-r["score"], r["id"]))
     unique = []
     for row in pool:
         members = members_by_id[row["id"]]
@@ -216,8 +182,8 @@ def build(latest, industry_index, structure, concept_payload=None, review_cap=3,
         "scan_inputs": {"industry_index": "data/research/company_industry_index.json",
                         "quotes": "data/latest.json",
                         "momentum": "data/shards/*.json#trend.momentum_evidence"},
-        "industry_count": len(industries), "concept_count": len(concepts),
-        "concept_coverage_status": concept_status, "mapped_stocks": len(mapped),
+        "industry_count": len(industries), "scan_scope": "MAPPED_SW_LEVEL3_ONLY",
+        "mapped_stocks": len(mapped),
         "market_median_return_1d_pct": round(market_median, 3),
         "review_capacity": review_cap, "eligible_count": len(unique),
         "selected_count": len(selected), "deferred_count": len(unique) - len(selected),
@@ -263,8 +229,7 @@ def build(latest, industry_index, structure, concept_payload=None, review_cap=3,
     snapshot = {
         "schema_version": 1, "result_kind": "sector_discovery_snapshot",
         "trade_date": trade_date, "generated_at": datetime.now(TZ).isoformat(),
-        "status": "COMPLETE" if concept_status in ("VERIFIED", "EMPTY_VERIFIED")
-                  else "INDUSTRY_ONLY_PARTIAL",
+        "status": "COMPLETE",
         "no_trade_signal": True,
         "audit_path": "data/research/sector_discovery_audit.json",
         "scan_audit": {k: v for k, v in audit.items() if k != "sectors"},
@@ -296,8 +261,6 @@ def build(latest, industry_index, structure, concept_payload=None, review_cap=3,
         "classification_peer_hints": peer_hints,
         "all_industry_metrics": "data/research/sector_discovery_audit.json#sectors",
         "handoff_routing_reference": "data/low_risk/index.json",
-        "coverage_limitations": ([] if concept_status in ("VERIFIED", "EMPTY_VERIFIED")
-                                else ["concept_membership_not_verified; do not claim concept full scan"]),
     }
     return snapshot, audit
 
@@ -307,7 +270,6 @@ def main():
     parser.add_argument("--latest", default="data/latest.json")
     parser.add_argument("--industry-index", default="data/research/company_industry_index.json")
     parser.add_argument("--shard-dir", default="data/shards")
-    parser.add_argument("--concept-membership", default="data/research/concept_membership_asof.json")
     parser.add_argument("--sw2-indices", default="data/research/sw2_index_asof.json")
     parser.add_argument("--price-anchors", default="data/research/price_anchors_asof.json")
     parser.add_argument("--output", default="data/research/sector_discovery_snapshot.json")
@@ -316,21 +278,19 @@ def main():
     args = parser.parse_args()
     if args.review_cap < 1:
         parser.error("review-cap must be positive")
-    concept_path = Path(args.concept_membership)
-    concept = read_json(concept_path) if concept_path.exists() else None
     sw2_path, anchors_path = Path(args.sw2_indices), Path(args.price_anchors)
     sw2 = read_json(sw2_path) if sw2_path.exists() else None
     anchors = read_json(anchors_path) if anchors_path.exists() else None
     snapshot, audit = build(read_json(args.latest), read_json(args.industry_index),
                             load_momentum_shards(read_json(args.latest)["trade_date"], args.shard_dir),
-                            concept, args.review_cap, sw2, anchors)
+                            args.review_cap, sw2, anchors)
     for path, payload in ((args.output, snapshot), (args.audit, audit)):
         target = Path(path)
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
                           encoding="utf-8")
     print(json.dumps({"date": snapshot["trade_date"], "status": snapshot["status"],
-                      "industries": audit["industry_count"], "concepts": audit["concept_count"],
+                      "industries": audit["industry_count"], "scan_scope": audit["scan_scope"],
                       "eligible": audit["eligible_count"], "selected": audit["selected_count"],
                       "deferred": audit["deferred_count"]}, ensure_ascii=False))
 
