@@ -44,6 +44,10 @@ class SectorDiscoveryTests(unittest.TestCase):
         self.assertEqual(audit["industry_count"], 2)
         self.assertEqual(audit["scan_scope"], "MAPPED_SW_LEVEL3_ONLY")
         self.assertEqual(snap["scan_audit"]["scan_scope"], "MAPPED_SW_LEVEL3_ONLY")
+        self.assertEqual(audit["equity_universe_scope"], "SH_SZ_MAIN_BOARD_A_SHARES")
+        self.assertEqual(audit["excluded_equity_boards"], ["CHINEXT", "STAR", "BSE"])
+        self.assertEqual(audit["benchmark_scope"], "VALID_QUOTED_MAPPED_MAIN_BOARD_STOCKS")
+        self.assertEqual(snap["scan_audit"]["equity_universe_scope"], audit["equity_universe_scope"])
         self.assertEqual(len(audit["sectors"]), audit["industry_count"])
         self.assertTrue(all(x["kind"] == "industry" for x in audit["sectors"]))
         self.assertNotIn("concept_count", audit)
@@ -77,6 +81,9 @@ class SectorDiscoveryTests(unittest.TestCase):
         self.assertIn("不作为第二个趋势发现者", protocol)
         self.assertIn("不排除模型已发现的方向", protocol)
         self.assertIn("crosscheck_shortlist", protocol)
+        self.assertIn("既定沪深主板股票池", protocol)
+        self.assertIn("full_market_scan_completed", protocol)
+        self.assertIn("不包含创业板、科创板、北交所", protocol)
         self.assertIn("不足时披露缺口", protocol)
 
     def test_canonical_skills_do_not_resurrect_pre_confirmed_stock_routing(self):

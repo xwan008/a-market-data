@@ -183,6 +183,11 @@ def build(latest, industry_index, structure, review_cap=3,
                         "quotes": "data/latest.json",
                         "momentum": "data/shards/*.json#trend.momentum_evidence"},
         "industry_count": len(industries), "scan_scope": "MAPPED_SW_LEVEL3_ONLY",
+        # Documentation only: the upstream quote collector deliberately limits
+        # this research universe to Shanghai/Shenzhen main-board A shares.
+        "equity_universe_scope": "SH_SZ_MAIN_BOARD_A_SHARES",
+        "excluded_equity_boards": ["CHINEXT", "STAR", "BSE"],
+        "benchmark_scope": "VALID_QUOTED_MAPPED_MAIN_BOARD_STOCKS",
         "mapped_stocks": len(mapped),
         "market_median_return_1d_pct": round(market_median, 3),
         "review_capacity": review_cap, "eligible_count": len(unique),
