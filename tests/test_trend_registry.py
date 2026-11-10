@@ -996,5 +996,29 @@ class TrendRegistryTests(unittest.TestCase):
         after["trends"][0]["market_state"]="观察"
         self.assertIn("observation_in_priority",pair.validate(after,handoff))
 
+class BusinessModelEvidenceProtocolTests(unittest.TestCase):
+    """The single canonical trend protocol must keep leading-evidence research non-gating."""
+
+    def test_leading_evidence_discovery_and_audit_without_new_gates(self):
+        from pathlib import Path
+
+        protocol = (
+            Path(__file__).resolve().parents[1]
+            / "skill" / "TREND_REGISTRY_PROTOCOL.md"
+        ).read_text(encoding="utf-8")
+        for requirement in (
+            "用户规模/活跃度",
+            "广告或订阅变现",
+            "按其真实商业模式主动检索",
+            "领先证据遗漏审计（沿用现有字段）",
+            "已搜索但未找到可靠证据",
+            "资料未覆盖/研究尚未完成",
+            "不新增数据字段、评分、迁移Gate",
+            "不改变D1—D3与handoff资格",
+        ):
+            with self.subTest(requirement=requirement):
+                self.assertIn(requirement, protocol)
+
+
 if __name__=="__main__":
     unittest.main()
