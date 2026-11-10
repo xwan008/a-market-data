@@ -409,7 +409,8 @@ class ThemeEvidenceTests(unittest.TestCase):
                     / "skill/TREND_REGISTRY_PROTOCOL.md").read_text(encoding="utf-8")
         self.assertIn("Python只负责客观行情计算和必要技术校验", protocol)
         self.assertIn("不作为第二个趋势发现者", protocol)
-        self.assertIn("全行业及主要概念板块客观数据", protocol)
+        self.assertIn("覆盖全量申万三级行业客观数据", protocol)
+        self.assertIn("不读取概念板块成员名单", protocol)
         self.assertIn("不能因旧池或热门板块限制扫描范围", protocol)
         self.assertIn("状态不是必须逐级经过的机械序列", protocol)
 

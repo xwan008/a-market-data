@@ -126,7 +126,8 @@ class TrendRegistryTests(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         frozen = json.loads((root / "research/trend_registry.json").read_text())
         frozen_handoff = json.loads((root / "research/trend_handoff.json").read_text())
-        self.assertEqual(frozen["trade_date"], "2026-11-09")
+        self.assertEqual(frozen["trade_date"], frozen_handoff["trade_date"])
+        self.assertEqual(frozen["status"], "COMPLETE")
         self.assertEqual(frozen_handoff["signals"], [])
         self.assertEqual(pair.validate(frozen, frozen_handoff), [])
 
