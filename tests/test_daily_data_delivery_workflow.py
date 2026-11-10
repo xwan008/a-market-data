@@ -69,8 +69,11 @@ class DailyEvidenceWorkflowTests(unittest.TestCase):
             theme = root / "data/research/theme_evidence_snapshot.json"
             sector.write_text(json.dumps({
                 "schema_version": 1, "result_kind": "sector_discovery_snapshot",
-                "trade_date": day, "no_trade_signal": True, "status": "INDUSTRY_ONLY_PARTIAL"}))
-            audit.write_text(json.dumps({"schema_version": 1, "trade_date": day}))
+                "trade_date": day, "no_trade_signal": True, "status": "COMPLETE",
+                "scan_audit": {"scan_scope": "MAPPED_SW_LEVEL3_ONLY"}}))
+            audit.write_text(json.dumps({"schema_version": 1, "trade_date": day,
+                "scan_scope": "MAPPED_SW_LEVEL3_ONLY", "industry_count": 2,
+                "sectors": [{"id": "industry:S100101"}, {"id": "industry:S100102"}]}))
             theme.write_text(json.dumps({
                 "schema_version": 1, "result_kind": "a_share_theme_evidence_snapshot",
                 "trade_date": day, "status": "COMPLETE", "point_in_time_eligible": True,
@@ -81,7 +84,7 @@ class DailyEvidenceWorkflowTests(unittest.TestCase):
             a = subprocess.run([sys.executable, "-c", block], cwd=root,
                                env=env, capture_output=True, text=True)
             self.assertEqual(a.returncode, 0, a.stderr)
-            self.assertIn("sector_discovery=INDUSTRY_ONLY_PARTIAL", a.stdout)
+            self.assertIn("sector_discovery=COMPLETE", a.stdout)
             self.assertIn("theme_evidence=COMPLETE", a.stdout)
             self.assertTrue(sector.exists())
             self.assertTrue(theme.exists())

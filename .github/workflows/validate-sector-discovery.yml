@@ -75,6 +75,12 @@ jobs:
           audit=json.loads(Path('/tmp/sector_audit.json').read_text())
           assert snapshot['trade_date'] == audit['trade_date']
           assert audit['industry_count'] >= 300
+          assert snapshot['status'] == 'COMPLETE'
+          assert audit['scan_scope'] == 'MAPPED_SW_LEVEL3_ONLY'
+          assert len(audit['sectors']) == audit['industry_count']
+          assert all(row['kind'] == 'industry' for row in audit['sectors'])
+          assert 'concept_coverage_status' not in audit
+          assert 'concept_count' not in audit
           assert len(audit['sectors']) >= 300
           assert audit['selected_count'] <= 3
           assert audit['selected_count'] + audit['deferred_count'] == audit['eligible_count']
@@ -99,7 +105,6 @@ jobs:
           print('DISCOVERY_REAL_DATA_VALID', json.dumps({
               'date': snapshot['trade_date'], 'status': snapshot['status'],
               'industry_count': audit['industry_count'],
-              'concept_coverage_status': audit['concept_coverage_status'],
               'candidate_count': audit['eligible_count']}, ensure_ascii=False))
           for row in audit['sectors']:
               if row['kind'] == 'industry' and any(x in row['name'] for x in ('种子', '粮食种植', '粮油加工')):

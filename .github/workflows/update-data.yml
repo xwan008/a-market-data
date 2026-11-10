@@ -276,8 +276,12 @@ jobs:
               isinstance(s, dict) and isinstance(a, dict)
               and s.get("schema_version") == 1 and s.get("result_kind") == "sector_discovery_snapshot"
               and s.get("trade_date") == day and s.get("no_trade_signal") is True
-              and s.get("status") in ("COMPLETE", "INDUSTRY_ONLY_PARTIAL")
+              and s.get("status") == "COMPLETE"
               and a.get("schema_version") == 1 and a.get("trade_date") == day
+              and a.get("scan_scope") == "MAPPED_SW_LEVEL3_ONLY"
+              and isinstance(a.get("industry_count"), int) and a["industry_count"] > 0
+              and isinstance(a.get("sectors"), list) and len(a["sectors"]) == a["industry_count"]
+              and (s.get("scan_audit") or {}).get("scan_scope") == "MAPPED_SW_LEVEL3_ONLY"
           )
           if not sector_ok:
               sector.unlink(missing_ok=True)
