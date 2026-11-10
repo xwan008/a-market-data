@@ -1020,5 +1020,30 @@ class BusinessModelEvidenceProtocolTests(unittest.TestCase):
                 self.assertIn(requirement, protocol)
 
 
+    def test_business_evidence_search_priority_and_source_integrity(self):
+        from pathlib import Path
+
+        protocol = (
+            Path(__file__).resolve().parents[1]
+            / "skill" / "TREND_REGISTRY_PROTOCOL.md"
+        ).read_text(encoding="utf-8")
+        for requirement in (
+            "产业证据检索优先级（研究顺序，不是新Gate）",
+            "适用的直接经营事实",
+            "不得在“没有订单/利润”处停止研究",
+            "适用的领先指标",
+            "证据真实性与相关性（正反同等约束）",
+            "匿名“小作文”",
+            "同源转载不构成独立交叉验证",
+            "已搜索未找到可靠证据",
+            "研究未完成",
+            "不得为凑证据编造SUPPORT或COUNTER",
+            "不是各行业通用的证据强弱排序",
+            "市场状态、买点资格的自动升级规则",
+        ):
+            with self.subTest(requirement=requirement):
+                self.assertIn(requirement, protocol)
+
+
 if __name__=="__main__":
     unittest.main()
