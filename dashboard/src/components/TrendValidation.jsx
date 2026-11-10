@@ -41,7 +41,7 @@ function OutcomeCard({kind,label,count,excess,icon:Icon}) {
     <div className="validation-outcome-top"><span className="validation-outcome-icon"><Icon size={18}/></span><span>未来表现 / 已成熟样本</span><ArrowUpRight size={16}/></div>
     <h3>{label}</h3>
     <div className={'validation-outcome-value is-'+state}>{valid?percent(excess):'尚无成熟结果'}</div>
-    <div className="validation-outcome-foot"><span>平均超额收益 · 相对全市场等权基准</span><strong>{num(count)} <small>个样本</small></strong></div>
+    <div className="validation-outcome-foot"><span>平均超额收益 · 相对沪深主板等权基准</span><strong>{num(count)} <small>个样本</small></strong></div>
     <div className="validation-outcome-rule" aria-hidden="true"><span/></div>
     <p>{hasSample?'仅反映历史观察表现，不等于可成交收益或策略胜率。':'观察窗口尚未成熟，不将等待中的信号计入有效性判断。'}</p>
   </article>;
@@ -76,7 +76,7 @@ function ExpandedEvidence({row,tab,trendMode,result}) {
         <div><small>相对所属冻结板块</small><strong>{percent(result?.excess_vs_sector_pct)}</strong></div>
       </>}
       <div><small>观察收益</small><strong>{percent(result?.return_pct)}</strong></div>
-      <div><small>全市场基准</small><strong>{percent(result?.market_return_pct)}</strong></div>
+      <div><small>沪深主板等权基准</small><strong>{percent(result?.market_return_pct)}</strong></div>
       <div><small>对照交易日</small><strong>{result?.target_date||'窗口未完成'}</strong></div>
     </div>
     <div className="validation-record-caveat"><ShieldCheck size={15}/><span>状态 {result?.state||'unavailable'} · READY 未模拟实际买入、止损与成交条件，观察收益不能等同实盘收益。</span></div>

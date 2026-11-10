@@ -71,3 +71,10 @@ test('概览持仓：图表与标题统一中心轴，分隔线处在两个图�
  assert.match(styles,/\.new-home \.home-holding \.home-holding-charts::before\{[^}]*left:50%/);
  assert.match(styles,/\.new-home \.home-holding-chart\{[^}]*align-items:center;text-align:center/);
 });
+
+test('趋势回测比较基准明确限于沪深主板等权样本',()=>{
+ const source=readFileSync(new URL('../src/components/TrendValidation.jsx',import.meta.url),'utf8');
+ assert.match(source,/平均超额收益 · 相对沪深主板等权基准/);
+ assert.match(source,/<small>沪深主板等权基准<\/small>/);
+ assert.doesNotMatch(source,/相对全市场等权基准|<small>全市场基准<\/small>/);
+});
