@@ -1,5 +1,7 @@
 # Sector discovery: strict as-of replay (2026-10-11 validation)
 
+> **历史回放提示（2026-11-10）**：原文「concept membership is not tested」是 10 月历史实验边界，不代表当前需要接入概念成员名单。现行扫描只用沪深主板已映射的申万三级行业；概念成员机制已由 [PR #76](https://github.com/xwan008/a-market-data/pull/76) 清理。以下实验结果保留原始时点口径，不当作现行生产质量门槛。
+
 **Scope:** 14 completed market sessions from 2026-09-14 through 2026-10-09, each read from the corresponding immutable daily-data Git commit in `sector_discovery_asof_manifest_20260917_20261009.json`. Candidates use only quotes and the 申万三级 industry membership stored in or before each day's commit. **No later snapshot is supplied to the discovery algorithm**. Historical `full_market_price_structure.json` was stale with reference_trade_date=2026-09-16 even at 2026-10-08; the replay instead reconstructs 3d/5d/available volume evidence from day-by-day committed quote snapshots. Unavailable volume history remains null.
 
 ## 2026-10-08/09 agriculture (industry-level, not a cross-industry concept)
