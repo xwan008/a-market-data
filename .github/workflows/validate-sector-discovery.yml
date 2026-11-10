@@ -77,6 +77,10 @@ jobs:
           assert audit['industry_count'] >= 300
           assert snapshot['status'] == 'COMPLETE'
           assert audit['scan_scope'] == 'MAPPED_SW_LEVEL3_ONLY'
+          assert audit['equity_universe_scope'] == 'SH_SZ_MAIN_BOARD_A_SHARES'
+          assert audit['excluded_equity_boards'] == ['CHINEXT', 'STAR', 'BSE']
+          assert audit['benchmark_scope'] == 'VALID_QUOTED_MAPPED_MAIN_BOARD_STOCKS'
+          assert snapshot['scan_audit']['equity_universe_scope'] == audit['equity_universe_scope']
           assert len(audit['sectors']) == audit['industry_count']
           assert all(row['kind'] == 'industry' for row in audit['sectors'])
           assert 'concept_coverage_status' not in audit
