@@ -1,6 +1,6 @@
 {
   "schema_version": "experimental_trend_health_v1",
-  "trade_date": "2026-11-09",
+  "trade_date": "2026-11-10",
   "status": "EXPERIMENTAL_NON_BINDING",
   "disclaimer": "实验指标；无趋势确认/降级/退出及个股买卖权限，不参与正式Gate与handoff。",
   "input_sources": {
@@ -23,41 +23,40 @@
       "role": "NON_BINDING_SHADOW_ONLY",
       "market_invalidation": false,
       "new_position_eligibility_changed": false,
-      "protection_status": "防御",
-      "protection_color": "ORANGE",
+      "protection_status": "警戒",
+      "protection_color": "YELLOW",
       "protection_is_trade_instruction": false,
       "confirmed_core_industry_codes": [
         "S720401"
       ],
-      "health": "高风险",
+      "health": "放缓",
       "status": "ASSESSED",
-      "protection_rank": 2,
-      "protection_reason": "多维衰减或结构与广度同步走弱；暂停追高并复核保护位",
-      "health_rank": 3,
+      "protection_rank": 1,
+      "protection_reason": "已出现初步退潮信号；观察承接并检查原风险计划",
+      "health_rank": 1,
       "signal_count": 1,
       "signals": [
-        "BREADTH_NARROWING",
-        "SEVERE_SAME_DAY_CONTRACTION"
+        "BREADTH_NARROWING"
       ],
       "dimensions": {
         "relative_strength_decay": false,
         "momentum_decay": false,
         "breadth_narrowing": true,
-        "severe_same_day_contraction": true
+        "severe_same_day_contraction": false
       },
       "metrics": {
-        "relative_recent_2d_pp": -0.929,
-        "relative_previous_2d_pp": 0.189,
-        "relative_today_pp": -1.139,
-        "median_3d_return_pct": -1.53,
-        "previous_median_3d_return_pct": 0.495,
-        "advance_ratio_today": 0.2143,
-        "breadth_3d": 0.2143,
-        "breadth_5d": 0.8571
+        "relative_recent_2d_pp": 0.1805,
+        "relative_previous_2d_pp": -0.277,
+        "relative_today_pp": 1.5,
+        "median_3d_return_pct": -1.78,
+        "previous_median_3d_return_pct": -1.53,
+        "advance_ratio_today": 1.0,
+        "breadth_3d": 0.2857,
+        "breadth_5d": 0.7857
       },
       "reason": "独立3维量价健康度实验；高风险仍不等于正式失效，无法替代结构支撑和产业反证判断。",
-      "change_vs_previous_observation": "UNCHANGED",
-      "protection_change_vs_previous_observation": "NOT_COMPARABLE"
+      "change_vs_previous_observation": "IMPROVED",
+      "protection_change_vs_previous_observation": "IMPROVED"
     },
     {
       "episode_id": "证券#2026-11-02",
@@ -66,16 +65,16 @@
       "role": "NON_BINDING_SHADOW_ONLY",
       "market_invalidation": false,
       "new_position_eligibility_changed": false,
-      "protection_status": "退出",
-      "protection_color": "RED",
+      "protection_status": "持有",
+      "protection_color": "GREEN",
       "protection_is_trade_instruction": false,
       "confirmed_core_industry_codes": [
         "S490101"
       ],
       "health": "正常/未触发",
       "status": "ASSESSED",
-      "protection_rank": 3,
-      "protection_reason": "3/5日核心结构同时转负、弱于市场且广度明显收缩；优先核查既定持仓退出条件",
+      "protection_rank": 0,
+      "protection_reason": "当前未触发实验保护信号；仍须遵守原持仓风险计划",
       "health_rank": 0,
       "signal_count": 0,
       "signals": [],
@@ -86,18 +85,18 @@
         "severe_same_day_contraction": false
       },
       "metrics": {
-        "relative_recent_2d_pp": 0.1655,
-        "relative_previous_2d_pp": -1.1435,
-        "relative_today_pp": -0.162,
-        "median_3d_return_pct": -1.57,
-        "previous_median_3d_return_pct": -0.19,
-        "advance_ratio_today": 0.102,
-        "breadth_3d": 0.0222,
-        "breadth_5d": 0.3556
+        "relative_recent_2d_pp": -0.5355,
+        "relative_previous_2d_pp": -0.6535,
+        "relative_today_pp": -0.909,
+        "median_3d_return_pct": -1.64,
+        "previous_median_3d_return_pct": -1.57,
+        "advance_ratio_today": 0.3469,
+        "breadth_3d": 0.0444,
+        "breadth_5d": 0.1556
       },
       "reason": "独立3维量价健康度实验；高风险仍不等于正式失效，无法替代结构支撑和产业反证判断。",
-      "change_vs_previous_observation": "IMPROVED",
-      "protection_change_vs_previous_observation": "NOT_COMPARABLE"
+      "change_vs_previous_observation": "UNCHANGED",
+      "protection_change_vs_previous_observation": "IMPROVED"
     },
     {
       "episode_id": "白色家电#2026-10-30",
@@ -146,18 +145,18 @@
         "severe_same_day_contraction": false
       },
       "metrics": {
-        "relative_recent_2d_pp": 0.1425,
-        "relative_previous_2d_pp": -1.302,
-        "relative_today_pp": 0.173,
-        "median_3d_return_pct": -0.14,
-        "previous_median_3d_return_pct": 0.3,
-        "advance_ratio_today": 0.4444,
-        "breadth_3d": 0.4444,
-        "breadth_5d": 0.3333
+        "relative_recent_2d_pp": -0.23,
+        "relative_previous_2d_pp": -0.1685,
+        "relative_today_pp": -0.633,
+        "median_3d_return_pct": -0.68,
+        "previous_median_3d_return_pct": -0.14,
+        "advance_ratio_today": 0.6667,
+        "breadth_3d": 0.2222,
+        "breadth_5d": 0.4444
       },
       "reason": "独立3维量价健康度实验；高风险仍不等于正式失效，无法替代结构支撑和产业反证判断。",
       "change_vs_previous_observation": "UNCHANGED",
-      "protection_change_vs_previous_observation": "NOT_COMPARABLE"
+      "protection_change_vs_previous_observation": "UNCHANGED"
     },
     {
       "episode_id": "航空运输/机场#2026-11-03",
@@ -166,42 +165,40 @@
       "role": "NON_BINDING_SHADOW_ONLY",
       "market_invalidation": false,
       "new_position_eligibility_changed": false,
-      "protection_status": "防御",
-      "protection_color": "ORANGE",
+      "protection_status": "警戒",
+      "protection_color": "YELLOW",
       "protection_is_trade_instruction": false,
       "confirmed_core_industry_codes": [
         "S421001"
       ],
-      "health": "高风险",
+      "health": "放缓",
       "status": "ASSESSED",
-      "protection_rank": 2,
-      "protection_reason": "多维衰减或结构与广度同步走弱；暂停追高并复核保护位",
-      "health_rank": 3,
-      "signal_count": 2,
+      "protection_rank": 1,
+      "protection_reason": "已出现初步退潮信号；观察承接并检查原风险计划",
+      "health_rank": 1,
+      "signal_count": 1,
       "signals": [
-        "MOMENTUM_DECAY",
-        "BREADTH_NARROWING",
-        "SEVERE_SAME_DAY_CONTRACTION"
+        "BREADTH_NARROWING"
       ],
       "dimensions": {
         "relative_strength_decay": false,
-        "momentum_decay": true,
+        "momentum_decay": false,
         "breadth_narrowing": true,
-        "severe_same_day_contraction": true
+        "severe_same_day_contraction": false
       },
       "metrics": {
-        "relative_recent_2d_pp": -0.1675,
-        "relative_previous_2d_pp": 0.7825,
-        "relative_today_pp": -0.509,
-        "median_3d_return_pct": 0.82,
-        "previous_median_3d_return_pct": 3.26,
-        "advance_ratio_today": 0.0,
+        "relative_recent_2d_pp": 0.7335,
+        "relative_previous_2d_pp": 0.7575,
+        "relative_today_pp": 1.976,
+        "median_3d_return_pct": 0.5,
+        "previous_median_3d_return_pct": 0.82,
+        "advance_ratio_today": 1.0,
         "breadth_3d": 0.625,
         "breadth_5d": 1.0
       },
       "reason": "独立3维量价健康度实验；高风险仍不等于正式失效，无法替代结构支撑和产业反证判断。",
-      "change_vs_previous_observation": "WORSENED",
-      "protection_change_vs_previous_observation": "NOT_COMPARABLE"
+      "change_vs_previous_observation": "IMPROVED",
+      "protection_change_vs_previous_observation": "IMPROVED"
     },
     {
       "episode_id": "固态电池#2026-11-03",
@@ -210,43 +207,41 @@
       "role": "NON_BINDING_SHADOW_ONLY",
       "market_invalidation": false,
       "new_position_eligibility_changed": false,
-      "protection_status": "防御",
-      "protection_color": "ORANGE",
+      "protection_status": "警戒",
+      "protection_color": "YELLOW",
       "protection_is_trade_instruction": false,
       "confirmed_core_industry_codes": [
         "S630701",
         "S630702"
       ],
-      "health": "高风险",
+      "health": "放缓",
       "status": "ASSESSED",
-      "protection_rank": 2,
-      "protection_reason": "多维衰减或结构与广度同步走弱；暂停追高并复核保护位",
-      "health_rank": 3,
-      "signal_count": 2,
+      "protection_rank": 1,
+      "protection_reason": "已出现初步退潮信号；观察承接并检查原风险计划",
+      "health_rank": 1,
+      "signal_count": 1,
       "signals": [
-        "RELATIVE_STRENGTH_DECAY",
-        "BREADTH_NARROWING",
-        "SEVERE_SAME_DAY_CONTRACTION"
+        "BREADTH_NARROWING"
       ],
       "dimensions": {
-        "relative_strength_decay": true,
+        "relative_strength_decay": false,
         "momentum_decay": false,
         "breadth_narrowing": true,
-        "severe_same_day_contraction": true
+        "severe_same_day_contraction": false
       },
       "metrics": {
-        "relative_recent_2d_pp": -0.9692,
-        "relative_previous_2d_pp": 1.3167,
-        "relative_today_pp": -1.315,
-        "median_3d_return_pct": -0.65,
-        "previous_median_3d_return_pct": 3.5325,
-        "advance_ratio_today": 0.0912,
-        "breadth_3d": 0.3294,
-        "breadth_5d": 0.9445
+        "relative_recent_2d_pp": -0.607,
+        "relative_previous_2d_pp": 0.4852,
+        "relative_today_pp": 0.101,
+        "median_3d_return_pct": -2.91,
+        "previous_median_3d_return_pct": -0.65,
+        "advance_ratio_today": 0.9285,
+        "breadth_3d": 0.0556,
+        "breadth_5d": 0.8373
       },
       "reason": "独立3维量价健康度实验；高风险仍不等于正式失效，无法替代结构支撑和产业反证判断。",
-      "change_vs_previous_observation": "UNCHANGED",
-      "protection_change_vs_previous_observation": "NOT_COMPARABLE"
+      "change_vs_previous_observation": "IMPROVED",
+      "protection_change_vs_previous_observation": "IMPROVED"
     },
     {
       "episode_id": "黄金/贵金属#2026-11-04",
@@ -716,6 +711,254 @@
           "reason": "独立3维量价健康度实验；高风险仍不等于正式失效，无法替代结构支撑和产业反证判断。",
           "change_vs_previous_observation": "UNCHANGED",
           "protection_change_vs_previous_observation": "NOT_COMPARABLE"
+        },
+        {
+          "episode_id": "黄金/贵金属#2026-11-04",
+          "trend_name": "黄金/贵金属",
+          "formal_market_state": "趋势确认",
+          "role": "NON_BINDING_SHADOW_ONLY",
+          "market_invalidation": false,
+          "new_position_eligibility_changed": false,
+          "protection_status": "待评估",
+          "protection_color": "GRAY",
+          "protection_is_trade_instruction": false,
+          "health": "未评估",
+          "status": "COMMODITY_FIRST_ANCHOR",
+          "reason": "商品第一锚需要自身多日价格和供需证据；A股扩散不得替代商品趋势健康度。",
+          "change_vs_previous_observation": "NOT_COMPARABLE",
+          "protection_change_vs_previous_observation": "NOT_COMPARABLE"
+        }
+      ]
+    },
+    {
+      "trade_date": "2026-11-10",
+      "trends": [
+        {
+          "episode_id": "游戏#2026-11-02",
+          "trend_name": "游戏",
+          "formal_market_state": "趋势确认",
+          "role": "NON_BINDING_SHADOW_ONLY",
+          "market_invalidation": false,
+          "new_position_eligibility_changed": false,
+          "protection_status": "警戒",
+          "protection_color": "YELLOW",
+          "protection_is_trade_instruction": false,
+          "confirmed_core_industry_codes": [
+            "S720401"
+          ],
+          "health": "放缓",
+          "status": "ASSESSED",
+          "protection_rank": 1,
+          "protection_reason": "已出现初步退潮信号；观察承接并检查原风险计划",
+          "health_rank": 1,
+          "signal_count": 1,
+          "signals": [
+            "BREADTH_NARROWING"
+          ],
+          "dimensions": {
+            "relative_strength_decay": false,
+            "momentum_decay": false,
+            "breadth_narrowing": true,
+            "severe_same_day_contraction": false
+          },
+          "metrics": {
+            "relative_recent_2d_pp": 0.1805,
+            "relative_previous_2d_pp": -0.277,
+            "relative_today_pp": 1.5,
+            "median_3d_return_pct": -1.78,
+            "previous_median_3d_return_pct": -1.53,
+            "advance_ratio_today": 1.0,
+            "breadth_3d": 0.2857,
+            "breadth_5d": 0.7857
+          },
+          "reason": "独立3维量价健康度实验；高风险仍不等于正式失效，无法替代结构支撑和产业反证判断。",
+          "change_vs_previous_observation": "IMPROVED",
+          "protection_change_vs_previous_observation": "IMPROVED"
+        },
+        {
+          "episode_id": "证券#2026-11-02",
+          "trend_name": "证券",
+          "formal_market_state": "趋势确认",
+          "role": "NON_BINDING_SHADOW_ONLY",
+          "market_invalidation": false,
+          "new_position_eligibility_changed": false,
+          "protection_status": "持有",
+          "protection_color": "GREEN",
+          "protection_is_trade_instruction": false,
+          "confirmed_core_industry_codes": [
+            "S490101"
+          ],
+          "health": "正常/未触发",
+          "status": "ASSESSED",
+          "protection_rank": 0,
+          "protection_reason": "当前未触发实验保护信号；仍须遵守原持仓风险计划",
+          "health_rank": 0,
+          "signal_count": 0,
+          "signals": [],
+          "dimensions": {
+            "relative_strength_decay": false,
+            "momentum_decay": false,
+            "breadth_narrowing": false,
+            "severe_same_day_contraction": false
+          },
+          "metrics": {
+            "relative_recent_2d_pp": -0.5355,
+            "relative_previous_2d_pp": -0.6535,
+            "relative_today_pp": -0.909,
+            "median_3d_return_pct": -1.64,
+            "previous_median_3d_return_pct": -1.57,
+            "advance_ratio_today": 0.3469,
+            "breadth_3d": 0.0444,
+            "breadth_5d": 0.1556
+          },
+          "reason": "独立3维量价健康度实验；高风险仍不等于正式失效，无法替代结构支撑和产业反证判断。",
+          "change_vs_previous_observation": "UNCHANGED",
+          "protection_change_vs_previous_observation": "IMPROVED"
+        },
+        {
+          "episode_id": "白色家电#2026-10-30",
+          "trend_name": "白色家电",
+          "formal_market_state": "趋势确认",
+          "role": "NON_BINDING_SHADOW_ONLY",
+          "market_invalidation": false,
+          "new_position_eligibility_changed": false,
+          "protection_status": "待评估",
+          "protection_color": "GRAY",
+          "protection_is_trade_instruction": false,
+          "confirmed_core_industry_codes": [
+            "S330102",
+            "S330106"
+          ],
+          "health": "未评估",
+          "status": "INCOMPLETE_CORE_COVERAGE",
+          "reason": "至少一个已确认核心行业在4日窗口内缺少有效客观数据。",
+          "change_vs_previous_observation": "NOT_COMPARABLE",
+          "protection_change_vs_previous_observation": "NOT_COMPARABLE"
+        },
+        {
+          "episode_id": "零食#2026-10-30",
+          "trend_name": "零食",
+          "formal_market_state": "趋势确认",
+          "role": "NON_BINDING_SHADOW_ONLY",
+          "market_invalidation": false,
+          "new_position_eligibility_changed": false,
+          "protection_status": "持有",
+          "protection_color": "GREEN",
+          "protection_is_trade_instruction": false,
+          "confirmed_core_industry_codes": [
+            "S340801"
+          ],
+          "health": "正常/未触发",
+          "status": "ASSESSED",
+          "protection_rank": 0,
+          "protection_reason": "当前未触发实验保护信号；仍须遵守原持仓风险计划",
+          "health_rank": 0,
+          "signal_count": 0,
+          "signals": [],
+          "dimensions": {
+            "relative_strength_decay": false,
+            "momentum_decay": false,
+            "breadth_narrowing": false,
+            "severe_same_day_contraction": false
+          },
+          "metrics": {
+            "relative_recent_2d_pp": -0.23,
+            "relative_previous_2d_pp": -0.1685,
+            "relative_today_pp": -0.633,
+            "median_3d_return_pct": -0.68,
+            "previous_median_3d_return_pct": -0.14,
+            "advance_ratio_today": 0.6667,
+            "breadth_3d": 0.2222,
+            "breadth_5d": 0.4444
+          },
+          "reason": "独立3维量价健康度实验；高风险仍不等于正式失效，无法替代结构支撑和产业反证判断。",
+          "change_vs_previous_observation": "UNCHANGED",
+          "protection_change_vs_previous_observation": "UNCHANGED"
+        },
+        {
+          "episode_id": "航空运输/机场#2026-11-03",
+          "trend_name": "航空运输/机场",
+          "formal_market_state": "趋势确认",
+          "role": "NON_BINDING_SHADOW_ONLY",
+          "market_invalidation": false,
+          "new_position_eligibility_changed": false,
+          "protection_status": "警戒",
+          "protection_color": "YELLOW",
+          "protection_is_trade_instruction": false,
+          "confirmed_core_industry_codes": [
+            "S421001"
+          ],
+          "health": "放缓",
+          "status": "ASSESSED",
+          "protection_rank": 1,
+          "protection_reason": "已出现初步退潮信号；观察承接并检查原风险计划",
+          "health_rank": 1,
+          "signal_count": 1,
+          "signals": [
+            "BREADTH_NARROWING"
+          ],
+          "dimensions": {
+            "relative_strength_decay": false,
+            "momentum_decay": false,
+            "breadth_narrowing": true,
+            "severe_same_day_contraction": false
+          },
+          "metrics": {
+            "relative_recent_2d_pp": 0.7335,
+            "relative_previous_2d_pp": 0.7575,
+            "relative_today_pp": 1.976,
+            "median_3d_return_pct": 0.5,
+            "previous_median_3d_return_pct": 0.82,
+            "advance_ratio_today": 1.0,
+            "breadth_3d": 0.625,
+            "breadth_5d": 1.0
+          },
+          "reason": "独立3维量价健康度实验；高风险仍不等于正式失效，无法替代结构支撑和产业反证判断。",
+          "change_vs_previous_observation": "IMPROVED",
+          "protection_change_vs_previous_observation": "IMPROVED"
+        },
+        {
+          "episode_id": "固态电池#2026-11-03",
+          "trend_name": "固态电池",
+          "formal_market_state": "趋势确认",
+          "role": "NON_BINDING_SHADOW_ONLY",
+          "market_invalidation": false,
+          "new_position_eligibility_changed": false,
+          "protection_status": "警戒",
+          "protection_color": "YELLOW",
+          "protection_is_trade_instruction": false,
+          "confirmed_core_industry_codes": [
+            "S630701",
+            "S630702"
+          ],
+          "health": "放缓",
+          "status": "ASSESSED",
+          "protection_rank": 1,
+          "protection_reason": "已出现初步退潮信号；观察承接并检查原风险计划",
+          "health_rank": 1,
+          "signal_count": 1,
+          "signals": [
+            "BREADTH_NARROWING"
+          ],
+          "dimensions": {
+            "relative_strength_decay": false,
+            "momentum_decay": false,
+            "breadth_narrowing": true,
+            "severe_same_day_contraction": false
+          },
+          "metrics": {
+            "relative_recent_2d_pp": -0.607,
+            "relative_previous_2d_pp": 0.4852,
+            "relative_today_pp": 0.101,
+            "median_3d_return_pct": -2.91,
+            "previous_median_3d_return_pct": -0.65,
+            "advance_ratio_today": 0.9285,
+            "breadth_3d": 0.0556,
+            "breadth_5d": 0.8373
+          },
+          "reason": "独立3维量价健康度实验；高风险仍不等于正式失效，无法替代结构支撑和产业反证判断。",
+          "change_vs_previous_observation": "IMPROVED",
+          "protection_change_vs_previous_observation": "IMPROVED"
         },
         {
           "episode_id": "黄金/贵金属#2026-11-04",
@@ -14029,6 +14272,2222 @@
           "b3": 0.2,
           "b5": 0.6,
           "b1": 0.0,
+          "n": 5
+        }
+      }
+    },
+    {
+      "trade_date": "2026-11-10",
+      "market_return_median_pct": 0.909,
+      "industries": {
+        "S110101": {
+          "r": -0.557,
+          "p": 0.352,
+          "m3": 0.915,
+          "m5": 4.13,
+          "b3": 0.8333,
+          "b5": 0.8333,
+          "b1": 0.6667,
+          "n": 6
+        },
+        "S110103": {
+          "r": 1.083,
+          "p": 1.993,
+          "m3": 2.1100000000000003,
+          "m5": 5.85,
+          "b3": 0.8333,
+          "b5": 0.8333,
+          "b1": 0.6667,
+          "n": 6
+        },
+        "S110402": {
+          "r": -0.849,
+          "p": 0.06,
+          "m3": -0.18,
+          "m5": 2.4699999999999998,
+          "b3": 0.3,
+          "b5": 1.0,
+          "b1": 0.5,
+          "n": 10
+        },
+        "S110502": {
+          "r": -0.471,
+          "p": 0.438,
+          "m3": -0.38999999999999996,
+          "m5": 0.96,
+          "b3": 0.5,
+          "b5": 1.0,
+          "b1": 0.6667,
+          "n": 6
+        },
+        "S110504": {
+          "r": 0.008,
+          "p": 0.917,
+          "m3": -0.83,
+          "m5": 3.66,
+          "b3": 0.4444,
+          "b5": 0.6667,
+          "b1": 1.0,
+          "n": 9
+        },
+        "S110702": {
+          "r": -0.789,
+          "p": 0.12,
+          "m3": 0.71,
+          "m5": 3.5300000000000002,
+          "b3": 0.6,
+          "b5": 1.0,
+          "b1": 0.6,
+          "n": 10
+        },
+        "S110703": {
+          "r": -0.495,
+          "p": 0.414,
+          "m3": -2.11,
+          "m5": -0.14,
+          "b3": 0.0,
+          "b5": 0.4,
+          "b1": 0.8,
+          "n": 5
+        },
+        "S110801": {
+          "r": -1.341,
+          "p": -0.432,
+          "m3": -1.75,
+          "m5": -0.43,
+          "b3": 0.0,
+          "b5": 0.4,
+          "b1": 0.2,
+          "n": 5
+        },
+        "S220201": {
+          "r": -1.067,
+          "p": -0.158,
+          "m3": -1.4,
+          "m5": -0.32,
+          "b3": 0.0,
+          "b5": 0.4,
+          "b1": 0.2,
+          "n": 5
+        },
+        "S220202": {
+          "r": -0.909,
+          "p": 0.0,
+          "m3": -1.83,
+          "m5": 0.33999999999999997,
+          "b3": 0.2143,
+          "b5": 0.5714,
+          "b1": 0.4286,
+          "n": 14
+        },
+        "S220203": {
+          "r": 0.781,
+          "p": 1.69,
+          "m3": -2.47,
+          "m5": 1.52,
+          "b3": 0.125,
+          "b5": 0.5,
+          "b1": 0.75,
+          "n": 8
+        },
+        "S220204": {
+          "r": -0.109,
+          "p": 0.8,
+          "m3": -1.18,
+          "m5": 0.69,
+          "b3": 0.2222,
+          "b5": 0.6667,
+          "b1": 0.7778,
+          "n": 9
+        },
+        "S220205": {
+          "r": -1.227,
+          "p": -0.318,
+          "m3": -2.235,
+          "m5": -0.43,
+          "b3": 0.0,
+          "b5": 0.5,
+          "b1": 0.25,
+          "n": 8
+        },
+        "S220206": {
+          "r": -0.615,
+          "p": 0.294,
+          "m3": -2.29,
+          "m5": 1.32,
+          "b3": 0.0,
+          "b5": 0.6,
+          "b1": 0.6,
+          "n": 5
+        },
+        "S220305": {
+          "r": 0.336,
+          "p": 1.246,
+          "m3": -0.87,
+          "m5": 2.34,
+          "b3": 0.4,
+          "b5": 0.8,
+          "b1": 1.0,
+          "n": 5
+        },
+        "S220307": {
+          "r": -1.79,
+          "p": -0.881,
+          "m3": -2.1550000000000002,
+          "m5": 0.29500000000000004,
+          "b3": 0.25,
+          "b5": 0.5833,
+          "b1": 0.3077,
+          "n": 13
+        },
+        "S220308": {
+          "r": 0.783,
+          "p": 1.692,
+          "m3": -0.98,
+          "m5": 2.77,
+          "b3": 0.375,
+          "b5": 1.0,
+          "b1": 1.0,
+          "n": 8
+        },
+        "S220309": {
+          "r": -0.119,
+          "p": 0.79,
+          "m3": -1.9749999999999999,
+          "m5": 2.38,
+          "b3": 0.0312,
+          "b5": 0.9062,
+          "b1": 0.8125,
+          "n": 32
+        },
+        "S220311": {
+          "r": -0.282,
+          "p": 0.627,
+          "m3": -2.16,
+          "m5": 4.03,
+          "b3": 0.1111,
+          "b5": 1.0,
+          "b1": 1.0,
+          "n": 9
+        },
+        "S220313": {
+          "r": 0.64,
+          "p": 1.549,
+          "m3": -1.73,
+          "m5": 1.57,
+          "b3": 0.2,
+          "b5": 0.8,
+          "b1": 0.8,
+          "n": 5
+        },
+        "S220315": {
+          "r": -0.569,
+          "p": 0.34,
+          "m3": -1.69,
+          "m5": 0.895,
+          "b3": 0.2143,
+          "b5": 0.6429,
+          "b1": 0.7143,
+          "n": 14
+        },
+        "S220316": {
+          "r": 1.195,
+          "p": 2.104,
+          "m3": -0.009999999999999953,
+          "m5": 4.0,
+          "b3": 0.5,
+          "b5": 1.0,
+          "b1": 0.8333,
+          "n": 6
+        },
+        "S220401": {
+          "r": -0.535,
+          "p": 0.374,
+          "m3": -2.29,
+          "m5": 2.49,
+          "b3": 0.2857,
+          "b5": 0.5714,
+          "b1": 0.7143,
+          "n": 7
+        },
+        "S220501": {
+          "r": 1.95,
+          "p": 2.86,
+          "m3": 0.05,
+          "m5": 4.85,
+          "b3": 0.5,
+          "b5": 0.8333,
+          "b1": 0.8333,
+          "n": 6
+        },
+        "S220503": {
+          "r": 3.307,
+          "p": 4.216,
+          "m3": 1.48,
+          "m5": 7.91,
+          "b3": 0.6,
+          "b5": 1.0,
+          "b1": 1.0,
+          "n": 5
+        },
+        "S220504": {
+          "r": 1.782,
+          "p": 2.691,
+          "m3": 0.0,
+          "m5": 6.33,
+          "b3": 0.4286,
+          "b5": 1.0,
+          "b1": 1.0,
+          "n": 7
+        },
+        "S220505": {
+          "r": 1.587,
+          "p": 2.497,
+          "m3": -0.085,
+          "m5": 5.31,
+          "b3": 0.4167,
+          "b5": 0.9167,
+          "b1": 1.0,
+          "n": 12
+        },
+        "S220603": {
+          "r": -0.016,
+          "p": 0.893,
+          "m3": -1.32,
+          "m5": 2.03,
+          "b3": 0.0,
+          "b5": 1.0,
+          "b1": 1.0,
+          "n": 5
+        },
+        "S220801": {
+          "r": -0.483,
+          "p": 0.427,
+          "m3": -1.145,
+          "m5": 0.835,
+          "b3": 0.1667,
+          "b5": 0.8333,
+          "b1": 0.6667,
+          "n": 6
+        },
+        "S220802": {
+          "r": 0.158,
+          "p": 1.067,
+          "m3": -1.54,
+          "m5": 3.08,
+          "b3": 0.25,
+          "b5": 0.75,
+          "b1": 0.875,
+          "n": 8
+        },
+        "S220803": {
+          "r": -0.603,
+          "p": 0.306,
+          "m3": -1.335,
+          "m5": 1.23,
+          "b3": 0.0417,
+          "b5": 0.7917,
+          "b1": 0.5,
+          "n": 24
+        },
+        "S220805": {
+          "r": -0.705,
+          "p": 0.204,
+          "m3": -1.14,
+          "m5": 1.67,
+          "b3": 0.0,
+          "b5": 0.7778,
+          "b1": 0.6667,
+          "n": 9
+        },
+        "S220901": {
+          "r": -0.086,
+          "p": 0.823,
+          "m3": -2.43,
+          "m5": 0.26,
+          "b3": 0.0,
+          "b5": 0.6,
+          "b1": 1.0,
+          "n": 5
+        },
+        "S230301": {
+          "r": -1.247,
+          "p": -0.337,
+          "m3": -2.8,
+          "m5": 0.69,
+          "b3": 0.0,
+          "b5": 0.8333,
+          "b1": 0.3333,
+          "n": 6
+        },
+        "S230402": {
+          "r": -1.213,
+          "p": -0.304,
+          "m3": -2.27,
+          "m5": -1.26,
+          "b3": 0.125,
+          "b5": 0.25,
+          "b1": 0.3125,
+          "n": 16
+        },
+        "S230501": {
+          "r": -0.909,
+          "p": 0.0,
+          "m3": -1.35,
+          "m5": -0.31,
+          "b3": 0.2727,
+          "b5": 0.2727,
+          "b1": 0.3636,
+          "n": 11
+        },
+        "S240201": {
+          "r": 1.275,
+          "p": 2.184,
+          "m3": -1.09,
+          "m5": 3.705,
+          "b3": 0.25,
+          "b5": 0.875,
+          "b1": 0.75,
+          "n": 8
+        },
+        "S240301": {
+          "r": -0.376,
+          "p": 0.533,
+          "m3": -1.58,
+          "m5": 1.25,
+          "b3": 0.2593,
+          "b5": 0.6667,
+          "b1": 0.5556,
+          "n": 27
+        },
+        "S240302": {
+          "r": -0.08,
+          "p": 0.829,
+          "m3": -2.87,
+          "m5": 3.2800000000000002,
+          "b3": 0.0,
+          "b5": 0.9375,
+          "b1": 0.875,
+          "n": 16
+        },
+        "S240303": {
+          "r": -0.221,
+          "p": 0.689,
+          "m3": -2.815,
+          "m5": 3.775,
+          "b3": 0.0833,
+          "b5": 0.9167,
+          "b1": 0.75,
+          "n": 12
+        },
+        "S240401": {
+          "r": -0.348,
+          "p": 0.561,
+          "m3": 1.54,
+          "m5": 16.43,
+          "b3": 0.6667,
+          "b5": 1.0,
+          "b1": 0.6667,
+          "n": 9
+        },
+        "S240504": {
+          "r": 0.283,
+          "p": 1.192,
+          "m3": -0.09,
+          "m5": 6.02,
+          "b3": 0.3636,
+          "b5": 0.9091,
+          "b1": 0.6667,
+          "n": 12
+        },
+        "S240603": {
+          "r": -1.121,
+          "p": -0.212,
+          "m3": -5.26,
+          "m5": 3.21,
+          "b3": 0.0,
+          "b5": 1.0,
+          "b1": 0.2857,
+          "n": 7
+        },
+        "S270102": {
+          "r": 0.324,
+          "p": 1.233,
+          "m3": -2.4,
+          "m5": 6.8,
+          "b3": 0.2,
+          "b5": 0.8,
+          "b1": 1.0,
+          "n": 5
+        },
+        "S270103": {
+          "r": 1.495,
+          "p": 2.404,
+          "m3": 0.08000000000000002,
+          "m5": 12.585,
+          "b3": 0.5,
+          "b5": 1.0,
+          "b1": 1.0,
+          "n": 6
+        },
+        "S270104": {
+          "r": 1.675,
+          "p": 2.584,
+          "m3": -0.88,
+          "m5": 6.75,
+          "b3": 0.2857,
+          "b5": 0.8571,
+          "b1": 1.0,
+          "n": 7
+        },
+        "S270105": {
+          "r": 0.976,
+          "p": 1.885,
+          "m3": 0.56,
+          "m5": 7.52,
+          "b3": 0.8,
+          "b5": 1.0,
+          "b1": 1.0,
+          "n": 5
+        },
+        "S270107": {
+          "r": 0.832,
+          "p": 1.741,
+          "m3": -1.66,
+          "m5": 7.06,
+          "b3": 0.0,
+          "b5": 1.0,
+          "b1": 1.0,
+          "n": 5
+        },
+        "S270108": {
+          "r": 0.361,
+          "p": 1.27,
+          "m3": -1.65,
+          "m5": 10.65,
+          "b3": 0.2,
+          "b5": 1.0,
+          "b1": 0.8,
+          "n": 5
+        },
+        "S270202": {
+          "r": 1.364,
+          "p": 2.273,
+          "m3": -0.5,
+          "m5": 5.47,
+          "b3": 0.4348,
+          "b5": 0.8696,
+          "b1": 0.9167,
+          "n": 24
+        },
+        "S270203": {
+          "r": 0.565,
+          "p": 1.474,
+          "m3": -2.3499999999999996,
+          "m5": 5.165,
+          "b3": 0.125,
+          "b5": 1.0,
+          "b1": 1.0,
+          "n": 8
+        },
+        "S270301": {
+          "r": 1.687,
+          "p": 2.596,
+          "m3": -0.18,
+          "m5": 5.210000000000001,
+          "b3": 0.3182,
+          "b5": 1.0,
+          "b1": 1.0,
+          "n": 22
+        },
+        "S270302": {
+          "r": 1.588,
+          "p": 2.497,
+          "m3": 1.96,
+          "m5": 5.99,
+          "b3": 0.7273,
+          "b5": 1.0,
+          "b1": 1.0,
+          "n": 11
+        },
+        "S270303": {
+          "r": 2.87,
+          "p": 3.779,
+          "m3": 1.96,
+          "m5": 7.84,
+          "b3": 0.7,
+          "b5": 1.0,
+          "b1": 1.0,
+          "n": 10
+        },
+        "S270401": {
+          "r": 1.526,
+          "p": 2.435,
+          "m3": -0.62,
+          "m5": 7.05,
+          "b3": 0.3077,
+          "b5": 1.0,
+          "b1": 1.0,
+          "n": 14
+        },
+        "S270504": {
+          "r": 2.662,
+          "p": 3.571,
+          "m3": 1.8050000000000002,
+          "m5": 9.059999999999999,
+          "b3": 0.7778,
+          "b5": 1.0,
+          "b1": 0.973,
+          "n": 37
+        },
+        "S270601": {
+          "r": 0.289,
+          "p": 1.198,
+          "m3": -1.355,
+          "m5": 8.2,
+          "b3": 0.125,
+          "b5": 1.0,
+          "b1": 0.75,
+          "n": 8
+        },
+        "S280202": {
+          "r": 1.178,
+          "p": 2.087,
+          "m3": 1.225,
+          "m5": 4.735,
+          "b3": 0.7308,
+          "b5": 1.0,
+          "b1": 0.9615,
+          "n": 26
+        },
+        "S280203": {
+          "r": 1.422,
+          "p": 2.331,
+          "m3": 1.13,
+          "m5": 5.53,
+          "b3": 0.6567,
+          "b5": 0.9701,
+          "b1": 0.9403,
+          "n": 67
+        },
+        "S280204": {
+          "r": -0.642,
+          "p": 0.267,
+          "m3": -1.18,
+          "m5": 1.61,
+          "b3": 0.2,
+          "b5": 0.6667,
+          "b1": 0.6,
+          "n": 15
+        },
+        "S280205": {
+          "r": 1.183,
+          "p": 2.092,
+          "m3": 1.025,
+          "m5": 4.365,
+          "b3": 0.5625,
+          "b5": 1.0,
+          "b1": 0.8125,
+          "n": 32
+        },
+        "S280206": {
+          "r": 1.841,
+          "p": 2.75,
+          "m3": 1.33,
+          "m5": 4.975,
+          "b3": 0.6875,
+          "b5": 1.0,
+          "b1": 0.8824,
+          "n": 17
+        },
+        "S280401": {
+          "r": 0.316,
+          "p": 1.225,
+          "m3": -0.19,
+          "m5": 1.98,
+          "b3": 0.4,
+          "b5": 0.8,
+          "b1": 0.8,
+          "n": 5
+        },
+        "S280402": {
+          "r": 0.237,
+          "p": 1.146,
+          "m3": -2.59,
+          "m5": 0.98,
+          "b3": 0.1429,
+          "b5": 0.7143,
+          "b1": 0.7143,
+          "n": 7
+        },
+        "S280502": {
+          "r": -0.427,
+          "p": 0.482,
+          "m3": -2.455,
+          "m5": -1.975,
+          "b3": 0.0,
+          "b5": 0.25,
+          "b1": 0.6,
+          "n": 5
+        },
+        "S280601": {
+          "r": -1.322,
+          "p": -0.413,
+          "m3": -2.48,
+          "m5": -1.72,
+          "b3": 0.1429,
+          "b5": 0.4286,
+          "b1": 0.2857,
+          "n": 7
+        },
+        "S280602": {
+          "r": -0.683,
+          "p": 0.226,
+          "m3": -0.59,
+          "m5": 1.37,
+          "b3": 0.4,
+          "b5": 1.0,
+          "b1": 0.6,
+          "n": 5
+        },
+        "S330106": {
+          "r": -0.946,
+          "p": -0.037,
+          "m3": -1.365,
+          "m5": 0.7150000000000001,
+          "b3": 0.1667,
+          "b5": 0.6667,
+          "b1": 0.5,
+          "n": 6
+        },
+        "S330301": {
+          "r": 0.825,
+          "p": 1.734,
+          "m3": 0.725,
+          "m5": 5.944999999999999,
+          "b3": 0.625,
+          "b5": 0.875,
+          "b1": 0.875,
+          "n": 8
+        },
+        "S330501": {
+          "r": 3.11,
+          "p": 4.02,
+          "m3": 5.875,
+          "m5": 6.15,
+          "b3": 0.8,
+          "b5": 0.9,
+          "b1": 1.0,
+          "n": 10
+        },
+        "S330601": {
+          "r": 0.535,
+          "p": 1.444,
+          "m3": -0.32,
+          "m5": 5.005000000000001,
+          "b3": 0.4444,
+          "b5": 0.8889,
+          "b1": 0.8947,
+          "n": 19
+        },
+        "S340401": {
+          "r": -1.128,
+          "p": -0.219,
+          "m3": -0.79,
+          "m5": -0.26,
+          "b3": 0.2857,
+          "b5": 0.4286,
+          "b1": 0.2857,
+          "n": 7
+        },
+        "S340406": {
+          "r": 0.867,
+          "p": 1.776,
+          "m3": -1.755,
+          "m5": 0.16500000000000004,
+          "b3": 0.4,
+          "b5": 0.5,
+          "b1": 0.7,
+          "n": 10
+        },
+        "S340407": {
+          "r": 0.294,
+          "p": 1.203,
+          "m3": 2.47,
+          "m5": 2.98,
+          "b3": 0.6,
+          "b5": 0.8,
+          "b1": 0.6,
+          "n": 5
+        },
+        "S340501": {
+          "r": -0.691,
+          "p": 0.218,
+          "m3": -2.07,
+          "m5": -1.88,
+          "b3": 0.0526,
+          "b5": 0.2632,
+          "b1": 0.6316,
+          "n": 19
+        },
+        "S340601": {
+          "r": -1.027,
+          "p": -0.118,
+          "m3": -2.66,
+          "m5": -1.61,
+          "b3": 0.1429,
+          "b5": 0.2857,
+          "b1": 0.2857,
+          "n": 7
+        },
+        "S340602": {
+          "r": -0.188,
+          "p": 0.721,
+          "m3": -0.36,
+          "m5": 1.08,
+          "b3": 0.3333,
+          "b5": 0.5556,
+          "b1": 0.6667,
+          "n": 9
+        },
+        "S340701": {
+          "r": -0.345,
+          "p": 0.564,
+          "m3": -1.94,
+          "m5": -1.52,
+          "b3": 0.2857,
+          "b5": 0.1429,
+          "b1": 0.8571,
+          "n": 7
+        },
+        "S340702": {
+          "r": -0.245,
+          "p": 0.664,
+          "m3": -1.23,
+          "m5": -1.3250000000000002,
+          "b3": 0.2857,
+          "b5": 0.2143,
+          "b1": 0.5714,
+          "n": 14
+        },
+        "S340801": {
+          "r": -0.633,
+          "p": 0.276,
+          "m3": -0.68,
+          "m5": -1.73,
+          "b3": 0.2222,
+          "b5": 0.4444,
+          "b1": 0.6667,
+          "n": 9
+        },
+        "S340802": {
+          "r": -0.214,
+          "p": 0.695,
+          "m3": 0.07500000000000001,
+          "m5": 1.95,
+          "b3": 0.5,
+          "b5": 0.625,
+          "b1": 0.75,
+          "n": 8
+        },
+        "S340901": {
+          "r": -1.475,
+          "p": -0.566,
+          "m3": -1.77,
+          "m5": -0.47,
+          "b3": 0.0769,
+          "b5": 0.3077,
+          "b1": 0.3846,
+          "n": 13
+        },
+        "S350102": {
+          "r": -0.739,
+          "p": 0.17,
+          "m3": -0.5449999999999999,
+          "m5": 1.065,
+          "b3": 0.5,
+          "b5": 0.75,
+          "b1": 0.5,
+          "n": 8
+        },
+        "S350106": {
+          "r": 0.701,
+          "p": 1.61,
+          "m3": -0.7949999999999999,
+          "m5": 1.95,
+          "b3": 0.3,
+          "b5": 0.7,
+          "b1": 0.7,
+          "n": 10
+        },
+        "S350205": {
+          "r": 1.764,
+          "p": 2.673,
+          "m3": -1.37,
+          "m5": 2.4450000000000003,
+          "b3": 0.25,
+          "b5": 0.625,
+          "b1": 0.875,
+          "n": 8
+        },
+        "S350206": {
+          "r": 0.287,
+          "p": 1.196,
+          "m3": -0.77,
+          "m5": -0.645,
+          "b3": 0.0,
+          "b5": 0.3333,
+          "b1": 0.8333,
+          "n": 6
+        },
+        "S350209": {
+          "r": 0.304,
+          "p": 1.213,
+          "m3": -0.99,
+          "m5": -0.27,
+          "b3": 0.3824,
+          "b5": 0.3824,
+          "b1": 0.8529,
+          "n": 34
+        },
+        "S350301": {
+          "r": -0.979,
+          "p": -0.07,
+          "m3": -1.69,
+          "m5": 2.9050000000000002,
+          "b3": 0.3,
+          "b5": 0.9,
+          "b1": 0.4,
+          "n": 10
+        },
+        "S360102": {
+          "r": -0.342,
+          "p": 0.567,
+          "m3": -1.4449999999999998,
+          "m5": 0.44000000000000006,
+          "b3": 0.1,
+          "b5": 0.6,
+          "b1": 0.8,
+          "n": 10
+        },
+        "S360103": {
+          "r": 0.916,
+          "p": 1.825,
+          "m3": 0.23,
+          "m5": 1.95,
+          "b3": 0.5455,
+          "b5": 0.9091,
+          "b1": 0.9091,
+          "n": 11
+        },
+        "S360203": {
+          "r": -0.28,
+          "p": 0.629,
+          "m3": -1.65,
+          "m5": 0.98,
+          "b3": 0.2857,
+          "b5": 0.8571,
+          "b1": 0.8571,
+          "n": 7
+        },
+        "S360204": {
+          "r": 1.769,
+          "p": 2.678,
+          "m3": 0.09,
+          "m5": 3.72,
+          "b3": 0.6,
+          "b5": 0.8,
+          "b1": 1.0,
+          "n": 5
+        },
+        "S360205": {
+          "r": 0.618,
+          "p": 1.527,
+          "m3": -1.2349999999999999,
+          "m5": 1.4,
+          "b3": 0.2857,
+          "b5": 0.7857,
+          "b1": 0.8571,
+          "n": 14
+        },
+        "S360306": {
+          "r": 0.6,
+          "p": 1.509,
+          "m3": 0.8700000000000001,
+          "m5": 4.915,
+          "b3": 0.6,
+          "b5": 0.9,
+          "b1": 0.7,
+          "n": 10
+        },
+        "S360307": {
+          "r": -0.42,
+          "p": 0.489,
+          "m3": -1.46,
+          "m5": 3.18,
+          "b3": 0.3077,
+          "b5": 0.7692,
+          "b1": 0.6923,
+          "n": 13
+        },
+        "S360308": {
+          "r": 0.234,
+          "p": 1.143,
+          "m3": -1.79,
+          "m5": 1.685,
+          "b3": 0.2,
+          "b5": 0.6,
+          "b1": 0.8,
+          "n": 10
+        },
+        "S360309": {
+          "r": 0.371,
+          "p": 1.28,
+          "m3": -0.075,
+          "m5": 3.475,
+          "b3": 0.5,
+          "b5": 1.0,
+          "b1": 0.8333,
+          "n": 6
+        },
+        "S360311": {
+          "r": 0.736,
+          "p": 1.645,
+          "m3": -1.2,
+          "m5": 1.1,
+          "b3": 0.25,
+          "b5": 0.6667,
+          "b1": 0.9231,
+          "n": 13
+        },
+        "S360502": {
+          "r": 1.558,
+          "p": 2.467,
+          "m3": -0.64,
+          "m5": 2.63,
+          "b3": 0.3,
+          "b5": 0.9,
+          "b1": 1.0,
+          "n": 10
+        },
+        "S370101": {
+          "r": -0.032,
+          "p": 0.877,
+          "m3": -1.62,
+          "m5": 1.36,
+          "b3": 0.1579,
+          "b5": 0.6842,
+          "b1": 0.6842,
+          "n": 19
+        },
+        "S370102": {
+          "r": -0.782,
+          "p": 0.127,
+          "m3": -1.25,
+          "m5": 2.075,
+          "b3": 0.1333,
+          "b5": 0.8,
+          "b1": 0.55,
+          "n": 60
+        },
+        "S370201": {
+          "r": -0.909,
+          "p": 0.0,
+          "m3": -1.49,
+          "m5": -0.095,
+          "b3": 0.1786,
+          "b5": 0.4464,
+          "b1": 0.4821,
+          "n": 56
+        },
+        "S370304": {
+          "r": -1.239,
+          "p": -0.33,
+          "m3": -2.56,
+          "m5": 1.02,
+          "b3": 0.1111,
+          "b5": 0.6667,
+          "b1": 0.2222,
+          "n": 9
+        },
+        "S370402": {
+          "r": 0.285,
+          "p": 1.194,
+          "m3": -1.165,
+          "m5": -0.5249999999999999,
+          "b3": 0.2,
+          "b5": 0.4,
+          "b1": 0.65,
+          "n": 20
+        },
+        "S370403": {
+          "r": -2.197,
+          "p": -1.288,
+          "m3": -3.545,
+          "m5": -4.325,
+          "b3": 0.0,
+          "b5": 0.1667,
+          "b1": 0.3333,
+          "n": 6
+        },
+        "S370503": {
+          "r": -0.656,
+          "p": 0.253,
+          "m3": -1.9300000000000002,
+          "m5": 0.605,
+          "b3": 0.0714,
+          "b5": 0.5714,
+          "b1": 0.7143,
+          "n": 14
+        },
+        "S370504": {
+          "r": -0.318,
+          "p": 0.591,
+          "m3": -1.795,
+          "m5": 0.32999999999999996,
+          "b3": 0.25,
+          "b5": 0.625,
+          "b1": 0.875,
+          "n": 8
+        },
+        "S370603": {
+          "r": 0.096,
+          "p": 1.005,
+          "m3": -1.56,
+          "m5": 11.1,
+          "b3": 0.2,
+          "b5": 1.0,
+          "b1": 0.8,
+          "n": 5
+        },
+        "S370604": {
+          "r": 0.781,
+          "p": 1.69,
+          "m3": -1.27,
+          "m5": 0.47,
+          "b3": 0.2222,
+          "b5": 0.5556,
+          "b1": 0.7778,
+          "n": 9
+        },
+        "S410101": {
+          "r": -1.388,
+          "p": -0.479,
+          "m3": -0.2,
+          "m5": 1.12,
+          "b3": 0.4138,
+          "b5": 0.7241,
+          "b1": 0.2069,
+          "n": 29
+        },
+        "S410102": {
+          "r": -1.496,
+          "p": -0.587,
+          "m3": 0.065,
+          "m5": 0.335,
+          "b3": 0.5833,
+          "b5": 0.5833,
+          "b1": 0.25,
+          "n": 12
+        },
+        "S410104": {
+          "r": -0.186,
+          "p": 0.723,
+          "m3": 0.23,
+          "m5": 3.415,
+          "b3": 0.5556,
+          "b5": 0.8333,
+          "b1": 0.6111,
+          "n": 18
+        },
+        "S410106": {
+          "r": 0.285,
+          "p": 1.195,
+          "m3": -0.67,
+          "m5": 4.44,
+          "b3": 0.3636,
+          "b5": 0.9091,
+          "b1": 0.7273,
+          "n": 11
+        },
+        "S410107": {
+          "r": -1.641,
+          "p": -0.732,
+          "m3": -1.2850000000000001,
+          "m5": 0.6599999999999999,
+          "b3": 0.2143,
+          "b5": 0.6429,
+          "b1": 0.0714,
+          "n": 14
+        },
+        "S410110": {
+          "r": -1.607,
+          "p": -0.698,
+          "m3": -0.4,
+          "m5": 1.13,
+          "b3": 0.2667,
+          "b5": 0.7333,
+          "b1": 0.1333,
+          "n": 15
+        },
+        "S410301": {
+          "r": -1.381,
+          "p": -0.472,
+          "m3": 1.355,
+          "m5": 1.9849999999999999,
+          "b3": 0.6923,
+          "b5": 0.7692,
+          "b1": 0.3077,
+          "n": 26
+        },
+        "S420802": {
+          "r": 0.082,
+          "p": 0.992,
+          "m3": -0.39,
+          "m5": 1.57,
+          "b3": 0.3077,
+          "b5": 0.5385,
+          "b1": 0.7692,
+          "n": 13
+        },
+        "S420805": {
+          "r": 0.09,
+          "p": 0.999,
+          "m3": -0.755,
+          "m5": 1.1,
+          "b3": 0.3333,
+          "b5": 0.5833,
+          "b1": 0.75,
+          "n": 12
+        },
+        "S420806": {
+          "r": -0.368,
+          "p": 0.541,
+          "m3": -1.4649999999999999,
+          "m5": -0.23500000000000001,
+          "b3": 0.1667,
+          "b5": 0.3333,
+          "b1": 0.8333,
+          "n": 6
+        },
+        "S420901": {
+          "r": -1.292,
+          "p": -0.383,
+          "m3": 0.405,
+          "m5": 0.33,
+          "b3": 0.6,
+          "b5": 0.55,
+          "b1": 0.3,
+          "n": 20
+        },
+        "S420902": {
+          "r": 1.52,
+          "p": 2.429,
+          "m3": 1.7249999999999999,
+          "m5": 5.225,
+          "b3": 0.6667,
+          "b5": 0.8333,
+          "b1": 1.0,
+          "n": 6
+        },
+        "S420903": {
+          "r": -1.477,
+          "p": -0.568,
+          "m3": 0.0,
+          "m5": -1.13,
+          "b3": 0.4286,
+          "b5": 0.1429,
+          "b1": 0.1429,
+          "n": 7
+        },
+        "S421001": {
+          "r": 1.976,
+          "p": 2.885,
+          "m3": 0.5,
+          "m5": 5.015000000000001,
+          "b3": 0.625,
+          "b5": 1.0,
+          "b1": 1.0,
+          "n": 8
+        },
+        "S421101": {
+          "r": -1.741,
+          "p": -0.832,
+          "m3": -4.35,
+          "m5": -4.14,
+          "b3": 0.0556,
+          "b5": 0.1111,
+          "b1": 0.1111,
+          "n": 18
+        },
+        "S421102": {
+          "r": -1.611,
+          "p": -0.702,
+          "m3": -0.33999999999999997,
+          "m5": -0.75,
+          "b3": 0.3571,
+          "b5": 0.3571,
+          "b1": 0.1875,
+          "n": 16
+        },
+        "S430101": {
+          "r": 0.076,
+          "p": 0.985,
+          "m3": -1.41,
+          "m5": 0.835,
+          "b3": 0.1774,
+          "b5": 0.6129,
+          "b1": 0.873,
+          "n": 63
+        },
+        "S430102": {
+          "r": -0.225,
+          "p": 0.684,
+          "m3": -1.7650000000000001,
+          "m5": 0.475,
+          "b3": 0.4,
+          "b5": 0.5,
+          "b1": 0.9,
+          "n": 10
+        },
+        "S430103": {
+          "r": 0.342,
+          "p": 1.251,
+          "m3": -1.2599999999999998,
+          "m5": 0.10999999999999999,
+          "b3": 0.0,
+          "b5": 0.5,
+          "b1": 0.7,
+          "n": 10
+        },
+        "S430301": {
+          "r": 0.871,
+          "p": 1.78,
+          "m3": -2.0,
+          "m5": 0.19,
+          "b3": 0.1429,
+          "b5": 0.5714,
+          "b1": 0.8571,
+          "n": 7
+        },
+        "S450201": {
+          "r": -0.532,
+          "p": 0.377,
+          "m3": -1.205,
+          "m5": 1.2,
+          "b3": 0.25,
+          "b5": 0.5833,
+          "b1": 0.5833,
+          "n": 12
+        },
+        "S450301": {
+          "r": 0.296,
+          "p": 1.205,
+          "m3": -0.7,
+          "m5": 1.855,
+          "b3": 0.35,
+          "b5": 0.8,
+          "b1": 0.7,
+          "n": 20
+        },
+        "S450302": {
+          "r": -0.124,
+          "p": 0.785,
+          "m3": -0.58,
+          "m5": 3.32,
+          "b3": 0.2857,
+          "b5": 1.0,
+          "b1": 0.7143,
+          "n": 7
+        },
+        "S450303": {
+          "r": -0.076,
+          "p": 0.833,
+          "m3": -0.98,
+          "m5": 0.87,
+          "b3": 0.3333,
+          "b5": 0.6667,
+          "b1": 0.7333,
+          "n": 15
+        },
+        "S450304": {
+          "r": -0.865,
+          "p": 0.044,
+          "m3": -1.48,
+          "m5": 0.485,
+          "b3": 0.3125,
+          "b5": 0.5625,
+          "b1": 0.5,
+          "n": 16
+        },
+        "S460802": {
+          "r": 0.431,
+          "p": 1.34,
+          "m3": -0.87,
+          "m5": 2.18,
+          "b3": 0.0,
+          "b5": 1.0,
+          "b1": 0.6,
+          "n": 5
+        },
+        "S461003": {
+          "r": -0.729,
+          "p": 0.18,
+          "m3": -1.02,
+          "m5": 0.51,
+          "b3": 0.3333,
+          "b5": 0.6667,
+          "b1": 0.5833,
+          "n": 12
+        },
+        "S461004": {
+          "r": -0.104,
+          "p": 0.805,
+          "m3": -1.7349999999999999,
+          "m5": 1.6150000000000002,
+          "b3": 0.1667,
+          "b5": 0.6667,
+          "b1": 0.8333,
+          "n": 6
+        },
+        "S461102": {
+          "r": 0.877,
+          "p": 1.786,
+          "m3": -1.09,
+          "m5": 2.18,
+          "b3": 0.2857,
+          "b5": 0.8571,
+          "b1": 0.7143,
+          "n": 7
+        },
+        "S480201": {
+          "r": -1.416,
+          "p": -0.507,
+          "m3": 2.685,
+          "m5": 0.18,
+          "b3": 1.0,
+          "b5": 0.6667,
+          "b1": 0.1667,
+          "n": 6
+        },
+        "S480301": {
+          "r": -0.595,
+          "p": 0.314,
+          "m3": 1.43,
+          "m5": 0.33,
+          "b3": 1.0,
+          "b5": 0.6667,
+          "b1": 0.6667,
+          "n": 9
+        },
+        "S480401": {
+          "r": -0.909,
+          "p": 0.0,
+          "m3": 2.14,
+          "m5": 1.89,
+          "b3": 1.0,
+          "b5": 0.8824,
+          "b1": 0.4706,
+          "n": 17
+        },
+        "S480501": {
+          "r": -0.716,
+          "p": 0.193,
+          "m3": 2.755,
+          "m5": 1.815,
+          "b3": 1.0,
+          "b5": 0.9,
+          "b1": 0.6,
+          "n": 10
+        },
+        "S490101": {
+          "r": -0.909,
+          "p": 0.0,
+          "m3": -1.64,
+          "m5": -1.03,
+          "b3": 0.0444,
+          "b5": 0.1556,
+          "b1": 0.3469,
+          "n": 49
+        },
+        "S490201": {
+          "r": -1.825,
+          "p": -0.916,
+          "m3": -1.6,
+          "m5": -1.22,
+          "b3": 0.0,
+          "b5": 0.0,
+          "b1": 0.2,
+          "n": 5
+        },
+        "S490302": {
+          "r": -1.055,
+          "p": -0.146,
+          "m3": -1.3250000000000002,
+          "m5": -0.26,
+          "b3": 0.125,
+          "b5": 0.375,
+          "b1": 0.375,
+          "n": 8
+        },
+        "S510101": {
+          "r": 0.092,
+          "p": 1.001,
+          "m3": -0.75,
+          "m5": 2.505,
+          "b3": 0.25,
+          "b5": 0.9,
+          "b1": 0.75,
+          "n": 20
+        },
+        "S610101": {
+          "r": -1.058,
+          "p": -0.149,
+          "m3": -2.2800000000000002,
+          "m5": 0.055,
+          "b3": 0.1429,
+          "b5": 0.5,
+          "b1": 0.3571,
+          "n": 14
+        },
+        "S610102": {
+          "r": 1.102,
+          "p": 2.011,
+          "m3": -0.95,
+          "m5": 1.97,
+          "b3": 0.2857,
+          "b5": 1.0,
+          "b1": 0.8571,
+          "n": 7
+        },
+        "S610201": {
+          "r": -1.053,
+          "p": -0.144,
+          "m3": -2.745,
+          "m5": 3.3449999999999998,
+          "b3": 0.1667,
+          "b5": 0.8333,
+          "b1": 0.2857,
+          "n": 7
+        },
+        "S610202": {
+          "r": 1.202,
+          "p": 2.111,
+          "m3": -2.88,
+          "m5": 6.295,
+          "b3": 0.3333,
+          "b5": 0.8333,
+          "b1": 1.0,
+          "n": 6
+        },
+        "S610302": {
+          "r": -0.909,
+          "p": 0.0,
+          "m3": -0.96,
+          "m5": 2.44,
+          "b3": 0.4,
+          "b5": 0.8,
+          "b1": 0.4,
+          "n": 5
+        },
+        "S610303": {
+          "r": 0.407,
+          "p": 1.316,
+          "m3": -0.97,
+          "m5": 4.4,
+          "b3": 0.3571,
+          "b5": 0.7857,
+          "b1": 0.7857,
+          "n": 14
+        },
+        "S620101": {
+          "r": -0.994,
+          "p": -0.085,
+          "m3": -0.8200000000000001,
+          "m5": -0.275,
+          "b3": 0.125,
+          "b5": 0.5,
+          "b1": 0.5,
+          "n": 8
+        },
+        "S620201": {
+          "r": 0.219,
+          "p": 1.128,
+          "m3": -1.1549999999999998,
+          "m5": 4.01,
+          "b3": 0.3,
+          "b5": 0.95,
+          "b1": 0.7,
+          "n": 20
+        },
+        "S620306": {
+          "r": -1.248,
+          "p": -0.339,
+          "m3": -1.27,
+          "m5": 0.11,
+          "b3": 0.2609,
+          "b5": 0.5217,
+          "b1": 0.3913,
+          "n": 23
+        },
+        "S620401": {
+          "r": -0.995,
+          "p": -0.085,
+          "m3": -2.64,
+          "m5": 0.32,
+          "b3": 0.1429,
+          "b5": 0.5714,
+          "b1": 0.5,
+          "n": 8
+        },
+        "S620402": {
+          "r": -1.405,
+          "p": -0.496,
+          "m3": -1.23,
+          "m5": 3.61,
+          "b3": 0.3333,
+          "b5": 0.6667,
+          "b1": 0.3333,
+          "n": 6
+        },
+        "S620404": {
+          "r": 0.099,
+          "p": 1.008,
+          "m3": -2.295,
+          "m5": 4.9,
+          "b3": 0.2857,
+          "b5": 0.7143,
+          "b1": 0.7143,
+          "n": 14
+        },
+        "S620601": {
+          "r": -0.496,
+          "p": 0.413,
+          "m3": -1.88,
+          "m5": -0.12,
+          "b3": 0.1333,
+          "b5": 0.4,
+          "b1": 0.5333,
+          "n": 15
+        },
+        "S630101": {
+          "r": 1.211,
+          "p": 2.12,
+          "m3": 0.7949999999999999,
+          "m5": 5.41,
+          "b3": 0.7222,
+          "b5": 0.9444,
+          "b1": 0.8889,
+          "n": 18
+        },
+        "S630306": {
+          "r": 0.329,
+          "p": 1.238,
+          "m3": -1.39,
+          "m5": 4.8,
+          "b3": 0.1538,
+          "b5": 0.9231,
+          "b1": 0.8462,
+          "n": 13
+        },
+        "S630501": {
+          "r": -0.909,
+          "p": 0.0,
+          "m3": -3.99,
+          "m5": 6.3549999999999995,
+          "b3": 0.0,
+          "b5": 0.75,
+          "b1": 0.4,
+          "n": 5
+        },
+        "S630502": {
+          "r": 0.32,
+          "p": 1.229,
+          "m3": -2.23,
+          "m5": 6.135,
+          "b3": 0.25,
+          "b5": 1.0,
+          "b1": 0.625,
+          "n": 8
+        },
+        "S630504": {
+          "r": -0.062,
+          "p": 0.847,
+          "m3": -2.605,
+          "m5": 6.175,
+          "b3": 0.3,
+          "b5": 1.0,
+          "b1": 0.7273,
+          "n": 11
+        },
+        "S630602": {
+          "r": -0.955,
+          "p": -0.046,
+          "m3": -2.38,
+          "m5": 4.67,
+          "b3": 0.0,
+          "b5": 0.7778,
+          "b1": 0.4444,
+          "n": 9
+        },
+        "S630701": {
+          "r": 0.873,
+          "p": 1.782,
+          "m3": -2.35,
+          "m5": 3.73,
+          "b3": 0.1111,
+          "b5": 0.8889,
+          "b1": 1.0,
+          "n": 9
+        },
+        "S630702": {
+          "r": -0.671,
+          "p": 0.238,
+          "m3": -3.47,
+          "m5": 1.5499999999999998,
+          "b3": 0.0,
+          "b5": 0.7857,
+          "b1": 0.8571,
+          "n": 14
+        },
+        "S630705": {
+          "r": 1.759,
+          "p": 2.668,
+          "m3": -1.7850000000000001,
+          "m5": 1.57,
+          "b3": 0.0,
+          "b5": 0.6667,
+          "b1": 1.0,
+          "n": 6
+        },
+        "S630801": {
+          "r": -0.583,
+          "p": 0.326,
+          "m3": -0.775,
+          "m5": 2.4850000000000003,
+          "b3": 0.25,
+          "b5": 0.9375,
+          "b1": 0.6875,
+          "n": 16
+        },
+        "S630802": {
+          "r": 0.609,
+          "p": 1.518,
+          "m3": -0.395,
+          "m5": 3.665,
+          "b3": 0.4286,
+          "b5": 0.8571,
+          "b1": 0.7857,
+          "n": 14
+        },
+        "S630803": {
+          "r": -0.852,
+          "p": 0.057,
+          "m3": -0.54,
+          "m5": 4.09,
+          "b3": 0.3,
+          "b5": 0.8,
+          "b1": 0.6,
+          "n": 10
+        },
+        "S630804": {
+          "r": -0.619,
+          "p": 0.29,
+          "m3": -1.8399999999999999,
+          "m5": 3.01,
+          "b3": 0.0,
+          "b5": 1.0,
+          "b1": 0.6667,
+          "n": 6
+        },
+        "S630805": {
+          "r": 0.318,
+          "p": 1.227,
+          "m3": -0.51,
+          "m5": 3.27,
+          "b3": 0.3793,
+          "b5": 0.8621,
+          "b1": 0.7931,
+          "n": 29
+        },
+        "S640101": {
+          "r": 1.04,
+          "p": 1.949,
+          "m3": 3.13,
+          "m5": 5.72,
+          "b3": 0.8182,
+          "b5": 0.8182,
+          "b1": 1.0,
+          "n": 11
+        },
+        "S640103": {
+          "r": 0.165,
+          "p": 1.074,
+          "m3": -2.15,
+          "m5": 0.99,
+          "b3": 0.2,
+          "b5": 0.6,
+          "b1": 1.0,
+          "n": 5
+        },
+        "S640105": {
+          "r": 0.886,
+          "p": 1.795,
+          "m3": -0.535,
+          "m5": 3.795,
+          "b3": 0.4,
+          "b5": 0.9,
+          "b1": 0.8,
+          "n": 10
+        },
+        "S640106": {
+          "r": 0.983,
+          "p": 1.892,
+          "m3": 0.32,
+          "m5": 5.880000000000001,
+          "b3": 0.5625,
+          "b5": 0.9375,
+          "b1": 0.875,
+          "n": 16
+        },
+        "S640107": {
+          "r": 2.271,
+          "p": 3.18,
+          "m3": 0.8999999999999999,
+          "m5": 5.93,
+          "b3": 0.75,
+          "b5": 0.75,
+          "b1": 0.875,
+          "n": 8
+        },
+        "S640108": {
+          "r": 1.463,
+          "p": 2.372,
+          "m3": 0.79,
+          "m5": 6.11,
+          "b3": 0.7297,
+          "b5": 0.8919,
+          "b1": 0.8378,
+          "n": 37
+        },
+        "S640203": {
+          "r": 0.099,
+          "p": 1.009,
+          "m3": -1.17,
+          "m5": 1.83,
+          "b3": 0.3077,
+          "b5": 0.8205,
+          "b1": 0.725,
+          "n": 40
+        },
+        "S640204": {
+          "r": -0.104,
+          "p": 0.806,
+          "m3": -0.22,
+          "m5": 3.15,
+          "b3": 0.3636,
+          "b5": 0.8182,
+          "b1": 1.0,
+          "n": 11
+        },
+        "S640206": {
+          "r": 2.449,
+          "p": 3.359,
+          "m3": 1.44,
+          "m5": 5.72,
+          "b3": 0.7778,
+          "b5": 1.0,
+          "b1": 1.0,
+          "n": 9
+        },
+        "S640209": {
+          "r": 1.228,
+          "p": 2.137,
+          "m3": 0.0,
+          "m5": 4.3,
+          "b3": 0.4839,
+          "b5": 0.8387,
+          "b1": 0.875,
+          "n": 32
+        },
+        "S640501": {
+          "r": -0.469,
+          "p": 0.44,
+          "m3": -1.13,
+          "m5": 0.0,
+          "b3": 0.3077,
+          "b5": 0.4615,
+          "b1": 0.5385,
+          "n": 13
+        },
+        "S640601": {
+          "r": -0.001,
+          "p": 0.909,
+          "m3": -2.37,
+          "m5": 2.34,
+          "b3": 0.2353,
+          "b5": 0.7059,
+          "b1": 0.7059,
+          "n": 17
+        },
+        "S640602": {
+          "r": -0.181,
+          "p": 0.728,
+          "m3": -0.29,
+          "m5": 5.4,
+          "b3": 0.4,
+          "b5": 0.8,
+          "b1": 1.0,
+          "n": 5
+        },
+        "S640701": {
+          "r": 3.095,
+          "p": 4.004,
+          "m3": 1.93,
+          "m5": 10.36,
+          "b3": 1.0,
+          "b5": 1.0,
+          "b1": 1.0,
+          "n": 6
+        },
+        "S640702": {
+          "r": 1.979,
+          "p": 2.888,
+          "m3": -0.26,
+          "m5": 4.615,
+          "b3": 0.4167,
+          "b5": 1.0,
+          "b1": 1.0,
+          "n": 12
+        },
+        "S650101": {
+          "r": 1.895,
+          "p": 2.804,
+          "m3": 2.37,
+          "m5": 6.8,
+          "b3": 1.0,
+          "b5": 1.0,
+          "b1": 1.0,
+          "n": 5
+        },
+        "S650201": {
+          "r": -1.704,
+          "p": -0.795,
+          "m3": -0.72,
+          "m5": 3.625,
+          "b3": 0.4545,
+          "b5": 0.8182,
+          "b1": 0.4545,
+          "n": 22
+        },
+        "S650301": {
+          "r": -0.083,
+          "p": 0.826,
+          "m3": -0.07,
+          "m5": 3.47,
+          "b3": 0.4286,
+          "b5": 1.0,
+          "b1": 0.8571,
+          "n": 7
+        },
+        "S650401": {
+          "r": -2.22,
+          "p": -1.311,
+          "m3": -2.38,
+          "m5": -2.44,
+          "b3": 0.0,
+          "b5": 0.4,
+          "b1": 0.0,
+          "n": 5
+        },
+        "S650501": {
+          "r": 0.426,
+          "p": 1.335,
+          "m3": 1.1300000000000001,
+          "m5": 5.77,
+          "b3": 0.7273,
+          "b5": 0.9545,
+          "b1": 0.8636,
+          "n": 22
+        },
+        "S710102": {
+          "r": -1.079,
+          "p": -0.17,
+          "m3": -0.67,
+          "m5": -0.9,
+          "b3": 0.4286,
+          "b5": 0.4286,
+          "b1": 0.4286,
+          "n": 7
+        },
+        "S710103": {
+          "r": 1.301,
+          "p": 2.21,
+          "m3": -0.845,
+          "m5": 5.6899999999999995,
+          "b3": 0.3182,
+          "b5": 0.9545,
+          "b1": 0.9545,
+          "n": 22
+        },
+        "S710301": {
+          "r": 0.743,
+          "p": 1.652,
+          "m3": -0.995,
+          "m5": 3.5700000000000003,
+          "b3": 0.2292,
+          "b5": 0.9167,
+          "b1": 0.875,
+          "n": 48
+        },
+        "S710401": {
+          "r": 0.599,
+          "p": 1.508,
+          "m3": -1.25,
+          "m5": 2.61,
+          "b3": 0.2222,
+          "b5": 0.8519,
+          "b1": 0.8889,
+          "n": 27
+        },
+        "S710402": {
+          "r": 1.514,
+          "p": 2.423,
+          "m3": -1.875,
+          "m5": 3.355,
+          "b3": 0.25,
+          "b5": 1.0,
+          "b1": 1.0,
+          "n": 8
+        },
+        "S720401": {
+          "r": 1.5,
+          "p": 2.409,
+          "m3": -1.78,
+          "m5": 3.355,
+          "b3": 0.2857,
+          "b5": 0.7857,
+          "b1": 1.0,
+          "n": 14
+        },
+        "S720501": {
+          "r": 2.895,
+          "p": 3.804,
+          "m3": 1.505,
+          "m5": 10.345,
+          "b3": 0.8125,
+          "b5": 0.9375,
+          "b1": 1.0,
+          "n": 16
+        },
+        "S720601": {
+          "r": 4.632,
+          "p": 5.541,
+          "m3": 3.39,
+          "m5": 11.56,
+          "b3": 0.8889,
+          "b5": 1.0,
+          "b1": 1.0,
+          "n": 9
+        },
+        "S720901": {
+          "r": 0.295,
+          "p": 1.204,
+          "m3": -0.88,
+          "m5": 1.23,
+          "b3": 0.4286,
+          "b5": 0.7143,
+          "b1": 0.75,
+          "n": 8
+        },
+        "S720902": {
+          "r": 2.326,
+          "p": 3.235,
+          "m3": 2.04,
+          "m5": 6.65,
+          "b3": 0.7692,
+          "b5": 1.0,
+          "b1": 1.0,
+          "n": 14
+        },
+        "S721001": {
+          "r": 1.971,
+          "p": 2.88,
+          "m3": 1.41,
+          "m5": 6.38,
+          "b3": 0.8182,
+          "b5": 1.0,
+          "b1": 0.9091,
+          "n": 11
+        },
+        "S730103": {
+          "r": 1.277,
+          "p": 2.187,
+          "m3": -0.27,
+          "m5": 6.5,
+          "b3": 0.4444,
+          "b5": 1.0,
+          "b1": 0.7778,
+          "n": 9
+        },
+        "S730104": {
+          "r": 1.298,
+          "p": 2.208,
+          "m3": -0.83,
+          "m5": 3.29,
+          "b3": 0.0,
+          "b5": 1.0,
+          "b1": 1.0,
+          "n": 5
+        },
+        "S730204": {
+          "r": 0.357,
+          "p": 1.266,
+          "m3": -0.48,
+          "m5": 6.28,
+          "b3": 0.3846,
+          "b5": 1.0,
+          "b1": 0.9231,
+          "n": 13
+        },
+        "S730205": {
+          "r": 0.105,
+          "p": 1.015,
+          "m3": -1.24,
+          "m5": 5.984999999999999,
+          "b3": 0.25,
+          "b5": 0.875,
+          "b1": 0.875,
+          "n": 8
+        },
+        "S730206": {
+          "r": 1.766,
+          "p": 2.675,
+          "m3": -0.92,
+          "m5": 4.83,
+          "b3": 0.3846,
+          "b5": 0.8462,
+          "b1": 0.9231,
+          "n": 13
+        },
+        "S740101": {
+          "r": -2.125,
+          "p": -1.216,
+          "m3": 0.21,
+          "m5": -2.37,
+          "b3": 0.5333,
+          "b5": 0.3333,
+          "b1": 0.0667,
+          "n": 15
+        },
+        "S740102": {
+          "r": -2.166,
+          "p": -1.257,
+          "m3": 0.16,
+          "m5": -1.38,
+          "b3": 0.5455,
+          "b5": 0.3636,
+          "b1": 0.0,
+          "n": 11
+        },
+        "S740201": {
+          "r": 0.786,
+          "p": 1.695,
+          "m3": 3.11,
+          "m5": 5.16,
+          "b3": 0.7143,
+          "b5": 0.8571,
+          "b1": 0.5714,
+          "n": 7
+        },
+        "S750201": {
+          "r": -2.841,
+          "p": -1.932,
+          "m3": -2.09,
+          "m5": -2.63,
+          "b3": 0.1429,
+          "b5": 0.4286,
+          "b1": 0.2857,
+          "n": 7
+        },
+        "S750301": {
+          "r": -1.328,
+          "p": -0.419,
+          "m3": -3.935,
+          "m5": -2.56,
+          "b3": 0.1,
+          "b5": 0.2,
+          "b1": 0.3,
+          "n": 10
+        },
+        "S750302": {
+          "r": -1.627,
+          "p": -0.718,
+          "m3": -0.675,
+          "m5": 1.245,
+          "b3": 0.3333,
+          "b5": 0.6667,
+          "b1": 0.3333,
+          "n": 6
+        },
+        "S750303": {
+          "r": 0.057,
+          "p": 0.966,
+          "m3": -1.65,
+          "m5": 0.0,
+          "b3": 0.1818,
+          "b5": 0.4545,
+          "b1": 0.8182,
+          "n": 11
+        },
+        "S760102": {
+          "r": -1.046,
+          "p": -0.137,
+          "m3": -0.53,
+          "m5": 0.36,
+          "b3": 0.3043,
+          "b5": 0.5217,
+          "b1": 0.375,
+          "n": 24
+        },
+        "S760103": {
+          "r": -0.966,
+          "p": -0.057,
+          "m3": -1.385,
+          "m5": 0.6699999999999999,
+          "b3": 0.1667,
+          "b5": 0.6111,
+          "b1": 0.5,
+          "n": 18
+        },
+        "S760104": {
+          "r": 0.243,
+          "p": 1.152,
+          "m3": 0.0,
+          "m5": 3.13,
+          "b3": 0.4286,
+          "b5": 0.7143,
+          "b1": 0.8571,
+          "n": 7
+        },
+        "S760201": {
+          "r": 0.11,
+          "p": 1.019,
+          "m3": -1.08,
+          "m5": 2.7,
+          "b3": 0.3077,
+          "b5": 1.0,
+          "b1": 0.8462,
+          "n": 13
+        },
+        "S770202": {
+          "r": -0.365,
+          "p": 0.544,
+          "m3": -2.64,
+          "m5": -1.25,
+          "b3": 0.2,
+          "b5": 0.4,
+          "b1": 0.6,
           "n": 5
         }
       }
