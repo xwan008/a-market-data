@@ -40,7 +40,20 @@ class CanonicalAdmissionTests(unittest.TestCase):
         idx=json.loads((ROOT/"data/low_risk/index.json").read_text())
         if handoff.get("trade_date")!=idx.get("trade_date"):
             self.skipTest("confirmed_sector_and_market_working_set_dates_not_paired")
+        if not handoff.get("signals"):
+            self.skipTest("no_current_confirmed_sw3_to_run_positive_admission_cases")
         return handoff["trade_date"]
+
+    def test_empty_handoff_correctly_closes_stock_admission(self):
+        handoff=json.loads((ROOT/"research/trend_handoff.json").read_text())
+        idx=json.loads((ROOT/"data/low_risk/index.json").read_text())
+        if handoff.get("signals"):
+            self.skipTest("nonempty_handoff_covered_by_positive_admission_tests")
+        reason=("ADMISSION_NO_UPSTREAM_CONFIRMED_SW3"
+                if handoff.get("trade_date")==idx.get("trade_date")
+                else "ADMISSION_ASOF_INPUT_MISMATCH")
+        with self.assertRaisesRegex(ValueError,reason):
+            intake.prepare(ROOT)
 
     def test_python_admission_is_current_replayable_and_five_max(self):
         self.require_current_paired_working_set()
