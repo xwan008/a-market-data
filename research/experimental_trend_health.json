@@ -1,6 +1,6 @@
 {
   "schema_version": "experimental_trend_health_v1",
-  "trade_date": "2026-11-10",
+  "trade_date": "2026-11-11",
   "status": "EXPERIMENTAL_NON_BINDING",
   "disclaimer": "实验指标；无趋势确认/降级/退出及个股买卖权限，不参与正式Gate与handoff。",
   "input_sources": {
@@ -10,7 +10,7 @@
   "parameters": {
     "relative_recent_max_pp": 0.75,
     "relative_deterioration_min_pp": 1.5,
-    "momentum_drop_min_pp": 2.0,
+    "momentum_drop_min_pp": 2,
     "breadth_gap_min": 0.25,
     "required_sessions": 4,
     "parameter_status": "EXPLORATORY_NOT_VALIDATED"
@@ -23,54 +23,12 @@
       "role": "NON_BINDING_SHADOW_ONLY",
       "market_invalidation": false,
       "new_position_eligibility_changed": false,
-      "protection_status": "警戒",
-      "protection_color": "YELLOW",
+      "protection_status": "持有",
+      "protection_color": "GREEN",
       "protection_is_trade_instruction": false,
       "confirmed_core_industry_codes": [
         "S720401"
       ],
-      "health": "放缓",
-      "status": "ASSESSED",
-      "protection_rank": 1,
-      "protection_reason": "已出现初步退潮信号；观察承接并检查原风险计划",
-      "health_rank": 1,
-      "signal_count": 1,
-      "signals": [
-        "BREADTH_NARROWING"
-      ],
-      "dimensions": {
-        "relative_strength_decay": false,
-        "momentum_decay": false,
-        "breadth_narrowing": true,
-        "severe_same_day_contraction": false
-      },
-      "metrics": {
-        "relative_recent_2d_pp": 0.1805,
-        "relative_previous_2d_pp": -0.277,
-        "relative_today_pp": 1.5,
-        "median_3d_return_pct": -1.78,
-        "previous_median_3d_return_pct": -1.53,
-        "advance_ratio_today": 1.0,
-        "breadth_3d": 0.2857,
-        "breadth_5d": 0.7857
-      },
-      "reason": "独立3维量价健康度实验；高风险仍不等于正式失效，无法替代结构支撑和产业反证判断。",
-      "change_vs_previous_observation": "IMPROVED",
-      "protection_change_vs_previous_observation": "IMPROVED"
-    },
-    {
-      "episode_id": "证券#2026-11-02",
-      "trend_name": "证券",
-      "formal_market_state": "趋势确认",
-      "role": "NON_BINDING_SHADOW_ONLY",
-      "market_invalidation": false,
-      "new_position_eligibility_changed": false,
-      "protection_status": "持有",
-      "protection_color": "GREEN",
-      "protection_is_trade_instruction": false,
-      "confirmed_core_industry_codes": [
-        "S490101"
-      ],
       "health": "正常/未触发",
       "status": "ASSESSED",
       "protection_rank": 0,
@@ -85,116 +43,14 @@
         "severe_same_day_contraction": false
       },
       "metrics": {
-        "relative_recent_2d_pp": -0.5355,
-        "relative_previous_2d_pp": -0.6535,
-        "relative_today_pp": -0.909,
-        "median_3d_return_pct": -1.64,
-        "previous_median_3d_return_pct": -1.57,
-        "advance_ratio_today": 0.3469,
-        "breadth_3d": 0.0444,
-        "breadth_5d": 0.1556
-      },
-      "reason": "独立3维量价健康度实验；高风险仍不等于正式失效，无法替代结构支撑和产业反证判断。",
-      "change_vs_previous_observation": "UNCHANGED",
-      "protection_change_vs_previous_observation": "IMPROVED"
-    },
-    {
-      "episode_id": "白色家电#2026-10-30",
-      "trend_name": "白色家电",
-      "formal_market_state": "趋势确认",
-      "role": "NON_BINDING_SHADOW_ONLY",
-      "market_invalidation": false,
-      "new_position_eligibility_changed": false,
-      "protection_status": "待评估",
-      "protection_color": "GRAY",
-      "protection_is_trade_instruction": false,
-      "confirmed_core_industry_codes": [
-        "S330102",
-        "S330106"
-      ],
-      "health": "未评估",
-      "status": "INCOMPLETE_CORE_COVERAGE",
-      "reason": "至少一个已确认核心行业在4日窗口内缺少有效客观数据。",
-      "change_vs_previous_observation": "NOT_COMPARABLE",
-      "protection_change_vs_previous_observation": "NOT_COMPARABLE"
-    },
-    {
-      "episode_id": "零食#2026-10-30",
-      "trend_name": "零食",
-      "formal_market_state": "趋势确认",
-      "role": "NON_BINDING_SHADOW_ONLY",
-      "market_invalidation": false,
-      "new_position_eligibility_changed": false,
-      "protection_status": "持有",
-      "protection_color": "GREEN",
-      "protection_is_trade_instruction": false,
-      "confirmed_core_industry_codes": [
-        "S340801"
-      ],
-      "health": "正常/未触发",
-      "status": "ASSESSED",
-      "protection_rank": 0,
-      "protection_reason": "当前未触发实验保护信号；仍须遵守原持仓风险计划",
-      "health_rank": 0,
-      "signal_count": 0,
-      "signals": [],
-      "dimensions": {
-        "relative_strength_decay": false,
-        "momentum_decay": false,
-        "breadth_narrowing": false,
-        "severe_same_day_contraction": false
-      },
-      "metrics": {
-        "relative_recent_2d_pp": -0.23,
-        "relative_previous_2d_pp": -0.1685,
-        "relative_today_pp": -0.633,
-        "median_3d_return_pct": -0.68,
-        "previous_median_3d_return_pct": -0.14,
-        "advance_ratio_today": 0.6667,
-        "breadth_3d": 0.2222,
-        "breadth_5d": 0.4444
-      },
-      "reason": "独立3维量价健康度实验；高风险仍不等于正式失效，无法替代结构支撑和产业反证判断。",
-      "change_vs_previous_observation": "UNCHANGED",
-      "protection_change_vs_previous_observation": "UNCHANGED"
-    },
-    {
-      "episode_id": "航空运输/机场#2026-11-03",
-      "trend_name": "航空运输/机场",
-      "formal_market_state": "趋势确认",
-      "role": "NON_BINDING_SHADOW_ONLY",
-      "market_invalidation": false,
-      "new_position_eligibility_changed": false,
-      "protection_status": "警戒",
-      "protection_color": "YELLOW",
-      "protection_is_trade_instruction": false,
-      "confirmed_core_industry_codes": [
-        "S421001"
-      ],
-      "health": "放缓",
-      "status": "ASSESSED",
-      "protection_rank": 1,
-      "protection_reason": "已出现初步退潮信号；观察承接并检查原风险计划",
-      "health_rank": 1,
-      "signal_count": 1,
-      "signals": [
-        "BREADTH_NARROWING"
-      ],
-      "dimensions": {
-        "relative_strength_decay": false,
-        "momentum_decay": false,
-        "breadth_narrowing": true,
-        "severe_same_day_contraction": false
-      },
-      "metrics": {
-        "relative_recent_2d_pp": 0.7335,
-        "relative_previous_2d_pp": 0.7575,
-        "relative_today_pp": 1.976,
-        "median_3d_return_pct": 0.5,
-        "previous_median_3d_return_pct": 0.82,
-        "advance_ratio_today": 1.0,
-        "breadth_3d": 0.625,
-        "breadth_5d": 1.0
+        "relative_recent_2d_pp": 1.3005,
+        "relative_previous_2d_pp": -0.929,
+        "relative_today_pp": 1.101,
+        "median_3d_return_pct": 1.91,
+        "previous_median_3d_return_pct": -1.78,
+        "advance_ratio_today": 0.7857,
+        "breadth_3d": 0.6429,
+        "breadth_5d": 0.7143
       },
       "reason": "独立3维量价健康度实验；高风险仍不等于正式失效，无法替代结构支撑和产业反证判断。",
       "change_vs_previous_observation": "IMPROVED",
@@ -207,37 +63,35 @@
       "role": "NON_BINDING_SHADOW_ONLY",
       "market_invalidation": false,
       "new_position_eligibility_changed": false,
-      "protection_status": "警戒",
-      "protection_color": "YELLOW",
+      "protection_status": "持有",
+      "protection_color": "GREEN",
       "protection_is_trade_instruction": false,
       "confirmed_core_industry_codes": [
         "S630701",
         "S630702"
       ],
-      "health": "放缓",
+      "health": "正常/未触发",
       "status": "ASSESSED",
-      "protection_rank": 1,
-      "protection_reason": "已出现初步退潮信号；观察承接并检查原风险计划",
-      "health_rank": 1,
-      "signal_count": 1,
-      "signals": [
-        "BREADTH_NARROWING"
-      ],
+      "protection_rank": 0,
+      "protection_reason": "当前未触发实验保护信号；仍须遵守原持仓风险计划",
+      "health_rank": 0,
+      "signal_count": 0,
+      "signals": [],
       "dimensions": {
         "relative_strength_decay": false,
         "momentum_decay": false,
-        "breadth_narrowing": true,
+        "breadth_narrowing": false,
         "severe_same_day_contraction": false
       },
       "metrics": {
-        "relative_recent_2d_pp": -0.607,
-        "relative_previous_2d_pp": 0.4852,
-        "relative_today_pp": 0.101,
-        "median_3d_return_pct": -2.91,
-        "previous_median_3d_return_pct": -0.65,
-        "advance_ratio_today": 0.9285,
-        "breadth_3d": 0.0556,
-        "breadth_5d": 0.8373
+        "relative_recent_2d_pp": 0.0787,
+        "relative_previous_2d_pp": -0.9692,
+        "relative_today_pp": 0.0565,
+        "median_3d_return_pct": 0.0075,
+        "previous_median_3d_return_pct": -2.91,
+        "advance_ratio_today": 0.6389,
+        "breadth_3d": 0.4405,
+        "breadth_5d": 0.623
       },
       "reason": "独立3维量价健康度实验；高风险仍不等于正式失效，无法替代结构支撑和产业反证判断。",
       "change_vs_previous_observation": "IMPROVED",
@@ -256,6 +110,48 @@
       "health": "未评估",
       "status": "COMMODITY_FIRST_ANCHOR",
       "reason": "商品第一锚需要自身多日价格和供需证据；A股扩散不得替代商品趋势健康度。",
+      "change_vs_previous_observation": "NOT_COMPARABLE",
+      "protection_change_vs_previous_observation": "NOT_COMPARABLE"
+    },
+    {
+      "episode_id": "燃气#2026-11-09",
+      "trend_name": "燃气",
+      "formal_market_state": "趋势确认",
+      "role": "NON_BINDING_SHADOW_ONLY",
+      "market_invalidation": false,
+      "new_position_eligibility_changed": false,
+      "protection_status": "警戒",
+      "protection_color": "YELLOW",
+      "protection_is_trade_instruction": false,
+      "confirmed_core_industry_codes": [
+        "S410301"
+      ],
+      "health": "放缓",
+      "status": "ASSESSED",
+      "protection_rank": 1,
+      "protection_reason": "已出现初步退潮信号；观察承接并检查原风险计划",
+      "health_rank": 1,
+      "signal_count": 1,
+      "signals": [
+        "RELATIVE_STRENGTH_DECAY"
+      ],
+      "dimensions": {
+        "relative_strength_decay": true,
+        "momentum_decay": false,
+        "breadth_narrowing": false,
+        "severe_same_day_contraction": false
+      },
+      "metrics": {
+        "relative_recent_2d_pp": -0.069,
+        "relative_previous_2d_pp": 2.1975,
+        "relative_today_pp": 1.243,
+        "median_3d_return_pct": 3.505,
+        "previous_median_3d_return_pct": 1.355,
+        "advance_ratio_today": 0.7692,
+        "breadth_3d": 0.8462,
+        "breadth_5d": 0.8846
+      },
+      "reason": "独立3维量价健康度实验；高风险仍不等于正式失效，无法替代结构支撑和产业反证判断。",
       "change_vs_previous_observation": "NOT_COMPARABLE",
       "protection_change_vs_previous_observation": "NOT_COMPARABLE"
     }
@@ -659,9 +555,9 @@
             "relative_today_pp": -0.509,
             "median_3d_return_pct": 0.82,
             "previous_median_3d_return_pct": 3.26,
-            "advance_ratio_today": 0.0,
+            "advance_ratio_today": 0,
             "breadth_3d": 0.625,
-            "breadth_5d": 1.0
+            "breadth_5d": 1
           },
           "reason": "独立3维量价健康度实验；高风险仍不等于正式失效，无法替代结构支撑和产业反证判断。",
           "change_vs_previous_observation": "WORSENED",
@@ -767,7 +663,7 @@
             "relative_today_pp": 1.5,
             "median_3d_return_pct": -1.78,
             "previous_median_3d_return_pct": -1.53,
-            "advance_ratio_today": 1.0,
+            "advance_ratio_today": 1,
             "breadth_3d": 0.2857,
             "breadth_5d": 0.7857
           },
@@ -909,9 +805,9 @@
             "relative_today_pp": 1.976,
             "median_3d_return_pct": 0.5,
             "previous_median_3d_return_pct": 0.82,
-            "advance_ratio_today": 1.0,
+            "advance_ratio_today": 1,
             "breadth_3d": 0.625,
-            "breadth_5d": 1.0
+            "breadth_5d": 1
           },
           "reason": "独立3维量价健康度实验；高风险仍不等于正式失效，无法替代结构支撑和产业反证判断。",
           "change_vs_previous_observation": "IMPROVED",
@@ -973,6 +869,150 @@
           "health": "未评估",
           "status": "COMMODITY_FIRST_ANCHOR",
           "reason": "商品第一锚需要自身多日价格和供需证据；A股扩散不得替代商品趋势健康度。",
+          "change_vs_previous_observation": "NOT_COMPARABLE",
+          "protection_change_vs_previous_observation": "NOT_COMPARABLE"
+        }
+      ]
+    },
+    {
+      "trade_date": "2026-11-11",
+      "trends": [
+        {
+          "episode_id": "游戏#2026-11-02",
+          "trend_name": "游戏",
+          "formal_market_state": "趋势确认",
+          "role": "NON_BINDING_SHADOW_ONLY",
+          "market_invalidation": false,
+          "new_position_eligibility_changed": false,
+          "protection_status": "持有",
+          "protection_color": "GREEN",
+          "protection_is_trade_instruction": false,
+          "confirmed_core_industry_codes": [
+            "S720401"
+          ],
+          "health": "正常/未触发",
+          "status": "ASSESSED",
+          "protection_rank": 0,
+          "protection_reason": "当前未触发实验保护信号；仍须遵守原持仓风险计划",
+          "health_rank": 0,
+          "signal_count": 0,
+          "signals": [],
+          "dimensions": {
+            "relative_strength_decay": false,
+            "momentum_decay": false,
+            "breadth_narrowing": false,
+            "severe_same_day_contraction": false
+          },
+          "metrics": {
+            "relative_recent_2d_pp": 1.3005,
+            "relative_previous_2d_pp": -0.929,
+            "relative_today_pp": 1.101,
+            "median_3d_return_pct": 1.91,
+            "previous_median_3d_return_pct": -1.78,
+            "advance_ratio_today": 0.7857,
+            "breadth_3d": 0.6429,
+            "breadth_5d": 0.7143
+          },
+          "reason": "独立3维量价健康度实验；高风险仍不等于正式失效，无法替代结构支撑和产业反证判断。",
+          "change_vs_previous_observation": "IMPROVED",
+          "protection_change_vs_previous_observation": "IMPROVED"
+        },
+        {
+          "episode_id": "固态电池#2026-11-03",
+          "trend_name": "固态电池",
+          "formal_market_state": "趋势确认",
+          "role": "NON_BINDING_SHADOW_ONLY",
+          "market_invalidation": false,
+          "new_position_eligibility_changed": false,
+          "protection_status": "持有",
+          "protection_color": "GREEN",
+          "protection_is_trade_instruction": false,
+          "confirmed_core_industry_codes": [
+            "S630701",
+            "S630702"
+          ],
+          "health": "正常/未触发",
+          "status": "ASSESSED",
+          "protection_rank": 0,
+          "protection_reason": "当前未触发实验保护信号；仍须遵守原持仓风险计划",
+          "health_rank": 0,
+          "signal_count": 0,
+          "signals": [],
+          "dimensions": {
+            "relative_strength_decay": false,
+            "momentum_decay": false,
+            "breadth_narrowing": false,
+            "severe_same_day_contraction": false
+          },
+          "metrics": {
+            "relative_recent_2d_pp": 0.0787,
+            "relative_previous_2d_pp": -0.9692,
+            "relative_today_pp": 0.0565,
+            "median_3d_return_pct": 0.0075,
+            "previous_median_3d_return_pct": -2.91,
+            "advance_ratio_today": 0.6389,
+            "breadth_3d": 0.4405,
+            "breadth_5d": 0.623
+          },
+          "reason": "独立3维量价健康度实验；高风险仍不等于正式失效，无法替代结构支撑和产业反证判断。",
+          "change_vs_previous_observation": "IMPROVED",
+          "protection_change_vs_previous_observation": "IMPROVED"
+        },
+        {
+          "episode_id": "黄金/贵金属#2026-11-04",
+          "trend_name": "黄金/贵金属",
+          "formal_market_state": "趋势确认",
+          "role": "NON_BINDING_SHADOW_ONLY",
+          "market_invalidation": false,
+          "new_position_eligibility_changed": false,
+          "protection_status": "待评估",
+          "protection_color": "GRAY",
+          "protection_is_trade_instruction": false,
+          "health": "未评估",
+          "status": "COMMODITY_FIRST_ANCHOR",
+          "reason": "商品第一锚需要自身多日价格和供需证据；A股扩散不得替代商品趋势健康度。",
+          "change_vs_previous_observation": "NOT_COMPARABLE",
+          "protection_change_vs_previous_observation": "NOT_COMPARABLE"
+        },
+        {
+          "episode_id": "燃气#2026-11-09",
+          "trend_name": "燃气",
+          "formal_market_state": "趋势确认",
+          "role": "NON_BINDING_SHADOW_ONLY",
+          "market_invalidation": false,
+          "new_position_eligibility_changed": false,
+          "protection_status": "警戒",
+          "protection_color": "YELLOW",
+          "protection_is_trade_instruction": false,
+          "confirmed_core_industry_codes": [
+            "S410301"
+          ],
+          "health": "放缓",
+          "status": "ASSESSED",
+          "protection_rank": 1,
+          "protection_reason": "已出现初步退潮信号；观察承接并检查原风险计划",
+          "health_rank": 1,
+          "signal_count": 1,
+          "signals": [
+            "RELATIVE_STRENGTH_DECAY"
+          ],
+          "dimensions": {
+            "relative_strength_decay": true,
+            "momentum_decay": false,
+            "breadth_narrowing": false,
+            "severe_same_day_contraction": false
+          },
+          "metrics": {
+            "relative_recent_2d_pp": -0.069,
+            "relative_previous_2d_pp": 2.1975,
+            "relative_today_pp": 1.243,
+            "median_3d_return_pct": 3.505,
+            "previous_median_3d_return_pct": 1.355,
+            "advance_ratio_today": 0.7692,
+            "breadth_3d": 0.8462,
+            "breadth_5d": 0.8846
+          },
+          "reason": "独立3维量价健康度实验；高风险仍不等于正式失效，无法替代结构支撑和产业反证判断。",
           "change_vs_previous_observation": "NOT_COMPARABLE",
           "protection_change_vs_previous_observation": "NOT_COMPARABLE"
         }
@@ -12070,7 +12110,7 @@
           "m3": 1.245,
           "m5": 4.605,
           "b3": 0.8333,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.1667,
           "n": 6
         },
@@ -12090,7 +12130,7 @@
           "m3": 1.2650000000000001,
           "m5": 4.355,
           "b3": 0.9,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.6,
           "n": 10
         },
@@ -12101,7 +12141,7 @@
           "m5": 1.8900000000000001,
           "b3": 0.6667,
           "b5": 0.6667,
-          "b1": 0.0,
+          "b1": 0,
           "n": 6
         },
         "S110504": {
@@ -12119,7 +12159,7 @@
           "p": 0.516,
           "m3": 3.56,
           "m5": 6.155,
-          "b3": 1.0,
+          "b3": 1,
           "b5": 0.9,
           "b1": 0.8,
           "n": 10
@@ -12130,8 +12170,8 @@
           "m3": -0.55,
           "m5": 2.7,
           "b3": 0.4,
-          "b5": 1.0,
-          "b1": 0.0,
+          "b5": 1,
+          "b1": 0,
           "n": 5
         },
         "S110801": {
@@ -12141,7 +12181,7 @@
           "m5": 1.09,
           "b3": 0.6,
           "b5": 0.8,
-          "b1": 0.0,
+          "b1": 0,
           "n": 5
         },
         "S220201": {
@@ -12150,7 +12190,7 @@
           "m3": -0.63,
           "m5": 0.8,
           "b3": 0.4,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.4,
           "n": 5
         },
@@ -12160,7 +12200,7 @@
           "m3": -1.24,
           "m5": 1.4,
           "b3": 0.2857,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.0714,
           "n": 14
         },
@@ -12169,7 +12209,7 @@
           "p": -0.329,
           "m3": -1.915,
           "m5": 0.39,
-          "b3": 0.0,
+          "b3": 0,
           "b5": 0.5,
           "b1": 0.375,
           "n": 8
@@ -12199,9 +12239,9 @@
           "p": -1.677,
           "m3": -0.77,
           "m5": 1.01,
-          "b3": 0.0,
+          "b3": 0,
           "b5": 0.6,
-          "b1": 0.0,
+          "b1": 0,
           "n": 5
         },
         "S220305": {
@@ -12216,7 +12256,7 @@
         },
         "S220307": {
           "r": 0.363,
-          "p": 0.0,
+          "p": 0,
           "m3": -0.525,
           "m5": 2.4349999999999996,
           "b3": 0.4167,
@@ -12250,7 +12290,7 @@
           "m3": -0.97,
           "m5": 3.48,
           "b3": 0.3333,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.1111,
           "n": 9
         },
@@ -12261,7 +12301,7 @@
           "m5": 2.74,
           "b3": 0.6,
           "b5": 0.8,
-          "b1": 0.0,
+          "b1": 0,
           "n": 5
         },
         "S220315": {
@@ -12340,8 +12380,8 @@
           "m3": 0.14,
           "m5": 1.72,
           "b3": 0.6,
-          "b5": 1.0,
-          "b1": 0.0,
+          "b5": 1,
+          "b1": 0,
           "n": 5
         },
         "S220801": {
@@ -12360,8 +12400,8 @@
           "m3": 0.78,
           "m5": 2.5100000000000002,
           "b3": 0.625,
-          "b5": 1.0,
-          "b1": 0.0,
+          "b5": 1,
+          "b1": 0,
           "n": 8
         },
         "S220803": {
@@ -12380,7 +12420,7 @@
           "m3": -0.09,
           "m5": 2.39,
           "b3": 0.3333,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.1111,
           "n": 9
         },
@@ -12408,7 +12448,7 @@
           "r": -0.41,
           "p": -0.773,
           "m3": -1.9,
-          "m5": 0.0,
+          "m5": 0,
           "b3": 0.1875,
           "b5": 0.4375,
           "b1": 0.125,
@@ -12446,7 +12486,7 @@
         },
         "S240302": {
           "r": 0.363,
-          "p": 0.0,
+          "p": 0,
           "m3": -2.295,
           "m5": 2.05,
           "b3": 0.0625,
@@ -12460,7 +12500,7 @@
           "m3": -1.175,
           "m5": 3.14,
           "b3": 0.3333,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.0833,
           "n": 12
         },
@@ -12470,8 +12510,8 @@
           "m3": 4.91,
           "m5": 15.44,
           "b3": 0.8889,
-          "b5": 1.0,
-          "b1": 1.0,
+          "b5": 1,
+          "b1": 1,
           "n": 9
         },
         "S240504": {
@@ -12491,7 +12531,7 @@
           "m5": 3.16,
           "b3": 0.2857,
           "b5": 0.8571,
-          "b1": 0.0,
+          "b1": 0,
           "n": 7
         },
         "S270102": {
@@ -12510,7 +12550,7 @@
           "m3": 2.41,
           "m5": 4.385,
           "b3": 0.6667,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.8333,
           "n": 6
         },
@@ -12530,7 +12570,7 @@
           "m3": 0.93,
           "m5": 3.59,
           "b3": 0.6,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.6,
           "n": 5
         },
@@ -12541,7 +12581,7 @@
           "m5": 2.53,
           "b3": 0.4,
           "b5": 0.8,
-          "b1": 0.0,
+          "b1": 0,
           "n": 5
         },
         "S270108": {
@@ -12550,7 +12590,7 @@
           "m3": 1.93,
           "m5": 6.73,
           "b3": 0.8,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.2,
           "n": 5
         },
@@ -12628,7 +12668,7 @@
           "r": 0.585,
           "p": 0.222,
           "m3": -0.014999999999999958,
-          "m5": 2.0,
+          "m5": 2,
           "b3": 0.5,
           "b5": 0.75,
           "b1": 0.625,
@@ -12690,7 +12730,7 @@
           "m3": 0.48,
           "m5": 1.55,
           "b3": 0.6,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.4,
           "n": 5
         },
@@ -12709,7 +12749,7 @@
           "p": -0.86,
           "m3": -1.98,
           "m5": -0.625,
-          "b3": 0.0,
+          "b3": 0,
           "b5": 0.5,
           "b1": 0.2,
           "n": 5
@@ -12826,9 +12866,9 @@
         },
         "S340602": {
           "r": 0.363,
-          "p": 0.0,
+          "p": 0,
           "m3": 0.12,
-          "m5": 0.0,
+          "m5": 0,
           "b3": 0.5556,
           "b5": 0.2222,
           "b1": 0.3333,
@@ -12898,7 +12938,7 @@
           "r": -0.035,
           "p": -0.398,
           "m3": -0.415,
-          "m5": 0.0,
+          "m5": 0,
           "b3": 0.3,
           "b5": 0.4,
           "b1": 0.3,
@@ -12940,7 +12980,7 @@
           "m3": 1.705,
           "m5": 5.27,
           "b3": 0.7,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.5,
           "n": 10
         },
@@ -13110,8 +13150,8 @@
           "m3": -2.825,
           "m5": -3.88,
           "b3": 0.1667,
-          "b5": 0.0,
-          "b1": 0.0,
+          "b5": 0,
+          "b1": 0,
           "n": 6
         },
         "S370503": {
@@ -13210,7 +13250,7 @@
           "m3": 0.64,
           "m5": 2.72,
           "b3": 0.6,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.2,
           "n": 15
         },
@@ -13277,7 +13317,7 @@
         "S420903": {
           "r": 0.08,
           "p": -0.283,
-          "m3": 0.0,
+          "m3": 0,
           "m5": 0.86,
           "b3": 0.1429,
           "b5": 0.8571,
@@ -13290,8 +13330,8 @@
           "m3": 0.8200000000000001,
           "m5": 4.5649999999999995,
           "b3": 0.625,
-          "b5": 1.0,
-          "b1": 0.0,
+          "b5": 1,
+          "b1": 0,
           "n": 8
         },
         "S421101": {
@@ -13349,9 +13389,9 @@
           "p": -1.076,
           "m3": -1.28,
           "m5": -2.03,
-          "b3": 0.0,
+          "b3": 0,
           "b5": 0.1429,
-          "b1": 0.0,
+          "b1": 0,
           "n": 7
         },
         "S450201": {
@@ -13379,8 +13419,8 @@
           "p": 0.68,
           "m3": 1.08,
           "m5": 1.82,
-          "b3": 1.0,
-          "b5": 1.0,
+          "b3": 1,
+          "b5": 1,
           "b1": 0.7143,
           "n": 7
         },
@@ -13410,8 +13450,8 @@
           "m3": 0.215,
           "m5": 1.34,
           "b3": 0.5,
-          "b5": 1.0,
-          "b1": 0.0,
+          "b5": 1,
+          "b1": 0,
           "n": 5
         },
         "S461003": {
@@ -13431,7 +13471,7 @@
           "m5": 1.57,
           "b3": 0.5,
           "b5": 0.8333,
-          "b1": 0.0,
+          "b1": 0,
           "n": 6
         },
         "S461102": {
@@ -13449,9 +13489,9 @@
           "p": 1.869,
           "m3": 2.4,
           "m5": -0.9950000000000001,
-          "b3": 1.0,
+          "b3": 1,
           "b5": 0.1667,
-          "b1": 1.0,
+          "b1": 1,
           "n": 6
         },
         "S480301": {
@@ -13480,7 +13520,7 @@
           "m3": 1.775,
           "m5": 0.615,
           "b3": 0.9,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.9,
           "n": 10
         },
@@ -13500,7 +13540,7 @@
           "m3": 0.16,
           "m5": 2.08,
           "b3": 0.6,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.4,
           "n": 5
         },
@@ -13517,7 +13557,7 @@
         "S510101": {
           "r": 0.166,
           "p": -0.197,
-          "m3": 0.0,
+          "m3": 0,
           "m5": 2.13,
           "b3": 0.4,
           "b5": 0.75,
@@ -13550,7 +13590,7 @@
           "m3": 1.0150000000000001,
           "m5": 3.95,
           "b3": 0.8333,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.2857,
           "n": 7
         },
@@ -13680,8 +13720,8 @@
           "m3": 3.0900000000000003,
           "m5": 6.2,
           "b3": 0.75,
-          "b5": 1.0,
-          "b1": 0.0,
+          "b5": 1,
+          "b1": 0,
           "n": 5
         },
         "S630502": {
@@ -13690,8 +13730,8 @@
           "m3": 2.565,
           "m5": 7.145,
           "b3": 0.875,
-          "b5": 1.0,
-          "b1": 0.0,
+          "b5": 1,
+          "b1": 0,
           "n": 8
         },
         "S630504": {
@@ -13710,8 +13750,8 @@
           "m3": 0.34,
           "m5": 3.06,
           "b3": 0.6667,
-          "b5": 1.0,
-          "b1": 0.0,
+          "b5": 1,
+          "b1": 0,
           "n": 9
         },
         "S630701": {
@@ -13730,7 +13770,7 @@
           "m3": -0.99,
           "m5": 3.685,
           "b3": 0.2143,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.0714,
           "n": 14
         },
@@ -13739,7 +13779,7 @@
           "p": -0.263,
           "m3": -0.465,
           "m5": 2.085,
-          "b3": 0.0,
+          "b3": 0,
           "b5": 0.8333,
           "b1": 0.5,
           "n": 6
@@ -13770,8 +13810,8 @@
           "m3": 0.415,
           "m5": 3.5300000000000002,
           "b3": 0.6,
-          "b5": 1.0,
-          "b1": 0.0,
+          "b5": 1,
+          "b1": 0,
           "n": 10
         },
         "S630804": {
@@ -13876,7 +13916,7 @@
         },
         "S640206": {
           "r": 0.363,
-          "p": 0.0,
+          "p": 0,
           "m3": -0.42,
           "m5": 0.48,
           "b3": 0.4444,
@@ -13931,7 +13971,7 @@
           "m5": 1.575,
           "b3": 0.5,
           "b5": 0.6667,
-          "b1": 1.0,
+          "b1": 1,
           "n": 6
         },
         "S640702": {
@@ -13949,9 +13989,9 @@
           "p": 3.142,
           "m3": 1.97,
           "m5": 3.23,
-          "b3": 1.0,
-          "b5": 1.0,
-          "b1": 1.0,
+          "b3": 1,
+          "b5": 1,
+          "b1": 1,
           "n": 5
         },
         "S650201": {
@@ -13970,7 +14010,7 @@
           "m3": 0.95,
           "m5": 3.2,
           "b3": 0.8571,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.7143,
           "n": 7
         },
@@ -13990,7 +14030,7 @@
           "m3": 0.645,
           "m5": 2.7249999999999996,
           "b3": 0.7273,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.9091,
           "n": 22
         },
@@ -14070,7 +14110,7 @@
           "m3": 1.92,
           "m5": 6.43,
           "b3": 0.8889,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.3333,
           "n": 9
         },
@@ -14087,7 +14127,7 @@
         "S720902": {
           "r": -0.152,
           "p": -0.515,
-          "m3": 0.0,
+          "m3": 0,
           "m5": 2.46,
           "b3": 0.4615,
           "b5": 0.9231,
@@ -14100,7 +14140,7 @@
           "m3": 1.68,
           "m5": 1.97,
           "b3": 0.8182,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.2727,
           "n": 11
         },
@@ -14117,11 +14157,11 @@
         "S730104": {
           "r": -0.077,
           "p": -0.44,
-          "m3": 0.0,
+          "m3": 0,
           "m5": 0.82,
           "b3": 0.4,
           "b5": 0.8,
-          "b1": 0.0,
+          "b1": 0,
           "n": 5
         },
         "S730204": {
@@ -14141,13 +14181,13 @@
           "m5": -0.95,
           "b3": 0.25,
           "b5": 0.25,
-          "b1": 1.0,
+          "b1": 1,
           "n": 8
         },
         "S730206": {
           "r": 0.721,
           "p": 0.358,
-          "m3": 0.0,
+          "m3": 0,
           "m5": 1.56,
           "b3": 0.4615,
           "b5": 0.6154,
@@ -14161,7 +14201,7 @@
           "m5": -1.28,
           "b3": 0.4,
           "b5": 0.4,
-          "b1": 1.0,
+          "b1": 1,
           "n": 15
         },
         "S740102": {
@@ -14171,7 +14211,7 @@
           "m5": -0.16,
           "b3": 0.5455,
           "b5": 0.4545,
-          "b1": 1.0,
+          "b1": 1,
           "n": 11
         },
         "S740201": {
@@ -14180,14 +14220,14 @@
           "m3": 2.36,
           "m5": 2.77,
           "b3": 0.8571,
-          "b5": 1.0,
-          "b1": 1.0,
+          "b5": 1,
+          "b1": 1,
           "n": 7
         },
         "S750201": {
           "r": -0.594,
           "p": -0.957,
-          "m3": 0.0,
+          "m3": 0,
           "m5": -1.18,
           "b3": 0.2857,
           "b5": 0.2857,
@@ -14271,7 +14311,7 @@
           "m5": 0.92,
           "b3": 0.2,
           "b5": 0.6,
-          "b1": 0.0,
+          "b1": 0,
           "n": 5
         }
       }
@@ -14306,7 +14346,7 @@
           "m3": -0.18,
           "m5": 2.4699999999999998,
           "b3": 0.3,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.5,
           "n": 10
         },
@@ -14316,7 +14356,7 @@
           "m3": -0.38999999999999996,
           "m5": 0.96,
           "b3": 0.5,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.6667,
           "n": 6
         },
@@ -14327,7 +14367,7 @@
           "m5": 3.66,
           "b3": 0.4444,
           "b5": 0.6667,
-          "b1": 1.0,
+          "b1": 1,
           "n": 9
         },
         "S110702": {
@@ -14336,7 +14376,7 @@
           "m3": 0.71,
           "m5": 3.5300000000000002,
           "b3": 0.6,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.6,
           "n": 10
         },
@@ -14345,7 +14385,7 @@
           "p": 0.414,
           "m3": -2.11,
           "m5": -0.14,
-          "b3": 0.0,
+          "b3": 0,
           "b5": 0.4,
           "b1": 0.8,
           "n": 5
@@ -14355,7 +14395,7 @@
           "p": -0.432,
           "m3": -1.75,
           "m5": -0.43,
-          "b3": 0.0,
+          "b3": 0,
           "b5": 0.4,
           "b1": 0.2,
           "n": 5
@@ -14365,14 +14405,14 @@
           "p": -0.158,
           "m3": -1.4,
           "m5": -0.32,
-          "b3": 0.0,
+          "b3": 0,
           "b5": 0.4,
           "b1": 0.2,
           "n": 5
         },
         "S220202": {
           "r": -0.909,
-          "p": 0.0,
+          "p": 0,
           "m3": -1.83,
           "m5": 0.33999999999999997,
           "b3": 0.2143,
@@ -14405,7 +14445,7 @@
           "p": -0.318,
           "m3": -2.235,
           "m5": -0.43,
-          "b3": 0.0,
+          "b3": 0,
           "b5": 0.5,
           "b1": 0.25,
           "n": 8
@@ -14415,7 +14455,7 @@
           "p": 0.294,
           "m3": -2.29,
           "m5": 1.32,
-          "b3": 0.0,
+          "b3": 0,
           "b5": 0.6,
           "b1": 0.6,
           "n": 5
@@ -14427,7 +14467,7 @@
           "m5": 2.34,
           "b3": 0.4,
           "b5": 0.8,
-          "b1": 1.0,
+          "b1": 1,
           "n": 5
         },
         "S220307": {
@@ -14446,8 +14486,8 @@
           "m3": -0.98,
           "m5": 2.77,
           "b3": 0.375,
-          "b5": 1.0,
-          "b1": 1.0,
+          "b5": 1,
+          "b1": 1,
           "n": 8
         },
         "S220309": {
@@ -14466,8 +14506,8 @@
           "m3": -2.16,
           "m5": 4.03,
           "b3": 0.1111,
-          "b5": 1.0,
-          "b1": 1.0,
+          "b5": 1,
+          "b1": 1,
           "n": 9
         },
         "S220313": {
@@ -14494,9 +14534,9 @@
           "r": 1.195,
           "p": 2.104,
           "m3": -0.009999999999999953,
-          "m5": 4.0,
+          "m5": 4,
           "b3": 0.5,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.8333,
           "n": 6
         },
@@ -14526,18 +14566,18 @@
           "m3": 1.48,
           "m5": 7.91,
           "b3": 0.6,
-          "b5": 1.0,
-          "b1": 1.0,
+          "b5": 1,
+          "b1": 1,
           "n": 5
         },
         "S220504": {
           "r": 1.782,
           "p": 2.691,
-          "m3": 0.0,
+          "m3": 0,
           "m5": 6.33,
           "b3": 0.4286,
-          "b5": 1.0,
-          "b1": 1.0,
+          "b5": 1,
+          "b1": 1,
           "n": 7
         },
         "S220505": {
@@ -14547,7 +14587,7 @@
           "m5": 5.31,
           "b3": 0.4167,
           "b5": 0.9167,
-          "b1": 1.0,
+          "b1": 1,
           "n": 12
         },
         "S220603": {
@@ -14555,9 +14595,9 @@
           "p": 0.893,
           "m3": -1.32,
           "m5": 2.03,
-          "b3": 0.0,
-          "b5": 1.0,
-          "b1": 1.0,
+          "b3": 0,
+          "b5": 1,
+          "b1": 1,
           "n": 5
         },
         "S220801": {
@@ -14595,7 +14635,7 @@
           "p": 0.204,
           "m3": -1.14,
           "m5": 1.67,
-          "b3": 0.0,
+          "b3": 0,
           "b5": 0.7778,
           "b1": 0.6667,
           "n": 9
@@ -14605,9 +14645,9 @@
           "p": 0.823,
           "m3": -2.43,
           "m5": 0.26,
-          "b3": 0.0,
+          "b3": 0,
           "b5": 0.6,
-          "b1": 1.0,
+          "b1": 1,
           "n": 5
         },
         "S230301": {
@@ -14615,7 +14655,7 @@
           "p": -0.337,
           "m3": -2.8,
           "m5": 0.69,
-          "b3": 0.0,
+          "b3": 0,
           "b5": 0.8333,
           "b1": 0.3333,
           "n": 6
@@ -14632,7 +14672,7 @@
         },
         "S230501": {
           "r": -0.909,
-          "p": 0.0,
+          "p": 0,
           "m3": -1.35,
           "m5": -0.31,
           "b3": 0.2727,
@@ -14665,7 +14705,7 @@
           "p": 0.829,
           "m3": -2.87,
           "m5": 3.2800000000000002,
-          "b3": 0.0,
+          "b3": 0,
           "b5": 0.9375,
           "b1": 0.875,
           "n": 16
@@ -14686,7 +14726,7 @@
           "m3": 1.54,
           "m5": 16.43,
           "b3": 0.6667,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.6667,
           "n": 9
         },
@@ -14705,8 +14745,8 @@
           "p": -0.212,
           "m3": -5.26,
           "m5": 3.21,
-          "b3": 0.0,
-          "b5": 1.0,
+          "b3": 0,
+          "b5": 1,
           "b1": 0.2857,
           "n": 7
         },
@@ -14717,7 +14757,7 @@
           "m5": 6.8,
           "b3": 0.2,
           "b5": 0.8,
-          "b1": 1.0,
+          "b1": 1,
           "n": 5
         },
         "S270103": {
@@ -14726,8 +14766,8 @@
           "m3": 0.08000000000000002,
           "m5": 12.585,
           "b3": 0.5,
-          "b5": 1.0,
-          "b1": 1.0,
+          "b5": 1,
+          "b1": 1,
           "n": 6
         },
         "S270104": {
@@ -14737,7 +14777,7 @@
           "m5": 6.75,
           "b3": 0.2857,
           "b5": 0.8571,
-          "b1": 1.0,
+          "b1": 1,
           "n": 7
         },
         "S270105": {
@@ -14746,8 +14786,8 @@
           "m3": 0.56,
           "m5": 7.52,
           "b3": 0.8,
-          "b5": 1.0,
-          "b1": 1.0,
+          "b5": 1,
+          "b1": 1,
           "n": 5
         },
         "S270107": {
@@ -14755,9 +14795,9 @@
           "p": 1.741,
           "m3": -1.66,
           "m5": 7.06,
-          "b3": 0.0,
-          "b5": 1.0,
-          "b1": 1.0,
+          "b3": 0,
+          "b5": 1,
+          "b1": 1,
           "n": 5
         },
         "S270108": {
@@ -14766,7 +14806,7 @@
           "m3": -1.65,
           "m5": 10.65,
           "b3": 0.2,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.8,
           "n": 5
         },
@@ -14786,8 +14826,8 @@
           "m3": -2.3499999999999996,
           "m5": 5.165,
           "b3": 0.125,
-          "b5": 1.0,
-          "b1": 1.0,
+          "b5": 1,
+          "b1": 1,
           "n": 8
         },
         "S270301": {
@@ -14796,8 +14836,8 @@
           "m3": -0.18,
           "m5": 5.210000000000001,
           "b3": 0.3182,
-          "b5": 1.0,
-          "b1": 1.0,
+          "b5": 1,
+          "b1": 1,
           "n": 22
         },
         "S270302": {
@@ -14806,8 +14846,8 @@
           "m3": 1.96,
           "m5": 5.99,
           "b3": 0.7273,
-          "b5": 1.0,
-          "b1": 1.0,
+          "b5": 1,
+          "b1": 1,
           "n": 11
         },
         "S270303": {
@@ -14816,8 +14856,8 @@
           "m3": 1.96,
           "m5": 7.84,
           "b3": 0.7,
-          "b5": 1.0,
-          "b1": 1.0,
+          "b5": 1,
+          "b1": 1,
           "n": 10
         },
         "S270401": {
@@ -14826,8 +14866,8 @@
           "m3": -0.62,
           "m5": 7.05,
           "b3": 0.3077,
-          "b5": 1.0,
-          "b1": 1.0,
+          "b5": 1,
+          "b1": 1,
           "n": 14
         },
         "S270504": {
@@ -14836,7 +14876,7 @@
           "m3": 1.8050000000000002,
           "m5": 9.059999999999999,
           "b3": 0.7778,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.973,
           "n": 37
         },
@@ -14846,7 +14886,7 @@
           "m3": -1.355,
           "m5": 8.2,
           "b3": 0.125,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.75,
           "n": 8
         },
@@ -14856,7 +14896,7 @@
           "m3": 1.225,
           "m5": 4.735,
           "b3": 0.7308,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.9615,
           "n": 26
         },
@@ -14886,7 +14926,7 @@
           "m3": 1.025,
           "m5": 4.365,
           "b3": 0.5625,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.8125,
           "n": 32
         },
@@ -14896,7 +14936,7 @@
           "m3": 1.33,
           "m5": 4.975,
           "b3": 0.6875,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.8824,
           "n": 17
         },
@@ -14925,7 +14965,7 @@
           "p": 0.482,
           "m3": -2.455,
           "m5": -1.975,
-          "b3": 0.0,
+          "b3": 0,
           "b5": 0.25,
           "b1": 0.6,
           "n": 5
@@ -14946,7 +14986,7 @@
           "m3": -0.59,
           "m5": 1.37,
           "b3": 0.4,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.6,
           "n": 5
         },
@@ -14977,7 +15017,7 @@
           "m5": 6.15,
           "b3": 0.8,
           "b5": 0.9,
-          "b1": 1.0,
+          "b1": 1,
           "n": 10
         },
         "S330601": {
@@ -15135,7 +15175,7 @@
           "p": 1.196,
           "m3": -0.77,
           "m5": -0.645,
-          "b3": 0.0,
+          "b3": 0,
           "b5": 0.3333,
           "b1": 0.8333,
           "n": 6
@@ -15197,7 +15237,7 @@
           "m5": 3.72,
           "b3": 0.6,
           "b5": 0.8,
-          "b1": 1.0,
+          "b1": 1,
           "n": 5
         },
         "S360205": {
@@ -15246,7 +15286,7 @@
           "m3": -0.075,
           "m5": 3.475,
           "b3": 0.5,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.8333,
           "n": 6
         },
@@ -15267,7 +15307,7 @@
           "m5": 2.63,
           "b3": 0.3,
           "b5": 0.9,
-          "b1": 1.0,
+          "b1": 1,
           "n": 10
         },
         "S370101": {
@@ -15292,7 +15332,7 @@
         },
         "S370201": {
           "r": -0.909,
-          "p": 0.0,
+          "p": 0,
           "m3": -1.49,
           "m5": -0.095,
           "b3": 0.1786,
@@ -15325,7 +15365,7 @@
           "p": -1.288,
           "m3": -3.545,
           "m5": -4.325,
-          "b3": 0.0,
+          "b3": 0,
           "b5": 0.1667,
           "b1": 0.3333,
           "n": 6
@@ -15356,7 +15396,7 @@
           "m3": -1.56,
           "m5": 11.1,
           "b3": 0.2,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.8,
           "n": 5
         },
@@ -15487,13 +15527,13 @@
           "m5": 5.225,
           "b3": 0.6667,
           "b5": 0.8333,
-          "b1": 1.0,
+          "b1": 1,
           "n": 6
         },
         "S420903": {
           "r": -1.477,
           "p": -0.568,
-          "m3": 0.0,
+          "m3": 0,
           "m5": -1.13,
           "b3": 0.4286,
           "b5": 0.1429,
@@ -15506,8 +15546,8 @@
           "m3": 0.5,
           "m5": 5.015000000000001,
           "b3": 0.625,
-          "b5": 1.0,
-          "b1": 1.0,
+          "b5": 1,
+          "b1": 1,
           "n": 8
         },
         "S421101": {
@@ -15555,7 +15595,7 @@
           "p": 1.251,
           "m3": -1.2599999999999998,
           "m5": 0.10999999999999999,
-          "b3": 0.0,
+          "b3": 0,
           "b5": 0.5,
           "b1": 0.7,
           "n": 10
@@ -15563,7 +15603,7 @@
         "S430301": {
           "r": 0.871,
           "p": 1.78,
-          "m3": -2.0,
+          "m3": -2,
           "m5": 0.19,
           "b3": 0.1429,
           "b5": 0.5714,
@@ -15596,7 +15636,7 @@
           "m3": -0.58,
           "m5": 3.32,
           "b3": 0.2857,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.7143,
           "n": 7
         },
@@ -15625,8 +15665,8 @@
           "p": 1.34,
           "m3": -0.87,
           "m5": 2.18,
-          "b3": 0.0,
-          "b5": 1.0,
+          "b3": 0,
+          "b5": 1,
           "b1": 0.6,
           "n": 5
         },
@@ -15665,7 +15705,7 @@
           "p": -0.507,
           "m3": 2.685,
           "m5": 0.18,
-          "b3": 1.0,
+          "b3": 1,
           "b5": 0.6667,
           "b1": 0.1667,
           "n": 6
@@ -15675,17 +15715,17 @@
           "p": 0.314,
           "m3": 1.43,
           "m5": 0.33,
-          "b3": 1.0,
+          "b3": 1,
           "b5": 0.6667,
           "b1": 0.6667,
           "n": 9
         },
         "S480401": {
           "r": -0.909,
-          "p": 0.0,
+          "p": 0,
           "m3": 2.14,
           "m5": 1.89,
-          "b3": 1.0,
+          "b3": 1,
           "b5": 0.8824,
           "b1": 0.4706,
           "n": 17
@@ -15695,14 +15735,14 @@
           "p": 0.193,
           "m3": 2.755,
           "m5": 1.815,
-          "b3": 1.0,
+          "b3": 1,
           "b5": 0.9,
           "b1": 0.6,
           "n": 10
         },
         "S490101": {
           "r": -0.909,
-          "p": 0.0,
+          "p": 0,
           "m3": -1.64,
           "m5": -1.03,
           "b3": 0.0444,
@@ -15715,8 +15755,8 @@
           "p": -0.916,
           "m3": -1.6,
           "m5": -1.22,
-          "b3": 0.0,
-          "b5": 0.0,
+          "b3": 0,
+          "b5": 0,
           "b1": 0.2,
           "n": 5
         },
@@ -15756,7 +15796,7 @@
           "m3": -0.95,
           "m5": 1.97,
           "b3": 0.2857,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.8571,
           "n": 7
         },
@@ -15777,12 +15817,12 @@
           "m5": 6.295,
           "b3": 0.3333,
           "b5": 0.8333,
-          "b1": 1.0,
+          "b1": 1,
           "n": 6
         },
         "S610302": {
           "r": -0.909,
-          "p": 0.0,
+          "p": 0,
           "m3": -0.96,
           "m5": 2.44,
           "b3": 0.4,
@@ -15892,10 +15932,10 @@
         },
         "S630501": {
           "r": -0.909,
-          "p": 0.0,
+          "p": 0,
           "m3": -3.99,
           "m5": 6.3549999999999995,
-          "b3": 0.0,
+          "b3": 0,
           "b5": 0.75,
           "b1": 0.4,
           "n": 5
@@ -15906,7 +15946,7 @@
           "m3": -2.23,
           "m5": 6.135,
           "b3": 0.25,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.625,
           "n": 8
         },
@@ -15916,7 +15956,7 @@
           "m3": -2.605,
           "m5": 6.175,
           "b3": 0.3,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.7273,
           "n": 11
         },
@@ -15925,7 +15965,7 @@
           "p": -0.046,
           "m3": -2.38,
           "m5": 4.67,
-          "b3": 0.0,
+          "b3": 0,
           "b5": 0.7778,
           "b1": 0.4444,
           "n": 9
@@ -15937,7 +15977,7 @@
           "m5": 3.73,
           "b3": 0.1111,
           "b5": 0.8889,
-          "b1": 1.0,
+          "b1": 1,
           "n": 9
         },
         "S630702": {
@@ -15945,7 +15985,7 @@
           "p": 0.238,
           "m3": -3.47,
           "m5": 1.5499999999999998,
-          "b3": 0.0,
+          "b3": 0,
           "b5": 0.7857,
           "b1": 0.8571,
           "n": 14
@@ -15955,9 +15995,9 @@
           "p": 2.668,
           "m3": -1.7850000000000001,
           "m5": 1.57,
-          "b3": 0.0,
+          "b3": 0,
           "b5": 0.6667,
-          "b1": 1.0,
+          "b1": 1,
           "n": 6
         },
         "S630801": {
@@ -15995,8 +16035,8 @@
           "p": 0.29,
           "m3": -1.8399999999999999,
           "m5": 3.01,
-          "b3": 0.0,
-          "b5": 1.0,
+          "b3": 0,
+          "b5": 1,
           "b1": 0.6667,
           "n": 6
         },
@@ -16017,7 +16057,7 @@
           "m5": 5.72,
           "b3": 0.8182,
           "b5": 0.8182,
-          "b1": 1.0,
+          "b1": 1,
           "n": 11
         },
         "S640103": {
@@ -16027,7 +16067,7 @@
           "m5": 0.99,
           "b3": 0.2,
           "b5": 0.6,
-          "b1": 1.0,
+          "b1": 1,
           "n": 5
         },
         "S640105": {
@@ -16087,7 +16127,7 @@
           "m5": 3.15,
           "b3": 0.3636,
           "b5": 0.8182,
-          "b1": 1.0,
+          "b1": 1,
           "n": 11
         },
         "S640206": {
@@ -16096,14 +16136,14 @@
           "m3": 1.44,
           "m5": 5.72,
           "b3": 0.7778,
-          "b5": 1.0,
-          "b1": 1.0,
+          "b5": 1,
+          "b1": 1,
           "n": 9
         },
         "S640209": {
           "r": 1.228,
           "p": 2.137,
-          "m3": 0.0,
+          "m3": 0,
           "m5": 4.3,
           "b3": 0.4839,
           "b5": 0.8387,
@@ -16114,7 +16154,7 @@
           "r": -0.469,
           "p": 0.44,
           "m3": -1.13,
-          "m5": 0.0,
+          "m5": 0,
           "b3": 0.3077,
           "b5": 0.4615,
           "b1": 0.5385,
@@ -16137,7 +16177,7 @@
           "m5": 5.4,
           "b3": 0.4,
           "b5": 0.8,
-          "b1": 1.0,
+          "b1": 1,
           "n": 5
         },
         "S640701": {
@@ -16145,9 +16185,9 @@
           "p": 4.004,
           "m3": 1.93,
           "m5": 10.36,
-          "b3": 1.0,
-          "b5": 1.0,
-          "b1": 1.0,
+          "b3": 1,
+          "b5": 1,
+          "b1": 1,
           "n": 6
         },
         "S640702": {
@@ -16156,8 +16196,8 @@
           "m3": -0.26,
           "m5": 4.615,
           "b3": 0.4167,
-          "b5": 1.0,
-          "b1": 1.0,
+          "b5": 1,
+          "b1": 1,
           "n": 12
         },
         "S650101": {
@@ -16165,9 +16205,9 @@
           "p": 2.804,
           "m3": 2.37,
           "m5": 6.8,
-          "b3": 1.0,
-          "b5": 1.0,
-          "b1": 1.0,
+          "b3": 1,
+          "b5": 1,
+          "b1": 1,
           "n": 5
         },
         "S650201": {
@@ -16186,7 +16226,7 @@
           "m3": -0.07,
           "m5": 3.47,
           "b3": 0.4286,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.8571,
           "n": 7
         },
@@ -16195,9 +16235,9 @@
           "p": -1.311,
           "m3": -2.38,
           "m5": -2.44,
-          "b3": 0.0,
+          "b3": 0,
           "b5": 0.4,
-          "b1": 0.0,
+          "b1": 0,
           "n": 5
         },
         "S650501": {
@@ -16256,8 +16296,8 @@
           "m3": -1.875,
           "m5": 3.355,
           "b3": 0.25,
-          "b5": 1.0,
-          "b1": 1.0,
+          "b5": 1,
+          "b1": 1,
           "n": 8
         },
         "S720401": {
@@ -16267,7 +16307,7 @@
           "m5": 3.355,
           "b3": 0.2857,
           "b5": 0.7857,
-          "b1": 1.0,
+          "b1": 1,
           "n": 14
         },
         "S720501": {
@@ -16277,7 +16317,7 @@
           "m5": 10.345,
           "b3": 0.8125,
           "b5": 0.9375,
-          "b1": 1.0,
+          "b1": 1,
           "n": 16
         },
         "S720601": {
@@ -16286,8 +16326,8 @@
           "m3": 3.39,
           "m5": 11.56,
           "b3": 0.8889,
-          "b5": 1.0,
-          "b1": 1.0,
+          "b5": 1,
+          "b1": 1,
           "n": 9
         },
         "S720901": {
@@ -16306,8 +16346,8 @@
           "m3": 2.04,
           "m5": 6.65,
           "b3": 0.7692,
-          "b5": 1.0,
-          "b1": 1.0,
+          "b5": 1,
+          "b1": 1,
           "n": 14
         },
         "S721001": {
@@ -16316,7 +16356,7 @@
           "m3": 1.41,
           "m5": 6.38,
           "b3": 0.8182,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.9091,
           "n": 11
         },
@@ -16326,7 +16366,7 @@
           "m3": -0.27,
           "m5": 6.5,
           "b3": 0.4444,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.7778,
           "n": 9
         },
@@ -16335,9 +16375,9 @@
           "p": 2.208,
           "m3": -0.83,
           "m5": 3.29,
-          "b3": 0.0,
-          "b5": 1.0,
-          "b1": 1.0,
+          "b3": 0,
+          "b5": 1,
+          "b1": 1,
           "n": 5
         },
         "S730204": {
@@ -16346,7 +16386,7 @@
           "m3": -0.48,
           "m5": 6.28,
           "b3": 0.3846,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.9231,
           "n": 13
         },
@@ -16387,7 +16427,7 @@
           "m5": -1.38,
           "b3": 0.5455,
           "b5": 0.3636,
-          "b1": 0.0,
+          "b1": 0,
           "n": 11
         },
         "S740201": {
@@ -16434,7 +16474,7 @@
           "r": 0.057,
           "p": 0.966,
           "m3": -1.65,
-          "m5": 0.0,
+          "m5": 0,
           "b3": 0.1818,
           "b5": 0.4545,
           "b1": 0.8182,
@@ -16463,7 +16503,7 @@
         "S760104": {
           "r": 0.243,
           "p": 1.152,
-          "m3": 0.0,
+          "m3": 0,
           "m5": 3.13,
           "b3": 0.4286,
           "b5": 0.7143,
@@ -16476,7 +16516,7 @@
           "m3": -1.08,
           "m5": 2.7,
           "b3": 0.3077,
-          "b5": 1.0,
+          "b5": 1,
           "b1": 0.8462,
           "n": 13
         },
@@ -16488,6 +16528,2222 @@
           "b3": 0.2,
           "b5": 0.4,
           "b1": 0.6,
+          "n": 5
+        }
+      }
+    },
+    {
+      "trade_date": "2026-11-11",
+      "market_return_median_pct": 0.363,
+      "industries": {
+        "S110101": {
+          "r": -1.102,
+          "p": -0.739,
+          "m3": -2.1,
+          "m5": 1.185,
+          "b3": 0.1667,
+          "b5": 0.8333,
+          "b1": 0,
+          "n": 6
+        },
+        "S110103": {
+          "r": -0.822,
+          "p": -0.459,
+          "m3": 1.85,
+          "m5": 4.055,
+          "b3": 0.8333,
+          "b5": 0.8333,
+          "b1": 0.1667,
+          "n": 6
+        },
+        "S110402": {
+          "r": -1.394,
+          "p": -1.031,
+          "m3": 0.37,
+          "m5": 2.19,
+          "b3": 0.5,
+          "b5": 0.7,
+          "b1": 0.2,
+          "n": 10
+        },
+        "S110502": {
+          "r": -0.363,
+          "p": 0,
+          "m3": -0.41,
+          "m5": 0.885,
+          "b3": 0.3333,
+          "b5": 0.8333,
+          "b1": 0.3333,
+          "n": 6
+        },
+        "S110504": {
+          "r": 0.091,
+          "p": 0.455,
+          "m3": 0.65,
+          "m5": 1.65,
+          "b3": 0.7778,
+          "b5": 0.7778,
+          "b1": 0.5556,
+          "n": 9
+        },
+        "S110702": {
+          "r": -1.284,
+          "p": -0.92,
+          "m3": 0.02999999999999997,
+          "m5": 2.9,
+          "b3": 0.5,
+          "b5": 0.9,
+          "b1": 0.1,
+          "n": 10
+        },
+        "S110703": {
+          "r": 0.077,
+          "p": 0.44,
+          "m3": -0.87,
+          "m5": 0.43,
+          "b3": 0.4,
+          "b5": 0.6,
+          "b1": 0.6,
+          "n": 5
+        },
+        "S110801": {
+          "r": -0.202,
+          "p": 0.161,
+          "m3": -1.07,
+          "m5": -0.32,
+          "b3": 0.2,
+          "b5": 0.4,
+          "b1": 0.6,
+          "n": 5
+        },
+        "S220201": {
+          "r": -0.047,
+          "p": 0.316,
+          "m3": -0.31,
+          "m5": -0.24,
+          "b3": 0.4,
+          "b5": 0.4,
+          "b1": 0.6,
+          "n": 5
+        },
+        "S220202": {
+          "r": -0.111,
+          "p": 0.252,
+          "m3": -0.915,
+          "m5": -0.785,
+          "b3": 0.3571,
+          "b5": 0.4286,
+          "b1": 0.5714,
+          "n": 14
+        },
+        "S220203": {
+          "r": 1.292,
+          "p": 1.655,
+          "m3": 3.3550000000000004,
+          "m5": -0.47500000000000003,
+          "b3": 0.75,
+          "b5": 0.375,
+          "b1": 0.75,
+          "n": 8
+        },
+        "S220204": {
+          "r": 0.577,
+          "p": 0.94,
+          "m3": 0.9,
+          "m5": 2.05,
+          "b3": 0.6667,
+          "b5": 0.7778,
+          "b1": 1,
+          "n": 9
+        },
+        "S220205": {
+          "r": 0.04,
+          "p": 0.403,
+          "m3": -0.6699999999999999,
+          "m5": -0.71,
+          "b3": 0.375,
+          "b5": 0.375,
+          "b1": 0.75,
+          "n": 8
+        },
+        "S220206": {
+          "r": 0.81,
+          "p": 1.173,
+          "m3": 0.44,
+          "m5": -0.26,
+          "b3": 0.6,
+          "b5": 0.4,
+          "b1": 0.8,
+          "n": 5
+        },
+        "S220305": {
+          "r": -0.478,
+          "p": -0.114,
+          "m3": 1.23,
+          "m5": 2.49,
+          "b3": 0.8,
+          "b5": 0.8,
+          "b1": 0.4,
+          "n": 5
+        },
+        "S220307": {
+          "r": -0.168,
+          "p": 0.195,
+          "m3": -0.705,
+          "m5": -1.4,
+          "b3": 0.5,
+          "b5": 0.3333,
+          "b1": 0.6154,
+          "n": 13
+        },
+        "S220308": {
+          "r": -0.015,
+          "p": 0.348,
+          "m3": 1.72,
+          "m5": 3.315,
+          "b3": 0.625,
+          "b5": 1,
+          "b1": 0.625,
+          "n": 8
+        },
+        "S220309": {
+          "r": 0.586,
+          "p": 0.949,
+          "m3": 0.79,
+          "m5": 1.995,
+          "b3": 0.6875,
+          "b5": 0.75,
+          "b1": 0.7812,
+          "n": 32
+        },
+        "S220311": {
+          "r": 0.137,
+          "p": 0.5,
+          "m3": 1.69,
+          "m5": 1.71,
+          "b3": 0.7778,
+          "b5": 0.8889,
+          "b1": 0.7778,
+          "n": 9
+        },
+        "S220313": {
+          "r": -0.024,
+          "p": 0.339,
+          "m3": 0.99,
+          "m5": 3.14,
+          "b3": 0.6,
+          "b5": 0.6,
+          "b1": 0.6,
+          "n": 5
+        },
+        "S220315": {
+          "r": -0.286,
+          "p": 0.078,
+          "m3": -0.45,
+          "m5": -0.085,
+          "b3": 0.3571,
+          "b5": 0.4286,
+          "b1": 0.5,
+          "n": 14
+        },
+        "S220316": {
+          "r": 0.623,
+          "p": 0.986,
+          "m3": 1.55,
+          "m5": 3.19,
+          "b3": 0.6667,
+          "b5": 0.6667,
+          "b1": 0.8333,
+          "n": 6
+        },
+        "S220401": {
+          "r": 1.498,
+          "p": 1.861,
+          "m3": 4.65,
+          "m5": 4.39,
+          "b3": 0.7143,
+          "b5": 0.8571,
+          "b1": 0.8571,
+          "n": 7
+        },
+        "S220501": {
+          "r": 2.849,
+          "p": 3.212,
+          "m3": 7.02,
+          "m5": 6.25,
+          "b3": 1,
+          "b5": 1,
+          "b1": 0.6667,
+          "n": 6
+        },
+        "S220503": {
+          "r": 1.955,
+          "p": 2.318,
+          "m3": 9.67,
+          "m5": 7.75,
+          "b3": 1,
+          "b5": 0.8,
+          "b1": 1,
+          "n": 5
+        },
+        "S220504": {
+          "r": 0.921,
+          "p": 1.284,
+          "m3": 3.83,
+          "m5": 4.58,
+          "b3": 1,
+          "b5": 1,
+          "b1": 0.8571,
+          "n": 7
+        },
+        "S220505": {
+          "r": 1.325,
+          "p": 1.689,
+          "m3": 5.145,
+          "m5": 4.145,
+          "b3": 0.9167,
+          "b5": 0.9167,
+          "b1": 0.8333,
+          "n": 12
+        },
+        "S220603": {
+          "r": 0.344,
+          "p": 0.708,
+          "m3": 0.5,
+          "m5": 2.18,
+          "b3": 0.8,
+          "b5": 1,
+          "b1": 0.8,
+          "n": 5
+        },
+        "S220801": {
+          "r": -0.054,
+          "p": 0.31,
+          "m3": -0.020000000000000018,
+          "m5": 0.6900000000000001,
+          "b3": 0.5,
+          "b5": 0.5,
+          "b1": 0.5,
+          "n": 6
+        },
+        "S220802": {
+          "r": 0.507,
+          "p": 0.87,
+          "m3": 1.055,
+          "m5": 3.235,
+          "b3": 0.625,
+          "b5": 0.625,
+          "b1": 0.75,
+          "n": 8
+        },
+        "S220803": {
+          "r": 0.09,
+          "p": 0.453,
+          "m3": 0.495,
+          "m5": 1.45,
+          "b3": 0.5833,
+          "b5": 0.625,
+          "b1": 0.6667,
+          "n": 24
+        },
+        "S220805": {
+          "r": 0.183,
+          "p": 0.546,
+          "m3": 0,
+          "m5": 1.16,
+          "b3": 0.4444,
+          "b5": 0.8889,
+          "b1": 0.7778,
+          "n": 9
+        },
+        "S220901": {
+          "r": 1.122,
+          "p": 1.486,
+          "m3": 1.33,
+          "m5": 0.85,
+          "b3": 0.6,
+          "b5": 0.6,
+          "b1": 0.8,
+          "n": 5
+        },
+        "S230301": {
+          "r": 0.624,
+          "p": 0.988,
+          "m3": -0.55,
+          "m5": -0.165,
+          "b3": 0.3333,
+          "b5": 0.1667,
+          "b1": 0.8333,
+          "n": 6
+        },
+        "S230402": {
+          "r": -0.363,
+          "p": 0,
+          "m3": -0.825,
+          "m5": -1.77,
+          "b3": 0.125,
+          "b5": 0.1875,
+          "b1": 0.3125,
+          "n": 16
+        },
+        "S230501": {
+          "r": -0.55,
+          "p": -0.187,
+          "m3": -0.73,
+          "m5": -1.49,
+          "b3": 0.0909,
+          "b5": 0.1818,
+          "b1": 0.1818,
+          "n": 11
+        },
+        "S240201": {
+          "r": 1.155,
+          "p": 1.518,
+          "m3": 4.0249999999999995,
+          "m5": 3.0650000000000004,
+          "b3": 1,
+          "b5": 1,
+          "b1": 0.875,
+          "n": 8
+        },
+        "S240301": {
+          "r": -0.458,
+          "p": -0.095,
+          "m3": -0.33,
+          "m5": 0.99,
+          "b3": 0.4444,
+          "b5": 0.5556,
+          "b1": 0.4815,
+          "n": 27
+        },
+        "S240302": {
+          "r": 0.103,
+          "p": 0.466,
+          "m3": 1.5950000000000002,
+          "m5": -0.78,
+          "b3": 0.875,
+          "b5": 0.375,
+          "b1": 0.75,
+          "n": 16
+        },
+        "S240303": {
+          "r": 0.421,
+          "p": 0.784,
+          "m3": 0.4,
+          "m5": 0.3,
+          "b3": 0.5833,
+          "b5": 0.5833,
+          "b1": 0.75,
+          "n": 12
+        },
+        "S240401": {
+          "r": -0.796,
+          "p": -0.432,
+          "m3": 1.32,
+          "m5": 4.47,
+          "b3": 0.8889,
+          "b5": 0.8889,
+          "b1": 0.4444,
+          "n": 9
+        },
+        "S240504": {
+          "r": 0.725,
+          "p": 1.089,
+          "m3": 2.49,
+          "m5": 2.99,
+          "b3": 0.9091,
+          "b5": 0.7273,
+          "b1": 0.6667,
+          "n": 12
+        },
+        "S240603": {
+          "r": 0.069,
+          "p": 0.433,
+          "m3": -2.7,
+          "m5": 0.38,
+          "b3": 0.1429,
+          "b5": 0.5714,
+          "b1": 1,
+          "n": 7
+        },
+        "S270102": {
+          "r": 1.597,
+          "p": 1.961,
+          "m3": 2.82,
+          "m5": 1.03,
+          "b3": 1,
+          "b5": 0.8,
+          "b1": 1,
+          "n": 5
+        },
+        "S270103": {
+          "r": 3.338,
+          "p": 3.701,
+          "m3": 5.005000000000001,
+          "m5": 7.93,
+          "b3": 1,
+          "b5": 1,
+          "b1": 1,
+          "n": 6
+        },
+        "S270104": {
+          "r": 1.873,
+          "p": 2.237,
+          "m3": 5.58,
+          "m5": 2.96,
+          "b3": 1,
+          "b5": 0.8571,
+          "b1": 0.8571,
+          "n": 7
+        },
+        "S270105": {
+          "r": 0.377,
+          "p": 0.74,
+          "m3": 3.32,
+          "m5": 1.11,
+          "b3": 0.8,
+          "b5": 0.6,
+          "b1": 0.8,
+          "n": 5
+        },
+        "S270107": {
+          "r": 1.964,
+          "p": 2.327,
+          "m3": 3.77,
+          "m5": 2.25,
+          "b3": 1,
+          "b5": 0.8,
+          "b1": 1,
+          "n": 5
+        },
+        "S270108": {
+          "r": 3.646,
+          "p": 4.009,
+          "m3": 6.33,
+          "m5": 6.22,
+          "b3": 0.8,
+          "b5": 1,
+          "b1": 1,
+          "n": 5
+        },
+        "S270202": {
+          "r": 5.736,
+          "p": 6.1,
+          "m3": 12.49,
+          "m5": 5.24,
+          "b3": 1,
+          "b5": 0.8696,
+          "b1": 1,
+          "n": 24
+        },
+        "S270203": {
+          "r": 3.013,
+          "p": 3.377,
+          "m3": 7.235,
+          "m5": 2.4699999999999998,
+          "b3": 1,
+          "b5": 0.625,
+          "b1": 1,
+          "n": 8
+        },
+        "S270301": {
+          "r": -0.07,
+          "p": 0.294,
+          "m3": 3.605,
+          "m5": 4.125,
+          "b3": 0.9545,
+          "b5": 0.7727,
+          "b1": 0.5909,
+          "n": 22
+        },
+        "S270302": {
+          "r": 0.696,
+          "p": 1.059,
+          "m3": 3.9,
+          "m5": 4.22,
+          "b3": 0.9091,
+          "b5": 0.9091,
+          "b1": 0.7273,
+          "n": 11
+        },
+        "S270303": {
+          "r": 1.004,
+          "p": 1.368,
+          "m3": 5.31,
+          "m5": 5.859999999999999,
+          "b3": 1,
+          "b5": 1,
+          "b1": 0.9,
+          "n": 10
+        },
+        "S270401": {
+          "r": 1.485,
+          "p": 1.849,
+          "m3": 5.19,
+          "m5": 3.52,
+          "b3": 0.9231,
+          "b5": 0.8462,
+          "b1": 0.9286,
+          "n": 14
+        },
+        "S270504": {
+          "r": 1.435,
+          "p": 1.799,
+          "m3": 6.745,
+          "m5": 6.725,
+          "b3": 1,
+          "b5": 1,
+          "b1": 0.7838,
+          "n": 37
+        },
+        "S270601": {
+          "r": 2.242,
+          "p": 2.606,
+          "m3": 3.82,
+          "m5": 4.52,
+          "b3": 0.875,
+          "b5": 1,
+          "b1": 0.875,
+          "n": 8
+        },
+        "S280202": {
+          "r": 1.701,
+          "p": 2.064,
+          "m3": 5,
+          "m5": 4.43,
+          "b3": 0.9231,
+          "b5": 0.9615,
+          "b1": 0.7692,
+          "n": 26
+        },
+        "S280203": {
+          "r": 1.586,
+          "p": 1.949,
+          "m3": 6.03,
+          "m5": 6.68,
+          "b3": 0.9851,
+          "b5": 0.9254,
+          "b1": 0.8507,
+          "n": 67
+        },
+        "S280204": {
+          "r": -0.848,
+          "p": -0.484,
+          "m3": -0.76,
+          "m5": 1.6,
+          "b3": 0.4,
+          "b5": 0.6,
+          "b1": 0.2667,
+          "n": 15
+        },
+        "S280205": {
+          "r": 1.632,
+          "p": 1.995,
+          "m3": 5.085,
+          "m5": 4.86,
+          "b3": 0.9062,
+          "b5": 0.9375,
+          "b1": 0.8125,
+          "n": 32
+        },
+        "S280206": {
+          "r": 1.303,
+          "p": 1.667,
+          "m3": 5.6899999999999995,
+          "m5": 5.465,
+          "b3": 0.9375,
+          "b5": 0.9375,
+          "b1": 0.8235,
+          "n": 17
+        },
+        "S280401": {
+          "r": 0.685,
+          "p": 1.049,
+          "m3": 2.58,
+          "m5": 4.48,
+          "b3": 1,
+          "b5": 1,
+          "b1": 0.6,
+          "n": 5
+        },
+        "S280402": {
+          "r": -0.121,
+          "p": 0.243,
+          "m3": -1.51,
+          "m5": 1.72,
+          "b3": 0.4286,
+          "b5": 0.5714,
+          "b1": 0.7143,
+          "n": 7
+        },
+        "S280502": {
+          "r": -1.636,
+          "p": -1.273,
+          "m3": -2.1399999999999997,
+          "m5": -3.42,
+          "b3": 0.25,
+          "b5": 0,
+          "b1": 0,
+          "n": 5
+        },
+        "S280601": {
+          "r": -0.363,
+          "p": 0,
+          "m3": -1.23,
+          "m5": -1.53,
+          "b3": 0.2857,
+          "b5": 0.2857,
+          "b1": 0.2857,
+          "n": 7
+        },
+        "S280602": {
+          "r": 0.032,
+          "p": 0.395,
+          "m3": -1.45,
+          "m5": 0.89,
+          "b3": 0.4,
+          "b5": 0.6,
+          "b1": 0.6,
+          "n": 5
+        },
+        "S330106": {
+          "r": -1.289,
+          "p": -0.925,
+          "m3": -1.6600000000000001,
+          "m5": -0.62,
+          "b3": 0.3333,
+          "b5": 0.5,
+          "b1": 0.1667,
+          "n": 6
+        },
+        "S330301": {
+          "r": -0.434,
+          "p": -0.07,
+          "m3": 3.6950000000000003,
+          "m5": 2.955,
+          "b3": 0.625,
+          "b5": 0.75,
+          "b1": 0.5,
+          "n": 8
+        },
+        "S330501": {
+          "r": 0.656,
+          "p": 1.019,
+          "m3": 8.965,
+          "m5": 9.030000000000001,
+          "b3": 0.9,
+          "b5": 0.9,
+          "b1": 0.6,
+          "n": 10
+        },
+        "S330601": {
+          "r": 1.305,
+          "p": 1.668,
+          "m3": 3.955,
+          "m5": 4.734999999999999,
+          "b3": 0.9444,
+          "b5": 0.8333,
+          "b1": 0.8421,
+          "n": 19
+        },
+        "S340401": {
+          "r": -0.144,
+          "p": 0.22,
+          "m3": -1.08,
+          "m5": 0,
+          "b3": 0.2857,
+          "b5": 0.4286,
+          "b1": 0.5714,
+          "n": 7
+        },
+        "S340406": {
+          "r": 0.04,
+          "p": 0.403,
+          "m3": 0.40499999999999997,
+          "m5": 1.05,
+          "b3": 0.5,
+          "b5": 0.8,
+          "b1": 0.7,
+          "n": 10
+        },
+        "S340407": {
+          "r": 0.978,
+          "p": 1.341,
+          "m3": 2.24,
+          "m5": 4.05,
+          "b3": 0.8,
+          "b5": 0.8,
+          "b1": 0.6,
+          "n": 5
+        },
+        "S340501": {
+          "r": -3.156,
+          "p": -2.793,
+          "m3": -2.72,
+          "m5": -3.16,
+          "b3": 0.1053,
+          "b5": 0.1053,
+          "b1": 0,
+          "n": 19
+        },
+        "S340601": {
+          "r": -1.22,
+          "p": -0.857,
+          "m3": -4.12,
+          "m5": -3.19,
+          "b3": 0.2857,
+          "b5": 0.2857,
+          "b1": 0.1429,
+          "n": 7
+        },
+        "S340602": {
+          "r": -0.119,
+          "p": 0.244,
+          "m3": 1.46,
+          "m5": 0.85,
+          "b3": 0.7778,
+          "b5": 0.5556,
+          "b1": 0.5556,
+          "n": 9
+        },
+        "S340701": {
+          "r": -1.133,
+          "p": -0.769,
+          "m3": -0.27,
+          "m5": -0.37,
+          "b3": 0.2857,
+          "b5": 0.4286,
+          "b1": 0.1429,
+          "n": 7
+        },
+        "S340702": {
+          "r": -1.429,
+          "p": -1.066,
+          "m3": 0.035,
+          "m5": -0.23,
+          "b3": 0.5,
+          "b5": 0.4286,
+          "b1": 0.2857,
+          "n": 14
+        },
+        "S340801": {
+          "r": -1.874,
+          "p": -1.51,
+          "m3": -1.1,
+          "m5": -1.23,
+          "b3": 0.4444,
+          "b5": 0.3333,
+          "b1": 0.1111,
+          "n": 9
+        },
+        "S340802": {
+          "r": -2.331,
+          "p": -1.967,
+          "m3": -1.3599999999999999,
+          "m5": 0.22500000000000003,
+          "b3": 0.375,
+          "b5": 0.5,
+          "b1": 0.25,
+          "n": 8
+        },
+        "S340901": {
+          "r": -1.199,
+          "p": -0.836,
+          "m3": -2.72,
+          "m5": -1.46,
+          "b3": 0.3846,
+          "b5": 0.3077,
+          "b1": 0.3077,
+          "n": 13
+        },
+        "S350102": {
+          "r": 0.659,
+          "p": 1.022,
+          "m3": 0.21000000000000008,
+          "m5": 2.235,
+          "b3": 0.5,
+          "b5": 0.875,
+          "b1": 0.75,
+          "n": 8
+        },
+        "S350106": {
+          "r": 0.424,
+          "p": 0.788,
+          "m3": 2.2750000000000004,
+          "m5": 3.9050000000000002,
+          "b3": 0.7,
+          "b5": 0.8,
+          "b1": 0.7,
+          "n": 10
+        },
+        "S350205": {
+          "r": 1.222,
+          "p": 1.585,
+          "m3": 4.0649999999999995,
+          "m5": 4.715,
+          "b3": 1,
+          "b5": 0.625,
+          "b1": 0.875,
+          "n": 8
+        },
+        "S350206": {
+          "r": 1.392,
+          "p": 1.756,
+          "m3": 1.71,
+          "m5": 1.535,
+          "b3": 0.6667,
+          "b5": 0.6667,
+          "b1": 0.8333,
+          "n": 6
+        },
+        "S350209": {
+          "r": 0.298,
+          "p": 0.661,
+          "m3": 0.815,
+          "m5": 1.56,
+          "b3": 0.7059,
+          "b5": 0.7059,
+          "b1": 0.6471,
+          "n": 34
+        },
+        "S350301": {
+          "r": 0.085,
+          "p": 0.448,
+          "m3": 0.33999999999999997,
+          "m5": 2.565,
+          "b3": 0.5,
+          "b5": 0.7,
+          "b1": 0.6,
+          "n": 10
+        },
+        "S360102": {
+          "r": -0.535,
+          "p": -0.172,
+          "m3": -0.43500000000000005,
+          "m5": 0.235,
+          "b3": 0.3,
+          "b5": 0.5,
+          "b1": 0.4,
+          "n": 10
+        },
+        "S360103": {
+          "r": 0.297,
+          "p": 0.66,
+          "m3": 2.05,
+          "m5": 2.72,
+          "b3": 0.6364,
+          "b5": 0.8182,
+          "b1": 0.8182,
+          "n": 11
+        },
+        "S360203": {
+          "r": 0.603,
+          "p": 0.966,
+          "m3": 0.83,
+          "m5": 1.46,
+          "b3": 0.7143,
+          "b5": 0.7143,
+          "b1": 0.7143,
+          "n": 7
+        },
+        "S360204": {
+          "r": 0.035,
+          "p": 0.398,
+          "m3": 3.28,
+          "m5": 2.65,
+          "b3": 0.6,
+          "b5": 0.8,
+          "b1": 0.6,
+          "n": 5
+        },
+        "S360205": {
+          "r": 1.416,
+          "p": 1.779,
+          "m3": 2.7,
+          "m5": 3.9000000000000004,
+          "b3": 0.7857,
+          "b5": 0.7857,
+          "b1": 0.8571,
+          "n": 14
+        },
+        "S360306": {
+          "r": 2.805,
+          "p": 3.168,
+          "m3": 5.21,
+          "m5": 6.15,
+          "b3": 0.9,
+          "b5": 0.9,
+          "b1": 1,
+          "n": 10
+        },
+        "S360307": {
+          "r": 0.359,
+          "p": 0.722,
+          "m3": 0.45,
+          "m5": 3.89,
+          "b3": 0.6154,
+          "b5": 0.8462,
+          "b1": 0.7692,
+          "n": 13
+        },
+        "S360308": {
+          "r": -0.001,
+          "p": 0.362,
+          "m3": 0.855,
+          "m5": 1.65,
+          "b3": 0.7,
+          "b5": 0.6,
+          "b1": 0.7,
+          "n": 10
+        },
+        "S360309": {
+          "r": 1.575,
+          "p": 1.939,
+          "m3": 3.44,
+          "m5": 4.1850000000000005,
+          "b3": 0.8333,
+          "b5": 1,
+          "b1": 0.6667,
+          "n": 6
+        },
+        "S360311": {
+          "r": 0.53,
+          "p": 0.893,
+          "m3": 0.74,
+          "m5": 0.825,
+          "b3": 0.75,
+          "b5": 0.5833,
+          "b1": 0.6154,
+          "n": 13
+        },
+        "S360502": {
+          "r": 1.168,
+          "p": 1.532,
+          "m3": 3.8449999999999998,
+          "m5": 3.435,
+          "b3": 0.8,
+          "b5": 1,
+          "b1": 1,
+          "n": 10
+        },
+        "S370101": {
+          "r": -0.764,
+          "p": -0.401,
+          "m3": 0.81,
+          "m5": -0.25,
+          "b3": 0.5263,
+          "b5": 0.4737,
+          "b1": 0.3684,
+          "n": 19
+        },
+        "S370102": {
+          "r": -0.632,
+          "p": -0.269,
+          "m3": -0.53,
+          "m5": -0.055,
+          "b3": 0.45,
+          "b5": 0.4833,
+          "b1": 0.3333,
+          "n": 60
+        },
+        "S370201": {
+          "r": -1.069,
+          "p": -0.706,
+          "m3": -0.71,
+          "m5": -0.9950000000000001,
+          "b3": 0.3929,
+          "b5": 0.3214,
+          "b1": 0.2857,
+          "n": 56
+        },
+        "S370304": {
+          "r": -0.479,
+          "p": -0.115,
+          "m3": -1.01,
+          "m5": -2.23,
+          "b3": 0.1111,
+          "b5": 0.3333,
+          "b1": 0.3333,
+          "n": 9
+        },
+        "S370402": {
+          "r": -0.363,
+          "p": 0,
+          "m3": 0.935,
+          "m5": -0.59,
+          "b3": 0.55,
+          "b5": 0.4,
+          "b1": 0.4,
+          "n": 20
+        },
+        "S370403": {
+          "r": -0.421,
+          "p": -0.058,
+          "m3": -5.15,
+          "m5": -2.5,
+          "b3": 0.3333,
+          "b5": 0.1667,
+          "b1": 0.3333,
+          "n": 6
+        },
+        "S370503": {
+          "r": -0.174,
+          "p": 0.19,
+          "m3": 0.16999999999999998,
+          "m5": -0.8500000000000001,
+          "b3": 0.5,
+          "b5": 0.4286,
+          "b1": 0.6429,
+          "n": 14
+        },
+        "S370504": {
+          "r": -0.368,
+          "p": -0.005,
+          "m3": 0.38,
+          "m5": 0.41500000000000004,
+          "b3": 0.5,
+          "b5": 0.625,
+          "b1": 0.5,
+          "n": 8
+        },
+        "S370603": {
+          "r": -0.068,
+          "p": 0.295,
+          "m3": 2.85,
+          "m5": 2.53,
+          "b3": 0.8,
+          "b5": 0.8,
+          "b1": 0.6,
+          "n": 5
+        },
+        "S370604": {
+          "r": -0.363,
+          "p": 0,
+          "m3": 0.65,
+          "m5": 1.09,
+          "b3": 0.6667,
+          "b5": 0.5556,
+          "b1": 0.3333,
+          "n": 9
+        },
+        "S410101": {
+          "r": -0.793,
+          "p": -0.43,
+          "m3": -1.36,
+          "m5": 0.55,
+          "b3": 0.069,
+          "b5": 0.6207,
+          "b1": 0.1724,
+          "n": 29
+        },
+        "S410102": {
+          "r": -0.672,
+          "p": -0.309,
+          "m3": -1.3900000000000001,
+          "m5": -0.17,
+          "b3": 0.1667,
+          "b5": 0.4167,
+          "b1": 0.25,
+          "n": 12
+        },
+        "S410104": {
+          "r": 0.063,
+          "p": 0.427,
+          "m3": 0.66,
+          "m5": 2.745,
+          "b3": 0.6111,
+          "b5": 0.8333,
+          "b1": 0.6667,
+          "n": 18
+        },
+        "S410106": {
+          "r": -0.551,
+          "p": -0.188,
+          "m3": 0.36,
+          "m5": 2.23,
+          "b3": 0.5455,
+          "b5": 0.8182,
+          "b1": 0.3636,
+          "n": 11
+        },
+        "S410107": {
+          "r": -0.558,
+          "p": -0.194,
+          "m3": -1.52,
+          "m5": -0.645,
+          "b3": 0.0714,
+          "b5": 0.4286,
+          "b1": 0.3571,
+          "n": 14
+        },
+        "S410110": {
+          "r": -0.721,
+          "p": -0.358,
+          "m3": -0.84,
+          "m5": 0.4,
+          "b3": 0.3333,
+          "b5": 0.5333,
+          "b1": 0.4,
+          "n": 15
+        },
+        "S410301": {
+          "r": 1.243,
+          "p": 1.606,
+          "m3": 3.505,
+          "m5": 3.915,
+          "b3": 0.8462,
+          "b5": 0.8846,
+          "b1": 0.7692,
+          "n": 26
+        },
+        "S420802": {
+          "r": -0.72,
+          "p": -0.357,
+          "m3": 0.83,
+          "m5": -0.22,
+          "b3": 0.6154,
+          "b5": 0.4615,
+          "b1": 0.4615,
+          "n": 13
+        },
+        "S420805": {
+          "r": 0.773,
+          "p": 1.136,
+          "m3": 1.62,
+          "m5": 2.2399999999999998,
+          "b3": 0.6667,
+          "b5": 0.75,
+          "b1": 0.6667,
+          "n": 12
+        },
+        "S420806": {
+          "r": -0.329,
+          "p": 0.034,
+          "m3": 0.205,
+          "m5": -0.8,
+          "b3": 0.5,
+          "b5": 0.3333,
+          "b1": 0.5,
+          "n": 6
+        },
+        "S420901": {
+          "r": -0.887,
+          "p": -0.524,
+          "m3": -0.20500000000000002,
+          "m5": 0,
+          "b3": 0.4,
+          "b5": 0.4,
+          "b1": 0.2,
+          "n": 20
+        },
+        "S420902": {
+          "r": 1.178,
+          "p": 1.542,
+          "m3": 3.13,
+          "m5": 7.49,
+          "b3": 0.8333,
+          "b5": 1,
+          "b1": 1,
+          "n": 6
+        },
+        "S420903": {
+          "r": -1.598,
+          "p": -1.235,
+          "m3": -1.63,
+          "m5": -1.49,
+          "b3": 0.2857,
+          "b5": 0.1429,
+          "b1": 0,
+          "n": 7
+        },
+        "S421001": {
+          "r": -2.095,
+          "p": -1.731,
+          "m3": -0.24,
+          "m5": 1.4449999999999998,
+          "b3": 0.25,
+          "b5": 0.75,
+          "b1": 0,
+          "n": 8
+        },
+        "S421101": {
+          "r": 0.013,
+          "p": 0.376,
+          "m3": -0.7849999999999999,
+          "m5": -4.475,
+          "b3": 0.1111,
+          "b5": 0.0556,
+          "b1": 0.6667,
+          "n": 18
+        },
+        "S421102": {
+          "r": -0.645,
+          "p": -0.282,
+          "m3": -0.825,
+          "m5": -1.055,
+          "b3": 0.2857,
+          "b5": 0.2143,
+          "b1": 0.25,
+          "n": 16
+        },
+        "S430101": {
+          "r": 0.444,
+          "p": 0.807,
+          "m3": 0.855,
+          "m5": 1.57,
+          "b3": 0.6613,
+          "b5": 0.629,
+          "b1": 0.6984,
+          "n": 63
+        },
+        "S430102": {
+          "r": -0.386,
+          "p": -0.022,
+          "m3": -0.98,
+          "m5": -0.14999999999999997,
+          "b3": 0.2,
+          "b5": 0.5,
+          "b1": 0.2,
+          "n": 10
+        },
+        "S430103": {
+          "r": 0.497,
+          "p": 0.861,
+          "m3": 1.14,
+          "m5": 1.2349999999999999,
+          "b3": 0.6,
+          "b5": 0.7,
+          "b1": 0.8,
+          "n": 10
+        },
+        "S430301": {
+          "r": 2.261,
+          "p": 2.624,
+          "m3": 2.59,
+          "m5": 3.02,
+          "b3": 0.7143,
+          "b5": 0.7143,
+          "b1": 0.8571,
+          "n": 7
+        },
+        "S450201": {
+          "r": -0.422,
+          "p": -0.058,
+          "m3": 0.345,
+          "m5": 1.6400000000000001,
+          "b3": 0.5833,
+          "b5": 0.6667,
+          "b1": 0.4167,
+          "n": 12
+        },
+        "S450301": {
+          "r": -0.503,
+          "p": -0.14,
+          "m3": 2.85,
+          "m5": 2.105,
+          "b3": 0.85,
+          "b5": 0.75,
+          "b1": 0.45,
+          "n": 20
+        },
+        "S450302": {
+          "r": -0.701,
+          "p": -0.338,
+          "m3": 1.34,
+          "m5": 3.29,
+          "b3": 0.8571,
+          "b5": 1,
+          "b1": 0.2857,
+          "n": 7
+        },
+        "S450303": {
+          "r": -0.677,
+          "p": -0.314,
+          "m3": 1.54,
+          "m5": 0.85,
+          "b3": 0.8,
+          "b5": 0.6,
+          "b1": 0.4,
+          "n": 15
+        },
+        "S450304": {
+          "r": -0.322,
+          "p": 0.041,
+          "m3": 0.46499999999999997,
+          "m5": 0,
+          "b3": 0.5625,
+          "b5": 0.4375,
+          "b1": 0.5,
+          "n": 16
+        },
+        "S460802": {
+          "r": -0.08,
+          "p": 0.283,
+          "m3": 0.2,
+          "m5": 0.53,
+          "b3": 0.5,
+          "b5": 0.75,
+          "b1": 1,
+          "n": 5
+        },
+        "S461003": {
+          "r": -0.053,
+          "p": 0.31,
+          "m3": 0.405,
+          "m5": 1.29,
+          "b3": 0.6667,
+          "b5": 0.75,
+          "b1": 0.75,
+          "n": 12
+        },
+        "S461004": {
+          "r": -0.132,
+          "p": 0.232,
+          "m3": 0.61,
+          "m5": 0.505,
+          "b3": 0.6667,
+          "b5": 0.8333,
+          "b1": 0.5,
+          "n": 6
+        },
+        "S461102": {
+          "r": 0.874,
+          "p": 1.238,
+          "m3": 1.78,
+          "m5": 2.92,
+          "b3": 0.5714,
+          "b5": 0.7143,
+          "b1": 0.7143,
+          "n": 7
+        },
+        "S480201": {
+          "r": -0.914,
+          "p": -0.551,
+          "m3": 1.19,
+          "m5": 1.52,
+          "b3": 0.8333,
+          "b5": 0.8333,
+          "b1": 0.1667,
+          "n": 6
+        },
+        "S480301": {
+          "r": -1.45,
+          "p": -1.087,
+          "m3": -0.32,
+          "m5": 0,
+          "b3": 0.2222,
+          "b5": 0.4444,
+          "b1": 0.1111,
+          "n": 9
+        },
+        "S480401": {
+          "r": -0.7,
+          "p": -0.337,
+          "m3": 0.98,
+          "m5": 1.46,
+          "b3": 0.7647,
+          "b5": 0.7647,
+          "b1": 0.2353,
+          "n": 17
+        },
+        "S480501": {
+          "r": -1.035,
+          "p": -0.672,
+          "m3": 0.9299999999999999,
+          "m5": 1.52,
+          "b3": 0.9,
+          "b5": 0.9,
+          "b1": 0.2,
+          "n": 10
+        },
+        "S490101": {
+          "r": -0.747,
+          "p": -0.384,
+          "m3": -1.2,
+          "m5": -2.45,
+          "b3": 0.1556,
+          "b5": 0.0667,
+          "b1": 0.2041,
+          "n": 49
+        },
+        "S490201": {
+          "r": -0.969,
+          "p": -0.605,
+          "m3": -1.94,
+          "m5": -1.2,
+          "b3": 0,
+          "b5": 0,
+          "b1": 0,
+          "n": 5
+        },
+        "S490302": {
+          "r": 0.023,
+          "p": 0.386,
+          "m3": -0.675,
+          "m5": -0.665,
+          "b3": 0.375,
+          "b5": 0.375,
+          "b1": 0.625,
+          "n": 8
+        },
+        "S510101": {
+          "r": 0.526,
+          "p": 0.889,
+          "m3": 1.44,
+          "m5": 2.55,
+          "b3": 0.85,
+          "b5": 0.85,
+          "b1": 0.9,
+          "n": 20
+        },
+        "S610101": {
+          "r": -0.38,
+          "p": -0.017,
+          "m3": -1.945,
+          "m5": -0.345,
+          "b3": 0.2857,
+          "b5": 0.4286,
+          "b1": 0.5,
+          "n": 14
+        },
+        "S610102": {
+          "r": 1.327,
+          "p": 1.69,
+          "m3": 2.26,
+          "m5": 3.43,
+          "b3": 0.8571,
+          "b5": 1,
+          "b1": 0.8571,
+          "n": 7
+        },
+        "S610201": {
+          "r": 0.439,
+          "p": 0.802,
+          "m3": -0.265,
+          "m5": 2.25,
+          "b3": 0.3333,
+          "b5": 0.8333,
+          "b1": 1,
+          "n": 7
+        },
+        "S610202": {
+          "r": 4.999,
+          "p": 5.362,
+          "m3": 7.465,
+          "m5": 3.8549999999999995,
+          "b3": 1,
+          "b5": 0.8333,
+          "b1": 0.8333,
+          "n": 6
+        },
+        "S610302": {
+          "r": 0.097,
+          "p": 0.461,
+          "m3": 0.2,
+          "m5": 2.73,
+          "b3": 0.6,
+          "b5": 0.8,
+          "b1": 0.6,
+          "n": 5
+        },
+        "S610303": {
+          "r": 0.478,
+          "p": 0.841,
+          "m3": 1.83,
+          "m5": 3.81,
+          "b3": 0.6429,
+          "b5": 0.7143,
+          "b1": 0.6429,
+          "n": 14
+        },
+        "S620101": {
+          "r": -0.559,
+          "p": -0.195,
+          "m3": -0.835,
+          "m5": -0.95,
+          "b3": 0.375,
+          "b5": 0.5,
+          "b1": 0.25,
+          "n": 8
+        },
+        "S620201": {
+          "r": -0.008,
+          "p": 0.355,
+          "m3": 1.165,
+          "m5": 2.7649999999999997,
+          "b3": 0.65,
+          "b5": 0.8,
+          "b1": 0.5,
+          "n": 20
+        },
+        "S620306": {
+          "r": -1.289,
+          "p": -0.926,
+          "m3": -1.72,
+          "m5": -1.58,
+          "b3": 0.2174,
+          "b5": 0.3478,
+          "b1": 0.1304,
+          "n": 23
+        },
+        "S620401": {
+          "r": 0.168,
+          "p": 0.531,
+          "m3": 0,
+          "m5": 0.32,
+          "b3": 0.4286,
+          "b5": 0.5714,
+          "b1": 0.5,
+          "n": 8
+        },
+        "S620402": {
+          "r": -0.13,
+          "p": 0.234,
+          "m3": -1.825,
+          "m5": 1.6199999999999999,
+          "b3": 0.3333,
+          "b5": 0.6667,
+          "b1": 0.5,
+          "n": 6
+        },
+        "S620404": {
+          "r": 1.127,
+          "p": 1.491,
+          "m3": 2.73,
+          "m5": 2.085,
+          "b3": 0.6429,
+          "b5": 0.6429,
+          "b1": 0.5714,
+          "n": 14
+        },
+        "S620601": {
+          "r": 0.016,
+          "p": 0.38,
+          "m3": 0.78,
+          "m5": 0.19,
+          "b3": 0.6,
+          "b5": 0.5333,
+          "b1": 0.7333,
+          "n": 15
+        },
+        "S630101": {
+          "r": 1.274,
+          "p": 1.637,
+          "m3": 5.005,
+          "m5": 4.29,
+          "b3": 0.8889,
+          "b5": 0.8333,
+          "b1": 0.8889,
+          "n": 18
+        },
+        "S630306": {
+          "r": 0.859,
+          "p": 1.222,
+          "m3": 1.87,
+          "m5": 3.28,
+          "b3": 0.8462,
+          "b5": 0.7692,
+          "b1": 0.9231,
+          "n": 13
+        },
+        "S630501": {
+          "r": -1.86,
+          "p": -1.496,
+          "m3": -3.52,
+          "m5": 1.34,
+          "b3": 0.25,
+          "b5": 0.5,
+          "b1": 0,
+          "n": 5
+        },
+        "S630502": {
+          "r": -3.448,
+          "p": -3.085,
+          "m3": -5.41,
+          "m5": 3.0599999999999996,
+          "b3": 0.375,
+          "b5": 0.625,
+          "b1": 0.125,
+          "n": 8
+        },
+        "S630504": {
+          "r": 0.279,
+          "p": 0.642,
+          "m3": -0.44999999999999996,
+          "m5": 4.16,
+          "b3": 0.4,
+          "b5": 0.8,
+          "b1": 0.5455,
+          "n": 11
+        },
+        "S630602": {
+          "r": -0.363,
+          "p": 0,
+          "m3": -0.48,
+          "m5": 1.4,
+          "b3": 0.3333,
+          "b5": 0.6667,
+          "b1": 0.4444,
+          "n": 9
+        },
+        "S630701": {
+          "r": 0.389,
+          "p": 0.752,
+          "m3": 1.67,
+          "m5": 2.08,
+          "b3": 0.6667,
+          "b5": 0.8889,
+          "b1": 0.7778,
+          "n": 9
+        },
+        "S630702": {
+          "r": -0.276,
+          "p": 0.088,
+          "m3": -1.655,
+          "m5": -1.08,
+          "b3": 0.2143,
+          "b5": 0.3571,
+          "b1": 0.5,
+          "n": 14
+        },
+        "S630705": {
+          "r": 1.229,
+          "p": 1.592,
+          "m3": 3.27,
+          "m5": 2.1550000000000002,
+          "b3": 0.8333,
+          "b5": 0.6667,
+          "b1": 0.6667,
+          "n": 6
+        },
+        "S630801": {
+          "r": -0.294,
+          "p": 0.069,
+          "m3": -1.175,
+          "m5": 1.1099999999999999,
+          "b3": 0.3125,
+          "b5": 0.8125,
+          "b1": 0.5625,
+          "n": 16
+        },
+        "S630802": {
+          "r": 0.12,
+          "p": 0.484,
+          "m3": 1.94,
+          "m5": 3.31,
+          "b3": 0.7143,
+          "b5": 0.7857,
+          "b1": 0.6429,
+          "n": 14
+        },
+        "S630803": {
+          "r": -0.214,
+          "p": 0.15,
+          "m3": 0.08000000000000002,
+          "m5": 2.415,
+          "b3": 0.5,
+          "b5": 0.7,
+          "b1": 0.7,
+          "n": 10
+        },
+        "S630804": {
+          "r": -0.075,
+          "p": 0.289,
+          "m3": -1.555,
+          "m5": 1.225,
+          "b3": 0.3333,
+          "b5": 0.6667,
+          "b1": 0.6667,
+          "n": 6
+        },
+        "S630805": {
+          "r": 0.238,
+          "p": 0.602,
+          "m3": 1.82,
+          "m5": 3.03,
+          "b3": 0.7586,
+          "b5": 0.8621,
+          "b1": 0.7931,
+          "n": 29
+        },
+        "S640101": {
+          "r": 1.78,
+          "p": 2.143,
+          "m3": 5.5,
+          "m5": 5.47,
+          "b3": 0.9091,
+          "b5": 1,
+          "b1": 0.8182,
+          "n": 11
+        },
+        "S640103": {
+          "r": 2.771,
+          "p": 3.135,
+          "m3": 3.52,
+          "m5": 3.15,
+          "b3": 0.8,
+          "b5": 0.6,
+          "b1": 1,
+          "n": 5
+        },
+        "S640105": {
+          "r": 1.148,
+          "p": 1.512,
+          "m3": 5.755,
+          "m5": 2.755,
+          "b3": 0.8,
+          "b5": 0.9,
+          "b1": 0.8,
+          "n": 10
+        },
+        "S640106": {
+          "r": -0.028,
+          "p": 0.335,
+          "m3": 3.41,
+          "m5": 3.585,
+          "b3": 0.875,
+          "b5": 0.875,
+          "b1": 0.6875,
+          "n": 16
+        },
+        "S640107": {
+          "r": 0.724,
+          "p": 1.088,
+          "m3": 6.1,
+          "m5": 5.505,
+          "b3": 0.875,
+          "b5": 0.875,
+          "b1": 0.75,
+          "n": 8
+        },
+        "S640108": {
+          "r": 0.963,
+          "p": 1.326,
+          "m3": 5.64,
+          "m5": 5.49,
+          "b3": 0.9189,
+          "b5": 0.8378,
+          "b1": 0.7027,
+          "n": 37
+        },
+        "S640203": {
+          "r": 0.519,
+          "p": 0.883,
+          "m3": 2.32,
+          "m5": 1.45,
+          "b3": 0.6923,
+          "b5": 0.6154,
+          "b1": 0.7,
+          "n": 40
+        },
+        "S640204": {
+          "r": 1.011,
+          "p": 1.375,
+          "m3": 2.81,
+          "m5": 2.86,
+          "b3": 1,
+          "b5": 0.9091,
+          "b1": 1,
+          "n": 11
+        },
+        "S640206": {
+          "r": 2.184,
+          "p": 2.548,
+          "m3": 4.55,
+          "m5": 5.83,
+          "b3": 1,
+          "b5": 1,
+          "b1": 0.7778,
+          "n": 9
+        },
+        "S640209": {
+          "r": 0.997,
+          "p": 1.36,
+          "m3": 3.33,
+          "m5": 3.49,
+          "b3": 0.8065,
+          "b5": 0.8065,
+          "b1": 0.8125,
+          "n": 32
+        },
+        "S640501": {
+          "r": -0.015,
+          "p": 0.348,
+          "m3": 0.29,
+          "m5": 0.44,
+          "b3": 0.5385,
+          "b5": 0.5385,
+          "b1": 0.5385,
+          "n": 13
+        },
+        "S640601": {
+          "r": -0.586,
+          "p": -0.223,
+          "m3": 0,
+          "m5": 0.44,
+          "b3": 0.4706,
+          "b5": 0.5294,
+          "b1": 0.4706,
+          "n": 17
+        },
+        "S640602": {
+          "r": 1.662,
+          "p": 2.025,
+          "m3": 4.61,
+          "m5": 6.33,
+          "b3": 1,
+          "b5": 1,
+          "b1": 1,
+          "n": 5
+        },
+        "S640701": {
+          "r": 2.89,
+          "p": 3.253,
+          "m3": 10.315000000000001,
+          "m5": 7.195,
+          "b3": 1,
+          "b5": 1,
+          "b1": 1,
+          "n": 6
+        },
+        "S640702": {
+          "r": 4.148,
+          "p": 4.512,
+          "m3": 8.184999999999999,
+          "m5": 7.01,
+          "b3": 1,
+          "b5": 0.9167,
+          "b1": 1,
+          "n": 12
+        },
+        "S650101": {
+          "r": -0.887,
+          "p": -0.524,
+          "m3": 5.46,
+          "m5": 3.86,
+          "b3": 1,
+          "b5": 1,
+          "b1": 0.2,
+          "n": 5
+        },
+        "S650201": {
+          "r": -0.838,
+          "p": -0.475,
+          "m3": -1.0150000000000001,
+          "m5": 1.075,
+          "b3": 0.4545,
+          "b5": 0.5455,
+          "b1": 0.2727,
+          "n": 22
+        },
+        "S650301": {
+          "r": -0.363,
+          "p": 0,
+          "m3": 0.68,
+          "m5": 0.78,
+          "b3": 0.5714,
+          "b5": 0.7143,
+          "b1": 0.4286,
+          "n": 7
+        },
+        "S650401": {
+          "r": -0.244,
+          "p": 0.12,
+          "m3": -1.07,
+          "m5": -4.11,
+          "b3": 0.2,
+          "b5": 0,
+          "b1": 0.6,
+          "n": 5
+        },
+        "S650501": {
+          "r": -0.198,
+          "p": 0.166,
+          "m3": 3.4349999999999996,
+          "m5": 2.64,
+          "b3": 0.9545,
+          "b5": 0.8636,
+          "b1": 0.5455,
+          "n": 22
+        },
+        "S710102": {
+          "r": -0.363,
+          "p": 0,
+          "m3": -1.24,
+          "m5": 2.62,
+          "b3": 0.4286,
+          "b5": 0.5714,
+          "b1": 0.4286,
+          "n": 7
+        },
+        "S710103": {
+          "r": 0.363,
+          "p": 0.726,
+          "m3": 3.685,
+          "m5": 3.44,
+          "b3": 0.8182,
+          "b5": 0.8182,
+          "b1": 0.6818,
+          "n": 22
+        },
+        "S710301": {
+          "r": 0.063,
+          "p": 0.426,
+          "m3": 1.41,
+          "m5": 2.05,
+          "b3": 0.7917,
+          "b5": 0.7708,
+          "b1": 0.6667,
+          "n": 48
+        },
+        "S710401": {
+          "r": 0.194,
+          "p": 0.557,
+          "m3": 1.47,
+          "m5": 2.56,
+          "b3": 0.7037,
+          "b5": 0.7407,
+          "b1": 0.6296,
+          "n": 27
+        },
+        "S710402": {
+          "r": -0.871,
+          "p": -0.508,
+          "m3": 0.385,
+          "m5": 0.985,
+          "b3": 0.875,
+          "b5": 0.75,
+          "b1": 0.25,
+          "n": 8
+        },
+        "S720401": {
+          "r": 1.101,
+          "p": 1.465,
+          "m3": 1.91,
+          "m5": 3.68,
+          "b3": 0.6429,
+          "b5": 0.7143,
+          "b1": 0.7857,
+          "n": 14
+        },
+        "S720501": {
+          "r": 0.207,
+          "p": 0.57,
+          "m3": 3.71,
+          "m5": 9.69,
+          "b3": 1,
+          "b5": 0.9375,
+          "b1": 0.625,
+          "n": 16
+        },
+        "S720601": {
+          "r": 2.824,
+          "p": 3.187,
+          "m3": 7.35,
+          "m5": 11.16,
+          "b3": 0.8889,
+          "b5": 1,
+          "b1": 0.7778,
+          "n": 9
+        },
+        "S720901": {
+          "r": -0.53,
+          "p": -0.166,
+          "m3": -1.59,
+          "m5": -0.17,
+          "b3": 0.1429,
+          "b5": 0.4286,
+          "b1": 0.375,
+          "n": 8
+        },
+        "S720902": {
+          "r": -0.029,
+          "p": 0.335,
+          "m3": 3.87,
+          "m5": 4.37,
+          "b3": 0.8462,
+          "b5": 0.9231,
+          "b1": 0.5714,
+          "n": 14
+        },
+        "S721001": {
+          "r": 0.45,
+          "p": 0.813,
+          "m3": 2.23,
+          "m5": 6.22,
+          "b3": 0.9091,
+          "b5": 1,
+          "b1": 0.6364,
+          "n": 11
+        },
+        "S730103": {
+          "r": 1.265,
+          "p": 1.628,
+          "m3": 3.87,
+          "m5": 5.06,
+          "b3": 0.7778,
+          "b5": 1,
+          "b1": 0.8889,
+          "n": 9
+        },
+        "S730104": {
+          "r": 0.564,
+          "p": 0.927,
+          "m3": 1.62,
+          "m5": 2.28,
+          "b3": 1,
+          "b5": 1,
+          "b1": 1,
+          "n": 5
+        },
+        "S730204": {
+          "r": 1.553,
+          "p": 1.917,
+          "m3": 7.06,
+          "m5": 6.21,
+          "b3": 1,
+          "b5": 1,
+          "b1": 1,
+          "n": 13
+        },
+        "S730205": {
+          "r": 6.001,
+          "p": 6.365,
+          "m3": 10.605,
+          "m5": 6.255,
+          "b3": 1,
+          "b5": 1,
+          "b1": 1,
+          "n": 8
+        },
+        "S730206": {
+          "r": 0.261,
+          "p": 0.625,
+          "m3": 4.79,
+          "m5": 3.18,
+          "b3": 0.9231,
+          "b5": 0.7692,
+          "b1": 0.9231,
+          "n": 13
+        },
+        "S740101": {
+          "r": 0.409,
+          "p": 0.772,
+          "m3": 1.78,
+          "m5": -1.86,
+          "b3": 0.8667,
+          "b5": 0.3333,
+          "b1": 0.8,
+          "n": 15
+        },
+        "S740102": {
+          "r": -0.13,
+          "p": 0.233,
+          "m3": 1.34,
+          "m5": -1.44,
+          "b3": 0.9091,
+          "b5": 0.2727,
+          "b1": 0.5455,
+          "n": 11
+        },
+        "S740201": {
+          "r": -0.741,
+          "p": -0.377,
+          "m3": 4.44,
+          "m5": 3.79,
+          "b3": 1,
+          "b5": 0.7143,
+          "b1": 0.1429,
+          "n": 7
+        },
+        "S750201": {
+          "r": 1.352,
+          "p": 1.716,
+          "m3": 1.22,
+          "m5": -0.48,
+          "b3": 0.5714,
+          "b5": 0.4286,
+          "b1": 0.7143,
+          "n": 7
+        },
+        "S750301": {
+          "r": 0.063,
+          "p": 0.427,
+          "m3": -1.4449999999999998,
+          "m5": -1.795,
+          "b3": 0.2,
+          "b5": 0.3,
+          "b1": 0.6,
+          "n": 10
+        },
+        "S750302": {
+          "r": 0.605,
+          "p": 0.968,
+          "m3": 1.075,
+          "m5": -1.545,
+          "b3": 0.5,
+          "b5": 0.5,
+          "b1": 0.8333,
+          "n": 6
+        },
+        "S750303": {
+          "r": -0.363,
+          "p": 0,
+          "m3": 0.95,
+          "m5": 1.04,
+          "b3": 0.7273,
+          "b5": 0.7273,
+          "b1": 0.3636,
+          "n": 11
+        },
+        "S760102": {
+          "r": -0.279,
+          "p": 0.084,
+          "m3": -0.18,
+          "m5": -0.13,
+          "b3": 0.4348,
+          "b5": 0.4348,
+          "b1": 0.5,
+          "n": 24
+        },
+        "S760103": {
+          "r": -0.603,
+          "p": -0.24,
+          "m3": -1.125,
+          "m5": -0.315,
+          "b3": 0.3333,
+          "b5": 0.3889,
+          "b1": 0.3889,
+          "n": 18
+        },
+        "S760104": {
+          "r": 1.063,
+          "p": 1.426,
+          "m3": 1.78,
+          "m5": 4.02,
+          "b3": 0.8571,
+          "b5": 0.7143,
+          "b1": 0.8571,
+          "n": 7
+        },
+        "S760201": {
+          "r": 0.417,
+          "p": 0.78,
+          "m3": 2.28,
+          "m5": 2.9,
+          "b3": 0.8462,
+          "b5": 0.9231,
+          "b1": 0.9231,
+          "n": 13
+        },
+        "S770202": {
+          "r": -0.951,
+          "p": -0.588,
+          "m3": -0.33,
+          "m5": 1.12,
+          "b3": 0.4,
+          "b5": 0.6,
+          "b1": 0.4,
           "n": 5
         }
       }
