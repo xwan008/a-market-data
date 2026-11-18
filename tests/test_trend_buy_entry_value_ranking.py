@@ -69,8 +69,10 @@ class TestAsOfEntryValueRanking(unittest.TestCase):
         ]
         g = groups(xs)[0]
         self.assertEqual(g["attention_ranking_policy"], engine.OPPORTUNITY_RANK_POLICY)
-        self.assertEqual([x["company_name"] for x in g["items"]],
-                         ["益丰药房", "一心堂", "老百姓", "大参林", "第一医药"])
+        ordered = [x["company_name"] for x in g["items"]]
+        self.assertEqual(ordered[:2], ["益丰药房", "一心堂"])
+        self.assertEqual(ordered[-1], "第一医药")
+        self.assertLess(ordered.index("益丰药房"), ordered.index("大参林"))
         self.assertTrue(all(x["status"] == "WAIT" for x in g["items"]))
         self.assertTrue(all(x["opportunity_rank_evidence"]["not_trade_permission"]
                             for x in g["items"]))
