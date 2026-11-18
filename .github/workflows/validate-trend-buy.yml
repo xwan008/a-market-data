@@ -10,6 +10,7 @@ on:
       - 'scripts/trend_buy_prescreen_core.py'
       - 'tests/test_trend_buy_admission.py'
       - 'scripts/trend_buy_engine.py'
+      - 'scripts/replay_nov17_independent_simulation.py'
       - 'tests/test_trend_buy_entry_value_ranking.py'
       - 'scripts/audit_trend_buy_rank_gap.py'
       - 'scripts/trend_buy_handoff.py'
@@ -214,3 +215,16 @@ jobs:
           PY
       - name: Syntax check trend-buy modules
         run: python -m py_compile scripts/prepare_trend_buy_candidates.py scripts/trend_buy_prescreen_core.py scripts/build_full_market_price_structure.py scripts/build_trend_buy_manual_research.py scripts/trend_buy_engine.py scripts/audit_trend_buy_rank_gap.py scripts/trend_buy_handoff.py scripts/build_intraday_snapshot.py
+
+      - name: Isolated frozen Nov17 full-program + independent issuer research + entry/risk replay
+        if: github.event_name == 'pull_request'
+        run: |
+          python scripts/replay_nov17_independent_simulation.py
+
+      - name: Upload isolated replay evidence (never publish)
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: isolated-asof-2026-11-17-replay
+          path: /tmp/trend-buy-independent-asof-2026-11-17/
+          retention-days: 14
