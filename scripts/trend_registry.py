@@ -33,6 +33,29 @@ def _pseudo_counter_gap(e):
                          "均为负", "跌破", "明显走弱", "库存增加")))
 
 
+
+def _positive_only_market_snapshot(finding):
+    """Spot a clear all-positive market quote mislabeled as adverse evidence.
+
+    This is an audit-consistency guard, not a trend-confirmation threshold.
+    Text describing a real reversal or failed support is left for research.
+    """
+    if not isinstance(finding, str) or not all(
+            x in finding for x in ("当日+", "3日+", "5日+", "量比")):
+        return False
+    if re.search(r"相对[^；。\n]*?\+\d", finding) is None:
+        return False
+    volumes = re.findall(r"量比(\d+(?:\.\d+)?)", finding)
+    breadths = re.findall(r"广度(\d+(?:\.\d+)?)%", finding)
+    adverse = ("但", "然而", "破位", "跌破", "走弱", "转弱", "回落",
+               "恶化", "不足", "缩量", "下降", "收缩", "承压",
+               "疲弱", "分化", "失效", "回撤", "低于")
+    return (bool(volumes and breadths)
+            and all(float(v) >= 1 for v in volumes)
+            and all(float(b) >= 50 for b in breadths)
+            and not any(word in finding for word in adverse))
+
+
 def _valid_evidence(e, after_day):
     """Verify provenance/shape, not the truth of external market claims."""
     if not isinstance(e, dict):
@@ -48,6 +71,11 @@ def _valid_evidence(e, after_day):
         and isinstance(e.get("source"), str) and SOURCE.fullmatch(e["source"]) is not None
         and isinstance(e.get("finding"), str) and len(e["finding"].strip()) >= 10
         and not (day >= "2026-11-10" and _pseudo_counter_gap(e))
+        and not (day == after_day and day >= "2026-11-18"
+                 and e.get("direction") == "COUNTER"
+                 and e.get("dimension") in {"MARKET_STRUCTURE", "MARKET_BREADTH",
+                                           "RELATIVE_STRENGTH"}
+                 and _positive_only_market_snapshot(e.get("finding")))
         and (window is None or (isinstance(window, int) and not isinstance(window, bool) and window > 0))
     )
 
@@ -299,6 +327,21 @@ def _research_audit_errors(item, day, prior=None):
         sufficient = audit.get("first_sufficient_evidence_trade_date")
         if not isinstance(sufficient, str) or not DAY.fullmatch(sufficient) or sufficient > day:
             errors.append(f"{episode}:first_sufficient_evidence_date_missing")
+    # Prospective evidence quality only: never rewrite or invalidate old closes.
+    if day >= "2026-11-18":
+        if _positive_only_market_snapshot(audit.get("strongest_counter")):
+            errors.append(f"{episode}:positive_snapshot_as_strongest_counter")
+        if (item.get("market_state") != "趋势确认" and
+                audit.get("specific_blocker", "").strip() ==
+                "仍需更多有效收盘承接、产业盈利传导与核心行业广度的共同确认。"):
+            errors.append(f"{episode}:generic_confirmation_blocker")
+        for evidence in item.get("contrary_evidence") or []:
+            if (isinstance(evidence, dict) and evidence.get("trade_date") == day
+                    and evidence.get("direction") == "COUNTER"
+                    and evidence.get("dimension") in {
+                        "MARKET_STRUCTURE", "MARKET_BREADTH", "RELATIVE_STRENGTH"}
+                    and _positive_only_market_snapshot(evidence.get("finding"))):
+                errors.append(f"{episode}:positive_market_snapshot_as_counter")
     # Keep frozen historical findings untouched; check new counters only.
     if day >= "2026-11-10":
         for evidence in item.get("contrary_evidence") or []:
