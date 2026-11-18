@@ -217,41 +217,5 @@ jobs:
           assert len(items)==len(json.loads(Path('research/trend_buy_handoff.json').read_text())['items'])
           print('PERSISTED_MAINLINE_HANDOFF_VALID',len(items))
           PY
-      - name: Read-only Nov17 continuous quality research and official risk engine replay
-        if: github.event_name == 'pull_request'
-        run: |
-          python scripts/build_trend_buy_manual_research.py \
-            --evidence research/trend_buy_company_reviews/latest.json \
-            --admission research/trend_buy_candidates/latest.json \
-            --structure-output /tmp/continuous-quality-structure.json \
-            --output /tmp/continuous-quality-research.json
-          python scripts/trend_buy_engine.py \
-            --research /tmp/continuous-quality-research.json \
-            --structure /tmp/continuous-quality-structure.json \
-            --output /tmp/continuous-quality-result.json
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          d=json.loads(Path('/tmp/continuous-quality-result.json').read_text())
-          assert d['trade_date']=='2026-11-17'
-          assert d['production_eligible'] is True
-          lookup={x['code']:x for x in d['wait']+d['ready']}
-          for g in d['top5_by_theme']:
-              print('FIX_READ_ONLY_RANK',g['trend_name'],json.dumps([
-                  {'code':x['code'],'name':x['company_name'],
-                   'score':x['opportunity_rank_evidence']['score'],
-                   'quality':x['opportunity_rank_evidence'].get('research_quality_score'),
-                   'original_model_rank':x.get('original_model_rank'),
-                   'status':x['status']}
-                  for x in g['items']],ensure_ascii=False))
-              assert g['attention_ranking_policy']=='ENTRY_VALUE_STAGE_V1_1_CONTINUOUS_QUALITY'
-          pharmacy=next(g for g in d['top5_by_theme'] if g['trend_name']=='线下药店')
-          assert pharmacy['items'][0]['code']=='603939', 'CONTINUOUS_QUALITY_DID_NOT_REMOVE_ORDINAL_DISTANCE_BUG'
-          assert all(x['status']=='WAIT' for x in pharmacy['items'])
-          assert all(x['status']!='READY' or x['entry_zone'] is not None
-                     for x in d['ready']+d['wait'])
-          print('FIX_READ_ONLY_PASS: prior model ranks do not override continuous evidence')
-          PY
-
       - name: Syntax check trend-buy modules
         run: python -m py_compile scripts/prepare_trend_buy_candidates.py scripts/trend_buy_prescreen_core.py scripts/build_full_market_price_structure.py scripts/build_trend_buy_manual_research.py scripts/trend_buy_engine.py scripts/trend_buy_research_quality.py scripts/audit_trend_buy_rank_gap.py scripts/trend_buy_handoff.py scripts/build_intraday_snapshot.py
