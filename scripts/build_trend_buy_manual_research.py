@@ -375,6 +375,13 @@ def build(evidence_path, structure_path=None, structure_output_path=None,
     if (len(audit["pre_screen_selected"])+len(audit["pre_screened_out"])
         !=audit["hard_eligible"]):
         raise ValueError("screen_selection_partition_mismatch")
+    # Reconstruct a numeric, source-dated company-quality proxy for the
+    # frozen admitted cohort. Never reinterpret ordinal model_rank as distance.
+    quality_evidence={}
+    if finance_snapshot is not None:
+        from trend_buy_research_quality import verified_quality_for_selected
+        quality_evidence=verified_quality_for_selected(
+            selected,finance_snapshot,day,trend["signals"],ROOT)
     candidate=[]
     no_source=[]
     missing_review=[]
@@ -431,6 +438,7 @@ def build(evidence_path, structure_path=None, structure_output_path=None,
             "research_falsifier":item.get("research_falsifier"),
             "model_priority":model_priority if admission_by_industry is not None else None,
             "model_reason":model_reason if admission_by_industry is not None else None,
+            "research_quality_evidence":quality_evidence.get(c["code"]),
             "source_review":item["source_review"],
             "source_materials":sources,
             "evidence_basis":item["review_basis"],

@@ -13,7 +13,7 @@ DAY = "2026-11-17"
 def company(code, name, priority, *, status="WAIT", theme="线下药店",
             previous=-2, recent=4, up5=4, fresh=False, close=75,
             ma_gap=3, volume=1.0, ma60=20, price=21, overhead=None,
-            phase="TRANSITION", trade_date=DAY):
+            phase="TRANSITION", trade_date=DAY, research_quality=50):
     ctx = {
         "ma20": price / (1 + ma_gap / 100),
         "ma60": ma60, "distance_to_ma20_pct": ma_gap,
@@ -27,6 +27,11 @@ def company(code, name, priority, *, status="WAIT", theme="线下药店",
         "code": code, "company_name": name, "trend_name": theme,
         "status": status, "data_date": trade_date,
         "current_price": price, "model_priority": priority,
+        "research_quality_evidence": {
+            "status":"VERIFIED",
+            "source":"FROZEN_F10_AND_COMPLETED_HISTORY_V1",
+            "asof_date":DAY, "score":research_quality,
+            "components":{"test_fixture":True}},
         "trend_phase": phase, "technical_context": ctx,
         "phase_evidence": {
             "previous_5d_return_pct": previous, "return_5d_pct": recent,
@@ -53,19 +58,20 @@ class TestAsOfEntryValueRanking(unittest.TestCase):
         xs = [
             company("603233", "大参林", 1, previous=-3.06, recent=2.66,
                     fresh=False, close=55.93, ma_gap=4.98, volume=.74,
-                    price=20.82, overhead=21.69),
+                    price=20.82, overhead=21.69, research_quality=77.7),
             company("002727", "一心堂", 2, previous=-5.74, recent=7.26,
                     fresh=True, close=78.18, ma_gap=4.64, volume=1.143,
-                    price=13.74, overhead=None),
+                    price=13.74, overhead=None, research_quality=81.9),
             company("603883", "老百姓", 3, previous=-5.59, recent=5.07,
                     fresh=False, close=75, ma_gap=1.97, volume=.801,
-                    price=14.91, overhead=15.33),
+                    price=14.91, overhead=15.33, research_quality=56.4),
             company("603939", "益丰药房", 4, previous=-10.28, recent=8.48,
                     fresh=True, close=95, ma_gap=3.10, volume=.958,
-                    price=26.61, overhead=27.68),
+                    price=26.61, overhead=27.68, research_quality=50.7),
             company("600833", "第一医药", 5, previous=-.21, recent=-2.98,
                     up5=1, fresh=False, close=25, ma_gap=-4.88,
-                    volume=.729, price=9.13, ma60=10.27, overhead=9.70),
+                    volume=.729, price=9.13, ma60=10.27, overhead=9.70,
+                    research_quality=20),
         ]
         g = groups(xs)[0]
         self.assertEqual(g["attention_ranking_policy"], engine.OPPORTUNITY_RANK_POLICY)
@@ -77,6 +83,7 @@ class TestAsOfEntryValueRanking(unittest.TestCase):
         self.assertTrue(all(x["opportunity_rank_evidence"]["not_trade_permission"]
                             for x in g["items"]))
         self.assertEqual(g["items"][0]["original_model_rank"], 4)
+        self.assertEqual(g["items"][0]["opportunity_rank_evidence"]["research_quality_score"], 50.7)
         self.assertEqual(xs[3]["status"], "WAIT")
         self.assertIsNone(xs[3]["entry_zone"])
 
@@ -114,6 +121,44 @@ class TestAsOfEntryValueRanking(unittest.TestCase):
         self.assertEqual(g["items"][1]["code"], "002966")
         self.assertEqual(g["items"][2]["code"], "600000")
         self.assertEqual(xs[1]["status"], "WAIT")
+
+
+    def test_model_rank_spacing_never_becomes_quality_points(self):
+        a=company("100001","A",1,research_quality=50)
+        first=engine.opportunity_rank_evidence(a,DAY)
+        a["model_priority"]=99
+        last=engine.opportunity_rank_evidence(a,DAY)
+        self.assertEqual(first["score"],last["score"])
+        self.assertEqual(last["research_quality_score"],50)
+        self.assertEqual(last["research_quality_source"],
+                         "FROZEN_F10_AND_COMPLETED_HISTORY_V1")
+
+    def test_continuous_research_quality_has_proportional_not_ordinal_impact(self):
+        a=company("100001","A",1,research_quality=81.9)
+        b=company("100002","B",99,research_quality=50.7)
+        aa=engine.opportunity_rank_evidence(a,DAY)
+        bb=engine.opportunity_rank_evidence(b,DAY)
+        self.assertAlmostEqual(aa["score"]-bb["score"],
+                               .15*(81.9-50.7),places=3)
+
+    def test_missing_or_future_research_evidence_falls_back_whole_theme(self):
+        a=company("100001","A",1,recent=1,research_quality=70)
+        b=company("100002","B",2,recent=9,previous=-10,fresh=True,
+                  research_quality=90)
+        a["research_quality_evidence"]=None
+        g=groups([a,b])[0]
+        self.assertEqual(g["attention_ranking_policy"],
+                         "MODEL_RANK_FALLBACK_DATA_GAP")
+        self.assertEqual([z["code"] for z in g["items"]],["100001","100002"])
+        a["research_quality_evidence"]={
+            "status":"VERIFIED","asof_date":"2026-11-18","score":70,
+            "source":"FROZEN_F10_AND_COMPLETED_HISTORY_V1"}
+        self.assertEqual(groups([a,b])[0]["attention_ranking_policy"],
+                         "MODEL_RANK_FALLBACK_DATA_GAP")
+        a["research_quality_evidence"]["asof_date"]=DAY
+        a["research_quality_evidence"]["score"]=150
+        self.assertEqual(groups([a,b])[0]["attention_ranking_policy"],
+                         "MODEL_RANK_FALLBACK_DATA_GAP")
 
     def test_missing_or_future_bar_falls_back_for_whole_theme(self):
         xs = [
