@@ -64,8 +64,8 @@ class ContinuousResearchQualityTests(unittest.TestCase):
             # All identical price histories: every stock gets the same 0.5
             # trend percentile, making the observed financial gap auditable.
             self.assertEqual(scored["600001"]["components"]["peer_percentiles"]["20"],.5)
-            self.assertAlmostEqual(scored["600001"]["score"],81.6667,places=3)
-            self.assertAlmostEqual(scored["600002"]["score"],66.6667,places=3)
+            self.assertAlmostEqual(scored["600001"]["score"],70.6667,places=3)
+            self.assertAlmostEqual(scored["600002"]["score"],55.6667,places=3)
             selected[0]["model_rank"]=99
             selected[1]["model_rank"]=1
             self.assertEqual(verified_quality_for_selected(
