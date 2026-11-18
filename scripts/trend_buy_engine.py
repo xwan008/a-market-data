@@ -713,7 +713,7 @@ def add_attention_priorities(groups, ready, wait, research):
             status_text = ("READY先于WAIT；仅下一交易日条件性入场"
                            if row["status"] == "READY" else "WAIT仅供观察，尚不可买")
             item["attention_judgement"] = (
-                "模型同主题相对研究次序：仅作为质量参考；入场价值排序（试运行）："
+                "模型同主题相对研究次序：仅用于解释与同分比较；连续质量证据及入场价值排序（试运行）："
                 + status_text
                 + "；原模型研究名次："+str(row.get("model_priority"))
                 + "；机会分证据："+str(item.get("opportunity_rank_evidence") or {})
