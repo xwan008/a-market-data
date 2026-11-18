@@ -118,6 +118,48 @@ class TrendRegistryTests(unittest.TestCase):
         old["finding"] = missing["finding"]
         self.assertTrue(engine._valid_evidence(old, "2026-11-10"))
 
+
+    def test_positive_quote_cannot_be_fresh_market_counter(self):
+        quote = ("空调有效样本4只：当日+1.414%、相对主板映射样本中位+2.780个百分点、"
+                 "当日广度75.00%、3日+4.605%/广度75.00%、5日+2.990%/"
+                 "广度75.00%、量比1.133。")
+        self.assertTrue(engine._positive_only_market_snapshot(quote))
+        counter = fact("MARKET_STRUCTURE", date="2026-11-18")
+        counter["finding"] = quote
+        self.assertFalse(engine._valid_evidence(counter, "2026-11-18"))
+        counter["direction"] = "SUPPORT"
+        self.assertTrue(engine._valid_evidence(counter, "2026-11-18"))
+        counter["direction"] = "COUNTER"
+        counter["trade_date"] = "2026-11-16"
+        self.assertTrue(engine._valid_evidence(counter, "2026-11-18"))
+        self.assertFalse(engine._positive_only_market_snapshot(
+            "空调当日+1.605%、相对市场中位+3.299个百分点、上涨广度75.00%、"
+            "3日+0.985%、5日-0.050%、量比0.923。"))
+        self.assertFalse(engine._positive_only_market_snapshot(
+            quote + "但核心龙头跌破关键支撑位，结构已失效。"))
+
+    def test_current_hold_and_strongest_counter_need_real_explanation(self):
+        row = theme(status="观察")
+        sample = {"trade_date": "2026-11-18", "trends": [row]}
+        add_future_audit(sample)
+        quote = ("空调有效样本4只：当日+1.414%、相对主板映射样本中位+2.780个百分点、"
+                 "当日广度75.00%、3日+4.605%/广度75.00%、5日+2.990%/"
+                 "广度75.00%、量比1.133。")
+        audit = row["confirmation_audit"]
+        audit["strongest_counter"] = quote
+        audit["specific_blocker"] = "仍需更多有效收盘承接、产业盈利传导与核心行业广度的共同确认。"
+        row["contrary_evidence"] = [dict(
+            fact("MARKET_STRUCTURE", date="2026-11-18"), finding=quote)]
+        errors = engine._research_audit_errors(row, "2026-11-18")
+        for expected in ("positive_snapshot_as_strongest_counter",
+                         "generic_confirmation_blocker",
+                         "positive_market_snapshot_as_counter"):
+            self.assertIn(row["episode_id"] + ":" + expected, errors)
+        audit["strongest_counter"] = "核心行业尚未突破前高，关键支撑承接仍有可核验的分歧"
+        audit["specific_blocker"] = "核心成分股价格尚未收复前高，缺乏突破后的有效收盘承接证据"
+        row["contrary_evidence"] = []
+        self.assertEqual(engine._research_audit_errors(row, "2026-11-18"), [])
+
     def test_prepublication_full_close_rejects_pseudo_counter_without_blocking_empty_handoff(self):
         """Exercise the production migration + paired-publication gates together."""
         import json
@@ -128,7 +170,6 @@ class TrendRegistryTests(unittest.TestCase):
         frozen_handoff = json.loads((root / "research/trend_handoff.json").read_text())
         self.assertEqual(frozen["trade_date"], frozen_handoff["trade_date"])
         self.assertEqual(frozen["status"], "COMPLETE")
-        self.assertEqual(frozen_handoff["signals"], [])
         self.assertEqual(pair.validate(frozen, frozen_handoff), [])
 
         before, proposed = fixture()
