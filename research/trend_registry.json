@@ -2,8 +2,8 @@
   "schema_version": 2,
   "result_kind": "a_share_trend_registry",
   "status": "COMPLETE",
-  "trade_date": "2026-11-17",
-  "generated_at": "2026-11-17T18:43:00+08:00",
+  "trade_date": "2026-11-18",
+  "generated_at": "2026-11-18T18:48:00+08:00",
   "timezone": "Asia/Shanghai",
   "trends": [
     {
@@ -27,9 +27,9 @@
           "industry_name": "证券Ⅲ",
           "benefit_level": "CORE",
           "market_state": "观察",
-          "evidence_trade_date": "2026-11-17",
-          "benefit_reason": "证券公司直接受成交活跃、两融、投行与投资收益影响。",
-          "market_reason": "证券Ⅲ有效样本49只：当日-0.368%、相对主板映射样本中位+0.683个百分点、当日广度26.53%、3日-0.400%/广度28.89%、5日-2.140%/广度8.89%、量比0.793。"
+          "evidence_trade_date": "2026-11-18",
+          "benefit_reason": "券商经营直接受成交、两融、投行和投资收益影响。",
+          "market_reason": "证券Ⅲ有效样本49只：当日-0.586%、相对主板映射样本中位+0.406个百分点、当日广度8.16%、3日-0.900%/广度26.67%、5日-2.620%/广度8.89%、量比0.672。"
         }
       ],
       "supporting_evidence": [
@@ -97,6 +97,15 @@
           "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
           "finding": "证券Ⅲ有效样本49只：当日-0.368%、相对主板映射样本中位+0.683个百分点、当日广度26.53%、3日-0.400%/广度28.89%、5日-2.140%/广度8.89%、量比0.793。",
           "industry_code": "S490101"
+        },
+        {
+          "dimension": "MARKET_STRUCTURE",
+          "direction": "COUNTER",
+          "impact": "STRUCTURAL",
+          "trade_date": "2026-11-18",
+          "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+          "finding": "证券Ⅲ有效样本49只：当日-0.586%、相对主板映射样本中位+0.406个百分点、当日广度8.16%、3日-0.900%/广度26.67%、5日-2.620%/广度8.89%、量比0.672。",
+          "industry_code": "S490101"
         }
       ],
       "invalidation_conditions": [
@@ -108,7 +117,7 @@
       "participation_timing": "D1仅观察或候选跟踪，等待分歧承接及产业兑现；不追单日普涨。",
       "in_new_position_priority": false,
       "priority_rank": null,
-      "change_reason": "证券完成11月17日复核；现有证据不足以改变既有产业阶段与市场状态。",
+      "change_reason": "证券3日与5日结构仍为负且广度偏低，产业盈利证据未被推翻但不足以重新确认。",
       "state_history": [
         {
           "trade_date": "2026-11-02",
@@ -140,10 +149,10 @@
         }
       ],
       "confirmation_audit": {
-        "asof_trade_date": "2026-11-17",
+        "asof_trade_date": "2026-11-18",
         "market_environment": "RISK_OFF",
-        "market_environment_reason": "331个申万三级行业、3138只映射沪深主板股票完成同口径扫描，主板映射样本收益中位-1.051%，市场风险偏好偏弱。",
-        "market_environment_source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
+        "market_environment_reason": "331个申万三级行业、3138只映射沪深主板股票完成同口径扫描，主板映射样本收益中位-0.992%，风险偏好仍弱。",
+        "market_environment_source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
         "driver_type": "OTHER",
         "discovery_basis": "CONTINUING_STRUCTURE",
         "catalyst_kind": "SUSTAINED_DRIVER",
@@ -153,10 +162,10 @@
         "core_industry_codes": [
           "S490101"
         ],
-        "strongest_counter": "证券Ⅲ有效样本49只：当日-0.368%、相对主板映射样本中位+0.683个百分点、当日广度26.53%、3日-0.400%/广度28.89%、5日-2.140%/广度8.89%、量比0.793。",
-        "decision_reason": "证券完成11月17日复核；现有证据不足以改变既有产业阶段与市场状态。",
+        "strongest_counter": "证券Ⅲ有效样本49只：当日-0.586%、相对主板映射样本中位+0.406个百分点、当日广度8.16%、3日-0.900%/广度26.67%、5日-2.620%/广度8.89%、量比0.672。",
+        "decision_reason": "证券3日与5日结构仍为负且广度偏低，产业盈利证据未被推翻但不足以重新确认。",
         "decision_state": "观察",
-        "specific_blocker": "仍需更多有效收盘承接、产业盈利传导与核心行业广度的共同确认。"
+        "specific_blocker": "证券Ⅲ仍缺3日和5日正结构、核心股分歧承接及独立业务驱动的同步恢复。"
       },
       "initial_discovery_basis": "ONE_DAY_SURGE",
       "d123_trigger_evidence": {
@@ -277,14 +286,14 @@
         "decision": "CONFIRMED",
         "decision_trade_date": "2026-11-03"
       },
-      "last_verified_trade_date": "2026-11-17"
+      "last_verified_trade_date": "2026-11-18"
     },
     {
       "episode_id": "白色家电#2026-10-30",
       "trend_name": "白色家电",
       "first_seen_trade_date": "2026-10-30",
       "trend_state": "T0",
-      "market_state": "观察",
+      "market_state": "趋势确认",
       "trend_basis": "A_SHARE",
       "commodity_anchor": null,
       "lifecycle_status": "有效",
@@ -301,19 +310,19 @@
           "industry_code": "S330102",
           "industry_name": "空调",
           "benefit_level": "CORE",
-          "market_state": "观察",
-          "evidence_trade_date": "2026-11-17",
-          "benefit_reason": "空调为白色家电核心主营，直接受内外销、渠道库存和原材料成本影响。",
-          "market_reason": "空调有效样本4只：当日+0.944%、相对主板映射样本中位+1.995个百分点、当日广度75.00%、3日+5.310%/广度75.00%、5日+4.385%/广度75.00%、量比1.155。"
+          "market_state": "趋势确认",
+          "evidence_trade_date": "2026-11-18",
+          "benefit_reason": "空调制造直接受统一补贴、出口需求与产品结构升级影响。",
+          "market_reason": "空调有效样本4只：当日+1.353%、相对主板映射样本中位+2.346个百分点、当日广度100.00%、3日+2.700%/广度100.00%、5日+6.110%/广度75.00%、量比1.736。"
         },
         {
           "industry_code": "S330106",
           "industry_name": "冰洗",
-          "benefit_level": "DIRECT",
-          "market_state": "观察",
-          "evidence_trade_date": "2026-11-17",
-          "benefit_reason": "冰洗为白色家电直接主营，受出口、产品升级和渠道需求影响。",
-          "market_reason": "冰洗有效样本6只：当日+0.636%、相对主板映射样本中位+1.687个百分点、当日广度66.67%、3日+4.010%/广度66.67%、5日+0.550%/广度66.67%、量比1.743。"
+          "benefit_level": "CORE",
+          "market_state": "趋势确认",
+          "evidence_trade_date": "2026-11-18",
+          "benefit_reason": "冰洗制造直接受统一补贴、出口需求与高能效产品换新影响。",
+          "market_reason": "冰洗有效样本6只：当日+2.809%、相对主板映射样本中位+3.802个百分点、当日广度83.33%、3日+8.880%/广度83.33%、5日+7.045%/广度83.33%、量比2.584。"
         }
       ],
       "supporting_evidence": [
@@ -379,6 +388,60 @@
           "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
           "finding": "冰洗有效样本6只：当日+0.636%、相对主板映射样本中位+1.687个百分点、当日广度66.67%、3日+4.010%/广度66.67%、5日+0.550%/广度66.67%、量比1.743。",
           "industry_code": "S330106"
+        },
+        {
+          "dimension": "MARKET_STRUCTURE",
+          "direction": "SUPPORT",
+          "impact": "STRUCTURAL",
+          "trade_date": "2026-11-18",
+          "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+          "finding": "空调有效样本4只：当日+1.353%、相对主板映射样本中位+2.346个百分点、当日广度100.00%、3日+2.700%/广度100.00%、5日+6.110%/广度75.00%、量比1.736。",
+          "industry_code": "S330102"
+        },
+        {
+          "dimension": "MARKET_BREADTH",
+          "direction": "SUPPORT",
+          "impact": "NORMAL",
+          "trade_date": "2026-11-18",
+          "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+          "finding": "空调有效样本4只：当日+1.353%、相对主板映射样本中位+2.346个百分点、当日广度100.00%、3日+2.700%/广度100.00%、5日+6.110%/广度75.00%、量比1.736。",
+          "industry_code": "S330102"
+        },
+        {
+          "dimension": "RELATIVE_STRENGTH",
+          "direction": "SUPPORT",
+          "impact": "NORMAL",
+          "trade_date": "2026-11-18",
+          "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+          "finding": "空调有效样本4只：当日+1.353%、相对主板映射样本中位+2.346个百分点、当日广度100.00%、3日+2.700%/广度100.00%、5日+6.110%/广度75.00%、量比1.736。",
+          "industry_code": "S330102"
+        },
+        {
+          "dimension": "MARKET_STRUCTURE",
+          "direction": "SUPPORT",
+          "impact": "STRUCTURAL",
+          "trade_date": "2026-11-18",
+          "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+          "finding": "冰洗有效样本6只：当日+2.809%、相对主板映射样本中位+3.802个百分点、当日广度83.33%、3日+8.880%/广度83.33%、5日+7.045%/广度83.33%、量比2.584。",
+          "industry_code": "S330106"
+        },
+        {
+          "dimension": "MARKET_BREADTH",
+          "direction": "SUPPORT",
+          "impact": "NORMAL",
+          "trade_date": "2026-11-18",
+          "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+          "finding": "冰洗有效样本6只：当日+2.809%、相对主板映射样本中位+3.802个百分点、当日广度83.33%、3日+8.880%/广度83.33%、5日+7.045%/广度83.33%、量比2.584。",
+          "industry_code": "S330106"
+        },
+        {
+          "dimension": "RELATIVE_STRENGTH",
+          "direction": "SUPPORT",
+          "impact": "NORMAL",
+          "trade_date": "2026-11-18",
+          "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+          "finding": "冰洗有效样本6只：当日+2.809%、相对主板映射样本中位+3.802个百分点、当日广度83.33%、3日+8.880%/广度83.33%、5日+7.045%/广度83.33%、量比2.584。",
+          "industry_code": "S330106"
         }
       ],
       "contrary_evidence": [
@@ -417,9 +480,9 @@
         "白色家电相关行业ETF"
       ],
       "participation_timing": "D1仅观察，等待后续有效收盘的承接、相对强度和产业证据；不追单日强势。",
-      "in_new_position_priority": false,
-      "priority_rank": null,
-      "change_reason": "白色家电完成11月17日复核；现有证据不足以改变既有产业阶段与市场状态。",
+      "in_new_position_priority": true,
+      "priority_rank": 1,
+      "change_reason": "空调与冰洗当日、3日、5日结构和广度同步转强，冰洗放量且统一补贴与出口增长形成独立驱动，重新确认趋势。",
       "state_history": [
         {
           "trade_date": "2026-10-30",
@@ -448,13 +511,20 @@
           "to": "观察",
           "event": "market_state_review",
           "reason": "白色家电核心三级行业当日、3日与5日结构转弱或分化，广度和相对强度不足，市场状态下调但产业阶段暂不改写。"
+        },
+        {
+          "trade_date": "2026-11-18",
+          "from": "观察",
+          "to": "趋势确认",
+          "event": "evidence_based_reconfirmation",
+          "reason": "空调与冰洗当日、3日、5日结构和广度同步转强，冰洗放量且统一补贴与出口增长形成独立驱动，重新确认趋势。"
         }
       ],
       "confirmation_audit": {
-        "asof_trade_date": "2026-11-17",
+        "asof_trade_date": "2026-11-18",
         "market_environment": "RISK_OFF",
-        "market_environment_reason": "331个申万三级行业、3138只映射沪深主板股票完成同口径扫描，主板映射样本收益中位-1.051%，市场风险偏好偏弱。",
-        "market_environment_source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
+        "market_environment_reason": "331个申万三级行业、3138只映射沪深主板股票完成同口径扫描，主板映射样本收益中位-0.992%，风险偏好仍弱。",
+        "market_environment_source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
         "driver_type": "OTHER",
         "discovery_basis": "CONTINUING_STRUCTURE",
         "catalyst_kind": "SUSTAINED_DRIVER",
@@ -465,10 +535,10 @@
           "S330102",
           "S330106"
         ],
-        "strongest_counter": "空调有效样本4只：当日+0.944%、相对主板映射样本中位+1.995个百分点、当日广度75.00%、3日+5.310%/广度75.00%、5日+4.385%/广度75.00%、量比1.155。；冰洗有效样本6只：当日+0.636%、相对主板映射样本中位+1.687个百分点、当日广度66.67%、3日+4.010%/广度66.67%、5日+0.550%/广度66.67%、量比1.743。",
-        "decision_reason": "白色家电完成11月17日复核；现有证据不足以改变既有产业阶段与市场状态。",
-        "decision_state": "观察",
-        "specific_blocker": "仍需更多有效收盘承接、产业盈利传导与核心行业广度的共同确认。"
+        "strongest_counter": "统一补贴可能前置部分需求，且空调与冰洗合计仅10只主板样本，若核心股分歧后不能承接则确认失效。",
+        "decision_reason": "空调与冰洗当日、3日、5日结构和广度同步转强，冰洗放量且统一补贴与出口增长形成独立驱动，重新确认趋势。",
+        "decision_state": "趋势确认",
+        "first_sufficient_evidence_trade_date": "2026-11-18"
       },
       "initial_discovery_basis": "CONTINUING_STRUCTURE",
       "d123_trigger_evidence": {
@@ -485,7 +555,7 @@
       "d123_decision_trade_date": "2026-11-03",
       "d123_backfill_audit": null,
       "surge_followup": null,
-      "last_verified_trade_date": "2026-11-17"
+      "last_verified_trade_date": "2026-11-18"
     },
     {
       "episode_id": "零食#2026-10-30",
@@ -508,9 +578,9 @@
           "industry_name": "零食",
           "benefit_level": "CORE",
           "market_state": "观察",
-          "evidence_trade_date": "2026-11-17",
-          "benefit_reason": "零食企业直接受终端消费、渠道效率、原料成本与产品结构影响。",
-          "market_reason": "零食有效样本9只：当日+0.795%、相对主板映射样本中位+1.846个百分点、当日广度55.56%、3日+0.580%/广度55.56%、5日+0.050%/广度55.56%、量比0.769。"
+          "evidence_trade_date": "2026-11-18",
+          "benefit_reason": "零食企业直接受终端需求、渠道效率与产品结构变化影响。",
+          "market_reason": "零食有效样本9只：当日-1.208%、相对主板映射样本中位-0.216个百分点、当日广度22.22%、3日+0.730%/广度55.56%、5日-2.070%/广度44.44%、量比0.753。"
         }
       ],
       "supporting_evidence": [
@@ -578,6 +648,15 @@
           "source": "https://github.com/xwan008/a-market-data/blob/e051d42f7854a27888368884f8d90fad7b34310c/data/research/sector_discovery_audit.json",
           "finding": "零食有效样本9只：当日+1.250%、相对主板映射样本中位+2.616个百分点、当日广度66.67%、3日-0.510%/广度44.44%、5日-1.290%/广度22.22%、量比0.924。",
           "industry_code": "S340801"
+        },
+        {
+          "dimension": "MARKET_STRUCTURE",
+          "direction": "COUNTER",
+          "impact": "STRUCTURAL",
+          "trade_date": "2026-11-18",
+          "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+          "finding": "零食有效样本9只：当日-1.208%、相对主板映射样本中位-0.216个百分点、当日广度22.22%、3日+0.730%/广度55.56%、5日-2.070%/广度44.44%、量比0.753。",
+          "industry_code": "S340801"
         }
       ],
       "invalidation_conditions": [
@@ -589,7 +668,7 @@
       "participation_timing": "D1仅观察，等待后续有效收盘的承接、相对强度和产业证据；不追单日强势。",
       "in_new_position_priority": false,
       "priority_rank": null,
-      "change_reason": "零食完成11月17日复核；现有证据不足以改变既有产业阶段与市场状态。",
+      "change_reason": "零食3日尚为正但当日与5日结构转弱，维持观察且不改写既有产业阶段。",
       "state_history": [
         {
           "trade_date": "2026-10-30",
@@ -621,10 +700,10 @@
         }
       ],
       "confirmation_audit": {
-        "asof_trade_date": "2026-11-17",
+        "asof_trade_date": "2026-11-18",
         "market_environment": "RISK_OFF",
-        "market_environment_reason": "331个申万三级行业、3138只映射沪深主板股票完成同口径扫描，主板映射样本收益中位-1.051%，市场风险偏好偏弱。",
-        "market_environment_source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
+        "market_environment_reason": "331个申万三级行业、3138只映射沪深主板股票完成同口径扫描，主板映射样本收益中位-0.992%，风险偏好仍弱。",
+        "market_environment_source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
         "driver_type": "OTHER",
         "discovery_basis": "CONTINUING_STRUCTURE",
         "catalyst_kind": "SUSTAINED_DRIVER",
@@ -634,10 +713,10 @@
         "core_industry_codes": [
           "S340801"
         ],
-        "strongest_counter": "零食有效样本9只：当日+0.795%、相对主板映射样本中位+1.846个百分点、当日广度55.56%、3日+0.580%/广度55.56%、5日+0.050%/广度55.56%、量比0.769。",
-        "decision_reason": "零食完成11月17日复核；现有证据不足以改变既有产业阶段与市场状态。",
+        "strongest_counter": "零食有效样本9只：当日-1.208%、相对主板映射样本中位-0.216个百分点、当日广度22.22%、3日+0.730%/广度55.56%、5日-2.070%/广度44.44%、量比0.753。",
+        "decision_reason": "零食3日尚为正但当日与5日结构转弱，维持观察且不改写既有产业阶段。",
         "decision_state": "观察",
-        "specific_blocker": "仍需更多有效收盘承接、产业盈利传导与核心行业广度的共同确认。"
+        "specific_blocker": "零食仍缺5日正结构、核心股分歧承接和更广泛利润改善证据。"
       },
       "initial_discovery_basis": "CONTINUING_STRUCTURE",
       "d123_trigger_evidence": {
@@ -654,7 +733,7 @@
       "d123_decision_trade_date": "2026-11-03",
       "d123_backfill_audit": null,
       "surge_followup": null,
-      "last_verified_trade_date": "2026-11-17"
+      "last_verified_trade_date": "2026-11-18"
     },
     {
       "episode_id": "航空运输/机场#2026-11-03",
@@ -679,18 +758,18 @@
           "industry_name": "航空运输",
           "benefit_level": "CORE",
           "market_state": "观察",
-          "evidence_trade_date": "2026-11-17",
-          "benefit_reason": "该三级行业是主题的核心或直接主营环节，收入利润仍需经营数据验证。",
-          "market_reason": "航空运输有效样本8只：当日-0.578%、相对主板映射样本中位+0.474个百分点、当日广度25.00%、3日-0.320%/广度37.50%、5日-3.570%/广度0.00%、量比0.715。"
+          "evidence_trade_date": "2026-11-18",
+          "benefit_reason": "航空运输直接受客运需求、票价、客座率与航油成本影响。",
+          "market_reason": "航空运输有效样本8只：当日-1.141%、相对主板映射样本中位-0.149个百分点、当日广度12.50%、3日-0.615%/广度50.00%、5日-2.605%/广度25.00%、量比0.817。"
         },
         {
           "industry_code": "S421002",
           "industry_name": "机场",
-          "benefit_level": "DIRECT",
+          "benefit_level": "CORE",
           "market_state": "观察",
-          "evidence_trade_date": "2026-11-17",
-          "benefit_reason": "该三级行业是主题的核心或直接主营环节，收入利润仍需经营数据验证。",
-          "market_reason": "机场有效样本4只：当日+0.156%、相对主板映射样本中位+1.207个百分点、当日广度75.00%、3日+1.435%/广度100.00%、5日+1.080%/广度100.00%、量比0.913。"
+          "evidence_trade_date": "2026-11-18",
+          "benefit_reason": "机场直接受航班量、旅客吞吐与免税商业活动影响。",
+          "market_reason": "机场有效样本4只：当日-0.525%、相对主板映射样本中位+0.467个百分点、当日广度50.00%、3日+0.870%/广度75.00%、5日+1.525%/广度50.00%、量比1.029。"
         }
       ],
       "supporting_evidence": [
@@ -756,6 +835,15 @@
           "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
           "finding": "机场有效样本4只：当日+0.156%、相对主板映射样本中位+1.207个百分点、当日广度75.00%、3日+1.435%/广度100.00%、5日+1.080%/广度100.00%、量比0.913。",
           "industry_code": "S421002"
+        },
+        {
+          "dimension": "MARKET_STRUCTURE",
+          "direction": "SUPPORT",
+          "impact": "STRUCTURAL",
+          "trade_date": "2026-11-18",
+          "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+          "finding": "机场有效样本4只：当日-0.525%、相对主板映射样本中位+0.467个百分点、当日广度50.00%、3日+0.870%/广度75.00%、5日+1.525%/广度50.00%、量比1.029。",
+          "industry_code": "S421002"
         }
       ],
       "contrary_evidence": [
@@ -785,6 +873,15 @@
           "source": "https://github.com/xwan008/a-market-data/blob/e051d42f7854a27888368884f8d90fad7b34310c/data/research/sector_discovery_audit.json",
           "finding": "航空运输有效样本8只：当日+0.776%、相对主板映射样本中位+2.142个百分点、当日广度75.00%、3日-0.595%/广度37.50%、5日-0.240%/广度37.50%、量比0.784。",
           "industry_code": "S421001"
+        },
+        {
+          "dimension": "MARKET_STRUCTURE",
+          "direction": "COUNTER",
+          "impact": "STRUCTURAL",
+          "trade_date": "2026-11-18",
+          "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+          "finding": "航空运输有效样本8只：当日-1.141%、相对主板映射样本中位-0.149个百分点、当日广度12.50%、3日-0.615%/广度50.00%、5日-2.605%/广度25.00%、量比0.817。",
+          "industry_code": "S421001"
         }
       ],
       "invalidation_conditions": [
@@ -796,7 +893,7 @@
       "participation_timing": "D1仅观察或候选跟踪，等待后续有效收盘承接及产业兑现；不追单日强势。",
       "in_new_position_priority": false,
       "priority_rank": null,
-      "change_reason": "航空运输/机场完成11月17日复核；现有证据不足以改变既有产业阶段与市场状态。",
+      "change_reason": "机场保持正向多日结构，但航空运输当日、3日与5日偏弱，主题扩散不足，维持观察。",
       "state_history": [
         {
           "trade_date": "2026-11-03",
@@ -828,10 +925,10 @@
         }
       ],
       "confirmation_audit": {
-        "asof_trade_date": "2026-11-17",
+        "asof_trade_date": "2026-11-18",
         "market_environment": "RISK_OFF",
-        "market_environment_reason": "331个申万三级行业、3138只映射沪深主板股票完成同口径扫描，主板映射样本收益中位-1.051%，市场风险偏好偏弱。",
-        "market_environment_source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
+        "market_environment_reason": "331个申万三级行业、3138只映射沪深主板股票完成同口径扫描，主板映射样本收益中位-0.992%，风险偏好仍弱。",
+        "market_environment_source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
         "driver_type": "OTHER",
         "discovery_basis": "CONTINUING_STRUCTURE",
         "catalyst_kind": "SUSTAINED_DRIVER",
@@ -842,10 +939,10 @@
           "S421001",
           "S421002"
         ],
-        "strongest_counter": "航空运输有效样本8只：当日-0.578%、相对主板映射样本中位+0.474个百分点、当日广度25.00%、3日-0.320%/广度37.50%、5日-3.570%/广度0.00%、量比0.715。；机场有效样本4只：当日+0.156%、相对主板映射样本中位+1.207个百分点、当日广度75.00%、3日+1.435%/广度100.00%、5日+1.080%/广度100.00%、量比0.913。",
-        "decision_reason": "航空运输/机场完成11月17日复核；现有证据不足以改变既有产业阶段与市场状态。",
+        "strongest_counter": "航空运输有效样本8只：当日-1.141%、相对主板映射样本中位-0.149个百分点、当日广度12.50%、3日-0.615%/广度50.00%、5日-2.605%/广度25.00%、量比0.817。",
+        "decision_reason": "机场保持正向多日结构，但航空运输当日、3日与5日偏弱，主题扩散不足，维持观察。",
         "decision_state": "观察",
-        "specific_blocker": "仍需更多有效收盘承接、产业盈利传导与核心行业广度的共同确认。"
+        "specific_blocker": "航空运输仍缺5日正结构和主板核心股广度，且航油成本与票价收益改善尚未共同确认。"
       },
       "initial_discovery_basis": "CONTINUING_STRUCTURE",
       "d123_trigger_evidence": {
@@ -862,7 +959,7 @@
       "d123_decision_trade_date": "2026-11-05",
       "d123_backfill_audit": null,
       "surge_followup": null,
-      "last_verified_trade_date": "2026-11-17"
+      "last_verified_trade_date": "2026-11-18"
     },
     {
       "episode_id": "银行#2026-11-16",
@@ -891,36 +988,36 @@
           "industry_name": "国有大型银行Ⅲ",
           "benefit_level": "CORE",
           "market_state": "趋势确认",
-          "evidence_trade_date": "2026-11-17",
-          "benefit_reason": "国有大型银行Ⅲ为银行直接主营与盈利承接环节，受益路径按本轮行业经营资料核验。",
-          "market_reason": "国有大型银行Ⅲ有效样本6只：当日+0.189%、相对主板映射样本中位+1.240个百分点、当日广度83.33%、3日+3.785%/广度100.00%、5日+3.670%/广度100.00%、量比0.864。"
+          "evidence_trade_date": "2026-11-18",
+          "benefit_reason": "国有大型银行直接受资产扩张、息差和非息收入影响。",
+          "market_reason": "国有大型银行Ⅲ有效样本6只：当日+0.098%、相对主板映射样本中位+1.090个百分点、当日广度66.67%、3日+2.045%/广度100.00%、5日+4.585%/广度100.00%、量比0.714。"
         },
         {
           "industry_code": "S480301",
           "industry_name": "股份制银行Ⅲ",
           "benefit_level": "CORE",
           "market_state": "趋势确认",
-          "evidence_trade_date": "2026-11-17",
-          "benefit_reason": "股份制银行Ⅲ为银行直接主营与盈利承接环节，受益路径按本轮行业经营资料核验。",
-          "market_reason": "股份制银行Ⅲ有效样本9只：当日+0.115%、相对主板映射样本中位+1.166个百分点、当日广度55.56%、3日+3.480%/广度100.00%、5日+2.510%/广度100.00%、量比1.079。"
+          "evidence_trade_date": "2026-11-18",
+          "benefit_reason": "股份制银行直接受资产质量、息差和非息收入影响。",
+          "market_reason": "股份制银行Ⅲ有效样本9只：当日-0.285%、相对主板映射样本中位+0.707个百分点、当日广度33.33%、3日+2.100%/广度100.00%、5日+3.660%/广度100.00%、量比0.903。"
         },
         {
           "industry_code": "S480401",
           "industry_name": "城商行Ⅲ",
           "benefit_level": "CORE",
           "market_state": "趋势确认",
-          "evidence_trade_date": "2026-11-17",
-          "benefit_reason": "城商行Ⅲ为银行直接主营与盈利承接环节，受益路径按本轮行业经营资料核验。",
-          "market_reason": "城商行Ⅲ有效样本17只：当日+0.429%、相对主板映射样本中位+1.480个百分点、当日广度58.82%、3日+3.710%/广度100.00%、5日+3.290%/广度88.24%、量比0.990。"
+          "evidence_trade_date": "2026-11-18",
+          "benefit_reason": "城商行直接受区域信贷、资产质量与息差变化影响。",
+          "market_reason": "城商行Ⅲ有效样本17只：当日-0.521%、相对主板映射样本中位+0.471个百分点、当日广度23.53%、3日+1.460%/广度70.59%、5日+3.710%/广度76.47%、量比0.821。"
         },
         {
           "industry_code": "S480501",
           "industry_name": "农商行Ⅲ",
           "benefit_level": "CORE",
           "market_state": "趋势确认",
-          "evidence_trade_date": "2026-11-17",
-          "benefit_reason": "农商行Ⅲ为银行直接主营与盈利承接环节，受益路径按本轮行业经营资料核验。",
-          "market_reason": "农商行Ⅲ有效样本10只：当日-0.078%、相对主板映射样本中位+0.973个百分点、当日广度30.00%、3日+2.415%/广度100.00%、5日+2.040%/广度90.00%、量比0.990。"
+          "evidence_trade_date": "2026-11-18",
+          "benefit_reason": "农商行直接受区域信贷、资产质量与息差变化影响。",
+          "market_reason": "农商行Ⅲ有效样本10只：当日-1.082%、相对主板映射样本中位-0.090个百分点、当日广度10.00%、3日+0.350%/广度60.00%、5日+1.045%/广度100.00%、量比0.877。"
         }
       ],
       "supporting_evidence": [
@@ -1148,6 +1245,42 @@
           "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
           "finding": "农商行Ⅲ有效样本10只：当日-0.078%、相对主板映射样本中位+0.973个百分点、当日广度30.00%、3日+2.415%/广度100.00%、5日+2.040%/广度90.00%、量比0.990。",
           "industry_code": "S480501"
+        },
+        {
+          "dimension": "MARKET_STRUCTURE",
+          "direction": "SUPPORT",
+          "impact": "STRUCTURAL",
+          "trade_date": "2026-11-18",
+          "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+          "finding": "国有大型银行Ⅲ有效样本6只：当日+0.098%、相对主板映射样本中位+1.090个百分点、当日广度66.67%、3日+2.045%/广度100.00%、5日+4.585%/广度100.00%、量比0.714。",
+          "industry_code": "S480201"
+        },
+        {
+          "dimension": "MARKET_STRUCTURE",
+          "direction": "SUPPORT",
+          "impact": "STRUCTURAL",
+          "trade_date": "2026-11-18",
+          "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+          "finding": "股份制银行Ⅲ有效样本9只：当日-0.285%、相对主板映射样本中位+0.707个百分点、当日广度33.33%、3日+2.100%/广度100.00%、5日+3.660%/广度100.00%、量比0.903。",
+          "industry_code": "S480301"
+        },
+        {
+          "dimension": "MARKET_STRUCTURE",
+          "direction": "SUPPORT",
+          "impact": "STRUCTURAL",
+          "trade_date": "2026-11-18",
+          "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+          "finding": "城商行Ⅲ有效样本17只：当日-0.521%、相对主板映射样本中位+0.471个百分点、当日广度23.53%、3日+1.460%/广度70.59%、5日+3.710%/广度76.47%、量比0.821。",
+          "industry_code": "S480401"
+        },
+        {
+          "dimension": "MARKET_STRUCTURE",
+          "direction": "SUPPORT",
+          "impact": "STRUCTURAL",
+          "trade_date": "2026-11-18",
+          "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+          "finding": "农商行Ⅲ有效样本10只：当日-1.082%、相对主板映射样本中位-0.090个百分点、当日广度10.00%、3日+0.350%/广度60.00%、5日+1.045%/广度100.00%、量比0.877。",
+          "industry_code": "S480501"
         }
       ],
       "contrary_evidence": [
@@ -1169,8 +1302,8 @@
       ],
       "participation_timing": "趋势确认不等于可直接买入；等待回撤承接、风险边界和独立买点流程确认。",
       "in_new_position_priority": true,
-      "priority_rank": 1,
-      "change_reason": "11月17日复核维持趋势确认；四类银行3/5日结构与广度延续，行业经营改善逻辑仍有效。",
+      "priority_rank": 2,
+      "change_reason": "四类银行3日和5日结构整体延续，经营改善证据未被推翻，维持趋势确认。",
       "state_history": [
         {
           "trade_date": "2026-11-16",
@@ -1181,10 +1314,10 @@
         }
       ],
       "confirmation_audit": {
-        "asof_trade_date": "2026-11-17",
+        "asof_trade_date": "2026-11-18",
         "market_environment": "RISK_OFF",
-        "market_environment_reason": "331个申万三级行业、3138只映射沪深主板股票完成同口径扫描，主板映射样本收益中位-1.051%，市场风险偏好偏弱。",
-        "market_environment_source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
+        "market_environment_reason": "331个申万三级行业、3138只映射沪深主板股票完成同口径扫描，主板映射样本收益中位-0.992%，风险偏好仍弱。",
+        "market_environment_source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
         "driver_type": "INDUSTRIAL_GROWTH",
         "discovery_basis": "CONTINUING_STRUCTURE",
         "catalyst_kind": "SUSTAINED_DRIVER",
@@ -1197,8 +1330,8 @@
           "S480401",
           "S480501"
         ],
-        "strongest_counter": "银行内部业绩仍有分化，且防御轮动可能放大短期相对强度。",
-        "decision_reason": "四类银行3/5日结构与广度继续保持，产业经营改善证据未被推翻，维持趋势确认。",
+        "strongest_counter": "农商行当日-1.082%、广度仅10%，银行内部短线分化仍明显。",
+        "decision_reason": "四类银行3日和5日结构整体延续，经营改善证据未被推翻，维持趋势确认。",
         "decision_state": "趋势确认",
         "first_sufficient_evidence_trade_date": "2026-11-16"
       },
@@ -1217,7 +1350,7 @@
       "d123_decision": "CONFIRMED",
       "d123_decision_trade_date": "2026-11-16",
       "d123_backfill_audit": null,
-      "last_verified_trade_date": "2026-11-17",
+      "last_verified_trade_date": "2026-11-18",
       "discovery_source": "MODEL_ONLY"
     },
     {
@@ -1241,9 +1374,9 @@
           "industry_name": "线下药店",
           "benefit_level": "CORE",
           "market_state": "趋势确认",
-          "evidence_trade_date": "2026-11-17",
-          "benefit_reason": "线下药店为线下药店直接主营与盈利承接环节，受益路径按本轮行业经营资料核验。",
-          "market_reason": "线下药店有效样本6只：当日+0.410%、相对主板映射样本中位+1.461个百分点、当日广度66.67%、3日+3.380%/广度66.67%、5日+3.865%/广度66.67%、量比0.826。"
+          "evidence_trade_date": "2026-11-18",
+          "benefit_reason": "线下药店直接受同店客流、门店出清、医保合规与费用效率影响。",
+          "market_reason": "线下药店有效样本6只：当日-1.086%、相对主板映射样本中位-0.093个百分点、当日广度16.67%、3日+2.915%/广度66.67%、5日+3.720%/广度66.67%、量比0.669。"
         }
       ],
       "supporting_evidence": [
@@ -1309,6 +1442,24 @@
           "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
           "finding": "线下药店有效样本6只：当日+0.410%、相对主板映射样本中位+1.461个百分点、当日广度66.67%、3日+3.380%/广度66.67%、5日+3.865%/广度66.67%、量比0.826。",
           "industry_code": "S370403"
+        },
+        {
+          "dimension": "MARKET_STRUCTURE",
+          "direction": "SUPPORT",
+          "impact": "STRUCTURAL",
+          "trade_date": "2026-11-18",
+          "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+          "finding": "线下药店有效样本6只：当日-1.086%、相对主板映射样本中位-0.093个百分点、当日广度16.67%、3日+2.915%/广度66.67%、5日+3.720%/广度66.67%、量比0.669。",
+          "industry_code": "S370403"
+        },
+        {
+          "dimension": "MARKET_BREADTH",
+          "direction": "SUPPORT",
+          "impact": "NORMAL",
+          "trade_date": "2026-11-18",
+          "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+          "finding": "线下药店有效样本6只：当日-1.086%、相对主板映射样本中位-0.093个百分点、当日广度16.67%、3日+2.915%/广度66.67%、5日+3.720%/广度66.67%、量比0.669。",
+          "industry_code": "S370403"
         }
       ],
       "contrary_evidence": [
@@ -1339,8 +1490,8 @@
       ],
       "participation_timing": "D1不追涨，等待后续有效收盘承接及产业兑现复核。",
       "in_new_position_priority": true,
-      "priority_rank": 2,
-      "change_reason": "11月17日D2复核确认：线下药店3/5日结构延续，行业出清与头部同店、收入及利润改善相互验证。",
+      "priority_rank": 3,
+      "change_reason": "线下药店当日回落但3日、5日结构及广度仍延续，经营修复证据未被推翻，维持趋势确认。",
       "state_history": [
         {
           "trade_date": "2026-11-16",
@@ -1358,10 +1509,10 @@
         }
       ],
       "confirmation_audit": {
-        "asof_trade_date": "2026-11-17",
+        "asof_trade_date": "2026-11-18",
         "market_environment": "RISK_OFF",
-        "market_environment_reason": "331个申万三级行业、3138只映射沪深主板股票完成同口径扫描，主板映射样本收益中位-1.051%，市场风险偏好偏弱。",
-        "market_environment_source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
+        "market_environment_reason": "331个申万三级行业、3138只映射沪深主板股票完成同口径扫描，主板映射样本收益中位-0.992%，风险偏好仍弱。",
+        "market_environment_source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
         "driver_type": "INDUSTRIAL_GROWTH",
         "discovery_basis": "CONTINUING_STRUCTURE",
         "catalyst_kind": "SUSTAINED_DRIVER",
@@ -1371,8 +1522,8 @@
         "core_industry_codes": [
           "S370403"
         ],
-        "strongest_counter": "行业修复仍分化，医保监管、客流与费用压力可能削弱持续性。",
-        "decision_reason": "D2多日结构、广度与相对强度延续，并有行业出清和头部经营修复的独立产业证据，达到趋势确认门槛。",
+        "strongest_counter": "线下药店当日-1.086%、上涨广度16.67%、量比0.669，短线承接与成交参与度走弱。",
+        "decision_reason": "线下药店当日回落但3日、5日结构及广度仍延续，经营修复证据未被推翻，维持趋势确认。",
         "decision_state": "趋势确认",
         "first_sufficient_evidence_trade_date": "2026-11-17"
       },
@@ -1391,7 +1542,7 @@
       "d123_decision": "CONFIRMED",
       "d123_decision_trade_date": "2026-11-17",
       "d123_backfill_audit": null,
-      "last_verified_trade_date": "2026-11-17",
+      "last_verified_trade_date": "2026-11-18",
       "discovery_source": "MODEL_ONLY"
     },
     {
@@ -1399,7 +1550,7 @@
       "trend_name": "核电运营",
       "first_seen_trade_date": "2026-11-16",
       "trend_state": "T1",
-      "market_state": "观察",
+      "market_state": "趋势确认",
       "trend_basis": "A_SHARE",
       "commodity_anchor": null,
       "lifecycle_status": "有效",
@@ -1414,10 +1565,10 @@
           "industry_code": "S410108",
           "industry_name": "核力发电",
           "benefit_level": "CORE",
-          "market_state": "观察",
-          "evidence_trade_date": "2026-11-17",
-          "benefit_reason": "核力发电为核电运营直接主营与盈利承接环节，受益路径按本轮行业经营资料核验。",
-          "market_reason": "核力发电有效样本3只：当日-0.605%、相对主板映射样本中位+0.446个百分点、当日广度33.33%、3日+0.990%/广度100.00%、5日+0.000%/广度33.33%、量比0.797。"
+          "market_state": "趋势确认",
+          "evidence_trade_date": "2026-11-18",
+          "benefit_reason": "核力发电运营商直接受在运机组、利用小时与核准投产节奏影响。",
+          "market_reason": "核力发电有效样本3只：当日+0.508%、相对主板映射样本中位+1.500个百分点、当日广度66.67%、3日+0.860%/广度66.67%、5日+2.170%/广度66.67%、量比1.029。"
         }
       ],
       "supporting_evidence": [
@@ -1483,6 +1634,33 @@
           "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
           "finding": "核力发电有效样本3只：当日-0.605%、相对主板映射样本中位+0.446个百分点、当日广度33.33%、3日+0.990%/广度100.00%、5日+0.000%/广度33.33%、量比0.797。",
           "industry_code": "S410108"
+        },
+        {
+          "dimension": "MARKET_STRUCTURE",
+          "direction": "SUPPORT",
+          "impact": "STRUCTURAL",
+          "trade_date": "2026-11-18",
+          "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+          "finding": "核力发电有效样本3只：当日+0.508%、相对主板映射样本中位+1.500个百分点、当日广度66.67%、3日+0.860%/广度66.67%、5日+2.170%/广度66.67%、量比1.029。",
+          "industry_code": "S410108"
+        },
+        {
+          "dimension": "MARKET_BREADTH",
+          "direction": "SUPPORT",
+          "impact": "NORMAL",
+          "trade_date": "2026-11-18",
+          "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+          "finding": "核力发电有效样本3只：当日+0.508%、相对主板映射样本中位+1.500个百分点、当日广度66.67%、3日+0.860%/广度66.67%、5日+2.170%/广度66.67%、量比1.029。",
+          "industry_code": "S410108"
+        },
+        {
+          "dimension": "RELATIVE_STRENGTH",
+          "direction": "SUPPORT",
+          "impact": "NORMAL",
+          "trade_date": "2026-11-18",
+          "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+          "finding": "核力发电有效样本3只：当日+0.508%、相对主板映射样本中位+1.500个百分点、当日广度66.67%、3日+0.860%/广度66.67%、5日+2.170%/广度66.67%、量比1.029。",
+          "industry_code": "S410108"
         }
       ],
       "contrary_evidence": [
@@ -1505,7 +1683,7 @@
       "participation_timing": "D1不追涨，等待后续有效收盘承接及产业兑现复核。",
       "in_new_position_priority": false,
       "priority_rank": null,
-      "change_reason": "核电运营完成11月17日复核；现有证据不足以改变既有产业阶段与市场状态。",
+      "change_reason": "D3核力发电3日、5日结构转正且当日相对市场领先，叠加核电在运与核准投产的持续产业驱动，完成确认。",
       "state_history": [
         {
           "trade_date": "2026-11-16",
@@ -1513,13 +1691,20 @@
           "to": "观察",
           "event": "new_observation",
           "reason": "独立扫描发现并依据多日市场结构及产业证据评为观察。"
+        },
+        {
+          "trade_date": "2026-11-18",
+          "from": "观察",
+          "to": "趋势确认",
+          "event": "evidence_based_upgrade",
+          "reason": "D3核力发电3日、5日结构转正且当日相对市场领先，叠加核电在运与核准投产的持续产业驱动，完成确认。"
         }
       ],
       "confirmation_audit": {
-        "asof_trade_date": "2026-11-17",
+        "asof_trade_date": "2026-11-18",
         "market_environment": "RISK_OFF",
-        "market_environment_reason": "331个申万三级行业、3138只映射沪深主板股票完成同口径扫描，主板映射样本收益中位-1.051%，市场风险偏好偏弱。",
-        "market_environment_source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
+        "market_environment_reason": "331个申万三级行业、3138只映射沪深主板股票完成同口径扫描，主板映射样本收益中位-0.992%，风险偏好仍弱。",
+        "market_environment_source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
         "driver_type": "INDUSTRIAL_GROWTH",
         "discovery_basis": "CONTINUING_STRUCTURE",
         "catalyst_kind": "SUSTAINED_DRIVER",
@@ -1529,10 +1714,10 @@
         "core_industry_codes": [
           "S410108"
         ],
-        "strongest_counter": "核力发电有效样本3只：当日-0.605%、相对主板映射样本中位+0.446个百分点、当日广度33.33%、3日+0.990%/广度100.00%、5日+0.000%/广度33.33%、量比0.797。",
-        "decision_reason": "核电运营完成11月17日复核；现有证据不足以改变既有产业阶段与市场状态。",
-        "decision_state": "观察",
-        "specific_blocker": "仍需更多有效收盘承接、产业盈利传导与核心行业广度的共同确认。"
+        "strongest_counter": "核力发电主板有效样本仅3只，确认仍受小样本和单一三级行业约束。",
+        "decision_reason": "D3核力发电3日、5日结构转正且当日相对市场领先，叠加核电在运与核准投产的持续产业驱动，完成确认。",
+        "decision_state": "趋势确认",
+        "first_sufficient_evidence_trade_date": "2026-11-18"
       },
       "initial_discovery_basis": "CONTINUING_STRUCTURE",
       "d123_trigger_evidence": {
@@ -1544,13 +1729,117 @@
         "finding": "核力发电有效样本3只：当日+1.955%、相对主板映射样本中位+3.321个百分点、当日广度100.00%、3日+3.550%/广度100.00%、5日+0.420%/广度66.67%、量比1.174。",
         "industry_code": "S410108"
       },
-      "d123_stage": "D2",
+      "d123_stage": "D3",
       "d123_trigger_trade_date": "2026-11-16",
+      "d123_decision": "CONFIRMED",
+      "d123_decision_trade_date": "2026-11-18",
+      "d123_backfill_audit": null,
+      "last_verified_trade_date": "2026-11-18",
+      "discovery_source": "MODEL_ONLY"
+    },
+    {
+      "episode_id": "港口#2026-11-18",
+      "trend_name": "港口",
+      "first_seen_trade_date": "2026-11-18",
+      "trend_state": "T0",
+      "market_state": "候选趋势",
+      "trend_basis": "A_SHARE",
+      "commodity_anchor": null,
+      "lifecycle_status": "有效",
+      "industry_codes": [
+        "S421102"
+      ],
+      "industry_names": [
+        "港口"
+      ],
+      "industry_assessments": [
+        {
+          "industry_code": "S421102",
+          "industry_name": "港口",
+          "benefit_level": "CORE",
+          "market_state": "候选趋势",
+          "evidence_trade_date": "2026-11-18",
+          "benefit_reason": "港口运营商直接受货物与集装箱吞吐、费率和资产利用率影响。",
+          "market_reason": "港口有效样本16只：当日+0.462%、相对主板映射样本中位+1.455个百分点、当日广度62.50%、3日+2.020%/广度78.57%、5日+0.780%/广度57.14%、量比0.920。"
+        }
+      ],
+      "supporting_evidence": [
+        {
+          "dimension": "MARKET_STRUCTURE",
+          "direction": "SUPPORT",
+          "impact": "STRUCTURAL",
+          "trade_date": "2026-11-18",
+          "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+          "finding": "港口有效样本16只：当日+0.462%、相对主板映射样本中位+1.455个百分点、当日广度62.50%、3日+2.020%/广度78.57%、5日+0.780%/广度57.14%、量比0.920。",
+          "industry_code": "S421102"
+        }
+      ],
+      "contrary_evidence": [
+        {
+          "dimension": "MARKET_STRUCTURE",
+          "direction": "COUNTER",
+          "impact": "NORMAL",
+          "trade_date": "2026-11-18",
+          "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+          "finding": "港口当日涨幅仅0.462%、量比0.9205，尚未形成放量突破。",
+          "industry_code": "S421102"
+        }
+      ],
+      "invalidation_conditions": [
+        "港口3日和5日结构、广度同步转弱，或吞吐量与费率改善被新证据证伪。"
+      ],
+      "etf_tools": [
+        "交通运输相关ETF"
+      ],
+      "participation_timing": "D1仅候选跟踪，等待D2/D3多日承接与吞吐、费率或盈利证据共同确认。",
+      "in_new_position_priority": false,
+      "priority_rank": null,
+      "change_reason": "港口3日和5日结构及广度改善，前三季度吞吐数据提供产业线索，建立D1候选。",
+      "state_history": [
+        {
+          "trade_date": "2026-11-18",
+          "from": null,
+          "to": "候选趋势",
+          "event": "new_candidate_trend",
+          "reason": "港口多日结构与官方吞吐数据共振，但量能和盈利传导尚不足。"
+        }
+      ],
+      "confirmation_audit": {
+        "asof_trade_date": "2026-11-18",
+        "market_environment": "RISK_OFF",
+        "market_environment_reason": "331个申万三级行业、3138只映射沪深主板股票完成扫描，样本中位-0.992%。",
+        "market_environment_source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+        "driver_type": "INDUSTRIAL_GROWTH",
+        "discovery_basis": "CONTINUING_STRUCTURE",
+        "catalyst_kind": "SUSTAINED_DRIVER",
+        "catalyst_fact": "前三季度全国港口货物吞吐量同比增长0.7%，9月增长2.6%，集装箱吞吐量增长4.5%。",
+        "catalyst_source": "https://xxgk.mot.gov.cn/jigou/zhghs/202610/t20261026_4226700.html",
+        "catalyst_available_at": "2026-10-26T16:00:00+08:00",
+        "core_industry_codes": [
+          "S421102"
+        ],
+        "strongest_counter": "港口当日涨幅仅0.462%、量比0.9205，量价尚未形成强确认。",
+        "decision_reason": "港口3日和5日结构改善且官方吞吐数据正增长，建立候选但不确认。",
+        "decision_state": "候选趋势",
+        "specific_blocker": "仍缺港口核心股放量承接、费率或利润改善以及第二个有效收盘的共同确认。"
+      },
+      "initial_discovery_basis": "CONTINUING_STRUCTURE",
+      "d123_trigger_evidence": {
+        "dimension": "MARKET_STRUCTURE",
+        "direction": "SUPPORT",
+        "impact": "STRUCTURAL",
+        "trade_date": "2026-11-18",
+        "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+        "finding": "港口有效样本16只：当日+0.462%、相对主板映射样本中位+1.455个百分点、当日广度62.50%、3日+2.020%/广度78.57%、5日+0.780%/广度57.14%、量比0.920。",
+        "industry_code": "S421102"
+      },
+      "d123_stage": "D1",
+      "d123_trigger_trade_date": "2026-11-18",
       "d123_decision": "PENDING",
       "d123_decision_trade_date": null,
       "d123_backfill_audit": null,
-      "last_verified_trade_date": "2026-11-17",
-      "discovery_source": "MODEL_ONLY"
+      "discovery_source": "MODEL_ONLY",
+      "last_verified_trade_date": "2026-11-18"
     }
   ],
   "invalidated_history": [
@@ -2848,44 +3137,22 @@
   ],
   "scan_audit": {
     "mode": "full_close",
-    "trade_date": "2026-11-17",
+    "trade_date": "2026-11-18",
     "full_market_scan_completed": true,
     "prior_baseline_mode": "STRICT_PAIR",
-    "source_latest_blob_sha": "bed927ea5773c76484c8d0eb701dca5ec7fb4ca2",
+    "source_latest_blob_sha": "32ad60aa87503271936091e7fbb7290cacb62569",
     "quote_universe_count": 3138,
     "valid_quote_count": 3138,
     "industry_mapped_count": 3138,
-    "independent_discovery_frozen_at": "2026-11-17T18:36:00+08:00",
-    "independent_discovery_count": 7,
+    "independent_discovery_frozen_at": "2026-11-18T18:36:00+08:00",
+    "independent_discovery_count": 4,
     "auxiliary_snapshot_status": "COMPLETE",
-    "auxiliary_snapshot_trade_date": "2026-11-17",
+    "auxiliary_snapshot_trade_date": "2026-11-18",
     "notes": [
       "331个申万三级行业、3138只映射沪深主板股票完成全量扫描。",
-      "独立发现冻结后才读取同日程序快照与11月16日正式账本；程序只作交叉验证。"
+      "独立发现冻结后才读取同日程序快照与11月17日正式账本；程序仅作交叉验证。"
     ],
     "candidate_disposition_audit": [
-      {
-        "candidate_name": "银行",
-        "covered_industries": [
-          "国有大型银行Ⅲ",
-          "股份制银行Ⅲ",
-          "城商行Ⅲ",
-          "农商行Ⅲ"
-        ],
-        "origin": "MODEL_INDEPENDENT",
-        "decision": "CONFIRMED",
-        "supporting_evidence": [
-          {
-            "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-            "finding": "同日331个申万三级行业扫描已核对当日、3日、5日、广度、相对强度与成交代理。"
-          }
-        ],
-        "market_assessment": "四类银行3/5日广度继续高度扩散，经营改善证据未被推翻，维持确认。",
-        "industry_assessment": "已核对产业供需、经营或盈利传导；程序快照只在独立发现冻结后用于交叉验证。",
-        "decisive_reason": "四类银行3/5日广度继续高度扩散，经营改善证据未被推翻，维持确认。",
-        "missing_evidence": "未纳入或未升级者仍缺持续承接、独立产业驱动或真实受益传导中的至少一项。",
-        "recheck_trigger": "后续有效收盘若多日结构和广度延续，并出现可核验经营或利润新证据，再由独立扫描重新评估。"
-      },
       {
         "candidate_name": "白色家电",
         "covered_industries": [
@@ -2893,276 +3160,261 @@
           "冰洗"
         ],
         "origin": "MODEL_INDEPENDENT",
-        "decision": "MERGED_EXISTING",
-        "supporting_evidence": [
-          {
-            "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-            "finding": "同日331个申万三级行业扫描已核对当日、3日、5日、广度、相对强度与成交代理。"
-          }
-        ],
-        "market_assessment": "出口与市场结构改善，但内销和Q3利润承压，合并旧趋势并维持观察。",
-        "industry_assessment": "已核对产业供需、经营或盈利传导；程序快照只在独立发现冻结后用于交叉验证。",
-        "decisive_reason": "出口与市场结构改善，但内销和Q3利润承压，合并旧趋势并维持观察。",
-        "missing_evidence": "未纳入或未升级者仍缺持续承接、独立产业驱动或真实受益传导中的至少一项。",
-        "recheck_trigger": "后续有效收盘若多日结构和广度延续，并出现可核验经营或利润新证据，再由独立扫描重新评估。"
-      },
-      {
-        "candidate_name": "线下药店",
-        "covered_industries": [
-          "线下药店"
-        ],
-        "origin": "MODEL_INDEPENDENT",
         "decision": "CONFIRMED",
         "supporting_evidence": [
           {
-            "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
+            "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
             "finding": "同日331个申万三级行业扫描已核对当日、3日、5日、广度、相对强度与成交代理。"
           }
         ],
-        "market_assessment": "3/5日结构延续，行业出清与头部经营修复共同支持D2确认。",
-        "industry_assessment": "已核对产业供需、经营或盈利传导；程序快照只在独立发现冻结后用于交叉验证。",
-        "decisive_reason": "3/5日结构延续，行业出清与头部经营修复共同支持D2确认。",
-        "missing_evidence": "未纳入或未升级者仍缺持续承接、独立产业驱动或真实受益传导中的至少一项。",
-        "recheck_trigger": "后续有效收盘若多日结构和广度延续，并出现可核验经营或利润新证据，再由独立扫描重新评估。"
+        "market_assessment": "多日结构、广度、量能与统一补贴和出口增长共同支持重新确认。",
+        "industry_assessment": "已独立核对产业驱动；程序快照只在独立发现冻结后交叉验证。",
+        "decisive_reason": "多日结构、广度、量能与统一补贴和出口增长共同支持重新确认。",
+        "missing_evidence": "未升级者仍缺持续承接、独立产业驱动或真实盈利传导。",
+        "recheck_trigger": "后续有效收盘若多日结构与产业证据延续，再由独立扫描评估。"
       },
       {
-        "candidate_name": "酒店",
+        "candidate_name": "港口",
         "covered_industries": [
-          "酒店"
+          "港口"
+        ],
+        "origin": "MODEL_INDEPENDENT",
+        "decision": "CANDIDATE",
+        "supporting_evidence": [
+          {
+            "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+            "finding": "同日331个申万三级行业扫描已核对当日、3日、5日、广度、相对强度与成交代理。"
+          }
+        ],
+        "market_assessment": "多日结构与官方吞吐增长支持D1候选，量能和盈利传导尚不足。",
+        "industry_assessment": "已独立核对产业驱动；程序快照只在独立发现冻结后交叉验证。",
+        "decisive_reason": "多日结构与官方吞吐增长支持D1候选，量能和盈利传导尚不足。",
+        "missing_evidence": "未升级者仍缺持续承接、独立产业驱动或真实盈利传导。",
+        "recheck_trigger": "后续有效收盘若多日结构与产业证据延续，再由独立扫描评估。"
+      },
+      {
+        "candidate_name": "高端印制电路板",
+        "covered_industries": [
+          "印制电路板"
         ],
         "origin": "MODEL_INDEPENDENT",
         "decision": "REJECTED",
         "supporting_evidence": [
           {
-            "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
+            "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
             "finding": "同日331个申万三级行业扫描已核对当日、3日、5日、广度、相对强度与成交代理。"
           }
         ],
-        "market_assessment": "RevPAR边际改善，但样本仅4只且5日结构不稳，成熟门店仍承压。",
-        "industry_assessment": "已核对产业供需、经营或盈利传导；程序快照只在独立发现冻结后用于交叉验证。",
-        "decisive_reason": "RevPAR边际改善，但样本仅4只且5日结构不稳，成熟门店仍承压。",
-        "missing_evidence": "未纳入或未升级者仍缺持续承接、独立产业驱动或真实受益传导中的至少一项。",
-        "recheck_trigger": "后续有效收盘若多日结构和广度延续，并出现可核验经营或利润新证据，再由独立扫描重新评估。"
-      },
-      {
-        "candidate_name": "调味发酵品",
-        "covered_industries": [
-          "调味发酵品Ⅲ"
-        ],
-        "origin": "MODEL_INDEPENDENT",
-        "decision": "REJECTED",
-        "supporting_evidence": [
-          {
-            "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-            "finding": "同日331个申万三级行业扫描已核对当日、3日、5日、广度、相对强度与成交代理。"
-          }
-        ],
-        "market_assessment": "市场结构改善但行业前三季度利润同比下降14.7%，盈利传导未确认。",
-        "industry_assessment": "已核对产业供需、经营或盈利传导；程序快照只在独立发现冻结后用于交叉验证。",
-        "decisive_reason": "市场结构改善但行业前三季度利润同比下降14.7%，盈利传导未确认。",
-        "missing_evidence": "未纳入或未升级者仍缺持续承接、独立产业驱动或真实受益传导中的至少一项。",
-        "recheck_trigger": "后续有效收盘若多日结构和广度延续，并出现可核验经营或利润新证据，再由独立扫描重新评估。"
-      },
-      {
-        "candidate_name": "啤酒",
-        "covered_industries": [
-          "啤酒"
-        ],
-        "origin": "MODEL_INDEPENDENT",
-        "decision": "REJECTED",
-        "supporting_evidence": [
-          {
-            "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-            "finding": "同日331个申万三级行业扫描已核对当日、3日、5日、广度、相对强度与成交代理。"
-          }
-        ],
-        "market_assessment": "板块价格结构偏强，但行业产量、收入与利润仍同比下降。",
-        "industry_assessment": "已核对产业供需、经营或盈利传导；程序快照只在独立发现冻结后用于交叉验证。",
-        "decisive_reason": "板块价格结构偏强，但行业产量、收入与利润仍同比下降。",
-        "missing_evidence": "未纳入或未升级者仍缺持续承接、独立产业驱动或真实受益传导中的至少一项。",
-        "recheck_trigger": "后续有效收盘若多日结构和广度延续，并出现可核验经营或利润新证据，再由独立扫描重新评估。"
-      },
-      {
-        "candidate_name": "通信运营商",
-        "covered_industries": [
-          "电信运营商"
-        ],
-        "origin": "MODEL_INDEPENDENT",
-        "decision": "REJECTED",
-        "supporting_evidence": [
-          {
-            "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-            "finding": "同日331个申万三级行业扫描已核对当日、3日、5日、广度、相对强度与成交代理。"
-          }
-        ],
-        "market_assessment": "仅3只样本且缺少当轮产业盈利改善证据。",
-        "industry_assessment": "已核对产业供需、经营或盈利传导；程序快照只在独立发现冻结后用于交叉验证。",
-        "decisive_reason": "仅3只样本且缺少当轮产业盈利改善证据。",
-        "missing_evidence": "未纳入或未升级者仍缺持续承接、独立产业驱动或真实受益传导中的至少一项。",
-        "recheck_trigger": "后续有效收盘若多日结构和广度延续，并出现可核验经营或利润新证据，再由独立扫描重新评估。"
-      },
-      {
-        "candidate_name": "半导体设备/材料",
-        "covered_industries": [
-          "半导体设备",
-          "半导体材料"
-        ],
-        "origin": "AUXILIARY_CROSSCHECK",
-        "decision": "REJECTED",
-        "supporting_evidence": [
-          {
-            "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-            "finding": "同日331个申万三级行业扫描已核对当日、3日、5日、广度、相对强度与成交代理。"
-          }
-        ],
-        "market_assessment": "程序仅显示单日反弹，3/5日收益与广度仍显著为负。",
-        "industry_assessment": "已核对产业供需、经营或盈利传导；程序快照只在独立发现冻结后用于交叉验证。",
-        "decisive_reason": "程序仅显示单日反弹，3/5日收益与广度仍显著为负。",
-        "missing_evidence": "未纳入或未升级者仍缺持续承接、独立产业驱动或真实受益传导中的至少一项。",
-        "recheck_trigger": "后续有效收盘若多日结构和广度延续，并出现可核验经营或利润新证据，再由独立扫描重新评估。"
-      },
-      {
-        "candidate_name": "黄金/贵金属",
-        "covered_industries": [
-          "黄金"
-        ],
-        "origin": "AUXILIARY_CROSSCHECK",
-        "decision": "REJECTED",
-        "supporting_evidence": [
-          {
-            "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-            "finding": "同日331个申万三级行业扫描已核对当日、3日、5日、广度、相对强度与成交代理。"
-          }
-        ],
-        "market_assessment": "程序仅显示单日反弹，3日与5日结构及广度仍明显为负。",
-        "industry_assessment": "已核对产业供需、经营或盈利传导；程序快照只在独立发现冻结后用于交叉验证。",
-        "decisive_reason": "程序仅显示单日反弹，3日与5日结构及广度仍明显为负。",
-        "missing_evidence": "未纳入或未升级者仍缺持续承接、独立产业驱动或真实受益传导中的至少一项。",
-        "recheck_trigger": "后续有效收盘若多日结构和广度延续，并出现可核验经营或利润新证据，再由独立扫描重新评估。"
-      },
-      {
-        "candidate_name": "能源金属",
-        "covered_industries": [
-          "锂",
-          "钴",
-          "镍"
-        ],
-        "origin": "AUXILIARY_CROSSCHECK",
-        "decision": "REJECTED",
-        "supporting_evidence": [
-          {
-            "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-            "finding": "同日331个申万三级行业扫描已核对当日、3日、5日、广度、相对强度与成交代理。"
-          }
-        ],
-        "market_assessment": "程序显示单日反弹，3/5日结构仍为负且缺少商品第一锚共同确认。",
-        "industry_assessment": "已核对产业供需、经营或盈利传导；程序快照只在独立发现冻结后用于交叉验证。",
-        "decisive_reason": "程序显示单日反弹，3/5日结构仍为负且缺少商品第一锚共同确认。",
-        "missing_evidence": "未纳入或未升级者仍缺持续承接、独立产业驱动或真实受益传导中的至少一项。",
-        "recheck_trigger": "后续有效收盘若多日结构和广度延续，并出现可核验经营或利润新证据，再由独立扫描重新评估。"
-      },
-      {
-        "candidate_name": "厨房小家电",
-        "covered_industries": [
-          "厨房小家电"
-        ],
-        "origin": "AUXILIARY_CROSSCHECK",
-        "decision": "REJECTED",
-        "supporting_evidence": [
-          {
-            "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-            "finding": "同日331个申万三级行业扫描已核对当日、3日、5日、广度、相对强度与成交代理。"
-          }
-        ],
-        "market_assessment": "单日较强但5日结构近零，且没有独立产业利润改善证据。",
-        "industry_assessment": "已核对产业供需、经营或盈利传导；程序快照只在独立发现冻结后用于交叉验证。",
-        "decisive_reason": "单日较强但5日结构近零，且没有独立产业利润改善证据。",
-        "missing_evidence": "未纳入或未升级者仍缺持续承接、独立产业驱动或真实受益传导中的至少一项。",
-        "recheck_trigger": "后续有效收盘若多日结构和广度延续，并出现可核验经营或利润新证据，再由独立扫描重新评估。"
-      },
-      {
-        "candidate_name": "磷肥及磷化工",
-        "covered_industries": [
-          "磷肥及磷化工"
-        ],
-        "origin": "AUXILIARY_CROSSCHECK",
-        "decision": "REJECTED",
-        "supporting_evidence": [
-          {
-            "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-            "finding": "同日331个申万三级行业扫描已核对当日、3日、5日、广度、相对强度与成交代理。"
-          }
-        ],
-        "market_assessment": "单日线索缺少3/5日持续结构和价差、库存、供需共同验证。",
-        "industry_assessment": "已核对产业供需、经营或盈利传导；程序快照只在独立发现冻结后用于交叉验证。",
-        "decisive_reason": "单日线索缺少3/5日持续结构和价差、库存、供需共同验证。",
-        "missing_evidence": "未纳入或未升级者仍缺持续承接、独立产业驱动或真实受益传导中的至少一项。",
-        "recheck_trigger": "后续有效收盘若多日结构和广度延续，并出现可核验经营或利润新证据，再由独立扫描重新评估。"
-      },
-      {
-        "candidate_name": "铅锌",
-        "covered_industries": [
-          "铅锌"
-        ],
-        "origin": "AUXILIARY_CROSSCHECK",
-        "decision": "REJECTED",
-        "supporting_evidence": [
-          {
-            "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-            "finding": "同日331个申万三级行业扫描已核对当日、3日、5日、广度、相对强度与成交代理。"
-          }
-        ],
-        "market_assessment": "单日线索缺少多日结构及商品第一锚共同确认。",
-        "industry_assessment": "已核对产业供需、经营或盈利传导；程序快照只在独立发现冻结后用于交叉验证。",
-        "decisive_reason": "单日线索缺少多日结构及商品第一锚共同确认。",
-        "missing_evidence": "未纳入或未升级者仍缺持续承接、独立产业驱动或真实受益传导中的至少一项。",
-        "recheck_trigger": "后续有效收盘若多日结构和广度延续，并出现可核验经营或利润新证据，再由独立扫描重新评估。"
+        "market_assessment": "产业需求强，但3/5日结构和广度显著为负，单日上涨按超跌反弹处理。",
+        "industry_assessment": "已独立核对产业驱动；程序快照只在独立发现冻结后交叉验证。",
+        "decisive_reason": "产业需求强，但3/5日结构和广度显著为负，单日上涨按超跌反弹处理。",
+        "missing_evidence": "未升级者仍缺持续承接、独立产业驱动或真实盈利传导。",
+        "recheck_trigger": "后续有效收盘若多日结构与产业证据延续，再由独立扫描评估。"
       },
       {
         "candidate_name": "火力发电",
         "covered_industries": [
           "火力发电"
         ],
-        "origin": "AUXILIARY_CROSSCHECK",
+        "origin": "MODEL_INDEPENDENT",
         "decision": "REJECTED",
         "supporting_evidence": [
           {
-            "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
+            "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
             "finding": "同日331个申万三级行业扫描已核对当日、3日、5日、广度、相对强度与成交代理。"
           }
         ],
-        "market_assessment": "仅新异动线索，5日结构偏弱且煤电价差盈利传导未确认。",
-        "industry_assessment": "已核对产业供需、经营或盈利传导；程序快照只在独立发现冻结后用于交叉验证。",
-        "decisive_reason": "仅新异动线索，5日结构偏弱且煤电价差盈利传导未确认。",
-        "missing_evidence": "未纳入或未升级者仍缺持续承接、独立产业驱动或真实受益传导中的至少一项。",
-        "recheck_trigger": "后续有效收盘若多日结构和广度延续，并出现可核验经营或利润新证据，再由独立扫描重新评估。"
+        "market_assessment": "市场结构改善，但煤电发电量同比下降且价差盈利传导未确认。",
+        "industry_assessment": "已独立核对产业驱动；程序快照只在独立发现冻结后交叉验证。",
+        "decisive_reason": "市场结构改善，但煤电发电量同比下降且价差盈利传导未确认。",
+        "missing_evidence": "未升级者仍缺持续承接、独立产业驱动或真实盈利传导。",
+        "recheck_trigger": "后续有效收盘若多日结构与产业证据延续，再由独立扫描评估。"
       },
       {
-        "candidate_name": "集成电路封测/分立器件",
+        "candidate_name": "航运",
         "covered_industries": [
-          "集成电路封测",
-          "分立器件"
+          "航运"
+        ],
+        "origin": "MODEL_INDEPENDENT",
+        "decision": "REJECTED",
+        "supporting_evidence": [
+          {
+            "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+            "finding": "同日331个申万三级行业扫描已核对当日、3日、5日、广度、相对强度与成交代理。"
+          }
+        ],
+        "market_assessment": "3日改善但5日仍负且量能不足，未形成独立趋势。",
+        "industry_assessment": "已独立核对产业驱动；程序快照只在独立发现冻结后交叉验证。",
+        "decisive_reason": "3日改善但5日仍负且量能不足，未形成独立趋势。",
+        "missing_evidence": "未升级者仍缺持续承接、独立产业驱动或真实盈利传导。",
+        "recheck_trigger": "后续有效收盘若多日结构与产业证据延续，再由独立扫描评估。"
+      },
+      {
+        "candidate_name": "水力发电",
+        "covered_industries": [
+          "水力发电"
+        ],
+        "origin": "MODEL_INDEPENDENT",
+        "decision": "REJECTED",
+        "supporting_evidence": [
+          {
+            "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+            "finding": "同日331个申万三级行业扫描已核对当日、3日、5日、广度、相对强度与成交代理。"
+          }
+        ],
+        "market_assessment": "广度较好但量能不足且缺当轮独立盈利催化。",
+        "industry_assessment": "已独立核对产业驱动；程序快照只在独立发现冻结后交叉验证。",
+        "decisive_reason": "广度较好但量能不足且缺当轮独立盈利催化。",
+        "missing_evidence": "未升级者仍缺持续承接、独立产业驱动或真实盈利传导。",
+        "recheck_trigger": "后续有效收盘若多日结构与产业证据延续，再由独立扫描评估。"
+      },
+      {
+        "candidate_name": "CPO/光模块",
+        "covered_industries": [
+          "S730204"
         ],
         "origin": "AUXILIARY_CROSSCHECK",
         "decision": "REJECTED",
         "supporting_evidence": [
           {
-            "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
+            "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
             "finding": "同日331个申万三级行业扫描已核对当日、3日、5日、广度、相对强度与成交代理。"
           }
         ],
-        "market_assessment": "与半导体单日反弹重叠，3/5日结构未形成趋势。",
-        "industry_assessment": "已核对产业供需、经营或盈利传导；程序快照只在独立发现冻结后用于交叉验证。",
-        "decisive_reason": "与半导体单日反弹重叠，3/5日结构未形成趋势。",
-        "missing_evidence": "未纳入或未升级者仍缺持续承接、独立产业驱动或真实受益传导中的至少一项。",
-        "recheck_trigger": "后续有效收盘若多日结构和广度延续，并出现可核验经营或利润新证据，再由独立扫描重新评估。"
+        "market_assessment": "程序线索经独立复核后未达到产业与多日市场结构共同确认门槛。",
+        "industry_assessment": "已独立核对产业驱动；程序快照只在独立发现冻结后交叉验证。",
+        "decisive_reason": "程序线索经独立复核后未达到产业与多日市场结构共同确认门槛。",
+        "missing_evidence": "未升级者仍缺持续承接、独立产业驱动或真实盈利传导。",
+        "recheck_trigger": "后续有效收盘若多日结构与产业证据延续，再由独立扫描评估。"
+      },
+      {
+        "candidate_name": "通信服务",
+        "covered_industries": [
+          "S730102",
+          "S730103",
+          "S730104"
+        ],
+        "origin": "AUXILIARY_CROSSCHECK",
+        "decision": "REJECTED",
+        "supporting_evidence": [
+          {
+            "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+            "finding": "同日331个申万三级行业扫描已核对当日、3日、5日、广度、相对强度与成交代理。"
+          }
+        ],
+        "market_assessment": "程序线索经独立复核后未达到产业与多日市场结构共同确认门槛。",
+        "industry_assessment": "已独立核对产业驱动；程序快照只在独立发现冻结后交叉验证。",
+        "decisive_reason": "程序线索经独立复核后未达到产业与多日市场结构共同确认门槛。",
+        "missing_evidence": "未升级者仍缺持续承接、独立产业驱动或真实盈利传导。",
+        "recheck_trigger": "后续有效收盘若多日结构与产业证据延续，再由独立扫描评估。"
+      },
+      {
+        "candidate_name": "元件",
+        "covered_industries": [
+          "S270202",
+          "S270203"
+        ],
+        "origin": "AUXILIARY_CROSSCHECK",
+        "decision": "REJECTED",
+        "supporting_evidence": [
+          {
+            "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+            "finding": "同日331个申万三级行业扫描已核对当日、3日、5日、广度、相对强度与成交代理。"
+          }
+        ],
+        "market_assessment": "程序线索经独立复核后未达到产业与多日市场结构共同确认门槛。",
+        "industry_assessment": "已独立核对产业驱动；程序快照只在独立发现冻结后交叉验证。",
+        "decisive_reason": "程序线索经独立复核后未达到产业与多日市场结构共同确认门槛。",
+        "missing_evidence": "未升级者仍缺持续承接、独立产业驱动或真实盈利传导。",
+        "recheck_trigger": "后续有效收盘若多日结构与产业证据延续，再由独立扫描评估。"
+      },
+      {
+        "candidate_name": "通信设备",
+        "covered_industries": [
+          "S730204",
+          "S730205",
+          "S730206",
+          "S730207"
+        ],
+        "origin": "AUXILIARY_CROSSCHECK",
+        "decision": "REJECTED",
+        "supporting_evidence": [
+          {
+            "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+            "finding": "同日331个申万三级行业扫描已核对当日、3日、5日、广度、相对强度与成交代理。"
+          }
+        ],
+        "market_assessment": "程序线索经独立复核后未达到产业与多日市场结构共同确认门槛。",
+        "industry_assessment": "已独立核对产业驱动；程序快照只在独立发现冻结后交叉验证。",
+        "decisive_reason": "程序线索经独立复核后未达到产业与多日市场结构共同确认门槛。",
+        "missing_evidence": "未升级者仍缺持续承接、独立产业驱动或真实盈利传导。",
+        "recheck_trigger": "后续有效收盘若多日结构与产业证据延续，再由独立扫描评估。"
+      },
+      {
+        "candidate_name": "房屋建设",
+        "covered_industries": [
+          "S620101"
+        ],
+        "origin": "AUXILIARY_CROSSCHECK",
+        "decision": "REJECTED",
+        "supporting_evidence": [
+          {
+            "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+            "finding": "同日331个申万三级行业扫描已核对当日、3日、5日、广度、相对强度与成交代理。"
+          }
+        ],
+        "market_assessment": "程序线索经独立复核后未达到产业与多日市场结构共同确认门槛。",
+        "industry_assessment": "已独立核对产业驱动；程序快照只在独立发现冻结后交叉验证。",
+        "decisive_reason": "程序线索经独立复核后未达到产业与多日市场结构共同确认门槛。",
+        "missing_evidence": "未升级者仍缺持续承接、独立产业驱动或真实盈利传导。",
+        "recheck_trigger": "后续有效收盘若多日结构与产业证据延续，再由独立扫描评估。"
+      },
+      {
+        "candidate_name": "其他电源设备",
+        "covered_industries": [
+          "S630301",
+          "S630304",
+          "S630306"
+        ],
+        "origin": "AUXILIARY_CROSSCHECK",
+        "decision": "REJECTED",
+        "supporting_evidence": [
+          {
+            "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+            "finding": "同日331个申万三级行业扫描已核对当日、3日、5日、广度、相对强度与成交代理。"
+          }
+        ],
+        "market_assessment": "程序线索经独立复核后未达到产业与多日市场结构共同确认门槛。",
+        "industry_assessment": "已独立核对产业驱动；程序快照只在独立发现冻结后交叉验证。",
+        "decisive_reason": "程序线索经独立复核后未达到产业与多日市场结构共同确认门槛。",
+        "missing_evidence": "未升级者仍缺持续承接、独立产业驱动或真实盈利传导。",
+        "recheck_trigger": "后续有效收盘若多日结构与产业证据延续，再由独立扫描评估。"
+      },
+      {
+        "candidate_name": "IT服务",
+        "covered_industries": [
+          "S710301"
+        ],
+        "origin": "AUXILIARY_CROSSCHECK",
+        "decision": "REJECTED",
+        "supporting_evidence": [
+          {
+            "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+            "finding": "同日331个申万三级行业扫描已核对当日、3日、5日、广度、相对强度与成交代理。"
+          }
+        ],
+        "market_assessment": "程序线索经独立复核后未达到产业与多日市场结构共同确认门槛。",
+        "industry_assessment": "已独立核对产业驱动；程序快照只在独立发现冻结后交叉验证。",
+        "decisive_reason": "程序线索经独立复核后未达到产业与多日市场结构共同确认门槛。",
+        "missing_evidence": "未升级者仍缺持续承接、独立产业驱动或真实盈利传导。",
+        "recheck_trigger": "后续有效收盘若多日结构与产业证据延续，再由独立扫描评估。"
       }
     ],
     "state_migration_gate": {
       "mode": "full_close",
-      "previous_registry_blob_sha": "4a5086fa6e30cbeebdb455bd7b39f0ca2b40d69d",
-      "previous_registry_trade_date": "2026-11-16",
-      "current_trade_date": "2026-11-17",
+      "previous_registry_trade_date": "2026-11-17",
+      "current_trade_date": "2026-11-18",
+      "previous_registry_blob_sha": "b90946feeea6e5f514964e8cf3400fe69ed24bd8",
       "reviews": [
         {
           "episode_id": "证券#2026-11-02",
@@ -3171,98 +3423,80 @@
           "proposed_market_state": "观察",
           "previous_trend_state": "T1",
           "proposed_trend_state": "T1",
-          "reason": "证券完成11月17日复核；现有证据不足以改变既有产业阶段与市场状态。",
+          "reason": "证券3日与5日结构仍为负且广度偏低，产业盈利证据未被推翻但不足以重新确认。",
           "evidence": [
             {
               "dimension": "MARKET_STRUCTURE",
               "direction": "COUNTER",
               "impact": "STRUCTURAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "证券Ⅲ有效样本49只：当日-0.368%、相对主板映射样本中位+0.683个百分点、当日广度26.53%、3日-0.400%/广度28.89%、5日-2.140%/广度8.89%、量比0.793。",
-              "industry_code": "S490101"
-            },
-            {
-              "dimension": "MARKET_BREADTH",
-              "direction": "COUNTER",
-              "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "证券Ⅲ有效样本49只：当日-0.368%、相对主板映射样本中位+0.683个百分点、当日广度26.53%、3日-0.400%/广度28.89%、5日-2.140%/广度8.89%、量比0.793。",
-              "industry_code": "S490101"
-            },
-            {
-              "dimension": "RELATIVE_STRENGTH",
-              "direction": "COUNTER",
-              "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "证券Ⅲ有效样本49只：当日-0.368%、相对主板映射样本中位+0.683个百分点、当日广度26.53%、3日-0.400%/广度28.89%、5日-2.140%/广度8.89%、量比0.793。",
+              "trade_date": "2026-11-18",
+              "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+              "finding": "证券Ⅲ有效样本49只：当日-0.586%、相对主板映射样本中位+0.406个百分点、当日广度8.16%、3日-0.900%/广度26.67%、5日-2.620%/广度8.89%、量比0.672。",
               "industry_code": "S490101"
             }
           ]
         },
         {
           "episode_id": "白色家电#2026-10-30",
-          "decision": "HOLD",
+          "decision": "CHANGE",
           "previous_market_state": "观察",
-          "proposed_market_state": "观察",
+          "proposed_market_state": "趋势确认",
           "previous_trend_state": "T0",
           "proposed_trend_state": "T0",
-          "reason": "白色家电完成11月17日复核；现有证据不足以改变既有产业阶段与市场状态。",
+          "reason": "空调与冰洗当日、3日、5日结构和广度同步转强，冰洗放量且统一补贴与出口增长形成独立驱动，重新确认趋势。",
           "evidence": [
             {
               "dimension": "MARKET_STRUCTURE",
               "direction": "SUPPORT",
               "impact": "STRUCTURAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "空调有效样本4只：当日+0.944%、相对主板映射样本中位+1.995个百分点、当日广度75.00%、3日+5.310%/广度75.00%、5日+4.385%/广度75.00%、量比1.155。",
+              "trade_date": "2026-11-18",
+              "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+              "finding": "空调有效样本4只：当日+1.353%、相对主板映射样本中位+2.346个百分点、当日广度100.00%、3日+2.700%/广度100.00%、5日+6.110%/广度75.00%、量比1.736。",
               "industry_code": "S330102"
             },
             {
               "dimension": "MARKET_BREADTH",
               "direction": "SUPPORT",
               "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "空调有效样本4只：当日+0.944%、相对主板映射样本中位+1.995个百分点、当日广度75.00%、3日+5.310%/广度75.00%、5日+4.385%/广度75.00%、量比1.155。",
+              "trade_date": "2026-11-18",
+              "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+              "finding": "空调有效样本4只：当日+1.353%、相对主板映射样本中位+2.346个百分点、当日广度100.00%、3日+2.700%/广度100.00%、5日+6.110%/广度75.00%、量比1.736。",
               "industry_code": "S330102"
             },
             {
               "dimension": "RELATIVE_STRENGTH",
               "direction": "SUPPORT",
               "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "空调有效样本4只：当日+0.944%、相对主板映射样本中位+1.995个百分点、当日广度75.00%、3日+5.310%/广度75.00%、5日+4.385%/广度75.00%、量比1.155。",
+              "trade_date": "2026-11-18",
+              "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+              "finding": "空调有效样本4只：当日+1.353%、相对主板映射样本中位+2.346个百分点、当日广度100.00%、3日+2.700%/广度100.00%、5日+6.110%/广度75.00%、量比1.736。",
               "industry_code": "S330102"
             },
             {
               "dimension": "MARKET_STRUCTURE",
               "direction": "SUPPORT",
               "impact": "STRUCTURAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "冰洗有效样本6只：当日+0.636%、相对主板映射样本中位+1.687个百分点、当日广度66.67%、3日+4.010%/广度66.67%、5日+0.550%/广度66.67%、量比1.743。",
+              "trade_date": "2026-11-18",
+              "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+              "finding": "冰洗有效样本6只：当日+2.809%、相对主板映射样本中位+3.802个百分点、当日广度83.33%、3日+8.880%/广度83.33%、5日+7.045%/广度83.33%、量比2.584。",
               "industry_code": "S330106"
             },
             {
               "dimension": "MARKET_BREADTH",
               "direction": "SUPPORT",
               "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "冰洗有效样本6只：当日+0.636%、相对主板映射样本中位+1.687个百分点、当日广度66.67%、3日+4.010%/广度66.67%、5日+0.550%/广度66.67%、量比1.743。",
+              "trade_date": "2026-11-18",
+              "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+              "finding": "冰洗有效样本6只：当日+2.809%、相对主板映射样本中位+3.802个百分点、当日广度83.33%、3日+8.880%/广度83.33%、5日+7.045%/广度83.33%、量比2.584。",
               "industry_code": "S330106"
             },
             {
               "dimension": "RELATIVE_STRENGTH",
               "direction": "SUPPORT",
               "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "冰洗有效样本6只：当日+0.636%、相对主板映射样本中位+1.687个百分点、当日广度66.67%、3日+4.010%/广度66.67%、5日+0.550%/广度66.67%、量比1.743。",
+              "trade_date": "2026-11-18",
+              "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+              "finding": "冰洗有效样本6只：当日+2.809%、相对主板映射样本中位+3.802个百分点、当日广度83.33%、3日+8.880%/广度83.33%、5日+7.045%/广度83.33%、量比2.584。",
               "industry_code": "S330106"
             }
           ]
@@ -3274,33 +3508,15 @@
           "proposed_market_state": "观察",
           "previous_trend_state": "T0",
           "proposed_trend_state": "T0",
-          "reason": "零食完成11月17日复核；现有证据不足以改变既有产业阶段与市场状态。",
+          "reason": "零食3日尚为正但当日与5日结构转弱，维持观察且不改写既有产业阶段。",
           "evidence": [
             {
               "dimension": "MARKET_STRUCTURE",
-              "direction": "SUPPORT",
+              "direction": "COUNTER",
               "impact": "STRUCTURAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "零食有效样本9只：当日+0.795%、相对主板映射样本中位+1.846个百分点、当日广度55.56%、3日+0.580%/广度55.56%、5日+0.050%/广度55.56%、量比0.769。",
-              "industry_code": "S340801"
-            },
-            {
-              "dimension": "MARKET_BREADTH",
-              "direction": "SUPPORT",
-              "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "零食有效样本9只：当日+0.795%、相对主板映射样本中位+1.846个百分点、当日广度55.56%、3日+0.580%/广度55.56%、5日+0.050%/广度55.56%、量比0.769。",
-              "industry_code": "S340801"
-            },
-            {
-              "dimension": "RELATIVE_STRENGTH",
-              "direction": "SUPPORT",
-              "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "零食有效样本9只：当日+0.795%、相对主板映射样本中位+1.846个百分点、当日广度55.56%、3日+0.580%/广度55.56%、5日+0.050%/广度55.56%、量比0.769。",
+              "trade_date": "2026-11-18",
+              "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+              "finding": "零食有效样本9只：当日-1.208%、相对主板映射样本中位-0.216个百分点、当日广度22.22%、3日+0.730%/广度55.56%、5日-2.070%/广度44.44%、量比0.753。",
               "industry_code": "S340801"
             }
           ]
@@ -3312,60 +3528,24 @@
           "proposed_market_state": "观察",
           "previous_trend_state": "T0",
           "proposed_trend_state": "T0",
-          "reason": "航空运输/机场完成11月17日复核；现有证据不足以改变既有产业阶段与市场状态。",
+          "reason": "机场保持正向多日结构，但航空运输当日、3日与5日偏弱，主题扩散不足，维持观察。",
           "evidence": [
             {
               "dimension": "MARKET_STRUCTURE",
               "direction": "COUNTER",
               "impact": "STRUCTURAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "航空运输有效样本8只：当日-0.578%、相对主板映射样本中位+0.474个百分点、当日广度25.00%、3日-0.320%/广度37.50%、5日-3.570%/广度0.00%、量比0.715。",
-              "industry_code": "S421001"
-            },
-            {
-              "dimension": "MARKET_BREADTH",
-              "direction": "COUNTER",
-              "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "航空运输有效样本8只：当日-0.578%、相对主板映射样本中位+0.474个百分点、当日广度25.00%、3日-0.320%/广度37.50%、5日-3.570%/广度0.00%、量比0.715。",
-              "industry_code": "S421001"
-            },
-            {
-              "dimension": "RELATIVE_STRENGTH",
-              "direction": "COUNTER",
-              "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "航空运输有效样本8只：当日-0.578%、相对主板映射样本中位+0.474个百分点、当日广度25.00%、3日-0.320%/广度37.50%、5日-3.570%/广度0.00%、量比0.715。",
+              "trade_date": "2026-11-18",
+              "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+              "finding": "航空运输有效样本8只：当日-1.141%、相对主板映射样本中位-0.149个百分点、当日广度12.50%、3日-0.615%/广度50.00%、5日-2.605%/广度25.00%、量比0.817。",
               "industry_code": "S421001"
             },
             {
               "dimension": "MARKET_STRUCTURE",
               "direction": "SUPPORT",
               "impact": "STRUCTURAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "机场有效样本4只：当日+0.156%、相对主板映射样本中位+1.207个百分点、当日广度75.00%、3日+1.435%/广度100.00%、5日+1.080%/广度100.00%、量比0.913。",
-              "industry_code": "S421002"
-            },
-            {
-              "dimension": "MARKET_BREADTH",
-              "direction": "SUPPORT",
-              "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "机场有效样本4只：当日+0.156%、相对主板映射样本中位+1.207个百分点、当日广度75.00%、3日+1.435%/广度100.00%、5日+1.080%/广度100.00%、量比0.913。",
-              "industry_code": "S421002"
-            },
-            {
-              "dimension": "RELATIVE_STRENGTH",
-              "direction": "SUPPORT",
-              "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "机场有效样本4只：当日+0.156%、相对主板映射样本中位+1.207个百分点、当日广度75.00%、3日+1.435%/广度100.00%、5日+1.080%/广度100.00%、量比0.913。",
+              "trade_date": "2026-11-18",
+              "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+              "finding": "机场有效样本4只：当日-0.525%、相对主板映射样本中位+0.467个百分点、当日广度50.00%、3日+0.870%/广度75.00%、5日+1.525%/广度50.00%、量比1.029。",
               "industry_code": "S421002"
             }
           ]
@@ -3377,397 +3557,115 @@
           "proposed_market_state": "趋势确认",
           "previous_trend_state": "T1",
           "proposed_trend_state": "T1",
-          "reason": "11月17日复核维持趋势确认；四类银行3/5日结构与广度延续，行业经营改善逻辑仍有效。",
+          "reason": "四类银行3日和5日结构整体延续，经营改善证据未被推翻，维持趋势确认。",
           "evidence": [
             {
               "dimension": "MARKET_STRUCTURE",
               "direction": "SUPPORT",
               "impact": "STRUCTURAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "国有大型银行Ⅲ有效样本6只：当日+0.189%、相对主板映射样本中位+1.240个百分点、当日广度83.33%、3日+3.785%/广度100.00%、5日+3.670%/广度100.00%、量比0.864。",
-              "industry_code": "S480201"
-            },
-            {
-              "dimension": "MARKET_BREADTH",
-              "direction": "SUPPORT",
-              "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "国有大型银行Ⅲ有效样本6只：当日+0.189%、相对主板映射样本中位+1.240个百分点、当日广度83.33%、3日+3.785%/广度100.00%、5日+3.670%/广度100.00%、量比0.864。",
-              "industry_code": "S480201"
-            },
-            {
-              "dimension": "RELATIVE_STRENGTH",
-              "direction": "SUPPORT",
-              "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "国有大型银行Ⅲ有效样本6只：当日+0.189%、相对主板映射样本中位+1.240个百分点、当日广度83.33%、3日+3.785%/广度100.00%、5日+3.670%/广度100.00%、量比0.864。",
+              "trade_date": "2026-11-18",
+              "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+              "finding": "国有大型银行Ⅲ有效样本6只：当日+0.098%、相对主板映射样本中位+1.090个百分点、当日广度66.67%、3日+2.045%/广度100.00%、5日+4.585%/广度100.00%、量比0.714。",
               "industry_code": "S480201"
             },
             {
               "dimension": "MARKET_STRUCTURE",
               "direction": "SUPPORT",
               "impact": "STRUCTURAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "股份制银行Ⅲ有效样本9只：当日+0.115%、相对主板映射样本中位+1.166个百分点、当日广度55.56%、3日+3.480%/广度100.00%、5日+2.510%/广度100.00%、量比1.079。",
-              "industry_code": "S480301"
-            },
-            {
-              "dimension": "MARKET_BREADTH",
-              "direction": "SUPPORT",
-              "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "股份制银行Ⅲ有效样本9只：当日+0.115%、相对主板映射样本中位+1.166个百分点、当日广度55.56%、3日+3.480%/广度100.00%、5日+2.510%/广度100.00%、量比1.079。",
-              "industry_code": "S480301"
-            },
-            {
-              "dimension": "RELATIVE_STRENGTH",
-              "direction": "SUPPORT",
-              "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "股份制银行Ⅲ有效样本9只：当日+0.115%、相对主板映射样本中位+1.166个百分点、当日广度55.56%、3日+3.480%/广度100.00%、5日+2.510%/广度100.00%、量比1.079。",
+              "trade_date": "2026-11-18",
+              "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+              "finding": "股份制银行Ⅲ有效样本9只：当日-0.285%、相对主板映射样本中位+0.707个百分点、当日广度33.33%、3日+2.100%/广度100.00%、5日+3.660%/广度100.00%、量比0.903。",
               "industry_code": "S480301"
             },
             {
               "dimension": "MARKET_STRUCTURE",
               "direction": "SUPPORT",
               "impact": "STRUCTURAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "城商行Ⅲ有效样本17只：当日+0.429%、相对主板映射样本中位+1.480个百分点、当日广度58.82%、3日+3.710%/广度100.00%、5日+3.290%/广度88.24%、量比0.990。",
-              "industry_code": "S480401"
-            },
-            {
-              "dimension": "MARKET_BREADTH",
-              "direction": "SUPPORT",
-              "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "城商行Ⅲ有效样本17只：当日+0.429%、相对主板映射样本中位+1.480个百分点、当日广度58.82%、3日+3.710%/广度100.00%、5日+3.290%/广度88.24%、量比0.990。",
-              "industry_code": "S480401"
-            },
-            {
-              "dimension": "RELATIVE_STRENGTH",
-              "direction": "SUPPORT",
-              "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "城商行Ⅲ有效样本17只：当日+0.429%、相对主板映射样本中位+1.480个百分点、当日广度58.82%、3日+3.710%/广度100.00%、5日+3.290%/广度88.24%、量比0.990。",
+              "trade_date": "2026-11-18",
+              "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+              "finding": "城商行Ⅲ有效样本17只：当日-0.521%、相对主板映射样本中位+0.471个百分点、当日广度23.53%、3日+1.460%/广度70.59%、5日+3.710%/广度76.47%、量比0.821。",
               "industry_code": "S480401"
             },
             {
               "dimension": "MARKET_STRUCTURE",
               "direction": "SUPPORT",
               "impact": "STRUCTURAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "农商行Ⅲ有效样本10只：当日-0.078%、相对主板映射样本中位+0.973个百分点、当日广度30.00%、3日+2.415%/广度100.00%、5日+2.040%/广度90.00%、量比0.990。",
-              "industry_code": "S480501"
-            },
-            {
-              "dimension": "MARKET_BREADTH",
-              "direction": "SUPPORT",
-              "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "农商行Ⅲ有效样本10只：当日-0.078%、相对主板映射样本中位+0.973个百分点、当日广度30.00%、3日+2.415%/广度100.00%、5日+2.040%/广度90.00%、量比0.990。",
-              "industry_code": "S480501"
-            },
-            {
-              "dimension": "RELATIVE_STRENGTH",
-              "direction": "SUPPORT",
-              "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "农商行Ⅲ有效样本10只：当日-0.078%、相对主板映射样本中位+0.973个百分点、当日广度30.00%、3日+2.415%/广度100.00%、5日+2.040%/广度90.00%、量比0.990。",
+              "trade_date": "2026-11-18",
+              "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+              "finding": "农商行Ⅲ有效样本10只：当日-1.082%、相对主板映射样本中位-0.090个百分点、当日广度10.00%、3日+0.350%/广度60.00%、5日+1.045%/广度100.00%、量比0.877。",
               "industry_code": "S480501"
             }
           ]
         },
         {
           "episode_id": "线下药店#2026-11-16",
-          "decision": "CHANGE",
-          "previous_market_state": "候选趋势",
+          "decision": "HOLD",
+          "previous_market_state": "趋势确认",
           "proposed_market_state": "趋势确认",
           "previous_trend_state": "T1",
           "proposed_trend_state": "T1",
-          "reason": "11月17日D2复核确认：线下药店3/5日结构延续，行业出清与头部同店、收入及利润改善相互验证。",
+          "reason": "线下药店当日回落但3日、5日结构及广度仍延续，经营修复证据未被推翻，维持趋势确认。",
           "evidence": [
             {
               "dimension": "MARKET_STRUCTURE",
               "direction": "SUPPORT",
               "impact": "STRUCTURAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "线下药店有效样本6只：当日+0.410%、相对主板映射样本中位+1.461个百分点、当日广度66.67%、3日+3.380%/广度66.67%、5日+3.865%/广度66.67%、量比0.826。",
+              "trade_date": "2026-11-18",
+              "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+              "finding": "线下药店有效样本6只：当日-1.086%、相对主板映射样本中位-0.093个百分点、当日广度16.67%、3日+2.915%/广度66.67%、5日+3.720%/广度66.67%、量比0.669。",
               "industry_code": "S370403"
             },
             {
               "dimension": "MARKET_BREADTH",
               "direction": "SUPPORT",
               "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "线下药店有效样本6只：当日+0.410%、相对主板映射样本中位+1.461个百分点、当日广度66.67%、3日+3.380%/广度66.67%、5日+3.865%/广度66.67%、量比0.826。",
-              "industry_code": "S370403"
-            },
-            {
-              "dimension": "RELATIVE_STRENGTH",
-              "direction": "SUPPORT",
-              "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "线下药店有效样本6只：当日+0.410%、相对主板映射样本中位+1.461个百分点、当日广度66.67%、3日+3.380%/广度66.67%、5日+3.865%/广度66.67%、量比0.826。",
+              "trade_date": "2026-11-18",
+              "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+              "finding": "线下药店有效样本6只：当日-1.086%、相对主板映射样本中位-0.093个百分点、当日广度16.67%、3日+2.915%/广度66.67%、5日+3.720%/广度66.67%、量比0.669。",
               "industry_code": "S370403"
             }
           ]
         },
         {
           "episode_id": "核电运营#2026-11-16",
-          "decision": "HOLD",
+          "decision": "CHANGE",
           "previous_market_state": "观察",
-          "proposed_market_state": "观察",
+          "proposed_market_state": "趋势确认",
           "previous_trend_state": "T1",
           "proposed_trend_state": "T1",
-          "reason": "核电运营完成11月17日复核；现有证据不足以改变既有产业阶段与市场状态。",
+          "reason": "D3核力发电3日、5日结构转正且当日相对市场领先，叠加核电在运与核准投产的持续产业驱动，完成确认。",
           "evidence": [
             {
               "dimension": "MARKET_STRUCTURE",
               "direction": "SUPPORT",
               "impact": "STRUCTURAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "核力发电有效样本3只：当日-0.605%、相对主板映射样本中位+0.446个百分点、当日广度33.33%、3日+0.990%/广度100.00%、5日+0.000%/广度33.33%、量比0.797。",
+              "trade_date": "2026-11-18",
+              "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+              "finding": "核力发电有效样本3只：当日+0.508%、相对主板映射样本中位+1.500个百分点、当日广度66.67%、3日+0.860%/广度66.67%、5日+2.170%/广度66.67%、量比1.029。",
               "industry_code": "S410108"
             },
             {
               "dimension": "MARKET_BREADTH",
               "direction": "SUPPORT",
               "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "核力发电有效样本3只：当日-0.605%、相对主板映射样本中位+0.446个百分点、当日广度33.33%、3日+0.990%/广度100.00%、5日+0.000%/广度33.33%、量比0.797。",
+              "trade_date": "2026-11-18",
+              "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+              "finding": "核力发电有效样本3只：当日+0.508%、相对主板映射样本中位+1.500个百分点、当日广度66.67%、3日+0.860%/广度66.67%、5日+2.170%/广度66.67%、量比1.029。",
               "industry_code": "S410108"
             },
             {
               "dimension": "RELATIVE_STRENGTH",
               "direction": "SUPPORT",
               "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "核力发电有效样本3只：当日-0.605%、相对主板映射样本中位+0.446个百分点、当日广度33.33%、3日+0.990%/广度100.00%、5日+0.000%/广度33.33%、量比0.797。",
+              "trade_date": "2026-11-18",
+              "source": "https://github.com/xwan008/a-market-data/blob/32ad60aa87503271936091e7fbb7290cacb62569/data/research/sector_discovery_audit.json",
+              "finding": "核力发电有效样本3只：当日+0.508%、相对主板映射样本中位+1.500个百分点、当日广度66.67%、3日+0.860%/广度66.67%、5日+2.170%/广度66.67%、量比1.029。",
               "industry_code": "S410108"
             }
           ]
         }
       ],
-      "exits": [
-        {
-          "episode_id": "影视动漫及院线#2026-11-13",
-          "decision": "EXIT",
-          "previous_market_state": "观察",
-          "proposed_market_state": "失效",
-          "previous_trend_state": "T0",
-          "reason": "影视动漫制作当日、3日、5日结构与广度同步显著转弱，院线虽保留3/5日涨幅但仅3只样本且当日全跌，主题内部扩散断裂，按真实市场失效退出。",
-          "evidence": [
-            {
-              "dimension": "MARKET_STRUCTURE",
-              "direction": "COUNTER",
-              "impact": "STRUCTURAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "影视动漫制作有效样本9只：当日-9.897%、相对主板映射样本中位-8.846个百分点、当日广度0.00%、3日-9.970%/广度0.00%、5日-12.950%/广度0.00%、量比0.976。",
-              "industry_code": "S720601"
-            },
-            {
-              "dimension": "MARKET_BREADTH",
-              "direction": "COUNTER",
-              "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "影视动漫制作有效样本9只：当日-9.897%、相对主板映射样本中位-8.846个百分点、当日广度0.00%、3日-9.970%/广度0.00%、5日-12.950%/广度0.00%、量比0.976。",
-              "industry_code": "S720601"
-            },
-            {
-              "dimension": "RELATIVE_STRENGTH",
-              "direction": "COUNTER",
-              "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "影视动漫制作有效样本9只：当日-9.897%、相对主板映射样本中位-8.846个百分点、当日广度0.00%、3日-9.970%/广度0.00%、5日-12.950%/广度0.00%、量比0.976。",
-              "industry_code": "S720601"
-            },
-            {
-              "dimension": "MARKET_STRUCTURE",
-              "direction": "COUNTER",
-              "impact": "STRUCTURAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "院线有效样本3只：当日-5.877%、相对主板映射样本中位-4.826个百分点、当日广度0.00%、3日+7.690%/广度100.00%、5日+4.940%/广度100.00%、量比2.607。",
-              "industry_code": "S720602"
-            },
-            {
-              "dimension": "MARKET_BREADTH",
-              "direction": "COUNTER",
-              "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "院线有效样本3只：当日-5.877%、相对主板映射样本中位-4.826个百分点、当日广度0.00%、3日+7.690%/广度100.00%、5日+4.940%/广度100.00%、量比2.607。",
-              "industry_code": "S720602"
-            },
-            {
-              "dimension": "RELATIVE_STRENGTH",
-              "direction": "COUNTER",
-              "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "院线有效样本3只：当日-5.877%、相对主板映射样本中位-4.826个百分点、当日广度0.00%、3日+7.690%/广度100.00%、5日+4.940%/广度100.00%、量比2.607。",
-              "industry_code": "S720602"
-            }
-          ],
-          "exit_reason_code": "MARKET_INVALIDATED"
-        },
-        {
-          "episode_id": "生猪养殖与饲料#2026-11-13",
-          "decision": "EXIT",
-          "previous_market_state": "候选趋势",
-          "proposed_market_state": "失效",
-          "previous_trend_state": "T0",
-          "reason": "D3终审时生猪养殖与饲料当日均明显转弱，5日结构未能保持正向扩散，且产业盈利改善仍缺少足以确认未来一至两个季度的共同证据，本轮按期限冻结为未确认并退出。",
-          "evidence": [
-            {
-              "dimension": "MARKET_STRUCTURE",
-              "direction": "COUNTER",
-              "impact": "STRUCTURAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "生猪养殖有效样本10只：当日-2.421%、相对主板映射样本中位-1.370个百分点、当日广度10.00%、3日+2.075%/广度60.00%、5日-0.285%/广度50.00%、量比1.119。",
-              "industry_code": "S110702"
-            },
-            {
-              "dimension": "MARKET_BREADTH",
-              "direction": "COUNTER",
-              "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "生猪养殖有效样本10只：当日-2.421%、相对主板映射样本中位-1.370个百分点、当日广度10.00%、3日+2.075%/广度60.00%、5日-0.285%/广度50.00%、量比1.119。",
-              "industry_code": "S110702"
-            },
-            {
-              "dimension": "RELATIVE_STRENGTH",
-              "direction": "COUNTER",
-              "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "生猪养殖有效样本10只：当日-2.421%、相对主板映射样本中位-1.370个百分点、当日广度10.00%、3日+2.075%/广度60.00%、5日-0.285%/广度50.00%、量比1.119。",
-              "industry_code": "S110702"
-            },
-            {
-              "dimension": "MARKET_STRUCTURE",
-              "direction": "COUNTER",
-              "impact": "STRUCTURAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "畜禽饲料有效样本10只：当日-2.163%、相对主板映射样本中位-1.112个百分点、当日广度10.00%、3日+0.270%/广度50.00%、5日-1.260%/广度40.00%、量比1.133。",
-              "industry_code": "S110402"
-            },
-            {
-              "dimension": "MARKET_BREADTH",
-              "direction": "COUNTER",
-              "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "畜禽饲料有效样本10只：当日-2.163%、相对主板映射样本中位-1.112个百分点、当日广度10.00%、3日+0.270%/广度50.00%、5日-1.260%/广度40.00%、量比1.133。",
-              "industry_code": "S110402"
-            },
-            {
-              "dimension": "RELATIVE_STRENGTH",
-              "direction": "COUNTER",
-              "impact": "NORMAL",
-              "trade_date": "2026-11-17",
-              "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "finding": "畜禽饲料有效样本10只：当日-2.163%、相对主板映射样本中位-1.112个百分点、当日广度10.00%、3日+0.270%/广度50.00%、5日-1.260%/广度40.00%、量比1.133。",
-              "industry_code": "S110402"
-            }
-          ],
-          "exit_reason_code": "D3_NOT_CONFIRMED",
-          "d123_final_audit": {
-            "d123_stage": "D3",
-            "d123_decision": "NOT_CONFIRMED",
-            "d123_decision_trade_date": "2026-11-17",
-            "market_state": "候选趋势",
-            "confirmation_audit": {
-              "asof_trade_date": "2026-11-17",
-              "market_environment": "RISK_OFF",
-              "market_environment_reason": "331个申万三级行业、3138只映射沪深主板股票完成同口径扫描，主板映射样本收益中位-1.051%，市场风险偏好偏弱。",
-              "market_environment_source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-              "driver_type": "INDUSTRIAL_GROWTH",
-              "discovery_basis": "SUSTAINED_FUNDAMENTAL",
-              "catalyst_kind": "SUSTAINED_DRIVER",
-              "catalyst_fact": "生猪价格持续低于行业成本、能繁母猪与仔猪供给边际去化，为未来一至两个季度供给收缩提供前瞻线索。",
-              "catalyst_source": "https://reportify.cn/reports/1315791950925926400",
-              "catalyst_available_at": "2026-11-13T17:30:00+08:00",
-              "core_industry_codes": [
-                "S110702",
-                "S110402"
-              ],
-              "strongest_counter": "生猪养殖有效样本10只：当日-2.421%、相对主板映射样本中位-1.370个百分点、当日广度10.00%、3日+2.075%/广度60.00%、5日-0.285%/广度50.00%、量比1.119。",
-              "decision_reason": "D3终审时生猪养殖与饲料当日均明显转弱，5日结构未能保持正向扩散，且产业盈利改善仍缺少足以确认未来一至两个季度的共同证据，本轮按期限冻结为未确认并退出。",
-              "decision_state": "候选趋势",
-              "specific_blocker": "D3仍缺核心三级行业持续广度、分歧承接及未来一至两个季度盈利传导的共同确认。"
-            },
-            "dimensions": {
-              "market_environment": {
-                "status": "ASSESSED",
-                "finding": "主板映射样本收益中位-1.051%，同日市场风险偏好偏弱。",
-                "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json"
-              },
-              "catalyst": {
-                "status": "ASSESSED",
-                "finding": "已复核既有猪价、供需及养殖盈利线索，未用单日股价代替产业事实。",
-                "source": "https://reportify.cn/reports/1315791950925926400"
-              },
-              "beneficiary_chain": {
-                "status": "INSUFFICIENT",
-                "finding": "养殖利润与饲料成本传导尚未形成未来一至两个季度的稳定共同验证。",
-                "source": "https://reportify.cn/reports/1315791950925926400"
-              },
-              "funding_strength": {
-                "status": "COUNTER",
-                "finding": "生猪养殖有效样本10只：当日-2.421%、相对主板映射样本中位-1.370个百分点、当日广度10.00%、3日+2.075%/广度60.00%、5日-0.285%/广度50.00%、量比1.119。成交仅作价格成交参与度代理。",
-                "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json",
-                "measurement_basis": "PRICE_VOLUME_PROXY",
-                "observation_window": "2026-11-17成交相对过去20日中位"
-              },
-              "breadth": {
-                "status": "COUNTER",
-                "finding": "生猪养殖有效样本10只：当日-2.421%、相对主板映射样本中位-1.370个百分点、当日广度10.00%、3日+2.075%/广度60.00%、5日-0.285%/广度50.00%、量比1.119。",
-                "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json"
-              },
-              "relative_strength": {
-                "status": "COUNTER",
-                "finding": "畜禽饲料有效样本10只：当日-2.163%、相对主板映射样本中位-1.112个百分点、当日广度10.00%、3日+0.270%/广度50.00%、5日-1.260%/广度40.00%、量比1.133。",
-                "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json"
-              },
-              "price_structure": {
-                "status": "COUNTER",
-                "finding": "生猪养殖有效样本10只：当日-2.421%、相对主板映射样本中位-1.370个百分点、当日广度10.00%、3日+2.075%/广度60.00%、5日-0.285%/广度50.00%、量比1.119。",
-                "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json"
-              },
-              "counter_evidence": {
-                "status": "COUNTER",
-                "finding": "生猪养殖与饲料当日同步下跌且5日结构未形成稳定正向扩散。",
-                "source": "https://github.com/xwan008/a-market-data/blob/bed927ea5773c76484c8d0eb701dca5ec7fb4ca2/data/research/sector_discovery_audit.json"
-              }
-            }
-          }
-        }
-      ],
+      "exits": [],
       "new_confirmation_reviews": []
     },
     "same_day_revisions": []
