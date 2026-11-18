@@ -478,6 +478,95 @@ def technical_observation_details(row):
 
 
 
+
+# Provisional, reproducible NEW-entry ATTENTION ranking. This is NOT a READY
+# score, a trade prediction, or a second research list. All risk gates remain
+# independent and execute before this attention-only sort.
+OPPORTUNITY_RANK_POLICY = "ENTRY_VALUE_STAGE_V1_PROVISIONAL"
+
+
+def clamp_score(value):
+    return max(0.0, min(100.0, value))
+
+
+def opportunity_rank_evidence(row, model_rank_min, model_rank_max, trade_date):
+    """As-of evidence for one already-program-selected, independently judged row.
+
+    The last 5d and preceding 5d returns do not overlap. Past 20/60d company
+    quality remains represented by the independently researched model rank;
+    large past returns are never mechanically assumed to exhaust future gains.
+    """
+    ev = row.get("phase_evidence") or {}
+    ctx = row.get("technical_context") or {}
+    current = row.get("current_price")
+    recent = ev.get("return_5d_pct")
+    prior = ev.get("previous_5d_return_pct")
+    up5 = ev.get("positive_days_5d")
+    close_strength = ctx.get("close_location_pct")
+    gap = ctx.get("distance_to_ma20_pct")
+    volume = ctx.get("volume_ratio_1d_vs_20d")
+    ma20, ma60 = ctx.get("ma20"), ctx.get("ma60")
+    priority = row.get("model_priority")
+    complete = (row.get("data_date") == trade_date
+                and ev.get("signal_uses_completed_bars_only") is True
+                and all(val(x) for x in (recent, prior, up5, close_strength,
+                                          gap, volume, current, ma20, ma60))
+                and pos(current) and pos(ma20) and pos(ma60)
+                and type(priority) is int
+                and isinstance(ev.get("fresh_break"), bool))
+    if not complete:
+        return {"status": "INCOMPLETE_ASOF_EVIDENCE", "score": None}
+
+    model_quality = 100.0 * (model_rank_max - priority) / max(
+        1, model_rank_max - model_rank_min)
+    # Nonoverlapping windows: a rebound is useful only together with position
+    # and risk; the large-return cap prevents endless speed-based rewards.
+    momentum = (0.30 * clamp_score(recent * 10.0)
+                + 0.30 * clamp_score((recent - prior) * (100.0 / 15.0))
+                + 0.20 * (100.0 if ev["fresh_break"] else 25.0)
+                + 0.20 * clamp_score(close_strength))
+    proximity = clamp_score(100.0 - max(0.0, abs(gap) - 2.0) * 14.0)
+    resistance = verified_overhead(ctx, current, trade_date)
+    if resistance:
+        overhead_gap_pct = (resistance["price"] / current - 1.0) * 100.0
+        overhead_quality = clamp_score(overhead_gap_pct * 15.0 - 5.0)
+    else:
+        overhead_gap_pct = None
+        overhead_quality = 50.0  # unknown, never interpreted as infinite
+    recent_heat_quality = clamp_score(100.0 - max(0.0, recent - 6.0) * 10.0)
+    entry_value = (0.55 * proximity + 0.25 * overhead_quality
+                   + 0.20 * recent_heat_quality)
+    penalties = {}
+    if gap > MAX_MA20_DISTANCE_PCT or ctx.get("chase_risk") == "high":
+        penalties["extended_ma20"] = 15.0
+    if recent > 9.0:
+        penalties["recent_5d_surge"] = (recent - 9.0) * 6.0
+    if current < ma60:
+        penalties["below_ma60_unconfirmed"] = 12.0
+    if row.get("trend_phase") == "REPAIRING":
+        penalties["repair_unconfirmed"] = 10.0
+    if ev["fresh_break"] and volume < 0.85:
+        penalties["thin_breakout_volume"] = 8.0
+    if overhead_gap_pct is not None and overhead_gap_pct < 1.5:
+        penalties["near_verified_overhead"] = 15.0
+    if ev.get("weak_close_high_volume") is True:
+        penalties["weak_close_high_volume"] = 15.0
+    total = (0.15 * model_quality + 0.45 * momentum + 0.40 * entry_value
+             - sum(penalties.values()))
+    return {
+        "status": "COMPLETE_ASOF_EVIDENCE",
+        "score": round(total, 4),
+        "research_quality_score": round(model_quality, 2),
+        "momentum_stage_score": round(momentum, 2),
+        "entry_value_score": round(entry_value, 2),
+        "overhead_distance_pct": (round(overhead_gap_pct, 2)
+                                  if overhead_gap_pct is not None else None),
+        "penalties": penalties,
+        "provisional": True,
+        "not_trade_permission": True,
+    }
+
+
 def dynamic_top5_by_theme(ready, wait, research):
     """One official Top5: rank all qualifying READY/WAIT before the five-name cap."""
     if research.get("prescreen_version") != "CANONICAL":
@@ -494,8 +583,26 @@ def dynamic_top5_by_theme(ready, wait, research):
             raise ValueError("MODEL_RESEARCH_RANK_MISSING_OR_INVALID")
         if len(ranks)!=len(set(ranks)):
             raise ValueError("DUPLICATE_MODEL_RANK_WITHIN_THEME:"+sector)
-        selected=sorted(eligible,key=lambda r:(
-            0 if r["status"]=="READY" else 1,r["model_priority"],r["code"]))[:5]
+        rank_min, rank_max = min(ranks, default=1), max(ranks, default=1)
+        diagnostics = {
+            r["code"]: opportunity_rank_evidence(
+                r, rank_min, rank_max, research.get("trade_date"))
+            for r in eligible
+        }
+        # Missing any as-of evidence => preserve historical model ranking for
+        # this theme, never silently backfill missing facts with a fake score.
+        measured = bool(eligible) and all(
+            d["status"] == "COMPLETE_ASOF_EVIDENCE"
+            for d in diagnostics.values())
+        if measured:
+            selected=sorted(eligible,key=lambda r:(
+                0 if r["status"]=="READY" else 1,
+                -diagnostics[r["code"]]["score"],
+                r["model_priority"],r["code"]))[:5]
+        else:
+            selected=sorted(eligible,key=lambda r:(
+                0 if r["status"]=="READY" else 1,
+                r["model_priority"],r["code"]))[:5]
         nearby_codes=set()
         for row in eligible:
             ref=early_watch_reference(row)
@@ -505,6 +612,8 @@ def dynamic_top5_by_theme(ready, wait, research):
                 nearby_codes.add(row["code"])
         groups.append({
             "trend_name":sector,
+            "attention_ranking_policy": (OPPORTUNITY_RANK_POLICY if measured
+                                         else "MODEL_RANK_FALLBACK_DATA_GAP"),
             "qualified_opportunity_count":len(nearby_codes),
             "trend_watch_candidate_count":len(eligible)-len(nearby_codes),
             "items":[{
@@ -514,6 +623,8 @@ def dynamic_top5_by_theme(ready, wait, research):
                     else "EARLY_NOT_READY" if row["code"] in nearby_codes
                     else "TREND_WATCH_ONLY"),
                 "current_price":row.get("current_price"),
+                "original_model_rank":row.get("model_priority"),
+                "opportunity_rank_evidence":diagnostics[row["code"]],
                 "reference":early_watch_reference(row),
                 "decision_reason":row.get("decision_reason"),
             } for row in selected],
@@ -524,9 +635,9 @@ def dynamic_top5_by_theme(ready, wait, research):
 def add_attention_priorities(groups, ready, wait, research):
     """Explain real Top5 rank evidence; independently report trade-risk context.
 
-    The supplied members and order are fixed. READY precedes WAIT, but ranking
-    never changes admission; reward/risk and fundamentals are not extra
-    within-status rank factors.
+    The supplied members and order are fixed. READY precedes WAIT; within a
+    status the evidence-based entry value score ranks attention only. It never
+    changes program admission, entry/stop evidence, or independent risk gates.
     """
     signal_labels = {
         "FRESH_BREAK_AND_RECENT_SUPPORT_HOLD":
@@ -594,12 +705,15 @@ def add_attention_priorities(groups, ready, wait, research):
             status_text = ("READY先于WAIT；仅下一交易日条件性入场"
                            if row["status"] == "READY" else "WAIT仅供观察，尚不可买")
             item["attention_judgement"] = (
-                "模型同主题相对研究次序：" + status_text
+                "模型同主题相对研究次序：仅作为质量参考；入场价值排序（试运行）："
+                + status_text
+                + "；原模型研究名次："+str(row.get("model_priority"))
+                + "；机会分证据："+str(item.get("opportunity_rank_evidence") or {})
                 + "；模型研究判断："+str(row.get("model_reason") or "未提供")
                 + "；" + trend_labels[details["trend_tier"]]
                 + "；" + signal_labels[details["follow_signal"]]
                 + position_text
-                + "；模型次序不是收益预测，WAIT不是买入许可"
+                + "；机会分与模型次序均非收益预测，WAIT不是买入许可"
             )
             # Risk notes are separate from rank reasons. A high rank may be WAIT.
             if row["status"] == "READY":
@@ -618,7 +732,7 @@ def add_attention_priorities(groups, ready, wait, research):
                 risk_notes.append("尚无可计算的独立阻力赔率，不能视为上方空间无限")
             if details["recent_support_pattern"] == "SAME_DAY_SWEEP_RECLAIM":
                 risk_notes.append("此前收盘参考区盘中被刺破后收复，不据当日最低价新造止损或实际R")
-            risk_notes.append("历史阻力和1.5R影响READY准入，不作为同状态内排序加分")
+            risk_notes.append("已确认上方阻力仅是关注排序中的空间证据；1.5R独立风险Gate仍按原规则执行")
             item["attention_resistance_check"] = {
                 "status": space_status,
                 "resistance_price": overhead.get("price"),

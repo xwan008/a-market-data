@@ -261,7 +261,16 @@ class CanonicalAdmissionTests(unittest.TestCase):
             self.assertTrue(all(len(x["items"])<=5 for x in output["top5_by_theme"]))
             self.assertTrue(all(x["status"]=="WAIT" or x["status"]=="READY"
                 for x in output["ready"]+output["wait"]))
-            self.assertTrue(all(x.get("entry_zone") is None
+            # Internal WAIT may retain a VERIFIED setup pair if an independent
+            # resistance/reward gate blocks READY. Only the final handoff
+            # clears executable plan fields; never conflate the two contracts.
+            self.assertTrue(all(
+                x.get("entry_zone") is None or (
+                    x.get("structure_confirmed") is True
+                    and x.get("setup_type") in ("BREAKOUT", "PULLBACK")
+                    and isinstance(x.get("entry_zone"), list)
+                    and isinstance(x.get("invalidation_price"), (int, float))
+                )
                 for x in output["wait"]))
             self.assertTrue(all(x.get("model_priority") is not None
                 for x in output["ready"]+output["wait"]))
