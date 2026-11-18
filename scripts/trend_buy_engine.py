@@ -159,6 +159,7 @@ def evaluate_candidate(c, structure, trade_date):
         "research_falsifier": c.get("research_falsifier"), "source_review": c.get("source_review"),
         "model_priority":c.get("model_priority"),
         "model_reason":c.get("model_reason"),
+        "research_quality_evidence":c.get("research_quality_evidence"),
         "trend_phase": (structure or {}).get("trend_phase", "TRANSITION"),
         "phase_evidence": (structure or {}).get("phase_evidence") or {},
     }
@@ -482,19 +483,19 @@ def technical_observation_details(row):
 # Provisional, reproducible NEW-entry ATTENTION ranking. This is NOT a READY
 # score, a trade prediction, or a second research list. All risk gates remain
 # independent and execute before this attention-only sort.
-OPPORTUNITY_RANK_POLICY = "ENTRY_VALUE_STAGE_V1_PROVISIONAL"
+OPPORTUNITY_RANK_POLICY = "ENTRY_VALUE_STAGE_V1_1_CONTINUOUS_QUALITY"
 
 
 def clamp_score(value):
     return max(0.0, min(100.0, value))
 
 
-def opportunity_rank_evidence(row, model_rank_min, model_rank_max, trade_date):
-    """As-of evidence for one already-program-selected, independently judged row.
+def opportunity_rank_evidence(row, trade_date):
+    """Rank only attention, using observed magnitudes instead of rank spacing.
 
-    The last 5d and preceding 5d returns do not overlap. Past 20/60d company
-    quality remains represented by the independently researched model rank;
-    large past returns are never mechanically assumed to exhaust future gains.
+    The last 5d and preceding 5d returns do not overlap. Company-quality
+    evidence comes from the same-day admitted cohort's verified F10 snapshot
+    and completed 10/20/60d OHLCV; model_rank cannot invent point distances.
     """
     ev = row.get("phase_evidence") or {}
     ctx = row.get("technical_context") or {}
@@ -507,7 +508,13 @@ def opportunity_rank_evidence(row, model_rank_min, model_rank_max, trade_date):
     volume = ctx.get("volume_ratio_1d_vs_20d")
     ma20, ma60 = ctx.get("ma20"), ctx.get("ma60")
     priority = row.get("model_priority")
+    quality = row.get("research_quality_evidence") or {}
+    continuous_quality = quality.get("score")
     complete = (row.get("data_date") == trade_date
+                and quality.get("status") == "VERIFIED"
+                and quality.get("source") == "FROZEN_F10_AND_COMPLETED_HISTORY_V1"
+                and quality.get("asof_date") == trade_date
+                and val(continuous_quality) and 0 <= continuous_quality <= 100
                 and ev.get("signal_uses_completed_bars_only") is True
                 and all(val(x) for x in (recent, prior, up5, close_strength,
                                           gap, volume, current, ma20, ma60))
@@ -517,8 +524,9 @@ def opportunity_rank_evidence(row, model_rank_min, model_rank_max, trade_date):
     if not complete:
         return {"status": "INCOMPLETE_ASOF_EVIDENCE", "score": None}
 
-    model_quality = 100.0 * (model_rank_max - priority) / max(
-        1, model_rank_max - model_rank_min)
+    # The ordinal model rank remains explainable and is ONLY a tiebreaker.
+    # It is never converted into artificial equal-spaced research-quality points.
+    model_quality = continuous_quality
     # Nonoverlapping windows: a rebound is useful only together with position
     # and risk; the large-return cap prevents endless speed-based rewards.
     momentum = (0.30 * clamp_score(recent * 10.0)
@@ -557,6 +565,8 @@ def opportunity_rank_evidence(row, model_rank_min, model_rank_max, trade_date):
         "status": "COMPLETE_ASOF_EVIDENCE",
         "score": round(total, 4),
         "research_quality_score": round(model_quality, 2),
+        "research_quality_source": quality["source"],
+        "research_quality_components": quality.get("components"),
         "momentum_stage_score": round(momentum, 2),
         "entry_value_score": round(entry_value, 2),
         "overhead_distance_pct": (round(overhead_gap_pct, 2)
@@ -583,10 +593,8 @@ def dynamic_top5_by_theme(ready, wait, research):
             raise ValueError("MODEL_RESEARCH_RANK_MISSING_OR_INVALID")
         if len(ranks)!=len(set(ranks)):
             raise ValueError("DUPLICATE_MODEL_RANK_WITHIN_THEME:"+sector)
-        rank_min, rank_max = min(ranks, default=1), max(ranks, default=1)
         diagnostics = {
-            r["code"]: opportunity_rank_evidence(
-                r, rank_min, rank_max, research.get("trade_date"))
+            r["code"]: opportunity_rank_evidence(r, research.get("trade_date"))
             for r in eligible
         }
         # Missing any as-of evidence => preserve historical model ranking for
