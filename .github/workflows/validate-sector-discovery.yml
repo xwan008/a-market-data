@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - "scripts/build_sector_discovery.py"
+      - "scripts/build_low_risk_working_sets.py"
+      - "tests/test_low_risk_working_sets.py"
       - "scripts/discovery_coverage.py"
       - "scripts/build_theme_evidence.py"
       - "scripts/price_inputs.py"
@@ -28,6 +30,8 @@ on:
       - ".github/workflows/update-data.yml"
       - "tests/test_daily_data_delivery_workflow.py"
       - "scripts/build_sector_discovery.py"
+      - "scripts/build_low_risk_working_sets.py"
+      - "tests/test_low_risk_working_sets.py"
       - "scripts/discovery_coverage.py"
       - "skill/TREND_REGISTRY_PROTOCOL.md"
       - "skill/PRE_SCREEN_RESEARCH_SCOPE_OVERRIDE.md"
@@ -59,6 +63,45 @@ jobs:
         run: python -m unittest discover -s tests -p "test_daily_data_delivery_workflow.py" -v
       - name: Compile discovery and routing preflight
         run: python -m py_compile scripts/discovery_coverage.py scripts/build_sector_discovery.py scripts/build_theme_evidence.py scripts/validate_theme_handoff_routes.py
+      - name: Verify chunk-only working-set generation and source guards
+        run: python -m unittest discover -s tests -p 'test_low_risk_working_sets.py' -v
+      - name: Compare regenerated chunk-only working sets with published company facts
+        run: |
+          python scripts/build_low_risk_working_sets.py --output-dir /tmp/low-risk-chunk-only
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          read=lambda p:json.loads(Path(p).read_text(encoding='utf-8'))
+          root=Path('/tmp/low-risk-chunk-only')
+          generated=read(root/'index.json')
+          published=read('data/low_risk/index.json')
+          assert not list((root/'by_industry').glob('*.json'))
+          assert generated['trade_date']==published['trade_date']
+          assert generated['company_count']==published['company_count']
+          assert set(generated['industries'])==set(published['industries'])
+          assert 'legacy_single_file_retained' not in generated['chunking']
+          company_count=0
+          for code,entry in generated['industries'].items():
+              assert 'file' not in entry and 'legacy_file' not in entry
+              fresh=read(entry['manifest_file'])
+              saved=read(published['industries'][code]['manifest_file'])
+              assert 'legacy_file' not in fresh['source']
+              assert fresh['universe_company_codes']==saved['universe_company_codes']
+              def company_rows(manifest):
+                  rows=[]
+                  for part in manifest['parts']:
+                      data=Path(part['file']).read_bytes()
+                      assert len(data)==part['byte_size']
+                      chunk=json.loads(data)
+                      assert chunk['company_codes']==part['company_codes']
+                      rows.extend(chunk['companies'])
+                  return rows
+              new_rows=company_rows(fresh)
+              assert new_rows==company_rows(saved),code
+              company_count+=len(new_rows)
+          assert company_count==published['company_count']
+          print('CHUNK_ONLY_REAL_DATA_IDENTICAL',len(generated['industries']),company_count)
+          PY
       - name: Prove sector discovery needs no full-market JSON
         run: |
           rm -f data/research/full_market_price_structure.json

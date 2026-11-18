@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
-FORMAT = "low_risk_industry_working_set"
 MANIFEST_FORMAT = "low_risk_industry_working_set_manifest"
 CHUNK_FORMAT = "low_risk_industry_working_set_chunk"
 INDEX_FORMAT = "low_risk_industry_working_set_index"
@@ -303,24 +302,6 @@ def main() -> None:
         codes = sorted(info["codes"])
         rows = [projected[code] for code in codes]
 
-        legacy_payload = {
-            "runtime_format": FORMAT,
-            "trade_date": trade_date,
-            "generated_at": generated_at,
-            "industry_code": industry_code,
-            "industry_name": industry_name,
-            "company_count": len(rows),
-            "universe_company_codes": codes,
-            "source": {
-                "universe_authority": index_path.as_posix(),
-                "company_fact_authority": f"{shard_dir.as_posix()}/<code[:5]>.json",
-                "materialization": "deterministic_join_projection",
-            },
-            "companies": rows,
-        }
-        legacy_path = industry_dir / f"{industry_code}.json"
-        write_json(legacy_path, legacy_payload)
-
         parts = split_rows(
             trade_date=trade_date,
             generated_at=generated_at,
@@ -385,7 +366,6 @@ def main() -> None:
                 "universe_authority": index_path.as_posix(),
                 "company_fact_authority": f"{shard_dir.as_posix()}/<code[:5]>.json",
                 "materialization": "deterministic_join_projection_chunked",
-                "legacy_file": legacy_path.as_posix(),
             },
             "chunking": {
                 "max_companies_per_part": args.max_companies_per_part,
@@ -404,8 +384,6 @@ def main() -> None:
             "layout": "chunked_manifest_v1",
             "manifest_file": manifest_path.as_posix(),
             "part_count": len(part_entries),
-            "legacy_file": legacy_path.as_posix(),
-            "file": legacy_path.as_posix(),
         }
 
     if written_codes != expected_codes:
@@ -425,7 +403,6 @@ def main() -> None:
             "max_part_bytes": args.max_part_bytes,
             "total_parts": total_parts,
             "max_written_part_bytes": max_written_part_bytes,
-            "legacy_single_file_retained": True,
         },
         "validation": {
             "status": "passed",
@@ -461,3 +438,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
