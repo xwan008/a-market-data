@@ -42,10 +42,11 @@ class QuarterlyFinancialAccelerationTests(unittest.TestCase):
         self.assertEqual(len(record["quarterly_history"]),2)
 
     def test_rejects_non_adjacent_previous_report_period(self):
-        accel=build_quarterly_acceleration([
+        record=find_asof_row([
             row("2026-09-30","2026-10-31",profit_yoy=42.0,revenue_yoy=18.0),
             row("2026-03-31","2026-04-30",profit_yoy=10.0,revenue_yoy=8.0),
-        ])
+        ],"600519","2026-11-20")
+        accel=record["quarterly_acceleration"]
         self.assertEqual(accel["status"],"UNKNOWN")
         self.assertEqual(
             accel["reason"],
