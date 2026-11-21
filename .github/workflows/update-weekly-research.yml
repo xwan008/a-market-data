@@ -114,7 +114,8 @@ jobs:
           assert (p['fundamental_stats']['deduct_profit_growth_usable']
                   ==r['after_deduct_growth_usable'])
           assert not r['source_data_retrieval_incomplete']
-          print('WEEKLY_CORE_FINANCIAL_PASS',r['after_deduct_growth_usable'],r['stocks'])
+          print('WEEKLY_CORE_FINANCIAL_PASS',r['after_deduct_growth_usable'],r['stocks'],
+                'quarterly_acceleration',r['quarterly_acceleration_usable'])
           PY
 
       - name: Persist verified F10 evidence snapshot for canonical prescreen
@@ -147,6 +148,8 @@ jobs:
               'prior_deduct_growth_usable':r['prior_deduct_growth_usable'],
               'after_deduct_growth_usable':r['after_deduct_growth_usable'],
               'after_core_amount_usable':r['after_core_amount_usable'],
+              'quarterly_acceleration_usable':r['quarterly_acceleration_usable'],
+              'quarterly_acceleration_unknown':r['quarterly_acceleration_unknown'],
               'records':r['records'],
               'no_republication_of_old_formal_trend_buy':True,
           }
