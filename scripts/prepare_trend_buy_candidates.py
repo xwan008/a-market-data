@@ -233,8 +233,12 @@ def prepare(root=ROOT):
             not lightweight["screen_audit"]["hard_eligible"]):
         raise ValueError("ADMISSION_PRE_RESEARCH_FAILED_CLOSED")
     scan=deepcopy(lightweight)
+    shadow_scan=deepcopy(lightweight)
     audited=scan["screen_audit"]["lightweight_scanned"]
     scan_by_code={row["code"]:row for row in audited}
+    shadow_by_code={
+        row["code"]:row for row in shadow_scan["screen_audit"]["lightweight_scanned"]
+    }
     if len(scan_by_code)!=len(audited):
         raise ValueError("ADMISSION_SCANNED_DUPLICATE_COMPANY")
     industries=defaultdict(list)
@@ -242,6 +246,7 @@ def prepare(root=ROOT):
         industries[row["industry_code"]].append(row["code"])
     validated_overlay={}
     evidence_counts={}
+    acceleration_evaluations={}
     for industry,codes in industries.items():
         frozen=prescreen.frozen_industry_rows(root,index,industry,day)
         eligible=set(codes)
@@ -262,16 +267,48 @@ def prepare(root=ROOT):
                 validated_overlay[row["code"]]=patch
             patched.append({**row,**patch})
         evidence_counts[industry]=count
-        for row,metric in zip(peer_rows,scanner.scores(patched,financial_mode="CORE_FIRST")):
+        base_metrics=scanner.scores(patched,financial_mode="CORE_FIRST")
+        shadow_metrics,acceleration_audit=quarterly_acceleration_shadow_scores(
+            patched,base_metrics)
+        for row,metric,shadow_metric in zip(peer_rows,base_metrics,shadow_metrics):
             audit=scan_by_code[row["code"]]
             audit["fundamental_score"]=metric[0]
             audit["growth"]=metric[1]
             audit["quality"]=metric[2]
             audit["valuation_match"]=metric[3]
             audit["growth_risk"]=metric[5]
-    # Sole stock selection prioritizes all entry-qualified peers, with watch-only fallback.
+            shadow_audit=shadow_by_code[row["code"]]
+            shadow_audit["fundamental_score"]=shadow_metric[0]
+            shadow_audit["growth"]=shadow_metric[1]
+            shadow_audit["quality"]=shadow_metric[2]
+            shadow_audit["valuation_match"]=shadow_metric[3]
+            shadow_audit["growth_risk"]=shadow_metric[5]
+        acceleration_evaluations[industry]=acceleration_audit
+    # The formal output continues to use baseline scores. The experimental
+    # score runs in parallel and is recorded only for offline comparison.
     prescreen_output=prescreen.run(root,scan,industry_index=index,
                      financial_overlay=validated_overlay)
+    shadow_output=prescreen.run(root,shadow_scan,industry_index=index,
+                     financial_overlay=validated_overlay)
+    shadow_group_by_sector={
+        g["industry_code"]:g for g in shadow_output["industry_groups"]
+    }
+    for g in prescreen_output["industry_groups"]:
+        sector=g["industry_code"]
+        shadow_group=shadow_group_by_sector.get(sector)
+        if shadow_group is None:
+            raise ValueError("ACCELERATION_SHADOW_INDUSTRY_SCOPE_MISMATCH")
+        baseline_codes=g["research_codes"]
+        shadow_codes=shadow_group["research_codes"]
+        evaluation=acceleration_evaluations[sector]
+        evaluation.update({
+            "industry_code":sector,
+            "baseline_selected_codes":baseline_codes,
+            "acceleration_shadow_selected_codes":shadow_codes,
+            "changed_out_codes":[x for x in baseline_codes if x not in shadow_codes],
+            "changed_in_codes":[x for x in shadow_codes if x not in baseline_codes],
+            "selection_changed":baseline_codes!=shadow_codes,
+        })
     groups=[]
     for g in prescreen_output["industry_groups"]:
         codes=g["research_codes"]
@@ -298,6 +335,15 @@ def prepare(root=ROOT):
         "industry_count":len(groups),
         "selected_company_count":sum(len(g["selected_codes"]) for g in groups),
         "industries":groups,
+        "quarterly_financial_acceleration_shadow":{
+            "version":"SINGLE_QUARTER_ACCELERATION_V1",
+            "mode":"SHADOW_ONLY",
+            "not_used_for_formal_selection":True,
+            "activation_coverage_threshold":0.75,
+            "minimum_peer_count":3,
+            "weight_within_growth_dimension":0.20,
+            "industries":[acceleration_evaluations[k] for k in sorted(acceleration_evaluations)],
+        },
         "source":{
             "confirmed_handoff_sha256":digest(root/"research/trend_handoff.json"),
             "frozen_company_index_sha256":digest(root/"data/low_risk/index.json"),
@@ -311,6 +357,8 @@ def prepare(root=ROOT):
             "model_invocations":0,
             "five_company_max_per_sw3":True,
             "ready_wait_unmodified":True,
+            "quarterly_acceleration_shadow_only":True,
+            "formal_selection_uses_baseline_financial_scores":True,
             "new_same_day_model_review_required":True,
         },
     }
