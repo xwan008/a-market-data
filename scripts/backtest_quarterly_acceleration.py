@@ -37,6 +37,21 @@ import build_full_market_price_structure as price_structure
 # Each SHA is the original, independently time-stamped canonical candidate
 # freeze from that market session. Do not replace with later branches.
 CHECKPOINTS = [
+    # All dates have original end-of-day confirmed SW3 handoffs and frozen
+    # per-industry company/price data. Dates before 11/16 have no archived
+    # canonical Top5 freeze, so we reconstruct candidates and label accordingly.
+    ("2026-10-14", "13ef60313"),
+    ("2026-10-15", "63aff9b27"),
+    ("2026-10-16", "1a71d4aee"),
+    ("2026-10-19", "e745298a2"),
+    ("2026-10-20", "34613814c"),
+    ("2026-10-21", "d91cb7c2c"),
+    ("2026-10-22", "77b43e1ec"),
+    ("2026-10-23", "ef17f4098"),
+    ("2026-10-26", "34bda5a29"),
+    ("2026-11-03", "02a152cfe"),
+    ("2026-11-04", "130ab3e25"),
+    ("2026-11-05", "d93dc6dc2"),
     ("2026-11-16", "09decc254498c8c53d9d1f5ef2562a68c316f461"),
     ("2026-11-17", "a65d6852e2115ecf186865cc41ed90e890e08093"),
     ("2026-11-18", "8a03bba7bf8a7482f0262eccbdf0c257cec4f6bc"),
@@ -94,36 +109,51 @@ def raw_financial_history(codes, batch_size=40, workers=4):
 
 
 def attach_asof_acceleration(workspace, date, raw_financial):
-    """Do not touch any historical core financial field that baseline used."""
-    p = workspace / "data/research/core_profit_refresh_latest.json"
-    old = read(p)
-    if old.get("source") != SOURCE:
-        raise ValueError("HISTORICAL_CORE_SOURCE_MISMATCH")
-    kept = 0
-    verified = 0
-    unknown = 0
-    reasons = defaultdict(int)
-    for code, historic in old.get("records", {}).items():
-        computed = finance_source.find_asof_row(raw_financial.get(code, []), code, date)
-        if not computed or computed["report_date"] != historic.get("report_date"):
-            reasons["SOURCE_ASOF_OR_REPORT_DATE_MISMATCH"] += 1
+    """Use contemporaneous finance snapshot if archived, otherwise clearly
+    label a reconstructed F10 baseline; never imply it was a published Top5.
+    """
+    p=workspace/"data/research/core_profit_refresh_latest.json"
+    reconstructed=not p.exists()
+    if reconstructed:
+        latest=read(workspace/"data/latest.json")
+        stocks=latest.get("stocks") or {}
+        original_records={}
+        for code in stocks:
+            item=finance_source.find_asof_row(raw_financial.get(code,[]),code,date)
+            if item:
+                original_records[code]=item
+        old={"source":SOURCE,"asof_trade_date":date,"records":original_records}
+        write(p,old)
+    else:
+        old=read(p)
+        if old.get("source")!=SOURCE:
+            raise ValueError("HISTORICAL_CORE_SOURCE_MISMATCH")
+    kept=0
+    verified=0
+    unknown=0
+    reasons=defaultdict(int)
+    for code,historic in old.get("records",{}).items():
+        computed=finance_source.find_asof_row(raw_financial.get(code,[]),code,date)
+        if not computed or computed["report_date"]!=historic.get("report_date"):
+            reasons["SOURCE_ASOF_OR_REPORT_DATE_MISMATCH"]+=1
             continue
-        # As-of source row is independently date checked in find_asof_row.
-        historic["quarterly_history"] = computed["quarterly_history"]
-        historic["quarterly_acceleration"] = computed["quarterly_acceleration"]
-        kept += 1
-        if computed["quarterly_acceleration"]["status"] == "VERIFIED":
-            verified += 1
+        historic["quarterly_history"]=computed["quarterly_history"]
+        historic["quarterly_acceleration"]=computed["quarterly_acceleration"]
+        kept+=1
+        if computed["quarterly_acceleration"]["status"]=="VERIFIED":
+            verified+=1
         else:
-            unknown += 1
-            reasons[computed["quarterly_acceleration"].get("reason", "UNKNOWN")] += 1
-    write(p, old)
+            unknown+=1
+            reasons[computed["quarterly_acceleration"].get("reason","UNKNOWN")]+=1
+    write(p,old)
     return {
-        "historical_core_records": len(old["records"]),
-        "matched_point_in_time_reports": kept,
-        "quarterly_acceleration_verified": verified,
-        "quarterly_acceleration_unknown": unknown,
-        "reasons": dict(reasons),
+        "finance_baseline_mode":("RETROSPECTIVELY_RECONSTRUCTED_F10"
+                                 if reconstructed else "CONTEMPORARY_ARCHIVED_F10"),
+        "historical_core_records":len(old["records"]),
+        "matched_point_in_time_reports":kept,
+        "quarterly_acceleration_verified":verified,
+        "quarterly_acceleration_unknown":unknown,
+        "reasons":dict(reasons),
     }
 
 
@@ -140,17 +170,26 @@ def replay_snapshot(workspace, day, raw_financial):
     old_cwd = Path.cwd()
     try:
         os.chdir(workspace)
-        original = read(workspace / "research/trend_buy_candidates/latest.json")
-        if original["trade_date"] != day:
+        archived_candidate=workspace/"research/trend_buy_candidates/latest.json"
+        original=(read(archived_candidate) if archived_candidate.exists()
+                  else None)
+        if original and original["trade_date"]!=day:
             raise ValueError("ARCHIVE_DATE_MISMATCH")
-        coverage = attach_asof_acceleration(workspace, day, raw_financial)
+        historical_handoff=read(workspace/"research/trend_handoff.json")
+        if historical_handoff["trade_date"]!=day or not historical_handoff.get("signals"):
+            raise ValueError("HISTORICAL_CONFIRMED_HANDOFF_INVALID")
+        coverage=attach_asof_acceleration(workspace,day,raw_financial)
         compared = admission.prepare(workspace)
         admission.validate_admission(workspace, compared)
 
         baseline_groups = {x["industry_code"]: x["selected_codes"]
                            for x in compared["industries"]}
-        frozen_groups = {x["industry_code"]: x["selected_codes"]
-                         for x in original["industries"]}
+        frozen_groups = ({x["industry_code"]:x["selected_codes"]
+                          for x in original["industries"]} if original else {})
+        sector_names={}
+        for signal in historical_handoff["signals"]:
+            for code in signal.get("industry_codes") or []:
+                sector_names[code]=signal.get("trend_name")
         audit_groups = compared["quarterly_financial_acceleration_shadow"]["industries"]
         groups = []
         for group in audit_groups:
@@ -162,10 +201,14 @@ def replay_snapshot(workspace, day, raw_financial):
             frozen = frozen_groups.get(code)
             groups.append({
                 "industry_code": code,
+                "confirmed_trend_name":sector_names.get(code),
                 "frozen_formal_codes": frozen,
                 "replayed_baseline_codes": baseline,
                 "shadow_codes": variant,
-                "replay_matches_original_freeze": baseline == frozen,
+                "replay_matches_original_freeze": (baseline==frozen
+                                                    if original else None),
+                "baseline_traceability":("ORIGINAL_TOP5_REPRODUCED"
+                                         if original else "RETROSPECTIVE_RECONSTRUCTION"),
                 "selection_changed": group["selection_changed"],
                 "new_codes": group["changed_in_codes"],
                 "removed_codes": group["changed_out_codes"],
@@ -179,8 +222,12 @@ def replay_snapshot(workspace, day, raw_financial):
             "date": day,
             "source_candidate_checkpoint": git("rev-parse", "HEAD", cwd=workspace),
             "historical_issuer_finance": coverage,
-            "original_candidate_date": original["trade_date"],
-            "original_finance_snapshot_asof": original["source"]["finance_report_asof_date"],
+            "original_candidate_date":original["trade_date"] if original else None,
+            "original_finance_snapshot_asof":(original["source"]["finance_report_asof_date"]
+                                                if original else None),
+            "baseline_traceability":("ARCHIVED_CANONICAL_CANDIDATE_TOP5"
+                                     if original else "NO_ORIGINAL_TOP5_RECONSTRUCTED"),
+            "confirmed_trend_names":sorted(set(sector_names.values())),
             "groups": groups,
         }
     finally:
@@ -300,6 +347,7 @@ def main():
                 replayed.append(snapshot)
                 print("QUARTERLY_ASOF_REPLAY", json.dumps({
                     "day": day,
+                    "baseline_traceability":snapshot["baseline_traceability"],
                     "groups": len(snapshot["groups"]),
                     "original_replay_matches": sum(x["replay_matches_original_freeze"]
                                                    for x in snapshot["groups"]),
@@ -321,16 +369,20 @@ def main():
         "asof_finance_cutoff": "REPORT_DATE_NOTICE_DATE_UPDATE_DATE",
         "group_count": len(groups),
         "selection_change_group_count": sum(x["selection_changed"] for x in groups),
-        "original_freeze_replay_match_count": sum(
-            x["replay_matches_original_freeze"] for x in groups),
-        "original_freeze_replay_mismatch_count": sum(
-            not x["replay_matches_original_freeze"] for x in groups),
+        "original_freeze_replay_match_count":sum(
+            x["replay_matches_original_freeze"] is True for x in groups),
+        "original_freeze_replay_mismatch_count":sum(
+            x["replay_matches_original_freeze"] is False for x in groups),
+        "historically_reconstructed_group_count":sum(
+            x["replay_matches_original_freeze"] is None for x in groups),
         "return_horizons_trading_days": list(HORIZONS),
         "forward_return_summary": summary,
         "sessions": replayed,
         "industry_sessions": groups,
         "limitations": [
-            "Five adjacent sessions from 2026-11-16 through 2026-11-20; predominantly banks and heavily correlated samples.",
+            "Non-consecutive 2026-10-14 through 2026-11-20 confirmed sector checkpoints; no handoff-less dates are added.",
+            "Dates before 2026-11-16 have no archived canonical Top5 freezes; the current Python prescreen is retrospectively applied to frozen contemporary market data.",
+            "Dates before the first archived core-financial refresh have reconstructed F10 financial baselines, not contemporaneously versioned original finance archives.",
             "The current candidate algorithm is applied retrospectively to historical frozen datasets, not to contemporaneous executable trades.",
             "Vendor F10 revisions are screened by published and updated dates but original pre-revision versions are not independently archived.",
             "One-day, three-day, and five-day observed returns are close-to-close proxies, not READY entries, stop losses, trading costs or PnL.",
@@ -347,6 +399,7 @@ def main():
         "selection_change_group_count":report["selection_change_group_count"],
         "original_freeze_replay_match_count":report["original_freeze_replay_match_count"],
         "original_freeze_replay_mismatch_count":report["original_freeze_replay_mismatch_count"],
+        "historically_reconstructed_group_count":report["historically_reconstructed_group_count"],
         "forward_return_summary":summary,
     }, ensure_ascii=False), flush=True)
 
