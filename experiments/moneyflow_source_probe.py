@@ -153,6 +153,9 @@ def main() -> int:
         "no_repository_data_written": True,
         "results": results,
     }
+    Path("/tmp/moneyflow_source_probe.json").write_text(
+        json.dumps(report, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8"
+    )
     print("EASTMONEY_MONEYFLOW_SOURCE_PROBE " + json.dumps(report, ensure_ascii=False))
     return 0 if passed == len(codes) else 1
 
