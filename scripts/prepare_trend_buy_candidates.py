@@ -405,6 +405,19 @@ def validate_admission(root,admission):
         raise ValueError("ADMISSION_ADMISSION_CONFIRMED_INDUSTRY_COVERAGE_INCOMPLETE")
     if admission.get("selected_company_count")!=len(all_codes):
         raise ValueError("ADMISSION_ADMISSION_SELECTED_COUNT_MISMATCH")
+    shadow=admission.get("quarterly_financial_acceleration_shadow") or {}
+    if (shadow.get("version")!="SINGLE_QUARTER_ACCELERATION_V1"
+            or shadow.get("mode")!="SHADOW_ONLY"
+            or shadow.get("not_used_for_formal_selection") is not True):
+        raise ValueError("ADMISSION_QUARTERLY_ACCELERATION_SHADOW_CONTRACT_INVALID")
+    shadow_by_sector={
+        item.get("industry_code"):item for item in shadow.get("industries",[])
+    }
+    if set(shadow_by_sector)!=set(by_sector):
+        raise ValueError("ADMISSION_QUARTERLY_ACCELERATION_SHADOW_SCOPE_MISMATCH")
+    for sector,codes in by_sector.items():
+        if shadow_by_sector[sector].get("baseline_selected_codes")!=codes:
+            raise ValueError("ADMISSION_SHADOW_BASELINE_SELECTION_MISMATCH")
     return by_sector
 
 
