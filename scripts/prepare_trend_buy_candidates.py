@@ -190,7 +190,7 @@ def quarterly_acceleration_shadow_scores(rows, base_metrics):
         "available_count":available,
         "coverage_ratio":round(coverage,4),
         "weight_within_growth_dimension":0.20,
-        "max_total_score_impact":0.045,
+        "max_total_score_impact":0.09,
         "companies":company_audit,
     }
 
