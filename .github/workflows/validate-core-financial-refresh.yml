@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'experiments/financial_field_source_probe.py'
+      - 'experiments/moneyflow_source_probe.py'
       - '.github/workflows/validate-core-financial-refresh.yml'
       - 'scripts/refresh_core_financial_only.py'
       - 'tests/test_core_financial_refresh.py'
@@ -25,6 +26,8 @@ jobs:
       - run: python -m pip install requests
       - name: Probe latest and prior year public report field coverage
         run: python experiments/financial_field_source_probe.py
+      - name: Probe Eastmoney five-day stock moneyflow twice per sample (read only)
+        run: python experiments/moneyflow_source_probe.py
       - name: Validate both scheduled workflow YAML files
         run: |
           python -m pip install pyyaml
