@@ -448,7 +448,7 @@ def main():
                     "baseline_traceability":snapshot["baseline_traceability"],
                     "groups": len(snapshot["groups"]),
                     "blocked_groups":snapshot["blocked_reconstruction_industry_count"],
-                    "original_replay_matches": sum(x["replay_matches_original_freeze"]
+                    "original_replay_matches":sum(x["replay_matches_original_freeze"] is True
                                                    for x in snapshot["groups"]),
                     "shadow_changes": sum(x["selection_changed"] for x in snapshot["groups"]),
                     "finance": snapshot["historical_issuer_finance"],
