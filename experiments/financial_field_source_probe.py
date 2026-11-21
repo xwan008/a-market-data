@@ -77,4 +77,3 @@ if __name__=="__main__":
                          +json.dumps(observed,ensure_ascii=False))
     print("SINGLE_QUARTER_FIELD_LATEST_TWO_REPORT_SAMPLE "+json.dumps(
         observed,ensure_ascii=False))
-            raise
