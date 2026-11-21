@@ -157,6 +157,97 @@ def attach_asof_acceleration(workspace, date, raw_financial):
     }
 
 
+def reconstruct_research_only(root, asof):
+    """Replay all confirmed industry groups without weakening formal gates.
+
+    Old checkpoints have no canonical original TOP5. An industry unable to
+    supply at least one ranked company remains explicitly BLOCKED; it is not
+    turned into a synthetic stock selection or silently omitted.
+    """
+    from copy import deepcopy
+    with tempfile.TemporaryDirectory(prefix="retrospective-audit-") as tmp:
+        empty=Path(tmp)/"empty_company_reviews.json"
+        write(empty, {"schema_version":"trend_buy_company_reviews_v2",
+                      "as_of_date":asof,"reviews":[]})
+        lightweight=scanner.build(empty,audit_only=True)
+    scan=deepcopy(lightweight)
+    shadow_scan=deepcopy(lightweight)
+    audited=scan["screen_audit"]["lightweight_scanned"]
+    scan_by_code={row["code"]:row for row in audited}
+    shadow_by_code={row["code"]:row for row in
+                    shadow_scan["screen_audit"]["lightweight_scanned"]}
+    if len(audited)!=len(scan_by_code):
+        raise ValueError("RETROSPECTIVE_DUPLICATE_HARD_ELIGIBLE_COMPANY")
+    per_industry=defaultdict(list)
+    for row in audited:
+        per_industry[row["industry_code"]].append(row["code"])
+    index=read(root/"data/low_risk/index.json")
+    evidence=read(root/"data/research/core_profit_refresh_latest.json")
+    overlay={}
+    evaluations={}
+    for industry,codes in per_industry.items():
+        frozen=admission.prescreen.frozen_industry_rows(root,index,industry,asof)
+        peers=[row for row in frozen if row["code"] in set(codes)]
+        if len(peers)!=len(codes):
+            raise ValueError("RETROSPECTIVE_HARD_ELIGIBLE_FROZEN_SCOPE_MISMATCH")
+        prepared=[]
+        for row in peers:
+            patch,why=admission.validated_core_patch(
+                row,evidence["records"].get(row["code"]),asof)
+            if why in ("VALIDATED","NO_NEW_FIELDS"):
+                patch={**patch,"financial_publication_date_verified":True}
+            if patch:
+                overlay[row["code"]]=patch
+            prepared.append({**row,**patch})
+        baseline_scores=scanner.scores(prepared,financial_mode="CORE_FIRST")
+        shadow_scores,quality=admission.quarterly_acceleration_shadow_scores(
+            prepared,baseline_scores)
+        for row,base,experimental in zip(peers,baseline_scores,shadow_scores):
+            for target,metric in ((scan_by_code[row["code"]],base),
+                                  (shadow_by_code[row["code"]],experimental)):
+                target["fundamental_score"]=metric[0]
+                target["growth"]=metric[1]
+                target["quality"]=metric[2]
+                target["valuation_match"]=metric[3]
+                target["growth_risk"]=metric[5]
+        evaluations[industry]=quality
+    base=admission.prescreen.run(root,scan,industry_index=index,
+                               financial_overlay=overlay)
+    alt=admission.prescreen.run(root,shadow_scan,industry_index=index,
+                              financial_overlay=overlay)
+    shadow_by_sector={g["industry_code"]:g
+                      for g in alt["industry_groups"]}
+    groups=[]
+    audits=[]
+    for group in base["industry_groups"]:
+        sector=group["industry_code"]
+        experimental=shadow_by_sector[sector]
+        baseline=group["research_codes"]
+        variant=experimental["research_codes"]
+        quality=evaluations[sector]
+        quality.update({
+            "industry_code":sector,
+            "baseline_selected_codes":baseline,
+            "acceleration_shadow_selected_codes":variant,
+            "changed_out_codes":[x for x in baseline if x not in variant],
+            "changed_in_codes":[x for x in variant if x not in baseline],
+            "selection_changed":baseline!=variant,
+            "reconstruction_eligible":bool(baseline and variant),
+            "baseline_eligibility_count":group["eligible_with_new_technical_evidence"],
+            "baseline_history_exclusions":group["history_exclusions"][:6],
+        })
+        groups.append({
+            "industry_code":sector,
+            "selected_codes":baseline,
+            "selection_evidence":group["selection_evidence"],
+        })
+        audits.append(quality)
+    return {
+        "industries":groups,
+        "quarterly_financial_acceleration_shadow":{"industries":audits},
+    }
+
+
 def replay_snapshot(workspace, day, raw_financial):
     # Redirect only the Python readers to immutable historical snapshots.
     # Nothing under the real project working tree changes.
@@ -179,8 +270,11 @@ def replay_snapshot(workspace, day, raw_financial):
         if historical_handoff["trade_date"]!=day or not historical_handoff.get("signals"):
             raise ValueError("HISTORICAL_CONFIRMED_HANDOFF_INVALID")
         coverage=attach_asof_acceleration(workspace,day,raw_financial)
-        compared = admission.prepare(workspace)
-        admission.validate_admission(workspace, compared)
+        if original:
+            compared=admission.prepare(workspace)
+            admission.validate_admission(workspace,compared)
+        else:
+            compared=reconstruct_research_only(workspace,day)
 
         baseline_groups = {x["industry_code"]: x["selected_codes"]
                            for x in compared["industries"]}
@@ -209,7 +303,9 @@ def replay_snapshot(workspace, day, raw_financial):
                                                     if original else None),
                 "baseline_traceability":("ORIGINAL_TOP5_REPRODUCED"
                                          if original else "RETROSPECTIVE_RECONSTRUCTION"),
-                "selection_changed": group["selection_changed"],
+                "selection_changed":group["selection_changed"],
+                "reconstruction_eligible":bool(baseline and variant),
+                "baseline_history_eligible_count":group.get("baseline_eligibility_count"),
                 "new_codes": group["changed_in_codes"],
                 "removed_codes": group["changed_out_codes"],
                 "quarterly_evidence_coverage_ratio": group["coverage_ratio"],
@@ -228,6 +324,8 @@ def replay_snapshot(workspace, day, raw_financial):
             "baseline_traceability":("ARCHIVED_CANONICAL_CANDIDATE_TOP5"
                                      if original else "NO_ORIGINAL_TOP5_RECONSTRUCTED"),
             "confirmed_trend_names":sorted(set(sector_names.values())),
+            "blocked_reconstruction_industry_count":sum(
+                not group["reconstruction_eligible"] for group in groups),
             "groups": groups,
         }
     finally:
@@ -349,6 +447,7 @@ def main():
                     "day": day,
                     "baseline_traceability":snapshot["baseline_traceability"],
                     "groups": len(snapshot["groups"]),
+                    "blocked_groups":snapshot["blocked_reconstruction_industry_count"],
                     "original_replay_matches": sum(x["replay_matches_original_freeze"]
                                                    for x in snapshot["groups"]),
                     "shadow_changes": sum(x["selection_changed"] for x in snapshot["groups"]),
@@ -368,7 +467,9 @@ def main():
         "decision_dates": [x[0] for x in CHECKPOINTS],
         "asof_finance_cutoff": "REPORT_DATE_NOTICE_DATE_UPDATE_DATE",
         "group_count": len(groups),
-        "selection_change_group_count": sum(x["selection_changed"] for x in groups),
+        "selection_change_group_count":sum(x["selection_changed"] for x in groups),
+        "reconstruction_blocked_group_count":sum(
+            not x["reconstruction_eligible"] for x in groups),
         "original_freeze_replay_match_count":sum(
             x["replay_matches_original_freeze"] is True for x in groups),
         "original_freeze_replay_mismatch_count":sum(
@@ -400,6 +501,7 @@ def main():
         "original_freeze_replay_match_count":report["original_freeze_replay_match_count"],
         "original_freeze_replay_mismatch_count":report["original_freeze_replay_mismatch_count"],
         "historically_reconstructed_group_count":report["historically_reconstructed_group_count"],
+        "reconstruction_blocked_group_count":report["reconstruction_blocked_group_count"],
         "forward_return_summary":summary,
     }, ensure_ascii=False), flush=True)
 
