@@ -1,0 +1,38 @@
+name: Eastmoney moneyflow source stability (read only)
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/moneyflow_source_probe.py'
+      - '.github/workflows/validate-moneyflow-source.yml'
+  workflow_dispatch:
+  schedule:
+    # 19:45 Asia/Shanghai, after the 19:00 trend-buy research has frozen candidates.
+    - cron: '45 11 * * 1-5'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: eastmoney-moneyflow-source-probe
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install requests
+      - name: Probe latest five daily moneyflow rows for frozen candidates (read only)
+        run: python experiments/moneyflow_source_probe.py
+      - name: Upload diagnostic evidence only
+        if: always() && hashFiles('/tmp/moneyflow_source_probe.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: eastmoney-moneyflow-probe-${{ github.run_id }}
+          path: /tmp/moneyflow_source_probe.json
+          retention-days: 14
