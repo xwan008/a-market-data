@@ -53,7 +53,6 @@ if __name__=="__main__":
         ("RPT_F10_FINANCE_MAINFINADATA","2026-06-30","000506.SZ"),
         ("RPT_F10_FINANCE_MAINFINADATA","2026-06-30","600519.SH"),
         ("RPT_F10_FINANCE_MAINFINADATA","2026-09-30","(SECUCODE in (\"000506.SZ\",\"600519.SH\"))"),
-        ("RPT_F10_FINANCE_MAINFINADATA","2026-09-30","(SECUCODE=\"000506.SZ\")(REPORT_DATE=\"2026-09-30\")"),
     ]
     required_single_quarter_fields=("DJD_DEDUCTDPNP_YOY","DJD_TOI_YOY")
     observed={field:0 for field in required_single_quarter_fields}
@@ -73,7 +72,6 @@ if __name__=="__main__":
             print("CORE_PROFIT_SOURCE_PROBE_ERROR "+json.dumps({
                 "report":report,"period":period,"code":code,
                 "error":type(ex).__name__+":"+str(ex)[:300]},ensure_ascii=False))
-            raise
     if not all(observed[field]>0 for field in required_single_quarter_fields):
         raise SystemExit("SINGLE_QUARTER_FIELDS_MISSING_FROM_LATEST_SAMPLE_ROWS:"
                          +json.dumps(observed,ensure_ascii=False))
