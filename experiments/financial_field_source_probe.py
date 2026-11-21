@@ -57,13 +57,27 @@ if __name__=="__main__":
         ("RPT_F10_FINANCE_MAINFINADATA","2026-09-30","(SECUCODE in (\"000506.SZ\",\"600519.SH\"))"),
         ("RPT_F10_FINANCE_MAINFINADATA","2026-09-30","(SECUCODE=\"000506.SZ\")(REPORT_DATE=\"2026-09-30\")"),
     ]
+    required_single_quarter_fields=("DJD_DEDUCTDPNP_YOY","DJD_TOI_YOY")
     for report,period,code in reports:
         try:
             result=query(report,period,None,filter_expr=code) if code and code.startswith("(") else query(report,period,code)
             print("CORE_PROFIT_SOURCE_PROBE "+json.dumps({
                 "report":report,"period":period,"code":code,
                 **result},ensure_ascii=False))
+            if (report=="RPT_F10_FINANCE_MAINFINADATA" and code is None
+                    and period in ("2026-09-30","2026-06-30")):
+                missing=[field for field in required_single_quarter_fields
+                         if result["field_coverage"].get(field,0)==0]
+                if missing:
+                    raise SystemExit("SINGLE_QUARTER_FIELDS_HAVE_NO_VALUES:"
+                                     +period+":"+",".join(missing))
+                print("SINGLE_QUARTER_FIELD_COVERAGE "+json.dumps({
+                    "period":period,
+                    "coverage":{field:result["field_coverage"][field]
+                                for field in required_single_quarter_fields},
+                    "sample_count":result["count"]},ensure_ascii=False))
         except Exception as ex:
             print("CORE_PROFIT_SOURCE_PROBE_ERROR "+json.dumps({
                 "report":report,"period":period,"code":code,
                 "error":type(ex).__name__+":"+str(ex)[:300]},ensure_ascii=False))
+            raise
