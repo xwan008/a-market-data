@@ -9,9 +9,10 @@ from collections import Counter
 import requests
 URL="https://datacenter-web.eastmoney.com/api/data/v1/get"
 HEADERS={"User-Agent":"Mozilla/5.0","Referer":"https://quote.eastmoney.com/"}
-SELECT=("KCFJCXSYJLR","KCFJCXSYJLRTZ","DEDUCT_PARENT_NETPROFIT",
-        "DEDUCT_PARENT_NETPROFIT_YOY","EPSKCJB","DEDUCT_BASIC_EPS",
-        "PARENTNETPROFIT","PARENTNETPROFITTZ","NOTICE_DATE","REPORTDATE")
+SELECT=("KCFJCXSYJLR","KCFJCXSYJLRTZ","DJD_DEDUCTDPNP_YOY",
+        "DJD_DEDUCTDPNP_QOQ","DJD_TOI_YOY","DJD_TOI_QOQ",
+        "TOTALOPERATEREVE","TOTALOPERATEREVETZ","EPSKCJB","NOTICE_DATE",
+        "REPORT_DATE","UPDATE_DATE","REPORTDATE")
 
 def query(report, period, code=None, filter_expr=None):
     if report=="RPT_F10_FINANCE_MAINFINADATA":
@@ -47,19 +48,32 @@ if __name__=="__main__":
         ("RPT_LICO_FN_CPD","2026-09-30",None),
         ("RPT_LICO_FN_CPD","2025-09-30",None),
         ("RPT_LICO_FN_CPD","2026-09-30","000506"),
-        ("RPT_F10_FINANCE_MAINFINADATA","2026-09-30",None),
         ("RPT_F10_FINANCE_MAINFINADATA","2026-09-30","000506.SZ"),
         ("RPT_F10_FINANCE_MAINFINADATA","2026-09-30","600519.SH"),
+        ("RPT_F10_FINANCE_MAINFINADATA","2026-06-30","000506.SZ"),
+        ("RPT_F10_FINANCE_MAINFINADATA","2026-06-30","600519.SH"),
         ("RPT_F10_FINANCE_MAINFINADATA","2026-09-30","(SECUCODE in (\"000506.SZ\",\"600519.SH\"))"),
-        ("RPT_F10_FINANCE_MAINFINADATA","2026-09-30","(SECUCODE=\"000506.SZ\")(REPORT_DATE=\"2026-09-30\")"),
     ]
+    required_single_quarter_fields=("DJD_DEDUCTDPNP_YOY","DJD_TOI_YOY")
+    observed={field:0 for field in required_single_quarter_fields}
     for report,period,code in reports:
         try:
             result=query(report,period,None,filter_expr=code) if code and code.startswith("(") else query(report,period,code)
             print("CORE_PROFIT_SOURCE_PROBE "+json.dumps({
                 "report":report,"period":period,"code":code,
                 **result},ensure_ascii=False))
+            if report=="RPT_F10_FINANCE_MAINFINADATA" and code in ("000506.SZ","600519.SH"):
+                for field in required_single_quarter_fields:
+                    observed[field]+=sum(
+                        1 for item in result["sample"]
+                        if item["selected"].get(field) is not None
+                    )
         except Exception as ex:
             print("CORE_PROFIT_SOURCE_PROBE_ERROR "+json.dumps({
                 "report":report,"period":period,"code":code,
                 "error":type(ex).__name__+":"+str(ex)[:300]},ensure_ascii=False))
+    if not all(observed[field]>0 for field in required_single_quarter_fields):
+        raise SystemExit("SINGLE_QUARTER_FIELDS_MISSING_FROM_LATEST_SAMPLE_ROWS:"
+                         +json.dumps(observed,ensure_ascii=False))
+    print("SINGLE_QUARTER_FIELD_LATEST_TWO_REPORT_SAMPLE "+json.dumps(
+        observed,ensure_ascii=False))

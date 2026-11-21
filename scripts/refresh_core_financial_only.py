@@ -84,8 +84,23 @@ def query_batch(codes, *, timeout=25, attempts=2):
     raise RuntimeError(f"F10_BATCH_FAILED_{len(codes)}:"+type(error).__name__+":"+str(error)[:100])
 
 
-def find_asof_row(rows, code, asof):
-    candidates=[]
+def previous_quarter_end(report_date):
+    """Return the immediately preceding standard A-share report period."""
+    d=date.fromisoformat(report_date)
+    if (d.month,d.day)==(3,31):
+        return date(d.year-1,12,31).isoformat()
+    if (d.month,d.day)==(6,30):
+        return date(d.year,3,31).isoformat()
+    if (d.month,d.day)==(9,30):
+        return date(d.year,6,30).isoformat()
+    if (d.month,d.day)==(12,31):
+        return date(d.year,9,30).isoformat()
+    return None
+
+
+def find_asof_rows(rows, code, asof, limit=2):
+    """Keep the latest two distinct, point-in-time-valid report periods."""
+    by_period={}
     for row in rows:
         if row.get("SECURITY_CODE")!=code:
             continue
@@ -99,13 +114,17 @@ def find_asof_row(rows, code, asof):
         core=as_number(row.get("KCFJCXSYJLR"))
         yoy=as_number(row.get("KCFJCXSYJLRTZ"))
         eps=as_number(row.get("EPSKCJB"))
-        if core is None and yoy is None and eps is None:
+        single_profit_yoy=as_number(row.get("DJD_DEDUCTDPNP_YOY"))
+        single_revenue_yoy=as_number(row.get("DJD_TOI_YOY"))
+        if all(x is None for x in (
+            core,yoy,eps,single_profit_yoy,single_revenue_yoy
+        )):
             continue
         parent=as_number(row.get("PARENTNETPROFIT"))
         share=(100*(parent-core)/abs(parent)
                if parent is not None and core is not None and abs(parent)>1
                else None)
-        candidates.append({
+        candidate={
             "code":code,"report_date":period,"notice_date":notice,
             "update_date":updated,
             "deduct_net_profit":core,
@@ -113,10 +132,111 @@ def find_asof_row(rows, code, asof):
             "deduct_basic_eps":eps,
             "reported_parent_net_profit":parent,
             "nonrecurring_profit_share_pct":round(share,4) if share is not None else None,
+            "single_quarter_deduct_net_profit_yoy":single_profit_yoy,
+            "single_quarter_revenue_yoy":single_revenue_yoy,
             "source_report":SOURCE,
             "source_public_url":"https://datacenter-web.eastmoney.com/api/data/v1/get",
-        })
-    return max(candidates,key=lambda r:(r["report_date"],r["notice_date"])) if candidates else None
+        }
+        prior=by_period.get(period)
+        if prior is None or (notice,updated or "")>(prior["notice_date"],prior.get("update_date") or ""):
+            by_period[period]=candidate
+    ordered=sorted(by_period.values(),key=lambda r:r["report_date"],reverse=True)
+    return ordered[:limit]
+
+
+def build_quarterly_acceleration(history):
+    """Compare single-quarter YoY growth for the latest two adjacent reports."""
+    unknown={
+        "status":"UNKNOWN",
+        "source_report":SOURCE,
+        "reason":"INSUFFICIENT_ADJACENT_QUARTER_EVIDENCE",
+    }
+    if len(history)<2:
+        return unknown
+    latest,previous=history[0],history[1]
+    expected_previous=previous_quarter_end(latest["report_date"])
+    if expected_previous!=previous["report_date"]:
+        return {
+            **unknown,
+            "reason":"PREVIOUS_QUARTER_REPORT_MISSING_OR_NOT_ADJACENT",
+            "latest_report_date":latest["report_date"],
+            "previous_report_date":previous["report_date"],
+            "expected_previous_report_date":expected_previous,
+        }
+    fields={
+        "latest_single_quarter_deduct_profit_yoy_pct":
+            latest.get("single_quarter_deduct_net_profit_yoy"),
+        "previous_single_quarter_deduct_profit_yoy_pct":
+            previous.get("single_quarter_deduct_net_profit_yoy"),
+        "latest_single_quarter_revenue_yoy_pct":
+            latest.get("single_quarter_revenue_yoy"),
+        "previous_single_quarter_revenue_yoy_pct":
+            previous.get("single_quarter_revenue_yoy"),
+    }
+    missing=[name for name,value in fields.items() if value is None]
+    if missing:
+        return {
+            **unknown,
+            "reason":"SINGLE_QUARTER_GROWTH_FIELDS_MISSING",
+            "missing_fields":missing,
+            "latest_report_date":latest["report_date"],
+            "previous_report_date":previous["report_date"],
+        }
+    profit_accel=(
+        fields["latest_single_quarter_deduct_profit_yoy_pct"]
+        - fields["previous_single_quarter_deduct_profit_yoy_pct"]
+    )
+    revenue_accel=(
+        fields["latest_single_quarter_revenue_yoy_pct"]
+        - fields["previous_single_quarter_revenue_yoy_pct"]
+    )
+    latest_revenue=fields["latest_single_quarter_revenue_yoy_pct"]
+    if profit_accel<=0:
+        alignment="PROFIT_NOT_ACCELERATING"
+    elif latest_revenue>=0 and revenue_accel>=0:
+        alignment="ALIGNED_ACCELERATION"
+    elif latest_revenue>=0:
+        alignment="REVENUE_GROWING_BUT_DECELERATING"
+    elif revenue_accel>0:
+        alignment="REVENUE_CONTRACTION_EASING"
+    else:
+        alignment="REVENUE_CONTRACTION_WORSENING"
+    return {
+        "status":"VERIFIED",
+        "source_report":SOURCE,
+        "latest_report_date":latest["report_date"],
+        "latest_notice_date":latest["notice_date"],
+        "latest_update_date":latest.get("update_date"),
+        "previous_report_date":previous["report_date"],
+        "previous_notice_date":previous["notice_date"],
+        "previous_update_date":previous.get("update_date"),
+        **fields,
+        "deduct_profit_acceleration_pp":round(profit_accel,4),
+        "revenue_acceleration_pp":round(revenue_accel,4),
+        "revenue_alignment":alignment,
+        "growth_unit":"percentage_points",
+    }
+
+
+def find_asof_row(rows, code, asof):
+    history=find_asof_rows(rows,code,asof,limit=2)
+    if not history:
+        return None
+    latest=dict(history[0])
+    latest["quarterly_history"]=[
+        {
+            "report_date":item["report_date"],
+            "notice_date":item["notice_date"],
+            "update_date":item.get("update_date"),
+            "single_quarter_deduct_net_profit_yoy":
+                item.get("single_quarter_deduct_net_profit_yoy"),
+            "single_quarter_revenue_yoy":
+                item.get("single_quarter_revenue_yoy"),
+        }
+        for item in history
+    ]
+    latest["quarterly_acceleration"]=build_quarterly_acceleration(history)
+    return latest
 
 
 def fetch_all(codes,asof,batch_size=DEFAULT_BATCH_SIZE,workers=4):
@@ -221,6 +341,12 @@ def build_report(snapshot,records,errors,batches,updated,changes):
         "prior_deduct_growth_usable":initial,
         "after_deduct_growth_usable":stats["deduct_profit_growth_usable"],
         "after_core_amount_usable":stats["core_profit_amount_usable"],
+        "quarterly_acceleration_usable":sum(
+            1 for r in records.values()
+            if (r.get("quarterly_acceleration") or {}).get("status")=="VERIFIED"),
+        "quarterly_acceleration_unknown":sum(
+            1 for r in records.values()
+            if (r.get("quarterly_acceleration") or {}).get("status")!="VERIFIED"),
         "updated_stocks":changes["updated_stocks"],
         "report_date_mismatches":changes["report_date_mismatches"][:30],
         "unresolved_query_errors":errors[:100],
