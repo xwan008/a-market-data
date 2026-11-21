@@ -104,37 +104,101 @@ def fetch_once(code: str) -> dict:
     }
 
 
+def fetch_datacenter_once(code: str) -> dict:
+    """Try the separate datacenter host, which is not the push2 quote cluster."""
+    response = requests.get(
+        "https://datacenter-web.eastmoney.com/api/data/v1/get",
+        params={
+            "reportName": "RPT_DMSK_TS_STOCKNEW",
+            "columns": "ALL",
+            "filter": f'(SECURITY_CODE="{code}")',
+            "sortColumns": "TRADE_DATE",
+            "sortTypes": "-1",
+            "pageSize": 10,
+            "pageNumber": 1,
+            "source": "WEB",
+            "client": "WEB",
+        },
+        headers=HEADERS,
+        timeout=20,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    result = payload.get("result") or {}
+    raw = result.get("data") or []
+    if not raw:
+        raise ValueError("DATACENTER_MONEYFLOW_NO_ROWS")
+    rows = []
+    for item in raw:
+        day = str(item.get("TRADE_DATE") or item.get("TRADEDATE") or "")[:10]
+        amount = item.get("PRIME_INFLOW")
+        if day and finite(amount):
+            rows.append({
+                "date": day,
+                "main_net_inflow": float(amount),
+                "raw_field_keys": sorted(item.keys()),
+            })
+    rows.sort(key=lambda row: row["date"])
+    recent = rows[-5:]
+    dates = [row["date"] for row in recent]
+    if len(recent) != 5 or len(set(dates)) != 5:
+        raise ValueError(
+            "DATACENTER_MONEYFLOW_LESS_THAN_FIVE_ROWS:"
+            + json.dumps({
+                "raw_count": len(raw),
+                "parsed_count": len(rows),
+                "field_keys": sorted(raw[0].keys()) if raw else [],
+            }, ensure_ascii=False)
+        )
+    return {
+        "latest_date": dates[-1],
+        "dates": dates,
+        "valid_five_day_rows": len(recent),
+        "five_day_main_net_inflow": round(
+            sum(x["main_net_inflow"] for x in recent), 2
+        ),
+        "positive_main_net_inflow_days": sum(
+            x["main_net_inflow"] > 0 for x in recent
+        ),
+        "field_keys": sorted(raw[0].keys()),
+        "rows": recent,
+    }
+
+
 def main() -> int:
     results = {}
     for code in SAMPLE_CODES:
-        attempts = []
-        for repeat in range(2):
-            try:
-                attempts.append({"ok": True, **fetch_once(code)})
-            except Exception as exc:
-                attempts.append({
-                    "ok": False,
-                    "error": f"{type(exc).__name__}:{str(exc)[:180]}",
-                })
-            if repeat == 0:
-                time.sleep(1.5)
-        valid = [item for item in attempts if item.get("ok")]
-        same_dates = (
-            len(valid) == 2 and valid[0]["dates"] == valid[1]["dates"]
-        )
-        results[code] = {
-            "attempts": attempts,
-            "both_attempts_passed": len(valid) == 2,
-            "five_day_date_window_stable": same_dates,
-        }
+        try:
+            first = fetch_datacenter_once(code)
+            time.sleep(0.5)
+            second = fetch_datacenter_once(code)
+            results[code] = {
+                "source": "eastmoney_datacenter_RPT_DMSK_TS_STOCKNEW",
+                "attempts": [
+                    {"ok": True, **first},
+                    {"ok": True, **second},
+                ],
+                "both_attempts_passed": True,
+                "five_day_date_window_stable": first["dates"] == second["dates"],
+            }
+            if first["dates"] != second["dates"]:
+                results[code]["error"] = "REPEATED_DATACENTER_DATE_WINDOW_MISMATCH"
+        except Exception as exc:
+            results[code] = {
+                "source": "eastmoney_datacenter_RPT_DMSK_TS_STOCKNEW",
+                "both_attempts_passed": False,
+                "five_day_date_window_stable": False,
+                "error": f"{type(exc).__name__}:{str(exc)[:350]}",
+            }
 
     all_passed = all(
-        item["both_attempts_passed"] and item["five_day_date_window_stable"]
+        item.get("both_attempts_passed")
+        and item.get("five_day_date_window_stable")
         for item in results.values()
     )
     report = {
-        "source": SOURCE,
-        "endpoint": URL,
+        "source": "eastmoney_datacenter_RPT_DMSK_TS_STOCKNEW",
+        "endpoint": "https://datacenter-web.eastmoney.com/api/data/v1/get",
         "status": "PASS" if all_passed else "INCOMPLETE",
         "sample_codes": list(SAMPLE_CODES),
         "repeats_per_code": 2,
