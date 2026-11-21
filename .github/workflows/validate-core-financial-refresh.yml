@@ -6,6 +6,8 @@ on:
       - '.github/workflows/validate-core-financial-refresh.yml'
       - 'scripts/refresh_core_financial_only.py'
       - 'tests/test_core_financial_refresh.py'
+      - 'tests/test_quarterly_financial_acceleration.py'
+      - 'scripts/prepare_trend_buy_candidates.py'
       - '.github/workflows/update-weekly-research.yml'
       - '.github/workflows/update-core-financial-only.yml'
       - 'research/shadow/CORE_FINANCIAL_REFRESH_2026-11-06.md'
@@ -40,7 +42,8 @@ jobs:
       - name: Financial as-of date, duplicate and no-overwrite regressions
         run: |
           python -m unittest discover -s tests -p 'test_core_financial_refresh.py' -v
-          python -m py_compile scripts/refresh_core_financial_only.py
+          python -m unittest discover -s tests -p 'test_quarterly_financial_acceleration.py' -v
+          python -m py_compile scripts/refresh_core_financial_only.py scripts/prepare_trend_buy_candidates.py
       - name: LIVE full-market F10 backfill into shadow artifact (NO main/quote writes)
         run: |
           python scripts/refresh_core_financial_only.py \
