@@ -37,11 +37,11 @@ import build_full_market_price_structure as price_structure
 # Each SHA is the original, independently time-stamped canonical candidate
 # freeze from that market session. Do not replace with later branches.
 CHECKPOINTS = [
-    ("2026-11-16", "09decc254"),
-    ("2026-11-17", "a65d6852e"),
-    ("2026-11-18", "8a03bba7b"),
-    ("2026-11-19", "19c1303a2"),
-    ("2026-11-20", "b8501ab00"),
+    ("2026-11-16", "09decc254498c8c53d9d1f5ef2562a68c316f461"),
+    ("2026-11-17", "a65d6852e2115ecf186865cc41ed90e890e08093"),
+    ("2026-11-18", "8a03bba7bf8a7482f0262eccbdf0c257cec4f6bc"),
+    ("2026-11-19", "19c1303a24168d59a9aad893bc0bcd78fe3b0e1c"),
+    ("2026-11-20", "b8501ab00eefb96b5c4b9f794fa884a09fe5acad"),
 ]
 HORIZONS = (1, 3, 5)
 SOURCE = finance_source.SOURCE
