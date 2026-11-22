@@ -106,11 +106,48 @@ jobs:
         run: |
           rm -f data/research/full_market_price_structure.json
           test ! -e data/research/full_market_price_structure.json
+      - name: Prepare previous completed close for smoke tests
+        run: |
+          python - <<'PY'
+          import json
+          from datetime import datetime
+          from pathlib import Path
+          from zoneinfo import ZoneInfo
+
+          def load(path):
+              return json.loads(Path(path).read_text(encoding='utf-8'))
+
+          latest = load('data/latest.json')
+          published = load('data/research/sector_discovery_snapshot.json')
+          audit = load('data/research/sector_discovery_audit.json')
+          health = load('data/health.json')
+          day, status = latest.get('trade_date'), latest.get('market_status')
+          assert isinstance(day, str) and day == published.get('trade_date') == audit.get('trade_date')
+          assert published.get('status') == 'COMPLETE'
+          assert audit.get('industry_count', 0) >= 300
+          assert len(latest.get('stocks') or {}) >= 3000
+          if status == 'closed':
+              smoke = latest
+          else:
+              # Weekend/holiday refresh can preserve the last completed day's
+              # quotes while marking today as closed_or_no_trade. Only derive
+              # a test-only closed-session fixture when that earlier close is
+              # independently documented by the published sector snapshot.
+              assert status == health.get('market_status') == 'closed_or_no_trade'
+              assert health.get('trade_date') == day
+              assert datetime.fromisoformat(day).date() < datetime.now(
+                  ZoneInfo('Asia/Shanghai')).date()
+              assert datetime.fromisoformat(day).weekday() < 5
+              smoke = {**latest, 'market_status': 'closed'}
+          Path('/tmp/last_completed_close_smoke.json').write_text(
+              json.dumps(smoke, ensure_ascii=False), encoding='utf-8')
+          print('SMOKE_CLOSE_SOURCE', day, status, '->', smoke['market_status'])
+          PY
       - name: Smoke-test with frozen real market data
         run: |
           python scripts/build_history.py
           python scripts/build_bridge.py
-          python scripts/build_sector_discovery.py --output /tmp/sector_discovery.json --audit /tmp/sector_audit.json
+          python scripts/build_sector_discovery.py --latest /tmp/last_completed_close_smoke.json --output /tmp/sector_discovery.json --audit /tmp/sector_audit.json
           python - <<'PY'
           import json
           from pathlib import Path
@@ -166,6 +203,7 @@ jobs:
       - name: Verify full 17-theme auxiliary aggregation with frozen market data
         run: |
           python scripts/build_theme_evidence.py \
+            --latest /tmp/last_completed_close_smoke.json \
             --sector-audit /tmp/sector_audit.json \
             --allow-retrospective-smoke \
             --output /tmp/theme_evidence_smoke.json
@@ -173,7 +211,7 @@ jobs:
           import json
           from pathlib import Path
           t=json.loads(Path('/tmp/theme_evidence_smoke.json').read_text())
-          latest=json.loads(Path('data/latest.json').read_text())
+          latest=json.loads(Path('/tmp/last_completed_close_smoke.json').read_text())
           catalog=json.loads(Path('research/theme_industry_catalog.json').read_text())
           historical_replay=catalog['catalog_as_of_date']>latest['trade_date']
           assert t['trade_date']==latest['trade_date']

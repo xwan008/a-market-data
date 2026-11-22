@@ -439,6 +439,48 @@ def build(latest, industry_index, structure, catalog, sector_audit=None,
         market_median, sum(x > 0 for x in valid) / len(valid),
         limit=crosscheck_limit, persistence_seats=persistence_seats)
 
+    # A strongly divergent SW3 gets its own evidence-review hint even when
+    # covered by a weak SW2 taxonomy group. These hints NEVER enter the
+    # grouped top-ten, change ranking, or decide formal D1/trend states.
+    sw3_independent_review_hints = []
+    if sector_audit is not None and taxonomy:
+        parent_by_code = {
+            industry["code"]: (group["group_name"], group["group_id"])
+            for group in (catalog.get("base_industry_groups") or [])
+            for industry in group["industries"]
+        }
+        taxonomy_by_id = {group["theme_id"]: group for group in taxonomy}
+        def channel_strength(channels):
+            return 2 if "STRONG" in channels else 1 if "EMERGING" in channels else 0
+        for row in sector_audit.get("sectors") or []:
+            if (row.get("kind") != "industry"
+                    or row.get("sample_quality") not in {"OK", "SMALL_SAMPLE"}
+                    or row.get("usable_count", row.get("member_count", 0)) < 3):
+                continue
+            code = str(row.get("id") or "").removeprefix("industry:")
+            parent_info = parent_by_code.get(code)
+            if parent_info is None:
+                continue
+            parent = taxonomy_by_id[parent_info[1]]
+            channels = row.get("channels") or []
+            if channel_strength(channels) <= channel_strength(parent["channels"]):
+                continue
+            sw3_independent_review_hints.append({
+                "industry_code": code, "industry_name": row["name"],
+                "parent_group_name": parent_info[0],
+                "parent_channels": parent["channels"], "channels": channels,
+                "member_count": row["member_count"],
+                "median_return_1d_pct": row.get("median_1d_pct"),
+                "median_return_3d_pct": row.get("median_3d_pct"),
+                "median_return_5d_pct": row.get("median_5d_pct"),
+                "advance_ratio": row.get("advance_ratio"),
+                "relative_1d_vs_market_median_pct":
+                    row.get("relative_1d_vs_market_median_pct"),
+                "sector_audit_reason": row.get("reason"),
+                "automatic_trend_admission": False,
+            })
+        sw3_independent_review_hints.sort(key=lambda row: row["industry_code"])
+
     identity = {}
     for theme in catalog["themes"]:
         for n in [theme["theme_name"], *(theme.get("aliases") or [])]:
@@ -500,12 +542,14 @@ def build(latest, industry_index, structure, catalog, sector_audit=None,
             "invalid_or_low_sample_themes": sum(t["sample_quality"] != "OK" for t in detailed),
             "sector_audit_status": "MATCHED" if sector_audit else "UNAVAILABLE",
             "all_theme_detail_retention": "computed_in_memory_not_persisted",
+            "sw3_independent_review_hint_count": len(sw3_independent_review_hints),
             "crosscheck_shortlist_count": len(crosscheck),
             "crosscheck_limit": crosscheck_limit,
             "crosscheck_scoring": "SW2_AND_VERIFIED_THEME_COMPOSITE_30_20_25_15_10"
         },
         "research_candidates": research,
         "crosscheck_shortlist": crosscheck,
+        "sw3_independent_review_hints": sw3_independent_review_hints,
         "unmapped_industry_alerts": unmapped,
         "disclaimer": "Quantitative cross-check and gap detection only. No T0/T1/T2, trade signal, formal theme rank, or handoff."
     }
