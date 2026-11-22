@@ -103,7 +103,8 @@ class SectorDiscoveryTests(unittest.TestCase):
         self.assertIn("market_environment_source", protocol)
         # Domain descriptions may name industries as examples; guard the
         # decision rule rather than matching forbidden words in general prose.
-        self.assertIn("只有趋势确认且至少存在一个独立确认", protocol)
+        self.assertIn("只有独立确认且真实受益的CORE/DIRECT申万三级行业", protocol)
+        self.assertIn("主题整体尚处观察或候选", protocol)
         self.assertIn("冻结历史阶段、结论与日期", protocol)
         self.assertIn("NO_ELIGIBLE_CONFIRMED_TREND", buy)
         self.assertIn("CORE/DIRECT+趋势确认", routing)
