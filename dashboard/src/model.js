@@ -139,6 +139,63 @@ export function rankedTrendRows(registry, handoff, history, tradeDate, mode='for
 }
 
 
+// 新版板块趋势榜以真实申万三级行业展示，保留原主题为研究容器。
+// 历史归档尚未具备独立SW3生命周期时，继续使用旧主题行，绝不事后重写。
+export function rankedIndustryTrendRows(registry, handoff, history, tradeDate, mode='formal') {
+  if (String(registry?.trade_date||'') < '2026-11-16') {
+    return rankedTrendRows(registry, handoff, history, tradeDate, mode);
+  }
+  const priorities=new Map((Array.isArray(handoff?.signals)?handoff.signals:[])
+    .filter(x=>Number.isInteger(x?.rank)&&x.rank>0&&x.trend_name)
+    .map(x=>[x.trend_name,x]));
+  const items=[];
+  for (const theme of (Array.isArray(registry?.trends)?registry.trends:[])) {
+    if (theme?.lifecycle_status==='已失效') continue;
+    const assessments=Array.isArray(theme?.industry_assessments)?theme.industry_assessments:[];
+    const signal=priorities.get(theme.trend_name);
+    for (const assessment of assessments) {
+      if (!['趋势确认','候选趋势','观察'].includes(assessment?.market_state)) continue;
+      const episodes=assessment?.industry_lifecycle?.episodes||[];
+      const episode=episodes.at(-1)||{};
+      const isRouted=signal?.industry_codes?.includes(assessment.industry_code)===true;
+      // 盘中主题聚合数据不得冒充三级行业独立行情。
+      const records=validSnapshots(history?.[assessment.industry_code],tradeDate);
+      items.push({
+        ...theme,
+        trend_name:theme.trend_name+' - '+assessment.industry_name,
+        theme_name:theme.trend_name,
+        theme_market_state:theme.market_state,
+        legacyIndustryStatus:!Array.isArray(assessment?.industry_lifecycle?.episodes),
+        industry_code:assessment.industry_code,
+        industry_names:[assessment.industry_name],
+        market_state:assessment.market_state,
+        industry_reason:assessment.market_reason,
+        industry_benefit_reason:assessment.benefit_reason,
+        state_history:Array.isArray(episode.state_history)?episode.state_history:[],
+        d123_stage:episode.d123_stage||null,
+        d123_decision:episode.d123_decision||null,
+        d123_decision_trade_date:episode.d123_decision_trade_date||null,
+        last_verified_trade_date:assessment.evidence_trade_date||theme.last_verified_trade_date,
+        priorityRank:isRouted?signal.rank:null,
+        prioritySubRank:isRouted?signal.industry_codes.indexOf(assessment.industry_code)+1:null,
+        intradayDelta:snapshotChange(records,'up_ratio',100),
+        originalIndex:items.length,
+      });
+    }
+  }
+  const formal=(a,b)=>(a.priorityRank??Infinity)-(b.priorityRank??Infinity)
+    || (a.prioritySubRank??Infinity)-(b.prioritySubRank??Infinity)
+    || a.originalIndex-b.originalIndex;
+  if(mode==='state')return items.sort((a,b)=>
+    (MARKET_STATE_ORDER.get(a.market_state)??6)-(MARKET_STATE_ORDER.get(b.market_state)??6)||formal(a,b));
+  if(mode==='change')return items.sort((a,b)=>{
+    const aa=a.intradayDelta==null?-1:Math.abs(a.intradayDelta);
+    const bb=b.intradayDelta==null?-1:Math.abs(b.intradayDelta);
+    return bb-aa||formal(a,b);
+  });
+  return items.sort(formal);
+}
+
 // 首页每个已监测板块固定选一只代表观察股：只用冻结研究排序，不以盘中涨幅/波动排序。
 // rank 使用当日有效扫描最早轮的冻结 rank；没有 rank 则用同板块正式买点榜的 rank，再按代码稳定打破平局。
 // 只选已发布同交易日 READY 快照的监测股，不扩展股票池；代表性不等于龙头或买入推荐。

@@ -134,6 +134,137 @@ class PublicationPairTests(unittest.TestCase):
         h["signals"] = []
         self.assertEqual(m.validate(r, h), [])
 
+
+    def test_independent_sw3_route_when_parent_is_candidate(self):
+        r, h = fixture()
+        day = "2026-11-23"
+        r["trade_date"] = h["trade_date"] = day
+        r["scan_audit"]["state_migration_gate"]["current_trade_date"] = day
+        r["scan_audit"]["sw3_lifecycle_contract"] = "SW3_V1"
+        theme = r["trends"][0]
+        theme.update(trend_name="白色家电", market_state="候选趋势",
+                     in_new_position_priority=True,
+                     industry_codes=["S330102", "S330106"],
+                     industry_names=["空调", "冰洗"])
+        theme["industry_assessments"] = [
+            {"industry_code": "S330102", "industry_name": "空调",
+             "benefit_level": "CORE", "market_state": "趋势确认",
+             "industry_lifecycle": {"episodes": [{
+                 "episode_id": "S330102#2026-11-23",
+                 "d123_stage": "D1", "d123_decision": "CONFIRMED",
+                 "d123_decision_trade_date": day,
+             }]}},
+            {"industry_code": "S330106", "industry_name": "冰洗",
+             "benefit_level": "DIRECT", "market_state": "观察",
+             "industry_lifecycle": {"episodes": [{
+                 "episode_id": "S330106#2026-11-23",
+                 "d123_stage": "D1", "d123_decision": "PENDING",
+                 "d123_decision_trade_date": None,
+             }]}},
+        ]
+        signal = h["signals"][0]
+        signal.update(
+            trend_name="白色家电", market_state="趋势确认",
+            theme_market_state="候选趋势", industry_codes=["S330102"],
+            industry_names=["空调"],
+            industry_display_names=["白色家电 - 空调"],
+            industry_lifecycles=[{
+                "industry_code": "S330102", "episode_id": "S330102#2026-11-23",
+                "d123_stage": "D1", "d123_decision": "CONFIRMED",
+                "d123_decision_trade_date": day,
+            }],
+        )
+        self.assertEqual(m.validate(r, h), [])
+        signal["industry_codes"] = ["S330106"]
+        signal["industry_names"] = ["冰洗"]
+        signal["industry_display_names"] = ["白色家电 - 冰洗"]
+        self.assertIn("白色家电:confirmed_route_order_or_membership_mismatch",
+                      m.validate(r, h))
+
+    def test_confirmed_industry_route_cannot_be_silently_suppressed(self):
+        r, h = fixture()
+        day = "2026-11-23"
+        r["trade_date"] = h["trade_date"] = day
+        r["scan_audit"]["state_migration_gate"]["current_trade_date"] = day
+        r["scan_audit"]["sw3_lifecycle_contract"] = "SW3_V1"
+        r["trends"][0].update(
+            market_state="候选趋势", in_new_position_priority=False,
+            industry_assessments=[{"industry_code": "S240401",
+               "industry_name": "黄金", "benefit_level": "CORE",
+               "market_state": "趋势确认", "industry_lifecycle": {"episodes": [{
+                   "episode_id": "S240401#2026-11-23",
+                   "d123_stage": "D1", "d123_decision": "CONFIRMED",
+                   "d123_decision_trade_date": day,
+               }]}}],
+        )
+        h["signals"] = []
+        self.assertIn("黄金:industry_priority_exclusion_unexplained", m.validate(r, h))
+        r["trends"][0]["priority_exclusion_reason"] = (
+            "已确认三级行业存在，但本轮优先研究仅选择更强的其他方向，保留确认行业观察"
+        )
+        self.assertEqual(m.validate(r, h), [])
+
+    def test_observation_parent_can_route_confirmed_industry(self):
+        r, h = fixture()
+        day = "2026-11-23"
+        r["trade_date"] = h["trade_date"] = day
+        r["scan_audit"]["state_migration_gate"]["current_trade_date"] = day
+        r["scan_audit"]["sw3_lifecycle_contract"] = "SW3_V1"
+        t = r["trends"][0]
+        t.update(market_state="观察", in_new_position_priority=True,
+                 industry_assessments=[{
+                     "industry_code": "S240401", "industry_name": "黄金",
+                     "market_state": "趋势确认", "benefit_level": "CORE",
+                     "industry_lifecycle": {"episodes": [{
+                         "episode_id": "S240401#2026-11-23",
+                         "d123_stage": "D1", "d123_decision": "CONFIRMED",
+                         "d123_decision_trade_date": day,
+                     }]}
+                 }])
+        h["signals"][0].update(
+            market_state="趋势确认", theme_market_state="观察",
+            industry_display_names=["黄金 - 黄金"],
+            industry_lifecycles=[{
+                "industry_code": "S240401",
+                "episode_id": "S240401#2026-11-23",
+                "d123_stage": "D1", "d123_decision": "CONFIRMED",
+                "d123_decision_trade_date": day,
+            }]
+        )
+        self.assertEqual(m.validate(r, h), [])
+        h["signals"][0]["market_state"] = "观察"
+        self.assertIn("黄金:route_market_state_not_confirmed", m.validate(r, h))
+
+    def test_legacy_route_safe_when_not_yet_activated(self):
+        r, h = fixture()
+        day = "2026-11-23"
+        r["trade_date"] = h["trade_date"] = day
+        r["scan_audit"]["state_migration_gate"]["current_trade_date"] = day
+        r["trends"][0]["in_new_position_priority"] = False
+        h["signals"] = []
+        self.assertEqual(m.validate(r, h), [])
+        # Invalid partial opt-in must never silently enable route
+        r["scan_audit"]["sw3_lifecycle_contract"] = "UNKNOWN"
+        self.assertIn("sw3_contract_unknown", m.validate(r, h))
+
+    def test_empty_industry_confirmation_is_valid_empty_handoff(self):
+        r, h = fixture()
+        day = "2026-11-23"
+        r["trade_date"] = h["trade_date"] = day
+        r["scan_audit"]["state_migration_gate"]["current_trade_date"] = day
+        r["scan_audit"]["sw3_lifecycle_contract"] = "SW3_V1"
+        r["trends"][0]["in_new_position_priority"] = False
+        r["trends"][0]["industry_assessments"] = [{
+            "industry_code": "S240401", "industry_name": "黄金",
+            "benefit_level": "CORE", "market_state": "候选趋势",
+            "industry_lifecycle": {"episodes": [{
+                "episode_id": "S240401#2026-11-23",
+                "d123_decision": "PENDING", "d123_stage": "D1",
+            }]}
+        }]
+        h["signals"] = []
+        self.assertEqual(m.validate(r, h), [])
+
     def test_prepublication_migration_gate_required(self):
         r, h = fixture()
         del r["scan_audit"]["state_migration_gate"]

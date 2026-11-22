@@ -3,6 +3,11 @@
 import re
 from datetime import datetime, timezone, timedelta
 
+try:
+    from scripts.industry_lifecycle import validate_industry_lifecycle
+except ModuleNotFoundError:
+    from industry_lifecycle import validate_industry_lifecycle
+
 STATES = {"失效": 0, "高潮/衰退": 1, "观察": 2, "新异动": 2,
           "候选趋势": 3, "趋势确认": 4}
 T_STATES = {"T0", "T1", "T2", "待核验"}
@@ -18,6 +23,22 @@ DAY = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 TRACK = {"趋势确认", "候选趋势", "观察"}
 MARKET = {"趋势确认", "候选趋势", "观察", "新异动", "高潮/衰退", "失效"}
 SHA = re.compile(r"^[0-9a-f]{40}$")
+
+def _industry_route_eligible(row):
+    if (not isinstance(row, dict) or row.get("market_state") != "趋势确认"
+            or row.get("benefit_level") not in {"CORE", "DIRECT"}):
+        return False
+    life = row.get("industry_lifecycle") or {}
+    episodes = life.get("episodes") or []
+    return bool(episodes and episodes[-1].get("d123_decision") == "CONFIRMED")
+
+
+def _confirmed_sw3_assessments(theme):
+    return [
+        row for row in (theme.get("industry_assessments") or [])
+        if _industry_route_eligible(row)
+    ]
+
 
 def _pseudo_counter_gap(e):
     """Reject the known missing-proof false-counter pattern only."""
@@ -110,6 +131,18 @@ def _market_state_evidence(evidence, direction, since, require_confirmation=Fals
 # Prospective research-decision audit. Checks provenance and internal consistency;
 # it cannot verify real-world catalyst truth or profitability.
 RESEARCH_GATE_FROM = "2026-10-27"
+INDUSTRY_ROUTE_FROM = "2026-11-23"
+SW3_CONTRACT = "SW3_V1"
+
+def _sw3_enabled(registry):
+    scan = registry.get("scan_audit") if isinstance(registry, dict) else None
+    return (
+        isinstance(registry, dict)
+        and registry.get("trade_date", "") >= INDUSTRY_ROUTE_FROM
+        and isinstance(scan, dict)
+        and scan.get("sw3_lifecycle_contract") == SW3_CONTRACT
+    )
+
 BEIJING = timezone(timedelta(hours=8))
 
 
@@ -763,12 +796,20 @@ def _same_day_revision_errors(previous, proposed, source_sha, snapshot=None, sec
             raise ValueError("time sequence")
     except (KeyError, TypeError, ValueError, OverflowError):
         errors.append("same_day_revision_time_invalid")
+    sw3_enabled = _sw3_enabled(proposed)
+    if _sw3_enabled(previous) != sw3_enabled:
+        errors.append("same_day_sw3_contract_cannot_change")
     prev_trends, new_trends = previous.get("trends"), proposed.get("trends")
     if not isinstance(prev_trends, list) or not isinstance(new_trends, list) or (
             not all(isinstance(t, dict) for t in prev_trends + new_trends)):
         return errors + ["same_day_trends_invalid"]
     prev_by_id = {t.get("episode_id"): t for t in prev_trends}
     new_by_id = {t.get("episode_id"): t for t in new_trends}
+    previous_industry_by_code = {}
+    for theme in prev_trends:
+        for row in theme.get("industry_assessments", []) or []:
+            if isinstance(row, dict) and row.get("industry_code"):
+                previous_industry_by_code.setdefault(row["industry_code"], row)
     if (len(prev_by_id) != len(prev_trends) or len(new_by_id) != len(new_trends)
             or set(prev_by_id) != set(new_by_id)
             or list(prev_by_id) != list(new_by_id)):
@@ -780,7 +821,7 @@ def _same_day_revision_errors(previous, proposed, source_sha, snapshot=None, sec
     if len(change_by_id) != len(changes):
         errors.append("same_day_duplicate_changes")
     allowed_fields = {
-        "market_state", "in_new_position_priority", "change_reason",
+        "market_state", "in_new_position_priority", "priority_exclusion_reason", "change_reason",
         "invalidation_condition", "last_verified_trade_date", "contrary_evidence",
         "supporting_evidence", "confirmation_audit", "industry_assessments",
         "state_history", "d123_stage", "d123_trigger_trade_date", "d123_decision",
@@ -808,10 +849,20 @@ def _same_day_revision_errors(previous, proposed, source_sha, snapshot=None, sec
                 or now_history[-1].get("from") != old.get("market_state")
                 or now_history[-1].get("to") != cur.get("market_state")):
             errors.append(str(eid) + ":same_day_history_event_missing")
-        if (cur.get("market_state") not in TRACK or cur.get("lifecycle_status") == "已失效"
-                or cur.get("market_state") == "观察" and cur.get("in_new_position_priority") is True
-                or cur.get("market_state") != "趋势确认" and cur.get("in_new_position_priority") is True):
+        if cur.get("market_state") not in TRACK or cur.get("lifecycle_status") == "已失效":
             errors.append(str(eid) + ":same_day_invalid_market_or_priority")
+        if not sw3_enabled:
+            if (cur.get("market_state") == "观察" and cur.get("in_new_position_priority") is True
+                    or cur.get("market_state") != "趋势确认" and cur.get("in_new_position_priority") is True):
+                errors.append(str(eid) + ":same_day_invalid_market_or_priority")
+        else:
+            has_eligible = bool(_confirmed_sw3_assessments(cur)) and cur.get("lifecycle_status") != "已失效"
+            if cur.get("in_new_position_priority") is True and not has_eligible:
+                errors.append(str(eid) + ":same_day_industry_priority_ineligible")
+            if has_eligible and cur.get("in_new_position_priority") is not True and (
+                    not isinstance(cur.get("priority_exclusion_reason"), str)
+                    or len(cur["priority_exclusion_reason"].strip()) < 12):
+                errors.append(str(eid) + ":same_day_industry_priority_exclusion_unexplained")
         if cur.get("trend_state") != old.get("trend_state"):
             errors.append(str(eid) + ":same_day_industry_stage_changed")
         audit = cur.get("confirmation_audit") or {}
@@ -844,6 +895,11 @@ def _same_day_revision_errors(previous, proposed, source_sha, snapshot=None, sec
                         row.get("market_state") not in TRACK):
                     errors.append(str(eid) + ":same_day_sw3_assessments_invalid")
                     break
+                if sw3_enabled:
+                    errors.extend(validate_industry_lifecycle(
+                        row, previous_industry_by_code.get(row.get("industry_code")),
+                        day, same_day=True
+                    ))
         if cur.get("surge_followup") != old.get("surge_followup"):
             errors.append(str(eid) + ":same_day_surge_history_rewritten")
         info = change_by_id.get(eid)
@@ -886,6 +942,21 @@ def _same_day_revision_errors(previous, proposed, source_sha, snapshot=None, sec
     if proposed.get("invalidated_history") != previous.get("invalidated_history") or (
             proposed.get("recheck_queue") != previous.get("recheck_queue")):
         errors.append("same_day_close_history_or_queue_rewritten")
+    if sw3_enabled:
+        seen_industries = {}
+        for theme in new_trends:
+            for row in theme.get("industry_assessments", []) or []:
+                if not isinstance(row, dict):
+                    continue
+                code = row.get("industry_code")
+                prior_row = seen_industries.get(code)
+                if prior_row is not None and (
+                    prior_row.get("market_state") != row.get("market_state")
+                    or prior_row.get("industry_lifecycle") != row.get("industry_lifecycle")
+                ):
+                    errors.append(f"{code}:same_day_cross_theme_industry_state_mismatch")
+                else:
+                    seen_industries[code] = row
     return errors
 
 
@@ -1074,6 +1145,13 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
     if sector_audit is not None and not _optional_sector_audit_valid(sector_audit, day):
         errors.append("sector_audit_invalid")
     scan = proposed.get("scan_audit") or {}
+    sw3_enabled = _sw3_enabled(proposed)
+    if _sw3_enabled(previous) and not sw3_enabled:
+        errors.append("sw3_contract_cannot_be_disabled")
+    if scan.get("sw3_lifecycle_contract") not in (None, SW3_CONTRACT):
+        errors.append("sw3_contract_unknown")
+    if scan.get("sw3_lifecycle_contract") == SW3_CONTRACT and day < INDUSTRY_ROUTE_FROM:
+        errors.append("sw3_contract_too_early")
     if scan.get("full_market_scan_completed") is not True:
         errors.append("full_market_scan_incomplete")
     gate = scan.get("state_migration_gate") or {}
@@ -1094,6 +1172,11 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
         errors.append("invalid_close_mode")
     prior_by_id = {t.get("episode_id"): t for t in previous["trends"]}
     curr_by_id = {t.get("episode_id"): t for t in proposed["trends"]}
+    previous_industry_by_code = {}
+    for theme in previous["trends"]:
+        for row in theme.get("industry_assessments", []) or []:
+            if isinstance(row, dict) and row.get("industry_code"):
+                previous_industry_by_code.setdefault(row["industry_code"], row)
     if len(prior_by_id) != len(previous["trends"]):
         errors.append("duplicate_previous_episode_id")
     if any(not tracking(item) for item in previous["trends"]):
@@ -1215,7 +1298,11 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
             errors.extend(_surge_review_errors(theme, prior, day))
             errors.extend(_d123_stage_errors(theme, prior, day))
             if (day >= "2026-10-28" and theme.get("d123_stage") == "D3" and
-                    theme.get("d123_decision") == "NOT_CONFIRMED"):
+                    theme.get("d123_decision") == "NOT_CONFIRMED" and
+                    (not sw3_enabled or not _confirmed_sw3_assessments(theme))):
+                # The broad theme's D3 may fail while an independently verified
+                # CORE/DIRECT SW3 survives. Preserve only its container/route,
+                # never revive an otherwise expired broad theme without a child.
                 errors.append(f"{theme.get('episode_id')}:d3_not_confirmed_must_exit")
         for episode in continued:
             old, cur = prior_by_id[episode], curr_by_id[episode]
@@ -1246,6 +1333,7 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
     # This checks the presence, identity and provenance of each independent
     # industry decision; it does NOT automatically confirm stock-price trends.
     if day >= "2026-10-27":
+        seen_industries = {}
         for theme in proposed["trends"]:
             episode = theme.get("episode_id")
             assessments = theme.get("industry_assessments")
@@ -1278,24 +1366,45 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
                     not isinstance(row.get("market_reason"), str) or
                     len(row["market_reason"].strip()) < 12):
                     errors.append(f"{episode}:{code}:sw3_independent_evidence_missing")
+                if sw3_enabled:
+                    errors.extend(validate_industry_lifecycle(
+                        row, previous_industry_by_code.get(code), day
+                    ))
                 if row.get("market_state") == "趋势确认":
                     if row.get("benefit_level") not in {"CORE", "DIRECT"}:
                         errors.append(f"{episode}:{code}:confirmed_without_direct_benefit")
-                    else:
+                    elif not sw3_enabled or _industry_route_eligible(row):
                         confirmed += 1
+                prior_row = seen_industries.get(code)
+                if prior_row is not None and sw3_enabled and (
+                    prior_row.get("market_state") != row.get("market_state")
+                    or prior_row.get("industry_lifecycle") != row.get("industry_lifecycle")
+                ):
+                    errors.append(f"{code}:cross_theme_industry_lifecycle_mismatch")
+                else:
+                    seen_industries[code] = row
             if (theme.get("market_state") == "趋势确认" and confirmed < 1 and
                 theme.get("trend_basis") != "COMMODITY"):
                 errors.append(f"{episode}:confirmed_without_confirmed_sw3")
+            if sw3_enabled:
+                has_eligible = bool(_confirmed_sw3_assessments(theme)) and theme.get("lifecycle_status") != "已失效"
+                if theme.get("in_new_position_priority") is True and not has_eligible:
+                    errors.append(f"{episode}:priority_without_confirmed_industry")
+                if has_eligible and theme.get("in_new_position_priority") is not True and (
+                        not isinstance(theme.get("priority_exclusion_reason"), str)
+                        or len(theme["priority_exclusion_reason"].strip()) < 12):
+                    errors.append(f"{episode}:unselected_confirmed_industry_without_reason")
 
     for item in proposed["trends"]:
         episode = item.get("episode_id")
         if item.get("market_state") not in TRACK or item.get("lifecycle_status") == "已失效":
             errors.append(f"{episode}:nontracking_persisted")
-        if item.get("market_state") == "观察" and item.get("in_new_position_priority") is True:
-            errors.append(f"{episode}:observation_in_priority")
-        if day >= RESEARCH_GATE_FROM and (item.get("in_new_position_priority") is True
-                                          and item.get("market_state") != "趋势确认"):
-            errors.append(f"{episode}:only_confirmed_priority")
+        if not sw3_enabled:
+            if item.get("market_state") == "观察" and item.get("in_new_position_priority") is True:
+                errors.append(f"{episode}:observation_in_priority")
+            if day >= RESEARCH_GATE_FROM and (item.get("in_new_position_priority") is True
+                                              and item.get("market_state") != "趋势确认"):
+                errors.append(f"{episode}:only_confirmed_priority")
         if item.get("trend_basis") not in (None, "A_SHARE", "COMMODITY"):
             errors.append(f"{episode}:invalid_trend_basis")
         if item.get("trend_basis") == "COMMODITY":

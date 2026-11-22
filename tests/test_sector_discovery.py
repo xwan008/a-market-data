@@ -98,12 +98,13 @@ class SectorDiscoveryTests(unittest.TestCase):
         self.assertIn("D1/D2未确认则必须选择", protocol)
         self.assertIn("不再推进D3", protocol)
         self.assertIn("D3_NOT_CONFIRMED", protocol)
-        self.assertIn("候选与观察不得进入股票handoff", protocol)
+        self.assertIn("候选与观察的三级行业不得进入股票handoff", protocol)
         self.assertIn("signals=[]", protocol)
         self.assertIn("market_environment_source", protocol)
         # Domain descriptions may name industries as examples; guard the
         # decision rule rather than matching forbidden words in general prose.
-        self.assertIn("只有趋势确认且至少存在一个独立确认", protocol)
+        self.assertIn("只有独立确认且真实受益的CORE/DIRECT申万三级行业", protocol)
+        self.assertIn("主题整体尚处观察或候选", protocol)
         self.assertIn("冻结历史阶段、结论与日期", protocol)
         self.assertIn("NO_ELIGIBLE_CONFIRMED_TREND", buy)
         self.assertIn("CORE/DIRECT+趋势确认", routing)
