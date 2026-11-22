@@ -722,6 +722,67 @@ def episode_key(name, first_seen):
 
 
 
+def _eligible_sw3_disposition_errors(proposed, sector_audit):
+    """Ensure each eligible SW3 early signal was researched or explicitly dispositioned.
+
+    This is a completeness gate, never a numeric D1/confirmation decision.
+    Full SW3 audit is inspected after the model's independent discovery freeze;
+    the auxiliary top-three capacity and SW2 theme aggregation are not limits.
+    """
+    if not isinstance(sector_audit, dict) or not isinstance(sector_audit.get("sectors"), list):
+        return ["sw3_signal_audit_unavailable"]
+    tracked_codes = {
+        code for theme in proposed.get("trends", [])
+        if isinstance(theme, dict)
+        for code in (theme.get("industry_codes") or [])
+        if isinstance(code, str)
+    }
+    dispositions = (proposed.get("scan_audit") or {}).get("candidate_disposition_audit")
+    if not isinstance(dispositions, list):
+        dispositions = []
+    errors = []
+    seen = set()
+    for row in sector_audit["sectors"]:
+        if not isinstance(row, dict):
+            continue
+        channels = row.get("channels") or []
+        if not isinstance(channels, list) or not any(
+                c in {"STRONG", "EMERGING"} for c in channels):
+            continue
+        identifier = row.get("id")
+        name = row.get("name")
+        if not isinstance(identifier, str) or not identifier.startswith("industry:"):
+            continue
+        code = identifier.partition(":")[2]
+        if code in seen:
+            continue
+        seen.add(code)
+        if code in tracked_codes:
+            # A formal episode is already continuously reviewed, including
+            # D2/D3 closes when today's scan channel later disappears.
+            continue
+        matched = [
+            item for item in dispositions
+            if isinstance(item, dict)
+            and (code in (item.get("industry_codes") or [])
+                 or name in (item.get("covered_industries") or []))
+        ]
+        if not matched:
+            errors.append("sw3:" + code + ":eligible_signal_without_disposition")
+            continue
+        if not any(
+            isinstance(item.get("market_assessment"), str)
+            and len(item["market_assessment"].strip()) >= 15
+            and isinstance(item.get("decisive_reason"), str)
+            and len(item["decisive_reason"].strip()) >= 15
+            and isinstance(item.get("recheck_trigger"), str)
+            and len(item["recheck_trigger"].strip()) >= 12
+            for item in matched
+        ):
+            errors.append("sw3:" + code + ":early_signal_review_incomplete")
+    return errors
+
+
 def _same_day_revision_errors(previous, proposed, source_sha, snapshot=None, sector_audit=None):
     """Allow today's corrected publication, without replaying D1/D2 or erasing history.
 
@@ -1144,6 +1205,13 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
         errors.append("snapshot_invalid")
     if sector_audit is not None and not _optional_sector_audit_valid(sector_audit, day):
         errors.append("sector_audit_invalid")
+    if day >= "2026-11-23":
+        # The formal close must see every eligible SW3 signal, not only the
+        # auxiliary top-three seed or SW2-grouped top-ten theme shortlist.
+        if sector_audit is None:
+            errors.append("sector_audit_required_for_sw3_signal_coverage")
+        elif _optional_sector_audit_valid(sector_audit, day):
+            errors.extend(_eligible_sw3_disposition_errors(proposed, sector_audit))
     scan = proposed.get("scan_audit") or {}
     sw3_enabled = _sw3_enabled(proposed)
     if _sw3_enabled(previous) and not sw3_enabled:
