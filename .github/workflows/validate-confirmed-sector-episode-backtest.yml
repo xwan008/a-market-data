@@ -1,0 +1,43 @@
+name: Research confirmed-sector episode TOP5 comparison (no READY gate)
+on:
+  pull_request:
+    paths:
+      - scripts/backtest_confirmed_sector_episodes.py
+      - .github/workflows/validate-confirmed-sector-episode-backtest.yml
+permissions:
+  contents: read
+  actions: read
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install requests
+      - name: Download previously frozen no-READY candidate A/B artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/confirmed-sector-input
+          gh run download 44918451697             --repo xwan008/a-market-data             --name quarterly-financial-acceleration-asof-backtest             --dir /tmp/confirmed-sector-input
+          test -s /tmp/confirmed-sector-input/quarterly_acceleration_backtest.json
+      - name: Evaluate first-confirmed to first-downgraded sector episode
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python scripts/backtest_confirmed_sector_episodes.py             --input /tmp/confirmed-sector-input/quarterly_acceleration_backtest.json             --output /tmp/confirmed_sector_episode_ab.json
+      - name: Upload auditable per-sector episode results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: confirmed-sector-episode-ab-no-ready
+          path: /tmp/confirmed_sector_episode_ab.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Production artifacts untouched
+        if: always()
+        run: |
+          git diff --exit-code -- data/latest.json research/trend_buy_formal_result.json research/trend_buy_handoff.json research/trend_handoff.json
