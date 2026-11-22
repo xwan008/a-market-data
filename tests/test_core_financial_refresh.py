@@ -91,6 +91,80 @@ class CoreProfitTests(unittest.TestCase):
           "000506",ASOF)
         self.assertIsNone(r)
 
+    def test_single_quarter_growth_and_acceleration_collection(self):
+        q3=row("2026-09-30","2026-10-27",core=120,yoy=40)
+        q3.update({"DJD_DEDUCTDPNP_YOY":42.0,"DJD_TOI_YOY":18.0})
+        q2=row("2026-06-30","2026-08-18",core=85,yoy=15)
+        q2.update({"DJD_DEDUCTDPNP_YOY":15.0,"DJD_TOI_YOY":12.0})
+        result=m.find_asof_row([q2,q3],"000506",ASOF)
+        self.assertEqual(result["report_date"],"2026-09-30")
+        accel=result["quarterly_acceleration"]
+        self.assertEqual(accel["status"],"VERIFIED")
+        self.assertEqual(accel["deduct_profit_acceleration_pp"],27.0)
+        self.assertEqual(accel["revenue_acceleration_pp"],6.0)
+        self.assertEqual(accel["previous_report_date"],"2026-06-30")
+        self.assertEqual(len(result["quarterly_history"]),2)
+        self.assertEqual(result["deduct_net_profit_yoy"],40)
+
+    def test_missing_prior_quarter_keeps_latest_source_values_but_not_acceleration(self):
+        q3=row("2026-09-30","2026-10-27")
+        q3.update({"DJD_DEDUCTDPNP_YOY":42,"DJD_TOI_YOY":18})
+        q1=row("2026-03-31","2026-04-28")
+        q1.update({"DJD_DEDUCTDPNP_YOY":11,"DJD_TOI_YOY":9})
+        result=m.find_asof_row([q1,q3],"000506",ASOF)
+        self.assertEqual(result["quarterly_acceleration"]["status"],"UNKNOWN")
+        self.assertEqual(
+            result["quarterly_acceleration"]["reason"],
+            "PREVIOUS_ADJACENT_QUARTER_UNAVAILABLE")
+        self.assertIsNone(result["quarterly_acceleration"]["deduct_profit_acceleration_pp"])
+        self.assertEqual(result["single_quarter_deduct_net_profit_yoy"],42)
+        self.assertEqual(len(result["quarterly_history"]),1)
+
+    def test_missing_single_quarter_growth_does_not_forge_zero_or_change_core_evidence(self):
+        q3=row("2026-09-30","2026-10-27")
+        q3.update({"DJD_DEDUCTDPNP_YOY":None,"DJD_TOI_YOY":18})
+        q2=row("2026-06-30","2026-08-18")
+        q2.update({"DJD_DEDUCTDPNP_YOY":15,"DJD_TOI_YOY":12})
+        result=m.find_asof_row([q3,q2],"000506",ASOF)
+        self.assertEqual(result["quarterly_acceleration"]["status"],"UNKNOWN")
+        self.assertEqual(
+            result["quarterly_acceleration"]["reason"],
+            "SINGLE_QUARTER_GROWTH_FIELDS_MISSING")
+        self.assertIsNone(result["quarterly_acceleration"]["deduct_profit_acceleration_pp"])
+        self.assertEqual(result["deduct_net_profit_yoy"],25)
+
+    def test_future_announcement_or_update_never_affects_quarterly_history(self):
+        q3=row("2026-09-30","2026-10-27",updated="2026-11-08")
+        q3.update({"DJD_DEDUCTDPNP_YOY":999,"DJD_TOI_YOY":999})
+        q2=row("2026-06-30","2026-08-18")
+        q2.update({"DJD_DEDUCTDPNP_YOY":25,"DJD_TOI_YOY":12})
+        q1=row("2026-03-31","2026-04-27")
+        q1.update({"DJD_DEDUCTDPNP_YOY":12,"DJD_TOI_YOY":7})
+        result=m.find_asof_row([q3,q2,q1],"000506",ASOF)
+        self.assertEqual(result["report_date"],"2026-06-30")
+        self.assertEqual(result["quarterly_acceleration"]["deduct_profit_acceleration_pp"],13)
+        self.assertEqual(result["quarterly_acceleration"]["revenue_acceleration_pp"],5)
+        self.assertEqual(
+            result["quarterly_history"][0]["report_date"],"2026-06-30")
+
+    def test_collection_only_does_not_change_primary_market_fundamentals(self):
+        q3=row("2026-09-30","2026-10-27")
+        q3.update({"DJD_DEDUCTDPNP_YOY":42,"DJD_TOI_YOY":18})
+        q2=row("2026-06-30","2026-08-18")
+        q2.update({"DJD_DEDUCTDPNP_YOY":15,"DJD_TOI_YOY":12})
+        report=m.find_asof_row([q3,q2],"000506",ASOF)
+        source={"trade_date":ASOF,"stocks":{
+            "000506":{"price":3.5,"trend":{"status":"verified"},
+                      "fundamentals":{"report_date":"2026-09-30",
+                                      "deduct_net_profit_yoy":25}}
+        }}
+        updated,_=m.apply_to_copy(source,{"000506":report})
+        self.assertEqual(updated["stocks"],source["stocks"])
+        self.assertNotIn("quarterly_acceleration",updated["stocks"]["000506"])
+        self.assertNotIn(
+            "single_quarter_deduct_net_profit_yoy",
+            updated["stocks"]["000506"]["fundamentals"])
+
     def test_batch_endpoint_is_explicitly_limited_to_public_codes(self):
         class Resp:
             def raise_for_status(self):return None
