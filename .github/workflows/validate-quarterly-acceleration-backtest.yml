@@ -1,6 +1,12 @@
 name: Retrospective quarterly acceleration shadow backtest
 
 on:
+  push:
+    branches:
+      - research/eastmoney-moneyflow-probe
+    paths:
+      - scripts/backtest_confirmed_sector_episodes.py
+      - .github/workflows/validate-quarterly-acceleration-backtest.yml
   pull_request:
     paths:
       - 'scripts/backtest_quarterly_acceleration.py'
