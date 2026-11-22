@@ -160,6 +160,44 @@ class TrendRegistryTests(unittest.TestCase):
         row["contrary_evidence"] = []
         self.assertEqual(engine._research_audit_errors(row, "2026-11-18"), [])
 
+    def test_eligible_sw3_signal_cannot_disappear_behind_sw2_or_top3_capacity(self):
+        # Replays the November 12 drugstore detection failure: a complete
+        # SW3 audit flagged the industry, but grouped SW2 crosscheck omitted it.
+        audit = {"trade_date": "2026-11-12", "sectors": [
+            {"id": "industry:S370403", "name": "线下药店",
+             "channels": ["STRONG", "EMERGING"], "reason": "CAPACITY_DEFERRED"},
+            {"id": "industry:S370402", "name": "医药流通",
+             "channels": [], "reason": "NO_COHERENT_TRIGGER"}]}
+        proposed = {"trends": [], "scan_audit": {
+            "candidate_disposition_audit": []}}
+        self.assertEqual(
+            engine._eligible_sw3_disposition_errors(proposed, audit),
+            ["sw3:S370403:eligible_signal_without_disposition"]
+        )
+        # Merely adding a label without a real reason and next trigger does not
+        # satisfy the gate, but no stock or trend is auto-confirmed.
+        item = {"candidate_name": "线下药店", "covered_industries": ["线下药店"],
+                "decision": "RESEARCH_DEFERRED",
+                "market_assessment": "单日相对强势，但当时三五日结构尚不足确认",
+                "decisive_reason": "尚未完成当时真实产业驱动和核心受益链的独立核验"}
+        proposed["scan_audit"]["candidate_disposition_audit"].append(item)
+        self.assertEqual(
+            engine._eligible_sw3_disposition_errors(proposed, audit),
+            ["sw3:S370403:early_signal_review_incomplete"]
+        )
+        item["recheck_trigger"] = "次日按真实收盘重新核查多日结构、行业事实及核心样本"
+        self.assertEqual(engine._eligible_sw3_disposition_errors(proposed, audit), [])
+        proposed["trends"] = [{"industry_codes": ["S370403"], "market_state": "观察"}]
+        proposed["scan_audit"]["candidate_disposition_audit"] = []
+        self.assertEqual(engine._eligible_sw3_disposition_errors(proposed, audit), [])
+
+    def test_future_close_requires_full_sector_audit_input(self):
+        before, after = fixture()
+        after["trade_date"] = "2026-11-23"
+        after["scan_audit"]["state_migration_gate"]["current_trade_date"] = "2026-11-23"
+        self.assertIn("sector_audit_required_for_sw3_signal_coverage",
+                      engine.validate(before, after, SHA))
+
     def test_prepublication_full_close_rejects_pseudo_counter_without_blocking_empty_handoff(self):
         """Exercise the production migration + paired-publication gates together."""
         import json
