@@ -98,7 +98,7 @@ class SectorDiscoveryTests(unittest.TestCase):
         self.assertIn("D1/D2未确认则必须选择", protocol)
         self.assertIn("不再推进D3", protocol)
         self.assertIn("D3_NOT_CONFIRMED", protocol)
-        self.assertIn("候选与观察不得进入股票handoff", protocol)
+        self.assertIn("候选与观察的三级行业不得进入股票handoff", protocol)
         self.assertIn("signals=[]", protocol)
         self.assertIn("market_environment_source", protocol)
         # Domain descriptions may name industries as examples; guard the

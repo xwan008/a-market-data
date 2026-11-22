@@ -425,6 +425,21 @@ test('独立SW3展示为主题 - 行业且不借用主题盘中快照',()=>{
  assert.equal(items[0].industry_code,'S330102');
  assert.equal(items[0].intradayDelta,null);
  assert.equal(items[1].d123_decision,'NOT_CONFIRMED');
- const old=rankedIndustryTrendRows({...registry,trade_date:'2026-11-20'},handoff,{},'2026-11-20');
+ const old=rankedIndustryTrendRows({...registry,trade_date:'2026-11-15'},handoff,{},'2026-11-15');
  assert.equal(old[0].trend_name,'白色家电');
+});
+
+test('11月20日旧正式账本按三级行业展示但不伪造独立D1阶段',()=>{
+ const registry={trade_date:'2026-11-20',trends:[{
+   trend_name:'白色家电',lifecycle_status:'有效',trend_state:'T1',
+   market_state:'候选趋势',last_verified_trade_date:'2026-11-20',
+   industry_assessments:[{industry_code:'S330102',industry_name:'空调',
+      market_state:'趋势确认',market_reason:'归档原始判断'}]
+ }]};
+ const rows=rankedIndustryTrendRows(registry,{signals:[]},{},'2026-11-20');
+ assert.equal(rows[0].trend_name,'白色家电 - 空调');
+ assert.equal(rows[0].market_state,'趋势确认');
+ assert.equal(rows[0].legacyIndustryStatus,true);
+ assert.equal(rows[0].d123_stage,null);
+ assert.equal(rows[0].priorityRank,null);
 });

@@ -60,7 +60,7 @@ function TrendInspector({item,view='all'}) {
  const evidence=asArray(item.supporting_evidence).slice(-2).reverse();
  const contrary=asArray(item.contrary_evidence).slice(-2).reverse();
  return <div className="detail-content sector-detail-content">
-  {item.industry_code&&<div className="invalidation"><span>三级行业独立研判 · {item.industry_code}</span><p>{safeText(item.industry_reason)}</p><p>实际受益：{safeText(item.industry_benefit_reason)}</p><p>独立 D1–D3：{safeText(item.d123_stage)} · {safeText(item.d123_decision)}{item.d123_decision_trade_date?' · 结论日 '+item.d123_decision_trade_date:''}</p><p>所属主题：{safeText(item.theme_name)} · 主题自身状态：{safeText(item.theme_market_state)}</p></div>}
+  {item.industry_code&&<div className="invalidation"><span>三级行业独立研判 · {item.industry_code}</span>{item.legacyIndustryStatus&&<p>历史行业收盘判断（{safeText(item.last_verified_trade_date)}）；独立 D1–D3 尚未完成迁移，本行不表示新制度确认或交接已启用。</p>}<p>{safeText(item.industry_reason)}</p><p>实际受益：{safeText(item.industry_benefit_reason)}</p><p>独立 D1–D3：{safeText(item.d123_stage)} · {safeText(item.d123_decision)}{item.d123_decision_trade_date?' · 结论日 '+item.d123_decision_trade_date:''}</p><p>所属主题：{safeText(item.theme_name)} · 主题自身状态：{safeText(item.theme_market_state)}</p></div>}
   {(view==='all'||view==='summary')&&<>
    {view==='all'&&<div className="detail-hero"><h2>{item.trend_name}</h2><div className="detail-badges"><ResearchState value={item.market_state}/><Badge>{item.lifecycle_status}</Badge></div></div>}
    <div className="data-pair"><div><span>产业阶段</span><strong>{stageLabel(item.trend_state)}</strong></div><div><span>最近核验</span><strong>{safeText(item.last_verified_trade_date)}</strong></div></div>

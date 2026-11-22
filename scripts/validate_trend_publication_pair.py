@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 
 INDUSTRY_ROUTE_FROM = "2026-11-23"
+SW3_CONTRACT = "SW3_V1"
 
 
 def validate(registry, handoff):
@@ -41,13 +42,25 @@ def validate(registry, handoff):
         errors.append("duplicate_registry_trend")
     if any(t.get("market_state") not in {"趋势确认","候选趋势","观察"} or t.get("lifecycle_status") == "已失效" for t in trends):
         errors.append("nontracking_persisted")
-    if any(t.get("market_state") == "观察" and t.get("in_new_position_priority") is True for t in trends):
+    # Parent observation can contain a separately CONFIRMED child after SW3 opt-in.
+    # Keep the legacy prohibition only for the original theme-level route contract.
+    sw3_marker = scan.get("sw3_lifecycle_contract")
+    if sw3_marker not in (None, SW3_CONTRACT):
+        errors.append("sw3_contract_unknown")
+    if sw3_marker == SW3_CONTRACT and registry.get("trade_date", "") < INDUSTRY_ROUTE_FROM:
+        errors.append("sw3_contract_too_early")
+    if sw3_marker != SW3_CONTRACT and any(
+            t.get("market_state") == "观察" and t.get("in_new_position_priority") is True
+            for t in trends):
         errors.append("observation_in_priority")
     ids = [t.get("episode_id") for t in trends]
     if not all(isinstance(x, str) and x for x in ids) or len(set(ids)) != len(ids):
         errors.append("duplicate_or_missing_episode_ids")
     prospective = registry.get("trade_date", "") >= "2026-10-27"
-    independent_industry_routing = registry.get("trade_date", "") >= INDUSTRY_ROUTE_FROM
+    independent_industry_routing = (
+        registry.get("trade_date", "") >= INDUSTRY_ROUTE_FROM
+        and sw3_marker == SW3_CONTRACT
+    )
 
     def eligible_industries(theme):
         assessments = theme.get("industry_assessments")
@@ -70,20 +83,20 @@ def validate(registry, handoff):
     if independent_industry_routing:
         for theme in trends:
             eligible = eligible_industries(theme)
-            expected_priority = bool(eligible) and theme.get("lifecycle_status") != "已失效"
-            if theme.get("in_new_position_priority") is not expected_priority:
-                errors.append(f"{theme.get('trend_name')}:industry_priority_mismatch")
+            has_eligible = bool(eligible) and theme.get("lifecycle_status") != "已失效"
+            if theme.get("in_new_position_priority") is True and not has_eligible:
+                errors.append(f"{theme.get('trend_name')}:industry_priority_ineligible")
+            if has_eligible and theme.get("in_new_position_priority") is not True and (
+                    not isinstance(theme.get("priority_exclusion_reason"), str)
+                    or len(theme["priority_exclusion_reason"].strip()) < 12):
+                errors.append(f"{theme.get('trend_name')}:industry_priority_exclusion_unexplained")
     elif prospective:
         if any(t.get("in_new_position_priority") is True and
                t.get("market_state") != "趋势确认" for t in trends):
             errors.append("only_confirmed_in_priority")
 
-    priority = (
-        [t for t in trends
-         if eligible_industries(t) and t.get("lifecycle_status") != "已失效"]
-        if independent_industry_routing
-        else [t for t in trends if t.get("in_new_position_priority") is True]
-    )
+    # Eligible != selected: preserve the original 0-3 theme priority research.
+    priority = [t for t in trends if t.get("in_new_position_priority") is True]
     actual = [s.get("trend_name") for s in signals]
     expected = [t.get("trend_name") for t in priority]
     if actual != expected:

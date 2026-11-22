@@ -142,7 +142,7 @@ export function rankedTrendRows(registry, handoff, history, tradeDate, mode='for
 // 新版板块趋势榜以真实申万三级行业展示，保留原主题为研究容器。
 // 历史归档尚未具备独立SW3生命周期时，继续使用旧主题行，绝不事后重写。
 export function rankedIndustryTrendRows(registry, handoff, history, tradeDate, mode='formal') {
-  if (String(registry?.trade_date||'') < '2026-11-23') {
+  if (String(registry?.trade_date||'') < '2026-11-16') {
     return rankedTrendRows(registry, handoff, history, tradeDate, mode);
   }
   const priorities=new Map((Array.isArray(handoff?.signals)?handoff.signals:[])
@@ -165,6 +165,7 @@ export function rankedIndustryTrendRows(registry, handoff, history, tradeDate, m
         trend_name:theme.trend_name+' - '+assessment.industry_name,
         theme_name:theme.trend_name,
         theme_market_state:theme.market_state,
+        legacyIndustryStatus:!Array.isArray(assessment?.industry_lifecycle?.episodes),
         industry_code:assessment.industry_code,
         industry_names:[assessment.industry_name],
         market_state:assessment.market_state,

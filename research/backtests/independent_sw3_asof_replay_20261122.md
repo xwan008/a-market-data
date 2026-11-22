@@ -45,3 +45,10 @@
 ## 验证要求
 
 研究分支须通过`tests/test_trend_registry.py`、`tests/test_industry_lifecycle.py`、`tests/test_trend_publication_pair.py`、`tests/test_theme_handoff_routes.py`和`dashboard/tests/model.test.js`，同时校验老归档仅只读兼容、旧信号无需重写；未通过前不得发布到main。
+
+## 11月22日追加回归结论与安全发布机制
+
+- 样本按每个当日正式文件原样读出，新增 `tests/test_sw3_archive_replay.py` 严格覆盖 11月16—20日正式旧配对合法性、已选交接是独立已确认行业的子集以及核电运营11/18虽已确认但未优先入选的反例。
+- **确认的SW3是候选资格，不是自动推荐**：11月18日核力发电S410108当日行业状态确认且主题确认，但正式`in_new_position_priority=false`。新版保留原0—3个优先方向选择，未入选的已确认行业需在新合同下记录`priority_exclusion_reason`；不会自动制造一个第四个或更后的优先方向。
+- 11月23日06:30新榜只读取11月20日冻结正式收盘并显示“主题 - 行业”及原行业状态；不回写旧历史、不创建新的D1、不生成新Handoff。18:30首次新收盘有机会启用`scan_audit.sw3_lifecycle_contract=SW3_V1`，但**只有完整真实迁移归档、全套Gate及READBACK通过后才可启用**。若迁移未齐则仍按旧合同发榜，必须标记`SW3_NOT_ACTIVATED`，不能把已合并代码误称为规则实际已激活。
+- 代码切换和正式合同切换分离，防止日期到达就阻断11月23日收盘；已启用新合同后禁止回退。

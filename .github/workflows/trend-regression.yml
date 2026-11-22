@@ -10,6 +10,7 @@ on:
       - "dashboard/tests/model.test.js"
       - "tests/test_industry_lifecycle.py"
       - "tests/test_trend_publication_pair.py"
+      - "tests/test_sw3_archive_replay.py"
       - "scripts/validate_trend_state_migrations.py"
       - "scripts/validate_trend_publication_pair.py"
       - "tests/test_trend_registry.py"
@@ -43,6 +44,7 @@ jobs:
           python -m unittest discover -s tests -p "test_trend_registry.py" -v
           python -m unittest discover -s tests -p "test_industry_lifecycle.py" -v
           python -m unittest discover -s tests -p "test_trend_publication_pair.py" -v
+          python -m unittest discover -s tests -p "test_sw3_archive_replay.py" -v
           python -m unittest discover -s tests -p "test_theme_handoff_routes.py" -v
       - uses: actions/setup-node@v4
         with:
