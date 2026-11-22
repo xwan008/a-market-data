@@ -104,6 +104,10 @@ class SectorDiscoveryTests(unittest.TestCase):
         # Domain descriptions may name industries as examples; guard the
         # decision rule rather than matching forbidden words in general prose.
         self.assertIn("只有独立确认且真实受益的CORE/DIRECT申万三级行业", protocol)
+        self.assertIn("sw3_lifecycle_contract", protocol)
+        self.assertIn("SW3_NOT_ACTIVATED", protocol)
+        self.assertIn("priority_exclusion_reason", protocol)
+        self.assertIn("2026-11-23 06:30过渡期", protocol)
         self.assertIn("主题整体尚处观察或候选", protocol)
         self.assertIn("冻结历史阶段、结论与日期", protocol)
         self.assertIn("NO_ELIGIBLE_CONFIRMED_TREND", buy)
