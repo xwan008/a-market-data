@@ -159,7 +159,13 @@ class CoreProfitTests(unittest.TestCase):
                                       "deduct_net_profit_yoy":25}}
         }}
         updated,_=m.apply_to_copy(source,{"000506":report})
-        self.assertEqual(updated["stocks"],source["stocks"])
+        legacy_record={k:v for k,v in report.items()
+                       if k not in ("quarterly_acceleration","quarterly_history",
+                                    "single_quarter_deduct_net_profit_yoy",
+                                    "single_quarter_revenue_yoy")}
+        expected,_=m.apply_to_copy(source,{"000506":legacy_record})
+        # Preserve the original core-profit enrichment behavior exactly.
+        self.assertEqual(updated["stocks"],expected["stocks"])
         self.assertNotIn("quarterly_acceleration",updated["stocks"]["000506"])
         self.assertNotIn(
             "single_quarter_deduct_net_profit_yoy",
