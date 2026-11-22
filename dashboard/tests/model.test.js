@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {summarizeTrades,extractRecords,latestMonitorRecords,fixed,validSnapshots,snapshotChange,rankedTrendRows,rankedBuyRows,seriesDirection,statusTone,trendEvents,archivedDays,assessHoldingRisk,evaluateExitCondition,normalizeRiskPlans,attachRiskPlans,selectRepresentativeStocks} from '../src/model.js';
+import {summarizeTrades,extractRecords,latestMonitorRecords,fixed,validSnapshots,snapshotChange,rankedTrendRows,rankedIndustryTrendRows,rankedBuyRows,seriesDirection,statusTone,trendEvents,archivedDays,assessHoldingRisk,evaluateExitCondition,normalizeRiskPlans,attachRiskPlans,selectRepresentativeStocks} from '../src/model.js';
 
 function row(code,kind,qty,price,day,extras={}) {return {'股票代码':code,'操作类型':kind,'实际成交股数':qty,'价格（元）':price,'交易日期':day,'交易标的': '测试股票',...extras};}
 test('买入、加仓、卖出移动加权成本正确',()=>{
@@ -396,4 +396,35 @@ test('older holding quote cannot overwrite a newer formal monitor scan',()=>{
  const result=assessHoldingRisk(p,monitor(40.20),today,q);
  assert.notEqual(result.last.source_scope,'holding_watchlist');
  assert.equal(result.state,'watch');
+});
+
+test('独立SW3展示为主题 - 行业且不借用主题盘中快照',()=>{
+ const registry={
+  trade_date:'2026-11-23',
+  trends:[{
+   trend_name:'白色家电',market_state:'候选趋势',trend_state:'T1',lifecycle_status:'有效',
+   industry_assessments:[
+    {industry_code:'S330102',industry_name:'空调',market_state:'趋势确认',
+     benefit_level:'CORE',evidence_trade_date:'2026-11-23',market_reason:'空调多日确认',
+     industry_lifecycle:{episodes:[{d123_stage:'D2',d123_decision:'CONFIRMED',d123_decision_trade_date:'2026-11-17',
+       state_history:[{trade_date:'2026-11-23',to:'趋势确认'}]}]}},
+    {industry_code:'S330106',industry_name:'冰洗',market_state:'观察',
+     benefit_level:'DIRECT',evidence_trade_date:'2026-11-23',market_reason:'冰洗走势转弱',
+     industry_lifecycle:{episodes:[{d123_stage:'D3',d123_decision:'NOT_CONFIRMED',
+       state_history:[{trade_date:'2026-11-23',to:'观察'}]}]}},
+   ],
+  }],
+ };
+ const handoff={signals:[{trend_name:'白色家电',rank:1,industry_codes:['S330102']}]};
+ const broadThemeMonitor={'白色家电':[{scan_at:'2026-11-23T10:00:00+08:00',data_quality:'READY',up_ratio:0.5}]};
+ const items=rankedIndustryTrendRows(registry,handoff,broadThemeMonitor,'2026-11-23','state');
+ assert.deepEqual(items.map(x=>x.trend_name),['白色家电 - 空调','白色家电 - 冰洗']);
+ assert.deepEqual(items.map(x=>x.market_state),['趋势确认','观察']);
+ assert.deepEqual(items.map(x=>x.priorityRank),[1,null]);
+ assert.equal(items[0].theme_market_state,'候选趋势');
+ assert.equal(items[0].industry_code,'S330102');
+ assert.equal(items[0].intradayDelta,null);
+ assert.equal(items[1].d123_decision,'NOT_CONFIRMED');
+ const old=rankedIndustryTrendRows({...registry,trade_date:'2026-11-20'},handoff,{},'2026-11-20');
+ assert.equal(old[0].trend_name,'白色家电');
 });

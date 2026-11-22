@@ -21,7 +21,7 @@
 
 **证据真实性与相关性（正反同等约束）**：SUPPORT与COUNTER均应有截至本轮研究时点可核验的真实事实、可追溯来源和发布/可得时点；统计类证据核对指标口径、样本与比较基期，产业证据核对真实受益主体及收入/成本/利润传导范围。优先核对公司公告、官方统计、平台实际披露等一手材料；新闻报道应追溯所述事实，同源转载不构成独立交叉验证。**匿名“小作文”、未经核实的社交传闻、无来源数据、主观预测、营销软文、仅靠股价反推的利好或牵强概念关联，一律不得冒充已核实的正向或反向证据**；真实事件与对盈利的预测必须拆开表述。已搜索但无可靠证据标为UNVERIFIED或明确“已搜索未找到可靠证据”，研究尚未完成则注明“研究未完成”；**不得为凑证据编造SUPPORT或COUNTER**。板块强势并不意味着基本面利好必然存在，缺乏独立产业事实不自动否定已核实的市场结构，但也不能据此捏造产业景气或提高T等级。
 
-**产业与市场的独立判断**：产业T阶段评估景气证据成熟度，市场状态评估趋势结构，二者不能相互替代。尚未确认的观察与候选在D1—D3期限内持续复核、D3未确认则退出；已确认后因真实新反证临时降级者按独立市场迁移及退出规则复核，不产生个股行动研究资格；只有趋势确认且至少存在一个独立确认、真实受益的CORE/DIRECT申万三级行业时，才可进入本轮新仓研究交接。产业T等级本身不额外构成准入门槛。新仓优先通常0–3个，合格不足可以为空，不得为凑榜降低标准。个股买点及风险边界由独立流程判断。
+**产业与市场的独立判断**：产业T阶段评估景气证据成熟度，市场状态评估趋势结构，二者不能相互替代。尚未确认的观察与候选在D1—D3期限内持续复核、D3未确认则退出；已确认后因真实新反证临时降级者按独立市场迁移及退出规则复核，不产生个股行动研究资格；只有独立确认且真实受益的CORE/DIRECT申万三级行业才可进入本轮新仓研究交接。2026-11-23起，即使主题整体尚处观察或候选，已独立确认的三级行业仍可按代码交接；主题自身状态不得自动代替行业判断。产业T等级本身不额外构成准入门槛。新仓优先通常0–3个，合格不足可以为空，不得为凑榜降低标准。个股买点及风险边界由独立流程判断。
 
 **统一状态判断**：上一轮产业T等级和市场状态只是待复核结论，不能构成本轮额外迁移门槛。每轮依据截至有效收盘真实可得的正反证据，重新评估有效跟踪方向与独立新发现；充分证据及时升降级，不要求逐级变化或固定上涨天数。此前已核实且未被证伪的产业事实可沿用，不得伪称当天已重验；证据不足时HOLD，具体列明已有信号、缺口与下轮验证重点。市场迁移须有可溯源的新增结构证据及独立佐证，产业利好不能代替市场趋势确认；独立价格锚须以该锚自身结构与相应供需证据判断，不能由A股反应一票否决。短期量价窗口、广度及量能统计仅供辅助，任何单一阈值或固定等待期都不得自动决定状态。
 
@@ -173,11 +173,16 @@
 - `market_state`在同一个趋势榜记录观察、候选或确认；A股主导趋势由A股结构支持，独立价格锚主导趋势可由可核验的基础市场价格结构支持，但需明确`trend_basis`及商品证据。三类状态均可持续跟踪，观察和候选都不能进入正式买点榜或正式个股研究。
 - `industry_codes`、`industry_names`记录已核验的申万三级行业身份及名称；必须验证主营业务和实际受益关系，不得以概念相关性冒充真实行业归属。
 
-- `in_new_position_priority`仅按本节独立确认的主题和三级行业路由资格设置；handoff中的行业代码、名称保持原主题顺序。观察/候选不得生成任何下游个股READY/WAIT/UNCERTAIN/DROP研究工作集。
+- `in_new_position_priority`在2026-11-23之前按原合同执行；新制度下，它是**主题容器是否包含至少一个合格三级行业交接**的布尔标志，不代表全部主题已确认。严格根据其`industry_assessments`真实结果设置。handoff中的行业代码、名称保持原主题顺序；**观察/候选状态的三级行业**不得形成正式股票研究工作集。
 
 **`industry_assessments`是唯一行业级身份与受益门槛**：每条候选或确认主题必须覆盖本主题每个`industry_code/name`，包含`benefit_level`（`CORE`/`DIRECT`/`RELATED`/`UNVERIFIED`）、独立`market_state`、当轮`evidence_trade_date`、可追溯`benefit_reason`与`market_reason`；只有`CORE/DIRECT`能被评为已确认受益行业，`RELATED/UNVERIFIED`可保留观察或候选但不得混入股票handoff。第一次发现的观察可只保留未核实行业映射，不强行填直接受益。
 
-**handoff与买点**：`in_new_position_priority=true`仅限`趋势确认`。在`research/trend_handoff.json#signals`中，`market_state`必须为`趋势确认`且`industry_codes/names`必须仅含该主题在`industry_assessments`中独立`趋势确认`且`CORE/DIRECT`的三级行业，不能把整个宽主题路由转交。可以只有一部分三级行业进入handoff，且须保留原主题的行业顺序；若一个都没有，优先级必须为false、不能发布该股票研究信号。即使商品自身已确认但A股未确认，仍只保留商品趋势研究，不生产股票READY。候选与观察在原正式榜内持续复核，不流入19:00个股行动研究。19:00个股研究继续独立执行买点、收益风险比及风控Gate；趋势确认不等于可以买入。
+**三级行业独立D1–D3（2026-11-23起，主题识别规则不变）**：在原`industry_assessments[]`内新增`industry_lifecycle.episodes[]`，以真实`industry_code#trigger_trade_date`作为独立episode身份；**同一SW3在不同主题映射中市场状态和历史记录必须一致**，但受益级别可以因主题而不同。每个新episode记录`trigger_trade_date`、`initial_discovery_basis`、`trigger_evidence`、不可改写的`state_history[]`、`d123_stage`（D1/D2/D3）、`d123_decision`（PENDING/CONFIRMED/NOT_CONFIRMED）、结论日`d123_decision_trade_date`。必须严格按**实际交易日**逐日推进；只有D1的独立多日结构证据已经充分时才可当天确认，纯单日爆发D1不允许；未定至D3必须冻结是/否，不得增加D4、延长等待或伪造更早启动日；已确认的D2/D3结论与日后市场状态分别保留，后续可有证据降级或重新确认，不能改写冻结结论。新首次确认需`confirmation_evidence`按同一行业代码分别提供`MARKET_STRUCTURE`（STRUCTURAL/CRITICAL）、`MARKET_BREADTH`和`RELATIVE_STRENGTH`等当日可得SUPPORT证据；程序验证结构、来源和日期，研究模型负责核实事实。行业内小样本仍按原有相同证据标准审查，不能因样本少降低阈值，不要求不同三级行业同步上涨。D3未确认不能直接进入handoff；新增充分证据时才可开启全新D1，不准重置旧D3洗白。
+
+**遗留行业迁移**：当旧registry已有`industry_assessments`而未记录独立生命周期时，不可把切换日伪称新的D1，也不可把主题的D1–D3冒充行业自己的历史。只有从`validation/archive/<历史交易日>/trend_registry.json`恢复核验过的各日行业判断、原始文件blob SHA、实际首次可见日、当时确认状态和证据后，才允许在行业episode填写`backfill_audit`（`basis=ARCHIVED_FORMAL_SW3_ASSESSMENTS`、真实`source_paths/source_blob_shas`、`decision_registry_blob_sha`、`decision_market_state`、审计缺口说明），只对可复原的阶段标记历史结论；缺失记录或无法证明原确认日则如实标为缺口，**不得以回测推测替代正式已发布确认**。既有冻结归档和主题episode不追改，新增行业记录须从首次真实触发日开始。审计/迁移Gate缺证就BLOCKED，不得为发布填造行业历史。
+
+
+**handoff资格（2026-11-23起）**：不再要求主题容器`market_state=趋势确认`。仅将该主题`industry_assessments`中有**独立已完成确认的D1–D3结论**（或审计过的遗留确认）、当轮`market_state=趋势确认`、实际受益`benefit_level=CORE/DIRECT`的SW3按原始行业顺序交接。其他行业严格排除；零合格行业必须`in_new_position_priority=false`且不得有信号；有至少一个合格行业且主题生命周期仍有效时则必须为true。主题可仍是观察/候选，`research/trend_handoff.json#signals[].market_state`表示**已路由行业确认**，固定为`趋势确认`，另用`theme_market_state`原样写入主题状态，避免语义混淆；保持`schema_version=1`、`trend_name`为原主题名、`industry_codes/names`原合同，兼容现有19:00买点榜。新增`industry_display_names`，每个值为`主题 - 三级行业`；新增`industry_lifecycles`逐行业列出`industry_code/episode_id/d123_stage/d123_decision/d123_decision_trade_date`，必须逐项与正式账本一致。不得在交接中重新确认市场状态、擅自路由外围相关行业或修改下游买点逻辑。商品趋势先行确认时也只有独立确认的A股三级行业可交接。**主题D3未确认**但确有已审计确认的CORE/DIRECT行业存续时，可仅作为该行业的研究容器暂时保留；若失去最后一个确认行业，仍须按原D3期限退出，不得以旧D3记录长期占位。
 
 `research/trend_handoff.json`是独立的下游交接文件（`schema_version=1`），不是趋势条目字段。其名单只能来自正式账本中实际获得优先资格的方向；产业阶段、市场状态、行业映射必须与账本一致，不能在交接时重新判断或改写。
 

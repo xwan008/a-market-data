@@ -4,6 +4,12 @@ on:
   pull_request:
     paths:
       - "scripts/trend_registry.py"
+      - "scripts/industry_lifecycle.py"
+      - "dashboard/src/App.jsx"
+      - "dashboard/src/model.js"
+      - "dashboard/tests/model.test.js"
+      - "tests/test_industry_lifecycle.py"
+      - "tests/test_trend_publication_pair.py"
       - "scripts/validate_trend_state_migrations.py"
       - "scripts/validate_trend_publication_pair.py"
       - "tests/test_trend_registry.py"
@@ -31,6 +37,15 @@ jobs:
         with:
           python-version: "3.11"
       - name: Validate Python syntax
-        run: python -m compileall -q scripts/trend_registry.py scripts/validate_trend_state_migrations.py scripts/validate_trend_publication_pair.py tests/test_trend_registry.py
+        run: python -m compileall -q scripts/trend_registry.py scripts/industry_lifecycle.py scripts/validate_trend_state_migrations.py scripts/validate_trend_publication_pair.py tests/test_trend_registry.py tests/test_industry_lifecycle.py tests/test_trend_publication_pair.py
       - name: Run trend regression tests
-        run: python -m unittest discover -s tests -p "test_trend_registry.py" -v
+        run: |
+          python -m unittest discover -s tests -p "test_trend_registry.py" -v
+          python -m unittest discover -s tests -p "test_industry_lifecycle.py" -v
+          python -m unittest discover -s tests -p "test_trend_publication_pair.py" -v
+          python -m unittest discover -s tests -p "test_theme_handoff_routes.py" -v
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Test trend board presentation
+        run: npm --prefix dashboard test
