@@ -84,6 +84,9 @@ class ThemeEvidenceTests(unittest.TestCase):
         # Complete auxiliary scan can identify a child even when it was
         # capacity-deferred by the earlier three-seed shortlist.
         data[4] = copy.deepcopy(data[4])
+        # Isolate one divergent signal; the other synthetic audit row has
+        # an intentionally exaggerated relative score not backed by quotes.
+        data[4]["sectors"][0]["channels"] = []
         data[4]["sectors"][1]["reason"] = "CAPACITY_DEFERRED"
         data[4]["sectors"][1]["median_3d_pct"] = -.215
         data[4]["sectors"][1]["median_5d_pct"] = -2.975
@@ -121,6 +124,8 @@ class ThemeEvidenceTests(unittest.TestCase):
              "industry_count": 1, "industries": [
                  {"code": "S300101", "name": "Unmapped hot", "role": "core"}]},
         ]
+        data[4] = copy.deepcopy(data[4])
+        data[4]["sectors"][0]["channels"] = []
         result = build(*data)
         self.assertEqual(result["sw3_independent_review_hints"], [])
         self.assertEqual(result["scan_summary"]["sw3_independent_review_hint_count"], 0)
