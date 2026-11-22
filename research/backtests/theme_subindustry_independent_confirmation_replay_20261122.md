@@ -174,4 +174,13 @@
 - [11月20日趋势账本](https://github.com/xwan008/a-market-data/blob/641236cda5777430e237de39b2f01087214bda78/research/trend_registry.json)
 - [11月20日正式handoff：银行只交接国有大型银行](https://github.com/xwan008/a-market-data/blob/641236cda5777430e237de39b2f01087214bda78/research/trend_handoff.json)
 
+
+- [11月13日行业行情审计](https://github.com/xwan008/a-market-data/blob/e25728114e6c9687578a5fb9f1eaa1d481921d28/data/research/sector_discovery_audit.json)
+- [11月16日行业行情审计](https://github.com/xwan008/a-market-data/blob/9eb5cd9577d5236917a9f51efcbcd637bb53ec32/data/research/sector_discovery_audit.json)
+- [11月17日行业行情审计](https://github.com/xwan008/a-market-data/blob/d13b58995a5087eee387788d3ea03ab7837f8f65/data/research/sector_discovery_audit.json)
+- [11月18日行业行情审计](https://github.com/xwan008/a-market-data/blob/f7a9724d404ede1b078116e36bb03f3b823e3f40/data/research/sector_discovery_audit.json)
+- [线下药店11月17日TOP5](https://github.com/xwan008/a-market-data/blob/f7a9724d404ede1b078116e36bb03f3b823e3f40/research/trend_buy_formal_result.json)；[同日个股结构快照](https://github.com/xwan008/a-market-data/tree/d13b58995a5087eee387788d3ea03ab7837f8f65/data/low_risk/by_industry/S370403)
+- [白色家电11月18日TOP5](https://github.com/xwan008/a-market-data/blob/2115e858e5b8cc15aafe3b7003eb46463b8db497/research/trend_buy_formal_result.json)；[同日空调结构快照](https://github.com/xwan008/a-market-data/tree/f7a9724d404ede1b078116e36bb03f3b823e3f40/data/low_risk/by_industry/S330102)；[同日冰洗结构快照](https://github.com/xwan008/a-market-data/tree/f7a9724d404ede1b078116e36bb03f3b823e3f40/data/low_risk/by_industry/S330106)
+- [银行11月16日TOP5](https://github.com/xwan008/a-market-data/blob/d13b58995a5087eee387788d3ea03ab7837f8f65/research/trend_buy_formal_result.json)；[同日国有大行结构快照](https://github.com/xwan008/a-market-data/tree/9eb5cd9577d5236917a9f51efcbcd637bb53ec32/data/low_risk/by_industry/S480201)；[股份制银行](https://github.com/xwan008/a-market-data/tree/9eb5cd9577d5236917a9f51efcbcd637bb53ec32/data/low_risk/by_industry/S480301)；[城商行](https://github.com/xwan008/a-market-data/tree/9eb5cd9577d5236917a9f51efcbcd637bb53ec32/data/low_risk/by_industry/S480401)；[农商行](https://github.com/xwan008/a-market-data/tree/9eb5cd9577d5236917a9f51efcbcd637bb53ec32/data/low_risk/by_industry/S480501)
+
 **最终判断：** 不应把主题整体扩散当成确认门槛。最需要优先解决的是白色家电暴露出的“已确认子行业被父主题状态挡住”问题；银行的容量延期是第二个执行问题；线下药店则提醒我们，板块确认和个股入场成熟度必须分开处理。当前先保留生产规则，后续可针对这三点做独立回归验证。
