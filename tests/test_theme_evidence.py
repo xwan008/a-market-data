@@ -58,6 +58,81 @@ def sample_data():
 
 
 class ThemeEvidenceTests(unittest.TestCase):
+    def test_strong_sw3_inside_weak_sw2_gets_separate_review_hint(self):
+        # Like 2026-11-12 offline pharmacies: weak SW2 aggregation must not
+        # swallow the stronger SW3; neither the group rank nor slots change.
+        data = list(sample_data())
+        for item in data[1]["companies"].values():
+            if item["industry_code"] == "S200101":
+                item["industry_code"] = "S100102"
+        data[3] = copy.deepcopy(data[3])
+        for theme in data[3]["themes"]:
+            for item in theme["industries"]:
+                if item["code"] == "S200101":
+                    item["code"] = "S100102"
+        data[3]["base_industry_groups"] = [
+            {"group_id": "sw_l2_1001", "group_name": "Weak broad sector",
+             "group_kind": "SW_L2_TAXONOMY", "sw_level2_code": "100100",
+             "industry_count": 2, "industries": [
+                 {"code": "S100101", "name": "Test core industry", "role": "core"},
+                 {"code": "S100102", "name": "Related only", "role": "core"}]},
+            {"group_id": "sw_l2_3001", "group_name": "Other broad sector",
+             "group_kind": "SW_L2_TAXONOMY", "sw_level2_code": "300100",
+             "industry_count": 1, "industries": [
+                 {"code": "S300101", "name": "Unmapped hot", "role": "core"}]},
+        ]
+        # Complete auxiliary scan can identify a child even when it was
+        # capacity-deferred by the earlier three-seed shortlist.
+        data[4] = copy.deepcopy(data[4])
+        data[4]["sectors"][1]["reason"] = "CAPACITY_DEFERRED"
+        data[4]["sectors"][1]["median_3d_pct"] = -.215
+        data[4]["sectors"][1]["median_5d_pct"] = -2.975
+        result = build(*data)
+        hints = result["sw3_independent_review_hints"]
+        self.assertEqual([h["industry_code"] for h in hints], ["S100101"])
+        hint = hints[0]
+        self.assertEqual(hint["parent_group_name"], "Weak broad sector")
+        self.assertEqual(hint["parent_channels"], [])
+        self.assertIn("STRONG", hint["channels"])
+        self.assertEqual(hint["sector_audit_reason"], "CAPACITY_DEFERRED")
+        self.assertLess(hint["median_return_3d_pct"], 0)
+        self.assertFalse(hint["automatic_trend_admission"])
+        self.assertEqual(result["scan_summary"]["sw3_independent_review_hint_count"], 1)
+        self.assertNotIn("industry:S100101",
+                         [x["source_id"] for x in result["crosscheck_shortlist"]])
+        self.assertLessEqual(len(result["crosscheck_shortlist"]), 10)
+        self.assertNotIn("market_state", hint)
+        self.assertNotIn("d123_stage", hint)
+
+    def test_sw3_review_hint_does_not_duplicate_strong_parent(self):
+        data = list(sample_data())
+        data[3] = copy.deepcopy(data[3])
+        data[3]["base_industry_groups"] = [
+            {"group_id": "sw_l2_1001", "group_name": "Strong broad sector",
+             "group_kind": "SW_L2_TAXONOMY", "sw_level2_code": "100100",
+             "industry_count": 1, "industries": [
+                 {"code": "S100101", "name": "Test core industry", "role": "core"}]},
+            {"group_id": "sw_l2_2001", "group_name": "Weak broad sector",
+             "group_kind": "SW_L2_TAXONOMY", "sw_level2_code": "200100",
+             "industry_count": 1, "industries": [
+                 {"code": "S200101", "name": "Related only", "role": "core"}]},
+            {"group_id": "sw_l2_3001", "group_name": "Strong other sector",
+             "group_kind": "SW_L2_TAXONOMY", "sw_level2_code": "300100",
+             "industry_count": 1, "industries": [
+                 {"code": "S300101", "name": "Unmapped hot", "role": "core"}]},
+        ]
+        result = build(*data)
+        self.assertEqual(result["sw3_independent_review_hints"], [])
+        self.assertEqual(result["scan_summary"]["sw3_independent_review_hint_count"], 0)
+
+    def test_assisted_discovery_requires_same_independent_evidence_review(self):
+        protocol = (Path(__file__).resolve().parents[1] /
+                    "skill/TREND_REGISTRY_PROTOCOL.md").read_text(encoding="utf-8")
+        self.assertIn("sw3_independent_review_hints", protocol)
+        self.assertIn("辅助线索与独立发现采用同一研究标准", protocol)
+        self.assertIn("candidate_disposition_audit", protocol)
+        self.assertIn("不得因其来自辅助发现", protocol)
+
     def test_crosscheck_unifies_industry_and_theme_without_duplicate_slots(self):
         result = build(*sample_data())
         leads = result["crosscheck_shortlist"]
