@@ -8,6 +8,8 @@ from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 
 DAY = "2026-11-23"
+ORIGINAL_REGISTRY_BLOB_SHA = "9ff8d1afb4281b378b92d5d1f4cc8b1aaec423fb"
+ORIGINAL_HANDOFF_BLOB_SHA = "b11ce8635d27ef3d20b604316767d6374c27ea08"
 CONTRACT = "SW3_V1"
 BEIJING = timezone(timedelta(hours=8))
 STATES = {"趋势确认", "候选趋势", "观察"}
@@ -39,6 +41,9 @@ def build(previous, old_handoff, source_sha, handoff_sha, revised_at):
     result, handoff = deepcopy(previous), deepcopy(old_handoff)
     if previous.get("trade_date") != DAY or old_handoff.get("trade_date") != DAY:
         raise ValueError("only Nov 23 formal close can be switched")
+    if (source_sha != ORIGINAL_REGISTRY_BLOB_SHA
+            or handoff_sha != ORIGINAL_HANDOFF_BLOB_SHA):
+        raise ValueError("cutover must use the exact frozen Nov 23 formal pair")
     if previous.get("scan_audit", {}).get("sw3_lifecycle_contract") is not None:
         raise ValueError("already opted in")
     result["generated_at"] = revised_at
@@ -128,8 +133,8 @@ def validate(previous, proposed, source_sha):
         errors.append("sw3_cutover_previous_already_enabled")
     if (proposed.get("scan_audit") or {}).get("sw3_lifecycle_contract") != CONTRACT:
         errors.append("sw3_cutover_missing_opt_in")
-    if not isinstance(source_sha, str) or re.fullmatch(r"[0-9a-f]{40}", source_sha) is None:
-        errors.append("sw3_cutover_invalid_source_sha")
+    if source_sha != ORIGINAL_REGISTRY_BLOB_SHA:
+        errors.append("sw3_cutover_unapproved_original_registry_sha")
     old_scan = previous.get("scan_audit") or {}
     new_scan = proposed.get("scan_audit") or {}
     audit = new_scan.get("sw3_same_day_cutover") or {}
@@ -137,8 +142,7 @@ def validate(previous, proposed, source_sha):
     if (audit.get("mode") != "ASOF_2026_11_23"
             or audit.get("source_trade_date") != DAY
             or audit.get("source_registry_blob_sha") != source_sha
-            or not isinstance(audit.get("source_handoff_blob_sha"), str)
-            or re.fullmatch(r"[0-9a-f]{40}", audit["source_handoff_blob_sha"]) is None
+            or audit.get("source_handoff_blob_sha") != ORIGINAL_HANDOFF_BLOB_SHA
             or audit.get("inheritance_policy") != "INDUSTRY_MARKET_STATE_PLUS_THEME_PHASE_CONTEXT"):
         errors.append("sw3_cutover_provenance_invalid")
     if audit.get("industry_count") != sum(
