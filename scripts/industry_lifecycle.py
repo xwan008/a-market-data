@@ -238,15 +238,19 @@ def cutover_route_lifecycle(row):
             or not isinstance(base.get("source_registry_blob_sha"), str)
             or SHA.fullmatch(base["source_registry_blob_sha"]) is None):
         return None
-    return {
+    route = {
         "industry_code": row.get("industry_code"),
-        "episode_id": None,  # This is not a fabricated historical episode.
+        "episode_id": None,  # Never forge the industry's historical D1 identity.
         "d123_stage": base.get("d123_stage"),
         "d123_decision": base.get("d123_decision"),
         "d123_decision_trade_date": base.get("d123_decision_trade_date"),
         "baseline_asof_trade_date": CUTOVER_BASELINE_DATE,
         "baseline_source_registry_blob_sha": base["source_registry_blob_sha"],
     }
+    if base.get("phase_origin") == "LEGACY_THEME_D123":
+        route["phase_origin"] = "LEGACY_THEME_D123"
+        route["legacy_theme_d123"] = base.get("legacy_theme_d123")
+    return route
 
 
 def industry_route_confirmed(row):
@@ -394,8 +398,144 @@ def _cutover_baseline_errors(current, previous, day, *, same_day=False, source_s
     return errors
 
 
+
+def _legacy_theme_cutover_errors(current, previous, day, *, same_day=False, source_sha=None):
+    """An inherited theme phase is CONTEXT only; SW3 market_state is authoritative.
+
+    The Nov 23 same-day activation transfers already published facts, not an
+    invented industry D1 / D2 / D3 verdict. Future new episodes require their
+    own real trigger and full evidence.
+    """
+    code = current.get("industry_code", "unknown")
+    life = current.get("industry_lifecycle") or {}
+    base = life.get("cutover_baseline") or {}
+    old_life = (previous or {}).get("industry_lifecycle") or {}
+    old_base = old_life.get("cutover_baseline")
+    errors = []
+    asof = base.get("asof_trade_date")
+    sha = base.get("source_registry_blob_sha")
+    initial = base.get("initial_market_state")
+    legacy = base.get("legacy_theme_d123")
+    stage = base.get("d123_stage")
+    verdict = base.get("d123_decision")
+    if (base.get("basis") != CUTOVER_BASELINE_BASIS
+            or base.get("phase_origin") != "LEGACY_THEME_D123"
+            or asof != CUTOVER_BASELINE_DATE or not isinstance(sha, str)
+            or SHA.fullmatch(sha) is None
+            or base.get("industry_code") != code or initial not in TRACK
+            or not isinstance(legacy, dict) or stage not in {"D1", "D2", "D3"}
+            or legacy.get("d123_stage") != stage
+            or not isinstance(legacy.get("source_theme_episode_id"), str)
+            or not legacy["source_theme_episode_id"]
+            or legacy.get("d123_decision") not in {"PENDING", "CONFIRMED", "NOT_CONFIRMED"}
+            or not _valid_day(legacy.get("d123_trigger_trade_date"))
+            or legacy["d123_trigger_trade_date"] > asof
+            or base.get("d123_decision_trade_date") is not None):
+        errors.append(f"{code}:legacy_cutover_identity_invalid")
+    expected = ("INHERITED_CONFIRMED" if initial == "趋势确认"
+                else "INHERITED_UNCONFIRMED")
+    if verdict != expected:
+        errors.append(f"{code}:legacy_cutover_not_a_child_verdict")
+    if previous is None:
+        return errors + [f"{code}:legacy_cutover_missing_prior_industry"]
+    first = not isinstance(old_base, dict)
+    if first:
+        if (not same_day or day != asof or source_sha != sha
+                or previous.get("industry_lifecycle") is not None
+                or previous.get("market_state") != initial):
+            errors.append(f"{code}:legacy_cutover_initial_provenance_invalid")
+    else:
+        frozen = (
+            "basis", "phase_origin", "legacy_theme_d123", "d123_stage",
+            "d123_decision", "d123_decision_trade_date", "asof_trade_date",
+            "source_registry_blob_sha", "industry_code", "initial_market_state",
+        )
+        if any(base.get(k) != old_base.get(k) for k in frozen):
+            errors.append(f"{code}:legacy_cutover_frozen_phase_rewritten")
+    history = base.get("state_history")
+    previous_history = (old_base or {}).get("state_history", []) if not first else []
+    if not isinstance(history, list) or not isinstance(previous_history, list):
+        return errors + [f"{code}:legacy_cutover_history_invalid"]
+    if first and history:
+        errors.append(f"{code}:legacy_cutover_fabricated_same_day_history")
+    if not first and history[:len(previous_history)] != previous_history:
+        errors.append(f"{code}:legacy_cutover_history_rewritten")
+    tail = history[len(previous_history):]
+    if not first:
+        if same_day:
+            if len(tail) > 1 or (tail and (
+                    tail[0].get("event") != "same_day_revision"
+                    or tail[0].get("trade_date") != day)):
+                errors.append(f"{code}:legacy_cutover_same_day_event_invalid")
+        elif len(tail) != 1 or tail[0].get("trade_date") != day:
+            errors.append(f"{code}:legacy_cutover_daily_review_missing")
+    last_state, last_day = initial, asof
+    for event in history:
+        if (not isinstance(event, dict) or not _valid_day(event.get("trade_date"))
+                or event["trade_date"] <= asof or event["trade_date"] > day
+                or event["trade_date"] < last_day
+                or event.get("from") != last_state or event.get("to") not in TRACK):
+            errors.append(f"{code}:legacy_cutover_history_chain_invalid")
+            continue
+        last_state, last_day = event["to"], event["trade_date"]
+    if last_state != current.get("market_state") or (
+            not first and not same_day and last_day != day):
+        errors.append(f"{code}:legacy_cutover_current_state_mismatch")
+    if first and current.get("market_state") != initial:
+        errors.append(f"{code}:legacy_cutover_market_state_changed_on_activation")
+
+    episodes = life.get("episodes")
+    old_episodes = old_life.get("episodes", [])
+    if not isinstance(episodes, list) or not isinstance(old_episodes, list):
+        return errors + [f"{code}:legacy_cutover_episode_list_invalid"]
+    if first and episodes:
+        errors.append(f"{code}:legacy_cutover_cannot_forge_old_episodes")
+    if len(episodes) < len(old_episodes) or episodes[:len(old_episodes)] != old_episodes:
+        # Changes to a current non-terminal episode are validated below.
+        if len(episodes) != len(old_episodes) or episodes[:-1] != old_episodes[:-1]:
+            errors.append(f"{code}:legacy_cutover_episode_history_rewritten")
+    if len(episodes) > len(old_episodes) + 1:
+        errors.append(f"{code}:legacy_cutover_multiple_new_episodes")
+    for i, episode in enumerate(episodes):
+        if episode.get("trigger_trade_date", "") <= asof:
+            errors.append(f"{code}:legacy_cutover_backdated_new_episode")
+        errors.extend(_episode_errors(episode, code, day,
+                                      require_current=(i == len(episodes)-1)))
+    if episodes:
+        latest = episodes[-1]
+        if (latest.get("state_history") or [{}])[-1].get("to") != current.get("market_state"):
+            errors.append(f"{code}:legacy_cutover_episode_market_state_mismatch")
+        if len(episodes) > len(old_episodes):
+            if (latest.get("trigger_trade_date") != day
+                    or latest.get("d123_stage") != "D1"):
+                errors.append(f"{code}:legacy_cutover_new_episode_not_real_d1")
+    elif current.get("market_state") == "趋势确认" and verdict != "INHERITED_CONFIRMED":
+        errors.append(f"{code}:legacy_cutover_new_confirmation_needs_independent_episode")
+
+    if (current.get("market_state") == "趋势确认"
+            and previous.get("market_state") != "趋势确认"):
+        evidence = base.get("confirmation_evidence")
+        support = {e.get("dimension") for e in evidence
+                   if isinstance(e, dict) and _valid_evidence(e, day)
+                   and e.get("industry_code") == code
+                   and (e.get("dimension") != "MARKET_STRUCTURE"
+                        or e.get("impact") in {"STRUCTURAL", "CRITICAL"})
+                   } if isinstance(evidence, list) else set()
+        if not {"MARKET_STRUCTURE", "MARKET_BREADTH", "RELATIVE_STRENGTH"}.issubset(support):
+            errors.append(f"{code}:legacy_cutover_confirmation_evidence_incomplete")
+    if current.get("benefit_level") not in {"CORE", "DIRECT"} and current.get("market_state") == "趋势确认":
+        errors.append(f"{code}:industry_confirmed_without_direct_benefit")
+    return errors
+
+
 def validate_industry_lifecycle(current, previous, day, *, same_day=False, source_sha=None):
     """Validate an assessment's independent lifecycle against its prior record."""
+    if (isinstance(current.get("industry_lifecycle"), dict)
+            and "cutover_baseline" in current["industry_lifecycle"]
+            and (current["industry_lifecycle"].get("cutover_baseline") or {}).get(
+                "phase_origin") == "LEGACY_THEME_D123"):
+        return _legacy_theme_cutover_errors(
+            current, previous, day, same_day=same_day, source_sha=source_sha)
     if (isinstance(current.get("industry_lifecycle"), dict)
             and "cutover_baseline" in current["industry_lifecycle"]):
         return _cutover_baseline_errors(current, previous, day,
