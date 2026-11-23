@@ -5,6 +5,7 @@ import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import unittest
+from unittest.mock import patch
 
 from scripts.sw3_same_day_cutover import build
 from scripts.trend_registry import validate as validate_registry
@@ -12,6 +13,7 @@ from scripts.validate_trend_publication_pair import validate as validate_pair
 
 ROOT = Path(__file__).resolve().parents[1]
 DAY = "2026-11-23"
+FROZEN_CUTOVER_AT = "2026-11-23T19:20:19+08:00"
 
 
 def load(name):
@@ -26,6 +28,11 @@ def git_sha(path):
 class SameDaySw3CutoverTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        # Historical replay must not become date-dependent on Nov 24 or later.
+        cls.clock_patch = patch("scripts.sw3_same_day_cutover.datetime")
+        cls.clock = cls.clock_patch.start()
+        cls.clock.now.return_value = datetime.fromisoformat(FROZEN_CUTOVER_AT)
+        cls.clock.fromisoformat.side_effect = datetime.fromisoformat
         # Before formal same-day publication, read today's original file.
         # After publication, the immutable archive remains the source.
         archive = ROOT / "validation/archive/2026-11-23/trend_registry.json"
@@ -38,9 +45,13 @@ class SameDaySw3CutoverTests(unittest.TestCase):
         cls.sha = git_sha(cls.rpath)
         cls.hsha = git_sha(cls.hpath)
 
+    @classmethod
+    def tearDownClass(cls):
+        cls.clock_patch.stop()
+
     def create(self):
-        now = datetime.now(timezone(timedelta(hours=8))).isoformat(timespec="seconds")
-        return build(self.original, self.original_handoff, self.sha, self.hsha, now)
+        return build(self.original, self.original_handoff,
+                     self.sha, self.hsha, FROZEN_CUTOVER_AT)
 
     def test_real_23_close_admits_exactly_published_14_sw3_with_theme_phase(self):
         proposed, handoff = self.create()

@@ -12,6 +12,7 @@ on:
       - "tests/test_sw3_forward_baseline.py"
       - "tests/test_sw3_real_close_replay.py"
       - "tests/test_sw3_same_day_cutover.py"
+      - "tests/test_sw3_post_cutover_continuity.py"
       - "scripts/sw3_same_day_cutover.py"
       - "tests/test_trend_publication_pair.py"
       - "tests/test_sw3_archive_replay.py"
@@ -50,6 +51,7 @@ jobs:
           python -m unittest discover -s tests -p "test_sw3_forward_baseline.py" -v
           python -m unittest discover -s tests -p "test_sw3_real_close_replay.py" -v
           python -m unittest discover -s tests -p "test_sw3_same_day_cutover.py" -v
+          python -m unittest discover -s tests -p "test_sw3_post_cutover_continuity.py" -v
           python -m unittest discover -s tests -p "test_trend_publication_pair.py" -v
           python -m unittest discover -s tests -p "test_sw3_archive_replay.py" -v
           python -m unittest discover -s tests -p "test_theme_handoff_routes.py" -v

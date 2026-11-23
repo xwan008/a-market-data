@@ -490,12 +490,60 @@ def _legacy_theme_cutover_errors(current, previous, day, *, same_day=False, sour
         return errors + [f"{code}:legacy_cutover_episode_list_invalid"]
     if first and episodes:
         errors.append(f"{code}:legacy_cutover_cannot_forge_old_episodes")
-    if len(episodes) < len(old_episodes) or episodes[:len(old_episodes)] != old_episodes:
-        # Changes to a current non-terminal episode are validated below.
-        if len(episodes) != len(old_episodes) or episodes[:-1] != old_episodes[:-1]:
-            errors.append(f"{code}:legacy_cutover_episode_history_rewritten")
-    if len(episodes) > len(old_episodes) + 1:
-        errors.append(f"{code}:legacy_cutover_multiple_new_episodes")
+    # Only one genuine new D1 can be introduced per real session.
+    # Existing sessions, identity and frozen verdicts must remain immutable.
+    if len(episodes) not in {len(old_episodes), len(old_episodes) + 1}:
+        errors.append(f"{code}:legacy_cutover_episode_count_changed")
+    elif len(episodes) == len(old_episodes) + 1:
+        if episodes[:len(old_episodes)] != old_episodes:
+            errors.append(f"{code}:legacy_cutover_previous_episodes_rewritten")
+        if old_episodes and old_episodes[-1].get("d123_decision") == "PENDING":
+            errors.append(f"{code}:legacy_cutover_new_d1_before_prior_verdict")
+    elif old_episodes:
+        if episodes[:-1] != old_episodes[:-1]:
+            errors.append(f"{code}:legacy_cutover_closed_episodes_rewritten")
+        old_latest, latest_now = old_episodes[-1], episodes[-1]
+        immutable_keys = (
+            "episode_id", "trigger_trade_date", "initial_discovery_basis",
+            "trigger_evidence", "backfill_audit",
+        )
+        if any(old_latest.get(k) != latest_now.get(k) for k in immutable_keys):
+            errors.append(f"{code}:legacy_cutover_episode_identity_rewritten")
+        old_events = old_latest.get("state_history")
+        new_events = latest_now.get("state_history")
+        if not isinstance(old_events, list) or not isinstance(new_events, list):
+            errors.append(f"{code}:legacy_cutover_episode_events_invalid")
+        elif new_events[:len(old_events)] != old_events:
+            errors.append(f"{code}:legacy_cutover_episode_events_rewritten")
+        elif same_day:
+            tail_events = new_events[len(old_events):]
+            if len(tail_events) > 1 or (tail_events and (
+                    tail_events[0].get("trade_date") != day
+                    or tail_events[0].get("event") != "same_day_revision")):
+                errors.append(f"{code}:legacy_cutover_episode_same_day_event_invalid")
+        elif (len(new_events) != len(old_events) + 1
+              or new_events[-1].get("trade_date") != day
+              or new_events[-1].get("from") != previous.get("market_state")
+              or new_events[-1].get("to") != current.get("market_state")):
+            errors.append(f"{code}:legacy_cutover_episode_daily_event_missing")
+        old_verdict = old_latest.get("d123_decision")
+        if old_verdict != "PENDING":
+            if any(old_latest.get(k) != latest_now.get(k)
+                   for k in ("d123_stage", "d123_decision",
+                             "d123_decision_trade_date")):
+                errors.append(f"{code}:legacy_cutover_episode_frozen_verdict_rewritten")
+        elif same_day:
+            if any(old_latest.get(k) != latest_now.get(k)
+                   for k in ("d123_stage", "d123_decision",
+                             "d123_decision_trade_date")):
+                errors.append(f"{code}:legacy_cutover_episode_same_day_d123_changed")
+        else:
+            expected = {"D1": "D2", "D2": "D3"}.get(old_latest.get("d123_stage"))
+            if latest_now.get("d123_stage") != expected:
+                errors.append(f"{code}:legacy_cutover_episode_d123_progression_invalid")
+            if latest_now.get("d123_decision") in {"CONFIRMED", "NOT_CONFIRMED"} and (
+                    latest_now.get("d123_decision_trade_date") != day):
+                errors.append(f"{code}:legacy_cutover_episode_verdict_date_invalid")
     for i, episode in enumerate(episodes):
         if episode.get("trigger_trade_date", "") <= asof:
             errors.append(f"{code}:legacy_cutover_backdated_new_episode")
