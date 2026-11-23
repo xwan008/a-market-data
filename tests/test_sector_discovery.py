@@ -109,7 +109,7 @@ class SectorDiscoveryTests(unittest.TestCase):
         self.assertIn("LEGACY_THEME_D123", protocol)
         self.assertNotIn("11月23日尚未确认的存量行业", protocol)
         self.assertIn("priority_exclusion_reason", protocol)
-        self.assertIn("正式收盘基线前向切换", protocol)
+        self.assertIn("早间与下一次收盘", protocol)
         self.assertIn("FORMAL_ASOF_SW3_CUTOVER", protocol)
         self.assertIn("INHERITED_CONFIRMED", protocol)
         self.assertIn("主题整体尚处观察或候选", protocol)
