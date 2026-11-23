@@ -4,6 +4,8 @@ on:
     branches: ["shadow/profit-yoy-qoq-20261123"]
     paths:
       - "experiments/profit_qoq_amount_probe_20261123.py"
+      - "experiments/profit_qoq_corrected_shadow_20261123.py"
+      - "experiments/profit_yoy_qoq_shadow_20261123.py"
       - ".github/workflows/profit-qoq-amount-probe-20261123.yml"
 permissions:
   contents: read
@@ -34,6 +36,20 @@ jobs:
           assert not x["q3_frozen_mismatches"]
           print("QOQ_SOURCE_PROVENANCE_OK", x["status_counts"])
           PY
+      - name: Run bounded real-QoQ-corrected read-only admission and attention shadow
+        run: |
+          python experiments/profit_qoq_corrected_shadow_20261123.py \
+            --qoq-source /tmp/real_profit_qoq_20261123.json \
+            --output /tmp/profit_yoy_qoq_corrected_shadow_20261123.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/profit_yoy_qoq_corrected_shadow_20261123.json').read_text())
+          assert x["mode"]=="SHADOW_Q_YOY_PRIMARY_REAL_QOQ_BOUNDED_CORRECTION"
+          assert x["no_main_write"] and x["price_inputs_unmodified"]
+          assert x["qoq_source_status_counts"]["COMPLETE_POSITIVE_BASE"]==35
+          print("REAL_QOQ_CORRECTED_SHADOW_SAFETY_PASS")
+          PY
       - name: Git working tree must remain unchanged
         run: git diff --exit-code && git diff --cached --exit-code
       - name: Upload read-only source-probe report
@@ -42,5 +58,13 @@ jobs:
         with:
           name: real-qoq-profit-source-20261123
           path: /tmp/real_profit_qoq_20261123.json
+          if-no-files-found: ignore
+          retention-days: 35
+      - name: Upload QoQ-corrected shadow result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: real-qoq-corrected-shadow-20261123
+          path: /tmp/profit_yoy_qoq_corrected_shadow_20261123.json
           if-no-files-found: ignore
           retention-days: 35
