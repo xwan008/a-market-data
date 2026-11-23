@@ -106,6 +106,12 @@ class SectorDiscoveryTests(unittest.TestCase):
         self.assertIn("只有独立确认且真实受益的CORE/DIRECT申万三级行业", protocol)
         self.assertIn("sw3_lifecycle_contract", protocol)
         self.assertIn("当前正式合同已切换", protocol)
+        # Version identifiers remain necessary in JSON validators, not in the
+        # normal 06:30/18:30 reader-facing report.
+        self.assertIn("正式报告必须无缝展示", protocol)
+        self.assertIn("不展示内部版本/迁移术语", protocol)
+        self.assertIn("不单设版本合同、切换或持久化状态章节", protocol)
+        self.assertIn("失败", protocol)
         self.assertIn("LEGACY_THEME_D123", protocol)
         self.assertNotIn("11月23日尚未确认的存量行业", protocol)
         self.assertIn("priority_exclusion_reason", protocol)
