@@ -47,6 +47,7 @@ def build(previous, old_handoff, source_sha, handoff_sha, revised_at):
     if previous.get("scan_audit", {}).get("sw3_lifecycle_contract") is not None:
         raise ValueError("already opted in")
     result["generated_at"] = revised_at
+    handoff["generated_at"] = revised_at
     scan = result["scan_audit"]
     scan["notes"] = note_after_cutover(scan["notes"])
     scan["sw3_lifecycle_contract"] = CONTRACT
