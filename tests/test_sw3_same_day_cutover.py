@@ -20,7 +20,7 @@ def load(name):
 
 def git_sha(path):
     raw = (ROOT / path).read_bytes()
-    return hashlib.sha1(b"blob " + str(len(raw)).encode() + b"\\0" + raw).hexdigest()
+    return hashlib.sha1(b"blob " + str(len(raw)).encode() + b"\0" + raw).hexdigest()
 
 
 class SameDaySw3CutoverTests(unittest.TestCase):
