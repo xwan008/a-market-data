@@ -78,6 +78,20 @@ class SameDaySw3CutoverTests(unittest.TestCase):
             by_code["S330106"]["industry_lifecycle"]["cutover_baseline"]["d123_decision"],
             "INHERITED_UNCONFIRMED")
 
+    def test_formal_snapshot_after_cutover_matches_reproducible_builder(self):
+        actual = load("research/trend_registry.json")
+        if (actual.get("scan_audit") or {}).get("sw3_lifecycle_contract") != "SW3_V1":
+            self.skipTest("pre-cutover formal source still under legacy contract")
+        handoff = load("research/trend_handoff.json")
+        exact, exact_handoff = build(
+            self.original, self.original_handoff, self.sha, self.hsha,
+            actual["generated_at"]
+        )
+        self.assertEqual(actual, exact)
+        self.assertEqual(handoff, exact_handoff)
+        self.assertEqual(validate_registry(self.original, actual, self.sha), [])
+        self.assertEqual(validate_pair(actual, handoff), [])
+
     def test_no_market_or_phase_changes_and_fake_history_blocked(self):
         new, handoff = self.create()
         tampered = copy.deepcopy(new)
