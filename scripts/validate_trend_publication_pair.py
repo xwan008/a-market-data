@@ -8,6 +8,11 @@ import argparse
 import json
 from pathlib import Path
 
+try:
+    from scripts.industry_lifecycle import industry_route_confirmed, cutover_route_lifecycle
+except ModuleNotFoundError:
+    from industry_lifecycle import industry_route_confirmed, cutover_route_lifecycle
+
 INDUSTRY_ROUTE_FROM = "2026-11-23"
 SW3_CONTRACT = "SW3_V1"
 
@@ -63,22 +68,8 @@ def validate(registry, handoff):
     )
 
     def eligible_industries(theme):
-        assessments = theme.get("industry_assessments")
-        if not isinstance(assessments, list):
-            return []
-        result = []
-        for row in assessments:
-            if not isinstance(row, dict) or row.get("benefit_level") not in {"CORE", "DIRECT"}:
-                continue
-            if row.get("market_state") != "趋势确认":
-                continue
-            life = row.get("industry_lifecycle") or {}
-            episodes = life.get("episodes") or []
-            latest = episodes[-1] if episodes else {}
-            if latest.get("d123_decision") != "CONFIRMED":
-                continue
-            result.append(row)
-        return result
+        return [row for row in (theme.get("industry_assessments") or [])
+                if industry_route_confirmed(row)]
 
     if independent_industry_routing:
         for theme in trends:
@@ -131,15 +122,7 @@ def validate(registry, handoff):
             route_lifecycles = signal.get("industry_lifecycles")
             expected_lifecycles = []
             for row in allowed:
-                life = row.get("industry_lifecycle") or {}
-                latest = (life.get("episodes") or [{}])[-1]
-                expected_lifecycles.append({
-                    "industry_code": row.get("industry_code"),
-                    "episode_id": latest.get("episode_id"),
-                    "d123_stage": latest.get("d123_stage"),
-                    "d123_decision": latest.get("d123_decision"),
-                    "d123_decision_trade_date": latest.get("d123_decision_trade_date"),
-                })
+                expected_lifecycles.append(cutover_route_lifecycle(row))
             if route_lifecycles != expected_lifecycles:
                 errors.append(f"{name}:industry_lifecycle_handoff_mismatch")
         else:
