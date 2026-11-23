@@ -52,7 +52,7 @@ def source_ok(row, rec):
     )
 
 
-def shadow_admission(index, finance):
+def shadow_admission(index, finance, qoq_factors=None):
     with tempfile.TemporaryDirectory(prefix="profit-shadow-") as dirname:
         empty = Path(dirname) / "empty_reviews.json"
         empty.write_text(json.dumps({
@@ -113,7 +113,7 @@ def shadow_admission(index, finance):
             audit = audit_by_code[row["code"]]
             if not num(original[0]) or not num(shadow[0]):
                 raise ValueError("unverified score")
-            audit["fundamental_score"] = shadow[0]
+            audit["fundamental_score"] = max(0.0, min(1.0, shadow[0] + 0.05 * (qoq_factors or {}).get(row["code"], 0.0)))
             audit["growth"] = shadow[1]
             audit["quality"] = shadow[2]
             audit["valuation_match"] = shadow[3]
