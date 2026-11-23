@@ -4,9 +4,9 @@ import re
 from datetime import datetime, timezone, timedelta
 
 try:
-    from scripts.industry_lifecycle import validate_industry_lifecycle
+    from scripts.industry_lifecycle import validate_industry_lifecycle, industry_route_confirmed
 except ModuleNotFoundError:
-    from industry_lifecycle import validate_industry_lifecycle
+    from industry_lifecycle import validate_industry_lifecycle, industry_route_confirmed
 
 STATES = {"失效": 0, "高潮/衰退": 1, "观察": 2, "新异动": 2,
           "候选趋势": 3, "趋势确认": 4}
@@ -25,12 +25,7 @@ MARKET = {"趋势确认", "候选趋势", "观察", "新异动", "高潮/衰退"
 SHA = re.compile(r"^[0-9a-f]{40}$")
 
 def _industry_route_eligible(row):
-    if (not isinstance(row, dict) or row.get("market_state") != "趋势确认"
-            or row.get("benefit_level") not in {"CORE", "DIRECT"}):
-        return False
-    life = row.get("industry_lifecycle") or {}
-    episodes = life.get("episodes") or []
-    return bool(episodes and episodes[-1].get("d123_decision") == "CONFIRMED")
+    return industry_route_confirmed(row)
 
 
 def _confirmed_sw3_assessments(theme):
@@ -1368,7 +1363,8 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
                     errors.append(f"{episode}:{code}:sw3_independent_evidence_missing")
                 if sw3_enabled:
                     errors.extend(validate_industry_lifecycle(
-                        row, previous_industry_by_code.get(code), day
+                        row, previous_industry_by_code.get(code), day,
+                        source_sha=source_sha
                     ))
                 if row.get("market_state") == "趋势确认":
                     if row.get("benefit_level") not in {"CORE", "DIRECT"}:
