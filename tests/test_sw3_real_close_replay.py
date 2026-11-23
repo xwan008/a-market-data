@@ -38,9 +38,13 @@ class RealCloseReplayTests(unittest.TestCase):
         cls.prior_path = f"validation/archive/{PRIOR_DATE}/trend_registry.json"
         cls.prior = load(cls.prior_path)
         cls.prior_handoff = load(f"validation/archive/{PRIOR_DATE}/trend_handoff.json")
-        cls.registry_path = "research/trend_registry.json"
+        # Today's original (legacy) close is immutable after an as-of cutover.
+        archived = ROOT / "validation/archive/2026-11-23/trend_registry.json"
+        cls.registry_path = ("validation/archive/2026-11-23/trend_registry.json"
+                             if archived.exists() else "research/trend_registry.json")
         cls.current = load(cls.registry_path)
-        cls.handoff = load("research/trend_handoff.json")
+        cls.handoff = load("validation/archive/2026-11-23/trend_handoff.json"
+                           if archived.exists() else "research/trend_handoff.json")
         cls.blob_sha = git_blob_sha(cls.registry_path)
 
     def test_real_published_full_close_passes_both_production_gates(self):
