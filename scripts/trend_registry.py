@@ -1121,6 +1121,19 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
     errors = []
     before, day = previous.get("trade_date"), proposed.get("trade_date")
     if isinstance(before, str) and before == day:
+        # A tightly scoped Nov 23 *provenance-only* SW3 activation may
+        # annotate the existing close without generating another trading day.
+        new_scan = proposed.get("scan_audit") or {}
+        old_scan = previous.get("scan_audit") or {}
+        if (day == "2026-11-23"
+                and old_scan.get("sw3_lifecycle_contract") is None
+                and new_scan.get("sw3_lifecycle_contract") == SW3_CONTRACT
+                and isinstance(new_scan.get("sw3_same_day_cutover"), dict)):
+            try:
+                from scripts.sw3_same_day_cutover import validate as cutover_gate
+            except ModuleNotFoundError:
+                from sw3_same_day_cutover import validate as cutover_gate
+            return cutover_gate(previous, proposed, source_sha)
         return _same_day_revision_errors(previous, proposed, source_sha,
                                          snapshot=snapshot, sector_audit=sector_audit)
     if previous.get("schema_version") != 2 or proposed.get("schema_version") != 2:
