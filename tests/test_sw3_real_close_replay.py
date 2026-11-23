@@ -29,7 +29,7 @@ def load(path):
 
 def git_blob_sha(path):
     blob = (ROOT / path).read_bytes()
-    return hashlib.sha1(b"blob " + str(len(blob)).encode() + b"\\0" + blob).hexdigest()
+    return hashlib.sha1(b"blob " + str(len(blob)).encode() + b"\0" + blob).hexdigest()
 
 
 class RealCloseReplayTests(unittest.TestCase):
@@ -97,18 +97,14 @@ class RealCloseReplayTests(unittest.TestCase):
                     "d123_decision": "INHERITED_CONFIRMED" if inherited else "PENDING",
                     "d123_decision_trade_date": None,
                 }}
+                original_theme = next(t for t in self.current["trends"]
+                                      if t["trend_name"] == theme["trend_name"])
+                original_row = next(old for old in original_theme["industry_assessments"]
+                                    if old["industry_code"] == row["industry_code"])
                 self.assertEqual(
                     validate_industry_lifecycle(
-                        row, next(orig for orig in self.current["trends"]
-                                  if orig["trend_name"] == theme["trend_name"])
-                          ["industry_assessments"][
-                              next(i for i, original in enumerate(
-                                  next(t for t in self.current["trends"]
-                                       if t["trend_name"] == theme["trend_name"])
-                                  ["industry_assessments"])
-                                   if original["industry_code"] == row["industry_code"])
-                          ],
-                        SIMULATED_NEXT_DAY, source_sha=self.blob_sha), []
+                        row, original_row, SIMULATED_NEXT_DAY, source_sha=self.blob_sha),
+                    [],
                 )
             if (theme["trend_name"] == "白色家电"):
                 theme["priority_exclusion_reason"] = (
