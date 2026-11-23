@@ -9,6 +9,8 @@ on:
       - 'tests/test_trend_registry.py'
       - 'tests/test_sw3_forward_baseline.py'
       - 'tests/test_sw3_real_close_replay.py'
+      - 'tests/test_sw3_same_day_cutover.py'
+      - 'scripts/sw3_same_day_cutover.py'
       - 'skill/TREND_DISCOVERY_NEUTRAL.md'
       - 'tests/test_trend_outcome_cohort.py'
       - 'tests/test_trend_discovery_checkpoint.py'
@@ -27,6 +29,8 @@ on:
       - 'tests/test_trend_registry.py'
       - 'tests/test_sw3_forward_baseline.py'
       - 'tests/test_sw3_real_close_replay.py'
+      - 'tests/test_sw3_same_day_cutover.py'
+      - 'scripts/sw3_same_day_cutover.py'
       - 'skill/TREND_DISCOVERY_NEUTRAL.md'
       - 'tests/test_trend_outcome_cohort.py'
       - 'tests/test_trend_discovery_checkpoint.py'
@@ -59,6 +63,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_trend_*.py' -v
           python -m unittest discover -s tests -p 'test_sw3_forward_baseline.py' -v
           python -m unittest discover -s tests -p 'test_sw3_real_close_replay.py' -v
+          python -m unittest discover -s tests -p 'test_sw3_same_day_cutover.py' -v
       - name: Validate source compiles
         run: python -m py_compile scripts/trend_registry.py scripts/validate_trend_state_migrations.py scripts/validate_trend_publication_pair.py scripts/audit_trend_lifecycle_semantics.py scripts/validate_trend_discovery_checkpoint.py scripts/build_trend_outcome_cohort.py
       - name: Verify current active registry and handoff shape
