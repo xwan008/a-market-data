@@ -1,4 +1,5 @@
-"""As-of, single-official-list ranking regression without altering trade permission."""
+"""As-of attention ranking regression; never change trade permission."""
+import copy
 import importlib.util
 import unittest
 from pathlib import Path
@@ -10,37 +11,32 @@ spec.loader.exec_module(engine)
 DAY = "2026-11-17"
 
 
-def company(code, name, priority, *, status="WAIT", theme="线下药店",
-            previous=-2, recent=4, up5=4, fresh=False, close=75,
-            ma_gap=3, volume=1.0, ma60=20, price=21, overhead=None,
-            phase="TRANSITION", trade_date=DAY, research_quality=50):
-    ctx = {
-        "ma20": price / (1 + ma_gap / 100),
-        "ma60": ma60, "distance_to_ma20_pct": ma_gap,
-        "volume_ratio_1d_vs_20d": volume,
-        "close_location_pct": close,
-        "chase_risk": "low",
-        "first_effective_resistance": ({"price": overhead} if overhead else None),
-        "attention_resistance": None,
-    }
+def company(code, rank, *, recent=8, prior=3, ret3=2, drawdown=-4,
+            higher=True, close=75, close3=65, core=.6, cash=1,
+            status="WAIT", overhead=24, ma20=20, ma60=20):
     return {
-        "code": code, "company_name": name, "trend_name": theme,
-        "status": status, "data_date": trade_date,
-        "current_price": price, "model_priority": priority,
-        "research_quality_evidence": {
-            "status":"VERIFIED",
-            "source":"FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-            "asof_date":DAY, "score":research_quality,
-            "components":{"test_fixture":True}},
-        "trend_phase": phase, "technical_context": ctx,
-        "phase_evidence": {
-            "previous_5d_return_pct": previous, "return_5d_pct": recent,
-            "positive_days_5d": up5, "fresh_break": fresh,
-            "signal_uses_completed_bars_only": True,
-        },
-        "wait_reason": "WAIT_PULLBACK" if status == "WAIT" else None,
+        "code": code, "company_name": code, "trend_name": "test",
+        "data_date": DAY, "current_price": 21, "status": status,
+        "model_priority": rank, "trend_phase": "TRANSITION",
         "structure_confirmed": status == "READY",
         "entry_zone": None, "invalidation_price": None,
+        "research_quality_evidence": {
+            "status": "VERIFIED", "source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
+            "asof_date": DAY, "score": 60,
+            "components": {"peer_percentiles": {"10": .5, "20": .5, "60": .5},
+                           "core_growth_component": core, "cashflow_component": cash}},
+        "technical_context": {"ma20": ma20, "ma60": ma60, "higher_low": higher,
+            "distance_to_ma20_pct": (21/ma20-1)*100,
+            "first_effective_resistance": {"price": overhead},
+            "close_location_pct": close, "chase_risk": "low"},
+        "phase_evidence": {"return_5d_pct": recent,
+            "previous_5d_return_pct": prior, "return_3d_pct": ret3,
+            "positive_days_5d": 3, "fresh_break": False,
+            "max_close_drawdown_10d_pct": drawdown,
+            "close_location_pct": close, "close_location_3d_avg_pct": close3,
+            "up_day_volume_ratio_5d": 1.5, "down_day_volume_ratio_5d": 1.0,
+            "volume_ratio_1d": 1.5, "weak_close_high_volume": False,
+            "signal_uses_completed_bars_only": True},
     }
 
 
@@ -49,143 +45,156 @@ def groups(rows):
         [x for x in rows if x["status"] == "READY"],
         [x for x in rows if x["status"] == "WAIT"],
         {"prescreen_version": "CANONICAL", "trade_date": DAY,
-         "companies": [{"trend_name": x["trend_name"]} for x in rows]},
-    )
+         "companies": [{"trend_name": "test"}]})[0]
 
 
-class TestAsOfEntryValueRanking(unittest.TestCase):
-    def test_pharmacy_repair_is_not_suppressed_by_20d_leadership(self):
-        xs = [
-            company("603233", "大参林", 1, previous=-3.06, recent=2.66,
-                    fresh=False, close=55.93, ma_gap=4.98, volume=.74,
-                    price=20.82, overhead=21.69, research_quality=77.7),
-            company("002727", "一心堂", 2, previous=-5.74, recent=7.26,
-                    fresh=True, close=78.18, ma_gap=4.64, volume=1.143,
-                    price=13.74, overhead=None, research_quality=81.9),
-            company("603883", "老百姓", 3, previous=-5.59, recent=5.07,
-                    fresh=False, close=75, ma_gap=1.97, volume=.801,
-                    price=14.91, overhead=15.33, research_quality=56.4),
-            company("603939", "益丰药房", 4, previous=-10.28, recent=8.48,
-                    fresh=True, close=95, ma_gap=3.10, volume=.958,
-                    price=26.61, overhead=27.68, research_quality=50.7),
-            company("600833", "第一医药", 5, previous=-.21, recent=-2.98,
-                    up5=1, fresh=False, close=25, ma_gap=-4.88,
-                    volume=.729, price=9.13, ma60=10.27, overhead=9.70,
-                    research_quality=20),
-        ]
-        g = groups(xs)[0]
-        self.assertEqual(g["attention_ranking_policy"], engine.OPPORTUNITY_RANK_POLICY)
-        ordered = [x["company_name"] for x in g["items"]]
-        self.assertEqual(ordered[:2], ["益丰药房", "一心堂"])
-        self.assertEqual(ordered[-1], "第一医药")
-        self.assertLess(ordered.index("益丰药房"), ordered.index("大参林"))
-        self.assertTrue(all(x["status"] == "WAIT" for x in g["items"]))
+class TestAsOfTrendQualityRanking(unittest.TestCase):
+    def test_rebound_vs_continuation_combination(self):
+        strong = company("A", 2, recent=8, drawdown=-4, higher=True)
+        rebound = company("B", 1, recent=8, drawdown=-15, higher=False)
+        a, b = [engine.opportunity_rank_evidence(x, DAY) for x in (strong, rebound)]
+        self.assertEqual(a["continuation_context"]["stage"], "CONTINUATION")
+        self.assertEqual(b["continuation_context"]["stage"], "REBOUND_UNCONFIRMED")
+        self.assertGreater(a["score"], b["score"])
+        self.assertEqual([x["code"] for x in groups([strong, rebound])["items"]], ["A", "B"])
+
+    def test_single_day_close_has_bounded_influence(self):
+        a = company("A", 1, close=100)
+        b = company("B", 2, close=50)
+        x, y = [engine.opportunity_rank_evidence(z, DAY) for z in (a, b)]
+        self.assertAlmostEqual(x["score"]-y["score"], .30*.15*50, places=3)
+
+    def test_ma_distance_not_double_counted(self):
+        a = company("A", 1, ma20=20, ma60=20)
+        b = company("B", 2, ma20=15, ma60=25)
+        x, y = [engine.opportunity_rank_evidence(z, DAY) for z in (a, b)]
+        self.assertEqual(x["score"], y["score"])
+        self.assertNotIn("penalties", y)
+        self.assertEqual(y["entry_evidence_status"], "UNCONFIRMED_NEUTRAL")
+
+    def test_ready_priority_never_changes_input_status(self):
+        a = company("A", 1, recent=15, core=1)
+        b = company("B", 2, status="READY", recent=1, core=0)
+        before = copy.deepcopy([a, b])
+        group = groups([a, b])
+        self.assertEqual(group["attention_ranking_policy"], engine.OPPORTUNITY_RANK_POLICY)
+        self.assertEqual([x["code"] for x in group["items"]], ["B", "A"])
+        self.assertEqual([a, b], before)
         self.assertTrue(all(x["opportunity_rank_evidence"]["not_trade_permission"]
-                            for x in g["items"]))
-        self.assertEqual(g["items"][0]["original_model_rank"], 4)
-        self.assertEqual(g["items"][0]["opportunity_rank_evidence"]["research_quality_score"], 50.7)
-        self.assertEqual(xs[3]["status"], "WAIT")
-        self.assertIsNone(xs[3]["entry_zone"])
+                            for x in group["items"]))
 
-    def test_extreme_game_rebound_is_not_automatically_top(self):
-        xs = [
-            company("002602", "世纪华通", 1, theme="游戏", previous=-7.07,
-                    recent=13.62, fresh=True, close=77.97, ma_gap=4.18,
-                    volume=2.003, price=13.6, ma60=15, phase="REPAIRING"),
-            company("002558", "巨人网络", 2, theme="游戏", previous=-5.56,
-                    recent=7.29, fresh=True, close=80, ma_gap=1.70,
-                    volume=1.6, price=21.1, ma60=20, phase="TRANSITION"),
-        ]
-        g = groups(xs)[0]
-        self.assertEqual(g["items"][0]["company_name"], "巨人网络")
-        self.assertEqual(g["items"][1]["company_name"], "世纪华通")
-        self.assertTrue(any(
-            x in g["items"][1]["opportunity_rank_evidence"]["penalties"]
-            for x in ("recent_5d_surge", "below_ma60_unconfirmed")))
+    def test_ordinal_model_rank_is_not_quality_score(self):
+        a = company("A", 1)
+        x = engine.opportunity_rank_evidence(a, DAY)
+        a["model_priority"] = 99
+        self.assertEqual(x["score"], engine.opportunity_rank_evidence(a, DAY)["score"])
 
-    def test_ready_remains_ahead_of_higher_scoring_wait(self):
-        xs = [
-            company("000001", "平安银行", 6, theme="银行", status="READY",
-                    previous=.76, recent=3.29, up5=3, close=66.67,
-                    ma_gap=4.91, price=12.25, ma60=11.525),
-            company("600000", "浦发银行", 1, theme="银行", previous=1.09,
-                    recent=6.47, up5=4, fresh=True, close=86.67,
-                    ma_gap=8.08, price=10.86, ma60=9.5387, volume=1.317),
-            company("002966", "苏州银行", 3, theme="银行", previous=.1,
-                    recent=5.53, up5=3, fresh=True, close=67.74,
-                    ma_gap=6.10, price=10.12, ma60=9.2255, volume=1.059),
-        ]
-        g = groups(xs)[0]
-        self.assertEqual(g["items"][0]["code"], "000001")
-        self.assertEqual(g["items"][0]["status"], "READY")
-        self.assertEqual(g["items"][1]["code"], "002966")
-        self.assertEqual(g["items"][2]["code"], "600000")
-        self.assertEqual(xs[1]["status"], "WAIT")
+    def test_financial_components_have_bounded_impact(self):
+        a = company("A", 1, core=.8)
+        b = company("B", 2, core=.5)
+        x, y = [engine.opportunity_rank_evidence(z, DAY) for z in (a, b)]
+        self.assertAlmostEqual(x["score"]-y["score"], .20*.80*100*.3, places=3)
+
+    def test_missing_or_future_evidence_falls_back_whole_theme(self):
+        for mutation in ("missing", "future", "bad_quality", "missing_drawdown"):
+            a, b = company("A", 1), company("B", 2, recent=15)
+            if mutation == "missing":
+                a["research_quality_evidence"] = None
+            elif mutation == "future":
+                a["research_quality_evidence"]["asof_date"] = "2026-11-18"
+            elif mutation == "bad_quality":
+                a["research_quality_evidence"]["score"] = 150
+            else:
+                a["phase_evidence"]["max_close_drawdown_10d_pct"] = None
+            g = groups([a,b])
+            self.assertEqual(g["attention_ranking_policy"], "MODEL_RANK_FALLBACK_DATA_GAP")
+            self.assertEqual([x["code"] for x in g["items"]], ["A", "B"])
+
+    def test_overhead_only_scores_a_paired_trade_setup(self):
+        near, far = company("A",1,overhead=21.2), company("B",2,overhead=24)
+        self.assertEqual(engine.opportunity_rank_evidence(near,DAY)["score"],
+                         engine.opportunity_rank_evidence(far,DAY)["score"])
+        for x in (near, far):
+            x["structure_confirmed"] = True
+            x["entry_zone"], x["invalidation_price"] = [21,21.1], 20.6
+        a,b = [engine.opportunity_rank_evidence(x,DAY) for x in (near,far)]
+        self.assertEqual(a["entry_evidence_status"], "PAIRED_SETUP")
+        self.assertGreater(b["entry_value_score"],a["entry_value_score"])
+        self.assertEqual(near["status"],"WAIT")
 
 
-    def test_model_rank_spacing_never_becomes_quality_points(self):
-        a=company("100001","A",1,research_quality=50)
-        first=engine.opportunity_rank_evidence(a,DAY)
-        a["model_priority"]=99
-        last=engine.opportunity_rank_evidence(a,DAY)
-        self.assertEqual(first["score"],last["score"])
-        self.assertEqual(last["research_quality_score"],50)
-        self.assertEqual(last["research_quality_source"],
-                         "FROZEN_F10_AND_COMPLETED_HISTORY_V1")
 
-    def test_continuous_research_quality_has_proportional_not_ordinal_impact(self):
-        a=company("100001","A",1,research_quality=81.9)
-        b=company("100002","B",99,research_quality=50.7)
-        aa=engine.opportunity_rank_evidence(a,DAY)
-        bb=engine.opportunity_rank_evidence(b,DAY)
-        self.assertAlmostEqual(aa["score"]-bb["score"],
-                               .15*(81.9-50.7),places=3)
+class TestOfflineModelTradePlan(unittest.TestCase):
+    """Synthetic guardrail checks only; never financial recommendations."""
+    def setUp(self):
+        from datetime import date,timedelta
+        spec = importlib.util.spec_from_file_location(
+            "model_plan",ROOT/"scripts"/"replay_model_trade_plan.py")
+        self.validator=importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(self.validator)
+        end=date(2026,11,23)
+        self.rows=[{"date":(end-timedelta(days=179-i)).isoformat(),
+                    "open":9.9,"high":10.0,"low":9.8,"close":9.9,"volume":1000}
+                   for i in range(180)]
+        self.rows[30]["high"]=12.0
+        self.rows[-1].update(open=9.99,high=10.12,low=9.9,close=10.10,volume=1600)
+        self.day=self.rows[-1]["date"]
+        self.row={"code":"600001","current_price":10.10,"market_state":"趋势确认",
+                  "transmission":"SUPPORTED","trend_phase":"TRANSITION",
+                  "technical_context":{"chase_risk":"low"}}
+        anchor={"date":self.rows[-2]["date"],"field":"high","price":10.0}
+        self.plan={"code":"600001","model_rank":1,
+                   "model_reason":"Synthetic test only, not issuer research or a recommendation.",
+                   "decision":"PROPOSE_ENTRY","setup":"BREAKOUT",
+                   "structure_anchor":anchor,"failure_anchor":dict(anchor),
+                   "confirmation_pattern":"CLOSE_ABOVE_PREVIOUS_HIGH",
+                   "entry_zone":[10.01,10.12],"invalidation_price":9.95,
+                   "entry_trigger":"Synthetic breakout entry",
+                   "invalidation_rule":"Synthetic boundary failure"}
 
-    def test_missing_or_future_research_evidence_falls_back_whole_theme(self):
-        a=company("100001","A",1,recent=1,research_quality=70)
-        b=company("100002","B",2,recent=9,previous=-10,fresh=True,
-                  research_quality=90)
-        a["research_quality_evidence"]=None
-        g=groups([a,b])[0]
-        self.assertEqual(g["attention_ranking_policy"],
-                         "MODEL_RANK_FALLBACK_DATA_GAP")
-        self.assertEqual([z["code"] for z in g["items"]],["100001","100002"])
-        a["research_quality_evidence"]={
-            "status":"VERIFIED","asof_date":"2026-11-18","score":70,
-            "source":"FROZEN_F10_AND_COMPLETED_HISTORY_V1"}
-        self.assertEqual(groups([a,b])[0]["attention_ranking_policy"],
-                         "MODEL_RANK_FALLBACK_DATA_GAP")
-        a["research_quality_evidence"]["asof_date"]=DAY
-        a["research_quality_evidence"]["score"]=150
-        self.assertEqual(groups([a,b])[0]["attention_ranking_policy"],
-                         "MODEL_RANK_FALLBACK_DATA_GAP")
+    def validate(self):
+        return self.validator.validate_plan(self.plan,self.row,self.rows,self.day)
 
-    def test_missing_or_future_bar_falls_back_for_whole_theme(self):
-        xs = [
-            company("100001", "A", 1, recent=1),
-            company("100002", "B", 2, recent=9, previous=-10, fresh=True),
-        ]
-        xs[0]["phase_evidence"]["return_5d_pct"] = None
-        g = groups(xs)[0]
-        self.assertEqual(g["attention_ranking_policy"], "MODEL_RANK_FALLBACK_DATA_GAP")
-        self.assertEqual([x["code"] for x in g["items"]], ["100001", "100002"])
-        xs[0]["phase_evidence"]["return_5d_pct"] = 1.0
-        xs[0]["data_date"] = "2026-11-18"
-        g = groups(xs)[0]
-        self.assertEqual(g["attention_ranking_policy"], "MODEL_RANK_FALLBACK_DATA_GAP")
+    def test_valid_proposal_preserves_model_prices_and_rank(self):
+        result=self.validate()
+        self.assertEqual(result["status"],"READY")
+        self.assertEqual(result["model_rank"],1)
+        self.assertEqual(result["entry_zone"],self.plan["entry_zone"])
+        self.assertEqual(result["invalidation_price"],self.plan["invalidation_price"])
+        self.assertTrue(result["not_trade_permission"])
 
-    def test_near_verified_pivot_is_not_infinite_headroom(self):
-        xs = [
-            company("200001", "阻力近", 1, overhead=21.1),
-            company("200002", "阻力远", 2, overhead=24),
-        ]
-        g = groups(xs)[0]
-        near = next(x for x in g["items"] if x["code"] == "200001")
-        far = next(x for x in g["items"] if x["code"] == "200002")
-        self.assertIn("near_verified_overhead",
-                      near["opportunity_rank_evidence"]["penalties"])
-        self.assertGreater(far["opportunity_rank_evidence"]["score"],
-                           near["opportunity_rank_evidence"]["score"])
+    def test_risk_veto_does_not_generate_substitute_plan(self):
+        self.plan["invalidation_price"]=9.4
+        result=self.validate()
+        self.assertEqual(result["status"],"WAIT")
+        self.assertEqual(result["decision_reason"],"STRUCTURAL_RISK_FAILED")
+        self.assertIsNone(result["entry_zone"])
+        self.assertIsNone(result["invalidation_price"])
+
+    def test_fabricated_anchor_is_rejected(self):
+        self.plan["structure_anchor"]["price"]=10.03
+        result=self.validate()
+        self.assertEqual(result["decision_reason"],"ANCHOR_PRICE_MISMATCH")
+        self.assertEqual(result["status"],"WAIT")
+
+    def test_verified_overhead_veto(self):
+        self.rows[30]["high"]=10.15
+        result=self.validate()
+        self.assertEqual(result["status"],"WAIT")
+        self.assertEqual(result["decision_reason"],"RISK_REWARD_FAILED")
+
+    def test_wait_never_promoted(self):
+        self.plan.update(decision="WAIT",entry_zone=None,invalidation_price=None,
+                         watch_anchor=self.plan["structure_anchor"],
+                         watch_condition="Observe only")
+        result=self.validate()
+        self.assertEqual(result["status"],"WAIT")
+        self.assertTrue(result["watch_reference"]["observation_only"])
+        self.assertIsNone(result["entry_zone"])
+
+    def test_future_history_fails_closed(self):
+        with self.assertRaisesRegex(ValueError,"HISTORY_NOT_FROZEN_ASOF"):
+            self.validator.history_rows({"history":self.rows},self.rows[-2]["date"],9.9)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-"""Entry-first canonical admission, frozen review and model/READY separation.
+"""Trend-quality canonical admission, frozen review and model/READY separation.
 
 Prior company reviews cannot be silently reused after the admission changes.
 """
@@ -62,9 +62,9 @@ class CanonicalAdmissionTests(unittest.TestCase):
         self.assertEqual(a["trade_date"],self.require_current_paired_working_set())
         self.assertGreaterEqual(len(mapping),1)
         self.assertEqual(a["selected_company_count"],sum(map(len,mapping.values())))
-        self.assertEqual(a["selection_policy"],"ENTRY_FIRST_NO_QUOTAS")
+        self.assertEqual(a["selection_policy"],"TREND_QUALITY_FIRST_NO_QUOTAS")
         self.assertTrue(all(len(codes)<=5 for codes in mapping.values()))
-        self.assertTrue(all(g["selection_policy"]=="ENTRY_FIRST_NO_QUOTAS"
+        self.assertTrue(all(g["selection_policy"]=="TREND_QUALITY_FIRST_NO_QUOTAS"
                             for g in a["industries"]))
         self.assertTrue(all(g["entry_selected_count"]+g["watch_fallback_count"]
                             ==len(g["selected_codes"]) for g in a["industries"]))
@@ -78,8 +78,12 @@ class CanonicalAdmissionTests(unittest.TestCase):
             entries.append({
                 "code":f"{600100+i:06d}",
                 "history":{
-                    "returns_pct":{"10":trend*.4,"20":trend*.65,"60":trend},
+                    "returns_pct":{"5":trend*.2,"10":trend*.4,"20":trend*.65,"60":trend},
                     "positive_days_10":max(1,10-i),
+                    "max_close_drawdown_10_pct":-2-i,
+                    "higher_close_low":True,
+                    "volume_balance_10d":.7,
+                    "close_location_5d":.7,
                 },
                 "fundamental_score":0.5,
                 "entry_channel_eligible":qualified,
@@ -88,37 +92,36 @@ class CanonicalAdmissionTests(unittest.TestCase):
             })
         return entries
 
-    def test_six_entry_qualified_compete_without_leadership_reservation(self):
+    def test_strong_verified_peers_can_compete_without_entry_evidence(self):
         import trend_buy_prescreen_core as core
-        # Strongest two historic leaders lack current entry evidence.
         entries=self.synthetic_competitors([False,False,True,True,True,True,True,True])
-        selected,audit=core.rank_entry_first(entries)
+        selected,audit=core.rank_trend_quality(entries)
         self.assertEqual(len(selected),5)
-        self.assertEqual({x["code"] for x in selected},
-                         {"600102","600103","600104","600105","600106"})
-        self.assertTrue(all(x["selected_channel"]=="ENTRY_PRIORITY"
-                            for x in selected))
-        self.assertEqual(audit["entry_selected_count"],5)
-        self.assertEqual(audit["watch_fallback_count"],0)
-        self.assertEqual(audit["selection_policy"],"ENTRY_FIRST_NO_QUOTAS")
+        self.assertEqual([x["code"] for x in selected],
+                         ["600100","600101","600102","600103","600104"])
+        self.assertEqual(audit["selection_policy"],"TREND_QUALITY_FIRST_NO_QUOTAS")
+        self.assertTrue(audit["entry_proxy_does_not_authorize_ready"])
+        self.assertEqual(audit["entry_selected_count"],3)
+        self.assertEqual(audit["watch_fallback_count"],2)
 
-    def test_entry_shortage_adds_explicit_watch_fallback_not_fake_buy(self):
+    def test_entry_evidence_never_creates_reserved_seats(self):
         import trend_buy_prescreen_core as core
         entries=self.synthetic_competitors([False,True,False,False,True,False])
-        selected,audit=core.rank_entry_first(entries)
-        self.assertEqual([x["code"] for x in selected[:2]],["600101","600104"])
-        self.assertEqual([x["code"] for x in selected[2:]],
-                         ["600100","600102","600103"])
+        selected,audit=core.rank_trend_quality(entries)
+        self.assertEqual([x["code"] for x in selected],
+                         ["600100","600101","600102","600103","600104"])
         self.assertEqual([x["selected_channel"] for x in selected],
-                         ["ENTRY_PRIORITY"]*2+["WATCH_FALLBACK"]*3)
-        self.assertTrue(audit["entry_proxy_does_not_authorize_ready"])
+                         ["ENTRY_EVIDENCE_ABSENT","ENTRY_EVIDENCE_PRESENT",
+                          "ENTRY_EVIDENCE_ABSENT","ENTRY_EVIDENCE_ABSENT",
+                          "ENTRY_EVIDENCE_PRESENT"])
+        self.assertEqual(audit["watch_fallback_count"],3)
 
-    def test_eligible_competition_uses_entry_score_not_pure_leader_return(self):
+    def test_low_entry_proxy_does_not_eject_strongest_peer(self):
         import trend_buy_prescreen_core as core
         entries=self.synthetic_competitors([True]*6)
         entries[0]["entry_reference_score"]=0.05
-        selected,_=core.rank_entry_first(entries)
-        self.assertNotIn("600100",[x["code"] for x in selected])
+        selected,_=core.rank_trend_quality(entries)
+        self.assertIn("600100",[x["code"] for x in selected])
         self.assertEqual(len(selected),5)
 
     def test_model_rank_can_include_remote_wait_before_nearby_group(self):
