@@ -123,5 +123,79 @@ class TestAsOfTrendQualityRanking(unittest.TestCase):
         self.assertEqual(near["status"],"WAIT")
 
 
+
+class TestOfflineModelTradePlan(unittest.TestCase):
+    """Synthetic guardrail checks only; never financial recommendations."""
+    def setUp(self):
+        from datetime import date,timedelta
+        spec = importlib.util.spec_from_file_location(
+            "model_plan",ROOT/"scripts"/"replay_model_trade_plan.py")
+        self.validator=importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(self.validator)
+        end=date(2026,11,23)
+        self.rows=[{"date":(end-timedelta(days=179-i)).isoformat(),
+                    "open":9.9,"high":10.0,"low":9.8,"close":9.9,"volume":1000}
+                   for i in range(180)]
+        self.rows[30]["high"]=12.0
+        self.rows[-1].update(open=9.99,high=10.12,low=9.9,close=10.10,volume=1600)
+        self.day=self.rows[-1]["date"]
+        self.row={"code":"600001","current_price":10.10,"market_state":"趋势确认",
+                  "transmission":"SUPPORTED","trend_phase":"TRANSITION",
+                  "technical_context":{"chase_risk":"low"}}
+        anchor={"date":self.rows[-2]["date"],"field":"high","price":10.0}
+        self.plan={"code":"600001","model_rank":1,
+                   "model_reason":"Synthetic test only, not issuer research or a recommendation.",
+                   "decision":"PROPOSE_ENTRY","setup":"BREAKOUT",
+                   "structure_anchor":anchor,"failure_anchor":dict(anchor),
+                   "confirmation_pattern":"CLOSE_ABOVE_PREVIOUS_HIGH",
+                   "entry_zone":[10.01,10.12],"invalidation_price":9.95,
+                   "entry_trigger":"Synthetic breakout entry",
+                   "invalidation_rule":"Synthetic boundary failure"}
+
+    def validate(self):
+        return self.validator.validate_plan(self.plan,self.row,self.rows,self.day)
+
+    def test_valid_proposal_preserves_model_prices_and_rank(self):
+        result=self.validate()
+        self.assertEqual(result["status"],"READY")
+        self.assertEqual(result["model_rank"],1)
+        self.assertEqual(result["entry_zone"],self.plan["entry_zone"])
+        self.assertEqual(result["invalidation_price"],self.plan["invalidation_price"])
+        self.assertTrue(result["not_trade_permission"])
+
+    def test_risk_veto_does_not_generate_substitute_plan(self):
+        self.plan["invalidation_price"]=9.4
+        result=self.validate()
+        self.assertEqual(result["status"],"WAIT")
+        self.assertEqual(result["decision_reason"],"STRUCTURAL_RISK_FAILED")
+        self.assertIsNone(result["entry_zone"])
+        self.assertIsNone(result["invalidation_price"])
+
+    def test_fabricated_anchor_is_rejected(self):
+        self.plan["structure_anchor"]["price"]=10.03
+        result=self.validate()
+        self.assertEqual(result["decision_reason"],"ANCHOR_PRICE_MISMATCH")
+        self.assertEqual(result["status"],"WAIT")
+
+    def test_verified_overhead_veto(self):
+        self.rows[30]["high"]=10.15
+        result=self.validate()
+        self.assertEqual(result["status"],"WAIT")
+        self.assertEqual(result["decision_reason"],"RISK_REWARD_FAILED")
+
+    def test_wait_never_promoted(self):
+        self.plan.update(decision="WAIT",entry_zone=None,invalidation_price=None,
+                         watch_anchor=self.plan["structure_anchor"],
+                         watch_condition="Observe only")
+        result=self.validate()
+        self.assertEqual(result["status"],"WAIT")
+        self.assertTrue(result["watch_reference"]["observation_only"])
+        self.assertIsNone(result["entry_zone"])
+
+    def test_future_history_fails_closed(self):
+        with self.assertRaisesRegex(ValueError,"HISTORY_NOT_FROZEN_ASOF"):
+            self.validator.history_rows({"history":self.rows},self.rows[-2]["date"],9.9)
+
+
 if __name__ == "__main__":
     unittest.main()
