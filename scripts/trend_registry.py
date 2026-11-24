@@ -4,9 +4,9 @@ import re
 from datetime import datetime, timezone, timedelta
 
 try:
-    from scripts.industry_lifecycle import validate_industry_lifecycle, industry_route_confirmed
+    from scripts.industry_lifecycle import validate_industry_lifecycle, industry_route_confirmed, industry_tracking_active, industry_review_records
 except ModuleNotFoundError:
-    from industry_lifecycle import validate_industry_lifecycle, industry_route_confirmed
+    from industry_lifecycle import validate_industry_lifecycle, industry_route_confirmed, industry_tracking_active, industry_review_records
 
 STATES = {"失效": 0, "高潮/衰退": 1, "观察": 2, "新异动": 2,
           "候选趋势": 3, "趋势确认": 4}
@@ -791,6 +791,21 @@ def _same_day_revision_errors(previous, proposed, source_sha, snapshot=None, sec
             raise ValueError("time sequence")
     except (KeyError, TypeError, ValueError, OverflowError):
         errors.append("same_day_revision_time_invalid")
+    if revision.get("industry_review_results") is not None:
+        # A corrected deterministic lifecycle interpretation does not change
+        # the original research, session history, market states or ranking.
+        old_body, new_body = copy.deepcopy(previous), copy.deepcopy(proposed)
+        old_body.pop("generated_at", None)
+        new_body.pop("generated_at", None)
+        old_body["scan_audit"].pop("same_day_revisions", None)
+        new_body["scan_audit"].pop("same_day_revisions", None)
+        if old_body != new_body or revision.get("changes") != []:
+            errors.append("industry_review_revision_changed_original_research")
+        if revision.get("industry_review_results") != industry_review_records(previous):
+            errors.append("industry_review_revision_results_mismatch")
+        if not _sw3_enabled(previous):
+            errors.append("industry_review_revision_requires_industry_lifecycle")
+        return errors
     sw3_enabled = _sw3_enabled(proposed)
     if _sw3_enabled(previous) != sw3_enabled:
         errors.append("same_day_sw3_contract_cannot_change")
@@ -1366,9 +1381,13 @@ def validate(previous, proposed, source_sha, snapshot=None, sector_audit=None):
                 if not isinstance(row, dict):
                     continue
                 code = row.get("industry_code")
+                prior_industry = previous_industry_by_code.get(code)
+                frozen_exit = (sw3_enabled and prior_industry is not None
+                               and not industry_tracking_active(prior_industry)
+                               and row == prior_industry)
                 if (row.get("benefit_level") not in {"CORE", "DIRECT", "RELATED", "UNVERIFIED"} or
                     row.get("market_state") not in TRACK or
-                    row.get("evidence_trade_date") != day or
+                    (row.get("evidence_trade_date") != day and not frozen_exit) or
                     not isinstance(row.get("benefit_reason"), str) or
                     len(row["benefit_reason"].strip()) < 12 or
                     not isinstance(row.get("market_reason"), str) or
