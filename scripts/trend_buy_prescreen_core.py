@@ -101,8 +101,26 @@ def metrics(rows):
         worst=min(worst,100*(p/peak-1))
     vol20=median(r["volume"] for r in rows[-21:-1])
     day_volume_ratio=rows[-1]["volume"]/vol20 if vol20>0 else None
+    # Directional volume is a price/volume proxy, not observed fund flow.
+    recent_pairs=list(zip(rows[-11:-1],rows[-10:]))
+    up_vol=[b["volume"] for a,b in recent_pairs if b["close"]>a["close"]]
+    down_vol=[b["volume"] for a,b in recent_pairs if b["close"]<a["close"]]
+    volume_balance=(max(0.,min(1.,.5+.30*math.log(
+        (sum(up_vol)/len(up_vol))/(sum(down_vol)/len(down_vol)))))
+        if up_vol and down_vol else None)
+    close_locations=[]
+    for bar in rows[-5:]:
+        high,low,close=bar.get("high"),bar.get("low"),bar["close"]
+        if positive(high) and positive(low) and low<=close<=high:
+            close_locations.append((close-low)/(high-low) if high>low else .5)
+    close_quality=(sum(close_locations)/len(close_locations)
+                   if len(close_locations)==5 else None)
+    higher_low=min(closes[-5:])>min(closes[-10:-5])
     return {
         "returns_pct":returns,
+        "volume_balance_10d":volume_balance,
+        "close_location_5d":close_quality,
+        "higher_close_low":higher_low,
         "positive_days_10":up10,
         "max_close_drawdown_10_pct":round(worst,4),
         "volume_1d_vs_prior20_median":round(day_volume_ratio,4) if day_volume_ratio is not None else None,
@@ -128,7 +146,7 @@ def select_company_rows(rows, audit_rows, date, root, history_cache,
             # add a company without the original hard-filter audit.
             continue
         # A missing current entry setup is not a hard evidence exclusion.
-        # It can enter research only as an explicitly labeled watch fallback.
+        # It may still compete for research on trend-quality evidence.
         entry_observation=previous.get("opportunity") or {}
         entry_eligible=(previous.get("excluded_reason") is None
                         and number(entry_observation.get("entry_score"))
@@ -180,73 +198,70 @@ def select_company_rows(rows, audit_rows, date, root, history_cache,
     return entries,excluded
 
 
-def rank_entry_first(entries, slots=MAX_RESEARCH_PER_INDUSTRY):
-    """Entry-qualified candidates compete for ALL five seats; no channel quotas.
+def rank_trend_quality(entries, slots=MAX_RESEARCH_PER_INDUSTRY):
+    """One cohort, no entry-only priority and no reserved watch seats.
 
-    Trend-only names are research fallbacks ONLY when fewer than five verified
-    entry-proxy candidates exist. Qualification is NOT confirmed READY and may
-    never bypass the separate completed-bar entry/stop/reward risk gate.
+    Price position is a bounded 5% research proxy, never a READY gate.
+    Use completed close/volume data only; fund identity is not inferred.
     """
     if slots!=5:
         raise ValueError("prescreen_fixed_five_company_model_budget")
     if not entries:
         return [], {"reason":"NO_FULLY_VERIFIED_CANDIDATES"}
-    n=len(entries)
-    if len({x["code"] for x in entries})!=n:
+    if len({x["code"] for x in entries})!=len(entries):
         raise ValueError("duplicate_company_candidate")
-    comparable=[x for x in entries if all(number(x["history"]["returns_pct"][h])
-                                           for h in ("10","20","60"))]
-    if len(comparable)<3:
-        return [],{"reason":"INSUFFICIENT_SAME_DAY_PEERS","peers":len(comparable)}
-    reference={
-        h:median(x["history"]["returns_pct"][h] for x in comparable)
-        for h in ("10","20","60")}
-    for row in entries:
-        r=row["history"]["returns_pct"]
-        for h in ("10","20","60"):
-            row["history"]["relative_to_sw3_median_"+h+"d_pp"]=round(
-                r[h]-reference[h],5)
-    for h in ("10","20","60"):
-        values=[e["history"]["relative_to_sw3_median_"+h+"d_pp"]
-                for e in entries]
+    horizons=("5","10","20","60")
+    if len(entries)<3 or any(not all(number(x["history"]["returns_pct"].get(h))
+                                    for h in horizons) for x in entries):
+        return [],{"reason":"INSUFFICIENT_SAME_DAY_PEERS","peers":len(entries)}
+    reference={h:median(x["history"]["returns_pct"][h] for x in entries)
+               for h in horizons}
+    for h in horizons:
+        values=[e["history"]["returns_pct"][h]-reference[h] for e in entries]
         ranks=percentile(values)
-        for e,rank in zip(entries,ranks):
+        for e,v,rank in zip(entries,values,ranks):
+            e["history"]["relative_to_sw3_median_"+h+"d_pp"]=round(v,5)
             e.setdefault("peer_percentiles",{})[h]=rank
-    stay=percentile([x["history"]["positive_days_10"] for x in entries])
-    for e,rank in zip(entries,stay):
+    drawdown=percentile([e["history"]["max_close_drawdown_10_pct"] for e in entries])
+    for e,dd in zip(entries,drawdown):
+        f=e["history"]
         p=e["peer_percentiles"]
-        if not all(number(p[h]) for h in ("10","20","60")) or not number(rank):
+        if not all(number(p[h]) for h in horizons) or not number(dd):
             return [],{"reason":"PEER_PERCENTILE_INCOMPLETE"}
-        # The recorded sub-scores remain observable evidence, not two quotas.
-        continued=(.40*p["20"]+.30*p["60"]+.20*p["10"]+.10*rank)
-        entry=e["entry_reference_score"]
-        structure=e["price_structure_score"]
-        if not all(number(v) for v in (entry,structure)):
-            return [],{"reason":"ENTRY_EVIDENCE_INVALID"}
-        e["leader_channel_score"]=round(.80*continued+
-                                        .20*e["fundamental_score"],6)
-        e["entry_channel_score"]=round(.65*entry+
-                                       .20*structure+
-                                       .15*e["fundamental_score"],6)
-    entry_order=sorted((e for e in entries if e["entry_channel_eligible"]),
-                       key=lambda e:(-e["entry_channel_score"],
-                                     -e["leader_channel_score"],e["code"]))
-    watch_order=sorted((e for e in entries if not e["entry_channel_eligible"]),
-                       key=lambda e:(-e["leader_channel_score"],e["code"]))
-    selected=[{**e,"selected_channel":"ENTRY_PRIORITY"}
-              for e in entry_order[:slots]]
-    remaining=slots-len(selected)
-    selected.extend({**e,"selected_channel":"WATCH_FALLBACK"}
-                    for e in watch_order[:remaining])
+        relative=.20*p["5"]+.30*p["10"]+.30*p["20"]+.20*p["60"]
+        persistence=.40*(f["positive_days_10"]/10)+.35*dd+.25*int(f["higher_close_low"])
+        vb=f.get("volume_balance_10d")
+        cl=f.get("close_location_5d")
+        volume=.55*(vb if number(vb) else .5)+.45*(cl if number(cl) else .5)
+        fundamental=e["fundamental_score"]
+        if not number(fundamental) or not 0<=fundamental<=1:
+            return [],{"reason":"FUNDAMENTAL_SCORE_OUTSIDE_UNIT_INTERVAL"}
+        position=(e["entry_reference_score"] if e["entry_channel_eligible"] else .5)
+        if not number(position):
+            return [],{"reason":"ENTRY_REFERENCE_INVALID"}
+        position=max(0.,min(1.,position))
+        score=.30*relative+.25*persistence+.25*volume+.15*fundamental+.05*position
+        e["trend_quality_score"]=round(score,6)
+        e["trend_quality_components"]={
+            "relative_strength":relative,"persistence":persistence,
+            "volume_price_quality":volume,"fundamental":fundamental,
+            "position_proxy":position,
+            "directional_volume_observed":number(vb),
+            "close_location_observed":number(cl),
+        }
+    ordered=sorted(entries,key=lambda e:(-e["trend_quality_score"],e["code"]))
+    selected=[{**e,"selected_channel":("ENTRY_EVIDENCE_PRESENT"
+                 if e["entry_channel_eligible"] else "ENTRY_EVIDENCE_ABSENT")}
+              for e in ordered[:slots]]
+    entry_count=sum(e["entry_channel_eligible"] for e in selected)
     return selected,{
-        "selection_policy":"ENTRY_FIRST_NO_QUOTAS",
+        "selection_policy":"TREND_QUALITY_FIRST_NO_QUOTAS",
         "scored_peer_count":len(entries),
         "peer_return_medians_pct":reference,
-        "entry_evidence_eligible_count":len(entry_order),
-        "entry_selected_count":min(len(entry_order),slots),
-        "watch_fallback_count":min(remaining,len(watch_order)),
-        "entry_top5_codes":[x["code"] for x in entry_order[:5]],
-        "watch_fallback_top5_codes":[x["code"] for x in watch_order[:5]],
+        "entry_evidence_eligible_count":sum(e["entry_channel_eligible"] for e in entries),
+        "entry_selected_count":entry_count,
+        "watch_fallback_count":len(selected)-entry_count,
+        "trend_quality_top5_codes":[e["code"] for e in selected],
         "max_model_research_per_sw3":5,
         "entry_proxy_does_not_authorize_ready":True,
     }
@@ -267,6 +282,8 @@ def model_deep_review_packets(picked, trade_date):
                 horizon:company["history"]["relative_to_sw3_median_"+horizon+"d_pp"]
                 for horizon in ("10","20","60")},
             "continuity_days_10":company["history"]["positive_days_10"],
+            "trend_quality_score":company["trend_quality_score"],
+            "trend_quality_components":company["trend_quality_components"],
             "current_entry_reference_score":company["entry_reference_score"],
             "financial_basic_score":company["fundamental_score"],
             "core_earnings_growth_available":company["core_profit_growth_verified"],
@@ -313,7 +330,7 @@ def run(root, screen, industry_index=None, selected_date=None,
             rows=[{**row,**financial_overlay.get(row["code"],{})}
                   for row in rows]
         company,excluded=select_company_rows(rows,groups[code],date,root,cache)
-        picked,details=rank_entry_first(company)
+        picked,details=rank_trend_quality(company)
         output.append({
             "industry_code":code,
             "industry_name":rows[0].get("industry_name") if rows else None,
@@ -338,7 +355,7 @@ def run(root, screen, industry_index=None, selected_date=None,
             "upstream_confirmed_sw3_unchanged":True,
             "python_scans_hard_eligible_only":True,
             "max_model_reviews_per_sw3":5,
-            "selection_policy":"ENTRY_FIRST_NO_QUOTAS",
+            "selection_policy":"TREND_QUALITY_FIRST_NO_QUOTAS",
             "forecast_consensus_source":"NOT_AVAILABLE_NO_IMPUTATION",
             "business_review_in_python":False,
             "ready_wait_and_handoff_untouched":True,
