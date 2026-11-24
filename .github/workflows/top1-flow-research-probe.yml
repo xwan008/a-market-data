@@ -1,0 +1,46 @@
+name: TOP1 flow research probe (non-production)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/top1-flow-research-probe.yml'
+      - 'validation/research/top1_fund_flow.py'
+      - 'validation/research/fixtures/top1_flow_20261124_S270601.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run offline checks
+        run: python -m unittest discover -s validation/research -p test_top1_fund_flow.py -v
+      - name: Install pinned adapter
+        run: python -m pip install --disable-pip-version-check --retries 1 --timeout 20 akshare==1.20.65
+      - name: Probe frozen five-stock group
+        run: |
+          timeout 150s python validation/research/top1_fund_flow.py --input validation/research/fixtures/top1_flow_20261124_S270601.json --output top1_flow_research_20261124_S270601.json
+          python - <<'PY'
+          import json
+          p=json.load(open("top1_flow_research_20261124_S270601.json"))
+          print(json.dumps({k:v for k,v in p.items() if k!="items"},ensure_ascii=False))
+          for item in p["items"]:
+              print(json.dumps({k:v for k,v in item.items() if k!="evidence"}|{"windows":item.get("evidence",{}).get("windows")},ensure_ascii=False))
+          if not p["comparable"]:
+              raise SystemExit("External flow coverage is not complete")
+          PY
+      - name: Retain research result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: top1-flow-research-20261124
+          path: top1_flow_research_20261124_S270601.json
+          if-no-files-found: warn
+          retention-days: 7
