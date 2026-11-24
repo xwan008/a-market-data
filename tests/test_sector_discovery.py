@@ -103,7 +103,7 @@ class SectorDiscoveryTests(unittest.TestCase):
         self.assertIn("market_environment_source", protocol)
         # Domain descriptions may name industries as examples; guard the
         # decision rule rather than matching forbidden words in general prose.
-        self.assertIn("只有独立确认且真实受益的CORE/DIRECT申万三级行业", protocol)
+        self.assertIn("只路由当轮 `market_state=趋势确认`、`benefit_level=CORE/DIRECT`", protocol)
         # The formal protocol has one durable industry lifecycle rule,
         # not launch-time patches or a second layer of display exceptions.
         self.assertIn("三级行业独立D1–D3", protocol)
@@ -115,7 +115,7 @@ class SectorDiscoveryTests(unittest.TestCase):
         self.assertIn("priority_exclusion_reason", protocol)
         self.assertIn("theme_market_state", protocol)
         self.assertIn("industry_display_names", protocol)
-        self.assertIn("主题整体尚处观察或候选", protocol)
+        self.assertIn("父主题处于观察或候选，不妨碍其已确认子行业", protocol)
         self.assertIn("冻结历史阶段、结论与日期", protocol)
         for obsolete in ("SW3_V1", "SW3_NOT_ACTIVATED",
                          "11月23日同日完全交接", "正式报告必须无缝展示",
