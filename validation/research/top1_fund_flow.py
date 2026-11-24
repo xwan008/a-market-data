@@ -52,6 +52,8 @@ def normalize(flow_rows, quote_rows, dates, candidate):
     rows = []
     for d in dates:
         a, b = f[d], q[d]
+        if str(b["股票代码"]).zfill(6) != candidate["code"]:
+            raise ValueError("QUOTE_CODE_CONFLICT")
         close = finite(a["收盘价"])
         if abs(close - finite(b["收盘"])) > .011:
             raise ValueError("SOURCE_PRICE_CONFLICT")
@@ -93,7 +95,7 @@ def fetch(candidate, dates):
         raise ValueError("UNSUPPORTED_CODE")
     market = "sh" if code[0] == "6" else "sz"
     flow = ak.stock_fund_flow_individual_hist_em(symbol=code, market=market)
-    quotes = ak.stock_zh_a_hist(symbol=code, period="daily",
+    quotes = ak.stock_zh_a_hist_em(symbol=code, period="daily",
                                start_date=dates[0].replace("-", ""),
                                end_date=dates[-1].replace("-", ""), adjust="")
     return flow.to_dict("records"), quotes.to_dict("records"), ak.__version__
@@ -117,7 +119,8 @@ def collect(packet, fetcher=fetch):
                               evidence=evidence)
                 break
             except Exception as e:
-                result = dict(code=c["code"], status="UNKNOWN", reason=str(e)[:250],
+                status = "CONFLICT" if "CONFLICT" in str(e) else "UNKNOWN"
+                result = dict(code=c["code"], status=status, reason=str(e)[:250],
                               source=SOURCE)
                 if i == 0:
                     time.sleep(.5)
