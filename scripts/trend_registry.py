@@ -901,7 +901,10 @@ def _same_day_revision_errors(previous, proposed, source_sha, snapshot=None, sec
             errors.append(str(eid) + ":same_day_sw3_assessments_invalid")
         else:
             for row in assessments:
-                if not isinstance(row, dict) or row.get("evidence_trade_date") != day or (
+                prior_row = previous_industry_by_code.get(row.get("industry_code")) if isinstance(row, dict) else None
+                frozen_exit = (sw3_enabled and prior_row is not None
+                               and not industry_tracking_active(prior_row) and row == prior_row)
+                if not isinstance(row, dict) or (row.get("evidence_trade_date") != day and not frozen_exit) or (
                         row.get("market_state") not in TRACK):
                     errors.append(str(eid) + ":same_day_sw3_assessments_invalid")
                     break
