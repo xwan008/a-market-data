@@ -9,9 +9,9 @@ import json
 from pathlib import Path
 
 try:
-    from scripts.industry_lifecycle import industry_route_confirmed, cutover_route_lifecycle
+    from scripts.industry_lifecycle import industry_route_confirmed, cutover_route_lifecycle, industry_review_records
 except ModuleNotFoundError:
-    from industry_lifecycle import industry_route_confirmed, cutover_route_lifecycle
+    from industry_lifecycle import industry_route_confirmed, cutover_route_lifecycle, industry_review_records
 
 INDUSTRY_ROUTE_FROM = "2026-11-23"
 SW3_CONTRACT = "SW3_V1"
@@ -42,6 +42,12 @@ def validate(registry, handoff):
         return errors + ["trends_or_signals_not_list"]
     if not all(isinstance(x, dict) for x in trends + signals):
         return errors + ["trends_or_signals_invalid_items"]
+    revisions = scan.get("same_day_revisions") or []
+    if revisions and revisions[-1].get("industry_review_results") is not None:
+        if revisions[-1]["industry_review_results"] != industry_review_records(registry):
+            errors.append("industry_review_revision_results_mismatch")
+        if registry.get("generated_at") != handoff.get("generated_at"):
+            errors.append("industry_review_revision_pair_time_mismatch")
     names = [t.get("trend_name") for t in trends]
     if len(set(names)) != len(names):
         errors.append("duplicate_registry_trend")
