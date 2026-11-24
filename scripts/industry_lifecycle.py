@@ -276,7 +276,7 @@ def industry_review_records(registry):
 
 
 def cutover_route_lifecycle(row):
-    """Return a verified-looking route snapshot; provenance is checked by migration Gate."""
+    """Return route provenance; validation of evidence and history is separate."""
     if not isinstance(row, dict):
         return None
     life = row.get("industry_lifecycle") or {}
@@ -329,143 +329,8 @@ def industry_route_confirmed(row):
     )
 
 
-def _cutover_baseline_errors(current, previous, day, *, same_day=False, source_sha=None):
-    """One-time, forward-only migration from the *published* 2026-11-23 SW3 state.
-
-    D1-D3 is a fresh, explicitly labeled validation window only for still-pending
-    legacy industries. An already confirmed legacy industry carries its published
-    state WITHOUT forging a D1 or a historical confirmation date.
-    """
-    code = current.get("industry_code", "unknown")
-    errors = []
-    life = current.get("industry_lifecycle") or {}
-    base = life.get("cutover_baseline")
-    if not isinstance(base, dict):
-        return [f"{code}:cutover_baseline_missing"]
-    if life.get("episodes") not in (None, []):
-        errors.append(f"{code}:cutover_cannot_forge_historical_episodes")
-    initial = base.get("initial_market_state")
-    sha = base.get("source_registry_blob_sha")
-    asof = base.get("asof_trade_date")
-    if (base.get("basis") != CUTOVER_BASELINE_BASIS
-            or asof != CUTOVER_BASELINE_DATE or day <= asof
-            or base.get("industry_code") != code
-            or initial not in TRACK
-            or not isinstance(sha, str) or SHA.fullmatch(sha) is None):
-        errors.append(f"{code}:cutover_identity_invalid")
-    if previous is None:
-        errors.append(f"{code}:cutover_requires_published_previous_industry")
-        return errors
-    prior_base = ((previous.get("industry_lifecycle") or {}).get("cutover_baseline")
-                  if isinstance(previous, dict) else None)
-    if prior_base is None:
-        if (previous.get("market_state") != initial
-                or previous.get("industry_code") != code
-                or previous.get("industry_lifecycle") is not None
-                or source_sha != sha
-                or asof != "2026-11-23"):
-            errors.append(f"{code}:cutover_provenance_mismatch")
-    else:
-        immutable = ("basis", "asof_trade_date", "source_registry_blob_sha",
-                     "industry_code", "initial_market_state")
-        if any(base.get(key) != prior_base.get(key) for key in immutable):
-            errors.append(f"{code}:cutover_baseline_rewritten")
-
-    history = base.get("state_history")
-    if not isinstance(history, list) or not history:
-        return errors + [f"{code}:cutover_review_history_missing"]
-    prev_state, prev_day, days = initial, asof, []
-    for row in history:
-        if (not isinstance(row, dict) or not _valid_day(row.get("trade_date"))
-                or row["trade_date"] > day or row["trade_date"] <= asof
-                or row.get("from") != prev_state or row.get("to") not in TRACK
-                or row["trade_date"] < prev_day
-                or (row["trade_date"] == prev_day and row.get("event") != "same_day_revision")):
-            errors.append(f"{code}:cutover_review_history_invalid")
-            continue
-        if row["trade_date"] not in days:
-            days.append(row["trade_date"])
-        prev_day, prev_state = row["trade_date"], row["to"]
-    if history[-1].get("trade_date") != day or prev_state != current.get("market_state"):
-        errors.append(f"{code}:cutover_current_state_mismatch")
-
-    decision, stage, decision_day = (base.get("d123_decision"),
-                                     base.get("d123_stage"),
-                                     base.get("d123_decision_trade_date"))
-    if initial == "趋势确认":
-        if (decision != "INHERITED_CONFIRMED" or stage is not None
-                or decision_day is not None):
-            errors.append(f"{code}:cutover_legacy_confirmation_must_remain_unstaged")
-    else:
-        stages = {"D1": 1, "D2": 2, "D3": 3}
-        if stage not in stages:
-            errors.append(f"{code}:cutover_review_stage_invalid")
-        elif stages[stage] > len(days) or (
-                decision == "PENDING" and stages[stage] != len(days)):
-            errors.append(f"{code}:cutover_review_session_mismatch")
-        if decision == "PENDING":
-            if decision_day is not None or stage == "D3":
-                errors.append(f"{code}:cutover_d3_requires_final_verdict")
-        elif decision in {"CONFIRMED", "NOT_CONFIRMED"}:
-            index = stages.get(stage, 0) - 1
-            if (index < 0 or index >= len(days)
-                    or decision_day != days[index]
-                    or (decision == "CONFIRMED") != (
-                        any(h.get("trade_date") == decision_day
-                            and h.get("to") == "趋势确认" for h in history))
-                    or (decision == "NOT_CONFIRMED" and stage != "D3")):
-                errors.append(f"{code}:cutover_verdict_invalid")
-        else:
-            errors.append(f"{code}:cutover_review_decision_invalid")
-
-    # No automatic confirmation: a newly confirmed or re-confirmed legacy
-    # industry needs its OWN market structure, breadth and relative-strength facts.
-    changed_to_confirmed = (current.get("market_state") == "趋势确认"
-                            and previous.get("market_state") != "趋势确认")
-    if changed_to_confirmed:
-        evidence = base.get("confirmation_evidence")
-        supported = {
-            fact.get("dimension") for fact in evidence
-            if isinstance(fact, dict)
-            and _valid_evidence(fact, day)
-            and fact.get("industry_code") == code
-            and (fact.get("dimension") != "MARKET_STRUCTURE"
-                 or fact.get("impact") in {"STRUCTURAL", "CRITICAL"})
-        } if isinstance(evidence, list) else set()
-        if not {"MARKET_STRUCTURE", "MARKET_BREADTH", "RELATIVE_STRENGTH"}.issubset(supported):
-            errors.append(f"{code}:cutover_new_confirmation_evidence_incomplete")
-
-    if prior_base is not None:
-        old_history = prior_base.get("state_history")
-        if not isinstance(old_history, list) or history[:len(old_history)] != old_history:
-            errors.append(f"{code}:cutover_history_rewritten")
-        else:
-            tail = history[len(old_history):]
-            if same_day:
-                if len(tail) > 1 or (tail and (
-                        tail[0].get("event") != "same_day_revision"
-                        or tail[0].get("trade_date") != day)):
-                    errors.append(f"{code}:cutover_same_day_revision_invalid")
-            elif (len(tail) != 1 or tail[0].get("trade_date") != day):
-                errors.append(f"{code}:cutover_daily_review_missing")
-        if prior_base.get("d123_decision") != "PENDING" and any(
-                prior_base.get(key) != base.get(key)
-                for key in ("d123_stage", "d123_decision", "d123_decision_trade_date")):
-            errors.append(f"{code}:cutover_frozen_verdict_rewritten")
-        if prior_base.get("d123_decision") == "PENDING" and not same_day:
-            expected = {"D1": "D2", "D2": "D3"}.get(prior_base.get("d123_stage"))
-            if stage != expected:
-                errors.append(f"{code}:cutover_stage_progression_invalid")
-        if same_day and any(prior_base.get(key) != base.get(key)
-                            for key in ("d123_stage", "d123_decision",
-                                        "d123_decision_trade_date")):
-            errors.append(f"{code}:cutover_same_day_verdict_changed")
-    return errors
-
-
-
 def _legacy_theme_cutover_errors(current, previous, day, *, same_day=False, source_sha=None):
-    """An inherited theme phase is CONTEXT only; SW3 market_state is authoritative.
+    """Validate the immutable inherited baseline and independent industry reviews.
 
     The Nov 23 same-day activation transfers already published facts, not an
     invented industry D1 / D2 / D3 verdict. Future new episodes require their
@@ -671,8 +536,7 @@ def validate_industry_lifecycle(current, previous, day, *, same_day=False, sourc
             current, previous, day, same_day=same_day, source_sha=source_sha)
     if (isinstance(current.get("industry_lifecycle"), dict)
             and "cutover_baseline" in current["industry_lifecycle"]):
-        return _cutover_baseline_errors(current, previous, day,
-                                        same_day=same_day, source_sha=source_sha)
+        return [f"{current.get('industry_code')}:obsolete_forward_baseline_not_allowed"]
     code = current.get("industry_code", "unknown")
     errors = []
     life = current.get("industry_lifecycle")

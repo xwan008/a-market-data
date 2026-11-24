@@ -76,7 +76,7 @@ class SectorDiscoveryTests(unittest.TestCase):
     def test_protocol_preserves_original_model_decision_priority(self):
         protocol = (Path(__file__).resolve().parents[1]
                     / "skill/TREND_REGISTRY_PROTOCOL.md").read_text(encoding="utf-8")
-        self.assertIn("模型独立发现 → 观察/候选/确认连续复核 → 合并判断、校验发布", protocol)
+        self.assertIn("模型独立发现 → 有效三级行业连续复核 → 合并判断、校验发布", protocol)
         self.assertIn("Python只负责客观行情计算和必要技术校验", protocol)
         self.assertIn("不作为第二个趋势发现者", protocol)
         self.assertIn("不排除模型已发现的方向", protocol)
@@ -103,21 +103,19 @@ class SectorDiscoveryTests(unittest.TestCase):
         self.assertIn("market_environment_source", protocol)
         # Domain descriptions may name industries as examples; guard the
         # decision rule rather than matching forbidden words in general prose.
-        self.assertIn("只有独立确认且真实受益的CORE/DIRECT申万三级行业", protocol)
+        self.assertIn("只路由当轮 `market_state=趋势确认`、`benefit_level=CORE/DIRECT`", protocol)
         # The formal protocol has one durable industry lifecycle rule,
         # not launch-time patches or a second layer of display exceptions.
         self.assertIn("三级行业独立D1–D3", protocol)
         self.assertIn("**存量行业连续承接**", protocol)
         self.assertIn("**handoff资格**", protocol)
         self.assertIn("原主题D1–D3只作可追溯历史背景", protocol)
-        self.assertIn("FORMAL_ASOF_SW3_CUTOVER", protocol)
-        self.assertIn("LEGACY_THEME_D123", protocol)
-        self.assertIn("INHERITED_CONFIRMED", protocol)
-        self.assertIn("INHERITED_UNCONFIRMED", protocol)
+        self.assertIn("active_industries", protocol)
+        self.assertIn("industry_review_phase", protocol)
         self.assertIn("priority_exclusion_reason", protocol)
         self.assertIn("theme_market_state", protocol)
         self.assertIn("industry_display_names", protocol)
-        self.assertIn("主题整体尚处观察或候选", protocol)
+        self.assertIn("父主题处于观察或候选，不妨碍其已确认子行业", protocol)
         self.assertIn("冻结历史阶段、结论与日期", protocol)
         for obsolete in ("SW3_V1", "SW3_NOT_ACTIVATED",
                          "11月23日同日完全交接", "正式报告必须无缝展示",

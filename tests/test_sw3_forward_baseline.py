@@ -3,9 +3,11 @@ import copy
 import unittest
 
 from scripts.industry_lifecycle import (
-    validate_industry_lifecycle, industry_route_confirmed, cutover_route_lifecycle,
+    industry_route_confirmed, cutover_route_lifecycle,
 )
 from scripts.validate_trend_publication_pair import validate as validate_pair
+
+from scripts.sw3_same_day_cutover import validate_historical_forward_baseline as validate_industry_lifecycle
 
 ASOF = "2026-11-23"
 D1, D2, D3 = "2026-11-24", "2026-11-25", "2026-11-26"
