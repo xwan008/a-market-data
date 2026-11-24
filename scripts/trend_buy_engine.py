@@ -483,7 +483,7 @@ def technical_observation_details(row):
 # Provisional, reproducible NEW-entry ATTENTION ranking. This is NOT a READY
 # score, a trade prediction, or a second research list. All risk gates remain
 # independent and execute before this attention-only sort.
-OPPORTUNITY_RANK_POLICY = "ENTRY_VALUE_STAGE_V1_1_CONTINUOUS_QUALITY"
+OPPORTUNITY_RANK_POLICY = "TREND_VOLUME_STRUCTURE_QUALITY"
 
 
 def clamp_score(value):
@@ -491,87 +491,84 @@ def clamp_score(value):
 
 
 def opportunity_rank_evidence(row, trade_date):
-    """Rank only attention, using observed magnitudes instead of rank spacing.
+    """Rank attention, not execution; evaluate each kind of evidence once.
 
-    The last 5d and preceding 5d returns do not overlap. Company-quality
-    evidence comes from the same-day admitted cohort's verified F10 snapshot
-    and completed 10/20/60d OHLCV; model_rank cannot invent point distances.
+    Completed-bar price/volume proxies do not identify investors or fund flows.
+    Missing a confirmed entry pair means entry quality is UNKNOWN, not cheap.
+    The independent entry, stop, overheating and reward gates are unchanged.
     """
     ev = row.get("phase_evidence") or {}
     ctx = row.get("technical_context") or {}
-    current = row.get("current_price")
-    recent = ev.get("return_5d_pct")
-    prior = ev.get("previous_5d_return_pct")
-    up5 = ev.get("positive_days_5d")
-    close_strength = ctx.get("close_location_pct")
-    gap = ctx.get("distance_to_ma20_pct")
-    volume = ctx.get("volume_ratio_1d_vs_20d")
-    ma20, ma60 = ctx.get("ma20"), ctx.get("ma60")
-    priority = row.get("model_priority")
     quality = row.get("research_quality_evidence") or {}
-    continuous_quality = quality.get("score")
-    complete = (row.get("data_date") == trade_date
-                and quality.get("status") == "VERIFIED"
-                and quality.get("source") == "FROZEN_F10_AND_COMPLETED_HISTORY_V1"
-                and quality.get("asof_date") == trade_date
-                and val(continuous_quality) and 0 <= continuous_quality <= 100
-                and ev.get("signal_uses_completed_bars_only") is True
-                and all(val(x) for x in (recent, prior, up5, close_strength,
-                                          gap, volume, current, ma20, ma60))
-                and pos(current) and pos(ma20) and pos(ma60)
-                and type(priority) is int
-                and isinstance(ev.get("fresh_break"), bool))
+    q = quality.get("components") or {}
+    peer = q.get("peer_percentiles") or {}
+    recent = ev.get("return_5d_pct")
+    up5 = ev.get("positive_days_5d")
+    close = ev.get("close_location_pct")
+    close3 = ev.get("close_location_3d_avg_pct")
+    core = q.get("core_growth_component")
+    cash = q.get("cashflow_component")
+    current = row.get("current_price")
+    higher_low = ctx.get("higher_low")
+    complete = (
+        row.get("data_date") == trade_date
+        and quality.get("status") == "VERIFIED"
+        and quality.get("source") == "FROZEN_F10_AND_COMPLETED_HISTORY_V1"
+        and quality.get("asof_date") == trade_date
+        and ev.get("signal_uses_completed_bars_only") is True
+        and type(row.get("model_priority")) is int
+        and pos(current)
+        and all(val(x) and 0 <= x <= 1 for x in
+                (peer.get("10"), peer.get("20"), peer.get("60"), core, cash))
+        and val(recent) and val(up5) and 0 <= up5 <= 5
+        and all(val(x) and 0 <= x <= 100 for x in (close, close3))
+        and isinstance(higher_low, bool))
     if not complete:
         return {"status": "INCOMPLETE_ASOF_EVIDENCE", "score": None}
 
-    # The ordinal model rank remains explainable and is ONLY a tiebreaker.
-    # It is never converted into artificial equal-spaced research-quality points.
-    model_quality = continuous_quality
-    # Nonoverlapping windows: a rebound is useful only together with position
-    # and risk; the large-return cap prevents endless speed-based rewards.
-    momentum = (0.30 * clamp_score(recent * 10.0)
-                + 0.30 * clamp_score((recent - prior) * (100.0 / 15.0))
-                + 0.20 * (100.0 if ev["fresh_break"] else 25.0)
-                + 0.20 * clamp_score(close_strength))
-    proximity = clamp_score(100.0 - max(0.0, abs(gap) - 2.0) * 14.0)
-    resistance = verified_overhead(ctx, current, trade_date)
-    if resistance:
-        overhead_gap_pct = (resistance["price"] / current - 1.0) * 100.0
-        overhead_quality = clamp_score(overhead_gap_pct * 15.0 - 5.0)
+    peer_strength = 100 * (.35 * peer["10"] + .40 * peer["20"]
+                           + .25 * peer["60"])
+    trend = (.45 * peer_strength + .25 * clamp_score(50 + 5 * recent)
+             + .15 * (20 * up5) + .15 * (100 if higher_low else 0))
+
+    up_vol = ev.get("up_day_volume_ratio_5d")
+    down_vol = ev.get("down_day_volume_ratio_5d")
+    volume_known = pos(up_vol) and pos(down_vol)
+    volume_balance = (clamp_score(50 + 30 * math.log(up_vol / down_vol))
+                      if volume_known else 50)
+    volume_quality = (.35 * volume_balance + .35 * close3 + .30 * close)
+    fundamental = 100 * (.80 * core + .20 * cash)
+
+    # Unconfirmed entry is not rewarded for low MA distance. Neutral marks
+    # unknown, not a trade plan. Only an actual paired setup may earn a score.
+    zone, stop = row.get("entry_zone"), row.get("invalidation_price")
+    if not (isinstance(zone, list) and len(zone) == 2
+            and all(pos(p) for p in zone) and pos(stop)
+            and stop < zone[0] <= zone[1]):
+        entry, risk, reward = 50.0, None, None
+        entry_status = "UNCONFIRMED_NEUTRAL"
     else:
-        overhead_gap_pct = None
-        overhead_quality = 50.0  # unknown, never interpreted as infinite
-    recent_heat_quality = clamp_score(100.0 - max(0.0, recent - 6.0) * 10.0)
-    entry_value = (0.55 * proximity + 0.25 * overhead_quality
-                   + 0.20 * recent_heat_quality)
-    penalties = {}
-    if gap > MAX_MA20_DISTANCE_PCT or ctx.get("chase_risk") == "high":
-        penalties["extended_ma20"] = 15.0
-    if recent > 9.0:
-        penalties["recent_5d_surge"] = (recent - 9.0) * 6.0
-    if current < ma60:
-        penalties["below_ma60_unconfirmed"] = 12.0
-    if row.get("trend_phase") == "REPAIRING":
-        penalties["repair_unconfirmed"] = 10.0
-    if ev["fresh_break"] and volume < 0.85:
-        penalties["thin_breakout_volume"] = 8.0
-    if overhead_gap_pct is not None and overhead_gap_pct < 1.5:
-        penalties["near_verified_overhead"] = 15.0
-    if ev.get("weak_close_high_volume") is True:
-        penalties["weak_close_high_volume"] = 15.0
-    total = (0.15 * model_quality + 0.45 * momentum + 0.40 * entry_value
-             - sum(penalties.values()))
+        risk = 100 * (zone[1] - stop) / zone[1]
+        resistance = verified_overhead(ctx, current, trade_date)
+        reward = ((resistance["price"] - zone[1]) / (zone[1] - stop)
+                  if resistance else None)
+        entry = (.5 * clamp_score(100 - risk / 6 * 100)
+                 + .5 * (50 if reward is None else clamp_score(reward / 3 * 100)))
+        entry_status = "PAIRED_SETUP_REWARD_UNKNOWN" if reward is None else "PAIRED_SETUP"
+    total = .35 * trend + .30 * volume_quality + .20 * fundamental + .15 * entry
     return {
         "status": "COMPLETE_ASOF_EVIDENCE",
         "score": round(total, 4),
-        "research_quality_score": round(model_quality, 2),
+        "trend_quality_score": round(trend, 2),
+        "volume_price_quality_score": round(volume_quality, 2),
+        "research_quality_score": round(fundamental, 2),
         "research_quality_source": quality["source"],
-        "research_quality_components": quality.get("components"),
-        "momentum_stage_score": round(momentum, 2),
-        "entry_value_score": round(entry_value, 2),
-        "overhead_distance_pct": (round(overhead_gap_pct, 2)
-                                  if overhead_gap_pct is not None else None),
-        "penalties": penalties,
+        "research_quality_components": q,
+        "entry_value_score": round(entry, 2),
+        "entry_evidence_status": entry_status,
+        "entry_risk_pct": round(risk, 4) if risk is not None else None,
+        "entry_reward_R": round(reward, 4) if reward is not None else None,
+        "volume_balance_observed": volume_known,
         "provisional": True,
         "not_trade_permission": True,
     }
@@ -644,7 +641,7 @@ def add_attention_priorities(groups, ready, wait, research):
     """Explain real Top5 rank evidence; independently report trade-risk context.
 
     The supplied members and order are fixed. READY precedes WAIT; within a
-    status the evidence-based entry value score ranks attention only. It never
+    status the evidence-based trend and structure score ranks attention only. It never
     changes program admission, entry/stop evidence, or independent risk gates.
     """
     signal_labels = {
