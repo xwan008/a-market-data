@@ -490,6 +490,59 @@ def clamp_score(value):
     return max(0.0, min(100.0, value))
 
 
+def continuation_context(row):
+    """Completed-bar combination evidence for attention, NOT a trade gate.
+
+    Stage labels are hypotheses, not proof of continuation or investor identity.
+    Structural stability is scored once in the trend component. No MA penalty.
+    """
+    ev = row.get("phase_evidence") or {}
+    ctx = row.get("technical_context") or {}
+    recent, prior = ev.get("return_5d_pct"), ev.get("previous_5d_return_pct")
+    ret3, dd = ev.get("return_3d_pct"), ev.get("max_close_drawdown_10d_pct")
+    up5, close = ev.get("positive_days_5d"), ev.get("close_location_pct")
+    higher = ctx.get("higher_low")
+    if not (all(val(x) for x in (recent, prior, ret3, dd, up5, close))
+            and dd <= 0 and 0 <= up5 <= 5 and 0 <= close <= 100
+            and isinstance(higher, bool)
+            and ev.get("signal_uses_completed_bars_only") is True):
+        return None
+    # A bounded stability dimension rather than a separate risk penalty.
+    # 20% normalization is a provisional scale; validate out-of-sample.
+    drawdown_quality = clamp_score(100 + 5 * dd)
+    stability = .60 * drawdown_quality + .40 * (100 if higher else 0)
+    fresh = ev.get("fresh_break") is True
+    vol = ev.get("volume_ratio_1d")
+    weak = ev.get("weak_close_high_volume") is True
+    if row.get("trend_phase") == "FAILED":
+        stage = "FAILED_STRUCTURE"
+    elif weak and recent > 0:
+        stage = "HIGH_VOLUME_DIVERGENCE"
+    elif recent > 0 and not higher:
+        stage = "REBOUND_UNCONFIRMED"
+    elif higher and recent > 0 and prior > 0 and ret3 > 0:
+        stage = "CONTINUATION" if not fresh else "REACCELERATION"
+    elif higher and recent > 0 and prior <= 0 and ret3 > 0:
+        stage = "REPAIR_WITH_STRUCTURE"
+    elif higher and prior > 0 and recent <= 0:
+        stage = "PULLBACK_OBSERVATION"
+    else:
+        stage = "TRANSITION_UNCONFIRMED"
+    return {
+        "stage": stage,
+        "stability_score": round(stability, 4),
+        "drawdown_quality_score": round(drawdown_quality, 4),
+        "max_close_drawdown_10d_pct": dd,
+        "higher_low": higher,
+        "fresh_break": fresh,
+        "previous_5d_return_pct": prior,
+        "return_3d_pct": ret3,
+        "weak_close_high_volume": weak,
+        "volume_ratio_1d": vol if val(vol) else None,
+        "observation_only": True,
+    }
+
+
 def opportunity_rank_evidence(row, trade_date):
     """Rank attention, not execution; evaluate each kind of evidence once.
 
@@ -510,8 +563,11 @@ def opportunity_rank_evidence(row, trade_date):
     cash = q.get("cashflow_component")
     current = row.get("current_price")
     higher_low = ctx.get("higher_low")
+    continuity = continuation_context(row)
     complete = (
         row.get("data_date") == trade_date
+        and continuity is not None
+        and val(quality.get("score")) and 0 <= quality["score"] <= 100
         and quality.get("status") == "VERIFIED"
         and quality.get("source") == "FROZEN_F10_AND_COMPLETED_HISTORY_V1"
         and quality.get("asof_date") == trade_date
@@ -528,15 +584,17 @@ def opportunity_rank_evidence(row, trade_date):
 
     peer_strength = 100 * (.35 * peer["10"] + .40 * peer["20"]
                            + .25 * peer["60"])
-    trend = (.45 * peer_strength + .25 * clamp_score(50 + 5 * recent)
-             + .15 * (20 * up5) + .15 * (100 if higher_low else 0))
+    trend = (.45 * peer_strength + .15 * clamp_score(50 + 5 * recent)
+             + .10 * (20 * up5) + .30 * continuity["stability_score"])
 
     up_vol = ev.get("up_day_volume_ratio_5d")
     down_vol = ev.get("down_day_volume_ratio_5d")
     volume_known = pos(up_vol) and pos(down_vol)
     volume_balance = (clamp_score(50 + 30 * math.log(up_vol / down_vol))
                       if volume_known else 50)
-    volume_quality = (.35 * volume_balance + .35 * close3 + .30 * close)
+    # Prefer evidence across multiple completed bars over one strong close.
+    # High-volume divergence remains a flag, not a duplicate deduction.
+    volume_quality = (.40 * volume_balance + .45 * close3 + .15 * close)
     fundamental = 100 * (.80 * core + .20 * cash)
 
     # Unconfirmed entry is not rewarded for low MA distance. Neutral marks
@@ -560,6 +618,7 @@ def opportunity_rank_evidence(row, trade_date):
         "status": "COMPLETE_ASOF_EVIDENCE",
         "score": round(total, 4),
         "trend_quality_score": round(trend, 2),
+        "continuation_context": continuity,
         "volume_price_quality_score": round(volume_quality, 2),
         "research_quality_score": round(fundamental, 2),
         "research_quality_source": quality["source"],
