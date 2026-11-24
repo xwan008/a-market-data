@@ -67,7 +67,8 @@ def render(registry, handoff):
             phase = _phase_label(row)
             evidence = row.get("market_reason") or row.get("benefit_reason")
             if not industry_tracking_active(row):
-                expired.append((display, phase, evidence))
+                if industry_review_phase(row)[2] == registry["trade_date"]:
+                    expired.append((display, phase, evidence))
                 continue
             active.append((display, row["market_state"], phase, evidence, _change(row)))
     order = {"趋势确认": 0, "候选趋势": 1, "观察": 2}
@@ -83,13 +84,38 @@ def render(registry, handoff):
     return "\n\n".join(parts)
 
 
+def research_input(registry, handoff):
+    """Previous close active industry rows, after independent discovery."""
+    errors = validate(registry, handoff)
+    if errors:
+        raise ValueError("正式趋势账本与交接文件不一致：" + "; ".join(errors))
+    return {
+        "trade_date": registry["trade_date"],
+        "active_industries": [
+            {"theme": theme["trend_name"], "theme_episode_id": theme["episode_id"],
+             "d123_stage": industry_review_phase(row)[0],
+             "d123_decision": industry_review_phase(row)[1],
+             "d123_decision_trade_date": industry_review_phase(row)[2],
+             "assessment": row}
+            for theme in registry["trends"]
+            for row in theme.get("industry_assessments") or []
+            if industry_tracking_active(row)
+        ],
+    }
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--registry", required=True, type=Path)
     parser.add_argument("--handoff", required=True, type=Path)
+    parser.add_argument("--research-input", action="store_true")
     args = parser.parse_args()
-    print(render(json.loads(args.registry.read_text("utf-8")),
-                 json.loads(args.handoff.read_text("utf-8"))))
+    registry = json.loads(args.registry.read_text("utf-8"))
+    handoff = json.loads(args.handoff.read_text("utf-8"))
+    if args.research_input:
+        print(json.dumps(research_input(registry, handoff), ensure_ascii=False, indent=2))
+    else:
+        print(render(registry, handoff))
 
 
 if __name__ == "__main__":
