@@ -7,8 +7,8 @@ from pathlib import Path
 import unittest
 from unittest.mock import patch
 
-from scripts.sw3_same_day_cutover import build
-from scripts.trend_registry import validate as validate_registry
+from scripts.sw3_same_day_cutover import build, validate as validate_registry
+from scripts.trend_registry import validate as validate_live
 from scripts.validate_trend_publication_pair import validate as validate_pair
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -52,6 +52,11 @@ class SameDaySw3CutoverTests(unittest.TestCase):
     def create(self):
         return build(self.original, self.original_handoff,
                      self.sha, self.hsha, FROZEN_CUTOVER_AT)
+
+    def test_live_gate_does_not_reactivate_historical_cutover(self):
+        proposed, _ = self.create()
+        self.assertIn("same_day_original_close_audit_rewritten",
+                      validate_live(self.original, proposed, self.sha))
 
     def test_real_23_close_admits_exactly_published_14_sw3_with_theme_phase(self):
         proposed, handoff = self.create()

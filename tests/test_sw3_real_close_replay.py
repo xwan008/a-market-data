@@ -14,8 +14,10 @@ import unittest
 from scripts.trend_registry import validate as migration_gate
 from scripts.validate_trend_publication_pair import validate as pair_gate
 from scripts.industry_lifecycle import (
-    validate_industry_lifecycle, cutover_route_lifecycle, industry_route_confirmed
+    cutover_route_lifecycle, industry_route_confirmed
 )
+
+from scripts.sw3_same_day_cutover import validate_historical_forward_baseline as validate_industry_lifecycle
 
 ROOT = Path(__file__).resolve().parents[1]
 CURRENT_DATE = "2026-11-23"
