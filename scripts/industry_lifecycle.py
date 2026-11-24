@@ -625,6 +625,10 @@ def _legacy_theme_cutover_errors(current, previous, day, *, same_day=False, sour
     elif current.get("market_state") == "趋势确认" and verdict != "INHERITED_CONFIRMED":
         if inherited_review_phase(base)[1] != "CONFIRMED":
             errors.append(f"{code}:legacy_cutover_new_confirmation_needs_independent_episode")
+    if not first and not old_episodes:
+        old_phase = inherited_review_phase(old_base)
+        if old_phase[1] in {"CONFIRMED", "NOT_CONFIRMED"} and inherited_review_phase(base) != old_phase:
+            errors.append(f"{code}:inherited_review_frozen_verdict_rewritten")
     if not first and not old_episodes and len(episodes) == 1:
         _, old_verdict, _ = inherited_review_phase(old_base)
         if old_verdict == "PENDING":
