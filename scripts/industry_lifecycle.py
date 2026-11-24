@@ -214,6 +214,67 @@ CUTOVER_BASELINE_DATE = "2026-11-23"
 CUTOVER_BASELINE_BASIS = "FORMAL_ASOF_SW3_CUTOVER"
 
 
+def inherited_review_phase(base):
+    """Continue the inherited review clock using actual post-baseline sessions.
+
+    Original theme phase is immutable provenance, never a fabricated historical
+    industry confirmation. The first real verdict is frozen.
+    """
+    stage = base.get("d123_stage")
+    verdict = base.get("d123_decision")
+    if verdict != "INHERITED_UNCONFIRMED":
+        return stage, verdict, base.get("d123_decision_trade_date")
+    if stage not in {"D1", "D2", "D3"}:
+        return stage, verdict, None
+    number = int(stage[1])
+    by_date = {}
+    for event in base.get("state_history") or []:
+        if isinstance(event, dict) and _valid_day(event.get("trade_date")):
+            by_date[event["trade_date"]] = event.get("to")
+    for date, state in sorted(by_date.items()):
+        number = min(3, number + 1)
+        if state == "趋势确认":
+            return f"D{number}", "CONFIRMED", date
+        if number == 3:
+            return "D3", "NOT_CONFIRMED", date
+    return f"D{number}", "PENDING", None
+
+
+def industry_review_phase(row):
+    """Single effective phase for report, tracking and independent routing."""
+    life = row.get("industry_lifecycle") or {}
+    episodes = life.get("episodes") or []
+    if episodes:
+        ep = episodes[-1]
+        return ep.get("d123_stage"), ep.get("d123_decision"), ep.get("d123_decision_trade_date")
+    base = life.get("cutover_baseline")
+    if isinstance(base, dict):
+        return inherited_review_phase(base)
+    return None, None, None
+
+
+def industry_tracking_active(row):
+    return (row.get("market_state") in TRACK
+            and industry_review_phase(row)[1] != "NOT_CONFIRMED")
+
+
+def industry_review_records(registry):
+    """Canonical effective industry decisions, derived from the existing ledger."""
+    records = []
+    for theme in registry.get("trends") or []:
+        for row in theme.get("industry_assessments") or []:
+            stage, decision, date = industry_review_phase(row)
+            records.append({
+                "theme_episode_id": theme["episode_id"],
+                "industry_code": row["industry_code"],
+                "d123_stage": stage,
+                "d123_decision": decision,
+                "d123_decision_trade_date": date,
+                "tracking_active": industry_tracking_active(row),
+            })
+    return records
+
+
 def cutover_route_lifecycle(row):
     """Return a verified-looking route snapshot; provenance is checked by migration Gate."""
     if not isinstance(row, dict):
@@ -248,6 +309,10 @@ def cutover_route_lifecycle(row):
         "baseline_source_registry_blob_sha": base["source_registry_blob_sha"],
     }
     if base.get("phase_origin") == "LEGACY_THEME_D123":
+        stage, decision, decision_day = inherited_review_phase(base)
+        if decision == "CONFIRMED":
+            route.update(d123_stage=stage, d123_decision=decision,
+                         d123_decision_trade_date=decision_day)
         route["phase_origin"] = "LEGACY_THEME_D123"
         route["legacy_theme_d123"] = base.get("legacy_theme_d123")
     return route
@@ -558,7 +623,18 @@ def _legacy_theme_cutover_errors(current, previous, day, *, same_day=False, sour
                     or latest.get("d123_stage") != "D1"):
                 errors.append(f"{code}:legacy_cutover_new_episode_not_real_d1")
     elif current.get("market_state") == "趋势确认" and verdict != "INHERITED_CONFIRMED":
-        errors.append(f"{code}:legacy_cutover_new_confirmation_needs_independent_episode")
+        if inherited_review_phase(base)[1] != "CONFIRMED":
+            errors.append(f"{code}:legacy_cutover_new_confirmation_needs_independent_episode")
+    if not first and not old_episodes:
+        old_phase = inherited_review_phase(old_base)
+        if old_phase[1] in {"CONFIRMED", "NOT_CONFIRMED"} and inherited_review_phase(base) != old_phase:
+            errors.append(f"{code}:inherited_review_frozen_verdict_rewritten")
+    if not first and not old_episodes and len(episodes) == 1:
+        _, old_verdict, _ = inherited_review_phase(old_base)
+        if old_verdict == "PENDING":
+            _, terminal, _ = inherited_review_phase(base)
+            if terminal != "NOT_CONFIRMED":
+                errors.append(f"{code}:inherited_review_pending_cannot_restart")
 
     if (current.get("market_state") == "趋势确认"
             and previous.get("market_state") != "趋势确认"):
@@ -578,6 +654,15 @@ def _legacy_theme_cutover_errors(current, previous, day, *, same_day=False, sour
 
 def validate_industry_lifecycle(current, previous, day, *, same_day=False, source_sha=None):
     """Validate an assessment's independent lifecycle against its prior record."""
+    if previous is not None and not industry_tracking_active(previous):
+        if current == previous:
+            # Frozen audit row: do not pretend to review an expired direction.
+            return []
+        old_eps = (previous.get("industry_lifecycle") or {}).get("episodes") or []
+        new_eps = (current.get("industry_lifecycle") or {}).get("episodes") or []
+        if len(new_eps) != len(old_eps) + 1:
+            return [f"{current.get('industry_code')}:expired_industry_requires_new_episode"]
+
     if (isinstance(current.get("industry_lifecycle"), dict)
             and "cutover_baseline" in current["industry_lifecycle"]
             and (current["industry_lifecycle"].get("cutover_baseline") or {}).get(

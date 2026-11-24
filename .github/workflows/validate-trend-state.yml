@@ -6,6 +6,10 @@ on:
     paths:
       - 'scripts/validate_trend_state_migrations.py'
       - 'scripts/trend_registry.py'
+      - 'scripts/industry_lifecycle.py'
+      - 'scripts/render_trend_report.py'
+      - 'tests/test_trend_industry_report.py'
+      - 'tests/fixtures/trend_industry_report_20261124.json'
       - 'tests/test_trend_registry.py'
       - 'tests/test_sw3_forward_baseline.py'
       - 'tests/test_sw3_real_close_replay.py'
@@ -27,6 +31,10 @@ on:
     paths:
       - 'scripts/validate_trend_state_migrations.py'
       - 'scripts/trend_registry.py'
+      - 'scripts/industry_lifecycle.py'
+      - 'scripts/render_trend_report.py'
+      - 'tests/test_trend_industry_report.py'
+      - 'tests/fixtures/trend_industry_report_20261124.json'
       - 'tests/test_trend_registry.py'
       - 'tests/test_sw3_forward_baseline.py'
       - 'tests/test_sw3_real_close_replay.py'
@@ -68,7 +76,21 @@ jobs:
           python -m unittest discover -s tests -p 'test_sw3_same_day_cutover.py' -v
           python -m unittest discover -s tests -p 'test_sw3_post_cutover_continuity.py' -v
       - name: Validate source compiles
-        run: python -m py_compile scripts/trend_registry.py scripts/validate_trend_state_migrations.py scripts/validate_trend_publication_pair.py scripts/audit_trend_lifecycle_semantics.py scripts/validate_trend_discovery_checkpoint.py scripts/build_trend_outcome_cohort.py
+        run: python -m py_compile scripts/industry_lifecycle.py scripts/render_trend_report.py scripts/trend_registry.py scripts/validate_trend_state_migrations.py scripts/validate_trend_publication_pair.py scripts/audit_trend_lifecycle_semantics.py scripts/validate_trend_discovery_checkpoint.py scripts/build_trend_outcome_cohort.py
+      - name: Validate actual changed formal pair and render report
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git fetch --depth=1 --filter=blob:none origin "$BASE_SHA"
+          git show "$BASE_SHA:research/trend_registry.json" > /tmp/prior-registry.json
+          git show "$BASE_SHA:research/trend_handoff.json" > /tmp/prior-handoff.json
+          if ! cmp -s /tmp/prior-registry.json research/trend_registry.json || ! cmp -s /tmp/prior-handoff.json research/trend_handoff.json; then
+            python scripts/validate_trend_state_migrations.py --previous /tmp/prior-registry.json --proposed research/trend_registry.json --previous-blob-sha "$(git rev-parse "$BASE_SHA:research/trend_registry.json")"
+            python scripts/validate_trend_publication_pair.py --registry research/trend_registry.json --handoff research/trend_handoff.json
+            python scripts/render_trend_report.py --registry research/trend_registry.json --handoff research/trend_handoff.json
+            python scripts/render_trend_report.py --registry research/trend_registry.json --handoff research/trend_handoff.json --research-input > /tmp/active-industry-input.json
+          fi
       - name: Verify current active registry and handoff shape
         run: |
           python - <<'PY'

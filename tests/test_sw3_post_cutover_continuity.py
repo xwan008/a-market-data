@@ -15,7 +15,7 @@ D1, D2 = "2026-11-24", "2026-11-25"
 
 
 def frozen_row(code):
-    ledger = json.loads((ROOT / "research/trend_registry.json").read_text("utf-8"))
+    ledger = json.loads((ROOT / "tests/fixtures/trend_industry_report_20261124.json").read_text("utf-8"))["previous"]
     return copy.deepcopy(next(row for theme in ledger["trends"]
                               for row in theme["industry_assessments"]
                               if row["industry_code"] == code))
