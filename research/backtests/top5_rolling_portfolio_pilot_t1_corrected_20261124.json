@@ -1,0 +1,593 @@
+{
+  "scope": "Corrected hard-stop execution consistency: when buy-day low breaches stop but T+1 blocks sale, queue exit for next sellable open even if close recovers. Previous pilot mixed intraday and close reset semantics. Other assumptions unchanged; illustrative OHLC approximation, no morning replay or independent model holding decisions. Four execution dates, two closed trades per run; no production change.",
+  "inputs": [
+    "bd22da01f186ce29977a50b5b7d815e92de24e48",
+    "4628b3f4ec8ce0c4ef64e43cfc1e32cf75424443"
+  ],
+  "runs": [
+    {
+      "order": "formal",
+      "policy": "rolling",
+      "ret": -0.5308873000000047,
+      "dd": -0.5308873000000047,
+      "closed": 2,
+      "win": 0,
+      "trades": [
+        {
+          "name": "美的集团",
+          "code": "000333",
+          "buyDay": "2026-11-20",
+          "buy": 95.05,
+          "qty": 200,
+          "sellDay": "2026-11-23",
+          "sell": 94.23,
+          "reason": "T1_DEFERRED_STOP",
+          "pnl": -184.77980000000025,
+          "ret": -0.9717221603639858
+        },
+        {
+          "name": "农业银行",
+          "code": "601288",
+          "buyDay": "2026-11-23",
+          "buy": 7.77,
+          "qty": 2500,
+          "sellDay": "2026-11-24",
+          "sell": 7.64,
+          "reason": "STRUCTURE_STOP",
+          "pnl": -346.10749999999825,
+          "ret": -1.7812288231162432
+        }
+      ],
+      "events": [
+        {
+          "day": "2026-11-19",
+          "action": "NO_OPEN_FILL",
+          "name": "美的集团",
+          "open": 93.5,
+          "zone": [
+            94.088,
+            94.774
+          ]
+        },
+        {
+          "day": "2026-11-20",
+          "action": "BUY",
+          "name": "美的集团",
+          "price": 95.05,
+          "qty": 200,
+          "stop": 93.898
+        },
+        {
+          "day": "2026-11-20",
+          "action": "T1_DEFERRED_STOP",
+          "name": "美的集团",
+          "stop": 93.898,
+          "low": 93.55
+        },
+        {
+          "day": "2026-11-20",
+          "action": "CLOSE_REVIEW",
+          "name": "美的集团",
+          "state": "趋势确认",
+          "decision": "T1_DEFERRED_STOP",
+          "stop": 93.898
+        },
+        {
+          "day": "2026-11-23",
+          "action": "SELL",
+          "name": "美的集团",
+          "price": 94.23,
+          "reason": "T1_DEFERRED_STOP"
+        },
+        {
+          "day": "2026-11-23",
+          "action": "BUY",
+          "name": "农业银行",
+          "price": 7.77,
+          "qty": 2500,
+          "stop": 7.652
+        },
+        {
+          "day": "2026-11-23",
+          "action": "CLOSE_REVIEW",
+          "name": "农业银行",
+          "state": "趋势确认",
+          "decision": "HOLD",
+          "stop": 7.652
+        },
+        {
+          "day": "2026-11-24",
+          "action": "SKIP_HELD_AT_START",
+          "industry": "S480201"
+        },
+        {
+          "day": "2026-11-24",
+          "action": "SELL",
+          "name": "农业银行",
+          "price": 7.64,
+          "reason": "STRUCTURE_STOP"
+        }
+      ],
+      "equity": [
+        {
+          "date": "2026-11-18",
+          "nav": 100000
+        },
+        {
+          "date": "2026-11-19",
+          "nav": 100000,
+          "cash": 100000,
+          "positions": []
+        },
+        {
+          "date": "2026-11-20",
+          "nav": 99948.29699999999,
+          "cash": 80984.29699999999,
+          "positions": [
+            {
+              "name": "美的集团",
+              "qty": 200,
+              "pending": "T1_DEFERRED_STOP"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-23",
+          "nav": 99959.3927,
+          "cash": 80384.3927,
+          "positions": [
+            {
+              "name": "农业银行",
+              "qty": 2500,
+              "pending": null
+            }
+          ]
+        },
+        {
+          "date": "2026-11-24",
+          "nav": 99469.1127,
+          "cash": 99469.1127,
+          "positions": []
+        }
+      ]
+    },
+    {
+      "order": "model",
+      "policy": "rolling",
+      "ret": -0.6900758000000007,
+      "dd": -0.6900758000000007,
+      "closed": 2,
+      "win": 0,
+      "trades": [
+        {
+          "name": "美的集团",
+          "code": "000333",
+          "buyDay": "2026-11-20",
+          "buy": 95.05,
+          "qty": 200,
+          "sellDay": "2026-11-23",
+          "sell": 94.23,
+          "reason": "T1_DEFERRED_STOP",
+          "pnl": -184.77980000000025,
+          "ret": -0.9717221603639858
+        },
+        {
+          "name": "交通银行",
+          "code": "601328",
+          "buyDay": "2026-11-23",
+          "buy": 8.96,
+          "qty": 2200,
+          "sellDay": "2026-11-24",
+          "sell": 8.74,
+          "reason": "STRUCTURE_STOP",
+          "pnl": -505.2960000000021,
+          "ret": -2.5626240699218927
+        }
+      ],
+      "events": [
+        {
+          "day": "2026-11-19",
+          "action": "NO_OPEN_FILL",
+          "name": "美的集团",
+          "open": 93.5,
+          "zone": [
+            94.088,
+            94.774
+          ]
+        },
+        {
+          "day": "2026-11-20",
+          "action": "BUY",
+          "name": "美的集团",
+          "price": 95.05,
+          "qty": 200,
+          "stop": 93.898
+        },
+        {
+          "day": "2026-11-20",
+          "action": "T1_DEFERRED_STOP",
+          "name": "美的集团",
+          "stop": 93.898,
+          "low": 93.55
+        },
+        {
+          "day": "2026-11-20",
+          "action": "CLOSE_REVIEW",
+          "name": "美的集团",
+          "state": "趋势确认",
+          "decision": "T1_DEFERRED_STOP",
+          "stop": 93.898
+        },
+        {
+          "day": "2026-11-23",
+          "action": "SELL",
+          "name": "美的集团",
+          "price": 94.23,
+          "reason": "T1_DEFERRED_STOP"
+        },
+        {
+          "day": "2026-11-23",
+          "action": "BUY",
+          "name": "交通银行",
+          "price": 8.96,
+          "qty": 2200,
+          "stop": 8.746
+        },
+        {
+          "day": "2026-11-23",
+          "action": "CLOSE_REVIEW",
+          "name": "交通银行",
+          "state": "趋势确认",
+          "decision": "HOLD",
+          "stop": 8.746
+        },
+        {
+          "day": "2026-11-24",
+          "action": "SKIP_HELD_AT_START",
+          "industry": "S480201"
+        },
+        {
+          "day": "2026-11-24",
+          "action": "SELL",
+          "name": "交通银行",
+          "price": 8.74,
+          "reason": "STRUCTURE_STOP"
+        }
+      ],
+      "equity": [
+        {
+          "date": "2026-11-18",
+          "nav": 100000
+        },
+        {
+          "date": "2026-11-19",
+          "nav": 100000,
+          "cash": 100000,
+          "positions": []
+        },
+        {
+          "date": "2026-11-20",
+          "nav": 99948.29699999999,
+          "cash": 80984.29699999999,
+          "positions": [
+            {
+              "name": "美的集团",
+              "qty": 200,
+              "pending": "T1_DEFERRED_STOP"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-23",
+          "nav": 99743.3066,
+          "cash": 80097.3066,
+          "positions": [
+            {
+              "name": "交通银行",
+              "qty": 2200,
+              "pending": null
+            }
+          ]
+        },
+        {
+          "date": "2026-11-24",
+          "nav": 99309.9242,
+          "cash": 99309.9242,
+          "positions": []
+        }
+      ]
+    },
+    {
+      "order": "formal",
+      "policy": "fixed",
+      "ret": -0.4559473000000036,
+      "dd": -0.4559473000000036,
+      "closed": 2,
+      "win": 0,
+      "trades": [
+        {
+          "name": "美的集团",
+          "code": "000333",
+          "buyDay": "2026-11-20",
+          "buy": 95.05,
+          "qty": 200,
+          "sellDay": "2026-11-23",
+          "sell": 94.23,
+          "reason": "T1_DEFERRED_STOP",
+          "pnl": -184.77980000000025,
+          "ret": -0.9717221603639858
+        },
+        {
+          "name": "农业银行",
+          "code": "601288",
+          "buyDay": "2026-11-23",
+          "buy": 7.77,
+          "qty": 2500,
+          "sellDay": "2026-11-24",
+          "sell": 7.67,
+          "reason": "NEXT_SELLABLE_OPEN",
+          "pnl": -271.16749999999956,
+          "ret": -1.3955530200656652
+        }
+      ],
+      "events": [
+        {
+          "day": "2026-11-19",
+          "action": "NO_OPEN_FILL",
+          "name": "美的集团",
+          "open": 93.5,
+          "zone": [
+            94.088,
+            94.774
+          ]
+        },
+        {
+          "day": "2026-11-20",
+          "action": "BUY",
+          "name": "美的集团",
+          "price": 95.05,
+          "qty": 200,
+          "stop": 93.898
+        },
+        {
+          "day": "2026-11-20",
+          "action": "T1_DEFERRED_STOP",
+          "name": "美的集团",
+          "stop": 93.898,
+          "low": 93.55
+        },
+        {
+          "day": "2026-11-20",
+          "action": "CLOSE_REVIEW",
+          "name": "美的集团",
+          "state": "趋势确认",
+          "decision": "T1_DEFERRED_STOP",
+          "stop": 93.898
+        },
+        {
+          "day": "2026-11-23",
+          "action": "SELL",
+          "name": "美的集团",
+          "price": 94.23,
+          "reason": "T1_DEFERRED_STOP"
+        },
+        {
+          "day": "2026-11-23",
+          "action": "BUY",
+          "name": "农业银行",
+          "price": 7.77,
+          "qty": 2500,
+          "stop": 7.652
+        },
+        {
+          "day": "2026-11-23",
+          "action": "CLOSE_REVIEW",
+          "name": "农业银行",
+          "state": "趋势确认",
+          "decision": "HOLD",
+          "stop": 7.652
+        },
+        {
+          "day": "2026-11-24",
+          "action": "SELL",
+          "name": "农业银行",
+          "price": 7.67,
+          "reason": "NEXT_SELLABLE_OPEN"
+        },
+        {
+          "day": "2026-11-24",
+          "action": "SKIP_HELD_AT_START",
+          "industry": "S480201"
+        }
+      ],
+      "equity": [
+        {
+          "date": "2026-11-18",
+          "nav": 100000
+        },
+        {
+          "date": "2026-11-19",
+          "nav": 100000,
+          "cash": 100000,
+          "positions": []
+        },
+        {
+          "date": "2026-11-20",
+          "nav": 99948.29699999999,
+          "cash": 80984.29699999999,
+          "positions": [
+            {
+              "name": "美的集团",
+              "qty": 200,
+              "pending": "T1_DEFERRED_STOP"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-23",
+          "nav": 99959.3927,
+          "cash": 80384.3927,
+          "positions": [
+            {
+              "name": "农业银行",
+              "qty": 2500,
+              "pending": null
+            }
+          ]
+        },
+        {
+          "date": "2026-11-24",
+          "nav": 99544.0527,
+          "cash": 99544.0527,
+          "positions": []
+        }
+      ]
+    },
+    {
+      "order": "model",
+      "policy": "fixed",
+      "ret": -0.49223420000000795,
+      "dd": -0.49223420000000795,
+      "closed": 2,
+      "win": 0,
+      "trades": [
+        {
+          "name": "美的集团",
+          "code": "000333",
+          "buyDay": "2026-11-20",
+          "buy": 95.05,
+          "qty": 200,
+          "sellDay": "2026-11-23",
+          "sell": 94.23,
+          "reason": "T1_DEFERRED_STOP",
+          "pnl": -184.77980000000025,
+          "ret": -0.9717221603639858
+        },
+        {
+          "name": "交通银行",
+          "code": "601328",
+          "buyDay": "2026-11-23",
+          "buy": 8.96,
+          "qty": 2200,
+          "sellDay": "2026-11-24",
+          "sell": 8.83,
+          "reason": "NEXT_SELLABLE_OPEN",
+          "pnl": -307.45440000000235,
+          "ret": -1.5592643635480852
+        }
+      ],
+      "events": [
+        {
+          "day": "2026-11-19",
+          "action": "NO_OPEN_FILL",
+          "name": "美的集团",
+          "open": 93.5,
+          "zone": [
+            94.088,
+            94.774
+          ]
+        },
+        {
+          "day": "2026-11-20",
+          "action": "BUY",
+          "name": "美的集团",
+          "price": 95.05,
+          "qty": 200,
+          "stop": 93.898
+        },
+        {
+          "day": "2026-11-20",
+          "action": "T1_DEFERRED_STOP",
+          "name": "美的集团",
+          "stop": 93.898,
+          "low": 93.55
+        },
+        {
+          "day": "2026-11-20",
+          "action": "CLOSE_REVIEW",
+          "name": "美的集团",
+          "state": "趋势确认",
+          "decision": "T1_DEFERRED_STOP",
+          "stop": 93.898
+        },
+        {
+          "day": "2026-11-23",
+          "action": "SELL",
+          "name": "美的集团",
+          "price": 94.23,
+          "reason": "T1_DEFERRED_STOP"
+        },
+        {
+          "day": "2026-11-23",
+          "action": "BUY",
+          "name": "交通银行",
+          "price": 8.96,
+          "qty": 2200,
+          "stop": 8.746
+        },
+        {
+          "day": "2026-11-23",
+          "action": "CLOSE_REVIEW",
+          "name": "交通银行",
+          "state": "趋势确认",
+          "decision": "HOLD",
+          "stop": 8.746
+        },
+        {
+          "day": "2026-11-24",
+          "action": "SELL",
+          "name": "交通银行",
+          "price": 8.83,
+          "reason": "NEXT_SELLABLE_OPEN"
+        },
+        {
+          "day": "2026-11-24",
+          "action": "SKIP_HELD_AT_START",
+          "industry": "S480201"
+        }
+      ],
+      "equity": [
+        {
+          "date": "2026-11-18",
+          "nav": 100000
+        },
+        {
+          "date": "2026-11-19",
+          "nav": 100000,
+          "cash": 100000,
+          "positions": []
+        },
+        {
+          "date": "2026-11-20",
+          "nav": 99948.29699999999,
+          "cash": 80984.29699999999,
+          "positions": [
+            {
+              "name": "美的集团",
+              "qty": 200,
+              "pending": "T1_DEFERRED_STOP"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-23",
+          "nav": 99743.3066,
+          "cash": 80097.3066,
+          "positions": [
+            {
+              "name": "交通银行",
+              "qty": 2200,
+              "pending": null
+            }
+          ]
+        },
+        {
+          "date": "2026-11-24",
+          "nav": 99507.7658,
+          "cash": 99507.7658,
+          "positions": []
+        }
+      ]
+    }
+  ]
+}
