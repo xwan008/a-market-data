@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "scripts/trend_registry.py"
+      - "validation/replay_trend_registry.py"
       - "scripts/industry_lifecycle.py"
       - "dashboard/src/App.jsx"
       - "dashboard/src/model.js"
@@ -25,6 +26,7 @@ on:
     branches: [main]
     paths:
       - "scripts/trend_registry.py"
+      - "validation/replay_trend_registry.py"
       - "scripts/validate_trend_state_migrations.py"
       - "scripts/validate_trend_publication_pair.py"
       - "tests/test_trend_registry.py"
@@ -55,6 +57,28 @@ jobs:
           python -m unittest discover -s tests -p "test_trend_publication_pair.py" -v
           python -m unittest discover -s tests -p "test_sw3_archive_replay.py" -v
           python -m unittest discover -s tests -p "test_theme_handoff_routes.py" -v
+      - name: Compare real archived trend publication replay before and after cleanup
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git fetch --depth=1 --filter=blob:none origin "$BASE_SHA" e707406cdb4d0ffad42d24f146f5b7a411a63f98 9831654e10e7331e3e29a8c9ca95f2b53bad4b2c a60bd5d3f11652243de2e719e4ef342fd07b295f
+          mkdir -p /tmp/trend-before/scripts /tmp/trend-replay
+          for file in trend_registry.py industry_lifecycle.py validate_trend_publication_pair.py render_trend_report.py sw3_same_day_cutover.py; do
+            git show "$BASE_SHA:scripts/$file" > "/tmp/trend-before/scripts/$file"
+          done
+          git show e707406cdb4d0ffad42d24f146f5b7a411a63f98:research/trend_registry.json > /tmp/trend-replay/23-registry.json
+          git show e707406cdb4d0ffad42d24f146f5b7a411a63f98:research/trend_handoff.json > /tmp/trend-replay/23-handoff.json
+          git show 9831654e10e7331e3e29a8c9ca95f2b53bad4b2c:research/trend_registry.json > /tmp/trend-replay/24-first-registry.json
+          git show a60bd5d3f11652243de2e719e4ef342fd07b295f:research/trend_handoff.json > /tmp/trend-replay/24-first-handoff.json
+          for version in before after; do
+            root="$PWD"
+            if [ "$version" = before ]; then root=/tmp/trend-before; fi
+            python validation/replay_trend_registry.py --code-root "$root" --archive validation/archive --cutover-registry /tmp/trend-replay/23-registry.json --cutover-handoff /tmp/trend-replay/23-handoff.json --first-24-registry /tmp/trend-replay/24-first-registry.json --first-24-handoff /tmp/trend-replay/24-first-handoff.json > "/tmp/trend-replay/$version.json"
+          done
+          diff -u /tmp/trend-replay/before.json /tmp/trend-replay/after.json
+          python -c 'import json; print(json.dumps(json.load(open("/tmp/trend-replay/after.json"))["summary"], ensure_ascii=False, indent=2))'
+          echo "ARCHIVED_TREND_REPLAY_PARITY_OK"
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
