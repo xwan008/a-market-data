@@ -138,7 +138,13 @@ class UpstreamRouteCheckTests(unittest.TestCase):
         snapshot = (root / ".github/workflows/update-intraday-snapshot.yml").read_text()
         self.assertIn("check_theme_routes(handoff,index,registry)", formal)
         self.assertIn("NO_ELIGIBLE_CONFIRMED_TREND", formal)
-        self.assertEqual(formal.count("if: steps.admission.outputs.should_run == 'true'"), 8)
+        self.assertEqual(formal.count("if: steps.admission.outputs.should_run == 'true'"), 4)
+        # All post-admission steps remain gated; result + handoff are now
+        # produced and committed as a single validated pair, not two pushes.
+        self.assertIn("run_model_top1_formal.py", formal)
+        self.assertIn("git add research/trend_buy_formal_result.json research/trend_buy_handoff.json", formal)
+        self.assertIn("TOP1_HANDOFF_SCOPE_VERIFIED", formal)
+        self.assertEqual(formal.count("git push origin HEAD:main"), 1)
         self.assertIn("check_theme_routes(trend,index,registry)", direct)
         self.assertIn("NO_ELIGIBLE_CONFIRMED_TREND", direct)
         self.assertIn("validate_pair(registry,sector_handoff)", snapshot)

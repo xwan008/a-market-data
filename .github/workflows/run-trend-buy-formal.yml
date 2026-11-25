@@ -5,17 +5,14 @@ on:
     branches: [main]
     paths:
       - "research/trend_buy_company_reviews/latest.json"
-
 permissions:
   contents: write
-
 concurrency:
   group: trend-buy-mainline-formal-publish
   cancel-in-progress: false
-
 jobs:
   formal-mainline:
-    name: Fresh market screening, verified research and conditional formal publish
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -26,221 +23,117 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
-      - name: Verify confirmed-only upstream contract and detect legitimate zero-signal run
+      - name: Verify confirmed-only upstream and exact frozen research input
         id: admission
-        shell: bash
         run: |
           python - <<'PY'
           import json,os,sys
           from pathlib import Path
           sys.path.insert(0,'scripts')
-          from validate_trend_publication_pair import validate as validate_pair
+          from validate_trend_publication_pair import validate
           from validate_theme_handoff_routes import check_theme_routes
-          read=lambda p:json.loads(Path(p).read_text(encoding='utf-8'))
+          from prepare_trend_buy_candidates import validate_admission
+          read=lambda p:json.loads(Path(p).read_bytes())
           registry=read('research/trend_registry.json')
           handoff=read('research/trend_handoff.json')
-          day=handoff.get('trade_date','')
-          if day < '2026-10-27':
-              raise SystemExit('CURRENT_CONFIRMED_ONLY_BASELINE_NOT_PUBLISHED')
-          errors=validate_pair(registry,handoff)
-          if errors:
-              raise SystemExit('UPSTREAM_PAIR_INVALID: '+','.join(errors))
+          day=handoff['trade_date']
+          assert day >= '2026-10-27'
+          errors=validate(registry,handoff)
+          assert not errors,errors
           if not handoff['signals']:
-              # A legitimate empty upstream does not need a fresh company index
-              # or company review. No historical formal/stock handoff is reused.
-              should_run='false'
-              print('NO_ELIGIBLE_CONFIRMED_TREND: successful no-op, no formal stock output')
+              run='false'
+              print('NO_ELIGIBLE_CONFIRMED_TREND')
           else:
               index=read('data/low_risk/index.json')
               check_theme_routes(handoff,index,registry)
-              should_run='true'
-              print('CONFIRMED_ONLY_ROUTING_VERIFIED',day,len(handoff['signals']))
-          with open(os.environ['GITHUB_OUTPUT'],'a',encoding='utf-8') as output:
-              output.write('should_run='+should_run+'\n')
+              assert index['trade_date']==day and index['validation']['status']=='passed'
+              admission=read('research/trend_buy_candidates/latest.json')
+              assert admission['trade_date']==day
+              validate_admission(Path('.'),admission)
+              evidence=read('research/trend_buy_company_reviews/latest.json')
+              assert evidence['as_of_date']==day
+              assert evidence['explicit_no_prior_formal_or_archive_input'] is True
+              assert evidence['top1_selection']['prompt_version']=='V1.6-R1'
+              run='true'
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:
+              f.write('should_run='+run+'\n')
           PY
-
-      - name: Validate latest completed upstream day and this-run company evidence
-        if: steps.admission.outputs.should_run == 'true'
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          handoff=json.loads(Path('research/trend_handoff.json').read_text(encoding='utf-8'))
-          idx=json.loads(Path('data/low_risk/index.json').read_text(encoding='utf-8'))
-          evidence=json.loads(Path('research/trend_buy_company_reviews/latest.json').read_text(encoding='utf-8'))
-          admission=json.loads(Path('research/trend_buy_candidates/latest.json').read_text(encoding='utf-8'))
-          day=handoff['trade_date']
-          assert admission['trade_date']==day and admission['prescreen_version']=='CANONICAL', 'PRESCREEN_ADMISSION_MISSING'
-          assert day==idx['trade_date']==evidence['as_of_date'], 'TRADING_DAY_OR_REVIEW_DATE_MISMATCH'
-          assert idx['validation']['status']=='passed', 'COMPANY_INPUT_NOT_VALIDATED'
-          assert evidence.get('explicit_no_prior_formal_or_archive_input') is True
-          assert len({x['code'] for x in evidence['reviews']})==len(evidence['reviews'])
-          assert len(evidence['reviews'])>0
-          from scripts.prepare_trend_buy_candidates import validate_admission
-          by_industry=validate_admission(Path('.'),admission)
-          wanted={code for codes in by_industry.values() for code in codes}
-          company_industry={company:industry for industry,codes in by_industry.items()
-                            for company in codes}
-          reviewed={r['code'] for r in evidence['reviews']}
-          assert reviewed==wanted,('PRESCREEN_REVIEW_SCOPE_MISMATCH',
-                 sorted(wanted-reviewed),sorted(reviewed-wanted))
-          model_ranks={}
-          for x in evidence['reviews']:
-              assert x['review_evidence_date']==day, ('REVIEW_DATE',x['code'])
-              if x.get('transmission') in ('SUPPORTED','EARLY_EVIDENCE'):
-                  rank=x.get('model_rank')
-                  reason=x.get('model_reason')
-                  assert type(rank) is int and 1<=rank<=100,('PRESCREEN_MODEL_RANK',x['code'])
-                  assert isinstance(reason,str) and len(reason.strip())>=24,('PRESCREEN_MODEL_REASON',x['code'])
-                  theme=next((h['trend_name'] for h in handoff['signals']
-                              if company_industry[x['code']] in h['industry_codes']),None)
-                  assert theme,('PRESCREEN_THEME_NOT_FOUND',x['code'])
-                  if rank in model_ranks.setdefault(theme,set()):
-                      raise AssertionError('PRESCREEN_DUPLICATE_RANK:'+theme+':'+str(rank))
-                  model_ranks[theme].add(rank)
-              assert x.get('source_review') and x.get('review_basis')
-              assert x.get('transmission') in ('SUPPORTED','EARLY_EVIDENCE','UNCERTAIN','NOT_SUPPORTED')
-              for material in x.get('source_materials',[]):
-                  assert material.get('asof')==day, ('SOURCE_ASOF',x['code'])
-                  assert material.get('published_at') and material['published_at']<=day, ('POST_ASOF_SOURCE',x['code'])
-                  assert str(material.get('url','')).startswith('https://'), ('BAD_SOURCE',x['code'])
-          print('LATEST_UPSTREAM_AND_FRESH_RESEARCH_DATE_VERIFIED',day,len(evidence['reviews']))
-          PY
-
-      - name: Prepare same-session 65-day momentum in existing quote shards
+      - name: Prepare same-session technical evidence
         if: steps.admission.outputs.should_run == 'true'
         run: |
           python scripts/build_history.py
           python scripts/build_bridge.py
-
-      - name: Fresh dynamic industry Top5 and selected company research
+      - name: Reproduce frozen candidate scope and company facts without model ranks
         if: steps.admission.outputs.should_run == 'true'
         run: |
           python scripts/build_trend_buy_manual_research.py \
+            --model-top1-research \
             --evidence research/trend_buy_company_reviews/latest.json \
             --admission research/trend_buy_candidates/latest.json \
             --structure-output /tmp/mainline-scoped-structure.json \
             --output /tmp/mainline-fresh-research.json
-
-      - name: Recompute every selected entry, theme Top5 and risk plan
+      - name: Compute only selected TOP1 risk and stage sole formal result
         if: steps.admission.outputs.should_run == 'true'
         run: |
-          python scripts/trend_buy_engine.py \
+          python scripts/run_model_top1_formal.py \
+            --admission research/trend_buy_candidates/latest.json \
             --research /tmp/mainline-fresh-research.json \
             --structure /tmp/mainline-scoped-structure.json \
+            --evidence research/trend_buy_company_reviews/latest.json \
+            --run-id "trend-buy-formal-main-${GITHUB_RUN_ID}" \
             --output /tmp/mainline-fresh-result.json
-
-      - name: Fail-closed full audit and prepare sole formal result
-        if: steps.admission.outputs.should_run == 'true'
-        run: |
           python - <<'PY'
-          import json,os,subprocess
+          import json,subprocess,os
           from pathlib import Path
-          src=lambda p:json.loads(Path(p).read_text(encoding='utf-8'))
-          res=src('/tmp/mainline-fresh-result.json')
-          research=src('/tmp/mainline-fresh-research.json')
-          technical=src('/tmp/mainline-scoped-structure.json')
-          handoff=src('research/trend_handoff.json')
-          evidence=src('research/trend_buy_company_reviews/latest.json')
-          day=handoff['trade_date']
+          read=lambda p:json.loads(Path(p).read_bytes())
+          res=read('/tmp/mainline-fresh-result.json')
+          research=read('/tmp/mainline-fresh-research.json')
+          technical=read('/tmp/mainline-scoped-structure.json')
           audit=research['screen_audit']
-          assert res['trade_date']==research['trade_date']==technical['reference_trade_date']==day
+          assert res['trade_date']==research['trade_date']==technical['reference_trade_date']
           assert audit['hard_eligible']==len(audit['lightweight_scanned'])
           assert audit['hard_eligible']==len(audit['pre_screen_selected'])+len(audit['pre_screened_out'])
           assert audit['research_scope']=='python_top5_before_model_review'
-          assert research['prescreen_version']=='CANONICAL'
-          assert res['prescreen_version']=='CANONICAL'
-          assert len(audit['pre_screen_selected'])==research['selected_company_count']
-          assert research['selected_company_count']==res['coverage']['judged']
-          assert audit['source_review_pending_count']==0, ('RESEARCH_PENDING',audit['source_review_pending_codes'])
-          assert audit['model_rank_missing_codes']==[],audit['model_rank_missing_codes']
-          assert all(len(g['selected_codes'])<=5 for g in
-              json.loads(Path('research/trend_buy_candidates/latest.json').read_text())['industries'])
-          from scripts.build_trend_buy_manual_research import validate_fresh_review_scope
-          validate_fresh_review_scope(evidence, research)
-          assert research['mode']==res['mode']=='FORMAL'
-          assert res['production_eligible'] is True and res['status']=='COMPLETE'
-          assert res['coverage']['complete']
-          assert sum(res['summary'].values())==res['coverage']['judged']
-          gates=['fresh_company_research','working_set_frozen','pre_screen_coverage',
-                 'company_research_coverage','structure_same_day','no_future_evidence','json_schema_valid']
-          assert all(res['publication_audit'].get(k) is True for k in gates),res['publication_audit']
-          assert all(len(g['items'])<=5 for g in res['top5_by_theme'])
-          assert all(z['trend_phase']!='COOLING' for g in res['top5_by_theme'] for z in g['items'])
-          assert all(x['market_state']=='趋势确认' for x in res['ready'])
-          res['run_id']='trend-buy-formal-main-'+os.environ['GITHUB_RUN_ID']+'-asof-'+day
+          assert audit['source_review_pending_count']==0
+          assert res['coverage']['selected']==research['selected_company_count']==len(audit['pre_screen_selected'])
+          assert res['coverage']['judged']==sum(res['summary'].values())
+          assert res['production_eligible'] and res['selection_policy']=='MODEL_TOP1_V1_6_R1'
           res['fresh_mainline_provenance']={
-              'source_trade_date':day,
-              'run':'new_screen_new_issuer_review_new_price_analysis',
+              'source_trade_date':res['trade_date'],
+              'run':'frozen_top5_locked_model_top1_independent_risk',
               'old_formal_or_replay_used_as_input':False,
-              'industry_handoff_sha':subprocess.check_output(['git','rev-parse','HEAD:research/trend_handoff.json'],text=True).strip(),
-              'frozen_company_index_sha':subprocess.check_output(['git','rev-parse','HEAD:data/low_risk/index.json'],text=True).strip(),
-              'company_review_sha':subprocess.check_output(['git','rev-parse','HEAD:research/trend_buy_company_reviews/latest.json'],text=True).strip(),
-              'company_research_admission_sha':subprocess.check_output(['git','rev-parse','HEAD:research/trend_buy_candidates/latest.json'],text=True).strip(),
-              'research_selected_company_count':research['selected_company_count'],
-              'lightweight_scanned':audit['hard_eligible'],
-              'technical_rebuilt_at':technical['generated_at'],
-              'github_actions_run_id':os.environ['GITHUB_RUN_ID']
-          }
-          out=Path('research/trend_buy_formal_result.json')
-          text=json.dumps(res,ensure_ascii=False,indent=2)+'\n'
-          assert json.loads(text)==res
-          out.write_text(text,encoding='utf-8')
-          print('FULL_FORMAL_AUDIT_OK',json.dumps({
-              'run_id':res['run_id'],'date':day,
-              'lightweight_scanned':audit['hard_eligible'],
-              'deep_researched':research['selected_company_count'],
-              'summary':res['summary'],
-              'top5':{g['trend_name']:[x['code'] for x in g['items']] for g in res['top5_by_theme']},
-              'focus':[(x['trend_name'],x.get('code')) for x in res['focus_watchlist']]
-          },ensure_ascii=False))
+              'github_actions_run_id':os.environ['GITHUB_RUN_ID'],
+              'technical_rebuilt_at':technical['generated_at']}
+          for key,path in [('industry_handoff_sha','research/trend_handoff.json'),
+              ('frozen_company_index_sha','data/low_risk/index.json'),
+              ('company_review_sha','research/trend_buy_company_reviews/latest.json'),
+              ('company_research_admission_sha','research/trend_buy_candidates/latest.json')]:
+              res['fresh_mainline_provenance'][key]=subprocess.check_output(['git','rev-parse','HEAD:'+path],text=True).strip()
+          Path('research/trend_buy_formal_result.json').write_text(json.dumps(res,ensure_ascii=False,indent=2,allow_nan=False)+'\n',encoding='utf-8')
           PY
-
-      - name: Commit formal result to main and check exact readback
+          sha=$(git hash-object research/trend_buy_formal_result.json)
+          python scripts/trend_buy_handoff.py --result research/trend_buy_formal_result.json \
+            --result-blob-sha "$sha" --output research/trend_buy_handoff.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          f=json.loads(Path('research/trend_buy_formal_result.json').read_bytes())
+          h=json.loads(Path('research/trend_buy_handoff.json').read_bytes())
+          assert h['trade_date']==f['trade_date'] and h['source_run_id']==f['run_id']
+          assert h['shadow'] is False
+          assert [x['code'] for x in h['items']]==[x['top1_code'] for x in f['top1_decisions'] if x['risk_status'] in ('READY','WAIT')]
+          print('TOP1_HANDOFF_SCOPE_VERIFIED',len(h['items']))
+          PY
+      - name: Atomically publish both artifacts and verify main readback
         if: steps.admission.outputs.should_run == 'true'
-        shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add research/trend_buy_formal_result.json
-          git commit -m "research: fresh mainline trend-buy formal result from new full research"
-          git push origin HEAD:main
           git fetch origin main
-          git show origin/main:research/trend_buy_formal_result.json | cmp - research/trend_buy_formal_result.json
-          test "$(git rev-parse origin/main:research/trend_buy_formal_result.json)" = "$(git hash-object research/trend_buy_formal_result.json)"
-          echo "FORMAL_PERSISTED_READBACK $(git rev-parse origin/main:research/trend_buy_formal_result.json)"
-
-      - name: Project new dynamic theme Top5 into final only valid handoff
-        if: steps.admission.outputs.should_run == 'true'
-        shell: bash
-        run: |
-          set -euo pipefail
-          FORMAL_SHA="$(git rev-parse origin/main:research/trend_buy_formal_result.json)"
-          python scripts/trend_buy_handoff.py \
-            --result research/trend_buy_formal_result.json \
-            --result-blob-sha "$FORMAL_SHA" \
-            --output research/trend_buy_handoff.json
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          f=json.loads(Path('research/trend_buy_formal_result.json').read_text())
-          h=json.loads(Path('research/trend_buy_handoff.json').read_text())
-          assert h['trade_date']==f['trade_date'] and h['source_run_id']==f['run_id']
-          assert h['status']=='COMPLETE' and h['shadow'] is False
-          assert [x['code'] for x in h['items']]==[
-              x['code'] for g in f['top5_by_theme'] for x in g['items']]
-          print('HANDOFF_CONTRACT_FROM_FRESH_FORMAL_OK',len(h['items']))
-          PY
-
-      - name: Commit final handoff and READBACK both formal SHA and handoff
-        if: steps.admission.outputs.should_run == 'true'
-        shell: bash
-        run: |
-          set -euo pipefail
-          git add research/trend_buy_handoff.json
-          git commit -m "research: current mainline only verified theme Top5 handoff"
+          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
+          git add research/trend_buy_formal_result.json research/trend_buy_handoff.json
+          git commit -m "research: sole formal locked TOP1 result and handoff"
           git push origin HEAD:main
           git fetch origin main
           for p in research/trend_buy_formal_result.json research/trend_buy_handoff.json; do
@@ -249,16 +142,9 @@ jobs:
           python - <<'PY'
           import json,subprocess
           from pathlib import Path
-          result=json.loads(Path('research/trend_buy_formal_result.json').read_text())
-          handoff=json.loads(Path('research/trend_buy_handoff.json').read_text())
+          f=json.loads(Path('research/trend_buy_formal_result.json').read_bytes())
+          h=json.loads(Path('research/trend_buy_handoff.json').read_bytes())
           sha=subprocess.check_output(['git','rev-parse','origin/main:research/trend_buy_formal_result.json'],text=True).strip()
-          assert handoff['source_formal_blob_sha']==sha
-          print('FINAL_MAIN_HANDOFF_READBACK_OK',json.dumps({
-              'date':result['trade_date'],'run_id':result['run_id'],
-              'formal_blob_sha':sha,
-              'handoff_blob_sha':subprocess.check_output(['git','rev-parse','origin/main:research/trend_buy_handoff.json'],text=True).strip(),
-              'summary':result['summary'],
-              'handoff_count':len(handoff['items']),
-              'top5':{g['trend_name']:[x['code'] for x in g['items']] for g in result['top5_by_theme']}
-          },ensure_ascii=False))
+          assert h['source_formal_blob_sha']==sha
+          print('FINAL_MAIN_HANDOFF_READBACK_OK',f['trade_date'],f['run_id'],sha,len(h['items']))
           PY

@@ -27,7 +27,7 @@ def read_json(path: Path) -> dict:
 
 
 def active_stock_handoff() -> tuple[dict, list[dict], str]:
-    """One official handoff; validate exact SHA and dynamic Top5 membership."""
+    """One official handoff; verify exact SHA and selected execution membership."""
     handoff = read_json(TREND_BUY_PATH)
     if handoff.get("shadow") is not False or not handoff.get("source_formal_blob_sha") or not handoff.get("source_run_id"):
         raise ValueError("NO_VALID_TREND_BUY_HANDOFF")
@@ -42,7 +42,7 @@ def active_stock_handoff() -> tuple[dict, list[dict], str]:
         or formal.get("run_id") != handoff.get("source_run_id")
         or formal.get("trade_date") != handoff.get("trade_date")):
         raise ValueError("TREND_BUY_FORMAL_HANDOFF_MISMATCH")
-    # The only production monitor universe is the *researched dynamic theme Top5*.
+    # The only production monitor universe is the exact handoff projection. New policy: selected TOP1 only; historical v2 remains readable.
     # Never silently fall back to yesterday's unranked READY+WAIT population.
     if not isinstance(formal.get("top5_by_theme"), list):
         raise ValueError("TREND_BUY_FORMAL_DYNAMIC_TOP5_MISSING")
