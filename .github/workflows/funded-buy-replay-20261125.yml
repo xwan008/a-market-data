@@ -1,0 +1,62 @@
+name: Read-only current funded buy flow replay
+on:
+  pull_request:
+    branches: [main]
+    paths: ['.github/workflows/funded-buy-replay-20261125.yml']
+permissions:
+  contents: read
+jobs:
+  replay:
+    if: github.head_ref == 'test/funded-buy-replay-20261125'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - name: Replay exact admission and actual fund inputs without publication
+        run: |
+          set -euo pipefail
+          python scripts/prepare_trend_buy_candidates.py --output /tmp/replay-candidates.json
+          python - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,'scripts')
+          from prepare_trend_buy_candidates import validate_admission
+          a=json.loads(Path('/tmp/replay-candidates.json').read_bytes())
+          b=json.loads(Path('research/trend_buy_candidates/latest.json').read_bytes())
+          assert a==b, 'ORIGINAL_ADMISSION_CHANGED'
+          validate_admission(Path('.'),a)
+          print('REPLAY_PYTHON_ADMISSION',json.dumps(a,ensure_ascii=False))
+          PY
+          python scripts/freeze_trend_buy_fund_flow.py --admission /tmp/replay-candidates.json --output /tmp/replay-funded.json
+          python - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,'scripts')
+          from prepare_trend_buy_candidates import validate_admission
+          from research_model_top1 import git_blob_sha
+          raw=Path('/tmp/replay-funded.json').read_bytes()
+          a=json.loads(raw)
+          validate_admission(Path('.'),a)
+          print('REPLAY_FUNDED_BLOB',git_blob_sha(raw))
+          print('REPLAY_FUND_SNAPSHOT',json.dumps(a['fund_flow'],ensure_ascii=False,allow_nan=False))
+          for g in a['fund_flow']['groups']:
+              print('REPLAY_GROUP',g['industry_code'],g['status'],g['provider'])
+          locked=json.loads(Path('research/trend_buy_formal_result.json').read_bytes())
+          handoff=json.loads(Path('research/trend_buy_handoff.json').read_bytes())
+          assert locked['trade_date']==a['trade_date']==handoff['trade_date']=='2026-11-25'
+          assert 'model_top1_selection' in locked
+          print('REPLAY_STOP_AT_LOCK',a['trade_date'],'no reselection or formal output write')
+          PY
+          git diff --exit-code -- research/trend_buy_candidates/latest.json research/trend_buy_company_reviews/latest.json research/trend_buy_formal_result.json research/trend_buy_handoff.json
+      - name: Verify downstream contract and fail-closed cases without real reselection
+        run: |
+          python -m unittest discover -s tests -p 'test_frozen_trend_buy_fund_flow.py'
+          python -m unittest discover -s tests -p 'test_run_model_top1_formal.py'
+          python -m unittest discover -s tests -p 'test_trend_buy_admission.py'
