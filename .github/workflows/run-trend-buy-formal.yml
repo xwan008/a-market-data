@@ -57,6 +57,8 @@ jobs:
               previous=read('research/trend_buy_formal_result.json')
               if (previous.get('trade_date')==day and previous.get('selection_policy')=='MODEL_TOP1_V1_6_R1'):
                   assert previous['model_top1_selection']==evidence['top1_selection'], 'LOCKED_TOP1_CANNOT_BE_RESELECTED'
+              else:
+                  assert 'fund_flow' in admission, 'NEW_FORMAL_RUN_REQUIRES_FROZEN_FUND_SNAPSHOT'
               run='true'
           with open(os.environ['GITHUB_OUTPUT'],'a') as f:
               f.write('should_run='+run+'\n')

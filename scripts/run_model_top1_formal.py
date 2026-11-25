@@ -4,11 +4,12 @@ import argparse
 import json
 from pathlib import Path
 try:
-    from . import research_model_top1 as model, trend_buy_engine as engine, trend_buy_handoff as handoff
+    from . import research_model_top1 as model, trend_buy_engine as engine, trend_buy_handoff as handoff, freeze_trend_buy_fund_flow as funds
 except ImportError:
     import research_model_top1 as model
     import trend_buy_engine as engine
     import trend_buy_handoff as handoff
+    import freeze_trend_buy_fund_flow as funds
 
 POLICY = "MODEL_TOP1_V1_6_R1"
 
@@ -31,8 +32,9 @@ def generate(admission_raw, research, structure, evidence, run_id):
                           s["published_at"][:10] <= day and str(s.get("url", "")).startswith("https://"),
                           "INVALID_REVIEW_SOURCE")
     selections = evidence["top1_selection"]
-    result = model.run(admission_raw, research, structure, selections)
     admission = json.loads(admission_raw)
+    funds.validate_selections(admission, selections)
+    result = model.run(admission_raw, research, structure, selections)
     roster = {c["code"]: c for c in research["companies"]}
     states = {s.lower(): [] for s in engine.STATES}
     groups, focus = [], []

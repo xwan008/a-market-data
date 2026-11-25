@@ -214,6 +214,9 @@ def validate_admission(root,admission):
         raise ValueError("ADMISSION_ADMISSION_CONFIRMED_INDUSTRY_COVERAGE_INCOMPLETE")
     if admission.get("selected_company_count")!=len(all_codes):
         raise ValueError("ADMISSION_ADMISSION_SELECTED_COUNT_MISMATCH")
+    if "fund_flow" in admission:
+        from freeze_trend_buy_fund_flow import validate_frozen
+        validate_frozen(root,admission)
     return by_sector
 
 
