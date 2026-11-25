@@ -8,6 +8,7 @@ on:
       - 'data/research/core_profit_refresh_latest.json'
       - 'scripts/prepare_trend_buy_candidates.py'
       - 'scripts/freeze_trend_buy_fund_flow.py'
+      - 'scripts/trend_buy_revision.py'
       - 'requirements.txt'
       - 'scripts/trend_buy_prescreen_core.py'
       - 'scripts/build_trend_buy_manual_research.py'
@@ -17,9 +18,11 @@ on:
     branches: [main]
     paths:
       - 'scripts/freeze_trend_buy_fund_flow.py'
+      - 'scripts/trend_buy_revision.py'
       - 'scripts/prepare_trend_buy_candidates.py'
       - 'scripts/run_model_top1_formal.py'
       - 'tests/test_frozen_trend_buy_fund_flow.py'
+      - 'tests/test_trend_buy_revision.py'
       - 'tests/test_run_model_top1_formal.py'
       - 'tests/test_trend_buy_admission.py'
       - '.github/workflows/prepare-trend-buy-candidates.yml'
@@ -46,7 +49,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Confirm current-day closed upstream and working set
+      - name: Install existing quotation dependencies
+        run: pip install -r requirements.txt
+      - name: Confirm closed upstream and preopen recovery window
         id: admission
         shell: bash
         run: |
@@ -57,37 +62,43 @@ jobs:
           from zoneinfo import ZoneInfo
           upstream=json.loads(Path('research/trend_handoff.json').read_text())
           idx=json.loads(Path('data/low_risk/index.json').read_text())
-          now=datetime.now(ZoneInfo('Asia/Shanghai')).date().isoformat()
+          sys.path.insert(0,'scripts')
+          from trend_buy_revision import preopen_window, retryable_groups, same_session_result
+          now=datetime.now(ZoneInfo('Asia/Shanghai'))
           day=upstream.get('trade_date')
           previous=json.loads(Path('research/trend_buy_formal_result.json').read_text())
-          locked=(previous.get('trade_date')==day and isinstance(previous.get('model_top1_selection'),dict))
+          retryable=retryable_groups(previous,day,now)
+          locked=same_session_result(previous,day) and not retryable
+          window=preopen_window(day,now)
           # Preserve an already frozen same-source intake, including explicit
           # INCOMPLETE groups. Do not change its hash during model research.
           funded=False
           candidate=Path('research/trend_buy_candidates/latest.json')
-          if candidate.exists() and day==now:
+          if candidate.exists() and window:
               sys.path.insert(0,'scripts')
               from prepare_trend_buy_candidates import validate_admission
               try:
                   old=json.loads(candidate.read_bytes())
                   if old.get('trade_date')==day and 'fund_flow' in old:
                       validate_admission(Path('.'),old)
-                      funded=True
+                      statuses={g['industry_code']:g['status'] for g in old['fund_flow']['groups']}
+                      funded=all(s=='VERIFIED' for s in statuses.values()) or (not retryable and os.getenv('GITHUB_EVENT_NAME')!='workflow_dispatch')
               except (KeyError,ValueError,FileNotFoundError,TypeError):
                   pass
-          allow=(not locked and not funded and day==now and idx.get('trade_date')==now
+          allow=(window and not locked and not funded and idx.get('trade_date')==day
                  and idx.get('validation',{}).get('status')=='passed'
                  and bool(upstream.get('signals')))
           with open(os.environ['GITHUB_OUTPUT'],'a') as out:
               out.write('run='+('true' if allow else 'false')+'\n')
           print('PROGRAM_ADMISSION_DAY_STATUS',json.dumps({
-              'today':now,'sector_date':day,'index_date':idx.get('trade_date'),
-              'sector_signals':len(upstream.get('signals') or []),'same_day_locked':locked,'same_source_funded_admission_exists':funded,
+              'now':now.isoformat(),'sector_date':day,'index_date':idx.get('trade_date'),
+              'sector_signals':len(upstream.get('signals') or []),'same_day_locked':locked,'retryable_groups':sorted(retryable),'same_source_funded_admission_exists':funded,
               'will_run':allow},ensure_ascii=False))
           PY
       - name: Freeze program-only candidates (research starts after this)
         if: steps.admission.outputs.run == 'true'
         run: |
+          cp research/trend_buy_candidates/latest.json /tmp/prior-admission.json
           python scripts/prepare_trend_buy_candidates.py \
             --output research/trend_buy_candidates/latest.json
           python - <<'PY'
@@ -96,17 +107,23 @@ jobs:
           x=json.loads(Path('research/trend_buy_candidates/latest.json').read_text())
           assert x['mode']=='PROGRAM_VERIFIED_MODEL_RESEARCH_PENDING'
           assert x['checks']['model_invocations']==0
+          prior=json.loads(Path('research/trend_buy_formal_result.json').read_text())
+          if prior.get('trade_date')==x['trade_date']:
+              assert prior['python_top5_by_industry']==x['industries'],'REVISION_FROZEN_ROSTER_CHANGED'
+              old=json.loads(Path('/tmp/prior-admission.json').read_text())
+              protected={p['industry_code'] for p in prior['model_top1_selection']['items'] if p['status']!='INCOMPLETE'}
+              if protected:
+                  assert {k:v for k,v in old.items() if k!='fund_flow'}==x,'REVISION_PROTECTED_INPUT_CHANGED'
+                  assert protected<={g['industry_code'] for g in old['fund_flow']['groups'] if g['status']=='VERIFIED'},'REVISION_PROTECTED_FUND_MISSING'
           assert all(1<=len(g['selected_codes'])<=5 for g in x['industries'])
           print('PROGRAM_MODEL_SCOPE_FREEZE',x['trade_date'],x['selected_company_count'])
           PY
-      - name: Install existing quotation dependencies
-        if: steps.admission.outputs.run == 'true'
-        run: pip install -r requirements.txt
       - name: Collect same-session fund evidence for frozen TOP5 only
         if: steps.admission.outputs.run == 'true'
         run: |
           python scripts/freeze_trend_buy_fund_flow.py \
             --admission research/trend_buy_candidates/latest.json \
+            --prior-admission /tmp/prior-admission.json \
             --output /tmp/frozen-funded-admission.json
           mv /tmp/frozen-funded-admission.json research/trend_buy_candidates/latest.json
       - name: Commit only research admission; read back exact content
@@ -129,11 +146,15 @@ jobs:
               exit 1
             fi
             if python - <<'PY'
-          import json
+          import json,sys
           from pathlib import Path
+          sys.path.insert(0,'scripts')
+          from trend_buy_revision import preopen_window,retryable_groups,same_session_result
           a=json.loads(Path('research/trend_buy_candidates/latest.json').read_text())
           f=json.loads(Path('research/trend_buy_formal_result.json').read_text())
-          raise SystemExit(0 if f.get('trade_date')==a['trade_date'] and isinstance(f.get('model_top1_selection'),dict) else 1)
+          day=a['trade_date']
+          stop=not preopen_window(day) or (same_session_result(f,day) and not retryable_groups(f,day))
+          raise SystemExit(0 if stop else 1)
           PY
             then
               echo 'SAME_DAY_MODEL_SELECTION_LOCKED_NO_ADMISSION_REWRITE'
@@ -180,6 +201,7 @@ jobs:
         run: |
           python -m unittest discover -s tests -p 'test_frozen_trend_buy_fund_flow.py'
           python -m unittest discover -s tests -p 'test_run_model_top1_formal.py'
+          python -m unittest discover -s tests -p 'test_trend_buy_revision.py'
       - name: Live same-session read-only verification
         run: |
           python - <<'PY'

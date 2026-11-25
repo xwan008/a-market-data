@@ -23,6 +23,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Install existing calendar/quote dependencies
+        run: pip install -r requirements.txt
       - name: Verify confirmed-only upstream and exact frozen research input
         id: admission
         run: |
@@ -33,6 +35,7 @@ jobs:
           from validate_trend_publication_pair import validate
           from validate_theme_handoff_routes import check_theme_routes
           from prepare_trend_buy_candidates import validate_admission
+          from trend_buy_revision import same_session_result,validate_revision
           read=lambda p:json.loads(Path(p).read_bytes())
           registry=read('research/trend_registry.json')
           handoff=read('research/trend_handoff.json')
@@ -55,11 +58,14 @@ jobs:
               assert evidence['explicit_no_prior_formal_or_archive_input'] is True
               assert evidence['top1_selection']['prompt_version']=='V1.6-R1'
               previous=read('research/trend_buy_formal_result.json')
-              if (previous.get('trade_date')==day and previous.get('selection_policy')=='MODEL_TOP1_V1_6_R1'):
-                  assert previous['model_top1_selection']==evidence['top1_selection'], 'LOCKED_TOP1_CANNOT_BE_RESELECTED'
+              if same_session_result(previous,day) and previous['model_top1_selection']==evidence['top1_selection']:
+                  run='false'
+                  print('EXACT_EXISTING_RESULT_NO_REPUBLICATION')
               else:
                   assert 'fund_flow' in admission, 'NEW_FORMAL_RUN_REQUIRES_FROZEN_FUND_SNAPSHOT'
-              run='true'
+                  validate_revision(previous,admission,evidence)
+                  run='true'
+                  print('PREOPEN_FORMAL_GATE_PASSED',day,'recovery' if same_session_result(previous,day) else 'initial')
           with open(os.environ['GITHUB_OUTPUT'],'a') as f:
               f.write('should_run='+run+'\n')
           PY
@@ -90,6 +96,9 @@ jobs:
           python - <<'PY'
           import json,subprocess,os
           from pathlib import Path
+          import sys
+          sys.path.insert(0,'scripts')
+          from trend_buy_revision import same_session_result,validate_protected_outputs,validate_revision
           read=lambda p:json.loads(Path(p).read_bytes())
           res=read('/tmp/mainline-fresh-result.json')
           research=read('/tmp/mainline-fresh-research.json')
@@ -114,6 +123,16 @@ jobs:
               ('company_review_sha','research/trend_buy_company_reviews/latest.json'),
               ('company_research_admission_sha','research/trend_buy_candidates/latest.json')]:
               res['fresh_mainline_provenance'][key]=subprocess.check_output(['git','rev-parse','HEAD:'+path],text=True).strip()
+          previous=read('research/trend_buy_formal_result.json')
+          validate_revision(previous,read('research/trend_buy_candidates/latest.json'),read('research/trend_buy_company_reviews/latest.json'))
+          validate_protected_outputs(previous,res)
+          if same_session_result(previous,res['trade_date']):
+              res['preopen_recovery']={
+                  'reason':'RETRY_INCOMPLETE_RESEARCH_BEFORE_NEXT_OPEN',
+                  'supersedes_formal_blob_sha':subprocess.check_output(['git','rev-parse','HEAD:research/trend_buy_formal_result.json'],text=True).strip(),
+                  'supersedes_handoff_blob_sha':subprocess.check_output(['git','rev-parse','HEAD:research/trend_buy_handoff.json'],text=True).strip(),
+                  'supersedes_run_id':previous['run_id'],
+                  'retried_industries':[p['industry_code'] for p in previous['model_top1_selection']['items'] if p['status']=='INCOMPLETE']}
           Path('research/trend_buy_formal_result.json').write_text(json.dumps(res,ensure_ascii=False,indent=2,allow_nan=False)+'\n',encoding='utf-8')
           PY
           sha=$(git hash-object research/trend_buy_formal_result.json)
@@ -137,8 +156,26 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin main
           test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
+          python - <<'PY'
+          import json,sys,subprocess
+          from pathlib import Path
+          sys.path.insert(0,'scripts')
+          from trend_buy_revision import validate_revision,validate_protected_outputs
+          old=json.loads(subprocess.check_output(['git','show','HEAD:research/trend_buy_formal_result.json']))
+          a=json.loads(Path('research/trend_buy_candidates/latest.json').read_bytes())
+          e=json.loads(Path('research/trend_buy_company_reviews/latest.json').read_bytes())
+          f=json.loads(Path('research/trend_buy_formal_result.json').read_bytes())
+          validate_revision(old,a,e)
+          validate_protected_outputs(old,f)
+          PY
           git add research/trend_buy_formal_result.json research/trend_buy_handoff.json
           git commit -m "research: sole formal locked TOP1 result and handoff"
+          python - <<'PY'
+          import json,sys
+          sys.path.insert(0,"scripts")
+          from trend_buy_revision import preopen_window
+          assert preopen_window(json.load(open("research/trend_buy_formal_result.json"))["trade_date"]), "NEXT_SESSION_OPEN_NO_PUBLISH"
+          PY
           git push origin HEAD:main
           git fetch origin main
           for p in research/trend_buy_formal_result.json research/trend_buy_handoff.json; do
