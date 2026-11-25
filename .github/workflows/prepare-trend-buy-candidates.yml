@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'research/trend_handoff.json'
+      - 'research/trend_buy_manual_rerun_request.json'
       - 'data/low_risk/index.json'
       - 'data/research/core_profit_refresh_latest.json'
       - 'scripts/prepare_trend_buy_candidates.py'
@@ -63,12 +64,13 @@ jobs:
           upstream=json.loads(Path('research/trend_handoff.json').read_text())
           idx=json.loads(Path('data/low_risk/index.json').read_text())
           sys.path.insert(0,'scripts')
-          from trend_buy_revision import preopen_window, retryable_groups, same_session_result
+          from trend_buy_revision import preopen_window, retryable_groups, same_session_result, active_manual_request
           now=datetime.now(ZoneInfo('Asia/Shanghai'))
           day=upstream.get('trade_date')
           previous=json.loads(Path('research/trend_buy_formal_result.json').read_text())
           retryable=retryable_groups(previous,day,now)
-          locked=same_session_result(previous,day) and not retryable
+          manual=active_manual_request(previous,day,now=now)
+          locked=same_session_result(previous,day) and not retryable and not manual
           window=preopen_window(day,now)
           # Preserve an already frozen same-source intake, including explicit
           # INCOMPLETE groups. Do not change its hash during model research.
@@ -82,7 +84,7 @@ jobs:
                   if old.get('trade_date')==day and 'fund_flow' in old:
                       validate_admission(Path('.'),old)
                       statuses={g['industry_code']:g['status'] for g in old['fund_flow']['groups']}
-                      funded=all(s=='VERIFIED' for s in statuses.values()) or (not retryable and os.getenv('GITHUB_EVENT_NAME')!='workflow_dispatch')
+                      funded=(old.get('manual_rerun_request_id')==manual['request_id'] if manual else (all(s=='VERIFIED' for s in statuses.values()) or (not retryable and os.getenv('GITHUB_EVENT_NAME')!='workflow_dispatch')))
               except (KeyError,ValueError,FileNotFoundError,TypeError):
                   pass
           allow=(window and not locked and not funded and idx.get('trade_date')==day
@@ -90,25 +92,35 @@ jobs:
                  and bool(upstream.get('signals')))
           with open(os.environ['GITHUB_OUTPUT'],'a') as out:
               out.write('run='+('true' if allow else 'false')+'\n')
+              out.write('manual_id='+(manual['request_id'] if manual else '')+'\n')
           print('PROGRAM_ADMISSION_DAY_STATUS',json.dumps({
               'now':now.isoformat(),'sector_date':day,'index_date':idx.get('trade_date'),
               'sector_signals':len(upstream.get('signals') or []),'same_day_locked':locked,'retryable_groups':sorted(retryable),'same_source_funded_admission_exists':funded,
-              'will_run':allow},ensure_ascii=False))
+              'will_run':allow,'manual_request_id':manual['request_id'] if manual else None},ensure_ascii=False))
           PY
       - name: Freeze program-only candidates (research starts after this)
         if: steps.admission.outputs.run == 'true'
+        env:
+          MANUAL_RERUN_ID: ${{ steps.admission.outputs.manual_id }}
         run: |
           cp research/trend_buy_candidates/latest.json /tmp/prior-admission.json
           python scripts/prepare_trend_buy_candidates.py \
             --output research/trend_buy_candidates/latest.json
           python - <<'PY'
-          import json
+          import json,os,sys
           from pathlib import Path
+          sys.path.insert(0,'scripts')
+          from trend_buy_revision import active_manual_request
           x=json.loads(Path('research/trend_buy_candidates/latest.json').read_text())
           assert x['mode']=='PROGRAM_VERIFIED_MODEL_RESEARCH_PENDING'
           assert x['checks']['model_invocations']==0
           prior=json.loads(Path('research/trend_buy_formal_result.json').read_text())
-          if prior.get('trade_date')==x['trade_date']:
+          manual=active_manual_request(prior,x['trade_date']) if os.getenv('MANUAL_RERUN_ID') else None
+          if os.getenv('MANUAL_RERUN_ID'):
+              assert manual and manual['request_id']==os.environ['MANUAL_RERUN_ID'],'MANUAL_RERUN_AUTHORIZATION_CHANGED'
+              x['manual_rerun_request_id']=manual['request_id']
+              Path('research/trend_buy_candidates/latest.json').write_text(json.dumps(x,ensure_ascii=False,indent=2,allow_nan=False)+'\n')
+          elif prior.get('trade_date')==x['trade_date']:
               assert prior['python_top5_by_industry']==x['industries'],'REVISION_FROZEN_ROSTER_CHANGED'
               old=json.loads(Path('/tmp/prior-admission.json').read_text())
               protected={p['industry_code'] for p in prior['model_top1_selection']['items'] if p['status']!='INCOMPLETE'}
@@ -120,14 +132,20 @@ jobs:
           PY
       - name: Collect same-session fund evidence for frozen TOP5 only
         if: steps.admission.outputs.run == 'true'
+        env:
+          MANUAL_RERUN_ID: ${{ steps.admission.outputs.manual_id }}
         run: |
+          prior=()
+          if [ -z "$MANUAL_RERUN_ID" ]; then prior=(--prior-admission /tmp/prior-admission.json); fi
           python scripts/freeze_trend_buy_fund_flow.py \
             --admission research/trend_buy_candidates/latest.json \
-            --prior-admission /tmp/prior-admission.json \
+            "${prior[@]}" \
             --output /tmp/frozen-funded-admission.json
           mv /tmp/frozen-funded-admission.json research/trend_buy_candidates/latest.json
       - name: Commit only research admission; read back exact content
         if: steps.admission.outputs.run == 'true'
+        env:
+          MANUAL_RERUN_ID: ${{ steps.admission.outputs.manual_id }}
         shell: bash
         run: |
           set -euo pipefail
@@ -145,19 +163,28 @@ jobs:
               git rebase --abort || true
               exit 1
             fi
-            if python - <<'PY'
-          import json,sys
+            if ! python - <<'PY'
+          import json,sys,os
           from pathlib import Path
           sys.path.insert(0,'scripts')
-          from trend_buy_revision import preopen_window,retryable_groups,same_session_result
+          from trend_buy_revision import preopen_window,retryable_groups,same_session_result,active_manual_request
           a=json.loads(Path('research/trend_buy_candidates/latest.json').read_text())
           f=json.loads(Path('research/trend_buy_formal_result.json').read_text())
           day=a['trade_date']
-          stop=not preopen_window(day) or (same_session_result(f,day) and not retryable_groups(f,day))
-          raise SystemExit(0 if stop else 1)
+          try:
+              manual=active_manual_request(f,day) if os.getenv('MANUAL_RERUN_ID') else None
+              if os.getenv('MANUAL_RERUN_ID'):
+                  stop=not (manual and manual['request_id']==os.environ['MANUAL_RERUN_ID']==a.get('manual_rerun_request_id'))
+              else:
+                  stop=not preopen_window(day) or (same_session_result(f,day) and not retryable_groups(f,day))
+          except Exception as exc:
+              print('ADMISSION_PUBLISH_GUARD_FAILED',repr(exc))
+              stop=True
+          raise SystemExit(1 if stop else 0)
           PY
             then
               echo 'SAME_DAY_MODEL_SELECTION_LOCKED_NO_ADMISSION_REWRITE'
+              if [ -n "$MANUAL_RERUN_ID" ]; then exit 1; fi
               exit 0
             fi
             python - <<'PY'

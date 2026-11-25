@@ -51,3 +51,34 @@ class RevisionTest(unittest.TestCase):
         with patch.object(r,"next_exchange_session",return_value=dt.date(2026,11,26)):
             with self.assertRaisesRegex(ValueError,"NEXT_SESSION_OPEN"):
                 r.validate_revision(self.previous,self.admission,self.new,t("2026-11-26T09:30:00"))
+    def test_manual_full_rerun_explicit_pair_and_fresh_ids(self):
+        self.previous["run_id"]="old"
+        request={"mode":"USER_AUTHORIZED_FULL_RERUN","request_id":"one","reason":"user requested",
+                 "trade_date":DAY,"supersedes_run_id":"old","supersedes_formal_blob_sha":"f",
+                 "supersedes_handoff_blob_sha":"h","requested_at":"2026-11-25T19:30:00+08:00"}
+        now=t("2026-11-25T20:00:00")
+        with patch.object(r,"next_exchange_session",return_value=dt.date(2026,11,26)):
+            auth=r.authorize_manual_request(self.previous,request,"f","h",now)
+            with self.assertRaisesRegex(ValueError,"PREVIOUS_PAIR_CHANGED"):
+                r.authorize_manual_request(self.previous,request,"wrong","h",now)
+            with self.assertRaisesRegex(ValueError,"OUTSIDE_PREOPEN_WINDOW"):
+                r.authorize_manual_request(self.previous,request,"f","h",t("2026-11-26T09:30:00"))
+            self.new["top1_selection"]["items"][1]["top1_code"]="changed"
+            with self.assertRaisesRegex(ValueError,"FRESH_INPUT_REQUIRED"):
+                r.validate_revision(self.previous,self.admission,self.new,now,manual_request=auth)
+            self.admission["manual_rerun_request_id"]="one"
+            self.new["manual_rerun_request_id"]="one"
+            r.validate_revision(self.previous,self.admission,self.new,now,manual_request=auth)
+            r.validate_protected_outputs(self.previous,{"trade_date":DAY,"top1_decisions":[]},manual_request=auth)
+            with self.assertRaisesRegex(ValueError,"COMPLETED_GROUP_SELECTION"):
+                r.validate_revision(self.previous,self.admission,self.new,now)
+            self.previous["run_id"]="new"
+            self.assertIsNone(r.authorize_manual_request(self.previous,request,"f","h",now))
+    def test_manual_calendar_failure_blocks(self):
+        self.previous["run_id"]="old"
+        request={"mode":"USER_AUTHORIZED_FULL_RERUN","request_id":"one","reason":"user requested",
+                 "trade_date":DAY,"supersedes_run_id":"old","supersedes_formal_blob_sha":"f",
+                 "supersedes_handoff_blob_sha":"h","requested_at":"2026-11-25T19:30:00+08:00"}
+        with patch.object(r,"next_exchange_session",side_effect=ValueError("unavailable")):
+            with self.assertRaisesRegex(ValueError,"EXCHANGE_CALENDAR_UNVERIFIED"):
+                r.authorize_manual_request(self.previous,request,"f","h",t("2026-11-25T20:00:00"))

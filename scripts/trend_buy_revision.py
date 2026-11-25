@@ -3,6 +3,9 @@ from __future__ import annotations
 
 from datetime import date, datetime, time, timedelta
 from functools import lru_cache
+import json
+import subprocess
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 TZ = ZoneInfo("Asia/Shanghai")
@@ -58,11 +61,69 @@ def require(ok, reason):
         raise ValueError(reason)
 
 
-def validate_revision(previous, admission, evidence, now=None):
+MANUAL_REQUEST_PATH = "research/trend_buy_manual_rerun_request.json"
+
+def authorize_manual_request(previous, request, formal_blob, handoff_blob, now=None):
+    """A one-shot user-authorized revision bound to the exact existing pair."""
+    now = (now or datetime.now(TZ)).astimezone(TZ)
+    if not request or not same_session_result(previous, request.get("trade_date")):
+        return None
+    if request.get("supersedes_run_id") != previous.get("run_id"):
+        return None  # consumed or stale request, not an authorization
+    day = request["trade_date"]
+    require(request.get("mode") == "USER_AUTHORIZED_FULL_RERUN"
+            and request.get("request_id") and request.get("reason"),
+            "MANUAL_RERUN_AUTHORIZATION_INVALID")
+    require(request.get("supersedes_formal_blob_sha") == formal_blob
+            and request.get("supersedes_handoff_blob_sha") == handoff_blob,
+            "MANUAL_RERUN_PREVIOUS_PAIR_CHANGED")
+    requested = datetime.fromisoformat(request["requested_at"])
+    require(requested.tzinfo is not None and requested <= now
+            and preopen_window(day, requested) and preopen_window(day, now),
+            "MANUAL_RERUN_OUTSIDE_PREOPEN_WINDOW")
+    # Unlike routine same-session runs, explicitly verify the exchange calendar.
+    try:
+        actual = next_exchange_session(date.fromisoformat(day))
+    except Exception as exc:
+        raise ValueError('MANUAL_RERUN_EXCHANGE_CALENDAR_UNVERIFIED') from exc
+    require(now < datetime.combine(actual, time(9,30), TZ),
+            "MANUAL_RERUN_NEXT_SESSION_OPEN")
+    return request
+
+def active_manual_request(previous, day, root=Path("."), now=None):
+    path = root / MANUAL_REQUEST_PATH
+    if not path.exists():
+        return None
+    request = json.loads(path.read_bytes())
+    if request.get("trade_date") != day or request.get("supersedes_run_id") != previous.get("run_id"):
+        return None
+    def blob(path):
+        return subprocess.check_output(["git","rev-parse","HEAD:"+path], cwd=root, text=True).strip()
+    handoff = json.loads(subprocess.check_output(["git","show","HEAD:research/trend_buy_handoff.json"], cwd=root))
+    formal_blob = blob("research/trend_buy_formal_result.json")
+    require(handoff.get("source_formal_blob_sha") == formal_blob
+            and handoff.get("source_run_id") == previous.get("run_id")
+            and handoff.get("trade_date") == day, "MANUAL_RERUN_PRIOR_PAIR_INVALID")
+    return authorize_manual_request(previous, request, formal_blob,
+                                    blob("research/trend_buy_handoff.json"), now)
+
+def validate_revision(previous, admission, evidence, now=None, manual_request=None):
     """Prior result is consulted only for publication safety, never as ranking input."""
     day=admission["trade_date"]
     require(preopen_window(day,now),"NEXT_SESSION_OPEN_OR_WINDOW_UNVERIFIED")
     if not same_session_result(previous,day):
+        return
+    if manual_request is not None:
+        require(manual_request["trade_date"] == day
+                and manual_request["supersedes_run_id"] == previous.get("run_id"),
+                "MANUAL_RERUN_AUTHORIZATION_MISMATCH")
+        request_id = manual_request["request_id"]
+        require(admission.get("manual_rerun_request_id") == request_id
+                and evidence.get("manual_rerun_request_id") == request_id,
+                "MANUAL_RERUN_FRESH_INPUT_REQUIRED")
+        require("fund_flow" in admission, "MANUAL_RERUN_FROZEN_FUND_REQUIRED")
+        # Full program admission and model evidence are validated independently
+        # by the production gate; no protected group is reused for this mode.
         return
     allowed=retryable_groups(previous,day,now)
     require(allowed,"NO_RETRYABLE_INCOMPLETE_GROUP")
@@ -84,7 +145,11 @@ def validate_revision(previous, admission, evidence, now=None):
     require("fund_flow" in admission,"REVISION_FROZEN_FUND_SNAPSHOT_REQUIRED")
 
 
-def validate_protected_outputs(previous, result):
+def validate_protected_outputs(previous, result, manual_request=None):
+    if manual_request is not None:
+        require(manual_request['supersedes_run_id'] == previous.get('run_id')
+                and manual_request['trade_date'] == result['trade_date'], 'MANUAL_RERUN_AUTHORIZATION_MISMATCH')
+        return
     if not same_session_result(previous,result["trade_date"]):
         return
     locked={p["industry_code"] for p in previous["model_top1_selection"]["items"]

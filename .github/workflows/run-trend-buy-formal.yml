@@ -35,7 +35,7 @@ jobs:
           from validate_trend_publication_pair import validate
           from validate_theme_handoff_routes import check_theme_routes
           from prepare_trend_buy_candidates import validate_admission
-          from trend_buy_revision import same_session_result,validate_revision
+          from trend_buy_revision import same_session_result,validate_revision,active_manual_request
           read=lambda p:json.loads(Path(p).read_bytes())
           registry=read('research/trend_registry.json')
           handoff=read('research/trend_handoff.json')
@@ -63,7 +63,8 @@ jobs:
                   print('EXACT_EXISTING_RESULT_NO_REPUBLICATION')
               else:
                   assert 'fund_flow' in admission, 'NEW_FORMAL_RUN_REQUIRES_FROZEN_FUND_SNAPSHOT'
-                  validate_revision(previous,admission,evidence)
+                  manual=active_manual_request(previous,day)
+                  validate_revision(previous,admission,evidence,manual_request=manual)
                   run='true'
                   print('PREOPEN_FORMAL_GATE_PASSED',day,'recovery' if same_session_result(previous,day) else 'initial')
           with open(os.environ['GITHUB_OUTPUT'],'a') as f:
@@ -98,7 +99,7 @@ jobs:
           from pathlib import Path
           import sys
           sys.path.insert(0,'scripts')
-          from trend_buy_revision import same_session_result,validate_protected_outputs,validate_revision
+          from trend_buy_revision import same_session_result,validate_protected_outputs,validate_revision,active_manual_request
           read=lambda p:json.loads(Path(p).read_bytes())
           res=read('/tmp/mainline-fresh-result.json')
           research=read('/tmp/mainline-fresh-research.json')
@@ -124,9 +125,12 @@ jobs:
               ('company_research_admission_sha','research/trend_buy_candidates/latest.json')]:
               res['fresh_mainline_provenance'][key]=subprocess.check_output(['git','rev-parse','HEAD:'+path],text=True).strip()
           previous=read('research/trend_buy_formal_result.json')
-          validate_revision(previous,read('research/trend_buy_candidates/latest.json'),read('research/trend_buy_company_reviews/latest.json'))
-          validate_protected_outputs(previous,res)
-          if same_session_result(previous,res['trade_date']):
+          manual=active_manual_request(previous,res['trade_date'])
+          validate_revision(previous,read('research/trend_buy_candidates/latest.json'),read('research/trend_buy_company_reviews/latest.json'),manual_request=manual)
+          validate_protected_outputs(previous,res,manual_request=manual)
+          if manual:
+              res['manual_full_rerun']={**manual,'rerun_industries':[p['industry_code'] for p in res['model_top1_selection']['items']]}
+          elif same_session_result(previous,res['trade_date']):
               res['preopen_recovery']={
                   'reason':'RETRY_INCOMPLETE_RESEARCH_BEFORE_NEXT_OPEN',
                   'supersedes_formal_blob_sha':subprocess.check_output(['git','rev-parse','HEAD:research/trend_buy_formal_result.json'],text=True).strip(),
@@ -160,13 +164,16 @@ jobs:
           import json,sys,subprocess
           from pathlib import Path
           sys.path.insert(0,'scripts')
-          from trend_buy_revision import validate_revision,validate_protected_outputs
+          from trend_buy_revision import validate_revision,validate_protected_outputs,active_manual_request
           old=json.loads(subprocess.check_output(['git','show','HEAD:research/trend_buy_formal_result.json']))
           a=json.loads(Path('research/trend_buy_candidates/latest.json').read_bytes())
           e=json.loads(Path('research/trend_buy_company_reviews/latest.json').read_bytes())
           f=json.loads(Path('research/trend_buy_formal_result.json').read_bytes())
-          validate_revision(old,a,e)
-          validate_protected_outputs(old,f)
+          manual=active_manual_request(old,f['trade_date'])
+          validate_revision(old,a,e,manual_request=manual)
+          validate_protected_outputs(old,f,manual_request=manual)
+          if manual:
+              assert all(f['manual_full_rerun'].get(k)==value for k,value in manual.items()),'MANUAL_RERUN_AUDIT_MISMATCH'
           PY
           git add research/trend_buy_formal_result.json research/trend_buy_handoff.json
           git commit -m "research: sole formal locked TOP1 result and handoff"
