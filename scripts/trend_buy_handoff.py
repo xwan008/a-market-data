@@ -129,6 +129,20 @@ def project(result, formal_sha, *, shadow=False):
     attention={entry["code"]:(entry.get("attention_rank"),entry.get("attention_judgement"))
                for group in groups for entry in group.get("items",[])
                if "attention_rank" in entry or "attention_judgement" in entry}
+    if result.get("selection_policy") == "MODEL_TOP1_V1_6_R1":
+        decisions = result.get("top1_decisions")
+        if not isinstance(decisions, list):
+            raise ValueError("missing_top1_decisions")
+        industries = [d["industry_code"] for d in decisions]
+        if len(industries) != len(set(industries)):
+            raise ValueError("duplicate_top1_industry")
+        allowed = [d["top1_code"] for d in decisions
+                   if d["risk_status"] in ("READY", "WAIT")]
+        if codes != allowed or any(len(g["items"]) > 1 for g in groups):
+            raise ValueError("top1_handoff_scope_mismatch")
+        if any(candidate_by_code[d["top1_code"]].get("industry_code") != d["industry_code"]
+               for d in decisions if d["top1_code"] in allowed):
+            raise ValueError("top1_handoff_industry_mismatch")
     rows=[]
     for rank,code in enumerate(codes,1):
         x=candidate_by_code[code]
