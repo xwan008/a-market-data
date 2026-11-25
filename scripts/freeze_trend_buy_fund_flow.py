@@ -151,7 +151,9 @@ def tencent_rows(code, dates, quotes, frozen):
         if d not in dates or d not in quotes:
             continue
         qd=quotes[d]
-        require(abs(numeric(r["price"])-qd["close"])<0.005, "TENCENT_HISTORY_IDENTITY:"+d)
+        if abs(numeric(r["price"])-qd["close"])>=0.005:
+            require(d not in dates[-5:], "TENCENT_HISTORY_IDENTITY:"+d)
+            continue
         mapping[d] = {"date":d,"main_net_cny":numeric(r["mainNetIn"]),
                       "amount_cny":qd["amount"]}
     if day in mapping:
@@ -181,11 +183,11 @@ def eastmoney_rows(code, dates, quotes, frozen):
         net,small,mid,big,xl,pct,sp,mp,bp,xp,close,change=map(numeric,r[1:])
         q=quotes[d]
         amount=q["amount"]
-        require(amount>0 and abs(net-big-xl)<=1
-                and abs(net+small+mid)<=max(64,amount*1e-7),
-                "EASTMONEY_CLASSIFICATION_CONFLICT:"+d)
-        require(abs(pct-net/amount*100)<=0.0051 and abs(close-q["close"])<0.005,
-                "EASTMONEY_QUOTE_CONFLICT:"+d)
+        ok=amount>0 and abs(net-big-xl)<=1 and abs(net+small+mid)<=max(64,amount*1e-7)
+        ok=ok and abs(pct-net/amount*100)<=0.0051 and abs(close-q["close"])<0.005
+        if not ok:
+            require(d not in dates[-5:], "EASTMONEY_FUND_OR_QUOTE_CONFLICT:"+d)
+            continue
         if d==dates[-1]:
             require(abs(close-frozen)<0.005,"EASTMONEY_CURRENT_PRICE_CONFLICT")
         mapping[d]={"date":d,"main_net_cny":net,"amount_cny":amount,
@@ -319,6 +321,35 @@ def validate(admission, snapshot):
     return {g["industry_code"]:g["status"] for g in groups}
 
 
+def validate_frozen(root, admission):
+    statuses=validate(admission,admission["fund_flow"])
+    cache={}
+    day=admission["trade_date"]
+    for g in admission["fund_flow"]["groups"]:
+        for code,s in g["stocks"].items():
+            h=pre.history_for(root,code,cache).get("history") or []
+            dates=sorted({r["date"] for r in h if isinstance(r.get("date"),str) and r["date"]<=day})
+            rows=s["daily"]
+            require([r["date"] for r in rows]==dates[-len(rows):],"FUND_FROZEN_SESSION_MISMATCH:"+code)
+    return statuses
+
+
+def validate_selections(admission, selections):
+    # Old locked abstentions stay reproducible; no new COMPLETE may bypass frozen funds.
+    complete=[p for p in selections["items"] if p["status"] in ("COMPLETE","NO_SELECTION")]
+    if not complete:
+        return
+    require("fund_flow" in admission,"FUND_SNAPSHOT_REQUIRED")
+    statuses=validate(admission,admission["fund_flow"])
+    for p in complete:
+        require(statuses.get(p["industry_code"])=="VERIFIED","FUND_GROUP_NOT_VERIFIED:"+p["industry_code"])
+        if p["status"]=="COMPLETE":
+            for code in p["candidate_codes"]:
+                a=p["research_matrix"][code]["A"]
+                require(a.get("frozen_fund_ref")=="fund_flow.groups/"+p["industry_code"]+"/stocks/"+code,
+                        "MODEL_FROZEN_FUND_REFERENCE_REQUIRED:"+code)
+
+
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument("--admission",type=Path,required=True)
@@ -329,7 +360,7 @@ def main():
     admission["fund_flow"]=build(root,admission)
     a.output.write_text(json.dumps(admission,ensure_ascii=False,indent=2,allow_nan=False)+"\n",encoding="utf-8")
     result=read(a.output)
-    statuses=validate(result,result["fund_flow"])
+    statuses=validate_frozen(root,result)
     print("FROZEN_FUND_FLOW",json.dumps(statuses,ensure_ascii=False))
     return 0
 
