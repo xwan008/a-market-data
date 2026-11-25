@@ -1,18 +1,29 @@
 {
   "schema_version": 1,
   "result_kind": "sector_discovery_snapshot",
-  "trade_date": "2026-11-24",
-  "generated_at": "2026-11-24T17:01:12.108070+08:00",
+  "trade_date": "2026-11-25",
+  "generated_at": "2026-11-25T17:01:52.379347+08:00",
   "status": "COMPLETE",
   "no_trade_signal": true,
   "audit_path": "data/research/sector_discovery_audit.json",
   "scan_audit": {
     "schema_version": 1,
-    "trade_date": "2026-11-24",
+    "trade_date": "2026-11-25",
     "scan_inputs": {
       "industry_index": "data/research/company_industry_index.json",
       "quotes": "data/latest.json",
-      "momentum": "data/shards/*.json#trend.momentum_evidence"
+      "momentum": "data/shards/*.json#trend.momentum_evidence",
+      "daily_structure": "data/history_shards/*.json#stocks.history"
+    },
+    "daily_structure_contract": {
+      "role": "OBJECTIVE_EVIDENCE_ONLY",
+      "membership": "ASOF_CURRENT_MAPPED_SW3_MAIN_BOARD",
+      "session_window": 5,
+      "historical_return": "adjacent observed market sessions, adjusted history closes",
+      "current_return": "completed quote change_pct",
+      "prior_range": "prior session high/low, not confirmed technical support",
+      "missing_values_are_not_zero": true,
+      "affects_scores_or_state": false
     },
     "industry_count": 331,
     "scan_scope": "MAPPED_SW_LEVEL3_ONLY",
@@ -24,14 +35,14 @@
     ],
     "benchmark_scope": "VALID_QUOTED_MAPPED_MAIN_BOARD_STOCKS",
     "mapped_stocks": 3138,
-    "market_median_return_1d_pct": -0.859,
+    "market_median_return_1d_pct": -2.676,
     "review_capacity": 3,
-    "eligible_count": 39,
+    "eligible_count": 11,
     "selected_count": 3,
-    "deferred_count": 36,
+    "deferred_count": 8,
     "overlap_deduplicated_count": 0,
     "discovery_coverage_audit": {
-      "trade_date": "2026-11-24",
+      "trade_date": "2026-11-25",
       "role": "AUXILIARY_ONLY_NO_FORMAL_DECISIONS",
       "thresholds_not_state_gates": true,
       "changes_handoff": false,
@@ -49,7 +60,7 @@
             "S110103",
             "S110104"
           ],
-          "median_of_sw3_medians_1d_pct": -1.055,
+          "median_of_sw3_medians_1d_pct": -1.83,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -64,7 +75,7 @@
             "S110201",
             "S110202"
           ],
-          "median_of_sw3_medians_1d_pct": -1.113,
+          "median_of_sw3_medians_1d_pct": 4.607,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -78,7 +89,7 @@
           "sw3_codes": [
             "S110301"
           ],
-          "median_of_sw3_medians_1d_pct": -0.503,
+          "median_of_sw3_medians_1d_pct": -1.684,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -94,7 +105,7 @@
             "S110403",
             "S110404"
           ],
-          "median_of_sw3_medians_1d_pct": -0.619,
+          "median_of_sw3_medians_1d_pct": -2.658,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -110,7 +121,7 @@
             "S110502",
             "S110504"
           ],
-          "median_of_sw3_medians_1d_pct": -0.769,
+          "median_of_sw3_medians_1d_pct": -3.049,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -126,7 +137,7 @@
             "S110703",
             "S110704"
           ],
-          "median_of_sw3_medians_1d_pct": 0.113,
+          "median_of_sw3_medians_1d_pct": -2.588,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -140,7 +151,7 @@
           "sw3_codes": [
             "S110801"
           ],
-          "median_of_sw3_medians_1d_pct": -0.733,
+          "median_of_sw3_medians_1d_pct": -1.933,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -154,7 +165,7 @@
           "sw3_codes": [
             "S110901"
           ],
-          "median_of_sw3_medians_1d_pct": -1.741,
+          "median_of_sw3_medians_1d_pct": -1.772,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -173,7 +184,7 @@
             "S220205",
             "S220206"
           ],
-          "median_of_sw3_medians_1d_pct": -1.631,
+          "median_of_sw3_medians_1d_pct": -2.272,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -195,7 +206,7 @@
             "S220316",
             "S220317"
           ],
-          "median_of_sw3_medians_1d_pct": -1.117,
+          "median_of_sw3_medians_1d_pct": -4.618,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -213,7 +224,7 @@
             "S220405",
             "S220406"
           ],
-          "median_of_sw3_medians_1d_pct": -1.448,
+          "median_of_sw3_medians_1d_pct": -1.802,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -230,7 +241,7 @@
             "S220504",
             "S220505"
           ],
-          "median_of_sw3_medians_1d_pct": -0.621,
+          "median_of_sw3_medians_1d_pct": -4.903,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -246,7 +257,7 @@
             "S220603",
             "S220604"
           ],
-          "median_of_sw3_medians_1d_pct": -1.436,
+          "median_of_sw3_medians_1d_pct": -2.75,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -264,7 +275,7 @@
             "S220804",
             "S220805"
           ],
-          "median_of_sw3_medians_1d_pct": -1.297,
+          "median_of_sw3_medians_1d_pct": -2.114,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -278,7 +289,7 @@
           "sw3_codes": [
             "S220901"
           ],
-          "median_of_sw3_medians_1d_pct": -0.597,
+          "median_of_sw3_medians_1d_pct": -5.162,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -293,7 +304,7 @@
             "S230301",
             "S230302"
           ],
-          "median_of_sw3_medians_1d_pct": -1.952,
+          "median_of_sw3_medians_1d_pct": -1.243,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -309,7 +320,7 @@
             "S230402",
             "S230403"
           ],
-          "median_of_sw3_medians_1d_pct": -1.824,
+          "median_of_sw3_medians_1d_pct": -1.504,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -323,7 +334,7 @@
           "sw3_codes": [
             "S230501"
           ],
-          "median_of_sw3_medians_1d_pct": -1.102,
+          "median_of_sw3_medians_1d_pct": -1.342,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -338,7 +349,7 @@
             "S240201",
             "S240202"
           ],
-          "median_of_sw3_medians_1d_pct": -1.322,
+          "median_of_sw3_medians_1d_pct": -4.91,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -354,7 +365,7 @@
             "S240302",
             "S240303"
           ],
-          "median_of_sw3_medians_1d_pct": -2.259,
+          "median_of_sw3_medians_1d_pct": -3.122,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -369,7 +380,7 @@
             "S240401",
             "S240402"
           ],
-          "median_of_sw3_medians_1d_pct": -3.427,
+          "median_of_sw3_medians_1d_pct": -3.425,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -386,7 +397,7 @@
             "S240504",
             "S240505"
           ],
-          "median_of_sw3_medians_1d_pct": -1.806,
+          "median_of_sw3_medians_1d_pct": -4.812,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -402,7 +413,7 @@
             "S240602",
             "S240603"
           ],
-          "median_of_sw3_medians_1d_pct": 1.471,
+          "median_of_sw3_medians_1d_pct": -5.222,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -421,7 +432,7 @@
             "S270107",
             "S270108"
           ],
-          "median_of_sw3_medians_1d_pct": 0.519,
+          "median_of_sw3_medians_1d_pct": -8.241,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -436,7 +447,7 @@
             "S270202",
             "S270203"
           ],
-          "median_of_sw3_medians_1d_pct": -0.426,
+          "median_of_sw3_medians_1d_pct": -5.644,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -452,7 +463,7 @@
             "S270302",
             "S270303"
           ],
-          "median_of_sw3_medians_1d_pct": -0.248,
+          "median_of_sw3_medians_1d_pct": -5.369,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -466,7 +477,7 @@
           "sw3_codes": [
             "S270401"
           ],
-          "median_of_sw3_medians_1d_pct": 0.429,
+          "median_of_sw3_medians_1d_pct": -6.36,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -481,7 +492,7 @@
             "S270503",
             "S270504"
           ],
-          "median_of_sw3_medians_1d_pct": 1.852,
+          "median_of_sw3_medians_1d_pct": -4.516,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -495,7 +506,7 @@
           "sw3_codes": [
             "S270601"
           ],
-          "median_of_sw3_medians_1d_pct": -0.707,
+          "median_of_sw3_medians_1d_pct": -7.76,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -513,7 +524,7 @@
             "S280205",
             "S280206"
           ],
-          "median_of_sw3_medians_1d_pct": 0.0,
+          "median_of_sw3_medians_1d_pct": -4.745,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -528,7 +539,7 @@
             "S280302",
             "S280303"
           ],
-          "median_of_sw3_medians_1d_pct": -0.969,
+          "median_of_sw3_medians_1d_pct": -1.995,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -543,7 +554,7 @@
             "S280401",
             "S280402"
           ],
-          "median_of_sw3_medians_1d_pct": -0.133,
+          "median_of_sw3_medians_1d_pct": -2.942,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -558,7 +569,7 @@
             "S280501",
             "S280502"
           ],
-          "median_of_sw3_medians_1d_pct": -1.312,
+          "median_of_sw3_medians_1d_pct": -1.596,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -573,7 +584,7 @@
             "S280601",
             "S280602"
           ],
-          "median_of_sw3_medians_1d_pct": -1.168,
+          "median_of_sw3_medians_1d_pct": -2.763,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -588,7 +599,7 @@
             "S330102",
             "S330106"
           ],
-          "median_of_sw3_medians_1d_pct": -0.234,
+          "median_of_sw3_medians_1d_pct": -1.611,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -603,7 +614,7 @@
             "S330201",
             "S330202"
           ],
-          "median_of_sw3_medians_1d_pct": 1.083,
+          "median_of_sw3_medians_1d_pct": -3.688,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -619,7 +630,7 @@
             "S330302",
             "S330303"
           ],
-          "median_of_sw3_medians_1d_pct": 2.873,
+          "median_of_sw3_medians_1d_pct": -1.864,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -634,7 +645,7 @@
             "S330401",
             "S330402"
           ],
-          "median_of_sw3_medians_1d_pct": -1.911,
+          "median_of_sw3_medians_1d_pct": -3.396,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -648,7 +659,7 @@
           "sw3_codes": [
             "S330501"
           ],
-          "median_of_sw3_medians_1d_pct": -0.082,
+          "median_of_sw3_medians_1d_pct": -5.421,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -662,7 +673,7 @@
           "sw3_codes": [
             "S330601"
           ],
-          "median_of_sw3_medians_1d_pct": 1.417,
+          "median_of_sw3_medians_1d_pct": -5.672,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -676,7 +687,7 @@
           "sw3_codes": [
             "S330701"
           ],
-          "median_of_sw3_medians_1d_pct": -0.728,
+          "median_of_sw3_medians_1d_pct": -4.884,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -692,7 +703,7 @@
             "S340406",
             "S340407"
           ],
-          "median_of_sw3_medians_1d_pct": -0.322,
+          "median_of_sw3_medians_1d_pct": -0.981,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -706,7 +717,7 @@
           "sw3_codes": [
             "S340501"
           ],
-          "median_of_sw3_medians_1d_pct": -0.78,
+          "median_of_sw3_medians_1d_pct": -0.644,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -721,7 +732,7 @@
             "S340601",
             "S340602"
           ],
-          "median_of_sw3_medians_1d_pct": 0.216,
+          "median_of_sw3_medians_1d_pct": 0.139,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -736,7 +747,7 @@
             "S340701",
             "S340702"
           ],
-          "median_of_sw3_medians_1d_pct": -1.246,
+          "median_of_sw3_medians_1d_pct": -1.145,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -752,7 +763,7 @@
             "S340802",
             "S340803"
           ],
-          "median_of_sw3_medians_1d_pct": 0.067,
+          "median_of_sw3_medians_1d_pct": -0.442,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -766,7 +777,7 @@
           "sw3_codes": [
             "S340901"
           ],
-          "median_of_sw3_medians_1d_pct": -0.25,
+          "median_of_sw3_medians_1d_pct": -0.175,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -783,7 +794,7 @@
             "S350105",
             "S350106"
           ],
-          "median_of_sw3_medians_1d_pct": -1.222,
+          "median_of_sw3_medians_1d_pct": -2.74,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -800,7 +811,7 @@
             "S350208",
             "S350209"
           ],
-          "median_of_sw3_medians_1d_pct": 0.47,
+          "median_of_sw3_medians_1d_pct": -1.478,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -815,7 +826,7 @@
             "S350301",
             "S350303"
           ],
-          "median_of_sw3_medians_1d_pct": -0.263,
+          "median_of_sw3_medians_1d_pct": -1.722,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -830,7 +841,7 @@
             "S360102",
             "S360103"
           ],
-          "median_of_sw3_medians_1d_pct": -1.588,
+          "median_of_sw3_medians_1d_pct": -1.981,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -848,7 +859,7 @@
             "S360205",
             "S360206"
           ],
-          "median_of_sw3_medians_1d_pct": -0.539,
+          "median_of_sw3_medians_1d_pct": -4.265,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -866,7 +877,7 @@
             "S360309",
             "S360311"
           ],
-          "median_of_sw3_medians_1d_pct": -0.581,
+          "median_of_sw3_medians_1d_pct": -3.4,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -881,7 +892,7 @@
             "S360501",
             "S360502"
           ],
-          "median_of_sw3_medians_1d_pct": 0.985,
+          "median_of_sw3_medians_1d_pct": -0.924,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -896,7 +907,7 @@
             "S370101",
             "S370102"
           ],
-          "median_of_sw3_medians_1d_pct": -1.519,
+          "median_of_sw3_medians_1d_pct": -0.92,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -910,7 +921,7 @@
           "sw3_codes": [
             "S370201"
           ],
-          "median_of_sw3_medians_1d_pct": -1.809,
+          "median_of_sw3_medians_1d_pct": 0.617,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -926,7 +937,7 @@
             "S370303",
             "S370304"
           ],
-          "median_of_sw3_medians_1d_pct": -1.806,
+          "median_of_sw3_medians_1d_pct": 0.245,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -941,7 +952,7 @@
             "S370402",
             "S370403"
           ],
-          "median_of_sw3_medians_1d_pct": -0.727,
+          "median_of_sw3_medians_1d_pct": 0.91,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -957,7 +968,7 @@
             "S370503",
             "S370504"
           ],
-          "median_of_sw3_medians_1d_pct": -1.559,
+          "median_of_sw3_medians_1d_pct": -1.09,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -974,7 +985,7 @@
             "S370604",
             "S370605"
           ],
-          "median_of_sw3_medians_1d_pct": -0.726,
+          "median_of_sw3_medians_1d_pct": -2.55,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -995,7 +1006,7 @@
             "S410109",
             "S410110"
           ],
-          "median_of_sw3_medians_1d_pct": -1.293,
+          "median_of_sw3_medians_1d_pct": -2.067,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1009,7 +1020,7 @@
           "sw3_codes": [
             "S410301"
           ],
-          "median_of_sw3_medians_1d_pct": -2.317,
+          "median_of_sw3_medians_1d_pct": -1.076,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1028,7 +1039,7 @@
             "S420806",
             "S420807"
           ],
-          "median_of_sw3_medians_1d_pct": -1.202,
+          "median_of_sw3_medians_1d_pct": -2.2,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1044,7 +1055,7 @@
             "S420902",
             "S420903"
           ],
-          "median_of_sw3_medians_1d_pct": -0.782,
+          "median_of_sw3_medians_1d_pct": -1.163,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1059,7 +1070,7 @@
             "S421001",
             "S421002"
           ],
-          "median_of_sw3_medians_1d_pct": 0.053,
+          "median_of_sw3_medians_1d_pct": -1.173,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1074,7 +1085,7 @@
             "S421101",
             "S421102"
           ],
-          "median_of_sw3_medians_1d_pct": -0.72,
+          "median_of_sw3_medians_1d_pct": -1.276,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1090,7 +1101,7 @@
             "S430102",
             "S430103"
           ],
-          "median_of_sw3_medians_1d_pct": -1.031,
+          "median_of_sw3_medians_1d_pct": -0.857,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1106,7 +1117,7 @@
             "S430302",
             "S430303"
           ],
-          "median_of_sw3_medians_1d_pct": -0.455,
+          "median_of_sw3_medians_1d_pct": -2.596,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1120,7 +1131,7 @@
           "sw3_codes": [
             "S450201"
           ],
-          "median_of_sw3_medians_1d_pct": -1.316,
+          "median_of_sw3_medians_1d_pct": -3.238,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1137,7 +1148,7 @@
             "S450303",
             "S450304"
           ],
-          "median_of_sw3_medians_1d_pct": -0.49,
+          "median_of_sw3_medians_1d_pct": 0.594,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1151,7 +1162,7 @@
           "sw3_codes": [
             "S450401"
           ],
-          "median_of_sw3_medians_1d_pct": -0.968,
+          "median_of_sw3_medians_1d_pct": -2.124,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1167,7 +1178,7 @@
             "S450602",
             "S450603"
           ],
-          "median_of_sw3_medians_1d_pct": 1.077,
+          "median_of_sw3_medians_1d_pct": -1.053,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1181,7 +1192,7 @@
           "sw3_codes": [
             "S450701"
           ],
-          "median_of_sw3_medians_1d_pct": -0.06,
+          "median_of_sw3_medians_1d_pct": 0.282,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1195,7 +1206,7 @@
           "sw3_codes": [
             "S460601"
           ],
-          "median_of_sw3_medians_1d_pct": -0.25,
+          "median_of_sw3_medians_1d_pct": -2.518,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1212,7 +1223,7 @@
             "S460803",
             "S460804"
           ],
-          "median_of_sw3_medians_1d_pct": -0.669,
+          "median_of_sw3_medians_1d_pct": -2.946,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1227,7 +1238,7 @@
             "S460901",
             "S460902"
           ],
-          "median_of_sw3_medians_1d_pct": -0.59,
+          "median_of_sw3_medians_1d_pct": 0.251,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1243,7 +1254,7 @@
             "S461003",
             "S461004"
           ],
-          "median_of_sw3_medians_1d_pct": -0.953,
+          "median_of_sw3_medians_1d_pct": 0.313,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1259,7 +1270,7 @@
             "S461102",
             "S461103"
           ],
-          "median_of_sw3_medians_1d_pct": -1.524,
+          "median_of_sw3_medians_1d_pct": -1.441,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1273,7 +1284,7 @@
           "sw3_codes": [
             "S480201"
           ],
-          "median_of_sw3_medians_1d_pct": 0.662,
+          "median_of_sw3_medians_1d_pct": 0.782,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1301,7 +1312,7 @@
           "sw3_codes": [
             "S480401"
           ],
-          "median_of_sw3_medians_1d_pct": -0.1,
+          "median_of_sw3_medians_1d_pct": -0.442,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1315,7 +1326,7 @@
           "sw3_codes": [
             "S480501"
           ],
-          "median_of_sw3_medians_1d_pct": -1.035,
+          "median_of_sw3_medians_1d_pct": -0.414,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1329,7 +1340,7 @@
           "sw3_codes": [
             "S490101"
           ],
-          "median_of_sw3_medians_1d_pct": -1.553,
+          "median_of_sw3_medians_1d_pct": -1.276,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1343,7 +1354,7 @@
           "sw3_codes": [
             "S490201"
           ],
-          "median_of_sw3_medians_1d_pct": 2.197,
+          "median_of_sw3_medians_1d_pct": -1.225,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1362,7 +1373,7 @@
             "S490306",
             "S490307"
           ],
-          "median_of_sw3_medians_1d_pct": -1.825,
+          "median_of_sw3_medians_1d_pct": -1.917,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1376,7 +1387,7 @@
           "sw3_codes": [
             "S510101"
           ],
-          "median_of_sw3_medians_1d_pct": -0.951,
+          "median_of_sw3_medians_1d_pct": -2.404,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1391,7 +1402,7 @@
             "S610101",
             "S610102"
           ],
-          "median_of_sw3_medians_1d_pct": -1.406,
+          "median_of_sw3_medians_1d_pct": -2.482,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1406,7 +1417,7 @@
             "S610201",
             "S610202"
           ],
-          "median_of_sw3_medians_1d_pct": -2.007,
+          "median_of_sw3_medians_1d_pct": -3.838,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1424,7 +1435,7 @@
             "S610304",
             "S610305"
           ],
-          "median_of_sw3_medians_1d_pct": -1.194,
+          "median_of_sw3_medians_1d_pct": -3.664,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1438,7 +1449,7 @@
           "sw3_codes": [
             "S620101"
           ],
-          "median_of_sw3_medians_1d_pct": 0.36,
+          "median_of_sw3_medians_1d_pct": -0.9,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1452,7 +1463,7 @@
           "sw3_codes": [
             "S620201"
           ],
-          "median_of_sw3_medians_1d_pct": -0.38,
+          "median_of_sw3_medians_1d_pct": -2.704,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1467,7 +1478,7 @@
             "S620306",
             "S620307"
           ],
-          "median_of_sw3_medians_1d_pct": -0.972,
+          "median_of_sw3_medians_1d_pct": -1.571,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1484,7 +1495,7 @@
             "S620403",
             "S620404"
           ],
-          "median_of_sw3_medians_1d_pct": -1.167,
+          "median_of_sw3_medians_1d_pct": -2.861,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1498,7 +1509,7 @@
           "sw3_codes": [
             "S620601"
           ],
-          "median_of_sw3_medians_1d_pct": -1.391,
+          "median_of_sw3_medians_1d_pct": -2.5,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1512,7 +1523,7 @@
           "sw3_codes": [
             "S630101"
           ],
-          "median_of_sw3_medians_1d_pct": 0.877,
+          "median_of_sw3_medians_1d_pct": -5.226,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1528,7 +1539,7 @@
             "S630304",
             "S630306"
           ],
-          "median_of_sw3_medians_1d_pct": 0.045,
+          "median_of_sw3_medians_1d_pct": -2.879,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1546,7 +1557,7 @@
             "S630504",
             "S630505"
           ],
-          "median_of_sw3_medians_1d_pct": -0.764,
+          "median_of_sw3_medians_1d_pct": -3.912,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1561,7 +1572,7 @@
             "S630601",
             "S630602"
           ],
-          "median_of_sw3_medians_1d_pct": -1.377,
+          "median_of_sw3_medians_1d_pct": -4.596,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1578,7 +1589,7 @@
             "S630703",
             "S630705"
           ],
-          "median_of_sw3_medians_1d_pct": -0.812,
+          "median_of_sw3_medians_1d_pct": -5.489,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1596,7 +1607,7 @@
             "S630804",
             "S630805"
           ],
-          "median_of_sw3_medians_1d_pct": -0.552,
+          "median_of_sw3_medians_1d_pct": -4.575,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1615,7 +1626,7 @@
             "S640107",
             "S640108"
           ],
-          "median_of_sw3_medians_1d_pct": -0.117,
+          "median_of_sw3_medians_1d_pct": -4.931,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1634,7 +1645,7 @@
             "S640208",
             "S640209"
           ],
-          "median_of_sw3_medians_1d_pct": -0.601,
+          "median_of_sw3_medians_1d_pct": -4.329,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1648,7 +1659,7 @@
           "sw3_codes": [
             "S640501"
           ],
-          "median_of_sw3_medians_1d_pct": -0.957,
+          "median_of_sw3_medians_1d_pct": -2.139,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1663,7 +1674,7 @@
             "S640601",
             "S640602"
           ],
-          "median_of_sw3_medians_1d_pct": -0.092,
+          "median_of_sw3_medians_1d_pct": -3.405,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1680,7 +1691,7 @@
             "S640703",
             "S640704"
           ],
-          "median_of_sw3_medians_1d_pct": 0.506,
+          "median_of_sw3_medians_1d_pct": -5.467,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1694,7 +1705,7 @@
           "sw3_codes": [
             "S650101"
           ],
-          "median_of_sw3_medians_1d_pct": 2.85,
+          "median_of_sw3_medians_1d_pct": -5.202,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1708,7 +1719,7 @@
           "sw3_codes": [
             "S650201"
           ],
-          "median_of_sw3_medians_1d_pct": 0.363,
+          "median_of_sw3_medians_1d_pct": -3.081,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1722,7 +1733,7 @@
           "sw3_codes": [
             "S650301"
           ],
-          "median_of_sw3_medians_1d_pct": 1.317,
+          "median_of_sw3_medians_1d_pct": -3.063,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1736,7 +1747,7 @@
           "sw3_codes": [
             "S650401"
           ],
-          "median_of_sw3_medians_1d_pct": 1.215,
+          "median_of_sw3_medians_1d_pct": -1.19,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1750,7 +1761,7 @@
           "sw3_codes": [
             "S650501"
           ],
-          "median_of_sw3_medians_1d_pct": 1.073,
+          "median_of_sw3_medians_1d_pct": -4.146,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1765,7 +1776,7 @@
             "S710102",
             "S710103"
           ],
-          "median_of_sw3_medians_1d_pct": -0.58,
+          "median_of_sw3_medians_1d_pct": -3.114,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1779,7 +1790,7 @@
           "sw3_codes": [
             "S710301"
           ],
-          "median_of_sw3_medians_1d_pct": -0.866,
+          "median_of_sw3_medians_1d_pct": -3.074,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1794,7 +1805,7 @@
             "S710401",
             "S710402"
           ],
-          "median_of_sw3_medians_1d_pct": -1.117,
+          "median_of_sw3_medians_1d_pct": -2.576,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1808,7 +1819,7 @@
           "sw3_codes": [
             "S720401"
           ],
-          "median_of_sw3_medians_1d_pct": -0.419,
+          "median_of_sw3_medians_1d_pct": -2.566,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1823,7 +1834,7 @@
             "S720501",
             "S720502"
           ],
-          "median_of_sw3_medians_1d_pct": -0.765,
+          "median_of_sw3_medians_1d_pct": -2.909,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1838,7 +1849,7 @@
             "S720601",
             "S720602"
           ],
-          "median_of_sw3_medians_1d_pct": 0.637,
+          "median_of_sw3_medians_1d_pct": -7.242,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1855,7 +1866,7 @@
             "S720705",
             "S720706"
           ],
-          "median_of_sw3_medians_1d_pct": 0.02,
+          "median_of_sw3_medians_1d_pct": -2.984,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1870,7 +1881,7 @@
             "S720901",
             "S720902"
           ],
-          "median_of_sw3_medians_1d_pct": -0.863,
+          "median_of_sw3_medians_1d_pct": 0.173,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1884,7 +1895,7 @@
           "sw3_codes": [
             "S721001"
           ],
-          "median_of_sw3_medians_1d_pct": -1.855,
+          "median_of_sw3_medians_1d_pct": -2.708,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1900,7 +1911,7 @@
             "S730103",
             "S730104"
           ],
-          "median_of_sw3_medians_1d_pct": -0.158,
+          "median_of_sw3_medians_1d_pct": -3.038,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1917,7 +1928,7 @@
             "S730206",
             "S730207"
           ],
-          "median_of_sw3_medians_1d_pct": 0.518,
+          "median_of_sw3_medians_1d_pct": -4.819,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1932,7 +1943,7 @@
             "S740101",
             "S740102"
           ],
-          "median_of_sw3_medians_1d_pct": -1.998,
+          "median_of_sw3_medians_1d_pct": -0.929,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1946,7 +1957,7 @@
           "sw3_codes": [
             "S740201"
           ],
-          "median_of_sw3_medians_1d_pct": -1.333,
+          "median_of_sw3_medians_1d_pct": -0.597,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1960,7 +1971,7 @@
           "sw3_codes": [
             "S750101"
           ],
-          "median_of_sw3_medians_1d_pct": -1.673,
+          "median_of_sw3_medians_1d_pct": -1.94,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1975,7 +1986,7 @@
             "S750201",
             "S750202"
           ],
-          "median_of_sw3_medians_1d_pct": -1.631,
+          "median_of_sw3_medians_1d_pct": -0.912,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -1991,7 +2002,7 @@
             "S750302",
             "S750303"
           ],
-          "median_of_sw3_medians_1d_pct": -1.513,
+          "median_of_sw3_medians_1d_pct": -2.054,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -2008,7 +2019,7 @@
             "S760103",
             "S760104"
           ],
-          "median_of_sw3_medians_1d_pct": -1.147,
+          "median_of_sw3_medians_1d_pct": -2.101,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -2022,7 +2033,7 @@
           "sw3_codes": [
             "S760201"
           ],
-          "median_of_sw3_medians_1d_pct": -1.258,
+          "median_of_sw3_medians_1d_pct": -3.469,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -2037,7 +2048,7 @@
             "S770101",
             "S770102"
           ],
-          "median_of_sw3_medians_1d_pct": -0.23,
+          "median_of_sw3_medians_1d_pct": -2.271,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -2052,7 +2063,7 @@
             "S770201",
             "S770202"
           ],
-          "median_of_sw3_medians_1d_pct": -0.293,
+          "median_of_sw3_medians_1d_pct": -1.343,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -2066,7 +2077,7 @@
           "sw3_codes": [
             "S770302"
           ],
-          "median_of_sw3_medians_1d_pct": 3.759,
+          "median_of_sw3_medians_1d_pct": 1.087,
           "official_index_1d_pct": null,
           "official_index_source": null,
           "index_quote_at": null,
@@ -2074,14 +2085,51 @@
           "flag": null
         }
       ],
-      "sw3_watch_hints": [],
+      "sw3_watch_hints": [
+        {
+          "industry_code": "S340602",
+          "name": "其他酒类",
+          "flags": [
+            "RELATIVE_BREADTH_DIVERGENCE"
+          ],
+          "selected_in_top3": false,
+          "program_channels": [],
+          "source": "data/research/sector_discovery_audit.json#sectors",
+          "sample_quality": "OK",
+          "market_state_authority": false
+        },
+        {
+          "industry_code": "S340802",
+          "name": "烘焙食品",
+          "flags": [
+            "RELATIVE_BREADTH_DIVERGENCE"
+          ],
+          "selected_in_top3": false,
+          "program_channels": [],
+          "source": "data/research/sector_discovery_audit.json#sectors",
+          "sample_quality": "OK",
+          "market_state_authority": false
+        },
+        {
+          "industry_code": "S480301",
+          "name": "股份制银行Ⅲ",
+          "flags": [
+            "RELATIVE_BREADTH_DIVERGENCE"
+          ],
+          "selected_in_top3": false,
+          "program_channels": [],
+          "source": "data/research/sector_discovery_audit.json#sectors",
+          "sample_quality": "OK",
+          "market_state_authority": false
+        }
+      ],
       "price_anchor_hints": [],
       "counts": {
         "sw2_groups": 131,
         "official_indices": 0,
         "index_discrepancies": 0,
-        "sw3_extra_hints": 0,
-        "not_in_top3": 0,
+        "sw3_extra_hints": 3,
+        "not_in_top3": 3,
         "price_anchors": 0
       },
       "data_gaps": [
@@ -2100,26 +2148,122 @@
   },
   "model_research_candidates": [
     {
-      "id": "industry:S720602",
-      "name": "院线",
+      "id": "industry:S110202",
+      "name": "水产养殖",
       "kind": "industry",
       "source": "data/research/company_industry_index.json",
       "member_count": 3,
       "usable_count": 3,
       "coverage": 1.0,
       "sample_quality": "SMALL_SAMPLE",
-      "median_1d_pct": 1.463,
-      "relative_1d_vs_market_median_pct": 2.323,
-      "advance_ratio": 1.0,
+      "median_1d_pct": 9.938,
+      "relative_1d_vs_market_median_pct": 12.614,
+      "advance_ratio": 0.6667,
       "breadth_3d": 1.0,
-      "breadth_5d": 0.3333,
+      "breadth_5d": 0.6667,
       "usable_3d_count": 3,
       "usable_5d_count": 3,
-      "median_3d_pct": 8.56,
-      "median_5d_pct": -3.39,
-      "acceleration_3d_vs_5d": 10.594,
-      "median_volume_ratio_vs_20d": 1.186,
-      "score": 7.531,
+      "median_3d_pct": 15.31,
+      "median_5d_pct": 9.6,
+      "acceleration_3d_vs_5d": 9.55,
+      "median_volume_ratio_vs_20d": 1.742,
+      "score": 16.457,
+      "daily_structure": {
+        "status": "COMPLETE",
+        "role": "OBJECTIVE_EVIDENCE_ONLY",
+        "series": [
+          {
+            "trade_date": "2026-11-19",
+            "previous_observed_session_date": "2026-11-18",
+            "member_count": 3,
+            "return_sample_size": 3,
+            "return_coverage": 1.0,
+            "median_1d_pct": -3.096,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -2.157,
+            "relative_1d_vs_market_median_pct": -0.939,
+            "advancing_count": 0,
+            "advance_ratio": 0.0,
+            "volume_sample_size": 3,
+            "median_volume_ratio_vs_prior_20d": 0.939,
+            "prior_range_sample_size": 3,
+            "close_above_prior_day_high_count": 0,
+            "close_below_prior_day_low_count": 2
+          },
+          {
+            "trade_date": "2026-11-20",
+            "previous_observed_session_date": "2026-11-19",
+            "member_count": 3,
+            "return_sample_size": 3,
+            "return_coverage": 1.0,
+            "median_1d_pct": -1.917,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -4.293,
+            "relative_1d_vs_market_median_pct": 2.376,
+            "advancing_count": 1,
+            "advance_ratio": 0.3333,
+            "volume_sample_size": 3,
+            "median_volume_ratio_vs_prior_20d": 1.107,
+            "prior_range_sample_size": 3,
+            "close_above_prior_day_high_count": 1,
+            "close_below_prior_day_low_count": 2
+          },
+          {
+            "trade_date": "2026-11-23",
+            "previous_observed_session_date": "2026-11-20",
+            "member_count": 3,
+            "return_sample_size": 3,
+            "return_coverage": 1.0,
+            "median_1d_pct": 5.863,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": 1.491,
+            "relative_1d_vs_market_median_pct": 4.373,
+            "advancing_count": 3,
+            "advance_ratio": 1.0,
+            "volume_sample_size": 3,
+            "median_volume_ratio_vs_prior_20d": 2.347,
+            "prior_range_sample_size": 3,
+            "close_above_prior_day_high_count": 3,
+            "close_below_prior_day_low_count": 0
+          },
+          {
+            "trade_date": "2026-11-24",
+            "previous_observed_session_date": "2026-11-23",
+            "member_count": 3,
+            "return_sample_size": 3,
+            "return_coverage": 1.0,
+            "median_1d_pct": -0.443,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -0.859,
+            "relative_1d_vs_market_median_pct": 0.416,
+            "advancing_count": 1,
+            "advance_ratio": 0.3333,
+            "volume_sample_size": 3,
+            "median_volume_ratio_vs_prior_20d": 1.88,
+            "prior_range_sample_size": 3,
+            "close_above_prior_day_high_count": 1,
+            "close_below_prior_day_low_count": 0
+          },
+          {
+            "trade_date": "2026-11-25",
+            "previous_observed_session_date": "2026-11-24",
+            "member_count": 3,
+            "return_sample_size": 3,
+            "return_coverage": 1.0,
+            "median_1d_pct": 9.938,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -2.676,
+            "relative_1d_vs_market_median_pct": 12.614,
+            "advancing_count": 2,
+            "advance_ratio": 0.6667,
+            "volume_sample_size": 3,
+            "median_volume_ratio_vs_prior_20d": 1.742,
+            "prior_range_sample_size": 3,
+            "close_above_prior_day_high_count": 2,
+            "close_below_prior_day_low_count": 0
+          }
+        ]
+      },
       "channels": [
         "STRONG",
         "EMERGING"
@@ -2127,53 +2271,245 @@
       "reason": "MODEL_REVIEW"
     },
     {
-      "id": "industry:S640208",
-      "name": "印刷包装机械",
+      "id": "industry:S450301",
+      "name": "百货",
       "kind": "industry",
       "source": "data/research/company_industry_index.json",
-      "member_count": 4,
-      "usable_count": 4,
-      "coverage": 1.0,
-      "sample_quality": "SMALL_SAMPLE",
-      "median_1d_pct": 2.443,
-      "relative_1d_vs_market_median_pct": 3.302,
-      "advance_ratio": 1.0,
-      "breadth_3d": 0.75,
-      "breadth_5d": 0.25,
-      "usable_3d_count": 4,
-      "usable_5d_count": 4,
-      "median_3d_pct": 3.37,
-      "median_5d_pct": -3.475,
-      "acceleration_3d_vs_5d": 5.455,
-      "median_volume_ratio_vs_20d": 1.0145,
-      "score": 6.711,
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "reason": "MODEL_REVIEW"
-    },
-    {
-      "id": "industry:S650201",
-      "name": "航空装备Ⅲ",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 22,
-      "usable_count": 22,
+      "member_count": 20,
+      "usable_count": 20,
       "coverage": 1.0,
       "sample_quality": "OK",
-      "median_1d_pct": 0.363,
-      "relative_1d_vs_market_median_pct": 1.222,
-      "advance_ratio": 0.7727,
-      "breadth_3d": 0.1364,
-      "breadth_5d": 0.0909,
-      "usable_3d_count": 22,
-      "usable_5d_count": 22,
-      "median_3d_pct": -3.055,
-      "median_5d_pct": -7.890000000000001,
-      "acceleration_3d_vs_5d": 1.679,
-      "median_volume_ratio_vs_20d": 0.878,
-      "score": 2.628,
+      "median_1d_pct": 0.95,
+      "relative_1d_vs_market_median_pct": 3.626,
+      "advance_ratio": 0.65,
+      "breadth_3d": 0.7,
+      "breadth_5d": 0.25,
+      "usable_3d_count": 20,
+      "usable_5d_count": 20,
+      "median_3d_pct": 3.1900000000000004,
+      "median_5d_pct": -5.5600000000000005,
+      "acceleration_3d_vs_5d": 6.526,
+      "median_volume_ratio_vs_20d": 1.2200000000000002,
+      "score": 6.36,
+      "daily_structure": {
+        "status": "COMPLETE",
+        "role": "OBJECTIVE_EVIDENCE_ONLY",
+        "series": [
+          {
+            "trade_date": "2026-11-19",
+            "previous_observed_session_date": "2026-11-18",
+            "member_count": 20,
+            "return_sample_size": 20,
+            "return_coverage": 1.0,
+            "median_1d_pct": -3.926,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -2.157,
+            "relative_1d_vs_market_median_pct": -1.769,
+            "advancing_count": 0,
+            "advance_ratio": 0.0,
+            "volume_sample_size": 20,
+            "median_volume_ratio_vs_prior_20d": 0.704,
+            "prior_range_sample_size": 20,
+            "close_above_prior_day_high_count": 0,
+            "close_below_prior_day_low_count": 19
+          },
+          {
+            "trade_date": "2026-11-20",
+            "previous_observed_session_date": "2026-11-19",
+            "member_count": 20,
+            "return_sample_size": 20,
+            "return_coverage": 1.0,
+            "median_1d_pct": -4.506,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -4.293,
+            "relative_1d_vs_market_median_pct": -0.213,
+            "advancing_count": 1,
+            "advance_ratio": 0.05,
+            "volume_sample_size": 20,
+            "median_volume_ratio_vs_prior_20d": 0.772,
+            "prior_range_sample_size": 20,
+            "close_above_prior_day_high_count": 1,
+            "close_below_prior_day_low_count": 18
+          },
+          {
+            "trade_date": "2026-11-23",
+            "previous_observed_session_date": "2026-11-20",
+            "member_count": 20,
+            "return_sample_size": 20,
+            "return_coverage": 1.0,
+            "median_1d_pct": 3.141,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": 1.491,
+            "relative_1d_vs_market_median_pct": 1.65,
+            "advancing_count": 17,
+            "advance_ratio": 0.85,
+            "volume_sample_size": 20,
+            "median_volume_ratio_vs_prior_20d": 0.907,
+            "prior_range_sample_size": 20,
+            "close_above_prior_day_high_count": 6,
+            "close_below_prior_day_low_count": 2
+          },
+          {
+            "trade_date": "2026-11-24",
+            "previous_observed_session_date": "2026-11-23",
+            "member_count": 20,
+            "return_sample_size": 20,
+            "return_coverage": 1.0,
+            "median_1d_pct": -0.507,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -0.859,
+            "relative_1d_vs_market_median_pct": 0.352,
+            "advancing_count": 8,
+            "advance_ratio": 0.4,
+            "volume_sample_size": 20,
+            "median_volume_ratio_vs_prior_20d": 0.709,
+            "prior_range_sample_size": 20,
+            "close_above_prior_day_high_count": 6,
+            "close_below_prior_day_low_count": 0
+          },
+          {
+            "trade_date": "2026-11-25",
+            "previous_observed_session_date": "2026-11-24",
+            "member_count": 20,
+            "return_sample_size": 20,
+            "return_coverage": 1.0,
+            "median_1d_pct": 0.95,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -2.676,
+            "relative_1d_vs_market_median_pct": 3.626,
+            "advancing_count": 13,
+            "advance_ratio": 0.65,
+            "volume_sample_size": 20,
+            "median_volume_ratio_vs_prior_20d": 1.22,
+            "prior_range_sample_size": 20,
+            "close_above_prior_day_high_count": 5,
+            "close_below_prior_day_low_count": 6
+          }
+        ]
+      },
+      "channels": [
+        "STRONG",
+        "EMERGING"
+      ],
+      "reason": "MODEL_REVIEW"
+    },
+    {
+      "id": "industry:S370402",
+      "name": "医药流通",
+      "kind": "industry",
+      "source": "data/research/company_industry_index.json",
+      "member_count": 20,
+      "usable_count": 20,
+      "coverage": 1.0,
+      "sample_quality": "OK",
+      "median_1d_pct": 0.397,
+      "relative_1d_vs_market_median_pct": 3.073,
+      "advance_ratio": 0.6,
+      "breadth_3d": 0.45,
+      "breadth_5d": 0.1,
+      "usable_3d_count": 20,
+      "usable_5d_count": 20,
+      "median_3d_pct": -0.055,
+      "median_5d_pct": -4.699999999999999,
+      "acceleration_3d_vs_5d": 2.765,
+      "median_volume_ratio_vs_20d": 1.1179999999999999,
+      "score": 4.341,
+      "daily_structure": {
+        "status": "COMPLETE",
+        "role": "OBJECTIVE_EVIDENCE_ONLY",
+        "series": [
+          {
+            "trade_date": "2026-11-19",
+            "previous_observed_session_date": "2026-11-18",
+            "member_count": 20,
+            "return_sample_size": 20,
+            "return_coverage": 1.0,
+            "median_1d_pct": -2.467,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -2.157,
+            "relative_1d_vs_market_median_pct": -0.31,
+            "advancing_count": 1,
+            "advance_ratio": 0.05,
+            "volume_sample_size": 20,
+            "median_volume_ratio_vs_prior_20d": 0.73,
+            "prior_range_sample_size": 20,
+            "close_above_prior_day_high_count": 0,
+            "close_below_prior_day_low_count": 16
+          },
+          {
+            "trade_date": "2026-11-20",
+            "previous_observed_session_date": "2026-11-19",
+            "member_count": 20,
+            "return_sample_size": 20,
+            "return_coverage": 1.0,
+            "median_1d_pct": -3.065,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -4.293,
+            "relative_1d_vs_market_median_pct": 1.228,
+            "advancing_count": 0,
+            "advance_ratio": 0.0,
+            "volume_sample_size": 20,
+            "median_volume_ratio_vs_prior_20d": 0.898,
+            "prior_range_sample_size": 20,
+            "close_above_prior_day_high_count": 0,
+            "close_below_prior_day_low_count": 19
+          },
+          {
+            "trade_date": "2026-11-23",
+            "previous_observed_session_date": "2026-11-20",
+            "member_count": 20,
+            "return_sample_size": 20,
+            "return_coverage": 1.0,
+            "median_1d_pct": 0.991,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": 1.491,
+            "relative_1d_vs_market_median_pct": -0.5,
+            "advancing_count": 14,
+            "advance_ratio": 0.7,
+            "volume_sample_size": 20,
+            "median_volume_ratio_vs_prior_20d": 0.973,
+            "prior_range_sample_size": 20,
+            "close_above_prior_day_high_count": 3,
+            "close_below_prior_day_low_count": 1
+          },
+          {
+            "trade_date": "2026-11-24",
+            "previous_observed_session_date": "2026-11-23",
+            "member_count": 20,
+            "return_sample_size": 20,
+            "return_coverage": 1.0,
+            "median_1d_pct": -1.281,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -0.859,
+            "relative_1d_vs_market_median_pct": -0.422,
+            "advancing_count": 3,
+            "advance_ratio": 0.15,
+            "volume_sample_size": 20,
+            "median_volume_ratio_vs_prior_20d": 0.777,
+            "prior_range_sample_size": 20,
+            "close_above_prior_day_high_count": 1,
+            "close_below_prior_day_low_count": 2
+          },
+          {
+            "trade_date": "2026-11-25",
+            "previous_observed_session_date": "2026-11-24",
+            "member_count": 20,
+            "return_sample_size": 20,
+            "return_coverage": 1.0,
+            "median_1d_pct": 0.397,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -2.676,
+            "relative_1d_vs_market_median_pct": 3.073,
+            "advancing_count": 12,
+            "advance_ratio": 0.6,
+            "volume_sample_size": 20,
+            "median_volume_ratio_vs_prior_20d": 1.118,
+            "prior_range_sample_size": 20,
+            "close_above_prior_day_high_count": 4,
+            "close_below_prior_day_low_count": 4
+          }
+        ]
+      },
       "channels": [
         "EMERGING"
       ],
@@ -2182,53 +2518,122 @@
   ],
   "deferred_candidates": [
     {
-      "id": "industry:S640701",
-      "name": "机器人",
+      "id": "industry:S360501",
+      "name": "文化用品",
       "kind": "industry",
       "source": "data/research/company_industry_index.json",
-      "member_count": 6,
-      "usable_count": 6,
-      "coverage": 1.0,
-      "sample_quality": "OK",
-      "median_1d_pct": 2.291,
-      "relative_1d_vs_market_median_pct": 3.15,
-      "advance_ratio": 1.0,
-      "breadth_3d": 0.8333,
-      "breadth_5d": 0.3333,
-      "usable_3d_count": 6,
-      "usable_5d_count": 6,
-      "median_3d_pct": 4.055,
-      "median_5d_pct": -2.14,
-      "acceleration_3d_vs_5d": 5.339,
-      "median_volume_ratio_vs_20d": 0.8514999999999999,
-      "score": 6.519,
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S270503",
-      "name": "品牌消费电子",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 4,
-      "usable_count": 4,
+      "member_count": 3,
+      "usable_count": 3,
       "coverage": 1.0,
       "sample_quality": "SMALL_SAMPLE",
-      "median_1d_pct": 1.923,
-      "relative_1d_vs_market_median_pct": 2.782,
-      "advance_ratio": 1.0,
-      "breadth_3d": 0.75,
-      "breadth_5d": 0.0,
-      "usable_3d_count": 4,
-      "usable_5d_count": 4,
-      "median_3d_pct": 0.85,
-      "median_5d_pct": -6.0600000000000005,
-      "acceleration_3d_vs_5d": 4.486,
-      "median_volume_ratio_vs_20d": 0.886,
-      "score": 5.852,
+      "median_1d_pct": 1.554,
+      "relative_1d_vs_market_median_pct": 4.231,
+      "advance_ratio": 0.6667,
+      "breadth_3d": 1.0,
+      "breadth_5d": 0.3333,
+      "usable_3d_count": 3,
+      "usable_5d_count": 3,
+      "median_3d_pct": 1.94,
+      "median_5d_pct": -2.97,
+      "acceleration_3d_vs_5d": 3.722,
+      "median_volume_ratio_vs_20d": 1.419,
+      "score": 6.034,
+      "daily_structure": {
+        "status": "COMPLETE",
+        "role": "OBJECTIVE_EVIDENCE_ONLY",
+        "series": [
+          {
+            "trade_date": "2026-11-19",
+            "previous_observed_session_date": "2026-11-18",
+            "member_count": 3,
+            "return_sample_size": 3,
+            "return_coverage": 1.0,
+            "median_1d_pct": -0.66,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -2.157,
+            "relative_1d_vs_market_median_pct": 1.497,
+            "advancing_count": 1,
+            "advance_ratio": 0.3333,
+            "volume_sample_size": 3,
+            "median_volume_ratio_vs_prior_20d": 0.872,
+            "prior_range_sample_size": 3,
+            "close_above_prior_day_high_count": 1,
+            "close_below_prior_day_low_count": 1
+          },
+          {
+            "trade_date": "2026-11-20",
+            "previous_observed_session_date": "2026-11-19",
+            "member_count": 3,
+            "return_sample_size": 3,
+            "return_coverage": 1.0,
+            "median_1d_pct": -5.814,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -4.293,
+            "relative_1d_vs_market_median_pct": -1.521,
+            "advancing_count": 0,
+            "advance_ratio": 0.0,
+            "volume_sample_size": 3,
+            "median_volume_ratio_vs_prior_20d": 1.105,
+            "prior_range_sample_size": 3,
+            "close_above_prior_day_high_count": 0,
+            "close_below_prior_day_low_count": 2
+          },
+          {
+            "trade_date": "2026-11-23",
+            "previous_observed_session_date": "2026-11-20",
+            "member_count": 3,
+            "return_sample_size": 3,
+            "return_coverage": 1.0,
+            "median_1d_pct": 3.085,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": 1.491,
+            "relative_1d_vs_market_median_pct": 1.595,
+            "advancing_count": 2,
+            "advance_ratio": 0.6667,
+            "volume_sample_size": 3,
+            "median_volume_ratio_vs_prior_20d": 0.898,
+            "prior_range_sample_size": 3,
+            "close_above_prior_day_high_count": 0,
+            "close_below_prior_day_low_count": 0
+          },
+          {
+            "trade_date": "2026-11-24",
+            "previous_observed_session_date": "2026-11-23",
+            "member_count": 3,
+            "return_sample_size": 3,
+            "return_coverage": 1.0,
+            "median_1d_pct": 0.506,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -0.859,
+            "relative_1d_vs_market_median_pct": 1.365,
+            "advancing_count": 2,
+            "advance_ratio": 0.6667,
+            "volume_sample_size": 3,
+            "median_volume_ratio_vs_prior_20d": 0.924,
+            "prior_range_sample_size": 3,
+            "close_above_prior_day_high_count": 2,
+            "close_below_prior_day_low_count": 0
+          },
+          {
+            "trade_date": "2026-11-25",
+            "previous_observed_session_date": "2026-11-24",
+            "member_count": 3,
+            "return_sample_size": 3,
+            "return_coverage": 1.0,
+            "median_1d_pct": 1.554,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -2.676,
+            "relative_1d_vs_market_median_pct": 4.231,
+            "advancing_count": 2,
+            "advance_ratio": 0.6667,
+            "volume_sample_size": 3,
+            "median_volume_ratio_vs_prior_20d": 1.419,
+            "prior_range_sample_size": 3,
+            "close_above_prior_day_high_count": 1,
+            "close_below_prior_day_low_count": 1
+          }
+        ]
+      },
       "channels": [
         "STRONG",
         "EMERGING"
@@ -2236,268 +2641,122 @@
       "reason": "CAPACITY_DEFERRED"
     },
     {
-      "id": "industry:S650101",
-      "name": "航天装备Ⅲ",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 5,
-      "usable_count": 5,
-      "coverage": 1.0,
-      "sample_quality": "OK",
-      "median_1d_pct": 2.85,
-      "relative_1d_vs_market_median_pct": 3.709,
-      "advance_ratio": 1.0,
-      "breadth_3d": 0.6,
-      "breadth_5d": 0.0,
-      "usable_3d_count": 5,
-      "usable_5d_count": 5,
-      "median_3d_pct": 0.09,
-      "median_5d_pct": -2.87,
-      "acceleration_3d_vs_5d": 1.812,
-      "median_volume_ratio_vs_20d": 0.776,
-      "score": 5.843,
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S350205",
-      "name": "鞋帽及其他",
+      "id": "industry:S720901",
+      "name": "教育出版",
       "kind": "industry",
       "source": "data/research/company_industry_index.json",
       "member_count": 8,
       "usable_count": 8,
       "coverage": 1.0,
       "sample_quality": "OK",
-      "median_1d_pct": 1.739,
-      "relative_1d_vs_market_median_pct": 2.598,
-      "advance_ratio": 0.75,
-      "breadth_3d": 0.5,
-      "breadth_5d": 0.375,
-      "usable_3d_count": 8,
-      "usable_5d_count": 8,
-      "median_3d_pct": 1.265,
-      "median_5d_pct": -6.995,
-      "acceleration_3d_vs_5d": 5.462,
-      "median_volume_ratio_vs_20d": 0.866,
-      "score": 5.26,
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S490201",
-      "name": "保险Ⅲ",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 5,
-      "usable_count": 5,
-      "coverage": 1.0,
-      "sample_quality": "OK",
-      "median_1d_pct": 2.197,
-      "relative_1d_vs_market_median_pct": 3.057,
-      "advance_ratio": 1.0,
-      "breadth_3d": 1.0,
-      "breadth_5d": 0.6,
-      "usable_3d_count": 5,
-      "usable_5d_count": 5,
-      "median_3d_pct": 0.62,
-      "median_5d_pct": 0.06,
-      "acceleration_3d_vs_5d": 0.584,
-      "median_volume_ratio_vs_20d": 1.274,
-      "score": 4.761,
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S330302",
-      "name": "清洁小家电",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 4,
-      "usable_count": 4,
-      "coverage": 1.0,
-      "sample_quality": "SMALL_SAMPLE",
-      "median_1d_pct": 2.873,
-      "relative_1d_vs_market_median_pct": 3.733,
-      "advance_ratio": 0.75,
-      "breadth_3d": 0.5,
-      "breadth_5d": 0.25,
-      "usable_3d_count": 4,
-      "usable_5d_count": 4,
-      "median_3d_pct": -1.11,
-      "median_5d_pct": -1.655,
-      "acceleration_3d_vs_5d": -0.117,
-      "median_volume_ratio_vs_20d": 1.175,
-      "score": 4.483,
-      "channels": [
-        "STRONG"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S450602",
-      "name": "跨境电商",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 3,
-      "usable_count": 3,
-      "coverage": 1.0,
-      "sample_quality": "SMALL_SAMPLE",
-      "median_1d_pct": 1.476,
-      "relative_1d_vs_market_median_pct": 2.335,
-      "advance_ratio": 1.0,
-      "breadth_3d": 0.3333,
-      "breadth_5d": 0.0,
-      "usable_3d_count": 3,
-      "usable_5d_count": 3,
-      "median_3d_pct": -2.76,
-      "median_5d_pct": -7.38,
-      "acceleration_3d_vs_5d": 1.668,
-      "median_volume_ratio_vs_20d": 0.834,
-      "score": 4.419,
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S450603",
-      "name": "电商服务",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 4,
-      "usable_count": 4,
-      "coverage": 1.0,
-      "sample_quality": "SMALL_SAMPLE",
-      "median_1d_pct": 1.077,
-      "relative_1d_vs_market_median_pct": 1.936,
-      "advance_ratio": 1.0,
-      "breadth_3d": 0.5,
-      "breadth_5d": 0.25,
-      "usable_3d_count": 4,
-      "usable_5d_count": 4,
-      "median_3d_pct": 0.06499999999999995,
-      "median_5d_pct": -3.3449999999999998,
-      "acceleration_3d_vs_5d": 2.072,
-      "median_volume_ratio_vs_20d": 1.012,
-      "score": 4.161,
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S720501",
-      "name": "营销代理",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 16,
-      "usable_count": 16,
-      "coverage": 1.0,
-      "sample_quality": "OK",
-      "median_1d_pct": 0.575,
-      "relative_1d_vs_market_median_pct": 1.435,
-      "advance_ratio": 0.75,
-      "breadth_3d": 0.5,
-      "breadth_5d": 0.0625,
-      "usable_3d_count": 16,
-      "usable_5d_count": 16,
-      "median_3d_pct": -0.11499999999999999,
-      "median_5d_pct": -9.325,
-      "acceleration_3d_vs_5d": 5.48,
-      "median_volume_ratio_vs_20d": 0.8345,
-      "score": 4.103,
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S640101",
-      "name": "机床工具",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 11,
-      "usable_count": 11,
-      "coverage": 1.0,
-      "sample_quality": "OK",
-      "median_1d_pct": 1.176,
-      "relative_1d_vs_market_median_pct": 2.036,
-      "advance_ratio": 0.7273,
-      "breadth_3d": 0.6,
-      "breadth_5d": 0.1,
-      "usable_3d_count": 10,
-      "usable_5d_count": 10,
-      "median_3d_pct": 0.44,
-      "median_5d_pct": -5.265,
-      "acceleration_3d_vs_5d": 3.599,
-      "median_volume_ratio_vs_20d": 1.0305,
-      "score": 3.978,
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S350208",
-      "name": "运动服装",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 3,
-      "usable_count": 3,
-      "coverage": 1.0,
-      "sample_quality": "SMALL_SAMPLE",
-      "median_1d_pct": 1.313,
-      "relative_1d_vs_market_median_pct": 2.173,
-      "advance_ratio": 0.6667,
-      "breadth_3d": 0.3333,
-      "breadth_5d": 0.0,
-      "usable_3d_count": 3,
-      "usable_5d_count": 3,
-      "median_3d_pct": -0.17,
-      "median_5d_pct": -6.24,
-      "acceleration_3d_vs_5d": 3.574,
-      "median_volume_ratio_vs_20d": 0.781,
-      "score": 3.924,
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S650301",
-      "name": "地面兵装Ⅲ",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 7,
-      "usable_count": 7,
-      "coverage": 1.0,
-      "sample_quality": "OK",
-      "median_1d_pct": 1.317,
-      "relative_1d_vs_market_median_pct": 2.176,
-      "advance_ratio": 1.0,
-      "breadth_3d": 0.2857,
+      "median_1d_pct": 1.578,
+      "relative_1d_vs_market_median_pct": 4.254,
+      "advance_ratio": 0.875,
+      "breadth_3d": 0.4286,
       "breadth_5d": 0.1429,
       "usable_3d_count": 7,
       "usable_5d_count": 7,
-      "median_3d_pct": -2.11,
-      "median_5d_pct": -4.58,
-      "acceleration_3d_vs_5d": 0.638,
-      "median_volume_ratio_vs_20d": 0.864,
-      "score": 3.899,
+      "median_3d_pct": -0.22,
+      "median_5d_pct": -2.39,
+      "acceleration_3d_vs_5d": 1.214,
+      "median_volume_ratio_vs_20d": 0.712,
+      "score": 5.804,
+      "daily_structure": {
+        "status": "COMPLETE",
+        "role": "OBJECTIVE_EVIDENCE_ONLY",
+        "series": [
+          {
+            "trade_date": "2026-11-19",
+            "previous_observed_session_date": "2026-11-18",
+            "member_count": 8,
+            "return_sample_size": 8,
+            "return_coverage": 1.0,
+            "median_1d_pct": -0.615,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -2.157,
+            "relative_1d_vs_market_median_pct": 1.542,
+            "advancing_count": 1,
+            "advance_ratio": 0.125,
+            "volume_sample_size": 8,
+            "median_volume_ratio_vs_prior_20d": 0.569,
+            "prior_range_sample_size": 8,
+            "close_above_prior_day_high_count": 0,
+            "close_below_prior_day_low_count": 3
+          },
+          {
+            "trade_date": "2026-11-20",
+            "previous_observed_session_date": "2026-11-19",
+            "member_count": 8,
+            "return_sample_size": 8,
+            "return_coverage": 1.0,
+            "median_1d_pct": -1.456,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -4.293,
+            "relative_1d_vs_market_median_pct": 2.837,
+            "advancing_count": 1,
+            "advance_ratio": 0.125,
+            "volume_sample_size": 8,
+            "median_volume_ratio_vs_prior_20d": 0.76,
+            "prior_range_sample_size": 8,
+            "close_above_prior_day_high_count": 1,
+            "close_below_prior_day_low_count": 5
+          },
+          {
+            "trade_date": "2026-11-23",
+            "previous_observed_session_date": "2026-11-20",
+            "member_count": 8,
+            "return_sample_size": 8,
+            "return_coverage": 1.0,
+            "median_1d_pct": 0.458,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": 1.491,
+            "relative_1d_vs_market_median_pct": -1.033,
+            "advancing_count": 5,
+            "advance_ratio": 0.625,
+            "volume_sample_size": 8,
+            "median_volume_ratio_vs_prior_20d": 0.959,
+            "prior_range_sample_size": 8,
+            "close_above_prior_day_high_count": 2,
+            "close_below_prior_day_low_count": 1
+          },
+          {
+            "trade_date": "2026-11-24",
+            "previous_observed_session_date": "2026-11-23",
+            "member_count": 8,
+            "return_sample_size": 8,
+            "return_coverage": 1.0,
+            "median_1d_pct": -1.015,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -0.859,
+            "relative_1d_vs_market_median_pct": -0.156,
+            "advancing_count": 2,
+            "advance_ratio": 0.25,
+            "volume_sample_size": 8,
+            "median_volume_ratio_vs_prior_20d": 0.643,
+            "prior_range_sample_size": 8,
+            "close_above_prior_day_high_count": 1,
+            "close_below_prior_day_low_count": 2
+          },
+          {
+            "trade_date": "2026-11-25",
+            "previous_observed_session_date": "2026-11-24",
+            "member_count": 8,
+            "return_sample_size": 8,
+            "return_coverage": 1.0,
+            "median_1d_pct": 1.578,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -2.676,
+            "relative_1d_vs_market_median_pct": 4.254,
+            "advancing_count": 7,
+            "advance_ratio": 0.875,
+            "volume_sample_size": 7,
+            "median_volume_ratio_vs_prior_20d": 0.712,
+            "prior_range_sample_size": 8,
+            "close_above_prior_day_high_count": 1,
+            "close_below_prior_day_low_count": 1
+          }
+        ]
+      },
       "channels": [
         "STRONG",
         "EMERGING"
@@ -2505,427 +2764,122 @@
       "reason": "CAPACITY_DEFERRED"
     },
     {
-      "id": "industry:S270504",
-      "name": "消费电子零部件及组装",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 37,
-      "usable_count": 37,
-      "coverage": 1.0,
-      "sample_quality": "OK",
-      "median_1d_pct": 1.781,
-      "relative_1d_vs_market_median_pct": 2.64,
-      "advance_ratio": 0.7838,
-      "breadth_3d": 0.3889,
-      "breadth_5d": 0.1389,
-      "usable_3d_count": 36,
-      "usable_5d_count": 36,
-      "median_3d_pct": -1.7,
-      "median_5d_pct": -4.605,
-      "acceleration_3d_vs_5d": 1.063,
-      "median_volume_ratio_vs_20d": 1.0030000000000001,
-      "score": 3.863,
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S360502",
-      "name": "娱乐用品",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 10,
-      "usable_count": 10,
-      "coverage": 1.0,
-      "sample_quality": "OK",
-      "median_1d_pct": 1.463,
-      "relative_1d_vs_market_median_pct": 2.322,
-      "advance_ratio": 0.8,
-      "breadth_3d": 0.3,
-      "breadth_5d": 0.1,
-      "usable_3d_count": 10,
-      "usable_5d_count": 10,
-      "median_3d_pct": -2.49,
-      "median_5d_pct": -6.3,
-      "acceleration_3d_vs_5d": 1.29,
-      "median_volume_ratio_vs_20d": 0.9844999999999999,
-      "score": 3.674,
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S650401",
-      "name": "航海装备Ⅲ",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 5,
-      "usable_count": 5,
-      "coverage": 1.0,
-      "sample_quality": "OK",
-      "median_1d_pct": 1.215,
-      "relative_1d_vs_market_median_pct": 2.074,
-      "advance_ratio": 1.0,
-      "breadth_3d": 0.2,
-      "breadth_5d": 0.4,
-      "usable_3d_count": 5,
-      "usable_5d_count": 5,
-      "median_3d_pct": -1.69,
-      "median_5d_pct": -1.29,
-      "acceleration_3d_vs_5d": -0.916,
-      "median_volume_ratio_vs_20d": 0.912,
-      "score": 3.574,
-      "channels": [
-        "STRONG"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S480201",
-      "name": "国有大型银行Ⅲ",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 6,
-      "usable_count": 6,
-      "coverage": 1.0,
-      "sample_quality": "OK",
-      "median_1d_pct": 0.662,
-      "relative_1d_vs_market_median_pct": 1.522,
-      "advance_ratio": 1.0,
-      "breadth_3d": 1.0,
-      "breadth_5d": 1.0,
-      "usable_3d_count": 6,
-      "usable_5d_count": 6,
-      "median_3d_pct": 2.4050000000000002,
-      "median_5d_pct": 2.075,
-      "acceleration_3d_vs_5d": 1.16,
-      "median_volume_ratio_vs_20d": 1.1145,
-      "score": 3.428,
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S650501",
-      "name": "军工电子Ⅲ",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 22,
-      "usable_count": 22,
-      "coverage": 1.0,
-      "sample_quality": "OK",
-      "median_1d_pct": 1.073,
-      "relative_1d_vs_market_median_pct": 1.932,
-      "advance_ratio": 0.8636,
-      "breadth_3d": 0.0909,
-      "breadth_5d": 0.0455,
-      "usable_3d_count": 22,
-      "usable_5d_count": 22,
-      "median_3d_pct": -2.1399999999999997,
-      "median_5d_pct": -5.335000000000001,
-      "acceleration_3d_vs_5d": 1.061,
-      "median_volume_ratio_vs_20d": 0.9115,
-      "score": 3.394,
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S330601",
-      "name": "家电零部件Ⅲ",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 19,
-      "usable_count": 19,
-      "coverage": 1.0,
-      "sample_quality": "OK",
-      "median_1d_pct": 1.417,
-      "relative_1d_vs_market_median_pct": 2.276,
-      "advance_ratio": 0.6316,
-      "breadth_3d": 0.2778,
-      "breadth_5d": 0.2222,
-      "usable_3d_count": 18,
-      "usable_5d_count": 18,
-      "median_3d_pct": -0.925,
-      "median_5d_pct": -4.825,
-      "acceleration_3d_vs_5d": 1.97,
-      "median_volume_ratio_vs_20d": 1.023,
-      "score": 3.36,
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S280205",
-      "name": "其他汽车零部件",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 32,
-      "usable_count": 32,
-      "coverage": 1.0,
-      "sample_quality": "OK",
-      "median_1d_pct": 0.944,
-      "relative_1d_vs_market_median_pct": 1.804,
-      "advance_ratio": 0.7188,
-      "breadth_3d": 0.3125,
-      "breadth_5d": 0.0625,
-      "usable_3d_count": 32,
-      "usable_5d_count": 32,
-      "median_3d_pct": -1.31,
-      "median_5d_pct": -6.28,
-      "acceleration_3d_vs_5d": 2.458,
-      "median_volume_ratio_vs_20d": 0.978,
-      "score": 3.321,
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S640702",
-      "name": "工控设备",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 12,
-      "usable_count": 12,
-      "coverage": 1.0,
-      "sample_quality": "OK",
-      "median_1d_pct": 1.082,
-      "relative_1d_vs_market_median_pct": 1.941,
-      "advance_ratio": 0.8333,
-      "breadth_3d": 0.4167,
-      "breadth_5d": 0.0,
-      "usable_3d_count": 12,
-      "usable_5d_count": 12,
-      "median_3d_pct": -1.125,
-      "median_5d_pct": -3.0,
-      "acceleration_3d_vs_5d": 0.675,
-      "median_volume_ratio_vs_20d": 1.023,
-      "score": 3.177,
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S270105",
-      "name": "模拟芯片设计",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 5,
-      "usable_count": 5,
-      "coverage": 1.0,
-      "sample_quality": "OK",
-      "median_1d_pct": 0.803,
-      "relative_1d_vs_market_median_pct": 1.662,
-      "advance_ratio": 1.0,
-      "breadth_3d": 0.4,
-      "breadth_5d": 0.0,
-      "usable_3d_count": 5,
-      "usable_5d_count": 5,
-      "median_3d_pct": -2.3,
-      "median_5d_pct": -3.78,
-      "acceleration_3d_vs_5d": -0.032,
-      "median_volume_ratio_vs_20d": 0.895,
-      "score": 3.162,
-      "channels": [
-        "STRONG"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S280203",
-      "name": "底盘与发动机系统",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 67,
-      "usable_count": 67,
-      "coverage": 1.0,
-      "sample_quality": "OK",
-      "median_1d_pct": 0.862,
-      "relative_1d_vs_market_median_pct": 1.721,
-      "advance_ratio": 0.6119,
-      "breadth_3d": 0.4545,
-      "breadth_5d": 0.2121,
-      "usable_3d_count": 66,
-      "usable_5d_count": 66,
-      "median_3d_pct": -0.825,
-      "median_5d_pct": -5.865,
-      "acceleration_3d_vs_5d": 2.694,
-      "median_volume_ratio_vs_20d": 0.8945000000000001,
-      "score": 3.0,
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S330301",
-      "name": "厨房小家电",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 8,
-      "usable_count": 8,
-      "coverage": 1.0,
-      "sample_quality": "OK",
-      "median_1d_pct": 1.367,
-      "relative_1d_vs_market_median_pct": 2.226,
-      "advance_ratio": 0.75,
-      "breadth_3d": 0.25,
-      "breadth_5d": 0.25,
-      "usable_3d_count": 8,
-      "usable_5d_count": 8,
-      "median_3d_pct": -5.365,
-      "median_5d_pct": -6.585000000000001,
-      "acceleration_3d_vs_5d": -1.414,
-      "median_volume_ratio_vs_20d": 1.0775,
-      "score": 2.976,
-      "channels": [
-        "STRONG"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S630101",
-      "name": "电机Ⅲ",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 18,
-      "usable_count": 18,
-      "coverage": 1.0,
-      "sample_quality": "OK",
-      "median_1d_pct": 0.877,
-      "relative_1d_vs_market_median_pct": 1.736,
-      "advance_ratio": 0.6667,
-      "breadth_3d": 0.3889,
-      "breadth_5d": 0.2222,
-      "usable_3d_count": 18,
-      "usable_5d_count": 18,
-      "median_3d_pct": -1.025,
-      "median_5d_pct": -5.21,
-      "acceleration_3d_vs_5d": 2.101,
-      "median_volume_ratio_vs_20d": 0.847,
-      "score": 2.971,
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S270107",
-      "name": "集成电路封测",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 5,
-      "usable_count": 5,
-      "coverage": 1.0,
-      "sample_quality": "OK",
-      "median_1d_pct": 1.522,
-      "relative_1d_vs_market_median_pct": 2.381,
-      "advance_ratio": 0.6,
-      "breadth_3d": 0.2,
-      "breadth_5d": 0.2,
-      "usable_3d_count": 5,
-      "usable_5d_count": 5,
-      "median_3d_pct": -7.33,
-      "median_5d_pct": -1.9,
-      "acceleration_3d_vs_5d": -6.19,
-      "median_volume_ratio_vs_20d": 1.031,
-      "score": 2.681,
-      "channels": [
-        "STRONG"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S640106",
-      "name": "其他通用设备",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 16,
-      "usable_count": 16,
-      "coverage": 1.0,
-      "sample_quality": "OK",
-      "median_1d_pct": 0.97,
-      "relative_1d_vs_market_median_pct": 1.83,
-      "advance_ratio": 0.6875,
-      "breadth_3d": 0.3125,
-      "breadth_5d": 0.125,
-      "usable_3d_count": 16,
-      "usable_5d_count": 16,
-      "median_3d_pct": -1.52,
-      "median_5d_pct": -3.785,
-      "acceleration_3d_vs_5d": 0.751,
-      "median_volume_ratio_vs_20d": 0.9355,
-      "score": 2.655,
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S730206",
-      "name": "通信终端及配件",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 13,
-      "usable_count": 13,
-      "coverage": 1.0,
-      "sample_quality": "OK",
-      "median_1d_pct": 0.629,
-      "relative_1d_vs_market_median_pct": 1.488,
-      "advance_ratio": 0.7692,
-      "breadth_3d": 0.3077,
-      "breadth_5d": 0.0769,
-      "usable_3d_count": 13,
-      "usable_5d_count": 13,
-      "median_3d_pct": -3.21,
-      "median_5d_pct": -7.04,
-      "acceleration_3d_vs_5d": 1.014,
-      "median_volume_ratio_vs_20d": 0.993,
-      "score": 2.651,
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S110501",
-      "name": "果蔬加工",
+      "id": "industry:S370302",
+      "name": "血液制品",
       "kind": "industry",
       "source": "data/research/company_industry_index.json",
       "member_count": 4,
       "usable_count": 4,
       "coverage": 1.0,
       "sample_quality": "SMALL_SAMPLE",
-      "median_1d_pct": 0.586,
-      "relative_1d_vs_market_median_pct": 1.445,
+      "median_1d_pct": 1.51,
+      "relative_1d_vs_market_median_pct": 4.186,
       "advance_ratio": 0.75,
-      "breadth_3d": null,
-      "breadth_5d": null,
-      "usable_3d_count": 3,
-      "usable_5d_count": 3,
-      "median_3d_pct": -1.94,
-      "median_5d_pct": -4.67,
-      "acceleration_3d_vs_5d": 0.862,
-      "median_volume_ratio_vs_20d": 1.141,
-      "score": 2.497,
+      "breadth_3d": 0.25,
+      "breadth_5d": 0.25,
+      "usable_3d_count": 4,
+      "usable_5d_count": 4,
+      "median_3d_pct": -0.78,
+      "median_5d_pct": -4.63,
+      "acceleration_3d_vs_5d": 1.998,
+      "median_volume_ratio_vs_20d": 1.2425,
+      "score": 5.635,
+      "daily_structure": {
+        "status": "COMPLETE",
+        "role": "OBJECTIVE_EVIDENCE_ONLY",
+        "series": [
+          {
+            "trade_date": "2026-11-19",
+            "previous_observed_session_date": "2026-11-18",
+            "member_count": 4,
+            "return_sample_size": 4,
+            "return_coverage": 1.0,
+            "median_1d_pct": -2.254,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -2.157,
+            "relative_1d_vs_market_median_pct": -0.097,
+            "advancing_count": 1,
+            "advance_ratio": 0.25,
+            "volume_sample_size": 4,
+            "median_volume_ratio_vs_prior_20d": 0.914,
+            "prior_range_sample_size": 4,
+            "close_above_prior_day_high_count": 0,
+            "close_below_prior_day_low_count": 3
+          },
+          {
+            "trade_date": "2026-11-20",
+            "previous_observed_session_date": "2026-11-19",
+            "member_count": 4,
+            "return_sample_size": 4,
+            "return_coverage": 1.0,
+            "median_1d_pct": -1.562,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -4.293,
+            "relative_1d_vs_market_median_pct": 2.731,
+            "advancing_count": 0,
+            "advance_ratio": 0.0,
+            "volume_sample_size": 4,
+            "median_volume_ratio_vs_prior_20d": 0.976,
+            "prior_range_sample_size": 4,
+            "close_above_prior_day_high_count": 0,
+            "close_below_prior_day_low_count": 3
+          },
+          {
+            "trade_date": "2026-11-23",
+            "previous_observed_session_date": "2026-11-20",
+            "member_count": 4,
+            "return_sample_size": 4,
+            "return_coverage": 1.0,
+            "median_1d_pct": 0.632,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": 1.491,
+            "relative_1d_vs_market_median_pct": -0.858,
+            "advancing_count": 2,
+            "advance_ratio": 0.5,
+            "volume_sample_size": 4,
+            "median_volume_ratio_vs_prior_20d": 0.928,
+            "prior_range_sample_size": 4,
+            "close_above_prior_day_high_count": 1,
+            "close_below_prior_day_low_count": 0
+          },
+          {
+            "trade_date": "2026-11-24",
+            "previous_observed_session_date": "2026-11-23",
+            "member_count": 4,
+            "return_sample_size": 4,
+            "return_coverage": 1.0,
+            "median_1d_pct": -1.706,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -0.859,
+            "relative_1d_vs_market_median_pct": -0.846,
+            "advancing_count": 0,
+            "advance_ratio": 0.0,
+            "volume_sample_size": 4,
+            "median_volume_ratio_vs_prior_20d": 0.895,
+            "prior_range_sample_size": 4,
+            "close_above_prior_day_high_count": 0,
+            "close_below_prior_day_low_count": 1
+          },
+          {
+            "trade_date": "2026-11-25",
+            "previous_observed_session_date": "2026-11-24",
+            "member_count": 4,
+            "return_sample_size": 4,
+            "return_coverage": 1.0,
+            "median_1d_pct": 1.51,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -2.676,
+            "relative_1d_vs_market_median_pct": 4.186,
+            "advancing_count": 3,
+            "advance_ratio": 0.75,
+            "volume_sample_size": 4,
+            "median_volume_ratio_vs_prior_20d": 1.242,
+            "prior_range_sample_size": 4,
+            "close_above_prior_day_high_count": 0,
+            "close_below_prior_day_low_count": 1
+          }
+        ]
+      },
       "channels": [
         "STRONG",
         "EMERGING"
@@ -2933,26 +2887,368 @@
       "reason": "CAPACITY_DEFERRED"
     },
     {
-      "id": "industry:S410108",
-      "name": "核力发电",
+      "id": "industry:S370403",
+      "name": "线下药店",
       "kind": "industry",
       "source": "data/research/company_industry_index.json",
-      "member_count": 3,
-      "usable_count": 3,
+      "member_count": 6,
+      "usable_count": 6,
       "coverage": 1.0,
-      "sample_quality": "SMALL_SAMPLE",
-      "median_1d_pct": 0.589,
-      "relative_1d_vs_market_median_pct": 1.449,
+      "sample_quality": "OK",
+      "median_1d_pct": 1.423,
+      "relative_1d_vs_market_median_pct": 4.1,
       "advance_ratio": 0.6667,
-      "breadth_3d": 0.6667,
-      "breadth_5d": 0.6667,
-      "usable_3d_count": 3,
-      "usable_5d_count": 3,
-      "median_3d_pct": 1.59,
-      "median_5d_pct": 0.2,
-      "acceleration_3d_vs_5d": 1.47,
-      "median_volume_ratio_vs_20d": 1.326,
-      "score": 2.464,
+      "breadth_3d": 0.5,
+      "breadth_5d": 0.5,
+      "usable_3d_count": 6,
+      "usable_5d_count": 6,
+      "median_3d_pct": 1.4949999999999999,
+      "median_5d_pct": -0.63,
+      "acceleration_3d_vs_5d": 1.873,
+      "median_volume_ratio_vs_20d": 1.334,
+      "score": 5.256,
+      "daily_structure": {
+        "status": "COMPLETE",
+        "role": "OBJECTIVE_EVIDENCE_ONLY",
+        "series": [
+          {
+            "trade_date": "2026-11-19",
+            "previous_observed_session_date": "2026-11-18",
+            "member_count": 6,
+            "return_sample_size": 6,
+            "return_coverage": 1.0,
+            "median_1d_pct": -1.774,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -2.157,
+            "relative_1d_vs_market_median_pct": 0.383,
+            "advancing_count": 1,
+            "advance_ratio": 0.1667,
+            "volume_sample_size": 6,
+            "median_volume_ratio_vs_prior_20d": 0.631,
+            "prior_range_sample_size": 6,
+            "close_above_prior_day_high_count": 0,
+            "close_below_prior_day_low_count": 4
+          },
+          {
+            "trade_date": "2026-11-20",
+            "previous_observed_session_date": "2026-11-19",
+            "member_count": 6,
+            "return_sample_size": 6,
+            "return_coverage": 1.0,
+            "median_1d_pct": -1.766,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -4.293,
+            "relative_1d_vs_market_median_pct": 2.526,
+            "advancing_count": 0,
+            "advance_ratio": 0.0,
+            "volume_sample_size": 6,
+            "median_volume_ratio_vs_prior_20d": 0.812,
+            "prior_range_sample_size": 6,
+            "close_above_prior_day_high_count": 0,
+            "close_below_prior_day_low_count": 5
+          },
+          {
+            "trade_date": "2026-11-23",
+            "previous_observed_session_date": "2026-11-20",
+            "member_count": 6,
+            "return_sample_size": 6,
+            "return_coverage": 1.0,
+            "median_1d_pct": -0.262,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": 1.491,
+            "relative_1d_vs_market_median_pct": -1.753,
+            "advancing_count": 2,
+            "advance_ratio": 0.3333,
+            "volume_sample_size": 6,
+            "median_volume_ratio_vs_prior_20d": 0.852,
+            "prior_range_sample_size": 6,
+            "close_above_prior_day_high_count": 0,
+            "close_below_prior_day_low_count": 1
+          },
+          {
+            "trade_date": "2026-11-24",
+            "previous_observed_session_date": "2026-11-23",
+            "member_count": 6,
+            "return_sample_size": 6,
+            "return_coverage": 1.0,
+            "median_1d_pct": -0.173,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -0.859,
+            "relative_1d_vs_market_median_pct": 0.686,
+            "advancing_count": 2,
+            "advance_ratio": 0.3333,
+            "volume_sample_size": 6,
+            "median_volume_ratio_vs_prior_20d": 0.871,
+            "prior_range_sample_size": 6,
+            "close_above_prior_day_high_count": 1,
+            "close_below_prior_day_low_count": 0
+          },
+          {
+            "trade_date": "2026-11-25",
+            "previous_observed_session_date": "2026-11-24",
+            "member_count": 6,
+            "return_sample_size": 6,
+            "return_coverage": 1.0,
+            "median_1d_pct": 1.423,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -2.676,
+            "relative_1d_vs_market_median_pct": 4.1,
+            "advancing_count": 4,
+            "advance_ratio": 0.6667,
+            "volume_sample_size": 6,
+            "median_volume_ratio_vs_prior_20d": 1.334,
+            "prior_range_sample_size": 6,
+            "close_above_prior_day_high_count": 4,
+            "close_below_prior_day_low_count": 1
+          }
+        ]
+      },
+      "channels": [
+        "STRONG",
+        "EMERGING"
+      ],
+      "reason": "CAPACITY_DEFERRED"
+    },
+    {
+      "id": "industry:S461004",
+      "name": "旅游综合",
+      "kind": "industry",
+      "source": "data/research/company_industry_index.json",
+      "member_count": 6,
+      "usable_count": 6,
+      "coverage": 1.0,
+      "sample_quality": "OK",
+      "median_1d_pct": 0.703,
+      "relative_1d_vs_market_median_pct": 3.379,
+      "advance_ratio": 0.6667,
+      "breadth_3d": 0.3333,
+      "breadth_5d": 0.0,
+      "usable_3d_count": 6,
+      "usable_5d_count": 6,
+      "median_3d_pct": -0.245,
+      "median_5d_pct": -5.745,
+      "acceleration_3d_vs_5d": 3.202,
+      "median_volume_ratio_vs_20d": 1.0305,
+      "score": 5.0,
+      "daily_structure": {
+        "status": "COMPLETE",
+        "role": "OBJECTIVE_EVIDENCE_ONLY",
+        "series": [
+          {
+            "trade_date": "2026-11-19",
+            "previous_observed_session_date": "2026-11-18",
+            "member_count": 6,
+            "return_sample_size": 6,
+            "return_coverage": 1.0,
+            "median_1d_pct": -2.027,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -2.157,
+            "relative_1d_vs_market_median_pct": 0.13,
+            "advancing_count": 1,
+            "advance_ratio": 0.1667,
+            "volume_sample_size": 6,
+            "median_volume_ratio_vs_prior_20d": 0.794,
+            "prior_range_sample_size": 6,
+            "close_above_prior_day_high_count": 1,
+            "close_below_prior_day_low_count": 5
+          },
+          {
+            "trade_date": "2026-11-20",
+            "previous_observed_session_date": "2026-11-19",
+            "member_count": 6,
+            "return_sample_size": 6,
+            "return_coverage": 1.0,
+            "median_1d_pct": -4.059,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -4.293,
+            "relative_1d_vs_market_median_pct": 0.234,
+            "advancing_count": 1,
+            "advance_ratio": 0.1667,
+            "volume_sample_size": 6,
+            "median_volume_ratio_vs_prior_20d": 1.14,
+            "prior_range_sample_size": 6,
+            "close_above_prior_day_high_count": 1,
+            "close_below_prior_day_low_count": 5
+          },
+          {
+            "trade_date": "2026-11-23",
+            "previous_observed_session_date": "2026-11-20",
+            "member_count": 6,
+            "return_sample_size": 6,
+            "return_coverage": 1.0,
+            "median_1d_pct": 1.127,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": 1.491,
+            "relative_1d_vs_market_median_pct": -0.364,
+            "advancing_count": 4,
+            "advance_ratio": 0.6667,
+            "volume_sample_size": 6,
+            "median_volume_ratio_vs_prior_20d": 1.135,
+            "prior_range_sample_size": 6,
+            "close_above_prior_day_high_count": 0,
+            "close_below_prior_day_low_count": 2
+          },
+          {
+            "trade_date": "2026-11-24",
+            "previous_observed_session_date": "2026-11-23",
+            "member_count": 6,
+            "return_sample_size": 6,
+            "return_coverage": 1.0,
+            "median_1d_pct": -1.263,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -0.859,
+            "relative_1d_vs_market_median_pct": -0.404,
+            "advancing_count": 1,
+            "advance_ratio": 0.1667,
+            "volume_sample_size": 6,
+            "median_volume_ratio_vs_prior_20d": 0.839,
+            "prior_range_sample_size": 6,
+            "close_above_prior_day_high_count": 0,
+            "close_below_prior_day_low_count": 1
+          },
+          {
+            "trade_date": "2026-11-25",
+            "previous_observed_session_date": "2026-11-24",
+            "member_count": 6,
+            "return_sample_size": 6,
+            "return_coverage": 1.0,
+            "median_1d_pct": 0.703,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -2.676,
+            "relative_1d_vs_market_median_pct": 3.379,
+            "advancing_count": 4,
+            "advance_ratio": 0.6667,
+            "volume_sample_size": 6,
+            "median_volume_ratio_vs_prior_20d": 1.03,
+            "prior_range_sample_size": 6,
+            "close_above_prior_day_high_count": 0,
+            "close_below_prior_day_low_count": 0
+          }
+        ]
+      },
+      "channels": [
+        "STRONG",
+        "EMERGING"
+      ],
+      "reason": "CAPACITY_DEFERRED"
+    },
+    {
+      "id": "industry:S370201",
+      "name": "中药Ⅲ",
+      "kind": "industry",
+      "source": "data/research/company_industry_index.json",
+      "member_count": 56,
+      "usable_count": 56,
+      "coverage": 1.0,
+      "sample_quality": "OK",
+      "median_1d_pct": 0.617,
+      "relative_1d_vs_market_median_pct": 3.293,
+      "advance_ratio": 0.6071,
+      "breadth_3d": 0.375,
+      "breadth_5d": 0.1071,
+      "usable_3d_count": 56,
+      "usable_5d_count": 56,
+      "median_3d_pct": -0.45499999999999996,
+      "median_5d_pct": -4.455,
+      "acceleration_3d_vs_5d": 2.218,
+      "median_volume_ratio_vs_20d": 1.1375,
+      "score": 4.391,
+      "daily_structure": {
+        "status": "COMPLETE",
+        "role": "OBJECTIVE_EVIDENCE_ONLY",
+        "series": [
+          {
+            "trade_date": "2026-11-19",
+            "previous_observed_session_date": "2026-11-18",
+            "member_count": 56,
+            "return_sample_size": 56,
+            "return_coverage": 1.0,
+            "median_1d_pct": -1.451,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -2.157,
+            "relative_1d_vs_market_median_pct": 0.706,
+            "advancing_count": 10,
+            "advance_ratio": 0.1786,
+            "volume_sample_size": 56,
+            "median_volume_ratio_vs_prior_20d": 0.719,
+            "prior_range_sample_size": 56,
+            "close_above_prior_day_high_count": 3,
+            "close_below_prior_day_low_count": 35
+          },
+          {
+            "trade_date": "2026-11-20",
+            "previous_observed_session_date": "2026-11-19",
+            "member_count": 56,
+            "return_sample_size": 56,
+            "return_coverage": 1.0,
+            "median_1d_pct": -2.868,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -4.293,
+            "relative_1d_vs_market_median_pct": 1.425,
+            "advancing_count": 3,
+            "advance_ratio": 0.0536,
+            "volume_sample_size": 56,
+            "median_volume_ratio_vs_prior_20d": 1.021,
+            "prior_range_sample_size": 56,
+            "close_above_prior_day_high_count": 1,
+            "close_below_prior_day_low_count": 48
+          },
+          {
+            "trade_date": "2026-11-23",
+            "previous_observed_session_date": "2026-11-20",
+            "member_count": 56,
+            "return_sample_size": 56,
+            "return_coverage": 1.0,
+            "median_1d_pct": 0.716,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": 1.491,
+            "relative_1d_vs_market_median_pct": -0.775,
+            "advancing_count": 34,
+            "advance_ratio": 0.6071,
+            "volume_sample_size": 56,
+            "median_volume_ratio_vs_prior_20d": 1.029,
+            "prior_range_sample_size": 56,
+            "close_above_prior_day_high_count": 4,
+            "close_below_prior_day_low_count": 5
+          },
+          {
+            "trade_date": "2026-11-24",
+            "previous_observed_session_date": "2026-11-23",
+            "member_count": 56,
+            "return_sample_size": 56,
+            "return_coverage": 1.0,
+            "median_1d_pct": -1.809,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -0.859,
+            "relative_1d_vs_market_median_pct": -0.949,
+            "advancing_count": 4,
+            "advance_ratio": 0.0714,
+            "volume_sample_size": 56,
+            "median_volume_ratio_vs_prior_20d": 0.913,
+            "prior_range_sample_size": 56,
+            "close_above_prior_day_high_count": 1,
+            "close_below_prior_day_low_count": 7
+          },
+          {
+            "trade_date": "2026-11-25",
+            "previous_observed_session_date": "2026-11-24",
+            "member_count": 56,
+            "return_sample_size": 56,
+            "return_coverage": 1.0,
+            "median_1d_pct": 0.617,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -2.676,
+            "relative_1d_vs_market_median_pct": 3.293,
+            "advancing_count": 34,
+            "advance_ratio": 0.6071,
+            "volume_sample_size": 56,
+            "median_volume_ratio_vs_prior_20d": 1.137,
+            "prior_range_sample_size": 56,
+            "close_above_prior_day_high_count": 11,
+            "close_below_prior_day_low_count": 13
+          }
+        ]
+      },
       "channels": [
         "STRONG",
         "EMERGING"
@@ -2968,44 +3264,114 @@
       "usable_count": 7,
       "coverage": 1.0,
       "sample_quality": "OK",
-      "median_1d_pct": 0.848,
-      "relative_1d_vs_market_median_pct": 1.707,
+      "median_1d_pct": 0.591,
+      "relative_1d_vs_market_median_pct": 3.267,
       "advance_ratio": 0.7143,
-      "breadth_3d": 0.1429,
-      "breadth_5d": 0.0,
+      "breadth_3d": 0.7143,
+      "breadth_5d": 0.2857,
       "usable_3d_count": 7,
       "usable_5d_count": 7,
-      "median_3d_pct": -1.36,
-      "median_5d_pct": -2.56,
-      "acceleration_3d_vs_5d": 0.176,
-      "median_volume_ratio_vs_20d": 0.924,
-      "score": 2.412,
-      "channels": [
-        "STRONG"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S640602",
-      "name": "工程机械器件",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 5,
-      "usable_count": 5,
-      "coverage": 1.0,
-      "sample_quality": "OK",
-      "median_1d_pct": 0.804,
-      "relative_1d_vs_market_median_pct": 1.663,
-      "advance_ratio": 0.6,
-      "breadth_3d": 0.4,
-      "breadth_5d": 0.2,
-      "usable_3d_count": 5,
-      "usable_5d_count": 5,
-      "median_3d_pct": -1.04,
-      "median_5d_pct": -3.39,
-      "acceleration_3d_vs_5d": 0.994,
-      "median_volume_ratio_vs_20d": 1.08,
-      "score": 2.311,
+      "median_3d_pct": 1.09,
+      "median_5d_pct": -0.35,
+      "acceleration_3d_vs_5d": 1.3,
+      "median_volume_ratio_vs_20d": 1.012,
+      "score": 4.365,
+      "daily_structure": {
+        "status": "COMPLETE",
+        "role": "OBJECTIVE_EVIDENCE_ONLY",
+        "series": [
+          {
+            "trade_date": "2026-11-19",
+            "previous_observed_session_date": "2026-11-18",
+            "member_count": 7,
+            "return_sample_size": 7,
+            "return_coverage": 1.0,
+            "median_1d_pct": -0.442,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -2.157,
+            "relative_1d_vs_market_median_pct": 1.715,
+            "advancing_count": 2,
+            "advance_ratio": 0.2857,
+            "volume_sample_size": 7,
+            "median_volume_ratio_vs_prior_20d": 0.832,
+            "prior_range_sample_size": 7,
+            "close_above_prior_day_high_count": 0,
+            "close_below_prior_day_low_count": 3
+          },
+          {
+            "trade_date": "2026-11-20",
+            "previous_observed_session_date": "2026-11-19",
+            "member_count": 7,
+            "return_sample_size": 7,
+            "return_coverage": 1.0,
+            "median_1d_pct": -1.967,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -4.293,
+            "relative_1d_vs_market_median_pct": 2.325,
+            "advancing_count": 1,
+            "advance_ratio": 0.1429,
+            "volume_sample_size": 7,
+            "median_volume_ratio_vs_prior_20d": 1.043,
+            "prior_range_sample_size": 7,
+            "close_above_prior_day_high_count": 0,
+            "close_below_prior_day_low_count": 5
+          },
+          {
+            "trade_date": "2026-11-23",
+            "previous_observed_session_date": "2026-11-20",
+            "member_count": 7,
+            "return_sample_size": 7,
+            "return_coverage": 1.0,
+            "median_1d_pct": 0.0,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": 1.491,
+            "relative_1d_vs_market_median_pct": -1.491,
+            "advancing_count": 3,
+            "advance_ratio": 0.4286,
+            "volume_sample_size": 7,
+            "median_volume_ratio_vs_prior_20d": 0.924,
+            "prior_range_sample_size": 7,
+            "close_above_prior_day_high_count": 0,
+            "close_below_prior_day_low_count": 1
+          },
+          {
+            "trade_date": "2026-11-24",
+            "previous_observed_session_date": "2026-11-23",
+            "member_count": 7,
+            "return_sample_size": 7,
+            "return_coverage": 1.0,
+            "median_1d_pct": 0.848,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -0.859,
+            "relative_1d_vs_market_median_pct": 1.707,
+            "advancing_count": 5,
+            "advance_ratio": 0.7143,
+            "volume_sample_size": 7,
+            "median_volume_ratio_vs_prior_20d": 0.924,
+            "prior_range_sample_size": 7,
+            "close_above_prior_day_high_count": 2,
+            "close_below_prior_day_low_count": 0
+          },
+          {
+            "trade_date": "2026-11-25",
+            "previous_observed_session_date": "2026-11-24",
+            "member_count": 7,
+            "return_sample_size": 7,
+            "return_coverage": 1.0,
+            "median_1d_pct": 0.591,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -2.676,
+            "relative_1d_vs_market_median_pct": 3.267,
+            "advancing_count": 5,
+            "advance_ratio": 0.7143,
+            "volume_sample_size": 7,
+            "median_volume_ratio_vs_prior_20d": 1.012,
+            "prior_range_sample_size": 7,
+            "close_above_prior_day_high_count": 3,
+            "close_below_prior_day_low_count": 1
+          }
+        ]
+      },
       "channels": [
         "STRONG",
         "EMERGING"
@@ -3013,130 +3379,122 @@
       "reason": "CAPACITY_DEFERRED"
     },
     {
-      "id": "industry:S730204",
-      "name": "通信网络设备及器件",
+      "id": "industry:S480201",
+      "name": "国有大型银行Ⅲ",
       "kind": "industry",
       "source": "data/research/company_industry_index.json",
-      "member_count": 13,
-      "usable_count": 13,
+      "member_count": 6,
+      "usable_count": 6,
       "coverage": 1.0,
       "sample_quality": "OK",
-      "median_1d_pct": 0.638,
-      "relative_1d_vs_market_median_pct": 1.497,
-      "advance_ratio": 0.6923,
-      "breadth_3d": 0.0,
-      "breadth_5d": 0.0769,
-      "usable_3d_count": 13,
-      "usable_5d_count": 13,
-      "median_3d_pct": -3.91,
-      "median_5d_pct": -4.49,
-      "acceleration_3d_vs_5d": -1.216,
-      "median_volume_ratio_vs_20d": 1.061,
-      "score": 2.074,
-      "channels": [
-        "STRONG"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S340802",
-      "name": "烘焙食品",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 8,
-      "usable_count": 8,
-      "coverage": 1.0,
-      "sample_quality": "OK",
-      "median_1d_pct": 0.417,
-      "relative_1d_vs_market_median_pct": 1.276,
-      "advance_ratio": 0.625,
-      "breadth_3d": 0.375,
-      "breadth_5d": 0.25,
-      "usable_3d_count": 8,
-      "usable_5d_count": 8,
-      "median_3d_pct": -1.8450000000000002,
-      "median_5d_pct": -4.765000000000001,
-      "acceleration_3d_vs_5d": 1.014,
-      "median_volume_ratio_vs_20d": 0.6835,
-      "score": 2.006,
-      "channels": [
-        "EMERGING"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S270401",
-      "name": "其他电子Ⅲ",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 14,
-      "usable_count": 14,
-      "coverage": 1.0,
-      "sample_quality": "OK",
-      "median_1d_pct": 0.429,
-      "relative_1d_vs_market_median_pct": 1.289,
-      "advance_ratio": 0.6429,
-      "breadth_3d": 0.0769,
-      "breadth_5d": 0.0,
-      "usable_3d_count": 13,
-      "usable_5d_count": 13,
-      "median_3d_pct": -3.11,
-      "median_5d_pct": -6.0,
-      "acceleration_3d_vs_5d": 0.49,
-      "median_volume_ratio_vs_20d": 0.924,
-      "score": 1.889,
-      "channels": [
-        "EMERGING"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S360501",
-      "name": "文化用品",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 3,
-      "usable_count": 3,
-      "coverage": 1.0,
-      "sample_quality": "SMALL_SAMPLE",
-      "median_1d_pct": 0.506,
-      "relative_1d_vs_market_median_pct": 1.365,
+      "median_1d_pct": 0.782,
+      "relative_1d_vs_market_median_pct": 3.459,
       "advance_ratio": 0.6667,
-      "breadth_3d": 0.0,
-      "breadth_5d": 0.0,
-      "usable_3d_count": 3,
-      "usable_5d_count": 3,
-      "median_3d_pct": -3.6,
-      "median_5d_pct": -5.7,
-      "acceleration_3d_vs_5d": -0.18,
-      "median_volume_ratio_vs_20d": 0.924,
-      "score": 1.865,
-      "channels": [
-        "STRONG"
-      ],
-      "reason": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S270203",
-      "name": "被动元件",
-      "kind": "industry",
-      "source": "data/research/company_industry_index.json",
-      "member_count": 8,
-      "usable_count": 8,
-      "coverage": 1.0,
-      "sample_quality": "OK",
-      "median_1d_pct": 0.582,
-      "relative_1d_vs_market_median_pct": 1.441,
-      "advance_ratio": 0.625,
       "breadth_3d": 0.5,
-      "breadth_5d": 0.625,
-      "usable_3d_count": 8,
-      "usable_5d_count": 8,
-      "median_3d_pct": -0.11499999999999996,
-      "median_5d_pct": 1.945,
-      "acceleration_3d_vs_5d": -1.282,
-      "median_volume_ratio_vs_20d": 0.997,
-      "score": 1.816,
+      "breadth_5d": 1.0,
+      "usable_3d_count": 6,
+      "usable_5d_count": 6,
+      "median_3d_pct": 0.56,
+      "median_5d_pct": 2.7800000000000002,
+      "acceleration_3d_vs_5d": -1.108,
+      "median_volume_ratio_vs_20d": 1.13,
+      "score": 3.959,
+      "daily_structure": {
+        "status": "COMPLETE",
+        "role": "OBJECTIVE_EVIDENCE_ONLY",
+        "series": [
+          {
+            "trade_date": "2026-11-19",
+            "previous_observed_session_date": "2026-11-18",
+            "member_count": 6,
+            "return_sample_size": 6,
+            "return_coverage": 1.0,
+            "median_1d_pct": 0.125,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -2.157,
+            "relative_1d_vs_market_median_pct": 2.283,
+            "advancing_count": 4,
+            "advance_ratio": 0.6667,
+            "volume_sample_size": 6,
+            "median_volume_ratio_vs_prior_20d": 0.646,
+            "prior_range_sample_size": 6,
+            "close_above_prior_day_high_count": 0,
+            "close_below_prior_day_low_count": 0
+          },
+          {
+            "trade_date": "2026-11-20",
+            "previous_observed_session_date": "2026-11-19",
+            "member_count": 6,
+            "return_sample_size": 6,
+            "return_coverage": 1.0,
+            "median_1d_pct": 2.675,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -4.293,
+            "relative_1d_vs_market_median_pct": 6.968,
+            "advancing_count": 6,
+            "advance_ratio": 1.0,
+            "volume_sample_size": 6,
+            "median_volume_ratio_vs_prior_20d": 1.215,
+            "prior_range_sample_size": 6,
+            "close_above_prior_day_high_count": 6,
+            "close_below_prior_day_low_count": 0
+          },
+          {
+            "trade_date": "2026-11-23",
+            "previous_observed_session_date": "2026-11-20",
+            "member_count": 6,
+            "return_sample_size": 6,
+            "return_coverage": 1.0,
+            "median_1d_pct": -1.338,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": 1.491,
+            "relative_1d_vs_market_median_pct": -2.829,
+            "advancing_count": 2,
+            "advance_ratio": 0.3333,
+            "volume_sample_size": 6,
+            "median_volume_ratio_vs_prior_20d": 1.307,
+            "prior_range_sample_size": 6,
+            "close_above_prior_day_high_count": 1,
+            "close_below_prior_day_low_count": 0
+          },
+          {
+            "trade_date": "2026-11-24",
+            "previous_observed_session_date": "2026-11-23",
+            "member_count": 6,
+            "return_sample_size": 6,
+            "return_coverage": 1.0,
+            "median_1d_pct": 0.662,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -0.859,
+            "relative_1d_vs_market_median_pct": 1.522,
+            "advancing_count": 6,
+            "advance_ratio": 1.0,
+            "volume_sample_size": 6,
+            "median_volume_ratio_vs_prior_20d": 1.115,
+            "prior_range_sample_size": 6,
+            "close_above_prior_day_high_count": 1,
+            "close_below_prior_day_low_count": 0
+          },
+          {
+            "trade_date": "2026-11-25",
+            "previous_observed_session_date": "2026-11-24",
+            "member_count": 6,
+            "return_sample_size": 6,
+            "return_coverage": 1.0,
+            "median_1d_pct": 0.782,
+            "market_sample_size": 3138,
+            "market_median_1d_pct": -2.676,
+            "relative_1d_vs_market_median_pct": 3.459,
+            "advancing_count": 4,
+            "advance_ratio": 0.6667,
+            "volume_sample_size": 6,
+            "median_volume_ratio_vs_prior_20d": 1.13,
+            "prior_range_sample_size": 6,
+            "close_above_prior_day_high_count": 4,
+            "close_below_prior_day_low_count": 0
+          }
+        ]
+      },
       "channels": [
         "STRONG"
       ],
@@ -3158,445 +3516,115 @@
   },
   "candidate_overview": [
     {
-      "id": "industry:S720602",
-      "name": "院线",
+      "id": "industry:S110202",
+      "name": "水产养殖",
       "kind": "industry",
-      "industry_code": "S720602",
+      "industry_code": "S110202",
       "channels": [
         "STRONG",
         "EMERGING"
       ],
-      "score": 7.531,
-      "relative_strength": 2.323,
-      "advance_ratio": 1.0,
+      "score": 16.457,
+      "relative_strength": 12.614,
+      "advance_ratio": 0.6667,
       "research_queue_status": "MODEL_REVIEW"
     },
     {
-      "id": "industry:S640208",
-      "name": "印刷包装机械",
+      "id": "industry:S450301",
+      "name": "百货",
       "kind": "industry",
-      "industry_code": "S640208",
+      "industry_code": "S450301",
       "channels": [
         "STRONG",
         "EMERGING"
       ],
-      "score": 6.711,
-      "relative_strength": 3.302,
-      "advance_ratio": 1.0,
+      "score": 6.36,
+      "relative_strength": 3.626,
+      "advance_ratio": 0.65,
       "research_queue_status": "MODEL_REVIEW"
     },
     {
-      "id": "industry:S640701",
-      "name": "机器人",
+      "id": "industry:S360501",
+      "name": "文化用品",
       "kind": "industry",
-      "industry_code": "S640701",
+      "industry_code": "S360501",
       "channels": [
         "STRONG",
         "EMERGING"
       ],
-      "score": 6.519,
-      "relative_strength": 3.15,
-      "advance_ratio": 1.0,
-      "research_queue_status": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S270503",
-      "name": "品牌消费电子",
-      "kind": "industry",
-      "industry_code": "S270503",
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "score": 5.852,
-      "relative_strength": 2.782,
-      "advance_ratio": 1.0,
-      "research_queue_status": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S650101",
-      "name": "航天装备Ⅲ",
-      "kind": "industry",
-      "industry_code": "S650101",
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "score": 5.843,
-      "relative_strength": 3.709,
-      "advance_ratio": 1.0,
-      "research_queue_status": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S350205",
-      "name": "鞋帽及其他",
-      "kind": "industry",
-      "industry_code": "S350205",
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "score": 5.26,
-      "relative_strength": 2.598,
-      "advance_ratio": 0.75,
-      "research_queue_status": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S490201",
-      "name": "保险Ⅲ",
-      "kind": "industry",
-      "industry_code": "S490201",
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "score": 4.761,
-      "relative_strength": 3.057,
-      "advance_ratio": 1.0,
-      "research_queue_status": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S330302",
-      "name": "清洁小家电",
-      "kind": "industry",
-      "industry_code": "S330302",
-      "channels": [
-        "STRONG"
-      ],
-      "score": 4.483,
-      "relative_strength": 3.733,
-      "advance_ratio": 0.75,
-      "research_queue_status": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S450602",
-      "name": "跨境电商",
-      "kind": "industry",
-      "industry_code": "S450602",
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "score": 4.419,
-      "relative_strength": 2.335,
-      "advance_ratio": 1.0,
-      "research_queue_status": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S450603",
-      "name": "电商服务",
-      "kind": "industry",
-      "industry_code": "S450603",
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "score": 4.161,
-      "relative_strength": 1.936,
-      "advance_ratio": 1.0,
-      "research_queue_status": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S720501",
-      "name": "营销代理",
-      "kind": "industry",
-      "industry_code": "S720501",
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "score": 4.103,
-      "relative_strength": 1.435,
-      "advance_ratio": 0.75,
-      "research_queue_status": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S640101",
-      "name": "机床工具",
-      "kind": "industry",
-      "industry_code": "S640101",
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "score": 3.978,
-      "relative_strength": 2.036,
-      "advance_ratio": 0.7273,
-      "research_queue_status": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S350208",
-      "name": "运动服装",
-      "kind": "industry",
-      "industry_code": "S350208",
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "score": 3.924,
-      "relative_strength": 2.173,
+      "score": 6.034,
+      "relative_strength": 4.231,
       "advance_ratio": 0.6667,
       "research_queue_status": "CAPACITY_DEFERRED"
     },
     {
-      "id": "industry:S650301",
-      "name": "地面兵装Ⅲ",
+      "id": "industry:S720901",
+      "name": "教育出版",
       "kind": "industry",
-      "industry_code": "S650301",
+      "industry_code": "S720901",
       "channels": [
         "STRONG",
         "EMERGING"
       ],
-      "score": 3.899,
-      "relative_strength": 2.176,
-      "advance_ratio": 1.0,
+      "score": 5.804,
+      "relative_strength": 4.254,
+      "advance_ratio": 0.875,
       "research_queue_status": "CAPACITY_DEFERRED"
     },
     {
-      "id": "industry:S270504",
-      "name": "消费电子零部件及组装",
+      "id": "industry:S370302",
+      "name": "血液制品",
       "kind": "industry",
-      "industry_code": "S270504",
+      "industry_code": "S370302",
       "channels": [
         "STRONG",
         "EMERGING"
       ],
-      "score": 3.863,
-      "relative_strength": 2.64,
-      "advance_ratio": 0.7838,
-      "research_queue_status": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S360502",
-      "name": "娱乐用品",
-      "kind": "industry",
-      "industry_code": "S360502",
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "score": 3.674,
-      "relative_strength": 2.322,
-      "advance_ratio": 0.8,
-      "research_queue_status": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S650401",
-      "name": "航海装备Ⅲ",
-      "kind": "industry",
-      "industry_code": "S650401",
-      "channels": [
-        "STRONG"
-      ],
-      "score": 3.574,
-      "relative_strength": 2.074,
-      "advance_ratio": 1.0,
-      "research_queue_status": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S480201",
-      "name": "国有大型银行Ⅲ",
-      "kind": "industry",
-      "industry_code": "S480201",
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "score": 3.428,
-      "relative_strength": 1.522,
-      "advance_ratio": 1.0,
-      "research_queue_status": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S650501",
-      "name": "军工电子Ⅲ",
-      "kind": "industry",
-      "industry_code": "S650501",
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "score": 3.394,
-      "relative_strength": 1.932,
-      "advance_ratio": 0.8636,
-      "research_queue_status": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S330601",
-      "name": "家电零部件Ⅲ",
-      "kind": "industry",
-      "industry_code": "S330601",
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "score": 3.36,
-      "relative_strength": 2.276,
-      "advance_ratio": 0.6316,
-      "research_queue_status": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S280205",
-      "name": "其他汽车零部件",
-      "kind": "industry",
-      "industry_code": "S280205",
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "score": 3.321,
-      "relative_strength": 1.804,
-      "advance_ratio": 0.7188,
-      "research_queue_status": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S640702",
-      "name": "工控设备",
-      "kind": "industry",
-      "industry_code": "S640702",
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "score": 3.177,
-      "relative_strength": 1.941,
-      "advance_ratio": 0.8333,
-      "research_queue_status": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S270105",
-      "name": "模拟芯片设计",
-      "kind": "industry",
-      "industry_code": "S270105",
-      "channels": [
-        "STRONG"
-      ],
-      "score": 3.162,
-      "relative_strength": 1.662,
-      "advance_ratio": 1.0,
-      "research_queue_status": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S280203",
-      "name": "底盘与发动机系统",
-      "kind": "industry",
-      "industry_code": "S280203",
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "score": 3.0,
-      "relative_strength": 1.721,
-      "advance_ratio": 0.6119,
-      "research_queue_status": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S330301",
-      "name": "厨房小家电",
-      "kind": "industry",
-      "industry_code": "S330301",
-      "channels": [
-        "STRONG"
-      ],
-      "score": 2.976,
-      "relative_strength": 2.226,
+      "score": 5.635,
+      "relative_strength": 4.186,
       "advance_ratio": 0.75,
       "research_queue_status": "CAPACITY_DEFERRED"
     },
     {
-      "id": "industry:S630101",
-      "name": "电机Ⅲ",
+      "id": "industry:S370403",
+      "name": "线下药店",
       "kind": "industry",
-      "industry_code": "S630101",
+      "industry_code": "S370403",
       "channels": [
         "STRONG",
         "EMERGING"
       ],
-      "score": 2.971,
-      "relative_strength": 1.736,
+      "score": 5.256,
+      "relative_strength": 4.1,
       "advance_ratio": 0.6667,
       "research_queue_status": "CAPACITY_DEFERRED"
     },
     {
-      "id": "industry:S270107",
-      "name": "集成电路封测",
+      "id": "industry:S461004",
+      "name": "旅游综合",
       "kind": "industry",
-      "industry_code": "S270107",
-      "channels": [
-        "STRONG"
-      ],
-      "score": 2.681,
-      "relative_strength": 2.381,
-      "advance_ratio": 0.6,
-      "research_queue_status": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S640106",
-      "name": "其他通用设备",
-      "kind": "industry",
-      "industry_code": "S640106",
+      "industry_code": "S461004",
       "channels": [
         "STRONG",
         "EMERGING"
       ],
-      "score": 2.655,
-      "relative_strength": 1.83,
-      "advance_ratio": 0.6875,
-      "research_queue_status": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S730206",
-      "name": "通信终端及配件",
-      "kind": "industry",
-      "industry_code": "S730206",
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "score": 2.651,
-      "relative_strength": 1.488,
-      "advance_ratio": 0.7692,
-      "research_queue_status": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S650201",
-      "name": "航空装备Ⅲ",
-      "kind": "industry",
-      "industry_code": "S650201",
-      "channels": [
-        "EMERGING"
-      ],
-      "score": 2.628,
-      "relative_strength": 1.222,
-      "advance_ratio": 0.7727,
-      "research_queue_status": "MODEL_REVIEW"
-    },
-    {
-      "id": "industry:S110501",
-      "name": "果蔬加工",
-      "kind": "industry",
-      "industry_code": "S110501",
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "score": 2.497,
-      "relative_strength": 1.445,
-      "advance_ratio": 0.75,
-      "research_queue_status": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S410108",
-      "name": "核力发电",
-      "kind": "industry",
-      "industry_code": "S410108",
-      "channels": [
-        "STRONG",
-        "EMERGING"
-      ],
-      "score": 2.464,
-      "relative_strength": 1.449,
+      "score": 5.0,
+      "relative_strength": 3.379,
       "advance_ratio": 0.6667,
+      "research_queue_status": "CAPACITY_DEFERRED"
+    },
+    {
+      "id": "industry:S370201",
+      "name": "中药Ⅲ",
+      "kind": "industry",
+      "industry_code": "S370201",
+      "channels": [
+        "STRONG",
+        "EMERGING"
+      ],
+      "score": 4.391,
+      "relative_strength": 3.293,
+      "advance_ratio": 0.6071,
       "research_queue_status": "CAPACITY_DEFERRED"
     },
     {
@@ -3605,95 +3633,43 @@
       "kind": "industry",
       "industry_code": "S340601",
       "channels": [
-        "STRONG"
+        "STRONG",
+        "EMERGING"
       ],
-      "score": 2.412,
-      "relative_strength": 1.707,
+      "score": 4.365,
+      "relative_strength": 3.267,
       "advance_ratio": 0.7143,
       "research_queue_status": "CAPACITY_DEFERRED"
     },
     {
-      "id": "industry:S640602",
-      "name": "工程机械器件",
+      "id": "industry:S370402",
+      "name": "医药流通",
       "kind": "industry",
-      "industry_code": "S640602",
+      "industry_code": "S370402",
       "channels": [
-        "STRONG",
         "EMERGING"
       ],
-      "score": 2.311,
-      "relative_strength": 1.663,
+      "score": 4.341,
+      "relative_strength": 3.073,
       "advance_ratio": 0.6,
-      "research_queue_status": "CAPACITY_DEFERRED"
+      "research_queue_status": "MODEL_REVIEW"
     },
     {
-      "id": "industry:S730204",
-      "name": "通信网络设备及器件",
+      "id": "industry:S480201",
+      "name": "国有大型银行Ⅲ",
       "kind": "industry",
-      "industry_code": "S730204",
+      "industry_code": "S480201",
       "channels": [
         "STRONG"
       ],
-      "score": 2.074,
-      "relative_strength": 1.497,
-      "advance_ratio": 0.6923,
-      "research_queue_status": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S340802",
-      "name": "烘焙食品",
-      "kind": "industry",
-      "industry_code": "S340802",
-      "channels": [
-        "EMERGING"
-      ],
-      "score": 2.006,
-      "relative_strength": 1.276,
-      "advance_ratio": 0.625,
-      "research_queue_status": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S270401",
-      "name": "其他电子Ⅲ",
-      "kind": "industry",
-      "industry_code": "S270401",
-      "channels": [
-        "EMERGING"
-      ],
-      "score": 1.889,
-      "relative_strength": 1.289,
-      "advance_ratio": 0.6429,
-      "research_queue_status": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S360501",
-      "name": "文化用品",
-      "kind": "industry",
-      "industry_code": "S360501",
-      "channels": [
-        "STRONG"
-      ],
-      "score": 1.865,
-      "relative_strength": 1.365,
+      "score": 3.959,
+      "relative_strength": 3.459,
       "advance_ratio": 0.6667,
-      "research_queue_status": "CAPACITY_DEFERRED"
-    },
-    {
-      "id": "industry:S270203",
-      "name": "被动元件",
-      "kind": "industry",
-      "industry_code": "S270203",
-      "channels": [
-        "STRONG"
-      ],
-      "score": 1.816,
-      "relative_strength": 1.441,
-      "advance_ratio": 0.625,
       "research_queue_status": "CAPACITY_DEFERRED"
     }
   ],
   "discovery_coverage_audit": {
-    "trade_date": "2026-11-24",
+    "trade_date": "2026-11-25",
     "role": "AUXILIARY_ONLY_NO_FORMAL_DECISIONS",
     "thresholds_not_state_gates": true,
     "changes_handoff": false,
@@ -3711,7 +3687,7 @@
           "S110103",
           "S110104"
         ],
-        "median_of_sw3_medians_1d_pct": -1.055,
+        "median_of_sw3_medians_1d_pct": -1.83,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -3726,7 +3702,7 @@
           "S110201",
           "S110202"
         ],
-        "median_of_sw3_medians_1d_pct": -1.113,
+        "median_of_sw3_medians_1d_pct": 4.607,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -3740,7 +3716,7 @@
         "sw3_codes": [
           "S110301"
         ],
-        "median_of_sw3_medians_1d_pct": -0.503,
+        "median_of_sw3_medians_1d_pct": -1.684,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -3756,7 +3732,7 @@
           "S110403",
           "S110404"
         ],
-        "median_of_sw3_medians_1d_pct": -0.619,
+        "median_of_sw3_medians_1d_pct": -2.658,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -3772,7 +3748,7 @@
           "S110502",
           "S110504"
         ],
-        "median_of_sw3_medians_1d_pct": -0.769,
+        "median_of_sw3_medians_1d_pct": -3.049,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -3788,7 +3764,7 @@
           "S110703",
           "S110704"
         ],
-        "median_of_sw3_medians_1d_pct": 0.113,
+        "median_of_sw3_medians_1d_pct": -2.588,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -3802,7 +3778,7 @@
         "sw3_codes": [
           "S110801"
         ],
-        "median_of_sw3_medians_1d_pct": -0.733,
+        "median_of_sw3_medians_1d_pct": -1.933,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -3816,7 +3792,7 @@
         "sw3_codes": [
           "S110901"
         ],
-        "median_of_sw3_medians_1d_pct": -1.741,
+        "median_of_sw3_medians_1d_pct": -1.772,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -3835,7 +3811,7 @@
           "S220205",
           "S220206"
         ],
-        "median_of_sw3_medians_1d_pct": -1.631,
+        "median_of_sw3_medians_1d_pct": -2.272,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -3857,7 +3833,7 @@
           "S220316",
           "S220317"
         ],
-        "median_of_sw3_medians_1d_pct": -1.117,
+        "median_of_sw3_medians_1d_pct": -4.618,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -3875,7 +3851,7 @@
           "S220405",
           "S220406"
         ],
-        "median_of_sw3_medians_1d_pct": -1.448,
+        "median_of_sw3_medians_1d_pct": -1.802,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -3892,7 +3868,7 @@
           "S220504",
           "S220505"
         ],
-        "median_of_sw3_medians_1d_pct": -0.621,
+        "median_of_sw3_medians_1d_pct": -4.903,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -3908,7 +3884,7 @@
           "S220603",
           "S220604"
         ],
-        "median_of_sw3_medians_1d_pct": -1.436,
+        "median_of_sw3_medians_1d_pct": -2.75,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -3926,7 +3902,7 @@
           "S220804",
           "S220805"
         ],
-        "median_of_sw3_medians_1d_pct": -1.297,
+        "median_of_sw3_medians_1d_pct": -2.114,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -3940,7 +3916,7 @@
         "sw3_codes": [
           "S220901"
         ],
-        "median_of_sw3_medians_1d_pct": -0.597,
+        "median_of_sw3_medians_1d_pct": -5.162,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -3955,7 +3931,7 @@
           "S230301",
           "S230302"
         ],
-        "median_of_sw3_medians_1d_pct": -1.952,
+        "median_of_sw3_medians_1d_pct": -1.243,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -3971,7 +3947,7 @@
           "S230402",
           "S230403"
         ],
-        "median_of_sw3_medians_1d_pct": -1.824,
+        "median_of_sw3_medians_1d_pct": -1.504,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -3985,7 +3961,7 @@
         "sw3_codes": [
           "S230501"
         ],
-        "median_of_sw3_medians_1d_pct": -1.102,
+        "median_of_sw3_medians_1d_pct": -1.342,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4000,7 +3976,7 @@
           "S240201",
           "S240202"
         ],
-        "median_of_sw3_medians_1d_pct": -1.322,
+        "median_of_sw3_medians_1d_pct": -4.91,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4016,7 +3992,7 @@
           "S240302",
           "S240303"
         ],
-        "median_of_sw3_medians_1d_pct": -2.259,
+        "median_of_sw3_medians_1d_pct": -3.122,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4031,7 +4007,7 @@
           "S240401",
           "S240402"
         ],
-        "median_of_sw3_medians_1d_pct": -3.427,
+        "median_of_sw3_medians_1d_pct": -3.425,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4048,7 +4024,7 @@
           "S240504",
           "S240505"
         ],
-        "median_of_sw3_medians_1d_pct": -1.806,
+        "median_of_sw3_medians_1d_pct": -4.812,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4064,7 +4040,7 @@
           "S240602",
           "S240603"
         ],
-        "median_of_sw3_medians_1d_pct": 1.471,
+        "median_of_sw3_medians_1d_pct": -5.222,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4083,7 +4059,7 @@
           "S270107",
           "S270108"
         ],
-        "median_of_sw3_medians_1d_pct": 0.519,
+        "median_of_sw3_medians_1d_pct": -8.241,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4098,7 +4074,7 @@
           "S270202",
           "S270203"
         ],
-        "median_of_sw3_medians_1d_pct": -0.426,
+        "median_of_sw3_medians_1d_pct": -5.644,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4114,7 +4090,7 @@
           "S270302",
           "S270303"
         ],
-        "median_of_sw3_medians_1d_pct": -0.248,
+        "median_of_sw3_medians_1d_pct": -5.369,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4128,7 +4104,7 @@
         "sw3_codes": [
           "S270401"
         ],
-        "median_of_sw3_medians_1d_pct": 0.429,
+        "median_of_sw3_medians_1d_pct": -6.36,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4143,7 +4119,7 @@
           "S270503",
           "S270504"
         ],
-        "median_of_sw3_medians_1d_pct": 1.852,
+        "median_of_sw3_medians_1d_pct": -4.516,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4157,7 +4133,7 @@
         "sw3_codes": [
           "S270601"
         ],
-        "median_of_sw3_medians_1d_pct": -0.707,
+        "median_of_sw3_medians_1d_pct": -7.76,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4175,7 +4151,7 @@
           "S280205",
           "S280206"
         ],
-        "median_of_sw3_medians_1d_pct": 0.0,
+        "median_of_sw3_medians_1d_pct": -4.745,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4190,7 +4166,7 @@
           "S280302",
           "S280303"
         ],
-        "median_of_sw3_medians_1d_pct": -0.969,
+        "median_of_sw3_medians_1d_pct": -1.995,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4205,7 +4181,7 @@
           "S280401",
           "S280402"
         ],
-        "median_of_sw3_medians_1d_pct": -0.133,
+        "median_of_sw3_medians_1d_pct": -2.942,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4220,7 +4196,7 @@
           "S280501",
           "S280502"
         ],
-        "median_of_sw3_medians_1d_pct": -1.312,
+        "median_of_sw3_medians_1d_pct": -1.596,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4235,7 +4211,7 @@
           "S280601",
           "S280602"
         ],
-        "median_of_sw3_medians_1d_pct": -1.168,
+        "median_of_sw3_medians_1d_pct": -2.763,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4250,7 +4226,7 @@
           "S330102",
           "S330106"
         ],
-        "median_of_sw3_medians_1d_pct": -0.234,
+        "median_of_sw3_medians_1d_pct": -1.611,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4265,7 +4241,7 @@
           "S330201",
           "S330202"
         ],
-        "median_of_sw3_medians_1d_pct": 1.083,
+        "median_of_sw3_medians_1d_pct": -3.688,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4281,7 +4257,7 @@
           "S330302",
           "S330303"
         ],
-        "median_of_sw3_medians_1d_pct": 2.873,
+        "median_of_sw3_medians_1d_pct": -1.864,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4296,7 +4272,7 @@
           "S330401",
           "S330402"
         ],
-        "median_of_sw3_medians_1d_pct": -1.911,
+        "median_of_sw3_medians_1d_pct": -3.396,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4310,7 +4286,7 @@
         "sw3_codes": [
           "S330501"
         ],
-        "median_of_sw3_medians_1d_pct": -0.082,
+        "median_of_sw3_medians_1d_pct": -5.421,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4324,7 +4300,7 @@
         "sw3_codes": [
           "S330601"
         ],
-        "median_of_sw3_medians_1d_pct": 1.417,
+        "median_of_sw3_medians_1d_pct": -5.672,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4338,7 +4314,7 @@
         "sw3_codes": [
           "S330701"
         ],
-        "median_of_sw3_medians_1d_pct": -0.728,
+        "median_of_sw3_medians_1d_pct": -4.884,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4354,7 +4330,7 @@
           "S340406",
           "S340407"
         ],
-        "median_of_sw3_medians_1d_pct": -0.322,
+        "median_of_sw3_medians_1d_pct": -0.981,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4368,7 +4344,7 @@
         "sw3_codes": [
           "S340501"
         ],
-        "median_of_sw3_medians_1d_pct": -0.78,
+        "median_of_sw3_medians_1d_pct": -0.644,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4383,7 +4359,7 @@
           "S340601",
           "S340602"
         ],
-        "median_of_sw3_medians_1d_pct": 0.216,
+        "median_of_sw3_medians_1d_pct": 0.139,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4398,7 +4374,7 @@
           "S340701",
           "S340702"
         ],
-        "median_of_sw3_medians_1d_pct": -1.246,
+        "median_of_sw3_medians_1d_pct": -1.145,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4414,7 +4390,7 @@
           "S340802",
           "S340803"
         ],
-        "median_of_sw3_medians_1d_pct": 0.067,
+        "median_of_sw3_medians_1d_pct": -0.442,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4428,7 +4404,7 @@
         "sw3_codes": [
           "S340901"
         ],
-        "median_of_sw3_medians_1d_pct": -0.25,
+        "median_of_sw3_medians_1d_pct": -0.175,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4445,7 +4421,7 @@
           "S350105",
           "S350106"
         ],
-        "median_of_sw3_medians_1d_pct": -1.222,
+        "median_of_sw3_medians_1d_pct": -2.74,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4462,7 +4438,7 @@
           "S350208",
           "S350209"
         ],
-        "median_of_sw3_medians_1d_pct": 0.47,
+        "median_of_sw3_medians_1d_pct": -1.478,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4477,7 +4453,7 @@
           "S350301",
           "S350303"
         ],
-        "median_of_sw3_medians_1d_pct": -0.263,
+        "median_of_sw3_medians_1d_pct": -1.722,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4492,7 +4468,7 @@
           "S360102",
           "S360103"
         ],
-        "median_of_sw3_medians_1d_pct": -1.588,
+        "median_of_sw3_medians_1d_pct": -1.981,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4510,7 +4486,7 @@
           "S360205",
           "S360206"
         ],
-        "median_of_sw3_medians_1d_pct": -0.539,
+        "median_of_sw3_medians_1d_pct": -4.265,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4528,7 +4504,7 @@
           "S360309",
           "S360311"
         ],
-        "median_of_sw3_medians_1d_pct": -0.581,
+        "median_of_sw3_medians_1d_pct": -3.4,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4543,7 +4519,7 @@
           "S360501",
           "S360502"
         ],
-        "median_of_sw3_medians_1d_pct": 0.985,
+        "median_of_sw3_medians_1d_pct": -0.924,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4558,7 +4534,7 @@
           "S370101",
           "S370102"
         ],
-        "median_of_sw3_medians_1d_pct": -1.519,
+        "median_of_sw3_medians_1d_pct": -0.92,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4572,7 +4548,7 @@
         "sw3_codes": [
           "S370201"
         ],
-        "median_of_sw3_medians_1d_pct": -1.809,
+        "median_of_sw3_medians_1d_pct": 0.617,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4588,7 +4564,7 @@
           "S370303",
           "S370304"
         ],
-        "median_of_sw3_medians_1d_pct": -1.806,
+        "median_of_sw3_medians_1d_pct": 0.245,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4603,7 +4579,7 @@
           "S370402",
           "S370403"
         ],
-        "median_of_sw3_medians_1d_pct": -0.727,
+        "median_of_sw3_medians_1d_pct": 0.91,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4619,7 +4595,7 @@
           "S370503",
           "S370504"
         ],
-        "median_of_sw3_medians_1d_pct": -1.559,
+        "median_of_sw3_medians_1d_pct": -1.09,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4636,7 +4612,7 @@
           "S370604",
           "S370605"
         ],
-        "median_of_sw3_medians_1d_pct": -0.726,
+        "median_of_sw3_medians_1d_pct": -2.55,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4657,7 +4633,7 @@
           "S410109",
           "S410110"
         ],
-        "median_of_sw3_medians_1d_pct": -1.293,
+        "median_of_sw3_medians_1d_pct": -2.067,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4671,7 +4647,7 @@
         "sw3_codes": [
           "S410301"
         ],
-        "median_of_sw3_medians_1d_pct": -2.317,
+        "median_of_sw3_medians_1d_pct": -1.076,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4690,7 +4666,7 @@
           "S420806",
           "S420807"
         ],
-        "median_of_sw3_medians_1d_pct": -1.202,
+        "median_of_sw3_medians_1d_pct": -2.2,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4706,7 +4682,7 @@
           "S420902",
           "S420903"
         ],
-        "median_of_sw3_medians_1d_pct": -0.782,
+        "median_of_sw3_medians_1d_pct": -1.163,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4721,7 +4697,7 @@
           "S421001",
           "S421002"
         ],
-        "median_of_sw3_medians_1d_pct": 0.053,
+        "median_of_sw3_medians_1d_pct": -1.173,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4736,7 +4712,7 @@
           "S421101",
           "S421102"
         ],
-        "median_of_sw3_medians_1d_pct": -0.72,
+        "median_of_sw3_medians_1d_pct": -1.276,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4752,7 +4728,7 @@
           "S430102",
           "S430103"
         ],
-        "median_of_sw3_medians_1d_pct": -1.031,
+        "median_of_sw3_medians_1d_pct": -0.857,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4768,7 +4744,7 @@
           "S430302",
           "S430303"
         ],
-        "median_of_sw3_medians_1d_pct": -0.455,
+        "median_of_sw3_medians_1d_pct": -2.596,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4782,7 +4758,7 @@
         "sw3_codes": [
           "S450201"
         ],
-        "median_of_sw3_medians_1d_pct": -1.316,
+        "median_of_sw3_medians_1d_pct": -3.238,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4799,7 +4775,7 @@
           "S450303",
           "S450304"
         ],
-        "median_of_sw3_medians_1d_pct": -0.49,
+        "median_of_sw3_medians_1d_pct": 0.594,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4813,7 +4789,7 @@
         "sw3_codes": [
           "S450401"
         ],
-        "median_of_sw3_medians_1d_pct": -0.968,
+        "median_of_sw3_medians_1d_pct": -2.124,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4829,7 +4805,7 @@
           "S450602",
           "S450603"
         ],
-        "median_of_sw3_medians_1d_pct": 1.077,
+        "median_of_sw3_medians_1d_pct": -1.053,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4843,7 +4819,7 @@
         "sw3_codes": [
           "S450701"
         ],
-        "median_of_sw3_medians_1d_pct": -0.06,
+        "median_of_sw3_medians_1d_pct": 0.282,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4857,7 +4833,7 @@
         "sw3_codes": [
           "S460601"
         ],
-        "median_of_sw3_medians_1d_pct": -0.25,
+        "median_of_sw3_medians_1d_pct": -2.518,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4874,7 +4850,7 @@
           "S460803",
           "S460804"
         ],
-        "median_of_sw3_medians_1d_pct": -0.669,
+        "median_of_sw3_medians_1d_pct": -2.946,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4889,7 +4865,7 @@
           "S460901",
           "S460902"
         ],
-        "median_of_sw3_medians_1d_pct": -0.59,
+        "median_of_sw3_medians_1d_pct": 0.251,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4905,7 +4881,7 @@
           "S461003",
           "S461004"
         ],
-        "median_of_sw3_medians_1d_pct": -0.953,
+        "median_of_sw3_medians_1d_pct": 0.313,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4921,7 +4897,7 @@
           "S461102",
           "S461103"
         ],
-        "median_of_sw3_medians_1d_pct": -1.524,
+        "median_of_sw3_medians_1d_pct": -1.441,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4935,7 +4911,7 @@
         "sw3_codes": [
           "S480201"
         ],
-        "median_of_sw3_medians_1d_pct": 0.662,
+        "median_of_sw3_medians_1d_pct": 0.782,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4963,7 +4939,7 @@
         "sw3_codes": [
           "S480401"
         ],
-        "median_of_sw3_medians_1d_pct": -0.1,
+        "median_of_sw3_medians_1d_pct": -0.442,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4977,7 +4953,7 @@
         "sw3_codes": [
           "S480501"
         ],
-        "median_of_sw3_medians_1d_pct": -1.035,
+        "median_of_sw3_medians_1d_pct": -0.414,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -4991,7 +4967,7 @@
         "sw3_codes": [
           "S490101"
         ],
-        "median_of_sw3_medians_1d_pct": -1.553,
+        "median_of_sw3_medians_1d_pct": -1.276,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5005,7 +4981,7 @@
         "sw3_codes": [
           "S490201"
         ],
-        "median_of_sw3_medians_1d_pct": 2.197,
+        "median_of_sw3_medians_1d_pct": -1.225,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5024,7 +5000,7 @@
           "S490306",
           "S490307"
         ],
-        "median_of_sw3_medians_1d_pct": -1.825,
+        "median_of_sw3_medians_1d_pct": -1.917,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5038,7 +5014,7 @@
         "sw3_codes": [
           "S510101"
         ],
-        "median_of_sw3_medians_1d_pct": -0.951,
+        "median_of_sw3_medians_1d_pct": -2.404,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5053,7 +5029,7 @@
           "S610101",
           "S610102"
         ],
-        "median_of_sw3_medians_1d_pct": -1.406,
+        "median_of_sw3_medians_1d_pct": -2.482,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5068,7 +5044,7 @@
           "S610201",
           "S610202"
         ],
-        "median_of_sw3_medians_1d_pct": -2.007,
+        "median_of_sw3_medians_1d_pct": -3.838,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5086,7 +5062,7 @@
           "S610304",
           "S610305"
         ],
-        "median_of_sw3_medians_1d_pct": -1.194,
+        "median_of_sw3_medians_1d_pct": -3.664,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5100,7 +5076,7 @@
         "sw3_codes": [
           "S620101"
         ],
-        "median_of_sw3_medians_1d_pct": 0.36,
+        "median_of_sw3_medians_1d_pct": -0.9,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5114,7 +5090,7 @@
         "sw3_codes": [
           "S620201"
         ],
-        "median_of_sw3_medians_1d_pct": -0.38,
+        "median_of_sw3_medians_1d_pct": -2.704,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5129,7 +5105,7 @@
           "S620306",
           "S620307"
         ],
-        "median_of_sw3_medians_1d_pct": -0.972,
+        "median_of_sw3_medians_1d_pct": -1.571,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5146,7 +5122,7 @@
           "S620403",
           "S620404"
         ],
-        "median_of_sw3_medians_1d_pct": -1.167,
+        "median_of_sw3_medians_1d_pct": -2.861,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5160,7 +5136,7 @@
         "sw3_codes": [
           "S620601"
         ],
-        "median_of_sw3_medians_1d_pct": -1.391,
+        "median_of_sw3_medians_1d_pct": -2.5,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5174,7 +5150,7 @@
         "sw3_codes": [
           "S630101"
         ],
-        "median_of_sw3_medians_1d_pct": 0.877,
+        "median_of_sw3_medians_1d_pct": -5.226,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5190,7 +5166,7 @@
           "S630304",
           "S630306"
         ],
-        "median_of_sw3_medians_1d_pct": 0.045,
+        "median_of_sw3_medians_1d_pct": -2.879,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5208,7 +5184,7 @@
           "S630504",
           "S630505"
         ],
-        "median_of_sw3_medians_1d_pct": -0.764,
+        "median_of_sw3_medians_1d_pct": -3.912,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5223,7 +5199,7 @@
           "S630601",
           "S630602"
         ],
-        "median_of_sw3_medians_1d_pct": -1.377,
+        "median_of_sw3_medians_1d_pct": -4.596,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5240,7 +5216,7 @@
           "S630703",
           "S630705"
         ],
-        "median_of_sw3_medians_1d_pct": -0.812,
+        "median_of_sw3_medians_1d_pct": -5.489,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5258,7 +5234,7 @@
           "S630804",
           "S630805"
         ],
-        "median_of_sw3_medians_1d_pct": -0.552,
+        "median_of_sw3_medians_1d_pct": -4.575,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5277,7 +5253,7 @@
           "S640107",
           "S640108"
         ],
-        "median_of_sw3_medians_1d_pct": -0.117,
+        "median_of_sw3_medians_1d_pct": -4.931,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5296,7 +5272,7 @@
           "S640208",
           "S640209"
         ],
-        "median_of_sw3_medians_1d_pct": -0.601,
+        "median_of_sw3_medians_1d_pct": -4.329,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5310,7 +5286,7 @@
         "sw3_codes": [
           "S640501"
         ],
-        "median_of_sw3_medians_1d_pct": -0.957,
+        "median_of_sw3_medians_1d_pct": -2.139,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5325,7 +5301,7 @@
           "S640601",
           "S640602"
         ],
-        "median_of_sw3_medians_1d_pct": -0.092,
+        "median_of_sw3_medians_1d_pct": -3.405,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5342,7 +5318,7 @@
           "S640703",
           "S640704"
         ],
-        "median_of_sw3_medians_1d_pct": 0.506,
+        "median_of_sw3_medians_1d_pct": -5.467,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5356,7 +5332,7 @@
         "sw3_codes": [
           "S650101"
         ],
-        "median_of_sw3_medians_1d_pct": 2.85,
+        "median_of_sw3_medians_1d_pct": -5.202,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5370,7 +5346,7 @@
         "sw3_codes": [
           "S650201"
         ],
-        "median_of_sw3_medians_1d_pct": 0.363,
+        "median_of_sw3_medians_1d_pct": -3.081,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5384,7 +5360,7 @@
         "sw3_codes": [
           "S650301"
         ],
-        "median_of_sw3_medians_1d_pct": 1.317,
+        "median_of_sw3_medians_1d_pct": -3.063,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5398,7 +5374,7 @@
         "sw3_codes": [
           "S650401"
         ],
-        "median_of_sw3_medians_1d_pct": 1.215,
+        "median_of_sw3_medians_1d_pct": -1.19,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5412,7 +5388,7 @@
         "sw3_codes": [
           "S650501"
         ],
-        "median_of_sw3_medians_1d_pct": 1.073,
+        "median_of_sw3_medians_1d_pct": -4.146,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5427,7 +5403,7 @@
           "S710102",
           "S710103"
         ],
-        "median_of_sw3_medians_1d_pct": -0.58,
+        "median_of_sw3_medians_1d_pct": -3.114,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5441,7 +5417,7 @@
         "sw3_codes": [
           "S710301"
         ],
-        "median_of_sw3_medians_1d_pct": -0.866,
+        "median_of_sw3_medians_1d_pct": -3.074,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5456,7 +5432,7 @@
           "S710401",
           "S710402"
         ],
-        "median_of_sw3_medians_1d_pct": -1.117,
+        "median_of_sw3_medians_1d_pct": -2.576,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5470,7 +5446,7 @@
         "sw3_codes": [
           "S720401"
         ],
-        "median_of_sw3_medians_1d_pct": -0.419,
+        "median_of_sw3_medians_1d_pct": -2.566,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5485,7 +5461,7 @@
           "S720501",
           "S720502"
         ],
-        "median_of_sw3_medians_1d_pct": -0.765,
+        "median_of_sw3_medians_1d_pct": -2.909,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5500,7 +5476,7 @@
           "S720601",
           "S720602"
         ],
-        "median_of_sw3_medians_1d_pct": 0.637,
+        "median_of_sw3_medians_1d_pct": -7.242,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5517,7 +5493,7 @@
           "S720705",
           "S720706"
         ],
-        "median_of_sw3_medians_1d_pct": 0.02,
+        "median_of_sw3_medians_1d_pct": -2.984,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5532,7 +5508,7 @@
           "S720901",
           "S720902"
         ],
-        "median_of_sw3_medians_1d_pct": -0.863,
+        "median_of_sw3_medians_1d_pct": 0.173,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5546,7 +5522,7 @@
         "sw3_codes": [
           "S721001"
         ],
-        "median_of_sw3_medians_1d_pct": -1.855,
+        "median_of_sw3_medians_1d_pct": -2.708,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5562,7 +5538,7 @@
           "S730103",
           "S730104"
         ],
-        "median_of_sw3_medians_1d_pct": -0.158,
+        "median_of_sw3_medians_1d_pct": -3.038,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5579,7 +5555,7 @@
           "S730206",
           "S730207"
         ],
-        "median_of_sw3_medians_1d_pct": 0.518,
+        "median_of_sw3_medians_1d_pct": -4.819,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5594,7 +5570,7 @@
           "S740101",
           "S740102"
         ],
-        "median_of_sw3_medians_1d_pct": -1.998,
+        "median_of_sw3_medians_1d_pct": -0.929,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5608,7 +5584,7 @@
         "sw3_codes": [
           "S740201"
         ],
-        "median_of_sw3_medians_1d_pct": -1.333,
+        "median_of_sw3_medians_1d_pct": -0.597,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5622,7 +5598,7 @@
         "sw3_codes": [
           "S750101"
         ],
-        "median_of_sw3_medians_1d_pct": -1.673,
+        "median_of_sw3_medians_1d_pct": -1.94,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5637,7 +5613,7 @@
           "S750201",
           "S750202"
         ],
-        "median_of_sw3_medians_1d_pct": -1.631,
+        "median_of_sw3_medians_1d_pct": -0.912,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5653,7 +5629,7 @@
           "S750302",
           "S750303"
         ],
-        "median_of_sw3_medians_1d_pct": -1.513,
+        "median_of_sw3_medians_1d_pct": -2.054,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5670,7 +5646,7 @@
           "S760103",
           "S760104"
         ],
-        "median_of_sw3_medians_1d_pct": -1.147,
+        "median_of_sw3_medians_1d_pct": -2.101,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5684,7 +5660,7 @@
         "sw3_codes": [
           "S760201"
         ],
-        "median_of_sw3_medians_1d_pct": -1.258,
+        "median_of_sw3_medians_1d_pct": -3.469,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5699,7 +5675,7 @@
           "S770101",
           "S770102"
         ],
-        "median_of_sw3_medians_1d_pct": -0.23,
+        "median_of_sw3_medians_1d_pct": -2.271,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5714,7 +5690,7 @@
           "S770201",
           "S770202"
         ],
-        "median_of_sw3_medians_1d_pct": -0.293,
+        "median_of_sw3_medians_1d_pct": -1.343,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5728,7 +5704,7 @@
         "sw3_codes": [
           "S770302"
         ],
-        "median_of_sw3_medians_1d_pct": 3.759,
+        "median_of_sw3_medians_1d_pct": 1.087,
         "official_index_1d_pct": null,
         "official_index_source": null,
         "index_quote_at": null,
@@ -5736,14 +5712,51 @@
         "flag": null
       }
     ],
-    "sw3_watch_hints": [],
+    "sw3_watch_hints": [
+      {
+        "industry_code": "S340602",
+        "name": "其他酒类",
+        "flags": [
+          "RELATIVE_BREADTH_DIVERGENCE"
+        ],
+        "selected_in_top3": false,
+        "program_channels": [],
+        "source": "data/research/sector_discovery_audit.json#sectors",
+        "sample_quality": "OK",
+        "market_state_authority": false
+      },
+      {
+        "industry_code": "S340802",
+        "name": "烘焙食品",
+        "flags": [
+          "RELATIVE_BREADTH_DIVERGENCE"
+        ],
+        "selected_in_top3": false,
+        "program_channels": [],
+        "source": "data/research/sector_discovery_audit.json#sectors",
+        "sample_quality": "OK",
+        "market_state_authority": false
+      },
+      {
+        "industry_code": "S480301",
+        "name": "股份制银行Ⅲ",
+        "flags": [
+          "RELATIVE_BREADTH_DIVERGENCE"
+        ],
+        "selected_in_top3": false,
+        "program_channels": [],
+        "source": "data/research/sector_discovery_audit.json#sectors",
+        "sample_quality": "OK",
+        "market_state_authority": false
+      }
+    ],
     "price_anchor_hints": [],
     "counts": {
       "sw2_groups": 131,
       "official_indices": 0,
       "index_discrepancies": 0,
-      "sw3_extra_hints": 0,
-      "not_in_top3": 0,
+      "sw3_extra_hints": 3,
+      "not_in_top3": 3,
       "price_anchors": 0
     },
     "data_gaps": [
@@ -5753,57 +5766,52 @@
   },
   "classification_peer_hints": [
     {
-      "anchor_industry_code": "S720602",
+      "anchor_industry_code": "S110202",
       "classification_only": true,
       "nearby_industries": [
         {
-          "code": "S720601",
-          "name": "影视动漫制作",
+          "code": "S110201",
+          "name": "海洋捕捞",
+          "sample_quality": "LOW_SAMPLE",
+          "reason": "LOW_SAMPLE_OBSERVE"
+        }
+      ]
+    },
+    {
+      "anchor_industry_code": "S450301",
+      "classification_only": true,
+      "nearby_industries": [
+        {
+          "code": "S450302",
+          "name": "超市",
+          "sample_quality": "OK",
+          "reason": "NO_COHERENT_TRIGGER"
+        },
+        {
+          "code": "S450303",
+          "name": "多业态零售",
+          "sample_quality": "OK",
+          "reason": "NO_COHERENT_TRIGGER"
+        },
+        {
+          "code": "S450304",
+          "name": "商业物业经营",
           "sample_quality": "OK",
           "reason": "NO_COHERENT_TRIGGER"
         }
       ]
     },
     {
-      "anchor_industry_code": "S640208",
+      "anchor_industry_code": "S370402",
       "classification_only": true,
       "nearby_industries": [
         {
-          "code": "S640204",
-          "name": "楼宇设备",
+          "code": "S370403",
+          "name": "线下药店",
           "sample_quality": "OK",
-          "reason": "NO_COHERENT_TRIGGER"
-        },
-        {
-          "code": "S640207",
-          "name": "农用机械",
-          "sample_quality": "SMALL_SAMPLE",
-          "reason": "INSUFFICIENT_COVERAGE"
-        },
-        {
-          "code": "S640209",
-          "name": "其他专用设备",
-          "sample_quality": "OK",
-          "reason": "NO_COHERENT_TRIGGER"
-        },
-        {
-          "code": "S640206",
-          "name": "纺织服装设备",
-          "sample_quality": "OK",
-          "reason": "NO_COHERENT_TRIGGER"
-        },
-        {
-          "code": "S640203",
-          "name": "能源及重型设备",
-          "sample_quality": "OK",
-          "reason": "NO_COHERENT_TRIGGER"
+          "reason": "CAPACITY_DEFERRED"
         }
       ]
-    },
-    {
-      "anchor_industry_code": "S650201",
-      "classification_only": true,
-      "nearby_industries": []
     }
   ],
   "all_industry_metrics": "data/research/sector_discovery_audit.json#sectors",
