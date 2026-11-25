@@ -23,7 +23,7 @@ trend_handoff
 
 ## 2. Routing 规则
 
-1. 使用 `research/trend_handoff.json` 中已经核验的**趋势确认＋独立确认受益三级行业**代码进行行业路由；2026-10-27及之后只有`market_state=趋势确认`且代码来自`trend_registry.json#trends[].industry_assessments`的`CORE/DIRECT+趋势确认`集合才允许进入正式个股研究。handoff可以只包含宽主题的合格子集，绝不能把候选/观察/RELATED外围代码一起传下去；缺少确认行业时可为空，禁止借用上轮股票名单。
+1. 使用 `research/trend_handoff.json` 中已经核验的**趋势确认＋独立确认受益三级行业**代码进行行业路由；只有`market_state=趋势确认`且代码来自`trend_registry.json#trends[].industry_assessments`的`CORE/DIRECT+趋势确认`集合才允许进入正式个股研究。handoff可以只包含宽主题的合格子集，绝不能把候选/观察/RELATED外围代码一起传下去；缺少确认行业时可为空，禁止借用上轮股票名单。
 2. 行业身份、名称及市场状态直接沿用本轮handoff，并必须与同日已通过配对Gate的正式Registry核对；不允许在个股榜中重新计算或擅自升级板块状态。非合格路由应BLOCKED，不可仅输出WAIT来绕过上游确认Gate。
 3. 若存在人工行业名称别名，它只允许帮助展示或辅助查找，不具有新增行业代码、修改已确认受益范围或放宽正式交接资格的权力。
 4. 数据生产层的Universe以 `data/research/company_industry_index.json` 生成；研究阶段以完成日期及覆盖校验的 `data/low_risk/index.json`、各行业manifest与声明的全部parts为公司事实权威。
@@ -33,7 +33,7 @@ trend_handoff
 
 ---
 
-**零信号例外（2026-10-27起）**：通过正式配对Gate且 `signals=[]` 时，没有任何三级行业进入下游，公司工作集不应初始化；19:00直接报告 `NO_ELIGIBLE_CONFIRMED_TREND`，不创建当日新买点结果，不复用旧名单。与“有信号但路由缺失、行情缺失”严格区分，后两者必须按数据错误阻断。
+**零信号**：通过正式配对Gate且 `signals=[]` 时路由输出为空；最终业务处理按主协议第2节执行。有信号但路由或行情缺失属于数据错误。
 
 ## 3. Unresolved / Empty 语义
 
