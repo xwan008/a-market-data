@@ -1,7 +1,7 @@
 # A股趋势买点榜｜唯一正式业务规则
 
 ## 1. 目标
-每日通过唯一正式流程：Python原始TOP5 → 模型每SW3唯一TOP1或弃权 → Python独立交易风控 → 仅TOP1 READY/WAIT交接。TOP5名单及研究证据完整保留用于验证；不得自动下单。
+每日通过唯一正式流程：Python原始TOP5 → Python冻结同源资金 → 模型每SW3唯一TOP1或弃权 → Python独立交易风控 → 仅TOP1 READY/WAIT交接。TOP5名单及研究证据完整保留用于验证；不得自动下单。
 
 ## 2. 唯一执行链
 1. 读取同一完整交易日且通过正式配对Gate的 research/trend_handoff.json；按 TREND_HANDOFF_ROUTING_OVERRIDE.md 路由**仅已确认且直接受益**的申万三级行业。自2026-10-27起仅`market_state=趋势确认`允许正式个股行动研究：候选/观察继续在上游趋势榜跟踪，不进入当前个股工作集、Top5、WAIT或READY。下游不得自行升级行业；若同日handoff含候选或不合格三级行业，停止发布而不是降级后继续运行。
@@ -9,11 +9,11 @@
 3. 校验 data/low_risk/index.json、manifest和全部part，读取一次并Freeze公司working set；不得用旧行情、缺失部分或未来证据。
 4. 只按本协议第5节的**唯一程序预筛**执行：Python对已确认申万三级行业全部hard-eligible公司先计算同日10/20/60日相对强弱、近10日持续性、入场机会结构及已公告扣非财务；每个三级行业**取消3+2配额**，所有具备已验证当前入场机会代理证据的股票统一竞争最多5个研究席位，按入场位置分排序，同分由趋势持续性与基本面分辅助区分；仅当合格入场候选不足5只时，允许以历史、财务及趋势持续性均可验证的股票补齐，标记`WATCH_FALLBACK`，不冒充入场机会。`ENTRY_PRIORITY`也只是前置机会代理，不代表已确认BREAKOUT/PULLBACK或READY，完整交易许可由独立风险Gate决定。无有效数据、未来行情、财务来源不可信仍不得参评。由`scripts/prepare_trend_buy_candidates.py`产生`research/trend_buy_candidates/latest.json`，按Git/财务来源哈希及交易日READBACK验证；模型无权替换候选范围。
 5. 技术输入仍由行情数据分片和冻结历史工作集生成；正式程序对全行业执行有成本约束的Python指标和截至当日完整65根以上日K，同一价格口径差异>1.5%或未来K线一律拒绝；仅对被筛入的5家公司进一步构造完整近端结构与120～180日阻力，用于后续独立风险核验。拒绝读取未来价格或生成虚构预期，拒绝因涨得多机械排后、因价格低机械排前。
-6. **先Python后模型**：按 `skill/TREND_BUY_MODEL_TOP1_RESEARCH.md` 对冻结名单全部公司执行真实搜索与同口径比较，记录公司主营传导、财务、资金、产业、预期、反证、来源和证据缺口。名单完全一致；不要求其余候选模型排名。证据不足按协议INCOMPLETE，不可伪造或默认程序第一。
+6. **先Python后模型**：既有候选冻结工作流 `.github/workflows/prepare-trend-buy-candidates.yml` 在原TOP5生成后调用 `scripts/freeze_trend_buy_fund_flow.py`，将逐日资金、1/5/10/20日指标、来源、查询时点、整组备用尝试及失败原因写入同一 `research/trend_buy_candidates/latest.json#fund_flow` 并随原始名单一次提交和READBACK。腾讯首选、东方财富整组备用；资金不改变Python筛选和顺序，单组核心资金不足标记INCOMPLETE，不混用供应商，不生成TOP1。模型读取当日同SHA冻结资金，B–E外部证据仍须真实检索，具体口径按 `skill/TREND_BUY_MODEL_TOP1_RESEARCH.md` 对冻结名单全部公司执行规定的研究与同口径比较，记录公司主营传导、财务、资金、产业、预期、反证、来源和证据缺口。名单完全一致；不要求其余候选模型排名。证据不足按协议INCOMPLETE，不可伪造或默认程序第一。
 7. 按最新价量数据确定个股阶段：INITIATING（启动）、PULLBACK（分歧回踩）、REACCELERATING（承接后再加速）、REPAIRING（结构修复）、COOLING（新入场优势下降）、FAILED（确认结构失效）、TRANSITION（证据尚不足）。MA20/MA60是背景而非淘汰红线；单纯低于MA60不得直接DROP，单日放量也不得直接宣布有效趋势。
 8. **先识别本次交易形态，再计算与其一一对应的失效位与赔率**。BREAKOUT必须有当日已确认的历史突破关口（已有价格/量能/收盘证据），以**本次突破关口被有效重新跌破**作为交易假设失效依据，不引用整段行情起涨低点；以关口下0.5%作为试运行风险缓冲参考。PULLBACK必须有当日真实回踩与反弹确认（MA20附近回踩低点在MA20下3%至上2%区间、当日收盘站回MA20、收盘强度≥55%、收盘高于前收且higher_low已核验），才使用**本次已确认的回踩日低点**下0.5%作为试运行失效参考。MA20、MA60、过去30日最低点、通用support_invalidation和远期启动低点均不得单独代替本次买点失效位。0.5%缓冲和回踩距离均为待回测研究假设。止损失效价必须低于本次入场下沿，否则买点证据不足，保持WAIT，禁止伪造价位或将一笔新建仓风险延伸到趋势起点。只有来源于已独立确认三级行业的个股才有机会进入READY；候选/观察行业在上游研究，不通过正式handoff；短线距离MA20超过8%、chase=high、正式风险大于6%或上方已知阻力不足1.5R均暂缓。READY需同时通过120～180日已确认历史阻力核验，上方有效阻力小于1.5R降为WAIT_RISK_REWARD。交易前需确定盘中与收盘触发方式，并考虑跳空/滑点，止损并非保证成交。
 9. **唯一正式TOP1决策**：严格读取 `skill/TREND_BUY_MODEL_TOP1_RESEARCH.md`；每个SW3冻结原始Python TOP5及顺序，模型在同组独立选至多一个TOP1（允许弃权）。第一核心趋势延续性、第二核心边际资金持续性，核心优势接近再比较产业/单季盈利、最后预期差，重大反证否决。禁止15/45/40机会分、READY优先、模型全名单排名或程序第一兜底介入选择。仅锁定TOP1调用原 `evaluate_candidate`，非TOP1不计算交易计划。WAIT只观察，DROP/UNCERTAIN/弃权不递补。
-10. `research/trend_buy_company_reviews/latest.json` 保留全部冻结公司reviews及同文件 `top1_selection`（日期、admission blob SHA、机器契约标识、全组选择与证据）。程序重放admission、验证完整研究范围和来源、锁定TOP1及独立风控。允许如实记录INCOMPLETE/NO_SELECTION组，零合格TOP1不产生新仓交接股票；不得回退旧排序。
+10. `research/trend_buy_company_reviews/latest.json` 保留全部冻结公司reviews及同文件 `top1_selection`（日期、admission blob SHA、机器契约标识、全组选择与证据）。程序重放admission、验证完整研究范围、冻结资金及来源、锁定TOP1及独立风控。允许如实记录INCOMPLETE/NO_SELECTION组，零合格TOP1不产生新仓交接股票；不得回退旧排序。
 11. 唯一生产工作流 `.github/workflows/run-trend-buy-formal.yml` 调用 `build_trend_buy_manual_research.py --model-top1-research` 和 `run_model_top1_formal.py`；结果 `python_top5_by_industry` 保存原始名单及顺序，`model_top1_selection`保存证据，`top1_decisions`保存选择及风控。`top1_by_industry` 为每SW3已选且READY/WAIT的执行投影；旧 `top5_by_theme` 仅用于2026-11-25以前的历史归档，不再由新正式结果生成。`trend_buy_handoff.py` 只传已选TOP1的READY/WAIT，结果与handoff成对原子提交并READBACK，盘中不重新选股。
 
 ## 3. 状态含义
@@ -24,7 +24,7 @@
 - COOLING与正式WAIT是不同维度；暂停新建仓不直接命令已持有的用户止盈止损。持仓退出根据独立结构保护、业务逻辑证伪与风险预算执行。
 
 ## 4. 交易时间与异常
-北京时间工作日19:00执行完整研究，使用当天已完成行情发布；非正式交易日不把过期数值当新信号。全局输入、数据日期、名单/来源契约、代码审计、GitHub提交或READBACK任何一项关键失败均BLOCKED，不写新正式结果或handoff。单个SW3研究证据不足按INCOMPLETE如实记录，不产出该组TOP1；全部组弃权时可发布完整审计及空handoff（不同于上游signals=[]时不发布）。同一交易日已正式锁定的模型选择不得改写。连续多日行情指标只是形态代理，不证明实际资金身份，也尚未证明超额收益；生产参数须通过严格截至当日日K的历史回放验证。
+北京时间工作日19:00执行完整研究，使用当天已完成行情发布；非正式交易日不把过期数值当新信号。全局输入、数据日期、名单/来源契约、代码审计、GitHub提交或READBACK任何一项关键失败均BLOCKED，不写新正式结果或handoff。单个SW3研究证据不足按INCOMPLETE如实记录，不产出该组TOP1；全部组弃权时可发布完整审计及空handoff（不同于上游signals=[]时不发布）。同一交易日已正式锁定的模型选择及其绑定的admission不得改写；新流程从下一未锁定完整交易日生效。连续多日行情指标只是形态代理，不证明实际资金身份，也尚未证明超额收益；生产参数须通过严格截至当日日K的历史回放验证。
 
 ## 5. 程序预筛与深研边界（唯一生效）
 
@@ -33,5 +33,5 @@
 3. **趋势持续性辅助分**：`continuity=0.40×20日分位+0.30×60日分位+0.20×10日分位+0.10×近10日上涨次数分位`；`leadership=0.80×continuity+0.20×fundamental`。该分数只在同入场分时排序，或入场资格不足时筛选观察补足，不为持续领涨股预留席位。
 4. **统一优先筛选的入场位置分**：`entry=0.65×entry_reference+0.20×price_structure+0.15×fundamental`，仅对具备已验证轻量入场资格的公司进行统一竞争。财务基础分优先采用审计时点可验证的扣非净利润同比，缺失时按扣非EPS或归母同比回退；同时核对经营现金流、非经常性收益与估值。高同比不等同超市场预期。
 5. **财务证据语义**：`financial_publication_date_verified=true`仅表明同一家公司的F10来源标识、财报期、公告日期、更新日期均经截至交易日校验；不代表所有财务值可靠或具有超预期表现。`source_financial_provenance_verified_count`是当日已完成该来源日期核验的公司数，财报核心指标是否可用另行标记。模型必须核实并区分证据缺口。
-6. **模型深研**：只研究冻结名单，reviews完全一致；按唯一正式模型研究协议保存完整比较和唯一TOP1或弃权，禁止模型扩容或要求2–5名重排。
+6. **模型深研**：只研究冻结名单，reviews完全一致；读取冻结资金并按唯一正式模型研究协议保存完整比较和唯一TOP1或弃权，禁止模型扩容或要求2–5名重排。
 7. **发布**：按第2节第10–11条执行。保留源财务与候选SHA、模型证据与独立交易准入；禁止替代规则。
