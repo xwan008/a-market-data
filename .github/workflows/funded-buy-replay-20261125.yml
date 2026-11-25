@@ -22,13 +22,13 @@ jobs:
       - name: Replay exact admission and actual fund inputs without publication
         run: |
           set -euo pipefail
-          python scripts/prepare_trend_buy_candidates.py --output /tmp/replay-candidates.json
           python - <<'PY'
           import json,sys
           from pathlib import Path
           sys.path.insert(0,'scripts')
-          from prepare_trend_buy_candidates import validate_admission
-          a=json.loads(Path('/tmp/replay-candidates.json').read_bytes())
+          from prepare_trend_buy_candidates import prepare, validate_admission
+          a=prepare(Path('.'))
+          Path('/tmp/replay-candidates.json').write_text(json.dumps(a,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
           b=json.loads(Path('research/trend_buy_candidates/latest.json').read_bytes())
           assert a==b, 'ORIGINAL_ADMISSION_CHANGED'
           validate_admission(Path('.'),a)
