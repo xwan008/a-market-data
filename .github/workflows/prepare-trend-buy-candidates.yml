@@ -20,6 +20,8 @@ on:
       - 'scripts/prepare_trend_buy_candidates.py'
       - 'scripts/run_model_top1_formal.py'
       - 'tests/test_frozen_trend_buy_fund_flow.py'
+      - 'tests/test_run_model_top1_formal.py'
+      - 'tests/test_trend_buy_admission.py'
       - '.github/workflows/prepare-trend-buy-candidates.yml'
 
 permissions:
@@ -49,7 +51,7 @@ jobs:
         shell: bash
         run: |
           python - <<'PY'
-          import json,os
+          import json,os,sys
           from pathlib import Path
           from datetime import datetime
           from zoneinfo import ZoneInfo
@@ -59,14 +61,28 @@ jobs:
           day=upstream.get('trade_date')
           previous=json.loads(Path('research/trend_buy_formal_result.json').read_text())
           locked=(previous.get('trade_date')==day and isinstance(previous.get('model_top1_selection'),dict))
-          allow=(not locked and day==now and idx.get('trade_date')==now
+          # Preserve an already frozen same-source intake, including explicit
+          # INCOMPLETE groups. Do not change its hash during model research.
+          funded=False
+          candidate=Path('research/trend_buy_candidates/latest.json')
+          if candidate.exists() and day==now:
+              sys.path.insert(0,'scripts')
+              from prepare_trend_buy_candidates import validate_admission
+              try:
+                  old=json.loads(candidate.read_bytes())
+                  if old.get('trade_date')==day and 'fund_flow' in old:
+                      validate_admission(Path('.'),old)
+                      funded=True
+              except (KeyError,ValueError,FileNotFoundError,TypeError):
+                  pass
+          allow=(not locked and not funded and day==now and idx.get('trade_date')==now
                  and idx.get('validation',{}).get('status')=='passed'
                  and bool(upstream.get('signals')))
           with open(os.environ['GITHUB_OUTPUT'],'a') as out:
               out.write('run='+('true' if allow else 'false')+'\n')
           print('PROGRAM_ADMISSION_DAY_STATUS',json.dumps({
               'today':now,'sector_date':day,'index_date':idx.get('trade_date'),
-              'sector_signals':len(upstream.get('signals') or []),'same_day_locked':locked,
+              'sector_signals':len(upstream.get('signals') or []),'same_day_locked':locked,'same_source_funded_admission_exists':funded,
               'will_run':allow},ensure_ascii=False))
           PY
       - name: Freeze program-only candidates (research starts after this)
@@ -161,7 +177,9 @@ jobs:
           python-version: '3.12'
       - run: pip install -r requirements.txt
       - name: Unit and contract tests
-        run: python -m unittest discover -s tests -p 'test_frozen_trend_buy_fund_flow.py'
+        run: |
+          python -m unittest discover -s tests -p 'test_frozen_trend_buy_fund_flow.py'
+          python -m unittest discover -s tests -p 'test_run_model_top1_formal.py'
       - name: Live same-session read-only verification
         run: |
           python - <<'PY'
