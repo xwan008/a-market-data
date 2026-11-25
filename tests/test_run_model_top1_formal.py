@@ -1,4 +1,5 @@
 import copy
+import json
 import unittest
 from unittest.mock import patch
 import test_research_model_top1 as fixture
@@ -9,6 +10,21 @@ class FormalTop1Tests(unittest.TestCase):
         self.f=fixture.ModelTop1Test()
         self.f.setUp()
         f=self.f
+        dates=["2026-11-18","2026-11-19","2026-11-20","2026-11-23",f.day]
+        stamp=f.day+"T19:00:00+08:00"
+        industry=f.pick["industry_code"]
+        stocks={}
+        for code in f.codes:
+            rows=[{"date":d,"main_net_cny":1,"amount_cny":100} for d in dates]
+            stocks[code]={"code":code,"provider":"tencent","trade_date":f.day,"queried_at":stamp,
+                          "sources":["https://example.com/synthetic"],"daily":rows,"windows":formal.funds.metrics(rows)}
+            f.pick["research_matrix"][code]["A"]["frozen_fund_ref"]="fund_flow.groups/"+industry+"/stocks/"+code
+        f.admission["fund_flow"]={"trade_date":f.day,"collected_at":stamp,"groups":[{
+            "industry_code":industry,"candidate_codes":f.codes,"status":"VERIFIED","provider":"tencent",
+            "definition":formal.funds.DEFINITIONS["tencent"],"stocks":stocks,
+            "attempts":[{"provider":"tencent","queried_at":stamp,"errors":{}}]}]}
+        f.raw=json.dumps(f.admission).encode()
+        f.selections["source_blob"]=formal.model.git_blob_sha(f.raw)
         for c in f.research["companies"]:
             c.update(trend_name="银行",industry_name="国有大型银行Ⅲ",company_name=c["code"])
         self.evidence={"as_of_date":f.day,"explicit_no_prior_formal_or_archive_input":True,
@@ -38,6 +54,15 @@ class FormalTop1Tests(unittest.TestCase):
         self.assertEqual(h["selection_policy"],formal.POLICY)
         self.assertIsNone(h["items"][0]["entry_zone"])
         self.assertEqual(h["items"][0]["attention_rank"],1)
+
+    def test_fund_missing_blocks_complete_before_risk(self):
+        del self.f.admission["fund_flow"]
+        self.f.raw=json.dumps(self.f.admission).encode()
+        self.f.selections["source_blob"]=formal.model.git_blob_sha(self.f.raw)
+        with patch.object(formal.engine,"evaluate_candidate") as evaluate:
+            with self.assertRaisesRegex(ValueError,"FUND_SNAPSHOT_REQUIRED"):
+                self.run_formal()
+            evaluate.assert_not_called()
 
     def test_abstention_empty_handoff(self):
         self.f.pick.update(status="INCOMPLETE",top1_code=None)
