@@ -201,7 +201,9 @@ def compact_opportunity(structure, trade_date):
 
 
 def build(evidence_path, structure_path=None, structure_output_path=None,
-          admission_path=None, audit_only=False):
+          admission_path=None, audit_only=False, model_top1_research=False):
+    if model_top1_research and (audit_only or admission_path is None):
+        raise ValueError("MODEL_TOP1_REQUIRES_CANONICAL_ADMISSION")
     if audit_only and admission_path is not None:
         raise ValueError("PRESCREEN_AUDIT_ONLY_CANNOT_BE_FORMAL")
     if not audit_only and admission_path is None:
@@ -407,7 +409,7 @@ def build(evidence_path, structure_path=None, structure_output_path=None,
             no_source.append(c["code"])
         model_priority=item.get("model_rank")
         model_reason=item.get("model_reason")
-        if admission_by_industry is not None and status in ("SUPPORTED","EARLY_EVIDENCE"):
+        if admission_by_industry is not None and not model_top1_research and status in ("SUPPORTED","EARLY_EVIDENCE"):
             if (not isinstance(model_priority,int) or isinstance(model_priority,bool)
                 or not 1<=model_priority<=100
                 or not isinstance(model_reason,str) or len(model_reason.strip())<24):
@@ -436,7 +438,7 @@ def build(evidence_path, structure_path=None, structure_output_path=None,
             "early_evidence_risk_review_passed":item.get("early_evidence_risk_review_passed") is True,
             "material_risk_unresolved":obvious_quality_risk,
             "research_falsifier":item.get("research_falsifier"),
-            "model_priority":model_priority if admission_by_industry is not None else None,
+            "model_priority":model_priority if admission_by_industry is not None and not model_top1_research else None,
             "model_reason":model_reason if admission_by_industry is not None else None,
             "research_quality_evidence":quality_evidence.get(c["code"]),
             "source_review":item["source_review"],
@@ -473,7 +475,7 @@ def build(evidence_path, structure_path=None, structure_output_path=None,
     gate["structure_same_day"]=True
     result={"schema_version":"trend_buy_research_v2",
             "prescreen_version":"CANONICAL" if admission_by_industry is not None else "AUDIT_ONLY",
-            "mode":"AUDIT_ONLY" if audit_only else ("FORMAL" if not missing_review and not missing_model_rank else "SHADOW"),
+            "mode":"AUDIT_ONLY" if audit_only else (("MODEL_TOP1_RESEARCH" if model_top1_research else "FORMAL") if not missing_review and not missing_model_rank else "SHADOW"),
             "run_id":"trend-buy-research-asof-"+day,
             "trade_date":day,"coverage_complete":True,
             "selected_company_count":len(candidate),"publication_audit":gate,
@@ -505,9 +507,14 @@ def main():
     p.add_argument("--output",required=True)
     p.add_argument("--admission",required=True,
                    help="Mandatory frozen same-day program candidate selection; no alternative formal path")
+    p.add_argument("--model-top1-research",action="store_true",help="Research branch only: no full model ranking; never a formal input")
     a=p.parse_args()
+    if a.model_top1_research:
+        for target in (a.output,a.structure_output):
+            if target and any(Path(target).resolve().is_relative_to(ROOT / k) for k in ("research","data","automation")):
+                raise ValueError("MODEL_TOP1_RESEARCH_OUTPUT_PATH_FORBIDDEN")
     out=build(Path(a.evidence),a.structure,a.structure_output,
-              a.admission)
+              a.admission,model_top1_research=a.model_top1_research)
     path=Path(a.output)
     path.parent.mkdir(parents=True,exist_ok=True)
     path.write_text(json.dumps(out,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
