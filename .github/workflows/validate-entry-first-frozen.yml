@@ -7,6 +7,14 @@ on:
       - 'tests/test_trend_buy_admission.py'
       - 'skill/TREND_BUY_CANONICAL.md'
       - '.github/workflows/validate-entry-first-frozen.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/trend_buy_prescreen_core.py'
+      - 'scripts/prepare_trend_buy_candidates.py'
+      - 'tests/test_trend_buy_admission.py'
+      - 'scripts/trend_buy_handoff.py'
+      - '.github/workflows/validate-entry-first-frozen.yml'
   workflow_dispatch:
 permissions:
   contents: read
@@ -48,4 +56,46 @@ jobs:
             'industry_count':x['industry_count'],
             'groups':x['industries']
           },ensure_ascii=False))
+          PY
+  archived-handoff-replay:
+    name: Read-only archived handoff replay across policy boundary
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Reproject immutable real archive pairs without publishing
+        run: |
+          python - <<'PY'
+          import hashlib,json,sys
+          from pathlib import Path
+          sys.path.insert(0,'scripts')
+          import trend_buy_handoff as h
+          root=Path('validation/archive')
+          for day in ('2026-11-24','2026-11-25'):
+              folder=root/day
+              formal_path=folder/'trend_buy_formal_result.json'
+              handoff_path=folder/'trend_buy_handoff.json'
+              raw=formal_path.read_bytes()
+              handoff_raw=handoff_path.read_bytes()
+              formal=json.loads(raw)
+              saved=json.loads(handoff_raw)
+              sha=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+              assert saved['source_formal_blob_sha']==sha,day
+              if formal.get('selection_policy')==h.TOP1_POLICY:
+                  projected=h.project(formal,sha)
+                  assert len(formal['python_top5_by_industry'])>0
+              else:
+                  projected=h.replay_historical_projection(formal,sha)
+                  try:
+                      h.project(formal,sha)
+                  except ValueError as exc:
+                      assert 'LEGACY_TOP5_FORMAL_DISABLED' in str(exc)
+                  else:
+                      raise AssertionError('legacy production path remained open')
+              assert projected==saved,day
+              assert formal_path.read_bytes()==raw and handoff_path.read_bytes()==handoff_raw
+              print('ARCHIVE_REPLAY_EXACT_MATCH',day,'handoff_count',len(saved['items']))
           PY
