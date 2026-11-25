@@ -1,0 +1,90 @@
+name: One-off frozen bank fund-flow probe
+on:
+  pull_request:
+    branches: [main]
+    paths: ['.github/workflows/fund-flow-probe-20261125.yml']
+permissions:
+  contents: read
+jobs:
+  probe:
+    if: github.head_ref == 'test/fund-flow-probe-20261125'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install akshare==1.18.94
+      - name: Verify all five against frozen session
+        run: |
+          python - <<'PY'
+          import json, math, signal, traceback
+          from pathlib import Path
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+          import akshare as ak
+          import pandas as pd
+
+          def read(path):
+              return json.loads(Path(path).read_text())
+          admission = read('research/trend_buy_candidates/latest.json')
+          day = admission['trade_date']
+          assert day == '2026-11-25', day
+          codes = next(i['selected_codes'] for i in admission['industries'] if i['industry_code']=='S480201')
+          assert len(codes)==5 and len(set(codes))==5
+          part = read('data/low_risk/by_industry/S480201/part-001.json')
+          assert part['trade_date']==day
+          frozen={x['code']:x for x in part['companies']}
+          def timeout(sig, frame):
+              raise TimeoutError('fund-flow request exceeded 25 seconds')
+          signal.signal(signal.SIGALRM, timeout)
+          reports=[]
+          for code in codes:
+              f=frozen[code]
+              result={'code':code,'name':f['name'],'trade_date':day,'source':'akshare.stock_individual_fund_flow/eastmoney','frozen_close':f['price'],'status':'FAIL'}
+              try:
+                  signal.alarm(25)
+                  try:
+                      df=ak.stock_individual_fund_flow(stock=code,market='sh')
+                  finally:
+                      signal.alarm(0)
+                  df=df.copy()
+                  df['date']=pd.to_datetime(df['日期'],errors='raise').dt.strftime('%Y-%m-%d')
+                  assert not df.empty and not df['date'].duplicated().any(), 'empty or duplicate dates'
+                  result['provider_latest_date']=df.date.max()
+                  df=df[df.date<=day].sort_values('date').tail(20)
+                  result['covered_sessions']=df.date.tolist()
+                  assert len(df)==20 and df.iloc[-1].date==day, 'missing session or 20-day history'
+                  history=read('data/history_shards/'+code[:4]+'.json')['stocks'][code]['history']
+                  expected=sorted({r['date'] for r in history if r['date']<=day})[-20:]
+                  assert len(expected)==20 and expected[-1]==day, 'frozen history missing expected sessions'
+                  assert df.date.tolist()==expected, 'fund-flow dates differ from frozen history'
+                  for col in ['收盘价','涨跌幅','主力净流入-净额','主力净流入-净占比']:
+                      df[col]=pd.to_numeric(df[col],errors='raise')
+                      assert all(math.isfinite(float(x)) for x in df[col]), 'nonfinite '+col
+                  last=df.iloc[-1]
+                  result['provider_close']=float(last['收盘价'])
+                  result['provider_change_pct']=float(last['涨跌幅'])
+                  result['frozen_change_pct']=(f['price']/f['prev_close']-1)*100
+                  result['price_match']=abs(result['provider_close']-f['price'])<0.005
+                  result['change_match']=abs(result['provider_change_pct']-result['frozen_change_pct'])<=0.02
+                  last5=df.tail(5)
+                  result['day_main_net_cny']=float(last['主力净流入-净额'])
+                  result['day_main_pct']=float(last['主力净流入-净占比'])
+                  result['5d_main_net_cny']=float(last5['主力净流入-净额'].sum())
+                  result['5d_positive_days']=int((last5['主力净流入-净额']>0).sum())
+                  result['20d_rows']=df[['date','收盘价','涨跌幅','主力净流入-净额','主力净流入-净占比']].to_dict(orient='records')
+                  assert result['price_match'] and result['change_match'], 'same-session price or change conflict'
+                  result['status']='PASS'
+              except Exception as exc:
+                  result['error']=type(exc).__name__+': '+str(exc)
+              result['queried_at']=datetime.now(ZoneInfo('Asia/Shanghai')).isoformat()
+              reports.append(result)
+              print(json.dumps(result,ensure_ascii=False,allow_nan=False),flush=True)
+          passed=sum(x['status']=='PASS' for x in reports)
+          print('GROUP_RESULT',passed,'/',len(reports),flush=True)
+          assert passed==len(reports), 'not all frozen candidates verified'
+          PY
