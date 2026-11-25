@@ -1,0 +1,645 @@
+{
+  "schema_version": "trend_buy_result_v2",
+  "result_kind": "a_share_trend_buy_result",
+  "status": "COMPLETE",
+  "mode": "FORMAL",
+  "production_eligible": true,
+  "selection_policy": "MODEL_TOP1_V1_6_R1",
+  "prescreen_version": "CANONICAL",
+  "run_id": "trend-buy-formal-main-45602892530",
+  "trade_date": "2026-11-25",
+  "structure_trade_date": "2026-11-25",
+  "structure_contract": "a-share-low-risk-price-structure",
+  "publication_audit": {
+    "fresh_company_research": true,
+    "working_set_frozen": true,
+    "pre_screen_coverage": true,
+    "company_research_coverage": true,
+    "structure_same_day": true,
+    "no_future_evidence": true,
+    "json_schema_valid": true
+  },
+  "coverage": {
+    "selected": 5,
+    "judged": 0,
+    "complete": true,
+    "groups": 1
+  },
+  "summary": {
+    "uncertain": 0,
+    "wait": 0,
+    "drop": 0,
+    "ready": 0
+  },
+  "model_thresholds": {
+    "max_entry_risk_pct": 6.0,
+    "max_ma20_distance_pct": 8.0,
+    "min_resistance_reward_R": 1.5,
+    "status": "PROVISIONAL_LIVE_PARAMETERS_MONITOR_AND_REVISE"
+  },
+  "python_top5_by_industry": [
+    {
+      "industry_code": "S480201",
+      "selected_codes": [
+        "601288",
+        "601328",
+        "601939",
+        "601658",
+        "601398"
+      ],
+      "source_hard_eligible_count": 6,
+      "source_financial_provenance_verified_count": 6,
+      "reason": "PYTHON_UNIFIED_ENTRY_FIRST_FINANCE_CORE_FIRST",
+      "selection_policy": "ENTRY_FIRST_NO_QUOTAS",
+      "entry_selected_count": 5,
+      "watch_fallback_count": 0
+    }
+  ],
+  "model_top1_selection": {
+    "trade_date": "2026-11-25",
+    "source_blob": "e8302ad33530fdf1f5a81ec7d423a450bb226bc2",
+    "prompt_version": "V1.6-R1",
+    "items": [
+      {
+        "industry_code": "S480201",
+        "candidate_codes": [
+          "601288",
+          "601328",
+          "601939",
+          "601658",
+          "601398"
+        ],
+        "status": "INCOMPLETE",
+        "top1_code": null,
+        "reason": "资金A核心门槛未通过：东方财富首选页动态字段不可读；同花顺备用页虽给出11月25日与5日主力数据，但601328、601939、601398的同页收盘价分别为9.06、12.25、9.11，与冻结行情9.14、12.59、9.20冲突；601288未取得同日加近5日完整可比表。备用来源口径和数值也不一致，无法形成全组同源同口径横比。为避免默认Python首位或用冲突数据强行选择，本组弃权。",
+        "confidence": null,
+        "as_of": "2026-11-25T19:43:00+08:00",
+        "research_started_at": "2026-11-25T19:08:00+08:00",
+        "research_finished_at": "2026-11-25T19:43:00+08:00",
+        "model_version": "gpt-5",
+        "completion_gate": {
+          "input_verified": true,
+          "five_categories_searched": true,
+          "core_flow_verified": false,
+          "fact_quality_verified": false,
+          "dynamic_comparison_complete": true,
+          "counterevidence_checked": true
+        },
+        "research_matrix": {
+          "601288": {
+            "A": {
+              "status": "CONFLICT",
+              "sources": [
+                {
+                  "url": "https://data.eastmoney.com/zjlx/601288.html",
+                  "retrieved_at": "2026-11-25T19:20:00+08:00",
+                  "result": "东方财富动态字段不可读；同花顺可读索引仅到11月23日，未取得11月25日加近5日完整表；证券之星与其他备用供应商口径不能直接横比。"
+                },
+                {
+                  "url": "https://profile.10jqka.com.cn/601288/funds/",
+                  "retrieved_at": "2026-11-25T19:20:00+08:00",
+                  "result": "东方财富动态字段不可读；同花顺可读索引仅到11月23日，未取得11月25日加近5日完整表；证券之星与其他备用供应商口径不能直接横比。"
+                },
+                {
+                  "url": "https://stock.quote.stockstar.com/capital_601288.shtml",
+                  "retrieved_at": "2026-11-25T19:20:00+08:00",
+                  "result": "东方财富动态字段不可读；同花顺可读索引仅到11月23日，未取得11月25日加近5日完整表；证券之星与其他备用供应商口径不能直接横比。"
+                }
+              ]
+            },
+            "B": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=601288",
+                  "range": "最近5/20交易日",
+                  "retrieved_at": "2026-11-25T19:31:00+08:00",
+                  "fact": "11月18日赎回永续资本债、11月17日发行TLAC非资本债、11月12日定增获上交所审核通过。"
+                }
+              ]
+            },
+            "C": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://www.nfra.gov.cn/cn/view/pages/governmentDetail.html?docId=1279786&generaltype=0&itemId=915",
+                  "published_at": "2026-11-20",
+                  "retrieved_at": "2026-11-25T19:34:00+08:00",
+                  "fact": "大型商业银行资产同比增长8.5%；行业不良率1.54%，较上季升0.02个百分点；资本与流动性整体充足。"
+                }
+              ]
+            },
+            "D": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://data.eastmoney.com/stockcalendar/601288.html",
+                  "range": "截至2026-11-25",
+                  "retrieved_at": "2026-11-25T19:37:00+08:00",
+                  "fact": "东方财富个股日历显示11月5日有三季报点评；未取得可核验定量一致预期上修。"
+                }
+              ]
+            },
+            "E": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://www.abchina.com/cn/aboutabc/investor_relations/report/qm/202610/t20261030_2699110.htm",
+                  "published_at": "2026-10-30",
+                  "retrieved_at": "2026-11-25T19:39:00+08:00",
+                  "fact": "前三季度归母净利润同比7.1%、扣非同比7.69%，不良率1.23%；定增带来资本补充与摊薄双面影响。"
+                }
+              ]
+            }
+          },
+          "601328": {
+            "A": {
+              "status": "CONFLICT",
+              "sources": [
+                {
+                  "url": "https://data.eastmoney.com/zjlx/601328.html",
+                  "retrieved_at": "2026-11-25T19:20:00+08:00",
+                  "result": "同花顺显示11月25日大单净额2571.64万元、占比7.99%、5日主力净额52736.83万元，但同页收盘9.06与冻结9.14冲突。"
+                },
+                {
+                  "url": "https://profile.10jqka.com.cn/601328/funds/",
+                  "retrieved_at": "2026-11-25T19:20:00+08:00",
+                  "result": "同花顺显示11月25日大单净额2571.64万元、占比7.99%、5日主力净额52736.83万元，但同页收盘9.06与冻结9.14冲突。"
+                },
+                {
+                  "url": "https://stock.quote.stockstar.com/capital_601328.shtml",
+                  "retrieved_at": "2026-11-25T19:20:00+08:00",
+                  "result": "同花顺显示11月25日大单净额2571.64万元、占比7.99%、5日主力净额52736.83万元，但同页收盘9.06与冻结9.14冲突。"
+                }
+              ]
+            },
+            "B": {
+              "status": "NO_NEW_VERIFIED_EVENT",
+              "sources": [
+                {
+                  "url": "https://www.sse.com.cn/assortment/stock/list/info/announcement/index.shtml?productId=601328",
+                  "range": "最近5/20交易日",
+                  "retrieved_at": "2026-11-25T19:31:00+08:00",
+                  "fact": "公告列表最近更新为11月7日临时股东会资料；近5交易日未发现新增重大经营公告。"
+                }
+              ]
+            },
+            "C": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://www.nfra.gov.cn/cn/view/pages/governmentDetail.html?docId=1279786&generaltype=0&itemId=915",
+                  "published_at": "2026-11-20",
+                  "retrieved_at": "2026-11-25T19:34:00+08:00",
+                  "fact": "大型商业银行资产同比增长8.5%；行业不良率1.54%，较上季升0.02个百分点；资本与流动性整体充足。"
+                }
+              ]
+            },
+            "D": {
+              "status": "NO_NEW_VERIFIED_EVENT",
+              "sources": [
+                {
+                  "url": "https://data.eastmoney.com/report/stock/",
+                  "range": "截至2026-11-25",
+                  "retrieved_at": "2026-11-25T19:37:00+08:00",
+                  "fact": "实际检索东方财富研报入口，未发现近期可核验定量一致预期调整。"
+                }
+              ]
+            },
+            "E": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://www.bankcomm.com/BankCommSite/shtml/jyjr/cn/7768/7801/7853/9041641.shtml",
+                  "published_at": "2026-10-30",
+                  "retrieved_at": "2026-11-25T19:39:00+08:00",
+                  "fact": "前三季度归母同比6.10%、扣非同比6.32%；不良率1.29%较年末升0.01个百分点，拨备覆盖率200.11%下降8.27个百分点。"
+                }
+              ]
+            }
+          },
+          "601398": {
+            "A": {
+              "status": "CONFLICT",
+              "sources": [
+                {
+                  "url": "https://data.eastmoney.com/zjlx/601398.html",
+                  "retrieved_at": "2026-11-25T19:20:00+08:00",
+                  "result": "同花顺显示11月25日大单净额-15043.94万元、占比-6.98%、5日主力净额26346.53万元，但同页收盘9.11与冻结9.20冲突；另一备用供应商当日净额约-3亿元，口径也不同。"
+                },
+                {
+                  "url": "https://profile.10jqka.com.cn/601398/funds/",
+                  "retrieved_at": "2026-11-25T19:20:00+08:00",
+                  "result": "同花顺显示11月25日大单净额-15043.94万元、占比-6.98%、5日主力净额26346.53万元，但同页收盘9.11与冻结9.20冲突；另一备用供应商当日净额约-3亿元，口径也不同。"
+                },
+                {
+                  "url": "https://www.lwwhy.com/stock/detail/SH601398",
+                  "retrieved_at": "2026-11-25T19:20:00+08:00",
+                  "result": "同花顺显示11月25日大单净额-15043.94万元、占比-6.98%、5日主力净额26346.53万元，但同页收盘9.11与冻结9.20冲突；另一备用供应商当日净额约-3亿元，口径也不同。"
+                }
+              ]
+            },
+            "B": {
+              "status": "NO_NEW_VERIFIED_EVENT",
+              "sources": [
+                {
+                  "url": "https://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=601398",
+                  "range": "最近5/20交易日",
+                  "retrieved_at": "2026-11-25T19:31:00+08:00",
+                  "fact": "11月13日优先股派息与二级资本债、11月12日定增审核通过；近5交易日无新增重大经营公告。"
+                }
+              ]
+            },
+            "C": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://www.nfra.gov.cn/cn/view/pages/governmentDetail.html?docId=1279786&generaltype=0&itemId=915",
+                  "published_at": "2026-11-20",
+                  "retrieved_at": "2026-11-25T19:34:00+08:00",
+                  "fact": "大型商业银行资产同比增长8.5%；行业不良率1.54%，较上季升0.02个百分点；资本与流动性整体充足。"
+                }
+              ]
+            },
+            "D": {
+              "status": "NO_NEW_VERIFIED_EVENT",
+              "sources": [
+                {
+                  "url": "https://data.eastmoney.com/report/stock/",
+                  "range": "截至2026-11-25",
+                  "retrieved_at": "2026-11-25T19:37:00+08:00",
+                  "fact": "实际检索东方财富研报入口，未发现近期可核验定量一致预期调整。"
+                }
+              ]
+            },
+            "E": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://v.icbc.com.cn/userfiles/resources/icbcltd/download/2026/Announce20261030_4.pdf",
+                  "published_at": "2026-10-30",
+                  "retrieved_at": "2026-11-25T19:39:00+08:00",
+                  "fact": "三季度单季归母同比9.97%、扣非同比9.99%；累计净息差同比升1bp，不良率1.29%下降0.02个百分点，拨备覆盖率下降1.96个百分点。"
+                }
+              ]
+            }
+          },
+          "601658": {
+            "A": {
+              "status": "CONFLICT",
+              "sources": [
+                {
+                  "url": "https://data.eastmoney.com/zjlx/601658.html",
+                  "retrieved_at": "2026-11-25T19:20:00+08:00",
+                  "result": "同花顺显示11月25日大单净额6997.02万元、占比10.86%、5日主力净额30668.44万元，收盘5.97与冻结一致；但全组其他股票存在价格冲突，不能完成同源横比。"
+                },
+                {
+                  "url": "https://profile.10jqka.com.cn/601658/funds/",
+                  "retrieved_at": "2026-11-25T19:20:00+08:00",
+                  "result": "同花顺显示11月25日大单净额6997.02万元、占比10.86%、5日主力净额30668.44万元，收盘5.97与冻结一致；但全组其他股票存在价格冲突，不能完成同源横比。"
+                }
+              ]
+            },
+            "B": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://data.eastmoney.com/stockcalendar/601658.html",
+                  "range": "最近5/20交易日",
+                  "retrieved_at": "2026-11-25T19:31:00+08:00",
+                  "fact": "11月10日资本债公告、11月7日执行董事/副行长/首席风险官离任，11月26日临时股东会。"
+                }
+              ]
+            },
+            "C": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://www.nfra.gov.cn/cn/view/pages/governmentDetail.html?docId=1279786&generaltype=0&itemId=915",
+                  "published_at": "2026-11-20",
+                  "retrieved_at": "2026-11-25T19:34:00+08:00",
+                  "fact": "大型商业银行资产同比增长8.5%；行业不良率1.54%，较上季升0.02个百分点；资本与流动性整体充足。"
+                }
+              ]
+            },
+            "D": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://data.eastmoney.com/stockcalendar/601658.html",
+                  "range": "截至2026-11-25",
+                  "retrieved_at": "2026-11-25T19:37:00+08:00",
+                  "fact": "东方财富个股日历显示11月7日有规模增长与风险处置研报；仅作单家观点，不作一致预期。"
+                }
+              ]
+            },
+            "E": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://www.psbc.com/cn/gyyc/ycfm/ycdt/202610/t20261030_479712.html",
+                  "published_at": "2026-10-30",
+                  "retrieved_at": "2026-11-25T19:39:00+08:00",
+                  "fact": "前三季度净利润同比4.45%、扣非同比1.56%，不良率0.99%；扣非增速相对偏弱且高管离任需观察。"
+                }
+              ]
+            }
+          },
+          "601939": {
+            "A": {
+              "status": "CONFLICT",
+              "sources": [
+                {
+                  "url": "https://data.eastmoney.com/zjlx/601939.html",
+                  "retrieved_at": "2026-11-25T19:20:00+08:00",
+                  "result": "同花顺显示11月25日大单净额-9902.11万元、占比-19.74%、5日主力净额-13980.58万元，但同页收盘12.25与冻结12.59冲突。"
+                },
+                {
+                  "url": "https://profile.10jqka.com.cn/601939/funds/",
+                  "retrieved_at": "2026-11-25T19:20:00+08:00",
+                  "result": "同花顺显示11月25日大单净额-9902.11万元、占比-19.74%、5日主力净额-13980.58万元，但同页收盘12.25与冻结12.59冲突。"
+                }
+              ]
+            },
+            "B": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=601939",
+                  "range": "最近5/20交易日",
+                  "retrieved_at": "2026-11-25T19:31:00+08:00",
+                  "fact": "11月18日非执行董事任职；近5交易日未发现重大经营变化。"
+                }
+              ]
+            },
+            "C": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://www.nfra.gov.cn/cn/view/pages/governmentDetail.html?docId=1279786&generaltype=0&itemId=915",
+                  "published_at": "2026-11-20",
+                  "retrieved_at": "2026-11-25T19:34:00+08:00",
+                  "fact": "大型商业银行资产同比增长8.5%；行业不良率1.54%，较上季升0.02个百分点；资本与流动性整体充足。"
+                }
+              ]
+            },
+            "D": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://data.eastmoney.com/stockcalendar/601939.html",
+                  "range": "截至2026-11-25",
+                  "retrieved_at": "2026-11-25T19:37:00+08:00",
+                  "fact": "东方财富个股日历显示11月4日有三季报点评；未取得可核验一致预期上修。"
+                }
+              ]
+            },
+            "E": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://privatebank.ccb.com/chn/2026-10/30/article_2026103016484628413.shtml",
+                  "published_at": "2026-10-30",
+                  "retrieved_at": "2026-11-25T19:39:00+08:00",
+                  "fact": "前三季度归母同比6.55%，净息差1.36%企稳，不良率1.29%下降0.02个百分点；短线曾出现较大回撤。"
+                }
+              ]
+            }
+          }
+        },
+        "dynamic_comparison": {
+          "601288": {
+            "trend_structure": "冻结价7.96，3日+2.45%、5日+4.05%、前5日+5.37%，20日相对市场+20.82个百分点；低点抬升、10日最大回撤0%，阶段TRANSITION且未fresh_break。",
+            "fund_flow": "东方财富动态字段不可读；同花顺可读索引仅到11月23日，未取得11月25日加近5日完整表；证券之星与其他备用供应商口径不能直接横比。",
+            "quarterly_profit": "三季度单季扣非净利润同比12.19%，前三季度扣非同比7.69%；前一单季同口径同比未在本轮法定披露检索中独立核实。"
+          },
+          "601328": {
+            "trend_structure": "冻结价9.14，3日+1.78%、5日+4.58%高于前5日+3.80%，20日相对市场+24.34个百分点为组内最高；低点抬升并fresh_break，回撤-0.56%。",
+            "fund_flow": "同花顺显示11月25日大单净额2571.64万元、占比7.99%、5日主力净额52736.83万元，但同页收盘9.06与冻结9.14冲突。",
+            "quarterly_profit": "三季度单季扣非净利润同比11.39%，前三季度扣非同比6.32%；不良率小升、拨备覆盖率下降构成反证。"
+          },
+          "601398": {
+            "trend_structure": "冻结价9.20，3日-2.13%、5日+1.55%显著低于前5日+6.21%，20日相对市场+21.17个百分点；higher_low=false、下跌日量比高于上涨日。",
+            "fund_flow": "同花顺显示11月25日大单净额-15043.94万元、占比-6.98%、5日主力净额26346.53万元，但同页收盘9.11与冻结9.20冲突；另一备用供应商当日净额约-3亿元，口径也不同。",
+            "quarterly_profit": "三季度单季归母同比9.97%、扣非同比9.99%，前三季度扣非同比5.76%，净息差同比升1bp；拨备覆盖率下降。"
+          },
+          "601658": {
+            "trend_structure": "冻结价5.97，3日+2.93%、5日+3.29%高于前5日+2.66%，20日相对市场+19.35个百分点；低点抬升并fresh_break，5日量比1.174。",
+            "fund_flow": "同花顺显示11月25日大单净额6997.02万元、占比10.86%、5日主力净额30668.44万元，收盘5.97与冻结一致；但全组其他股票存在价格冲突，不能完成同源横比。",
+            "quarterly_profit": "三季度单季扣非净利润同比4.22%，前三季度扣非同比1.56%，净息差1.60%但盈利弹性弱于同组。"
+          },
+          "601939": {
+            "trend_structure": "冻结价12.59，3日-1.33%、5日+2.27%低于前5日+3.27%，20日相对市场+20.66个百分点；当日量比1.505、收盘位置85.45%，10日最大回撤-2.90%。",
+            "fund_flow": "同花顺显示11月25日大单净额-9902.11万元、占比-19.74%、5日主力净额-13980.58万元，但同页收盘12.25与冻结12.59冲突。",
+            "quarterly_profit": "三季度单季归母净利润同比9.84%，前三季度归母同比6.55%，净息差企稳且不良率下降；单季扣非同比未单独核实。"
+          }
+        },
+        "comparison_reasons": {
+          "601288": "趋势连续性强且财务增长较好，但同日资金与5日资金核心证据未完整取得，不能胜出。",
+          "601328": "趋势结构在组内最强，理论上是最强竞争者；但资金页收盘价与冻结行情冲突，不能据此锁定。",
+          "601398": "单季盈利增速较好，但近3日走弱、higher_low失败、下跌量能偏高，资金数据又存在价格与口径冲突。",
+          "601658": "趋势改善且同花顺资金为正，但扣非增速偏弱，且全组资金口径无法公平横比。",
+          "601939": "财务与息差稳健，但3日回撤和外部资金页价格冲突使短期延续证据不足。"
+        },
+        "strongest_counter": "若只看仓库冻结的趋势结构，交通银行具备组内最高20日相对强度、fresh_break与低回撤；但协议要求的同日及5日可比资金证据存在行情切片冲突，不能把这项结构优势直接升级为TOP1。",
+        "falsifier": "只有在同一可核验供应商补齐五家公司11月25日同日净额/占比与近5日数据，并且收盘价与冻结行情一致后，才可重新进行当日比较；同一交易日一旦正式锁定不得事后重选。",
+        "material_conflicts": [
+          "A类资金供应商页面收盘价与冻结行情不一致",
+          "601288缺少同源同口径11月25日加近5日完整资金表"
+        ]
+      }
+    ]
+  },
+  "top1_decisions": [
+    {
+      "industry_code": "S480201",
+      "candidate_codes": [
+        "601288",
+        "601328",
+        "601939",
+        "601658",
+        "601398"
+      ],
+      "top1_code": null,
+      "selection_status": "INCOMPLETE",
+      "selection_reason": "资金A核心门槛未通过：东方财富首选页动态字段不可读；同花顺备用页虽给出11月25日与5日主力数据，但601328、601939、601398的同页收盘价分别为9.06、12.25、9.11，与冻结行情9.14、12.59、9.20冲突；601288未取得同日加近5日完整可比表。备用来源口径和数值也不一致，无法形成全组同源同口径横比。为避免默认Python首位或用冲突数据强行选择，本组弃权。",
+      "risk_status": null,
+      "risk_result": null,
+      "watch_reference": null,
+      "conditional_plan": null,
+      "route": "NO_MONITOR"
+    }
+  ],
+  "company_reviews": [
+    {
+      "code": "601288",
+      "transmission": "SUPPORTED",
+      "review_evidence_date": "2026-11-25",
+      "source_review": "农业银行主营即大型商业银行存贷款与综合金融服务，直接属于国有大型银行Ⅲ；三季报显示营收、归母与扣非利润同比增长，资产质量指标改善，主题传导成立。资金页同日与滚动窗口无法在可比口径下完整核验，因此不据此产生TOP1选择。",
+      "review_basis": "本轮重新检索公司法定财报、上交所公告、监管行业数据与资金首选/备用入口；事实与模型推断分离。",
+      "research_falsifier": "若后续法定披露显示息差重新显著下行、资产质量恶化，或同日量价与资金数据证实突破失败，则国有大行趋势延续判断失效。",
+      "historical_analyst_expectation": "UNKNOWN",
+      "evidence_gap": true,
+      "early_evidence_risk_review_passed": false,
+      "source_materials": [
+        {
+          "kind": "issuer_q3_2026_report",
+          "url": "https://www.abchina.com/cn/aboutabc/investor_relations/report/qm/202610/t20261030_2699110.htm",
+          "published_at": "2026-10-30",
+          "asof": "2026-11-25",
+          "report_period": "2026-09-30"
+        },
+        {
+          "kind": "current_announcement_or_event_index",
+          "url": "https://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=601288",
+          "published_at": "2026-11-18",
+          "asof": "2026-11-25",
+          "report_period": null
+        }
+      ]
+    },
+    {
+      "code": "601328",
+      "transmission": "SUPPORTED",
+      "review_evidence_date": "2026-11-25",
+      "source_review": "交通银行主营商业银行业务，直接属于国有大型银行Ⅲ；法定三季报披露前三季度营收、归母及扣非利润同比增长，但不良率较年末小幅上升、拨备覆盖率下降，构成可验证反证。资金页与冻结收盘价不一致，未用于选择。",
+      "review_basis": "本轮重新检索法定三季报、上交所公告、监管行业数据、研报入口及资金首选/备用入口。",
+      "research_falsifier": "若不良率继续上行、拨备覆盖率继续明显下降，或价格突破后不能维持且资金持续净流出，则趋势延续判断失效。",
+      "historical_analyst_expectation": "UNKNOWN",
+      "evidence_gap": true,
+      "early_evidence_risk_review_passed": false,
+      "source_materials": [
+        {
+          "kind": "issuer_q3_2026_report",
+          "url": "https://www.bankcomm.com/BankCommSite/shtml/jyjr/cn/7768/7801/7853/9041641.shtml",
+          "published_at": "2026-10-30",
+          "asof": "2026-11-25",
+          "report_period": "2026-09-30"
+        },
+        {
+          "kind": "current_announcement_or_event_index",
+          "url": "https://www.sse.com.cn/assortment/stock/list/info/announcement/index.shtml?productId=601328",
+          "published_at": "2026-11-07",
+          "asof": "2026-11-25",
+          "report_period": null
+        }
+      ]
+    },
+    {
+      "code": "601939",
+      "transmission": "SUPPORTED",
+      "review_evidence_date": "2026-11-25",
+      "source_review": "建设银行主营银行及相关金融服务，直接属于国有大型银行Ⅲ；三季度经营收入与归母净利润双增、净息差企稳、不良率下降，基本面传导成立。但外部资金页收盘价与冻结行情冲突，不能据其资金口径选TOP1。",
+      "review_basis": "本轮重新检索公司三季报业绩公告、上交所公告、监管数据、研报入口及资金首选/备用入口。",
+      "research_falsifier": "若净息差企稳被后续披露否定、不良率转升，或放量反弹后再次跌破结构支撑，则趋势延续判断失效。",
+      "historical_analyst_expectation": "UNKNOWN",
+      "evidence_gap": true,
+      "early_evidence_risk_review_passed": false,
+      "source_materials": [
+        {
+          "kind": "issuer_q3_2026_report",
+          "url": "https://privatebank.ccb.com/chn/2026-10/30/article_2026103016484628413.shtml",
+          "published_at": "2026-10-30",
+          "asof": "2026-11-25",
+          "report_period": "2026-09-30"
+        },
+        {
+          "kind": "current_announcement_or_event_index",
+          "url": "https://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=601939",
+          "published_at": "2026-11-18",
+          "asof": "2026-11-25",
+          "report_period": null
+        }
+      ]
+    },
+    {
+      "code": "601658",
+      "transmission": "SUPPORTED",
+      "review_evidence_date": "2026-11-25",
+      "source_review": "邮储银行主营零售、公司及金融市场等银行业务，直接属于国有大型银行Ⅲ；三季报显示营收、净利润、非息收入增长且净息差维持相对较高水平，但扣非利润增速弱于同组多家，且近期有高管离任公告需持续观察。",
+      "review_basis": "本轮重新检索公司三季报、公司/交易所公告、监管行业数据、研报入口与资金首选/备用入口。",
+      "research_falsifier": "若负债成本优势减弱、扣非利润增速继续落后，或高管变动影响经营执行并伴随价格结构转弱，则判断失效。",
+      "historical_analyst_expectation": "UNKNOWN",
+      "evidence_gap": false,
+      "early_evidence_risk_review_passed": false,
+      "source_materials": [
+        {
+          "kind": "issuer_q3_2026_report",
+          "url": "https://www.psbc.com/cn/gyyc/ycfm/ycdt/202610/t20261030_479712.html",
+          "published_at": "2026-10-30",
+          "asof": "2026-11-25",
+          "report_period": "2026-09-30"
+        },
+        {
+          "kind": "current_announcement_or_event_index",
+          "url": "https://data.eastmoney.com/stockcalendar/601658.html",
+          "published_at": "2026-11-10",
+          "asof": "2026-11-25",
+          "report_period": null
+        }
+      ]
+    },
+    {
+      "code": "601398",
+      "transmission": "SUPPORTED",
+      "review_evidence_date": "2026-11-25",
+      "source_review": "工商银行主营公司、个人、资金、投行与资管等金融业务，直接属于国有大型银行Ⅲ；法定三季报显示单季归母与扣非利润同比接近两位数、累计净息差同比上升，但外部资金页与冻结收盘价冲突，且拨备覆盖率较年末下降。",
+      "review_basis": "本轮重新检索法定三季报、上交所公告、监管数据、研报入口与资金首选/备用入口。",
+      "research_falsifier": "若拨备覆盖率继续明显下降、息差改善不能延续，或近期低点不再抬升并跌破结构支撑，则趋势延续判断失效。",
+      "historical_analyst_expectation": "UNKNOWN",
+      "evidence_gap": true,
+      "early_evidence_risk_review_passed": false,
+      "source_materials": [
+        {
+          "kind": "issuer_q3_2026_report",
+          "url": "https://v.icbc.com.cn/userfiles/resources/icbcltd/download/2026/Announce20261030_4.pdf",
+          "published_at": "2026-10-30",
+          "asof": "2026-11-25",
+          "report_period": "2026-09-30"
+        },
+        {
+          "kind": "current_announcement_or_event_index",
+          "url": "https://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=601398",
+          "published_at": "2026-11-13",
+          "asof": "2026-11-25",
+          "report_period": null
+        }
+      ]
+    }
+  ],
+  "top1_by_industry": [
+    {
+      "trend_name": "银行",
+      "industry_code": "S480201",
+      "attention_ranking_policy": "MODEL_TOP1_V1_6_R1",
+      "items": []
+    }
+  ],
+  "focus_watchlist": [
+    {
+      "trend_name": "银行",
+      "industry_code": "S480201",
+      "code": null,
+      "status": "INCOMPLETE",
+      "trade_date": "2026-11-25",
+      "decision_reason": "资金A核心门槛未通过：东方财富首选页动态字段不可读；同花顺备用页虽给出11月25日与5日主力数据，但601328、601939、601398的同页收盘价分别为9.06、12.25、9.11，与冻结行情9.14、12.59、9.20冲突；601288未取得同日加近5日完整可比表。备用来源口径和数值也不一致，无法形成全组同源同口径横比。为避免默认Python首位或用冲突数据强行选择，本组弃权。",
+      "reference": null,
+      "not_buy_order": true
+    }
+  ],
+  "uncertain": [],
+  "wait": [],
+  "drop": [],
+  "ready": [],
+  "fresh_mainline_provenance": {
+    "source_trade_date": "2026-11-25",
+    "run": "frozen_top5_locked_model_top1_independent_risk",
+    "old_formal_or_replay_used_as_input": false,
+    "github_actions_run_id": "45602892530",
+    "technical_rebuilt_at": "2026-11-25T19:16:44.459051+08:00",
+    "industry_handoff_sha": "176acc80354aa20719ba7c2647c71be2aa40affc",
+    "frozen_company_index_sha": "7364824148cc1409975232e67aa9b8d4a99fb047",
+    "company_review_sha": "dfc49810a291f3d378cd7bc3f922d4db1dfa3bc4",
+    "company_research_admission_sha": "e8302ad33530fdf1f5a81ec7d423a450bb226bc2"
+  }
+}
