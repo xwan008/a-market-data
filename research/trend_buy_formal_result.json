@@ -1,19 +1,15 @@
 {
   "schema_version": "trend_buy_result_v2",
-  "prescreen_version": "CANONICAL",
-  "run_id": "trend-buy-formal-main-45381760428-asof-2026-11-24",
   "result_kind": "a_share_trend_buy_result",
   "status": "COMPLETE",
-  "trade_date": "2026-11-24",
   "mode": "FORMAL",
-  "structure_trade_date": "2026-11-24",
+  "production_eligible": true,
+  "selection_policy": "MODEL_TOP1_V1_6_R1",
+  "prescreen_version": "CANONICAL",
+  "run_id": "trend-buy-formal-main-45602892530",
+  "trade_date": "2026-11-25",
+  "structure_trade_date": "2026-11-25",
   "structure_contract": "a-share-low-risk-price-structure",
-  "model_thresholds": {
-    "max_entry_risk_pct": 6.0,
-    "max_ma20_distance_pct": 8.0,
-    "min_resistance_reward_R": 1.5,
-    "status": "PROVISIONAL_LIVE_PARAMETERS_MONITOR_AND_REVISE"
-  },
   "publication_audit": {
     "fresh_company_research": true,
     "working_set_frozen": true,
@@ -24,3179 +20,626 @@
     "json_schema_valid": true
   },
   "coverage": {
-    "selected": 15,
-    "judged": 15,
-    "complete": true
+    "selected": 5,
+    "judged": 0,
+    "complete": true,
+    "groups": 1
   },
-  "ready": [
+  "summary": {
+    "uncertain": 0,
+    "wait": 0,
+    "drop": 0,
+    "ready": 0
+  },
+  "model_thresholds": {
+    "max_entry_risk_pct": 6.0,
+    "max_ma20_distance_pct": 8.0,
+    "min_resistance_reward_R": 1.5,
+    "status": "PROVISIONAL_LIVE_PARAMETERS_MONITOR_AND_REVISE"
+  },
+  "python_top5_by_industry": [
     {
-      "code": "601288",
-      "company_name": "农业银行",
-      "industry_name": "国有大型银行Ⅲ",
-      "current_price": 7.93,
-      "trend_name": "银行",
       "industry_code": "S480201",
-      "market_state": "趋势确认",
-      "trend_state": "T1",
-      "status": "READY",
-      "wait_reason": null,
-      "decision_reason": "截至收盘的技术确认通过；仅为下一交易日有条件入场计划",
-      "transmission": "SUPPORTED",
-      "setup_type": "BREAKOUT",
-      "entry_zone": [
-        7.936,
-        8.025
+      "selected_codes": [
+        "601288",
+        "601328",
+        "601939",
+        "601658",
+        "601398"
       ],
-      "max_entry_price": 8.025,
-      "entry_trigger": "收盘确认突破已有压力位；如有效跌回本次突破价下方则本次交易假设失效",
-      "invalidation_price": 7.88,
-      "invalidation_rule": "本次突破价 7.92 元为交易失效边界；参考缓冲止损价 7.88 元，须事先明确收盘确认与跳空处置规则",
-      "initial_risk_pct": 1.81,
-      "upside_to_resistance_R": null,
-      "exit_plan": {
-        "failed_setup": "突破失败或回调未获确认则不入场；已入场后触及预先定义的结构失败条件退出",
-        "trend_weakening": "趋势与板块强度持续衰退时减少风险敞口；不得单凭单日回调强制清仓",
-        "profit_protection": "持仓后逐步上移结构保护位，结合新高、回调低点和风险预算分批退出",
-        "risk_gap": "跳空、涨跌停与成交滑点可能使真实亏损超过理论结构风险"
-      },
-      "structure_confirmed": true,
-      "data_date": "2026-11-24",
-      "price_basis": "completed_daily_bar",
-      "research_falsifier": "若净息差、资产质量或资本充足率出现超预期恶化，导致扣非利润和现金流转弱，则银行趋势传导与当前排名依据失效。",
-      "source_review": "事实：交易所/公司披露的2026年三季报报告期为2026-09-30，冻结F10记录的扣非利润同比为7.69%；推断：主题排序综合经营兑现、同日10/20/60日相对强度和近端现金流/估值风险；无可验证的历史分析师一致预期，记为UNKNOWN。",
-      "model_priority": 1,
-      "model_reason": "农业银行前三季度收入和扣非利润分别同比增长约12.3%和7.7%，经营现金流为正，10日与60日价格强度在同组居前。",
-      "research_quality_evidence": {
-        "status": "VERIFIED",
-        "asof_date": "2026-11-24",
-        "score": 59.2966,
-        "source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-        "components": {
-          "core_profit_yoy_pct": 7.695,
-          "operating_cashflow_per_share": 2.3161,
-          "core_growth_component": 0.435933,
-          "cashflow_component": 1.0,
-          "peer_percentiles": {
-            "10": 1.0,
-            "20": 0.75,
-            "60": 0.5
-          },
-          "negative_cashflow_penalty": 0.0,
-          "score_is_provisional_not_probability": true
-        },
-        "report_date": "2026-09-30",
-        "notice_date": "2026-10-31",
-        "update_date": "2026-10-31"
-      },
-      "trend_phase": "TRANSITION",
-      "phase_evidence": {
-        "return_3d_pct": 3.66,
-        "return_5d_pct": 4.2,
-        "previous_5d_return_pct": 3.54,
-        "positive_days_5d": 4,
-        "negative_days_5d": 0,
-        "up_day_volume_ratio_5d": 1.146,
-        "down_day_volume_ratio_5d": null,
-        "volume_ratio_1d": 1.164,
-        "volume_ratio_5d": 1.058,
-        "close_location_pct": 93.94,
-        "close_location_3d_avg_pct": 73.65,
-        "max_close_drawdown_10d_pct": -1.22,
-        "prior_5d_high": 7.92,
-        "prior_20d_low": 7.12,
-        "recent_3d_low": 7.57,
-        "fresh_break": false,
-        "pullback_low_holds": true,
-        "weak_close_high_volume": false,
-        "signal_uses_completed_bars_only": true
-      },
-      "technical_context": {
-        "ma20": 7.497,
-        "ma60": 7.1081,
-        "support_invalidation": 7.497,
-        "breakout_level": 7.92,
-        "prior_60d_high": 7.92,
-        "attention_resistance": {
-          "status": "UNVERIFIED",
-          "price": null,
-          "reason": "no_confirmed_overhead_pivot_in_lookback",
-          "history_points": 180
-        },
-        "recent_acceptance": {
-          "pattern": "LOCAL_SUPPORT_HOLD",
-          "support_close_band": [
-            7.77,
-            7.83
-          ],
-          "support_dates": [
-            "2026-11-20",
-            "2026-11-23"
-          ],
-          "support_low": 7.57,
-          "signal_day_low": 7.62,
-          "intraday_support_broken": false,
-          "lookback_trading_days": 3,
-          "data_date": "2026-11-24",
-          "observation_only": true
-        },
-        "first_effective_resistance": null,
-        "distance_to_ma20_pct": 5.78,
-        "chase_risk": "low",
-        "volume_ratio_1d_vs_20d": 1.164,
-        "volume_ratio_5d_vs_20d": 1.058,
-        "relative_strength_20d_vs_market_pct": 17.41,
-        "ma20_slope_5d_pct": 1.5,
-        "close_location_pct": 93.94,
-        "higher_low": true,
-        "trend_phase": "TRANSITION",
-        "phase_evidence": {
-          "return_3d_pct": 3.66,
-          "return_5d_pct": 4.2,
-          "previous_5d_return_pct": 3.54,
-          "positive_days_5d": 4,
-          "negative_days_5d": 0,
-          "up_day_volume_ratio_5d": 1.146,
-          "down_day_volume_ratio_5d": null,
-          "volume_ratio_1d": 1.164,
-          "volume_ratio_5d": 1.058,
-          "close_location_pct": 93.94,
-          "close_location_3d_avg_pct": 73.65,
-          "max_close_drawdown_10d_pct": -1.22,
-          "prior_5d_high": 7.92,
-          "prior_20d_low": 7.12,
-          "recent_3d_low": 7.57,
-          "fresh_break": false,
-          "pullback_low_holds": true,
-          "weak_close_high_volume": false,
-          "signal_uses_completed_bars_only": true
-        }
-      },
-      "setup_stop_evidence": {
-        "source": "confirmed_breakout_boundary",
-        "anchor_price": 7.92,
-        "buffer_pct": 0.5,
-        "asof_date": "2026-11-24",
-        "confirmation": "same_day_completed_bar"
-      },
-      "rank": 1
+      "source_hard_eligible_count": 6,
+      "source_financial_provenance_verified_count": 6,
+      "reason": "PYTHON_UNIFIED_ENTRY_FIRST_FINANCE_CORE_FIRST",
+      "selection_policy": "ENTRY_FIRST_NO_QUOTAS",
+      "entry_selected_count": 5,
+      "watch_fallback_count": 0
     }
   ],
-  "wait": [
-    {
-      "code": "002463",
-      "company_name": "沪电股份",
-      "industry_name": "印制电路板",
-      "current_price": 84.13,
-      "trend_name": "高端PCB",
-      "industry_code": "S270202",
-      "market_state": "趋势确认",
-      "trend_state": "T1",
-      "status": "WAIT",
-      "wait_reason": "WAIT_CONFIRMATION",
-      "decision_reason": "MA60下方仍可观察启动或修复；尚未形成经确认的低风险入场条件",
-      "transmission": "SUPPORTED",
-      "setup_type": null,
-      "entry_zone": null,
-      "max_entry_price": null,
-      "entry_trigger": null,
-      "invalidation_price": null,
-      "invalidation_rule": null,
-      "initial_risk_pct": null,
-      "upside_to_resistance_R": null,
-      "exit_plan": null,
-      "structure_confirmed": false,
-      "data_date": "2026-11-24",
-      "price_basis": "completed_daily_bar",
-      "research_falsifier": "若后续定期报告显示高端PCB订单、收入或盈利兑现明显低于当前披露，或经营现金流持续恶化，则主题传导结论失效。",
-      "source_review": "事实：交易所/公司披露的2026年三季报报告期为2026-09-30，冻结F10记录的扣非利润同比为104.53%；推断：主题排序综合经营兑现、同日10/20/60日相对强度和近端现金流/估值风险；无可验证的历史分析师一致预期，记为UNKNOWN。",
-      "model_priority": 1,
-      "model_reason": "沪电股份前三季度扣非利润同比约104.5%，经营现金流为正；高端PCB经营兑现最强，但20日与60日相对结构仍弱，需防反弹后再度转弱。",
-      "research_quality_evidence": {
-        "status": "VERIFIED",
-        "asof_date": "2026-11-24",
-        "score": 73.75,
-        "source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-        "components": {
-          "core_profit_yoy_pct": 104.5339,
-          "operating_cashflow_per_share": 1.402,
-          "core_growth_component": 1.0,
-          "cashflow_component": 1.0,
-          "peer_percentiles": {
-            "10": 1.0,
-            "20": 0.25,
-            "60": 0.25
+  "model_top1_selection": {
+    "trade_date": "2026-11-25",
+    "source_blob": "e8302ad33530fdf1f5a81ec7d423a450bb226bc2",
+    "prompt_version": "V1.6-R1",
+    "items": [
+      {
+        "industry_code": "S480201",
+        "candidate_codes": [
+          "601288",
+          "601328",
+          "601939",
+          "601658",
+          "601398"
+        ],
+        "status": "INCOMPLETE",
+        "top1_code": null,
+        "reason": "资金A核心门槛未通过：东方财富首选页动态字段不可读；同花顺备用页虽给出11月25日与5日主力数据，但601328、601939、601398的同页收盘价分别为9.06、12.25、9.11，与冻结行情9.14、12.59、9.20冲突；601288未取得同日加近5日完整可比表。备用来源口径和数值也不一致，无法形成全组同源同口径横比。为避免默认Python首位或用冲突数据强行选择，本组弃权。",
+        "confidence": null,
+        "as_of": "2026-11-25T19:43:00+08:00",
+        "research_started_at": "2026-11-25T19:08:00+08:00",
+        "research_finished_at": "2026-11-25T19:43:00+08:00",
+        "model_version": "gpt-5",
+        "completion_gate": {
+          "input_verified": true,
+          "five_categories_searched": true,
+          "core_flow_verified": false,
+          "fact_quality_verified": false,
+          "dynamic_comparison_complete": true,
+          "counterevidence_checked": true
+        },
+        "research_matrix": {
+          "601288": {
+            "A": {
+              "status": "CONFLICT",
+              "sources": [
+                {
+                  "url": "https://data.eastmoney.com/zjlx/601288.html",
+                  "retrieved_at": "2026-11-25T19:20:00+08:00",
+                  "result": "东方财富动态字段不可读；同花顺可读索引仅到11月23日，未取得11月25日加近5日完整表；证券之星与其他备用供应商口径不能直接横比。"
+                },
+                {
+                  "url": "https://profile.10jqka.com.cn/601288/funds/",
+                  "retrieved_at": "2026-11-25T19:20:00+08:00",
+                  "result": "东方财富动态字段不可读；同花顺可读索引仅到11月23日，未取得11月25日加近5日完整表；证券之星与其他备用供应商口径不能直接横比。"
+                },
+                {
+                  "url": "https://stock.quote.stockstar.com/capital_601288.shtml",
+                  "retrieved_at": "2026-11-25T19:20:00+08:00",
+                  "result": "东方财富动态字段不可读；同花顺可读索引仅到11月23日，未取得11月25日加近5日完整表；证券之星与其他备用供应商口径不能直接横比。"
+                }
+              ]
+            },
+            "B": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=601288",
+                  "range": "最近5/20交易日",
+                  "retrieved_at": "2026-11-25T19:31:00+08:00",
+                  "fact": "11月18日赎回永续资本债、11月17日发行TLAC非资本债、11月12日定增获上交所审核通过。"
+                }
+              ]
+            },
+            "C": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://www.nfra.gov.cn/cn/view/pages/governmentDetail.html?docId=1279786&generaltype=0&itemId=915",
+                  "published_at": "2026-11-20",
+                  "retrieved_at": "2026-11-25T19:34:00+08:00",
+                  "fact": "大型商业银行资产同比增长8.5%；行业不良率1.54%，较上季升0.02个百分点；资本与流动性整体充足。"
+                }
+              ]
+            },
+            "D": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://data.eastmoney.com/stockcalendar/601288.html",
+                  "range": "截至2026-11-25",
+                  "retrieved_at": "2026-11-25T19:37:00+08:00",
+                  "fact": "东方财富个股日历显示11月5日有三季报点评；未取得可核验定量一致预期上修。"
+                }
+              ]
+            },
+            "E": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://www.abchina.com/cn/aboutabc/investor_relations/report/qm/202610/t20261030_2699110.htm",
+                  "published_at": "2026-10-30",
+                  "retrieved_at": "2026-11-25T19:39:00+08:00",
+                  "fact": "前三季度归母净利润同比7.1%、扣非同比7.69%，不良率1.23%；定增带来资本补充与摊薄双面影响。"
+                }
+              ]
+            }
           },
-          "negative_cashflow_penalty": 0.0,
-          "score_is_provisional_not_probability": true
-        },
-        "report_date": "2026-09-30",
-        "notice_date": "2026-10-28",
-        "update_date": "2026-10-28"
-      },
-      "trend_phase": "REPAIRING",
-      "phase_evidence": {
-        "return_3d_pct": 3.74,
-        "return_5d_pct": 15.4,
-        "previous_5d_return_pct": -10.33,
-        "positive_days_5d": 4,
-        "negative_days_5d": 1,
-        "up_day_volume_ratio_5d": 1.229,
-        "down_day_volume_ratio_5d": 1.026,
-        "volume_ratio_1d": 1.308,
-        "volume_ratio_5d": 1.189,
-        "close_location_pct": 4.78,
-        "close_location_3d_avg_pct": 40.92,
-        "max_close_drawdown_10d_pct": -20.18,
-        "prior_5d_high": 83.87,
-        "prior_20d_low": 71.77,
-        "recent_3d_low": 77.64,
-        "fresh_break": true,
-        "pullback_low_holds": true,
-        "weak_close_high_volume": false,
-        "signal_uses_completed_bars_only": true
-      },
-      "technical_context": {
-        "ma20": 83.3525,
-        "ma60": 106.623,
-        "support_invalidation": 83.3525,
-        "breakout_level": null,
-        "prior_60d_high": 131.25,
-        "attention_resistance": {
-          "status": "VERIFIED",
-          "price": 93.46,
-          "date": "2026-03-18",
-          "source": "asof_180bar_confirmed_pivot",
-          "history_points": 180
-        },
-        "recent_acceptance": {
-          "pattern": "NO_RECENT_CLOSE_SUPPORT",
-          "support_close_band": null,
-          "support_dates": [],
-          "support_low": null,
-          "signal_day_low": 83.8,
-          "intraday_support_broken": null,
-          "lookback_trading_days": 3,
-          "data_date": "2026-11-24",
-          "observation_only": true
-        },
-        "first_effective_resistance": {
-          "date": "2026-11-12",
-          "price": 96.07
-        },
-        "distance_to_ma20_pct": 0.93,
-        "chase_risk": "low",
-        "volume_ratio_1d_vs_20d": 1.308,
-        "volume_ratio_5d_vs_20d": 1.189,
-        "relative_strength_20d_vs_market_pct": -4.94,
-        "ma20_slope_5d_pct": -6.64,
-        "close_location_pct": 4.78,
-        "higher_low": false,
-        "trend_phase": "REPAIRING",
-        "phase_evidence": {
-          "return_3d_pct": 3.74,
-          "return_5d_pct": 15.4,
-          "previous_5d_return_pct": -10.33,
-          "positive_days_5d": 4,
-          "negative_days_5d": 1,
-          "up_day_volume_ratio_5d": 1.229,
-          "down_day_volume_ratio_5d": 1.026,
-          "volume_ratio_1d": 1.308,
-          "volume_ratio_5d": 1.189,
-          "close_location_pct": 4.78,
-          "close_location_3d_avg_pct": 40.92,
-          "max_close_drawdown_10d_pct": -20.18,
-          "prior_5d_high": 83.87,
-          "prior_20d_low": 71.77,
-          "recent_3d_low": 77.64,
-          "fresh_break": true,
-          "pullback_low_holds": true,
-          "weak_close_high_volume": false,
-          "signal_uses_completed_bars_only": true
-        }
-      },
-      "rank": 2
-    },
-    {
-      "code": "002384",
-      "company_name": "东山精密",
-      "industry_name": "印制电路板",
-      "current_price": 72.7,
-      "trend_name": "高端PCB",
-      "industry_code": "S270202",
-      "market_state": "趋势确认",
-      "trend_state": "T1",
-      "status": "WAIT",
-      "wait_reason": "WAIT_CONFIRMATION",
-      "decision_reason": "MA60下方仍可观察启动或修复；尚未形成经确认的低风险入场条件",
-      "transmission": "SUPPORTED",
-      "setup_type": null,
-      "entry_zone": null,
-      "max_entry_price": null,
-      "entry_trigger": null,
-      "invalidation_price": null,
-      "invalidation_rule": null,
-      "initial_risk_pct": null,
-      "upside_to_resistance_R": null,
-      "exit_plan": null,
-      "structure_confirmed": false,
-      "data_date": "2026-11-24",
-      "price_basis": "completed_daily_bar",
-      "research_falsifier": "若AI PCB扩产无法转化为持续订单和现金流、融资成本继续快速上升，或相关业务收入贡献被证伪，则主题传导结论失效。",
-      "source_review": "事实：交易所/公司披露的2026年三季报报告期为2026-09-30，冻结F10记录的扣非利润同比为327.48%；推断：主题排序综合经营兑现、同日10/20/60日相对强度和近端现金流/估值风险；无可验证的历史分析师一致预期，记为UNKNOWN。",
-      "model_priority": 2,
-      "model_reason": "东山精密前三季度扣非利润同比约327.5%，并持续投入AI PCB，但并购扩产带来融资与财务费用压力，且60日价格结构显著偏弱。",
-      "research_quality_evidence": {
-        "status": "VERIFIED",
-        "asof_date": "2026-11-24",
-        "score": 60.0,
-        "source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-        "components": {
-          "core_profit_yoy_pct": 327.4848,
-          "operating_cashflow_per_share": 1.9191,
-          "core_growth_component": 1.0,
-          "cashflow_component": 1.0,
-          "peer_percentiles": {
-            "10": 0.0,
-            "20": 0.0,
-            "60": 0.0
+          "601328": {
+            "A": {
+              "status": "CONFLICT",
+              "sources": [
+                {
+                  "url": "https://data.eastmoney.com/zjlx/601328.html",
+                  "retrieved_at": "2026-11-25T19:20:00+08:00",
+                  "result": "同花顺显示11月25日大单净额2571.64万元、占比7.99%、5日主力净额52736.83万元，但同页收盘9.06与冻结9.14冲突。"
+                },
+                {
+                  "url": "https://profile.10jqka.com.cn/601328/funds/",
+                  "retrieved_at": "2026-11-25T19:20:00+08:00",
+                  "result": "同花顺显示11月25日大单净额2571.64万元、占比7.99%、5日主力净额52736.83万元，但同页收盘9.06与冻结9.14冲突。"
+                },
+                {
+                  "url": "https://stock.quote.stockstar.com/capital_601328.shtml",
+                  "retrieved_at": "2026-11-25T19:20:00+08:00",
+                  "result": "同花顺显示11月25日大单净额2571.64万元、占比7.99%、5日主力净额52736.83万元，但同页收盘9.06与冻结9.14冲突。"
+                }
+              ]
+            },
+            "B": {
+              "status": "NO_NEW_VERIFIED_EVENT",
+              "sources": [
+                {
+                  "url": "https://www.sse.com.cn/assortment/stock/list/info/announcement/index.shtml?productId=601328",
+                  "range": "最近5/20交易日",
+                  "retrieved_at": "2026-11-25T19:31:00+08:00",
+                  "fact": "公告列表最近更新为11月7日临时股东会资料；近5交易日未发现新增重大经营公告。"
+                }
+              ]
+            },
+            "C": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://www.nfra.gov.cn/cn/view/pages/governmentDetail.html?docId=1279786&generaltype=0&itemId=915",
+                  "published_at": "2026-11-20",
+                  "retrieved_at": "2026-11-25T19:34:00+08:00",
+                  "fact": "大型商业银行资产同比增长8.5%；行业不良率1.54%，较上季升0.02个百分点；资本与流动性整体充足。"
+                }
+              ]
+            },
+            "D": {
+              "status": "NO_NEW_VERIFIED_EVENT",
+              "sources": [
+                {
+                  "url": "https://data.eastmoney.com/report/stock/",
+                  "range": "截至2026-11-25",
+                  "retrieved_at": "2026-11-25T19:37:00+08:00",
+                  "fact": "实际检索东方财富研报入口，未发现近期可核验定量一致预期调整。"
+                }
+              ]
+            },
+            "E": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://www.bankcomm.com/BankCommSite/shtml/jyjr/cn/7768/7801/7853/9041641.shtml",
+                  "published_at": "2026-10-30",
+                  "retrieved_at": "2026-11-25T19:39:00+08:00",
+                  "fact": "前三季度归母同比6.10%、扣非同比6.32%；不良率1.29%较年末升0.01个百分点，拨备覆盖率200.11%下降8.27个百分点。"
+                }
+              ]
+            }
           },
-          "negative_cashflow_penalty": 0.0,
-          "score_is_provisional_not_probability": true
-        },
-        "report_date": "2026-09-30",
-        "notice_date": "2026-10-31",
-        "update_date": "2026-10-31"
-      },
-      "trend_phase": "REPAIRING",
-      "phase_evidence": {
-        "return_3d_pct": 1.39,
-        "return_5d_pct": 1.31,
-        "previous_5d_return_pct": -14.25,
-        "positive_days_5d": 3,
-        "negative_days_5d": 2,
-        "up_day_volume_ratio_5d": 1.22,
-        "down_day_volume_ratio_5d": 0.84,
-        "volume_ratio_1d": 1.487,
-        "volume_ratio_5d": 1.068,
-        "close_location_pct": 7.93,
-        "close_location_3d_avg_pct": 32.46,
-        "max_close_drawdown_10d_pct": -27.85,
-        "prior_5d_high": 75.16,
-        "prior_20d_low": 66.04,
-        "recent_3d_low": 66.04,
-        "fresh_break": false,
-        "pullback_low_holds": true,
-        "weak_close_high_volume": true,
-        "signal_uses_completed_bars_only": true
-      },
-      "technical_context": {
-        "ma20": 83.3505,
-        "ma60": 138.6333,
-        "support_invalidation": 66.04,
-        "breakout_level": null,
-        "prior_60d_high": 208.96,
-        "attention_resistance": {
-          "status": "VERIFIED",
-          "price": 96.9,
-          "date": "2026-11-04",
-          "source": "asof_180bar_confirmed_pivot",
-          "history_points": 180
-        },
-        "recent_acceptance": {
-          "pattern": "NO_RECENT_CLOSE_SUPPORT",
-          "support_close_band": null,
-          "support_dates": [],
-          "support_low": null,
-          "signal_day_low": 72.19,
-          "intraday_support_broken": null,
-          "lookback_trading_days": 3,
-          "data_date": "2026-11-24",
-          "observation_only": true
-        },
-        "first_effective_resistance": {
-          "date": "2026-11-04",
-          "price": 96.9
-        },
-        "distance_to_ma20_pct": -12.78,
-        "chase_risk": "low",
-        "volume_ratio_1d_vs_20d": 1.487,
-        "volume_ratio_5d_vs_20d": 1.068,
-        "relative_strength_20d_vs_market_pct": -17.83,
-        "ma20_slope_5d_pct": -10.82,
-        "close_location_pct": 7.93,
-        "higher_low": false,
-        "trend_phase": "REPAIRING",
-        "phase_evidence": {
-          "return_3d_pct": 1.39,
-          "return_5d_pct": 1.31,
-          "previous_5d_return_pct": -14.25,
-          "positive_days_5d": 3,
-          "negative_days_5d": 2,
-          "up_day_volume_ratio_5d": 1.22,
-          "down_day_volume_ratio_5d": 0.84,
-          "volume_ratio_1d": 1.487,
-          "volume_ratio_5d": 1.068,
-          "close_location_pct": 7.93,
-          "close_location_3d_avg_pct": 32.46,
-          "max_close_drawdown_10d_pct": -27.85,
-          "prior_5d_high": 75.16,
-          "prior_20d_low": 66.04,
-          "recent_3d_low": 66.04,
-          "fresh_break": false,
-          "pullback_low_holds": true,
-          "weak_close_high_volume": true,
-          "signal_uses_completed_bars_only": true
-        }
-      },
-      "rank": 3
-    },
-    {
-      "code": "603386",
-      "company_name": "骏亚科技",
-      "industry_name": "印制电路板",
-      "current_price": 14.29,
-      "trend_name": "高端PCB",
-      "industry_code": "S270202",
-      "market_state": "趋势确认",
-      "trend_state": "T1",
-      "status": "WAIT",
-      "wait_reason": "WAIT_CONFIRMATION",
-      "decision_reason": "MA60下方仍可观察启动或修复；尚未形成经确认的低风险入场条件",
-      "transmission": "SUPPORTED",
-      "setup_type": null,
-      "entry_zone": null,
-      "max_entry_price": null,
-      "entry_trigger": null,
-      "invalidation_price": null,
-      "invalidation_rule": null,
-      "initial_risk_pct": null,
-      "upside_to_resistance_R": null,
-      "exit_plan": null,
-      "structure_confirmed": false,
-      "data_date": "2026-11-24",
-      "price_basis": "completed_daily_bar",
-      "research_falsifier": "若扣非利润高增被证明主要来自低基数且后续无法延续，或PCB订单、现金流及毛利率同步走弱，则主题传导结论失效。",
-      "source_review": "事实：交易所/公司披露的2026年三季报报告期为2026-09-30，冻结F10记录的扣非利润同比为782.60%；推断：主题排序综合经营兑现、同日10/20/60日相对强度和近端现金流/估值风险；无可验证的历史分析师一致预期，记为UNKNOWN。",
-      "model_priority": 4,
-      "model_reason": "骏亚科技扣非利润同比高增但基数较低，经营现金流仍为正；近端价格修复而估值偏高，盈利持续性与产品结构升级仍需后续报告确认。",
-      "research_quality_evidence": {
-        "status": "VERIFIED",
-        "asof_date": "2026-11-24",
-        "score": 83.75,
-        "source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-        "components": {
-          "core_profit_yoy_pct": 782.6015,
-          "operating_cashflow_per_share": 0.1652,
-          "core_growth_component": 1.0,
-          "cashflow_component": 1.0,
-          "peer_percentiles": {
-            "10": 0.5,
-            "20": 0.5,
-            "60": 0.75
+          "601398": {
+            "A": {
+              "status": "CONFLICT",
+              "sources": [
+                {
+                  "url": "https://data.eastmoney.com/zjlx/601398.html",
+                  "retrieved_at": "2026-11-25T19:20:00+08:00",
+                  "result": "同花顺显示11月25日大单净额-15043.94万元、占比-6.98%、5日主力净额26346.53万元，但同页收盘9.11与冻结9.20冲突；另一备用供应商当日净额约-3亿元，口径也不同。"
+                },
+                {
+                  "url": "https://profile.10jqka.com.cn/601398/funds/",
+                  "retrieved_at": "2026-11-25T19:20:00+08:00",
+                  "result": "同花顺显示11月25日大单净额-15043.94万元、占比-6.98%、5日主力净额26346.53万元，但同页收盘9.11与冻结9.20冲突；另一备用供应商当日净额约-3亿元，口径也不同。"
+                },
+                {
+                  "url": "https://www.lwwhy.com/stock/detail/SH601398",
+                  "retrieved_at": "2026-11-25T19:20:00+08:00",
+                  "result": "同花顺显示11月25日大单净额-15043.94万元、占比-6.98%、5日主力净额26346.53万元，但同页收盘9.11与冻结9.20冲突；另一备用供应商当日净额约-3亿元，口径也不同。"
+                }
+              ]
+            },
+            "B": {
+              "status": "NO_NEW_VERIFIED_EVENT",
+              "sources": [
+                {
+                  "url": "https://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=601398",
+                  "range": "最近5/20交易日",
+                  "retrieved_at": "2026-11-25T19:31:00+08:00",
+                  "fact": "11月13日优先股派息与二级资本债、11月12日定增审核通过；近5交易日无新增重大经营公告。"
+                }
+              ]
+            },
+            "C": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://www.nfra.gov.cn/cn/view/pages/governmentDetail.html?docId=1279786&generaltype=0&itemId=915",
+                  "published_at": "2026-11-20",
+                  "retrieved_at": "2026-11-25T19:34:00+08:00",
+                  "fact": "大型商业银行资产同比增长8.5%；行业不良率1.54%，较上季升0.02个百分点；资本与流动性整体充足。"
+                }
+              ]
+            },
+            "D": {
+              "status": "NO_NEW_VERIFIED_EVENT",
+              "sources": [
+                {
+                  "url": "https://data.eastmoney.com/report/stock/",
+                  "range": "截至2026-11-25",
+                  "retrieved_at": "2026-11-25T19:37:00+08:00",
+                  "fact": "实际检索东方财富研报入口，未发现近期可核验定量一致预期调整。"
+                }
+              ]
+            },
+            "E": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://v.icbc.com.cn/userfiles/resources/icbcltd/download/2026/Announce20261030_4.pdf",
+                  "published_at": "2026-10-30",
+                  "retrieved_at": "2026-11-25T19:39:00+08:00",
+                  "fact": "三季度单季归母同比9.97%、扣非同比9.99%；累计净息差同比升1bp，不良率1.29%下降0.02个百分点，拨备覆盖率下降1.96个百分点。"
+                }
+              ]
+            }
           },
-          "negative_cashflow_penalty": 0.0,
-          "score_is_provisional_not_probability": true
-        },
-        "report_date": "2026-09-30",
-        "notice_date": "2026-10-20",
-        "update_date": "2026-10-20"
-      },
-      "trend_phase": "REPAIRING",
-      "phase_evidence": {
-        "return_3d_pct": 7.77,
-        "return_5d_pct": 8.34,
-        "previous_5d_return_pct": -9.84,
-        "positive_days_5d": 3,
-        "negative_days_5d": 2,
-        "up_day_volume_ratio_5d": 1.52,
-        "down_day_volume_ratio_5d": 1.644,
-        "volume_ratio_1d": 2.304,
-        "volume_ratio_5d": 1.569,
-        "close_location_pct": 15.32,
-        "close_location_3d_avg_pct": 71.53,
-        "max_close_drawdown_10d_pct": -13.51,
-        "prior_5d_high": 15.05,
-        "prior_20d_low": 12.74,
-        "recent_3d_low": 12.74,
-        "fresh_break": false,
-        "pullback_low_holds": true,
-        "weak_close_high_volume": true,
-        "signal_uses_completed_bars_only": true
-      },
-      "technical_context": {
-        "ma20": 14.362,
-        "ma60": 16.0548,
-        "support_invalidation": 13.13,
-        "breakout_level": null,
-        "prior_60d_high": 22.4,
-        "attention_resistance": {
-          "status": "VERIFIED",
-          "price": 14.6,
-          "date": "2026-09-01",
-          "source": "asof_180bar_confirmed_pivot",
-          "history_points": 180
-        },
-        "recent_acceptance": {
-          "pattern": "NO_RECENT_CLOSE_SUPPORT",
-          "support_close_band": null,
-          "support_dates": [],
-          "support_low": null,
-          "signal_day_low": 14.1,
-          "intraday_support_broken": null,
-          "lookback_trading_days": 3,
-          "data_date": "2026-11-24",
-          "observation_only": true
-        },
-        "first_effective_resistance": {
-          "date": "2026-09-01",
-          "price": 14.6
-        },
-        "distance_to_ma20_pct": -0.5,
-        "chase_risk": "low",
-        "volume_ratio_1d_vs_20d": 2.304,
-        "volume_ratio_5d_vs_20d": 1.569,
-        "relative_strength_20d_vs_market_pct": -2.56,
-        "ma20_slope_5d_pct": -6.37,
-        "close_location_pct": 15.32,
-        "higher_low": false,
-        "trend_phase": "REPAIRING",
-        "phase_evidence": {
-          "return_3d_pct": 7.77,
-          "return_5d_pct": 8.34,
-          "previous_5d_return_pct": -9.84,
-          "positive_days_5d": 3,
-          "negative_days_5d": 2,
-          "up_day_volume_ratio_5d": 1.52,
-          "down_day_volume_ratio_5d": 1.644,
-          "volume_ratio_1d": 2.304,
-          "volume_ratio_5d": 1.569,
-          "close_location_pct": 15.32,
-          "close_location_3d_avg_pct": 71.53,
-          "max_close_drawdown_10d_pct": -13.51,
-          "prior_5d_high": 15.05,
-          "prior_20d_low": 12.74,
-          "recent_3d_low": 12.74,
-          "fresh_break": false,
-          "pullback_low_holds": true,
-          "weak_close_high_volume": true,
-          "signal_uses_completed_bars_only": true
-        }
-      },
-      "rank": 4
-    },
-    {
-      "code": "002815",
-      "company_name": "崇达技术",
-      "industry_name": "印制电路板",
-      "current_price": 14.38,
-      "trend_name": "高端PCB",
-      "industry_code": "S270202",
-      "market_state": "趋势确认",
-      "trend_state": "T1",
-      "status": "WAIT",
-      "wait_reason": "WAIT_CONFIRMATION",
-      "decision_reason": "MA60下方仍可观察启动或修复；尚未形成经确认的低风险入场条件",
-      "transmission": "SUPPORTED",
-      "setup_type": null,
-      "entry_zone": null,
-      "max_entry_price": null,
-      "entry_trigger": null,
-      "invalidation_price": null,
-      "invalidation_rule": null,
-      "initial_risk_pct": null,
-      "upside_to_resistance_R": null,
-      "exit_plan": null,
-      "structure_confirmed": false,
-      "data_date": "2026-11-24",
-      "price_basis": "completed_daily_bar",
-      "research_falsifier": "若订单增长不能转化为回款和扣非利润、应收及存货继续显著快于收入增长，或高端PCB产品兑现不足，则结论失效。",
-      "source_review": "事实：交易所/公司披露的2026年三季报报告期为2026-09-30，冻结F10记录的扣非利润同比为105.98%；推断：主题排序综合经营兑现、同日10/20/60日相对强度和近端现金流/估值风险；无可验证的历史分析师一致预期，记为UNKNOWN。",
-      "model_priority": 3,
-      "model_reason": "崇达技术前三季度扣非利润同比约106.0%，订单增长推动收入改善，估值低于多数同业；但应收和存货增幅较快且价格仍在MA60下方。",
-      "research_quality_evidence": {
-        "status": "VERIFIED",
-        "asof_date": "2026-11-24",
-        "score": 91.25,
-        "source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-        "components": {
-          "core_profit_yoy_pct": 105.9829,
-          "operating_cashflow_per_share": 0.7183,
-          "core_growth_component": 1.0,
-          "cashflow_component": 1.0,
-          "peer_percentiles": {
-            "10": 0.25,
-            "20": 0.75,
-            "60": 1.0
+          "601658": {
+            "A": {
+              "status": "CONFLICT",
+              "sources": [
+                {
+                  "url": "https://data.eastmoney.com/zjlx/601658.html",
+                  "retrieved_at": "2026-11-25T19:20:00+08:00",
+                  "result": "同花顺显示11月25日大单净额6997.02万元、占比10.86%、5日主力净额30668.44万元，收盘5.97与冻结一致；但全组其他股票存在价格冲突，不能完成同源横比。"
+                },
+                {
+                  "url": "https://profile.10jqka.com.cn/601658/funds/",
+                  "retrieved_at": "2026-11-25T19:20:00+08:00",
+                  "result": "同花顺显示11月25日大单净额6997.02万元、占比10.86%、5日主力净额30668.44万元，收盘5.97与冻结一致；但全组其他股票存在价格冲突，不能完成同源横比。"
+                }
+              ]
+            },
+            "B": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://data.eastmoney.com/stockcalendar/601658.html",
+                  "range": "最近5/20交易日",
+                  "retrieved_at": "2026-11-25T19:31:00+08:00",
+                  "fact": "11月10日资本债公告、11月7日执行董事/副行长/首席风险官离任，11月26日临时股东会。"
+                }
+              ]
+            },
+            "C": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://www.nfra.gov.cn/cn/view/pages/governmentDetail.html?docId=1279786&generaltype=0&itemId=915",
+                  "published_at": "2026-11-20",
+                  "retrieved_at": "2026-11-25T19:34:00+08:00",
+                  "fact": "大型商业银行资产同比增长8.5%；行业不良率1.54%，较上季升0.02个百分点；资本与流动性整体充足。"
+                }
+              ]
+            },
+            "D": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://data.eastmoney.com/stockcalendar/601658.html",
+                  "range": "截至2026-11-25",
+                  "retrieved_at": "2026-11-25T19:37:00+08:00",
+                  "fact": "东方财富个股日历显示11月7日有规模增长与风险处置研报；仅作单家观点，不作一致预期。"
+                }
+              ]
+            },
+            "E": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://www.psbc.com/cn/gyyc/ycfm/ycdt/202610/t20261030_479712.html",
+                  "published_at": "2026-10-30",
+                  "retrieved_at": "2026-11-25T19:39:00+08:00",
+                  "fact": "前三季度净利润同比4.45%、扣非同比1.56%，不良率0.99%；扣非增速相对偏弱且高管离任需观察。"
+                }
+              ]
+            }
           },
-          "negative_cashflow_penalty": 0.0,
-          "score_is_provisional_not_probability": true
+          "601939": {
+            "A": {
+              "status": "CONFLICT",
+              "sources": [
+                {
+                  "url": "https://data.eastmoney.com/zjlx/601939.html",
+                  "retrieved_at": "2026-11-25T19:20:00+08:00",
+                  "result": "同花顺显示11月25日大单净额-9902.11万元、占比-19.74%、5日主力净额-13980.58万元，但同页收盘12.25与冻结12.59冲突。"
+                },
+                {
+                  "url": "https://profile.10jqka.com.cn/601939/funds/",
+                  "retrieved_at": "2026-11-25T19:20:00+08:00",
+                  "result": "同花顺显示11月25日大单净额-9902.11万元、占比-19.74%、5日主力净额-13980.58万元，但同页收盘12.25与冻结12.59冲突。"
+                }
+              ]
+            },
+            "B": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=601939",
+                  "range": "最近5/20交易日",
+                  "retrieved_at": "2026-11-25T19:31:00+08:00",
+                  "fact": "11月18日非执行董事任职；近5交易日未发现重大经营变化。"
+                }
+              ]
+            },
+            "C": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://www.nfra.gov.cn/cn/view/pages/governmentDetail.html?docId=1279786&generaltype=0&itemId=915",
+                  "published_at": "2026-11-20",
+                  "retrieved_at": "2026-11-25T19:34:00+08:00",
+                  "fact": "大型商业银行资产同比增长8.5%；行业不良率1.54%，较上季升0.02个百分点；资本与流动性整体充足。"
+                }
+              ]
+            },
+            "D": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://data.eastmoney.com/stockcalendar/601939.html",
+                  "range": "截至2026-11-25",
+                  "retrieved_at": "2026-11-25T19:37:00+08:00",
+                  "fact": "东方财富个股日历显示11月4日有三季报点评；未取得可核验一致预期上修。"
+                }
+              ]
+            },
+            "E": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                {
+                  "url": "https://privatebank.ccb.com/chn/2026-10/30/article_2026103016484628413.shtml",
+                  "published_at": "2026-10-30",
+                  "retrieved_at": "2026-11-25T19:39:00+08:00",
+                  "fact": "前三季度归母同比6.55%，净息差1.36%企稳，不良率1.29%下降0.02个百分点；短线曾出现较大回撤。"
+                }
+              ]
+            }
+          }
         },
-        "report_date": "2026-09-30",
-        "notice_date": "2026-10-30",
-        "update_date": "2026-10-30"
-      },
-      "trend_phase": "REPAIRING",
-      "phase_evidence": {
-        "return_3d_pct": 6.68,
-        "return_5d_pct": 7.15,
-        "previous_5d_return_pct": -11.77,
-        "positive_days_5d": 3,
-        "negative_days_5d": 2,
-        "up_day_volume_ratio_5d": 1.264,
-        "down_day_volume_ratio_5d": 1.461,
-        "volume_ratio_1d": 2.377,
-        "volume_ratio_5d": 1.343,
-        "close_location_pct": 1.99,
-        "close_location_3d_avg_pct": 47.79,
-        "max_close_drawdown_10d_pct": -17.52,
-        "prior_5d_high": 14.96,
-        "prior_20d_low": 13.0,
-        "recent_3d_low": 13.0,
-        "fresh_break": false,
-        "pullback_low_holds": true,
-        "weak_close_high_volume": true,
-        "signal_uses_completed_bars_only": true
-      },
-      "technical_context": {
-        "ma20": 14.952,
-        "ma60": 18.1507,
-        "support_invalidation": 14.23,
-        "breakout_level": null,
-        "prior_60d_high": 26.26,
-        "attention_resistance": {
-          "status": "VERIFIED",
-          "price": 14.72,
-          "date": "2026-08-18",
-          "source": "asof_180bar_confirmed_pivot",
-          "history_points": 180
-        },
-        "recent_acceptance": {
-          "pattern": "NO_RECENT_CLOSE_SUPPORT",
-          "support_close_band": null,
-          "support_dates": [],
-          "support_low": null,
-          "signal_day_low": 14.35,
-          "intraday_support_broken": null,
-          "lookback_trading_days": 3,
-          "data_date": "2026-11-24",
-          "observation_only": true
-        },
-        "first_effective_resistance": {
-          "date": "2026-08-28",
-          "price": 15.05
-        },
-        "distance_to_ma20_pct": -3.83,
-        "chase_risk": "low",
-        "volume_ratio_1d_vs_20d": 2.377,
-        "volume_ratio_5d_vs_20d": 1.343,
-        "relative_strength_20d_vs_market_pct": -2.55,
-        "ma20_slope_5d_pct": -6.92,
-        "close_location_pct": 1.99,
-        "higher_low": false,
-        "trend_phase": "REPAIRING",
-        "phase_evidence": {
-          "return_3d_pct": 6.68,
-          "return_5d_pct": 7.15,
-          "previous_5d_return_pct": -11.77,
-          "positive_days_5d": 3,
-          "negative_days_5d": 2,
-          "up_day_volume_ratio_5d": 1.264,
-          "down_day_volume_ratio_5d": 1.461,
-          "volume_ratio_1d": 2.377,
-          "volume_ratio_5d": 1.343,
-          "close_location_pct": 1.99,
-          "close_location_3d_avg_pct": 47.79,
-          "max_close_drawdown_10d_pct": -17.52,
-          "prior_5d_high": 14.96,
-          "prior_20d_low": 13.0,
-          "recent_3d_low": 13.0,
-          "fresh_break": false,
-          "pullback_low_holds": true,
-          "weak_close_high_volume": true,
-          "signal_uses_completed_bars_only": true
-        }
-      },
-      "rank": 5
-    },
-    {
-      "code": "603920",
-      "company_name": "世运电路",
-      "industry_name": "印制电路板",
-      "current_price": 35.8,
-      "trend_name": "高端PCB",
-      "industry_code": "S270202",
-      "market_state": "趋势确认",
-      "trend_state": "T1",
-      "status": "WAIT",
-      "wait_reason": "WAIT_CONFIRMATION",
-      "decision_reason": "MA60下方仍可观察启动或修复；尚未形成经确认的低风险入场条件",
-      "transmission": "SUPPORTED",
-      "setup_type": null,
-      "entry_zone": null,
-      "max_entry_price": null,
-      "entry_trigger": null,
-      "invalidation_price": null,
-      "invalidation_rule": null,
-      "initial_risk_pct": null,
-      "upside_to_resistance_R": null,
-      "exit_plan": null,
-      "structure_confirmed": false,
-      "data_date": "2026-11-24",
-      "price_basis": "completed_daily_bar",
-      "research_falsifier": "若提价与产品结构升级未能推动毛利和扣非利润恢复，或订单与产能利用率明显下滑，则当前高端PCB受益判断失效。",
-      "source_review": "事实：交易所/公司披露的2026年三季报报告期为2026-09-30，冻结F10记录的扣非利润同比为-47.23%；推断：主题排序综合经营兑现、同日10/20/60日相对强度和近端现金流/估值风险；无可验证的历史分析师一致预期，记为UNKNOWN。",
-      "model_priority": 5,
-      "model_reason": "世运电路具备PCB直接业务和订单基础，20日价格相对同组较强；但前三季度扣非利润同比下降约47.2%，成本传导和盈利修复尚未兑现。",
-      "research_quality_evidence": {
-        "status": "VERIFIED",
-        "asof_date": "2026-11-24",
-        "score": 41.25,
-        "source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-        "components": {
-          "core_profit_yoy_pct": -47.2346,
-          "operating_cashflow_per_share": 0.6846,
-          "core_growth_component": 0.0,
-          "cashflow_component": 1.0,
-          "peer_percentiles": {
-            "10": 0.75,
-            "20": 1.0,
-            "60": 0.5
+        "dynamic_comparison": {
+          "601288": {
+            "trend_structure": "冻结价7.96，3日+2.45%、5日+4.05%、前5日+5.37%，20日相对市场+20.82个百分点；低点抬升、10日最大回撤0%，阶段TRANSITION且未fresh_break。",
+            "fund_flow": "东方财富动态字段不可读；同花顺可读索引仅到11月23日，未取得11月25日加近5日完整表；证券之星与其他备用供应商口径不能直接横比。",
+            "quarterly_profit": "三季度单季扣非净利润同比12.19%，前三季度扣非同比7.69%；前一单季同口径同比未在本轮法定披露检索中独立核实。"
           },
-          "negative_cashflow_penalty": 0.0,
-          "score_is_provisional_not_probability": true
-        },
-        "report_date": "2026-09-30",
-        "notice_date": "2026-10-21",
-        "update_date": "2026-10-21"
-      },
-      "trend_phase": "TRANSITION",
-      "phase_evidence": {
-        "return_3d_pct": 7.93,
-        "return_5d_pct": 7.7,
-        "previous_5d_return_pct": -8.61,
-        "positive_days_5d": 3,
-        "negative_days_5d": 2,
-        "up_day_volume_ratio_5d": 1.003,
-        "down_day_volume_ratio_5d": 0.769,
-        "volume_ratio_1d": 1.312,
-        "volume_ratio_5d": 0.909,
-        "close_location_pct": 8.33,
-        "close_location_3d_avg_pct": 36.11,
-        "max_close_drawdown_10d_pct": -20.2,
-        "prior_5d_high": 35.65,
-        "prior_20d_low": 29.69,
-        "recent_3d_low": 31.0,
-        "fresh_break": true,
-        "pullback_low_holds": true,
-        "weak_close_high_volume": false,
-        "signal_uses_completed_bars_only": true
-      },
-      "technical_context": {
-        "ma20": 34.477,
-        "ma60": 38.6868,
-        "support_invalidation": 34.477,
-        "breakout_level": null,
-        "prior_60d_high": 48.13,
-        "attention_resistance": {
-          "status": "VERIFIED",
-          "price": 38.5,
-          "date": "2026-10-29",
-          "source": "asof_180bar_confirmed_pivot",
-          "history_points": 180
-        },
-        "recent_acceptance": {
-          "pattern": "NO_RECENT_CLOSE_SUPPORT",
-          "support_close_band": null,
-          "support_dates": [],
-          "support_low": null,
-          "signal_day_low": 35.6,
-          "intraday_support_broken": null,
-          "lookback_trading_days": 3,
-          "data_date": "2026-11-24",
-          "observation_only": true
-        },
-        "first_effective_resistance": {
-          "date": "2026-10-29",
-          "price": 38.5
-        },
-        "distance_to_ma20_pct": 3.84,
-        "chase_risk": "low",
-        "volume_ratio_1d_vs_20d": 1.312,
-        "volume_ratio_5d_vs_20d": 0.909,
-        "relative_strength_20d_vs_market_pct": 14.29,
-        "ma20_slope_5d_pct": -2.46,
-        "close_location_pct": 8.33,
-        "higher_low": false,
-        "trend_phase": "TRANSITION",
-        "phase_evidence": {
-          "return_3d_pct": 7.93,
-          "return_5d_pct": 7.7,
-          "previous_5d_return_pct": -8.61,
-          "positive_days_5d": 3,
-          "negative_days_5d": 2,
-          "up_day_volume_ratio_5d": 1.003,
-          "down_day_volume_ratio_5d": 0.769,
-          "volume_ratio_1d": 1.312,
-          "volume_ratio_5d": 0.909,
-          "close_location_pct": 8.33,
-          "close_location_3d_avg_pct": 36.11,
-          "max_close_drawdown_10d_pct": -20.2,
-          "prior_5d_high": 35.65,
-          "prior_20d_low": 29.69,
-          "recent_3d_low": 31.0,
-          "fresh_break": true,
-          "pullback_low_holds": true,
-          "weak_close_high_volume": false,
-          "signal_uses_completed_bars_only": true
-        }
-      },
-      "rank": 6
-    },
-    {
-      "code": "603078",
-      "company_name": "江化微",
-      "industry_name": "电子化学品Ⅲ",
-      "current_price": 27.34,
-      "trend_name": "电子化学品",
-      "industry_code": "S270601",
-      "market_state": "趋势确认",
-      "trend_state": "T2",
-      "status": "WAIT",
-      "wait_reason": "WAIT_CONFIRMATION",
-      "decision_reason": "MA60下方仍可观察启动或修复；尚未形成经确认的低风险入场条件",
-      "transmission": "SUPPORTED",
-      "setup_type": null,
-      "entry_zone": null,
-      "max_entry_price": null,
-      "entry_trigger": null,
-      "invalidation_price": null,
-      "invalidation_rule": null,
-      "initial_risk_pct": null,
-      "upside_to_resistance_R": null,
-      "exit_plan": null,
-      "structure_confirmed": false,
-      "data_date": "2026-11-24",
-      "price_basis": "completed_daily_bar",
-      "research_falsifier": "若湿电子化学品销量或客户导入停滞、盈利继续下滑，或高估值无法由订单和现金流改善支持，则主题传导结论失效。",
-      "source_review": "事实：交易所/公司披露的2026年三季报报告期为2026-09-30，冻结F10记录的扣非利润同比为-12.83%；推断：主题排序综合经营兑现、同日10/20/60日相对强度和近端现金流/估值风险；无可验证的历史分析师一致预期，记为UNKNOWN。",
-      "model_priority": 2,
-      "model_reason": "江化微主营湿电子化学品，主题纯度高且20日相对强度较好；前三季度收入增长约18.0%，但扣非利润下降约12.8%且估值较高。",
-      "research_quality_evidence": {
-        "status": "VERIFIED",
-        "asof_date": "2026-11-24",
-        "score": 40.6101,
-        "source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-        "components": {
-          "core_profit_yoy_pct": -12.8349,
-          "operating_cashflow_per_share": 0.4202,
-          "core_growth_component": 0.162201,
-          "cashflow_component": 1.0,
-          "peer_percentiles": {
-            "10": 0.75,
-            "20": 0.75,
-            "60": 0.25
+          "601328": {
+            "trend_structure": "冻结价9.14，3日+1.78%、5日+4.58%高于前5日+3.80%，20日相对市场+24.34个百分点为组内最高；低点抬升并fresh_break，回撤-0.56%。",
+            "fund_flow": "同花顺显示11月25日大单净额2571.64万元、占比7.99%、5日主力净额52736.83万元，但同页收盘9.06与冻结9.14冲突。",
+            "quarterly_profit": "三季度单季扣非净利润同比11.39%，前三季度扣非同比6.32%；不良率小升、拨备覆盖率下降构成反证。"
           },
-          "negative_cashflow_penalty": 0.0,
-          "score_is_provisional_not_probability": true
-        },
-        "report_date": "2026-09-30",
-        "notice_date": "2026-10-28",
-        "update_date": "2026-10-28"
-      },
-      "trend_phase": "REPAIRING",
-      "phase_evidence": {
-        "return_3d_pct": 1.79,
-        "return_5d_pct": 11.41,
-        "previous_5d_return_pct": 4.38,
-        "positive_days_5d": 3,
-        "negative_days_5d": 2,
-        "up_day_volume_ratio_5d": 2.964,
-        "down_day_volume_ratio_5d": 2.685,
-        "volume_ratio_1d": 3.612,
-        "volume_ratio_5d": 2.852,
-        "close_location_pct": 70.74,
-        "close_location_3d_avg_pct": 53.2,
-        "max_close_drawdown_10d_pct": -7.74,
-        "prior_5d_high": 27.12,
-        "prior_20d_low": 21.05,
-        "recent_3d_low": 22.38,
-        "fresh_break": true,
-        "pullback_low_holds": true,
-        "weak_close_high_volume": false,
-        "signal_uses_completed_bars_only": true
-      },
-      "technical_context": {
-        "ma20": 23.666,
-        "ma60": 27.9328,
-        "support_invalidation": 23.666,
-        "breakout_level": null,
-        "prior_60d_high": 37.38,
-        "attention_resistance": {
-          "status": "VERIFIED",
-          "price": 28.94,
-          "date": "2026-05-11",
-          "source": "asof_180bar_confirmed_pivot",
-          "history_points": 180
-        },
-        "recent_acceptance": {
-          "pattern": "NO_RECENT_CLOSE_SUPPORT",
-          "support_close_band": null,
-          "support_dates": [],
-          "support_low": null,
-          "signal_day_low": 25.43,
-          "intraday_support_broken": null,
-          "lookback_trading_days": 3,
-          "data_date": "2026-11-24",
-          "observation_only": true
-        },
-        "first_effective_resistance": {
-          "date": "2026-09-09",
-          "price": 33.38
-        },
-        "distance_to_ma20_pct": 15.52,
-        "chase_risk": "high",
-        "volume_ratio_1d_vs_20d": 3.612,
-        "volume_ratio_5d_vs_20d": 2.852,
-        "relative_strength_20d_vs_market_pct": 30.85,
-        "ma20_slope_5d_pct": 1.89,
-        "close_location_pct": 70.74,
-        "higher_low": true,
-        "trend_phase": "REPAIRING",
-        "phase_evidence": {
-          "return_3d_pct": 1.79,
-          "return_5d_pct": 11.41,
-          "previous_5d_return_pct": 4.38,
-          "positive_days_5d": 3,
-          "negative_days_5d": 2,
-          "up_day_volume_ratio_5d": 2.964,
-          "down_day_volume_ratio_5d": 2.685,
-          "volume_ratio_1d": 3.612,
-          "volume_ratio_5d": 2.852,
-          "close_location_pct": 70.74,
-          "close_location_3d_avg_pct": 53.2,
-          "max_close_drawdown_10d_pct": -7.74,
-          "prior_5d_high": 27.12,
-          "prior_20d_low": 21.05,
-          "recent_3d_low": 22.38,
-          "fresh_break": true,
-          "pullback_low_holds": true,
-          "weak_close_high_volume": false,
-          "signal_uses_completed_bars_only": true
-        }
-      },
-      "rank": 7
-    },
-    {
-      "code": "603931",
-      "company_name": "格林达",
-      "industry_name": "电子化学品Ⅲ",
-      "current_price": 30.75,
-      "trend_name": "电子化学品",
-      "industry_code": "S270601",
-      "market_state": "趋势确认",
-      "trend_state": "T2",
-      "status": "WAIT",
-      "wait_reason": "WAIT_CONFIRMATION",
-      "decision_reason": "MA60下方仍可观察启动或修复；尚未形成经确认的低风险入场条件",
-      "transmission": "SUPPORTED",
-      "setup_type": null,
-      "entry_zone": null,
-      "max_entry_price": null,
-      "entry_trigger": null,
-      "invalidation_price": null,
-      "invalidation_rule": null,
-      "initial_risk_pct": null,
-      "upside_to_resistance_R": null,
-      "exit_plan": null,
-      "structure_confirmed": false,
-      "data_date": "2026-11-24",
-      "price_basis": "completed_daily_bar",
-      "research_falsifier": "若核心显影液等电子材料销量、价格或客户验证持续弱于预期，且扣非利润继续下降，则电子化学品受益结论失效。",
-      "source_review": "事实：交易所/公司披露的2026年三季报报告期为2026-09-30，冻结F10记录的扣非利润同比为-0.52%；推断：主题排序综合经营兑现、同日10/20/60日相对强度和近端现金流/估值风险；无可验证的历史分析师一致预期，记为UNKNOWN。",
-      "model_priority": 3,
-      "model_reason": "格林达电子材料业务与主题直接相关，近20日价格结构较强且经营现金流为正；但收入和扣非利润均略降，经营兑现仍缺乏加速。",
-      "research_quality_evidence": {
-        "status": "VERIFIED",
-        "asof_date": "2026-11-24",
-        "score": 50.0683,
-        "source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-        "components": {
-          "core_profit_yoy_pct": -0.5226,
-          "operating_cashflow_per_share": 0.6393,
-          "core_growth_component": 0.326366,
-          "cashflow_component": 1.0,
-          "peer_percentiles": {
-            "10": 0.5,
-            "20": 0.5,
-            "60": 0.75
+          "601398": {
+            "trend_structure": "冻结价9.20，3日-2.13%、5日+1.55%显著低于前5日+6.21%，20日相对市场+21.17个百分点；higher_low=false、下跌日量比高于上涨日。",
+            "fund_flow": "同花顺显示11月25日大单净额-15043.94万元、占比-6.98%、5日主力净额26346.53万元，但同页收盘9.11与冻结9.20冲突；另一备用供应商当日净额约-3亿元，口径也不同。",
+            "quarterly_profit": "三季度单季归母同比9.97%、扣非同比9.99%，前三季度扣非同比5.76%，净息差同比升1bp；拨备覆盖率下降。"
           },
-          "negative_cashflow_penalty": 0.0,
-          "score_is_provisional_not_probability": true
-        },
-        "report_date": "2026-09-30",
-        "notice_date": "2026-10-28",
-        "update_date": "2026-10-28"
-      },
-      "trend_phase": "REPAIRING",
-      "phase_evidence": {
-        "return_3d_pct": 5.49,
-        "return_5d_pct": 9.94,
-        "previous_5d_return_pct": 3.9,
-        "positive_days_5d": 3,
-        "negative_days_5d": 2,
-        "up_day_volume_ratio_5d": 2.797,
-        "down_day_volume_ratio_5d": 3.185,
-        "volume_ratio_1d": 4.08,
-        "volume_ratio_5d": 2.952,
-        "close_location_pct": 91.07,
-        "close_location_3d_avg_pct": 63.6,
-        "max_close_drawdown_10d_pct": -7.66,
-        "prior_5d_high": 32.0,
-        "prior_20d_low": 24.2,
-        "recent_3d_low": 25.91,
-        "fresh_break": false,
-        "pullback_low_holds": true,
-        "weak_close_high_volume": false,
-        "signal_uses_completed_bars_only": true
-      },
-      "technical_context": {
-        "ma20": 27.059,
-        "ma60": 30.8017,
-        "support_invalidation": 27.059,
-        "breakout_level": null,
-        "prior_60d_high": 37.78,
-        "attention_resistance": {
-          "status": "VERIFIED",
-          "price": 32.225,
-          "date": "2026-03-11",
-          "source": "asof_180bar_confirmed_pivot",
-          "history_points": 180
-        },
-        "recent_acceptance": {
-          "pattern": "LOCAL_SUPPORT_HOLD",
-          "support_close_band": [
-            28.78,
-            29.01
-          ],
-          "support_dates": [
-            "2026-11-20",
-            "2026-11-23"
-          ],
-          "support_low": 25.91,
-          "signal_day_low": 28.2,
-          "intraday_support_broken": false,
-          "lookback_trading_days": 3,
-          "data_date": "2026-11-24",
-          "observation_only": true
-        },
-        "first_effective_resistance": {
-          "date": "2026-09-21",
-          "price": 36.93
-        },
-        "distance_to_ma20_pct": 13.64,
-        "chase_risk": "high",
-        "volume_ratio_1d_vs_20d": 4.08,
-        "volume_ratio_5d_vs_20d": 2.952,
-        "relative_strength_20d_vs_market_pct": 26.68,
-        "ma20_slope_5d_pct": 1.13,
-        "close_location_pct": 91.07,
-        "higher_low": true,
-        "trend_phase": "REPAIRING",
-        "phase_evidence": {
-          "return_3d_pct": 5.49,
-          "return_5d_pct": 9.94,
-          "previous_5d_return_pct": 3.9,
-          "positive_days_5d": 3,
-          "negative_days_5d": 2,
-          "up_day_volume_ratio_5d": 2.797,
-          "down_day_volume_ratio_5d": 3.185,
-          "volume_ratio_1d": 4.08,
-          "volume_ratio_5d": 2.952,
-          "close_location_pct": 91.07,
-          "close_location_3d_avg_pct": 63.6,
-          "max_close_drawdown_10d_pct": -7.66,
-          "prior_5d_high": 32.0,
-          "prior_20d_low": 24.2,
-          "recent_3d_low": 25.91,
-          "fresh_break": false,
-          "pullback_low_holds": true,
-          "weak_close_high_volume": false,
-          "signal_uses_completed_bars_only": true
-        }
-      },
-      "rank": 8
-    },
-    {
-      "code": "002643",
-      "company_name": "万润股份",
-      "industry_name": "电子化学品Ⅲ",
-      "current_price": 11.4,
-      "trend_name": "电子化学品",
-      "industry_code": "S270601",
-      "market_state": "趋势确认",
-      "trend_state": "T2",
-      "status": "WAIT",
-      "wait_reason": "WAIT_CONFIRMATION",
-      "decision_reason": "MA60下方仍可观察启动或修复；尚未形成经确认的低风险入场条件",
-      "transmission": "SUPPORTED",
-      "setup_type": null,
-      "entry_zone": null,
-      "max_entry_price": null,
-      "entry_trigger": null,
-      "invalidation_price": null,
-      "invalidation_rule": null,
-      "initial_risk_pct": null,
-      "upside_to_resistance_R": null,
-      "exit_plan": null,
-      "structure_confirmed": false,
-      "data_date": "2026-11-24",
-      "price_basis": "completed_daily_bar",
-      "research_falsifier": "若半导体材料开发与产业化不能形成新增收入和利润，或扣非利润与现金流持续走弱，则主题传导结论失效。",
-      "source_review": "事实：交易所/公司披露的2026年三季报报告期为2026-09-30，冻结F10记录的扣非利润同比为-12.60%；推断：主题排序综合经营兑现、同日10/20/60日相对强度和近端现金流/估值风险；无可验证的历史分析师一致预期，记为UNKNOWN。",
-      "model_priority": 4,
-      "model_reason": "万润股份持续推进半导体制造材料产业化，经营现金流为正且估值相对较低；但前三季度扣非利润下降约12.6%，短期价格动能偏弱。",
-      "research_quality_evidence": {
-        "status": "VERIFIED",
-        "asof_date": "2026-11-24",
-        "score": 30.7638,
-        "source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-        "components": {
-          "core_profit_yoy_pct": -12.6044,
-          "operating_cashflow_per_share": 0.6752,
-          "core_growth_component": 0.165275,
-          "cashflow_component": 1.0,
-          "peer_percentiles": {
-            "10": 0.0,
-            "20": 0.25,
-            "60": 0.5
+          "601658": {
+            "trend_structure": "冻结价5.97，3日+2.93%、5日+3.29%高于前5日+2.66%，20日相对市场+19.35个百分点；低点抬升并fresh_break，5日量比1.174。",
+            "fund_flow": "同花顺显示11月25日大单净额6997.02万元、占比10.86%、5日主力净额30668.44万元，收盘5.97与冻结一致；但全组其他股票存在价格冲突，不能完成同源横比。",
+            "quarterly_profit": "三季度单季扣非净利润同比4.22%，前三季度扣非同比1.56%，净息差1.60%但盈利弹性弱于同组。"
           },
-          "negative_cashflow_penalty": 0.0,
-          "score_is_provisional_not_probability": true
+          "601939": {
+            "trend_structure": "冻结价12.59，3日-1.33%、5日+2.27%低于前5日+3.27%，20日相对市场+20.66个百分点；当日量比1.505、收盘位置85.45%，10日最大回撤-2.90%。",
+            "fund_flow": "同花顺显示11月25日大单净额-9902.11万元、占比-19.74%、5日主力净额-13980.58万元，但同页收盘12.25与冻结12.59冲突。",
+            "quarterly_profit": "三季度单季归母净利润同比9.84%，前三季度归母同比6.55%，净息差企稳且不良率下降；单季扣非同比未单独核实。"
+          }
         },
-        "report_date": "2026-09-30",
-        "notice_date": "2026-10-30",
-        "update_date": "2026-10-30"
-      },
-      "trend_phase": "TRANSITION",
-      "phase_evidence": {
-        "return_3d_pct": -1.72,
-        "return_5d_pct": -3.14,
-        "previous_5d_return_pct": -0.93,
-        "positive_days_5d": 2,
-        "negative_days_5d": 2,
-        "up_day_volume_ratio_5d": 1.153,
-        "down_day_volume_ratio_5d": 1.07,
-        "volume_ratio_1d": 1.047,
-        "volume_ratio_5d": 1.086,
-        "close_location_pct": 18.92,
-        "close_location_3d_avg_pct": 37.83,
-        "max_close_drawdown_10d_pct": -6.23,
-        "prior_5d_high": 11.95,
-        "prior_20d_low": 10.7,
-        "recent_3d_low": 10.7,
-        "fresh_break": false,
-        "pullback_low_holds": true,
-        "weak_close_high_volume": false,
-        "signal_uses_completed_bars_only": true
-      },
-      "technical_context": {
-        "ma20": 11.5565,
-        "ma60": 12.2015,
-        "support_invalidation": 11.18,
-        "breakout_level": null,
-        "prior_60d_high": 13.6,
-        "attention_resistance": {
-          "status": "VERIFIED",
-          "price": 11.73,
-          "date": "2026-10-21",
-          "source": "asof_180bar_confirmed_pivot",
-          "history_points": 180
+        "comparison_reasons": {
+          "601288": "趋势连续性强且财务增长较好，但同日资金与5日资金核心证据未完整取得，不能胜出。",
+          "601328": "趋势结构在组内最强，理论上是最强竞争者；但资金页收盘价与冻结行情冲突，不能据此锁定。",
+          "601398": "单季盈利增速较好，但近3日走弱、higher_low失败、下跌量能偏高，资金数据又存在价格与口径冲突。",
+          "601658": "趋势改善且同花顺资金为正，但扣非增速偏弱，且全组资金口径无法公平横比。",
+          "601939": "财务与息差稳健，但3日回撤和外部资金页价格冲突使短期延续证据不足。"
         },
-        "recent_acceptance": {
-          "pattern": "NO_RECENT_CLOSE_SUPPORT",
-          "support_close_band": null,
-          "support_dates": [],
-          "support_low": null,
-          "signal_day_low": 11.33,
-          "intraday_support_broken": null,
-          "lookback_trading_days": 3,
-          "data_date": "2026-11-24",
-          "observation_only": true
-        },
-        "first_effective_resistance": {
-          "date": "2026-10-21",
-          "price": 11.73
-        },
-        "distance_to_ma20_pct": -1.35,
-        "chase_risk": "low",
-        "volume_ratio_1d_vs_20d": 1.047,
-        "volume_ratio_5d_vs_20d": 1.086,
-        "relative_strength_20d_vs_market_pct": 13.79,
-        "ma20_slope_5d_pct": 0.2,
-        "close_location_pct": 18.92,
-        "higher_low": true,
-        "trend_phase": "TRANSITION",
-        "phase_evidence": {
-          "return_3d_pct": -1.72,
-          "return_5d_pct": -3.14,
-          "previous_5d_return_pct": -0.93,
-          "positive_days_5d": 2,
-          "negative_days_5d": 2,
-          "up_day_volume_ratio_5d": 1.153,
-          "down_day_volume_ratio_5d": 1.07,
-          "volume_ratio_1d": 1.047,
-          "volume_ratio_5d": 1.086,
-          "close_location_pct": 18.92,
-          "close_location_3d_avg_pct": 37.83,
-          "max_close_drawdown_10d_pct": -6.23,
-          "prior_5d_high": 11.95,
-          "prior_20d_low": 10.7,
-          "recent_3d_low": 10.7,
-          "fresh_break": false,
-          "pullback_low_holds": true,
-          "weak_close_high_volume": false,
-          "signal_uses_completed_bars_only": true
-        }
-      },
-      "rank": 9
-    },
+        "strongest_counter": "若只看仓库冻结的趋势结构，交通银行具备组内最高20日相对强度、fresh_break与低回撤；但协议要求的同日及5日可比资金证据存在行情切片冲突，不能把这项结构优势直接升级为TOP1。",
+        "falsifier": "只有在同一可核验供应商补齐五家公司11月25日同日净额/占比与近5日数据，并且收盘价与冻结行情一致后，才可重新进行当日比较；同一交易日一旦正式锁定不得事后重选。",
+        "material_conflicts": [
+          "A类资金供应商页面收盘价与冻结行情不一致",
+          "601288缺少同源同口径11月25日加近5日完整资金表"
+        ]
+      }
+    ]
+  },
+  "top1_decisions": [
     {
-      "code": "002741",
-      "company_name": "光华科技",
-      "industry_name": "电子化学品Ⅲ",
-      "current_price": 19.04,
-      "trend_name": "电子化学品",
-      "industry_code": "S270601",
-      "market_state": "趋势确认",
-      "trend_state": "T2",
-      "status": "WAIT",
-      "wait_reason": "WAIT_CONFIRMATION",
-      "decision_reason": "MA60下方仍可观察启动或修复；尚未形成经确认的低风险入场条件",
-      "transmission": "SUPPORTED",
-      "setup_type": null,
-      "entry_zone": null,
-      "max_entry_price": null,
-      "entry_trigger": null,
-      "invalidation_price": null,
-      "invalidation_rule": null,
-      "initial_risk_pct": null,
-      "upside_to_resistance_R": null,
-      "exit_plan": null,
-      "structure_confirmed": false,
-      "data_date": "2026-11-24",
-      "price_basis": "completed_daily_bar",
-      "research_falsifier": "若电子化学品收入增长不能转化为经营现金净流入，或客户验证、订单及毛利率明显低于披露进展，则主题传导结论失效。",
-      "source_review": "事实：交易所/公司披露的2026年三季报报告期为2026-09-30，冻结F10记录的扣非利润同比为40.44%；推断：主题排序综合经营兑现、同日10/20/60日相对强度和近端现金流/估值风险；无可验证的历史分析师一致预期，记为UNKNOWN。",
-      "model_priority": 1,
-      "model_reason": "光华科技前三季度收入与扣非利润分别同比增长约74.9%和40.4%，电子化学品传导直接；但经营现金流为负，回款和营运资金风险突出。",
-      "research_quality_evidence": {
-        "status": "VERIFIED",
-        "asof_date": "2026-11-24",
-        "score": 29.8768,
-        "source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-        "components": {
-          "core_profit_yoy_pct": 40.4402,
-          "operating_cashflow_per_share": -0.6912,
-          "core_growth_component": 0.872537,
-          "cashflow_component": 0.0,
-          "peer_percentiles": {
-            "10": 0.25,
-            "20": 0.0,
-            "60": 0.0
-          },
-          "negative_cashflow_penalty": 0.15,
-          "score_is_provisional_not_probability": true
-        },
-        "report_date": "2026-09-30",
-        "notice_date": "2026-10-15",
-        "update_date": "2026-10-15"
-      },
-      "trend_phase": "REPAIRING",
-      "phase_evidence": {
-        "return_3d_pct": 11.67,
-        "return_5d_pct": 7.27,
-        "previous_5d_return_pct": -9.44,
-        "positive_days_5d": 2,
-        "negative_days_5d": 3,
-        "up_day_volume_ratio_5d": 1.693,
-        "down_day_volume_ratio_5d": 0.87,
-        "volume_ratio_1d": 1.721,
-        "volume_ratio_5d": 1.199,
-        "close_location_pct": 4.55,
-        "close_location_3d_avg_pct": 67.8,
-        "max_close_drawdown_10d_pct": -15.47,
-        "prior_5d_high": 19.98,
-        "prior_20d_low": 16.93,
-        "recent_3d_low": 17.36,
-        "fresh_break": false,
-        "pullback_low_holds": true,
-        "weak_close_high_volume": true,
-        "signal_uses_completed_bars_only": true
-      },
-      "technical_context": {
-        "ma20": 19.008,
-        "ma60": 21.86,
-        "support_invalidation": 19.008,
-        "breakout_level": null,
-        "prior_60d_high": 29.0,
-        "attention_resistance": {
-          "status": "VERIFIED",
-          "price": 20.08,
-          "date": "2026-04-14",
-          "source": "asof_180bar_confirmed_pivot",
-          "history_points": 180
-        },
-        "recent_acceptance": {
-          "pattern": "NO_RECENT_CLOSE_SUPPORT",
-          "support_close_band": null,
-          "support_dates": [],
-          "support_low": null,
-          "signal_day_low": 18.98,
-          "intraday_support_broken": null,
-          "lookback_trading_days": 3,
-          "data_date": "2026-11-24",
-          "observation_only": true
-        },
-        "first_effective_resistance": {
-          "date": "2026-10-29",
-          "price": 20.44
-        },
-        "distance_to_ma20_pct": 0.17,
-        "chase_risk": "low",
-        "volume_ratio_1d_vs_20d": 1.721,
-        "volume_ratio_5d_vs_20d": 1.199,
-        "relative_strength_20d_vs_market_pct": 13.67,
-        "ma20_slope_5d_pct": 0.08,
-        "close_location_pct": 4.55,
-        "higher_low": false,
-        "trend_phase": "REPAIRING",
-        "phase_evidence": {
-          "return_3d_pct": 11.67,
-          "return_5d_pct": 7.27,
-          "previous_5d_return_pct": -9.44,
-          "positive_days_5d": 2,
-          "negative_days_5d": 3,
-          "up_day_volume_ratio_5d": 1.693,
-          "down_day_volume_ratio_5d": 0.87,
-          "volume_ratio_1d": 1.721,
-          "volume_ratio_5d": 1.199,
-          "close_location_pct": 4.55,
-          "close_location_3d_avg_pct": 67.8,
-          "max_close_drawdown_10d_pct": -15.47,
-          "prior_5d_high": 19.98,
-          "prior_20d_low": 16.93,
-          "recent_3d_low": 17.36,
-          "fresh_break": false,
-          "pullback_low_holds": true,
-          "weak_close_high_volume": true,
-          "signal_uses_completed_bars_only": true
-        }
-      },
-      "rank": 10
-    },
-    {
-      "code": "002584",
-      "company_name": "西陇科学",
-      "industry_name": "电子化学品Ⅲ",
-      "current_price": 8.62,
-      "trend_name": "电子化学品",
-      "industry_code": "S270601",
-      "market_state": "趋势确认",
-      "trend_state": "T2",
-      "status": "WAIT",
-      "wait_reason": "WAIT_PULLBACK",
-      "decision_reason": "已有趋势观察价值，但尚未确认本次突破或回踩承接；缺对应的交易失效位，不能虚构入场区",
-      "transmission": "EARLY_EVIDENCE",
-      "setup_type": "BREAKOUT",
-      "entry_zone": null,
-      "max_entry_price": null,
-      "entry_trigger": null,
-      "invalidation_price": null,
-      "invalidation_rule": null,
-      "initial_risk_pct": null,
-      "upside_to_resistance_R": null,
-      "exit_plan": null,
-      "structure_confirmed": false,
-      "data_date": "2026-11-24",
-      "price_basis": "completed_daily_bar",
-      "research_falsifier": "若后续披露不能证明电子化学品收入和订单形成实质贡献，或资金冻结、担保及经营现金流风险扩大，则主题受益判断失效。",
-      "source_review": "事实：交易所/公司披露的2026年三季报报告期为2026-09-30，冻结F10记录的扣非利润同比为31.05%；推断：主题排序综合经营兑现、同日10/20/60日相对强度和近端现金流/估值风险；无可验证的历史分析师一致预期，记为UNKNOWN。",
-      "model_priority": 5,
-      "model_reason": "西陇科学扣非利润同比约增长31.0%且价格动能较强，但业务覆盖较广、主题纯度相对低，经营现金流为负，暂按早期证据处理。",
-      "research_quality_evidence": {
-        "status": "VERIFIED",
-        "asof_date": "2026-11-24",
-        "score": 62.3655,
-        "source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-        "components": {
-          "core_profit_yoy_pct": 31.0483,
-          "operating_cashflow_per_share": -0.0848,
-          "core_growth_component": 0.747311,
-          "cashflow_component": 0.0,
-          "peer_percentiles": {
-            "10": 1.0,
-            "20": 1.0,
-            "60": 1.0
-          },
-          "negative_cashflow_penalty": 0.15,
-          "score_is_provisional_not_probability": true
-        },
-        "report_date": "2026-09-30",
-        "notice_date": "2026-10-29",
-        "update_date": "2026-10-29"
-      },
-      "trend_phase": "TRANSITION",
-      "phase_evidence": {
-        "return_3d_pct": 4.87,
-        "return_5d_pct": 8.98,
-        "previous_5d_return_pct": 7.62,
-        "positive_days_5d": 3,
-        "negative_days_5d": 2,
-        "up_day_volume_ratio_5d": 3.251,
-        "down_day_volume_ratio_5d": 2.939,
-        "volume_ratio_1d": 3.894,
-        "volume_ratio_5d": 3.126,
-        "close_location_pct": 49.32,
-        "close_location_3d_avg_pct": 58.58,
-        "max_close_drawdown_10d_pct": -5.96,
-        "prior_5d_high": 8.7,
-        "prior_20d_low": 6.9,
-        "recent_3d_low": 7.38,
-        "fresh_break": false,
-        "pullback_low_holds": true,
-        "weak_close_high_volume": false,
-        "signal_uses_completed_bars_only": true
-      },
-      "technical_context": {
-        "ma20": 7.497,
-        "ma60": 8.0855,
-        "support_invalidation": 8.0855,
-        "breakout_level": null,
-        "prior_60d_high": 10.51,
-        "attention_resistance": {
-          "status": "VERIFIED",
-          "price": 8.7,
-          "date": "2026-11-18",
-          "source": "asof_180bar_confirmed_pivot",
-          "history_points": 180
-        },
-        "recent_acceptance": {
-          "pattern": "NO_RECENT_CLOSE_SUPPORT",
-          "support_close_band": null,
-          "support_dates": [],
-          "support_low": null,
-          "signal_day_low": 8.26,
-          "intraday_support_broken": null,
-          "lookback_trading_days": 3,
-          "data_date": "2026-11-24",
-          "observation_only": true
-        },
-        "first_effective_resistance": {
-          "date": "2026-11-18",
-          "price": 8.7
-        },
-        "distance_to_ma20_pct": 14.98,
-        "chase_risk": "high",
-        "volume_ratio_1d_vs_20d": 3.894,
-        "volume_ratio_5d_vs_20d": 3.126,
-        "relative_strength_20d_vs_market_pct": 31.49,
-        "ma20_slope_5d_pct": 2.57,
-        "close_location_pct": 49.32,
-        "higher_low": true,
-        "trend_phase": "TRANSITION",
-        "phase_evidence": {
-          "return_3d_pct": 4.87,
-          "return_5d_pct": 8.98,
-          "previous_5d_return_pct": 7.62,
-          "positive_days_5d": 3,
-          "negative_days_5d": 2,
-          "up_day_volume_ratio_5d": 3.251,
-          "down_day_volume_ratio_5d": 2.939,
-          "volume_ratio_1d": 3.894,
-          "volume_ratio_5d": 3.126,
-          "close_location_pct": 49.32,
-          "close_location_3d_avg_pct": 58.58,
-          "max_close_drawdown_10d_pct": -5.96,
-          "prior_5d_high": 8.7,
-          "prior_20d_low": 6.9,
-          "recent_3d_low": 7.38,
-          "fresh_break": false,
-          "pullback_low_holds": true,
-          "weak_close_high_volume": false,
-          "signal_uses_completed_bars_only": true
-        }
-      },
-      "rank": 11
-    },
-    {
-      "code": "601939",
-      "company_name": "建设银行",
-      "industry_name": "国有大型银行Ⅲ",
-      "current_price": 12.43,
-      "trend_name": "银行",
       "industry_code": "S480201",
-      "market_state": "趋势确认",
-      "trend_state": "T1",
-      "status": "WAIT",
-      "wait_reason": "WAIT_PULLBACK",
-      "decision_reason": "已有趋势观察价值，但尚未确认本次突破或回踩承接；缺对应的交易失效位，不能虚构入场区",
+      "candidate_codes": [
+        "601288",
+        "601328",
+        "601939",
+        "601658",
+        "601398"
+      ],
+      "top1_code": null,
+      "selection_status": "INCOMPLETE",
+      "selection_reason": "资金A核心门槛未通过：东方财富首选页动态字段不可读；同花顺备用页虽给出11月25日与5日主力数据，但601328、601939、601398的同页收盘价分别为9.06、12.25、9.11，与冻结行情9.14、12.59、9.20冲突；601288未取得同日加近5日完整可比表。备用来源口径和数值也不一致，无法形成全组同源同口径横比。为避免默认Python首位或用冲突数据强行选择，本组弃权。",
+      "risk_status": null,
+      "risk_result": null,
+      "watch_reference": null,
+      "conditional_plan": null,
+      "route": "NO_MONITOR"
+    }
+  ],
+  "company_reviews": [
+    {
+      "code": "601288",
       "transmission": "SUPPORTED",
-      "setup_type": "PULLBACK",
-      "entry_zone": null,
-      "max_entry_price": null,
-      "entry_trigger": null,
-      "invalidation_price": null,
-      "invalidation_rule": null,
-      "initial_risk_pct": null,
-      "upside_to_resistance_R": null,
-      "exit_plan": null,
-      "structure_confirmed": false,
-      "data_date": "2026-11-24",
-      "price_basis": "completed_daily_bar",
-      "research_falsifier": "若净息差继续快速收窄、信用成本显著上升或资产质量恶化，导致盈利与分红能力下降，则当前银行受益判断失效。",
-      "source_review": "事实：交易所/公司披露的2026年三季报报告期为2026-09-30，冻结F10记录的扣非利润同比为6.26%；推断：主题排序综合经营兑现、同日10/20/60日相对强度和近端现金流/估值风险；无可验证的历史分析师一致预期，记为UNKNOWN。",
-      "model_priority": 2,
-      "model_reason": "建设银行前三季度收入和扣非利润分别同比增长约11.4%和6.3%，现金流与盈利质量稳健；价格趋势良好但短期动能略逊农业银行。",
-      "research_quality_evidence": {
-        "status": "VERIFIED",
-        "asof_date": "2026-11-24",
-        "score": 35.841,
-        "source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-        "components": {
-          "core_profit_yoy_pct": 6.2615,
-          "operating_cashflow_per_share": 4.8319,
-          "core_growth_component": 0.41682,
-          "cashflow_component": 1.0,
-          "peer_percentiles": {
-            "10": 0.0,
-            "20": 0.25,
-            "60": 0.0
-          },
-          "negative_cashflow_penalty": 0.0,
-          "score_is_provisional_not_probability": true
+      "review_evidence_date": "2026-11-25",
+      "source_review": "农业银行主营即大型商业银行存贷款与综合金融服务，直接属于国有大型银行Ⅲ；三季报显示营收、归母与扣非利润同比增长，资产质量指标改善，主题传导成立。资金页同日与滚动窗口无法在可比口径下完整核验，因此不据此产生TOP1选择。",
+      "review_basis": "本轮重新检索公司法定财报、上交所公告、监管行业数据与资金首选/备用入口；事实与模型推断分离。",
+      "research_falsifier": "若后续法定披露显示息差重新显著下行、资产质量恶化，或同日量价与资金数据证实突破失败，则国有大行趋势延续判断失效。",
+      "historical_analyst_expectation": "UNKNOWN",
+      "evidence_gap": true,
+      "early_evidence_risk_review_passed": false,
+      "source_materials": [
+        {
+          "kind": "issuer_q3_2026_report",
+          "url": "https://www.abchina.com/cn/aboutabc/investor_relations/report/qm/202610/t20261030_2699110.htm",
+          "published_at": "2026-10-30",
+          "asof": "2026-11-25",
+          "report_period": "2026-09-30"
         },
-        "report_date": "2026-09-30",
-        "notice_date": "2026-10-31",
-        "update_date": "2026-10-31"
-      },
-      "trend_phase": "TRANSITION",
-      "phase_evidence": {
-        "return_3d_pct": 0.4,
-        "return_5d_pct": 1.06,
-        "previous_5d_return_pct": 2.24,
-        "positive_days_5d": 4,
-        "negative_days_5d": 1,
-        "up_day_volume_ratio_5d": 1.041,
-        "down_day_volume_ratio_5d": 1.458,
-        "volume_ratio_1d": 1.334,
-        "volume_ratio_5d": 1.124,
-        "close_location_pct": 97.67,
-        "close_location_3d_avg_pct": 68.76,
-        "max_close_drawdown_10d_pct": -2.9,
-        "prior_5d_high": 12.78,
-        "prior_20d_low": 11.45,
-        "recent_3d_low": 12.01,
-        "fresh_break": false,
-        "pullback_low_holds": true,
-        "weak_close_high_volume": false,
-        "signal_uses_completed_bars_only": true
-      },
-      "technical_context": {
-        "ma20": 12.1,
-        "ma60": 11.4215,
-        "support_invalidation": 12.1,
-        "breakout_level": null,
-        "prior_60d_high": 12.78,
-        "attention_resistance": {
-          "status": "UNVERIFIED",
-          "price": null,
-          "reason": "no_confirmed_overhead_pivot_in_lookback",
-          "history_points": 180
-        },
-        "recent_acceptance": {
-          "pattern": "NO_RECENT_CLOSE_SUPPORT",
-          "support_close_band": null,
-          "support_dates": [],
-          "support_low": null,
-          "signal_day_low": 12.01,
-          "intraday_support_broken": null,
-          "lookback_trading_days": 3,
-          "data_date": "2026-11-24",
-          "observation_only": true
-        },
-        "first_effective_resistance": null,
-        "distance_to_ma20_pct": 2.73,
-        "chase_risk": "low",
-        "volume_ratio_1d_vs_20d": 1.334,
-        "volume_ratio_5d_vs_20d": 1.124,
-        "relative_strength_20d_vs_market_pct": 15.77,
-        "ma20_slope_5d_pct": 1.86,
-        "close_location_pct": 97.67,
-        "higher_low": true,
-        "trend_phase": "TRANSITION",
-        "phase_evidence": {
-          "return_3d_pct": 0.4,
-          "return_5d_pct": 1.06,
-          "previous_5d_return_pct": 2.24,
-          "positive_days_5d": 4,
-          "negative_days_5d": 1,
-          "up_day_volume_ratio_5d": 1.041,
-          "down_day_volume_ratio_5d": 1.458,
-          "volume_ratio_1d": 1.334,
-          "volume_ratio_5d": 1.124,
-          "close_location_pct": 97.67,
-          "close_location_3d_avg_pct": 68.76,
-          "max_close_drawdown_10d_pct": -2.9,
-          "prior_5d_high": 12.78,
-          "prior_20d_low": 11.45,
-          "recent_3d_low": 12.01,
-          "fresh_break": false,
-          "pullback_low_holds": true,
-          "weak_close_high_volume": false,
-          "signal_uses_completed_bars_only": true
+        {
+          "kind": "current_announcement_or_event_index",
+          "url": "https://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=601288",
+          "published_at": "2026-11-18",
+          "asof": "2026-11-25",
+          "report_period": null
         }
-      },
-      "rank": 12
+      ]
     },
     {
       "code": "601328",
-      "company_name": "交通银行",
-      "industry_name": "国有大型银行Ⅲ",
-      "current_price": 8.98,
-      "trend_name": "银行",
-      "industry_code": "S480201",
-      "market_state": "趋势确认",
-      "trend_state": "T1",
-      "status": "WAIT",
-      "wait_reason": "WAIT_PULLBACK",
-      "decision_reason": "已有趋势观察价值，但尚未确认本次突破或回踩承接；缺对应的交易失效位，不能虚构入场区",
       "transmission": "SUPPORTED",
-      "setup_type": "PULLBACK",
-      "entry_zone": null,
-      "max_entry_price": null,
-      "entry_trigger": null,
-      "invalidation_price": null,
-      "invalidation_rule": null,
-      "initial_risk_pct": null,
-      "upside_to_resistance_R": null,
-      "exit_plan": null,
-      "structure_confirmed": false,
-      "data_date": "2026-11-24",
-      "price_basis": "completed_daily_bar",
-      "research_falsifier": "若资产质量、净息差或资本约束明显恶化，且价格相对强度失守，则银行趋势传导和当前关注优先级失效。",
-      "source_review": "事实：交易所/公司披露的2026年三季报报告期为2026-09-30，冻结F10记录的扣非利润同比为6.32%；推断：主题排序综合经营兑现、同日10/20/60日相对强度和近端现金流/估值风险；无可验证的历史分析师一致预期，记为UNKNOWN。",
-      "model_priority": 3,
-      "model_reason": "交通银行前三季度扣非利润同比约增长6.3%，估值较低且60日相对强度同组领先；但收入和盈利增速中等，需持续核验资产质量。",
-      "research_quality_evidence": {
-        "status": "VERIFIED",
-        "asof_date": "2026-11-24",
-        "score": 68.3772,
-        "source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-        "components": {
-          "core_profit_yoy_pct": 6.3158,
-          "operating_cashflow_per_share": 2.4063,
-          "core_growth_component": 0.417543,
-          "cashflow_component": 1.0,
-          "peer_percentiles": {
-            "10": 0.5,
-            "20": 1.0,
-            "60": 1.0
-          },
-          "negative_cashflow_penalty": 0.0,
-          "score_is_provisional_not_probability": true
+      "review_evidence_date": "2026-11-25",
+      "source_review": "交通银行主营商业银行业务，直接属于国有大型银行Ⅲ；法定三季报披露前三季度营收、归母及扣非利润同比增长，但不良率较年末小幅上升、拨备覆盖率下降，构成可验证反证。资金页与冻结收盘价不一致，未用于选择。",
+      "review_basis": "本轮重新检索法定三季报、上交所公告、监管行业数据、研报入口及资金首选/备用入口。",
+      "research_falsifier": "若不良率继续上行、拨备覆盖率继续明显下降，或价格突破后不能维持且资金持续净流出，则趋势延续判断失效。",
+      "historical_analyst_expectation": "UNKNOWN",
+      "evidence_gap": true,
+      "early_evidence_risk_review_passed": false,
+      "source_materials": [
+        {
+          "kind": "issuer_q3_2026_report",
+          "url": "https://www.bankcomm.com/BankCommSite/shtml/jyjr/cn/7768/7801/7853/9041641.shtml",
+          "published_at": "2026-10-30",
+          "asof": "2026-11-25",
+          "report_period": "2026-09-30"
         },
-        "report_date": "2026-09-30",
-        "notice_date": "2026-10-31",
-        "update_date": "2026-10-31"
-      },
-      "trend_phase": "TRANSITION",
-      "phase_evidence": {
-        "return_3d_pct": 2.63,
-        "return_5d_pct": 2.86,
-        "previous_5d_return_pct": 3.8,
-        "positive_days_5d": 4,
-        "negative_days_5d": 1,
-        "up_day_volume_ratio_5d": 0.954,
-        "down_day_volume_ratio_5d": 1.149,
-        "volume_ratio_1d": 1.013,
-        "volume_ratio_5d": 0.993,
-        "close_location_pct": 70.59,
-        "close_location_3d_avg_pct": 58.17,
-        "max_close_drawdown_10d_pct": -0.56,
-        "prior_5d_high": 9.1,
-        "prior_20d_low": 8.06,
-        "recent_3d_low": 8.64,
-        "fresh_break": false,
-        "pullback_low_holds": true,
-        "weak_close_high_volume": false,
-        "signal_uses_completed_bars_only": true
-      },
-      "technical_context": {
-        "ma20": 8.565,
-        "ma60": 7.9598,
-        "support_invalidation": 8.565,
-        "breakout_level": null,
-        "prior_60d_high": 9.1,
-        "attention_resistance": {
-          "status": "UNVERIFIED",
-          "price": null,
-          "reason": "no_confirmed_overhead_pivot_in_lookback",
-          "history_points": 180
-        },
-        "recent_acceptance": {
-          "pattern": "UNCONFIRMED_LOCAL_ACCEPTANCE",
-          "support_close_band": [
-            8.93,
-            8.98
-          ],
-          "support_dates": [
-            "2026-11-20",
-            "2026-11-23"
-          ],
-          "support_low": 8.64,
-          "signal_day_low": 8.74,
-          "intraday_support_broken": false,
-          "lookback_trading_days": 3,
-          "data_date": "2026-11-24",
-          "observation_only": true
-        },
-        "first_effective_resistance": null,
-        "distance_to_ma20_pct": 4.85,
-        "chase_risk": "low",
-        "volume_ratio_1d_vs_20d": 1.013,
-        "volume_ratio_5d_vs_20d": 0.993,
-        "relative_strength_20d_vs_market_pct": 17.92,
-        "ma20_slope_5d_pct": 1.95,
-        "close_location_pct": 70.59,
-        "higher_low": true,
-        "trend_phase": "TRANSITION",
-        "phase_evidence": {
-          "return_3d_pct": 2.63,
-          "return_5d_pct": 2.86,
-          "previous_5d_return_pct": 3.8,
-          "positive_days_5d": 4,
-          "negative_days_5d": 1,
-          "up_day_volume_ratio_5d": 0.954,
-          "down_day_volume_ratio_5d": 1.149,
-          "volume_ratio_1d": 1.013,
-          "volume_ratio_5d": 0.993,
-          "close_location_pct": 70.59,
-          "close_location_3d_avg_pct": 58.17,
-          "max_close_drawdown_10d_pct": -0.56,
-          "prior_5d_high": 9.1,
-          "prior_20d_low": 8.06,
-          "recent_3d_low": 8.64,
-          "fresh_break": false,
-          "pullback_low_holds": true,
-          "weak_close_high_volume": false,
-          "signal_uses_completed_bars_only": true
+        {
+          "kind": "current_announcement_or_event_index",
+          "url": "https://www.sse.com.cn/assortment/stock/list/info/announcement/index.shtml?productId=601328",
+          "published_at": "2026-11-07",
+          "asof": "2026-11-25",
+          "report_period": null
         }
-      },
-      "rank": 13
+      ]
+    },
+    {
+      "code": "601939",
+      "transmission": "SUPPORTED",
+      "review_evidence_date": "2026-11-25",
+      "source_review": "建设银行主营银行及相关金融服务，直接属于国有大型银行Ⅲ；三季度经营收入与归母净利润双增、净息差企稳、不良率下降，基本面传导成立。但外部资金页收盘价与冻结行情冲突，不能据其资金口径选TOP1。",
+      "review_basis": "本轮重新检索公司三季报业绩公告、上交所公告、监管数据、研报入口及资金首选/备用入口。",
+      "research_falsifier": "若净息差企稳被后续披露否定、不良率转升，或放量反弹后再次跌破结构支撑，则趋势延续判断失效。",
+      "historical_analyst_expectation": "UNKNOWN",
+      "evidence_gap": true,
+      "early_evidence_risk_review_passed": false,
+      "source_materials": [
+        {
+          "kind": "issuer_q3_2026_report",
+          "url": "https://privatebank.ccb.com/chn/2026-10/30/article_2026103016484628413.shtml",
+          "published_at": "2026-10-30",
+          "asof": "2026-11-25",
+          "report_period": "2026-09-30"
+        },
+        {
+          "kind": "current_announcement_or_event_index",
+          "url": "https://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=601939",
+          "published_at": "2026-11-18",
+          "asof": "2026-11-25",
+          "report_period": null
+        }
+      ]
     },
     {
       "code": "601658",
-      "company_name": "邮储银行",
-      "industry_name": "国有大型银行Ⅲ",
-      "current_price": 5.9,
-      "trend_name": "银行",
-      "industry_code": "S480201",
-      "market_state": "趋势确认",
-      "trend_state": "T1",
-      "status": "WAIT",
-      "wait_reason": "WAIT_PULLBACK",
-      "decision_reason": "已有趋势观察价值，但尚未确认本次突破或回踩承接；缺对应的交易失效位，不能虚构入场区",
       "transmission": "SUPPORTED",
-      "setup_type": "PULLBACK",
-      "entry_zone": null,
-      "max_entry_price": null,
-      "entry_trigger": null,
-      "invalidation_price": null,
-      "invalidation_rule": null,
-      "initial_risk_pct": null,
-      "upside_to_resistance_R": null,
-      "exit_plan": null,
-      "structure_confirmed": false,
-      "data_date": "2026-11-24",
-      "price_basis": "completed_daily_bar",
-      "research_falsifier": "若净息差、零售资产质量或资本补充压力进一步恶化并拖累扣非利润，则当前银行主题受益判断失效。",
-      "source_review": "事实：交易所/公司披露的2026年三季报报告期为2026-09-30，冻结F10记录的扣非利润同比为1.56%；推断：主题排序综合经营兑现、同日10/20/60日相对强度和近端现金流/估值风险；无可验证的历史分析师一致预期，记为UNKNOWN。",
-      "model_priority": 5,
-      "model_reason": "邮储银行前三季度经营现金流为正、价格趋势稳定，但扣非利润同比仅增长约1.6%，经营兑现弱于其余入选国有大行。",
-      "research_quality_evidence": {
-        "status": "VERIFIED",
-        "asof_date": "2026-11-24",
-        "score": 32.7044,
-        "source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-        "components": {
-          "core_profit_yoy_pct": 1.5566,
-          "operating_cashflow_per_share": 2.791,
-          "core_growth_component": 0.354087,
-          "cashflow_component": 1.0,
-          "peer_percentiles": {
-            "10": 0.25,
-            "20": 0.0,
-            "60": 0.25
-          },
-          "negative_cashflow_penalty": 0.0,
-          "score_is_provisional_not_probability": true
+      "review_evidence_date": "2026-11-25",
+      "source_review": "邮储银行主营零售、公司及金融市场等银行业务，直接属于国有大型银行Ⅲ；三季报显示营收、净利润、非息收入增长且净息差维持相对较高水平，但扣非利润增速弱于同组多家，且近期有高管离任公告需持续观察。",
+      "review_basis": "本轮重新检索公司三季报、公司/交易所公告、监管行业数据、研报入口与资金首选/备用入口。",
+      "research_falsifier": "若负债成本优势减弱、扣非利润增速继续落后，或高管变动影响经营执行并伴随价格结构转弱，则判断失效。",
+      "historical_analyst_expectation": "UNKNOWN",
+      "evidence_gap": false,
+      "early_evidence_risk_review_passed": false,
+      "source_materials": [
+        {
+          "kind": "issuer_q3_2026_report",
+          "url": "https://www.psbc.com/cn/gyyc/ycfm/ycdt/202610/t20261030_479712.html",
+          "published_at": "2026-10-30",
+          "asof": "2026-11-25",
+          "report_period": "2026-09-30"
         },
-        "report_date": "2026-09-30",
-        "notice_date": "2026-10-31",
-        "update_date": "2026-10-31"
-      },
-      "trend_phase": "TRANSITION",
-      "phase_evidence": {
-        "return_3d_pct": 2.79,
-        "return_5d_pct": 2.25,
-        "previous_5d_return_pct": 2.49,
-        "positive_days_5d": 4,
-        "negative_days_5d": 1,
-        "up_day_volume_ratio_5d": 1.123,
-        "down_day_volume_ratio_5d": 0.921,
-        "volume_ratio_1d": 1.065,
-        "volume_ratio_5d": 1.083,
-        "close_location_pct": 93.33,
-        "close_location_3d_avg_pct": 79.64,
-        "max_close_drawdown_10d_pct": -1.03,
-        "prior_5d_high": 5.92,
-        "prior_20d_low": 5.45,
-        "recent_3d_low": 5.68,
-        "fresh_break": false,
-        "pullback_low_holds": true,
-        "weak_close_high_volume": false,
-        "signal_uses_completed_bars_only": true
-      },
-      "technical_context": {
-        "ma20": 5.7005,
-        "ma60": 5.5105,
-        "support_invalidation": 5.7005,
-        "breakout_level": null,
-        "prior_60d_high": 5.92,
-        "attention_resistance": {
-          "status": "UNVERIFIED",
-          "price": null,
-          "reason": "no_confirmed_overhead_pivot_in_lookback",
-          "history_points": 180
-        },
-        "recent_acceptance": {
-          "pattern": "NO_RECENT_CLOSE_SUPPORT",
-          "support_close_band": null,
-          "support_dates": [],
-          "support_low": null,
-          "signal_day_low": 5.76,
-          "intraday_support_broken": null,
-          "lookback_trading_days": 3,
-          "data_date": "2026-11-24",
-          "observation_only": true
-        },
-        "first_effective_resistance": null,
-        "distance_to_ma20_pct": 3.5,
-        "chase_risk": "low",
-        "volume_ratio_1d_vs_20d": 1.065,
-        "volume_ratio_5d_vs_20d": 1.083,
-        "relative_strength_20d_vs_market_pct": 15.42,
-        "ma20_slope_5d_pct": 1.13,
-        "close_location_pct": 93.33,
-        "higher_low": true,
-        "trend_phase": "TRANSITION",
-        "phase_evidence": {
-          "return_3d_pct": 2.79,
-          "return_5d_pct": 2.25,
-          "previous_5d_return_pct": 2.49,
-          "positive_days_5d": 4,
-          "negative_days_5d": 1,
-          "up_day_volume_ratio_5d": 1.123,
-          "down_day_volume_ratio_5d": 0.921,
-          "volume_ratio_1d": 1.065,
-          "volume_ratio_5d": 1.083,
-          "close_location_pct": 93.33,
-          "close_location_3d_avg_pct": 79.64,
-          "max_close_drawdown_10d_pct": -1.03,
-          "prior_5d_high": 5.92,
-          "prior_20d_low": 5.45,
-          "recent_3d_low": 5.68,
-          "fresh_break": false,
-          "pullback_low_holds": true,
-          "weak_close_high_volume": false,
-          "signal_uses_completed_bars_only": true
+        {
+          "kind": "current_announcement_or_event_index",
+          "url": "https://data.eastmoney.com/stockcalendar/601658.html",
+          "published_at": "2026-11-10",
+          "asof": "2026-11-25",
+          "report_period": null
         }
-      },
-      "rank": 14
+      ]
     },
     {
       "code": "601398",
-      "company_name": "工商银行",
-      "industry_name": "国有大型银行Ⅲ",
-      "current_price": 9.22,
-      "trend_name": "银行",
-      "industry_code": "S480201",
-      "market_state": "趋势确认",
-      "trend_state": "T1",
-      "status": "WAIT",
-      "wait_reason": "WAIT_PULLBACK",
-      "decision_reason": "已有趋势观察价值，但尚未确认本次突破或回踩承接；缺对应的交易失效位，不能虚构入场区",
       "transmission": "SUPPORTED",
-      "setup_type": "PULLBACK",
-      "entry_zone": null,
-      "max_entry_price": null,
-      "entry_trigger": null,
-      "invalidation_price": null,
-      "invalidation_rule": null,
-      "initial_risk_pct": null,
-      "upside_to_resistance_R": null,
-      "exit_plan": null,
-      "structure_confirmed": false,
-      "data_date": "2026-11-24",
-      "price_basis": "completed_daily_bar",
-      "research_falsifier": "若净息差与资产质量恶化使扣非利润或分红能力明显下降，或当前价格结构失效，则银行主题受益结论失效。",
-      "source_review": "事实：交易所/公司披露的2026年三季报报告期为2026-09-30，冻结F10记录的扣非利润同比为5.76%；推断：主题排序综合经营兑现、同日10/20/60日相对强度和近端现金流/估值风险；无可验证的历史分析师一致预期，记为UNKNOWN。",
-      "model_priority": 4,
-      "model_reason": "工商银行前三季度收入和扣非利润分别同比增长约8.7%和5.8%，经营现金流充足；价格结构保持强势，但盈利增速低于农业银行。",
-      "research_quality_evidence": {
-        "status": "VERIFIED",
-        "asof_date": "2026-11-24",
-        "score": 55.5077,
-        "source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-        "components": {
-          "core_profit_yoy_pct": 5.7616,
-          "operating_cashflow_per_share": 4.3339,
-          "core_growth_component": 0.410155,
-          "cashflow_component": 1.0,
-          "peer_percentiles": {
-            "10": 0.75,
-            "20": 0.5,
-            "60": 0.75
-          },
-          "negative_cashflow_penalty": 0.0,
-          "score_is_provisional_not_probability": true
+      "review_evidence_date": "2026-11-25",
+      "source_review": "工商银行主营公司、个人、资金、投行与资管等金融业务，直接属于国有大型银行Ⅲ；法定三季报显示单季归母与扣非利润同比接近两位数、累计净息差同比上升，但外部资金页与冻结收盘价冲突，且拨备覆盖率较年末下降。",
+      "review_basis": "本轮重新检索法定三季报、上交所公告、监管数据、研报入口与资金首选/备用入口。",
+      "research_falsifier": "若拨备覆盖率继续明显下降、息差改善不能延续，或近期低点不再抬升并跌破结构支撑，则趋势延续判断失效。",
+      "historical_analyst_expectation": "UNKNOWN",
+      "evidence_gap": true,
+      "early_evidence_risk_review_passed": false,
+      "source_materials": [
+        {
+          "kind": "issuer_q3_2026_report",
+          "url": "https://v.icbc.com.cn/userfiles/resources/icbcltd/download/2026/Announce20261030_4.pdf",
+          "published_at": "2026-10-30",
+          "asof": "2026-11-25",
+          "report_period": "2026-09-30"
         },
-        "report_date": "2026-09-30",
-        "notice_date": "2026-10-31",
-        "update_date": "2026-10-31"
-      },
-      "trend_phase": "TRANSITION",
-      "phase_evidence": {
-        "return_3d_pct": 1.32,
-        "return_5d_pct": 1.77,
-        "previous_5d_return_pct": 5.35,
-        "positive_days_5d": 3,
-        "negative_days_5d": 1,
-        "up_day_volume_ratio_5d": 1.001,
-        "down_day_volume_ratio_5d": 1.36,
-        "volume_ratio_1d": 1.256,
-        "volume_ratio_5d": 1.01,
-        "close_location_pct": 88.1,
-        "close_location_3d_avg_pct": 64.08,
-        "max_close_drawdown_10d_pct": -2.66,
-        "prior_5d_high": 9.49,
-        "prior_20d_low": 8.17,
-        "recent_3d_low": 8.85,
-        "fresh_break": false,
-        "pullback_low_holds": true,
-        "weak_close_high_volume": false,
-        "signal_uses_completed_bars_only": true
-      },
-      "technical_context": {
-        "ma20": 8.7945,
-        "ma60": 8.3253,
-        "support_invalidation": 8.7945,
-        "breakout_level": null,
-        "prior_60d_high": 9.49,
-        "attention_resistance": {
-          "status": "UNVERIFIED",
-          "price": null,
-          "reason": "no_confirmed_overhead_pivot_in_lookback",
-          "history_points": 180
-        },
-        "recent_acceptance": {
-          "pattern": "NO_RECENT_CLOSE_SUPPORT",
-          "support_close_band": null,
-          "support_dates": [],
-          "support_low": null,
-          "signal_day_low": 8.85,
-          "intraday_support_broken": null,
-          "lookback_trading_days": 3,
-          "data_date": "2026-11-24",
-          "observation_only": true
-        },
-        "first_effective_resistance": null,
-        "distance_to_ma20_pct": 4.84,
-        "chase_risk": "low",
-        "volume_ratio_1d_vs_20d": 1.256,
-        "volume_ratio_5d_vs_20d": 1.01,
-        "relative_strength_20d_vs_market_pct": 17.21,
-        "ma20_slope_5d_pct": 1.95,
-        "close_location_pct": 88.1,
-        "higher_low": false,
-        "trend_phase": "TRANSITION",
-        "phase_evidence": {
-          "return_3d_pct": 1.32,
-          "return_5d_pct": 1.77,
-          "previous_5d_return_pct": 5.35,
-          "positive_days_5d": 3,
-          "negative_days_5d": 1,
-          "up_day_volume_ratio_5d": 1.001,
-          "down_day_volume_ratio_5d": 1.36,
-          "volume_ratio_1d": 1.256,
-          "volume_ratio_5d": 1.01,
-          "close_location_pct": 88.1,
-          "close_location_3d_avg_pct": 64.08,
-          "max_close_drawdown_10d_pct": -2.66,
-          "prior_5d_high": 9.49,
-          "prior_20d_low": 8.17,
-          "recent_3d_low": 8.85,
-          "fresh_break": false,
-          "pullback_low_holds": true,
-          "weak_close_high_volume": false,
-          "signal_uses_completed_bars_only": true
+        {
+          "kind": "current_announcement_or_event_index",
+          "url": "https://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=601398",
+          "published_at": "2026-11-13",
+          "asof": "2026-11-25",
+          "report_period": null
         }
-      },
-      "rank": 15
+      ]
     }
   ],
-  "uncertain": [],
-  "drop": [],
-  "top5_by_theme": [
-    {
-      "trend_name": "电子化学品",
-      "attention_ranking_policy": "ENTRY_VALUE_STAGE_V1_1_CONTINUOUS_QUALITY",
-      "qualified_opportunity_count": 3,
-      "trend_watch_candidate_count": 2,
-      "items": [
-        {
-          "code": "002643",
-          "company_name": "万润股份",
-          "status": "WAIT",
-          "trend_phase": "TRANSITION",
-          "entry_opportunity": "EARLY_NOT_READY",
-          "current_price": 11.4,
-          "original_model_rank": 4,
-          "opportunity_rank_evidence": {
-            "status": "COMPLETE_ASOF_EVIDENCE",
-            "score": 30.4095,
-            "research_quality_score": 30.76,
-            "research_quality_source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-            "research_quality_components": {
-              "core_profit_yoy_pct": -12.6044,
-              "operating_cashflow_per_share": 0.6752,
-              "core_growth_component": 0.165275,
-              "cashflow_component": 1.0,
-              "peer_percentiles": {
-                "10": 0.0,
-                "20": 0.25,
-                "60": 0.5
-              },
-              "negative_cashflow_penalty": 0.0,
-              "score_is_provisional_not_probability": true
-            },
-            "momentum_stage_score": 8.78,
-            "entry_value_score": 84.61,
-            "overhead_distance_pct": 2.89,
-            "penalties": {
-              "below_ma60_unconfirmed": 12.0
-            },
-            "provisional": true,
-            "not_trade_permission": true
-          },
-          "reference": {
-            "stage": "PRE_TREND_WATCH",
-            "setup_mode": "RECLAIM",
-            "conditional_trigger": "等待重新站稳均线并出现明确的回踩承接，再从该次形态计算失效位",
-            "reference_trigger_price": 12.201,
-            "reference_zone": null,
-            "invalidation_price": null,
-            "estimated_price_risk_pct": null,
-            "risk_threshold_pct": 8.0,
-            "price_basis": "同一已完成交易日观察触发价，非入场/持仓止损"
-          },
-          "decision_reason": "MA60下方仍可观察启动或修复；尚未形成经确认的低风险入场条件",
-          "attention_rank": 1,
-          "attention_judgement": "模型同主题相对研究次序：仅用于解释与同分比较；连续质量证据及入场价值排序（试运行）：WAIT仅供观察，尚不可买；原模型研究名次：4；机会分证据：{'status': 'COMPLETE_ASOF_EVIDENCE', 'score': 30.4095, 'research_quality_score': 30.76, 'research_quality_source': 'FROZEN_F10_AND_COMPLETED_HISTORY_V1', 'research_quality_components': {'core_profit_yoy_pct': -12.6044, 'operating_cashflow_per_share': 0.6752, 'core_growth_component': 0.165275, 'cashflow_component': 1.0, 'peer_percentiles': {'10': 0.0, '20': 0.25, '60': 0.5}, 'negative_cashflow_penalty': 0.0, 'score_is_provisional_not_probability': True}, 'momentum_stage_score': 8.78, 'entry_value_score': 84.61, 'overhead_distance_pct': 2.89, 'penalties': {'below_ma60_unconfirmed': 12.0}, 'provisional': True, 'not_trade_permission': True}；模型研究判断：万润股份持续推进半导体制造材料产业化，经营现金流为正且估值相对较低；但前三季度扣非利润下降约12.6%，短期价格动能偏弱。；近5日正收益条件未达到或数据不足；未达到上述近期突破或收盘参考区观察条件，继续跟踪；距MA20绝对偏离1.35%；机会分与模型次序均非收益预测，WAIT不是买入许可",
-          "attention_resistance_check": {
-            "status": "UNVERIFIED",
-            "resistance_price": 11.73,
-            "resistance_date": "2026-10-21",
-            "resistance_source": "asof_structure",
-            "upside_to_resistance_R": null,
-            "distance_to_ma20_pct": -1.35,
-            "chase_risk_high": false,
-            "note": "WAIT：缺少可执行的成对入场与失效位，当前只供观察；尚无可计算的独立阻力赔率，不能视为上方空间无限；已确认上方阻力仅是关注排序中的空间证据；1.5R独立风险Gate仍按原规则执行"
-          }
-        },
-        {
-          "code": "002741",
-          "company_name": "光华科技",
-          "status": "WAIT",
-          "trend_phase": "REPAIRING",
-          "entry_opportunity": "TREND_WATCH_ONLY",
-          "current_price": 19.04,
-          "original_model_rank": 1,
-          "opportunity_rank_evidence": {
-            "status": "COMPLETE_ASOF_EVIDENCE",
-            "score": 30.1328,
-            "research_quality_score": 29.88,
-            "research_quality_source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-            "research_quality_components": {
-              "core_profit_yoy_pct": 40.4402,
-              "operating_cashflow_per_share": -0.6912,
-              "core_growth_component": 0.872537,
-              "cashflow_component": 0.0,
-              "peer_percentiles": {
-                "10": 0.25,
-                "20": 0.0,
-                "60": 0.0
-              },
-              "negative_cashflow_penalty": 0.15,
-              "score_is_provisional_not_probability": true
-            },
-            "momentum_stage_score": 57.72,
-            "entry_value_score": 91.69,
-            "overhead_distance_pct": 5.46,
-            "penalties": {
-              "below_ma60_unconfirmed": 12.0,
-              "repair_unconfirmed": 10.0,
-              "weak_close_high_volume": 15.0
-            },
-            "provisional": true,
-            "not_trade_permission": true
-          },
-          "reference": {
-            "stage": "PRE_TREND_WATCH",
-            "setup_mode": "RECLAIM",
-            "conditional_trigger": "等待重新站稳均线并出现明确的回踩承接，再从该次形态计算失效位",
-            "reference_trigger_price": 21.86,
-            "reference_zone": null,
-            "invalidation_price": null,
-            "estimated_price_risk_pct": null,
-            "risk_threshold_pct": 8.0,
-            "price_basis": "同一已完成交易日观察触发价，非入场/持仓止损"
-          },
-          "decision_reason": "MA60下方仍可观察启动或修复；尚未形成经确认的低风险入场条件",
-          "attention_rank": 2,
-          "attention_judgement": "模型同主题相对研究次序：仅用于解释与同分比较；连续质量证据及入场价值排序（试运行）：WAIT仅供观察，尚不可买；原模型研究名次：1；机会分证据：{'status': 'COMPLETE_ASOF_EVIDENCE', 'score': 30.1328, 'research_quality_score': 29.88, 'research_quality_source': 'FROZEN_F10_AND_COMPLETED_HISTORY_V1', 'research_quality_components': {'core_profit_yoy_pct': 40.4402, 'operating_cashflow_per_share': -0.6912, 'core_growth_component': 0.872537, 'cashflow_component': 0.0, 'peer_percentiles': {'10': 0.25, '20': 0.0, '60': 0.0}, 'negative_cashflow_penalty': 0.15, 'score_is_provisional_not_probability': True}, 'momentum_stage_score': 57.72, 'entry_value_score': 91.69, 'overhead_distance_pct': 5.46, 'penalties': {'below_ma60_unconfirmed': 12.0, 'repair_unconfirmed': 10.0, 'weak_close_high_volume': 15.0}, 'provisional': True, 'not_trade_permission': True}；模型研究判断：光华科技前三季度收入与扣非利润分别同比增长约74.9%和40.4%，电子化学品传导直接；但经营现金流为负，回款和营运资金风险突出。；近5日涨幅为正，但上涨天数条件不足或未经核验；未达到上述近期突破或收盘参考区观察条件，继续跟踪；距MA20绝对偏离0.17%；机会分与模型次序均非收益预测，WAIT不是买入许可",
-          "attention_resistance_check": {
-            "status": "UNVERIFIED",
-            "resistance_price": 20.08,
-            "resistance_date": "2026-04-14",
-            "resistance_source": "asof_180bar_confirmed_pivot",
-            "upside_to_resistance_R": null,
-            "distance_to_ma20_pct": 0.17,
-            "chase_risk_high": false,
-            "note": "WAIT：缺少可执行的成对入场与失效位，当前只供观察；尚无可计算的独立阻力赔率，不能视为上方空间无限；已确认上方阻力仅是关注排序中的空间证据；1.5R独立风险Gate仍按原规则执行"
-          }
-        },
-        {
-          "code": "002584",
-          "company_name": "西陇科学",
-          "status": "WAIT",
-          "trend_phase": "TRANSITION",
-          "entry_opportunity": "TREND_WATCH_ONLY",
-          "current_price": 8.62,
-          "original_model_rank": 5,
-          "opportunity_rank_evidence": {
-            "status": "COMPLETE_ASOF_EVIDENCE",
-            "score": 5.8987,
-            "research_quality_score": 62.37,
-            "research_quality_source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-            "research_quality_components": {
-              "core_profit_yoy_pct": 31.0483,
-              "operating_cashflow_per_share": -0.0848,
-              "core_growth_component": 0.747311,
-              "cashflow_component": 0.0,
-              "peer_percentiles": {
-                "10": 1.0,
-                "20": 1.0,
-                "60": 1.0
-              },
-              "negative_cashflow_penalty": 0.15,
-              "score_is_provisional_not_probability": true
-            },
-            "momentum_stage_score": 44.52,
-            "entry_value_score": 16.27,
-            "overhead_distance_pct": 0.93,
-            "penalties": {
-              "extended_ma20": 15.0,
-              "near_verified_overhead": 15.0
-            },
-            "provisional": true,
-            "not_trade_permission": true
-          },
-          "reference": {
-            "stage": "PRE_TREND_WATCH",
-            "setup_mode": "SETUP_REASSESSMENT",
-            "conditional_trigger": "远期突破价不作为当前买点；观察近端结构，待有效突破或承接另行确立",
-            "reference_trigger_price": 7.497,
-            "reference_zone": null,
-            "invalidation_price": null,
-            "estimated_price_risk_pct": null,
-            "risk_threshold_pct": 8.0,
-            "price_basis": "同一已完成交易日观察触发价，非入场/持仓止损"
-          },
-          "decision_reason": "已有趋势观察价值，但尚未确认本次突破或回踩承接；缺对应的交易失效位，不能虚构入场区",
-          "attention_rank": 3,
-          "attention_judgement": "模型同主题相对研究次序：仅用于解释与同分比较；连续质量证据及入场价值排序（试运行）：WAIT仅供观察，尚不可买；原模型研究名次：5；机会分证据：{'status': 'COMPLETE_ASOF_EVIDENCE', 'score': 5.8987, 'research_quality_score': 62.37, 'research_quality_source': 'FROZEN_F10_AND_COMPLETED_HISTORY_V1', 'research_quality_components': {'core_profit_yoy_pct': 31.0483, 'operating_cashflow_per_share': -0.0848, 'core_growth_component': 0.747311, 'cashflow_component': 0.0, 'peer_percentiles': {'10': 1.0, '20': 1.0, '60': 1.0}, 'negative_cashflow_penalty': 0.15, 'score_is_provisional_not_probability': True}, 'momentum_stage_score': 44.52, 'entry_value_score': 16.27, 'overhead_distance_pct': 0.93, 'penalties': {'extended_ma20': 15.0, 'near_verified_overhead': 15.0}, 'provisional': True, 'not_trade_permission': True}；模型研究判断：西陇科学扣非利润同比约增长31.0%且价格动能较强，但业务覆盖较广、主题纯度相对低，经营现金流为负，暂按早期证据处理。；近5日涨幅为正且上涨日不少于3日；未达到上述近期突破或收盘参考区观察条件，继续跟踪；距MA20绝对偏离14.98%；短线追高风险需独立校验；机会分与模型次序均非收益预测，WAIT不是买入许可",
-          "attention_resistance_check": {
-            "status": "UNVERIFIED",
-            "resistance_price": 8.7,
-            "resistance_date": "2026-11-18",
-            "resistance_source": "asof_structure",
-            "upside_to_resistance_R": null,
-            "distance_to_ma20_pct": 14.98,
-            "chase_risk_high": true,
-            "note": "WAIT：缺少可执行的成对入场与失效位，当前只供观察；短线偏离较大或追高风险高，暂缓追涨；尚无可计算的独立阻力赔率，不能视为上方空间无限；已确认上方阻力仅是关注排序中的空间证据；1.5R独立风险Gate仍按原规则执行"
-          }
-        },
-        {
-          "code": "603931",
-          "company_name": "格林达",
-          "status": "WAIT",
-          "trend_phase": "REPAIRING",
-          "entry_opportunity": "EARLY_NOT_READY",
-          "current_price": 30.75,
-          "original_model_rank": 3,
-          "opportunity_rank_evidence": {
-            "status": "COMPLETE_ASOF_EVIDENCE",
-            "score": 5.7147,
-            "research_quality_score": 50.07,
-            "research_quality_source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-            "research_quality_components": {
-              "core_profit_yoy_pct": -0.5226,
-              "operating_cashflow_per_share": 0.6393,
-              "core_growth_component": 0.326366,
-              "cashflow_component": 1.0,
-              "peer_percentiles": {
-                "10": 0.5,
-                "20": 0.5,
-                "60": 0.75
-              },
-              "negative_cashflow_penalty": 0.0,
-              "score_is_provisional_not_probability": true
-            },
-            "momentum_stage_score": 65.11,
-            "entry_value_score": 28.86,
-            "overhead_distance_pct": 4.8,
-            "penalties": {
-              "extended_ma20": 15.0,
-              "recent_5d_surge": 5.639999999999997,
-              "below_ma60_unconfirmed": 12.0,
-              "repair_unconfirmed": 10.0
-            },
-            "provisional": true,
-            "not_trade_permission": true
-          },
-          "reference": {
-            "stage": "PRE_TREND_WATCH",
-            "setup_mode": "RECLAIM",
-            "conditional_trigger": "等待重新站稳均线并出现明确的回踩承接，再从该次形态计算失效位",
-            "reference_trigger_price": 30.802,
-            "reference_zone": null,
-            "invalidation_price": null,
-            "estimated_price_risk_pct": null,
-            "risk_threshold_pct": 8.0,
-            "price_basis": "同一已完成交易日观察触发价，非入场/持仓止损"
-          },
-          "decision_reason": "MA60下方仍可观察启动或修复；尚未形成经确认的低风险入场条件",
-          "attention_rank": 4,
-          "attention_judgement": "模型同主题相对研究次序：仅用于解释与同分比较；连续质量证据及入场价值排序（试运行）：WAIT仅供观察，尚不可买；原模型研究名次：3；机会分证据：{'status': 'COMPLETE_ASOF_EVIDENCE', 'score': 5.7147, 'research_quality_score': 50.07, 'research_quality_source': 'FROZEN_F10_AND_COMPLETED_HISTORY_V1', 'research_quality_components': {'core_profit_yoy_pct': -0.5226, 'operating_cashflow_per_share': 0.6393, 'core_growth_component': 0.326366, 'cashflow_component': 1.0, 'peer_percentiles': {'10': 0.5, '20': 0.5, '60': 0.75}, 'negative_cashflow_penalty': 0.0, 'score_is_provisional_not_probability': True}, 'momentum_stage_score': 65.11, 'entry_value_score': 28.86, 'overhead_distance_pct': 4.8, 'penalties': {'extended_ma20': 15.0, 'recent_5d_surge': 5.639999999999997, 'below_ma60_unconfirmed': 12.0, 'repair_unconfirmed': 10.0}, 'provisional': True, 'not_trade_permission': True}；模型研究判断：格林达电子材料业务与主题直接相关，近20日价格结构较强且经营现金流为正；但收入和扣非利润均略降，经营兑现仍缺乏加速。；近5日涨幅为正且上涨日不少于3日；此前收盘参考区盘中未有效刺破并收强；未同时满足放量5日突破观察条件；距MA20绝对偏离13.64%；短线追高风险需独立校验；机会分与模型次序均非收益预测，WAIT不是买入许可",
-          "attention_resistance_check": {
-            "status": "UNVERIFIED",
-            "resistance_price": 32.225,
-            "resistance_date": "2026-03-11",
-            "resistance_source": "asof_180bar_confirmed_pivot",
-            "upside_to_resistance_R": null,
-            "distance_to_ma20_pct": 13.64,
-            "chase_risk_high": true,
-            "note": "WAIT：缺少可执行的成对入场与失效位，当前只供观察；短线偏离较大或追高风险高，暂缓追涨；尚无可计算的独立阻力赔率，不能视为上方空间无限；已确认上方阻力仅是关注排序中的空间证据；1.5R独立风险Gate仍按原规则执行"
-          }
-        },
-        {
-          "code": "603078",
-          "company_name": "江化微",
-          "status": "WAIT",
-          "trend_phase": "REPAIRING",
-          "entry_opportunity": "EARLY_NOT_READY",
-          "current_price": 27.34,
-          "original_model_rank": 2,
-          "opportunity_rank_evidence": {
-            "status": "COMPLETE_ASOF_EVIDENCE",
-            "score": 1.7755,
-            "research_quality_score": 40.61,
-            "research_quality_source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-            "research_quality_components": {
-              "core_profit_yoy_pct": -12.8349,
-              "operating_cashflow_per_share": 0.4202,
-              "core_growth_component": 0.162201,
-              "cashflow_component": 1.0,
-              "peer_percentiles": {
-                "10": 0.75,
-                "20": 0.75,
-                "60": 0.25
-              },
-              "negative_cashflow_penalty": 0.0,
-              "score_is_provisional_not_probability": true
-            },
-            "momentum_stage_score": 78.21,
-            "entry_value_score": 29.88,
-            "overhead_distance_pct": 5.85,
-            "penalties": {
-              "extended_ma20": 15.0,
-              "recent_5d_surge": 14.46,
-              "below_ma60_unconfirmed": 12.0,
-              "repair_unconfirmed": 10.0
-            },
-            "provisional": true,
-            "not_trade_permission": true
-          },
-          "reference": {
-            "stage": "PRE_TREND_WATCH",
-            "setup_mode": "RECLAIM",
-            "conditional_trigger": "等待重新站稳均线并出现明确的回踩承接，再从该次形态计算失效位",
-            "reference_trigger_price": 27.933,
-            "reference_zone": null,
-            "invalidation_price": null,
-            "estimated_price_risk_pct": null,
-            "risk_threshold_pct": 8.0,
-            "price_basis": "同一已完成交易日观察触发价，非入场/持仓止损"
-          },
-          "decision_reason": "MA60下方仍可观察启动或修复；尚未形成经确认的低风险入场条件",
-          "attention_rank": 5,
-          "attention_judgement": "模型同主题相对研究次序：仅用于解释与同分比较；连续质量证据及入场价值排序（试运行）：WAIT仅供观察，尚不可买；原模型研究名次：2；机会分证据：{'status': 'COMPLETE_ASOF_EVIDENCE', 'score': 1.7755, 'research_quality_score': 40.61, 'research_quality_source': 'FROZEN_F10_AND_COMPLETED_HISTORY_V1', 'research_quality_components': {'core_profit_yoy_pct': -12.8349, 'operating_cashflow_per_share': 0.4202, 'core_growth_component': 0.162201, 'cashflow_component': 1.0, 'peer_percentiles': {'10': 0.75, '20': 0.75, '60': 0.25}, 'negative_cashflow_penalty': 0.0, 'score_is_provisional_not_probability': True}, 'momentum_stage_score': 78.21, 'entry_value_score': 29.88, 'overhead_distance_pct': 5.85, 'penalties': {'extended_ma20': 15.0, 'recent_5d_surge': 14.46, 'below_ma60_unconfirmed': 12.0, 'repair_unconfirmed': 10.0}, 'provisional': True, 'not_trade_permission': True}；模型研究判断：江化微主营湿电子化学品，主题纯度高且20日相对强度较好；前三季度收入增长约18.0%，但扣非利润下降约12.8%且估值较高。；近5日涨幅为正且上涨日不少于3日；放量突破前5日高点；未识别符合当前规则的近期收盘参考区；距MA20绝对偏离15.52%；短线追高风险需独立校验；机会分与模型次序均非收益预测，WAIT不是买入许可",
-          "attention_resistance_check": {
-            "status": "UNVERIFIED",
-            "resistance_price": 28.94,
-            "resistance_date": "2026-05-11",
-            "resistance_source": "asof_180bar_confirmed_pivot",
-            "upside_to_resistance_R": null,
-            "distance_to_ma20_pct": 15.52,
-            "chase_risk_high": true,
-            "note": "WAIT：缺少可执行的成对入场与失效位，当前只供观察；短线偏离较大或追高风险高，暂缓追涨；尚无可计算的独立阻力赔率，不能视为上方空间无限；已确认上方阻力仅是关注排序中的空间证据；1.5R独立风险Gate仍按原规则执行"
-          }
-        }
-      ]
-    },
+  "top1_by_industry": [
     {
       "trend_name": "银行",
-      "attention_ranking_policy": "ENTRY_VALUE_STAGE_V1_1_CONTINUOUS_QUALITY",
-      "qualified_opportunity_count": 5,
-      "trend_watch_candidate_count": 0,
-      "items": [
-        {
-          "code": "601288",
-          "company_name": "农业银行",
-          "status": "READY",
-          "trend_phase": "TRANSITION",
-          "entry_opportunity": "READY",
-          "current_price": 7.93,
-          "original_model_rank": 1,
-          "opportunity_rank_evidence": {
-            "status": "COMPLETE_ASOF_EVIDENCE",
-            "score": 49.2207,
-            "research_quality_score": 59.3,
-            "research_quality_source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-            "research_quality_components": {
-              "core_profit_yoy_pct": 7.695,
-              "operating_cashflow_per_share": 2.3161,
-              "core_growth_component": 0.435933,
-              "cashflow_component": 1.0,
-              "peer_percentiles": {
-                "10": 1.0,
-                "20": 0.75,
-                "60": 0.5
-              },
-              "negative_cashflow_penalty": 0.0,
-              "score_is_provisional_not_probability": true
-            },
-            "momentum_stage_score": 37.71,
-            "entry_value_score": 58.39,
-            "overhead_distance_pct": null,
-            "penalties": {},
-            "provisional": true,
-            "not_trade_permission": true
-          },
-          "reference": {
-            "stage": "STOCK_CONFIRMED_SECTOR_PENDING",
-            "setup_mode": "BREAKOUT",
-            "conditional_trigger": "已有个股交易结构，但仍受板块/赔率/风险等WAIT条件约束；下个完整交易日复核，非买单",
-            "reference_trigger_price": 7.936,
-            "reference_zone": [
-              7.936,
-              8.025
-            ],
-            "invalidation_price": 7.88,
-            "estimated_price_risk_pct": 1.81,
-            "risk_threshold_pct": 6.0,
-            "price_basis": "同日确认的本次突破或回踩结构，WAIT仍不可执行"
-          },
-          "decision_reason": "截至收盘的技术确认通过；仅为下一交易日有条件入场计划",
-          "attention_rank": 1,
-          "attention_judgement": "模型同主题相对研究次序：仅用于解释与同分比较；连续质量证据及入场价值排序（试运行）：READY先于WAIT；仅下一交易日条件性入场；原模型研究名次：1；机会分证据：{'status': 'COMPLETE_ASOF_EVIDENCE', 'score': 49.2207, 'research_quality_score': 59.3, 'research_quality_source': 'FROZEN_F10_AND_COMPLETED_HISTORY_V1', 'research_quality_components': {'core_profit_yoy_pct': 7.695, 'operating_cashflow_per_share': 2.3161, 'core_growth_component': 0.435933, 'cashflow_component': 1.0, 'peer_percentiles': {'10': 1.0, '20': 0.75, '60': 0.5}, 'negative_cashflow_penalty': 0.0, 'score_is_provisional_not_probability': True}, 'momentum_stage_score': 37.71, 'entry_value_score': 58.39, 'overhead_distance_pct': None, 'penalties': {}, 'provisional': True, 'not_trade_permission': True}；模型研究判断：农业银行前三季度收入和扣非利润分别同比增长约12.3%和7.7%，经营现金流为正，10日与60日价格强度在同组居前。；近5日涨幅为正且上涨日不少于3日；此前收盘参考区盘中未有效刺破并收强；未同时满足放量5日突破观察条件；距MA20绝对偏离5.78%；机会分与模型次序均非收益预测，WAIT不是买入许可",
-          "attention_resistance_check": {
-            "status": "UNVERIFIED",
-            "resistance_price": null,
-            "resistance_date": null,
-            "resistance_source": null,
-            "upside_to_resistance_R": null,
-            "distance_to_ma20_pct": 5.78,
-            "chase_risk_high": false,
-            "note": "READY仅为下一交易日条件性计划，非即时买单；尚无可计算的独立阻力赔率，不能视为上方空间无限；已确认上方阻力仅是关注排序中的空间证据；1.5R独立风险Gate仍按原规则执行"
-          }
-        },
-        {
-          "code": "601939",
-          "company_name": "建设银行",
-          "status": "WAIT",
-          "trend_phase": "TRANSITION",
-          "entry_opportunity": "EARLY_NOT_READY",
-          "current_price": 12.43,
-          "original_model_rank": 2,
-          "opportunity_rank_evidence": {
-            "status": "COMPLETE_ASOF_EVIDENCE",
-            "score": 50.5991,
-            "research_quality_score": 35.84,
-            "research_quality_source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-            "research_quality_components": {
-              "core_profit_yoy_pct": 6.2615,
-              "operating_cashflow_per_share": 4.8319,
-              "core_growth_component": 0.41682,
-              "cashflow_component": 1.0,
-              "peer_percentiles": {
-                "10": 0.0,
-                "20": 0.25,
-                "60": 0.0
-              },
-              "negative_cashflow_penalty": 0.0,
-              "score_is_provisional_not_probability": true
-            },
-            "momentum_stage_score": 27.71,
-            "entry_value_score": 81.88,
-            "overhead_distance_pct": null,
-            "penalties": {},
-            "provisional": true,
-            "not_trade_permission": true
-          },
-          "reference": {
-            "stage": "PRE_TREND_WATCH",
-            "setup_mode": "PULLBACK_HOLD",
-            "conditional_trigger": "观察将来回踩MA20附近能否完成承接；在真实形态出现前不得指定止损",
-            "reference_trigger_price": 12.1,
-            "reference_zone": null,
-            "invalidation_price": null,
-            "estimated_price_risk_pct": null,
-            "risk_threshold_pct": 8.0,
-            "price_basis": "同一已完成交易日观察触发价，非入场/持仓止损"
-          },
-          "decision_reason": "已有趋势观察价值，但尚未确认本次突破或回踩承接；缺对应的交易失效位，不能虚构入场区",
-          "attention_rank": 2,
-          "attention_judgement": "模型同主题相对研究次序：仅用于解释与同分比较；连续质量证据及入场价值排序（试运行）：WAIT仅供观察，尚不可买；原模型研究名次：2；机会分证据：{'status': 'COMPLETE_ASOF_EVIDENCE', 'score': 50.5991, 'research_quality_score': 35.84, 'research_quality_source': 'FROZEN_F10_AND_COMPLETED_HISTORY_V1', 'research_quality_components': {'core_profit_yoy_pct': 6.2615, 'operating_cashflow_per_share': 4.8319, 'core_growth_component': 0.41682, 'cashflow_component': 1.0, 'peer_percentiles': {'10': 0.0, '20': 0.25, '60': 0.0}, 'negative_cashflow_penalty': 0.0, 'score_is_provisional_not_probability': True}, 'momentum_stage_score': 27.71, 'entry_value_score': 81.88, 'overhead_distance_pct': None, 'penalties': {}, 'provisional': True, 'not_trade_permission': True}；模型研究判断：建设银行前三季度收入和扣非利润分别同比增长约11.4%和6.3%，现金流与盈利质量稳健；价格趋势良好但短期动能略逊农业银行。；近5日涨幅为正且上涨日不少于3日；未达到上述近期突破或收盘参考区观察条件，继续跟踪；距MA20绝对偏离2.73%；机会分与模型次序均非收益预测，WAIT不是买入许可",
-          "attention_resistance_check": {
-            "status": "UNVERIFIED",
-            "resistance_price": null,
-            "resistance_date": null,
-            "resistance_source": null,
-            "upside_to_resistance_R": null,
-            "distance_to_ma20_pct": 2.73,
-            "chase_risk_high": false,
-            "note": "WAIT：缺少可执行的成对入场与失效位，当前只供观察；尚无可计算的独立阻力赔率，不能视为上方空间无限；已确认上方阻力仅是关注排序中的空间证据；1.5R独立风险Gate仍按原规则执行"
-          }
-        },
-        {
-          "code": "601658",
-          "company_name": "邮储银行",
-          "status": "WAIT",
-          "trend_phase": "TRANSITION",
-          "entry_opportunity": "EARLY_NOT_READY",
-          "current_price": 5.9,
-          "original_model_rank": 5,
-          "opportunity_rank_evidence": {
-            "status": "COMPLETE_ASOF_EVIDENCE",
-            "score": 48.9729,
-            "research_quality_score": 32.7,
-            "research_quality_source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-            "research_quality_components": {
-              "core_profit_yoy_pct": 1.5566,
-              "operating_cashflow_per_share": 2.791,
-              "core_growth_component": 0.354087,
-              "cashflow_component": 1.0,
-              "peer_percentiles": {
-                "10": 0.25,
-                "20": 0.0,
-                "60": 0.25
-              },
-              "negative_cashflow_penalty": 0.0,
-              "score_is_provisional_not_probability": true
-            },
-            "momentum_stage_score": 30.42,
-            "entry_value_score": 75.95,
-            "overhead_distance_pct": null,
-            "penalties": {},
-            "provisional": true,
-            "not_trade_permission": true
-          },
-          "reference": {
-            "stage": "PRE_TREND_WATCH",
-            "setup_mode": "PULLBACK_HOLD",
-            "conditional_trigger": "观察将来回踩MA20附近能否完成承接；在真实形态出现前不得指定止损",
-            "reference_trigger_price": 5.7,
-            "reference_zone": null,
-            "invalidation_price": null,
-            "estimated_price_risk_pct": null,
-            "risk_threshold_pct": 8.0,
-            "price_basis": "同一已完成交易日观察触发价，非入场/持仓止损"
-          },
-          "decision_reason": "已有趋势观察价值，但尚未确认本次突破或回踩承接；缺对应的交易失效位，不能虚构入场区",
-          "attention_rank": 3,
-          "attention_judgement": "模型同主题相对研究次序：仅用于解释与同分比较；连续质量证据及入场价值排序（试运行）：WAIT仅供观察，尚不可买；原模型研究名次：5；机会分证据：{'status': 'COMPLETE_ASOF_EVIDENCE', 'score': 48.9729, 'research_quality_score': 32.7, 'research_quality_source': 'FROZEN_F10_AND_COMPLETED_HISTORY_V1', 'research_quality_components': {'core_profit_yoy_pct': 1.5566, 'operating_cashflow_per_share': 2.791, 'core_growth_component': 0.354087, 'cashflow_component': 1.0, 'peer_percentiles': {'10': 0.25, '20': 0.0, '60': 0.25}, 'negative_cashflow_penalty': 0.0, 'score_is_provisional_not_probability': True}, 'momentum_stage_score': 30.42, 'entry_value_score': 75.95, 'overhead_distance_pct': None, 'penalties': {}, 'provisional': True, 'not_trade_permission': True}；模型研究判断：邮储银行前三季度经营现金流为正、价格趋势稳定，但扣非利润同比仅增长约1.6%，经营兑现弱于其余入选国有大行。；近5日涨幅为正且上涨日不少于3日；未达到上述近期突破或收盘参考区观察条件，继续跟踪；距MA20绝对偏离3.50%；机会分与模型次序均非收益预测，WAIT不是买入许可",
-          "attention_resistance_check": {
-            "status": "UNVERIFIED",
-            "resistance_price": null,
-            "resistance_date": null,
-            "resistance_source": null,
-            "upside_to_resistance_R": null,
-            "distance_to_ma20_pct": 3.5,
-            "chase_risk_high": false,
-            "note": "WAIT：缺少可执行的成对入场与失效位，当前只供观察；尚无可计算的独立阻力赔率，不能视为上方空间无限；已确认上方阻力仅是关注排序中的空间证据；1.5R独立风险Gate仍按原规则执行"
-          }
-        },
-        {
-          "code": "601328",
-          "company_name": "交通银行",
-          "status": "WAIT",
-          "trend_phase": "TRANSITION",
-          "entry_opportunity": "EARLY_NOT_READY",
-          "current_price": 8.98,
-          "original_model_rank": 3,
-          "opportunity_rank_evidence": {
-            "status": "COMPLETE_ASOF_EVIDENCE",
-            "score": 48.9427,
-            "research_quality_score": 68.38,
-            "research_quality_source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-            "research_quality_components": {
-              "core_profit_yoy_pct": 6.3158,
-              "operating_cashflow_per_share": 2.4063,
-              "core_growth_component": 0.417543,
-              "cashflow_component": 1.0,
-              "peer_percentiles": {
-                "10": 0.5,
-                "20": 1.0,
-                "60": 1.0
-              },
-              "negative_cashflow_penalty": 0.0,
-              "score_is_provisional_not_probability": true
-            },
-            "momentum_stage_score": 27.7,
-            "entry_value_score": 65.56,
-            "overhead_distance_pct": null,
-            "penalties": {},
-            "provisional": true,
-            "not_trade_permission": true
-          },
-          "reference": {
-            "stage": "PRE_TREND_WATCH",
-            "setup_mode": "PULLBACK_HOLD",
-            "conditional_trigger": "观察将来回踩MA20附近能否完成承接；在真实形态出现前不得指定止损",
-            "reference_trigger_price": 8.565,
-            "reference_zone": null,
-            "invalidation_price": null,
-            "estimated_price_risk_pct": null,
-            "risk_threshold_pct": 8.0,
-            "price_basis": "同一已完成交易日观察触发价，非入场/持仓止损"
-          },
-          "decision_reason": "已有趋势观察价值，但尚未确认本次突破或回踩承接；缺对应的交易失效位，不能虚构入场区",
-          "attention_rank": 4,
-          "attention_judgement": "模型同主题相对研究次序：仅用于解释与同分比较；连续质量证据及入场价值排序（试运行）：WAIT仅供观察，尚不可买；原模型研究名次：3；机会分证据：{'status': 'COMPLETE_ASOF_EVIDENCE', 'score': 48.9427, 'research_quality_score': 68.38, 'research_quality_source': 'FROZEN_F10_AND_COMPLETED_HISTORY_V1', 'research_quality_components': {'core_profit_yoy_pct': 6.3158, 'operating_cashflow_per_share': 2.4063, 'core_growth_component': 0.417543, 'cashflow_component': 1.0, 'peer_percentiles': {'10': 0.5, '20': 1.0, '60': 1.0}, 'negative_cashflow_penalty': 0.0, 'score_is_provisional_not_probability': True}, 'momentum_stage_score': 27.7, 'entry_value_score': 65.56, 'overhead_distance_pct': None, 'penalties': {}, 'provisional': True, 'not_trade_permission': True}；模型研究判断：交通银行前三季度扣非利润同比约增长6.3%，估值较低且60日相对强度同组领先；但收入和盈利增速中等，需持续核验资产质量。；近5日涨幅为正且上涨日不少于3日；未达到上述近期突破或收盘参考区观察条件，继续跟踪；距MA20绝对偏离4.85%；机会分与模型次序均非收益预测，WAIT不是买入许可",
-          "attention_resistance_check": {
-            "status": "UNVERIFIED",
-            "resistance_price": null,
-            "resistance_date": null,
-            "resistance_source": null,
-            "upside_to_resistance_R": null,
-            "distance_to_ma20_pct": 4.85,
-            "chase_risk_high": false,
-            "note": "WAIT：缺少可执行的成对入场与失效位，当前只供观察；尚无可计算的独立阻力赔率，不能视为上方空间无限；已确认上方阻力仅是关注排序中的空间证据；1.5R独立风险Gate仍按原规则执行"
-          }
-        },
-        {
-          "code": "601398",
-          "company_name": "工商银行",
-          "status": "WAIT",
-          "trend_phase": "TRANSITION",
-          "entry_opportunity": "EARLY_NOT_READY",
-          "current_price": 9.22,
-          "original_model_rank": 4,
-          "opportunity_rank_evidence": {
-            "status": "COMPLETE_ASOF_EVIDENCE",
-            "score": 47.1475,
-            "research_quality_score": 55.51,
-            "research_quality_source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-            "research_quality_components": {
-              "core_profit_yoy_pct": 5.7616,
-              "operating_cashflow_per_share": 4.3339,
-              "core_growth_component": 0.410155,
-              "cashflow_component": 1.0,
-              "peer_percentiles": {
-                "10": 0.75,
-                "20": 0.5,
-                "60": 0.75
-              },
-              "negative_cashflow_penalty": 0.0,
-              "score_is_provisional_not_probability": true
-            },
-            "momentum_stage_score": 27.93,
-            "entry_value_score": 65.63,
-            "overhead_distance_pct": null,
-            "penalties": {},
-            "provisional": true,
-            "not_trade_permission": true
-          },
-          "reference": {
-            "stage": "PRE_TREND_WATCH",
-            "setup_mode": "PULLBACK_HOLD",
-            "conditional_trigger": "观察将来回踩MA20附近能否完成承接；在真实形态出现前不得指定止损",
-            "reference_trigger_price": 8.794,
-            "reference_zone": null,
-            "invalidation_price": null,
-            "estimated_price_risk_pct": null,
-            "risk_threshold_pct": 8.0,
-            "price_basis": "同一已完成交易日观察触发价，非入场/持仓止损"
-          },
-          "decision_reason": "已有趋势观察价值，但尚未确认本次突破或回踩承接；缺对应的交易失效位，不能虚构入场区",
-          "attention_rank": 5,
-          "attention_judgement": "模型同主题相对研究次序：仅用于解释与同分比较；连续质量证据及入场价值排序（试运行）：WAIT仅供观察，尚不可买；原模型研究名次：4；机会分证据：{'status': 'COMPLETE_ASOF_EVIDENCE', 'score': 47.1475, 'research_quality_score': 55.51, 'research_quality_source': 'FROZEN_F10_AND_COMPLETED_HISTORY_V1', 'research_quality_components': {'core_profit_yoy_pct': 5.7616, 'operating_cashflow_per_share': 4.3339, 'core_growth_component': 0.410155, 'cashflow_component': 1.0, 'peer_percentiles': {'10': 0.75, '20': 0.5, '60': 0.75}, 'negative_cashflow_penalty': 0.0, 'score_is_provisional_not_probability': True}, 'momentum_stage_score': 27.93, 'entry_value_score': 65.63, 'overhead_distance_pct': None, 'penalties': {}, 'provisional': True, 'not_trade_permission': True}；模型研究判断：工商银行前三季度收入和扣非利润分别同比增长约8.7%和5.8%，经营现金流充足；价格结构保持强势，但盈利增速低于农业银行。；近5日涨幅为正且上涨日不少于3日；未达到上述近期突破或收盘参考区观察条件，继续跟踪；距MA20绝对偏离4.84%；机会分与模型次序均非收益预测，WAIT不是买入许可",
-          "attention_resistance_check": {
-            "status": "UNVERIFIED",
-            "resistance_price": null,
-            "resistance_date": null,
-            "resistance_source": null,
-            "upside_to_resistance_R": null,
-            "distance_to_ma20_pct": 4.84,
-            "chase_risk_high": false,
-            "note": "WAIT：缺少可执行的成对入场与失效位，当前只供观察；尚无可计算的独立阻力赔率，不能视为上方空间无限；已确认上方阻力仅是关注排序中的空间证据；1.5R独立风险Gate仍按原规则执行"
-          }
-        }
-      ]
-    },
-    {
-      "trend_name": "高端PCB",
-      "attention_ranking_policy": "ENTRY_VALUE_STAGE_V1_1_CONTINUOUS_QUALITY",
-      "qualified_opportunity_count": 0,
-      "trend_watch_candidate_count": 5,
-      "items": [
-        {
-          "code": "603920",
-          "company_name": "世运电路",
-          "status": "WAIT",
-          "trend_phase": "TRANSITION",
-          "entry_opportunity": "TREND_WATCH_ONLY",
-          "current_price": 35.8,
-          "original_model_rank": 5,
-          "opportunity_rank_evidence": {
-            "status": "COMPLETE_ASOF_EVIDENCE",
-            "score": 60.805,
-            "research_quality_score": 41.25,
-            "research_quality_source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-            "research_quality_components": {
-              "core_profit_yoy_pct": -47.2346,
-              "operating_cashflow_per_share": 0.6846,
-              "core_growth_component": 0.0,
-              "cashflow_component": 1.0,
-              "peer_percentiles": {
-                "10": 0.75,
-                "20": 1.0,
-                "60": 0.5
-              },
-              "negative_cashflow_penalty": 0.0,
-              "score_is_provisional_not_probability": true
-            },
-            "momentum_stage_score": 74.77,
-            "entry_value_score": 82.43,
-            "overhead_distance_pct": 7.54,
-            "penalties": {
-              "below_ma60_unconfirmed": 12.0
-            },
-            "provisional": true,
-            "not_trade_permission": true
-          },
-          "reference": {
-            "stage": "PRE_TREND_WATCH",
-            "setup_mode": "RECLAIM",
-            "conditional_trigger": "等待重新站稳均线并出现明确的回踩承接，再从该次形态计算失效位",
-            "reference_trigger_price": 38.687,
-            "reference_zone": null,
-            "invalidation_price": null,
-            "estimated_price_risk_pct": null,
-            "risk_threshold_pct": 8.0,
-            "price_basis": "同一已完成交易日观察触发价，非入场/持仓止损"
-          },
-          "decision_reason": "MA60下方仍可观察启动或修复；尚未形成经确认的低风险入场条件",
-          "attention_rank": 1,
-          "attention_judgement": "模型同主题相对研究次序：仅用于解释与同分比较；连续质量证据及入场价值排序（试运行）：WAIT仅供观察，尚不可买；原模型研究名次：5；机会分证据：{'status': 'COMPLETE_ASOF_EVIDENCE', 'score': 60.805, 'research_quality_score': 41.25, 'research_quality_source': 'FROZEN_F10_AND_COMPLETED_HISTORY_V1', 'research_quality_components': {'core_profit_yoy_pct': -47.2346, 'operating_cashflow_per_share': 0.6846, 'core_growth_component': 0.0, 'cashflow_component': 1.0, 'peer_percentiles': {'10': 0.75, '20': 1.0, '60': 0.5}, 'negative_cashflow_penalty': 0.0, 'score_is_provisional_not_probability': True}, 'momentum_stage_score': 74.77, 'entry_value_score': 82.43, 'overhead_distance_pct': 7.54, 'penalties': {'below_ma60_unconfirmed': 12.0}, 'provisional': True, 'not_trade_permission': True}；模型研究判断：世运电路具备PCB直接业务和订单基础，20日价格相对同组较强；但前三季度扣非利润同比下降约47.2%，成本传导和盈利修复尚未兑现。；近5日涨幅为正且上涨日不少于3日；价格越过前5日高点，但未同时满足放量和收盘强度观察条件；距MA20绝对偏离3.84%；机会分与模型次序均非收益预测，WAIT不是买入许可",
-          "attention_resistance_check": {
-            "status": "UNVERIFIED",
-            "resistance_price": 38.5,
-            "resistance_date": "2026-10-29",
-            "resistance_source": "asof_structure",
-            "upside_to_resistance_R": null,
-            "distance_to_ma20_pct": 3.84,
-            "chase_risk_high": false,
-            "note": "WAIT：缺少可执行的成对入场与失效位，当前只供观察；尚无可计算的独立阻力赔率，不能视为上方空间无限；已确认上方阻力仅是关注排序中的空间证据；1.5R独立风险Gate仍按原规则执行"
-          }
-        },
-        {
-          "code": "603386",
-          "company_name": "骏亚科技",
-          "status": "WAIT",
-          "trend_phase": "REPAIRING",
-          "entry_opportunity": "TREND_WATCH_ONLY",
-          "current_price": 14.29,
-          "original_model_rank": 4,
-          "opportunity_rank_evidence": {
-            "status": "COMPLETE_ASOF_EVIDENCE",
-            "score": 34.8323,
-            "research_quality_score": 83.75,
-            "research_quality_source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-            "research_quality_components": {
-              "core_profit_yoy_pct": 782.6015,
-              "operating_cashflow_per_share": 0.1652,
-              "core_growth_component": 1.0,
-              "cashflow_component": 1.0,
-              "peer_percentiles": {
-                "10": 0.5,
-                "20": 0.5,
-                "60": 0.75
-              },
-              "negative_cashflow_penalty": 0.0,
-              "score_is_provisional_not_probability": true
-            },
-            "momentum_stage_score": 63.08,
-            "entry_value_score": 77.21,
-            "overhead_distance_pct": 2.17,
-            "penalties": {
-              "below_ma60_unconfirmed": 12.0,
-              "repair_unconfirmed": 10.0,
-              "weak_close_high_volume": 15.0
-            },
-            "provisional": true,
-            "not_trade_permission": true
-          },
-          "reference": {
-            "stage": "PRE_TREND_WATCH",
-            "setup_mode": "RECLAIM",
-            "conditional_trigger": "等待重新站稳均线并出现明确的回踩承接，再从该次形态计算失效位",
-            "reference_trigger_price": 16.055,
-            "reference_zone": null,
-            "invalidation_price": null,
-            "estimated_price_risk_pct": null,
-            "risk_threshold_pct": 8.0,
-            "price_basis": "同一已完成交易日观察触发价，非入场/持仓止损"
-          },
-          "decision_reason": "MA60下方仍可观察启动或修复；尚未形成经确认的低风险入场条件",
-          "attention_rank": 2,
-          "attention_judgement": "模型同主题相对研究次序：仅用于解释与同分比较；连续质量证据及入场价值排序（试运行）：WAIT仅供观察，尚不可买；原模型研究名次：4；机会分证据：{'status': 'COMPLETE_ASOF_EVIDENCE', 'score': 34.8323, 'research_quality_score': 83.75, 'research_quality_source': 'FROZEN_F10_AND_COMPLETED_HISTORY_V1', 'research_quality_components': {'core_profit_yoy_pct': 782.6015, 'operating_cashflow_per_share': 0.1652, 'core_growth_component': 1.0, 'cashflow_component': 1.0, 'peer_percentiles': {'10': 0.5, '20': 0.5, '60': 0.75}, 'negative_cashflow_penalty': 0.0, 'score_is_provisional_not_probability': True}, 'momentum_stage_score': 63.08, 'entry_value_score': 77.21, 'overhead_distance_pct': 2.17, 'penalties': {'below_ma60_unconfirmed': 12.0, 'repair_unconfirmed': 10.0, 'weak_close_high_volume': 15.0}, 'provisional': True, 'not_trade_permission': True}；模型研究判断：骏亚科技扣非利润同比高增但基数较低，经营现金流仍为正；近端价格修复而估值偏高，盈利持续性与产品结构升级仍需后续报告确认。；近5日涨幅为正且上涨日不少于3日；未达到上述近期突破或收盘参考区观察条件，继续跟踪；距MA20绝对偏离0.50%；机会分与模型次序均非收益预测，WAIT不是买入许可",
-          "attention_resistance_check": {
-            "status": "UNVERIFIED",
-            "resistance_price": 14.6,
-            "resistance_date": "2026-09-01",
-            "resistance_source": "asof_structure",
-            "upside_to_resistance_R": null,
-            "distance_to_ma20_pct": -0.5,
-            "chase_risk_high": false,
-            "note": "WAIT：缺少可执行的成对入场与失效位，当前只供观察；尚无可计算的独立阻力赔率，不能视为上方空间无限；已确认上方阻力仅是关注排序中的空间证据；1.5R独立风险Gate仍按原规则执行"
-          }
-        },
-        {
-          "code": "002815",
-          "company_name": "崇达技术",
-          "status": "WAIT",
-          "trend_phase": "REPAIRING",
-          "entry_opportunity": "TREND_WATCH_ONLY",
-          "current_price": 14.38,
-          "original_model_rank": 3,
-          "opportunity_rank_evidence": {
-            "status": "COMPLETE_ASOF_EVIDENCE",
-            "score": 28.7593,
-            "research_quality_score": 91.25,
-            "research_quality_source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-            "research_quality_components": {
-              "core_profit_yoy_pct": 105.9829,
-              "operating_cashflow_per_share": 0.7183,
-              "core_growth_component": 1.0,
-              "cashflow_component": 1.0,
-              "peer_percentiles": {
-                "10": 0.25,
-                "20": 0.75,
-                "60": 1.0
-              },
-              "negative_cashflow_penalty": 0.0,
-              "score_is_provisional_not_probability": true
-            },
-            "momentum_stage_score": 56.85,
-            "entry_value_score": 66.23,
-            "overhead_distance_pct": 2.36,
-            "penalties": {
-              "below_ma60_unconfirmed": 12.0,
-              "repair_unconfirmed": 10.0,
-              "weak_close_high_volume": 15.0
-            },
-            "provisional": true,
-            "not_trade_permission": true
-          },
-          "reference": {
-            "stage": "PRE_TREND_WATCH",
-            "setup_mode": "RECLAIM",
-            "conditional_trigger": "等待重新站稳均线并出现明确的回踩承接，再从该次形态计算失效位",
-            "reference_trigger_price": 18.151,
-            "reference_zone": null,
-            "invalidation_price": null,
-            "estimated_price_risk_pct": null,
-            "risk_threshold_pct": 8.0,
-            "price_basis": "同一已完成交易日观察触发价，非入场/持仓止损"
-          },
-          "decision_reason": "MA60下方仍可观察启动或修复；尚未形成经确认的低风险入场条件",
-          "attention_rank": 3,
-          "attention_judgement": "模型同主题相对研究次序：仅用于解释与同分比较；连续质量证据及入场价值排序（试运行）：WAIT仅供观察，尚不可买；原模型研究名次：3；机会分证据：{'status': 'COMPLETE_ASOF_EVIDENCE', 'score': 28.7593, 'research_quality_score': 91.25, 'research_quality_source': 'FROZEN_F10_AND_COMPLETED_HISTORY_V1', 'research_quality_components': {'core_profit_yoy_pct': 105.9829, 'operating_cashflow_per_share': 0.7183, 'core_growth_component': 1.0, 'cashflow_component': 1.0, 'peer_percentiles': {'10': 0.25, '20': 0.75, '60': 1.0}, 'negative_cashflow_penalty': 0.0, 'score_is_provisional_not_probability': True}, 'momentum_stage_score': 56.85, 'entry_value_score': 66.23, 'overhead_distance_pct': 2.36, 'penalties': {'below_ma60_unconfirmed': 12.0, 'repair_unconfirmed': 10.0, 'weak_close_high_volume': 15.0}, 'provisional': True, 'not_trade_permission': True}；模型研究判断：崇达技术前三季度扣非利润同比约106.0%，订单增长推动收入改善，估值低于多数同业；但应收和存货增幅较快且价格仍在MA60下方。；近5日涨幅为正且上涨日不少于3日；未达到上述近期突破或收盘参考区观察条件，继续跟踪；距MA20绝对偏离3.83%；机会分与模型次序均非收益预测，WAIT不是买入许可",
-          "attention_resistance_check": {
-            "status": "UNVERIFIED",
-            "resistance_price": 14.72,
-            "resistance_date": "2026-08-18",
-            "resistance_source": "asof_180bar_confirmed_pivot",
-            "upside_to_resistance_R": null,
-            "distance_to_ma20_pct": -3.83,
-            "chase_risk_high": false,
-            "note": "WAIT：缺少可执行的成对入场与失效位，当前只供观察；尚无可计算的独立阻力赔率，不能视为上方空间无限；已确认上方阻力仅是关注排序中的空间证据；1.5R独立风险Gate仍按原规则执行"
-          }
-        },
-        {
-          "code": "002463",
-          "company_name": "沪电股份",
-          "status": "WAIT",
-          "trend_phase": "REPAIRING",
-          "entry_opportunity": "TREND_WATCH_ONLY",
-          "current_price": 84.13,
-          "original_model_rank": 1,
-          "opportunity_rank_evidence": {
-            "status": "COMPLETE_ASOF_EVIDENCE",
-            "score": 19.5727,
-            "research_quality_score": 73.75,
-            "research_quality_source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-            "research_quality_components": {
-              "core_profit_yoy_pct": 104.5339,
-              "operating_cashflow_per_share": 1.402,
-              "core_growth_component": 1.0,
-              "cashflow_component": 1.0,
-              "peer_percentiles": {
-                "10": 1.0,
-                "20": 0.25,
-                "60": 0.25
-              },
-              "negative_cashflow_penalty": 0.0,
-              "score_is_provisional_not_probability": true
-            },
-            "momentum_stage_score": 80.96,
-            "entry_value_score": 81.2,
-            "overhead_distance_pct": 11.09,
-            "penalties": {
-              "recent_5d_surge": 38.400000000000006,
-              "below_ma60_unconfirmed": 12.0,
-              "repair_unconfirmed": 10.0
-            },
-            "provisional": true,
-            "not_trade_permission": true
-          },
-          "reference": {
-            "stage": "PRE_TREND_WATCH",
-            "setup_mode": "RECLAIM",
-            "conditional_trigger": "等待重新站稳均线并出现明确的回踩承接，再从该次形态计算失效位",
-            "reference_trigger_price": 106.623,
-            "reference_zone": null,
-            "invalidation_price": null,
-            "estimated_price_risk_pct": null,
-            "risk_threshold_pct": 8.0,
-            "price_basis": "同一已完成交易日观察触发价，非入场/持仓止损"
-          },
-          "decision_reason": "MA60下方仍可观察启动或修复；尚未形成经确认的低风险入场条件",
-          "attention_rank": 4,
-          "attention_judgement": "模型同主题相对研究次序：仅用于解释与同分比较；连续质量证据及入场价值排序（试运行）：WAIT仅供观察，尚不可买；原模型研究名次：1；机会分证据：{'status': 'COMPLETE_ASOF_EVIDENCE', 'score': 19.5727, 'research_quality_score': 73.75, 'research_quality_source': 'FROZEN_F10_AND_COMPLETED_HISTORY_V1', 'research_quality_components': {'core_profit_yoy_pct': 104.5339, 'operating_cashflow_per_share': 1.402, 'core_growth_component': 1.0, 'cashflow_component': 1.0, 'peer_percentiles': {'10': 1.0, '20': 0.25, '60': 0.25}, 'negative_cashflow_penalty': 0.0, 'score_is_provisional_not_probability': True}, 'momentum_stage_score': 80.96, 'entry_value_score': 81.2, 'overhead_distance_pct': 11.09, 'penalties': {'recent_5d_surge': 38.400000000000006, 'below_ma60_unconfirmed': 12.0, 'repair_unconfirmed': 10.0}, 'provisional': True, 'not_trade_permission': True}；模型研究判断：沪电股份前三季度扣非利润同比约104.5%，经营现金流为正；高端PCB经营兑现最强，但20日与60日相对结构仍弱，需防反弹后再度转弱。；近5日涨幅为正且上涨日不少于3日；价格越过前5日高点，但未同时满足放量和收盘强度观察条件；距MA20绝对偏离0.93%；机会分与模型次序均非收益预测，WAIT不是买入许可",
-          "attention_resistance_check": {
-            "status": "UNVERIFIED",
-            "resistance_price": 93.46,
-            "resistance_date": "2026-03-18",
-            "resistance_source": "asof_180bar_confirmed_pivot",
-            "upside_to_resistance_R": null,
-            "distance_to_ma20_pct": 0.93,
-            "chase_risk_high": false,
-            "note": "WAIT：缺少可执行的成对入场与失效位，当前只供观察；尚无可计算的独立阻力赔率，不能视为上方空间无限；已确认上方阻力仅是关注排序中的空间证据；1.5R独立风险Gate仍按原规则执行"
-          }
-        },
-        {
-          "code": "002384",
-          "company_name": "东山精密",
-          "status": "WAIT",
-          "trend_phase": "REPAIRING",
-          "entry_opportunity": "TREND_WATCH_ONLY",
-          "current_price": 72.7,
-          "original_model_rank": 2,
-          "opportunity_rank_evidence": {
-            "status": "COMPLETE_ASOF_EVIDENCE",
-            "score": 8.2322,
-            "research_quality_score": 60.0,
-            "research_quality_source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
-            "research_quality_components": {
-              "core_profit_yoy_pct": 327.4848,
-              "operating_cashflow_per_share": 1.9191,
-              "core_growth_component": 1.0,
-              "cashflow_component": 1.0,
-              "peer_percentiles": {
-                "10": 0.0,
-                "20": 0.0,
-                "60": 0.0
-              },
-              "negative_cashflow_penalty": 0.0,
-              "score_is_provisional_not_probability": true
-            },
-            "momentum_stage_score": 40.52,
-            "entry_value_score": 45.0,
-            "overhead_distance_pct": 33.29,
-            "penalties": {
-              "below_ma60_unconfirmed": 12.0,
-              "repair_unconfirmed": 10.0,
-              "weak_close_high_volume": 15.0
-            },
-            "provisional": true,
-            "not_trade_permission": true
-          },
-          "reference": {
-            "stage": "PRE_TREND_WATCH",
-            "setup_mode": "RECLAIM",
-            "conditional_trigger": "等待重新站稳均线并出现明确的回踩承接，再从该次形态计算失效位",
-            "reference_trigger_price": 138.633,
-            "reference_zone": null,
-            "invalidation_price": null,
-            "estimated_price_risk_pct": null,
-            "risk_threshold_pct": 8.0,
-            "price_basis": "同一已完成交易日观察触发价，非入场/持仓止损"
-          },
-          "decision_reason": "MA60下方仍可观察启动或修复；尚未形成经确认的低风险入场条件",
-          "attention_rank": 5,
-          "attention_judgement": "模型同主题相对研究次序：仅用于解释与同分比较；连续质量证据及入场价值排序（试运行）：WAIT仅供观察，尚不可买；原模型研究名次：2；机会分证据：{'status': 'COMPLETE_ASOF_EVIDENCE', 'score': 8.2322, 'research_quality_score': 60.0, 'research_quality_source': 'FROZEN_F10_AND_COMPLETED_HISTORY_V1', 'research_quality_components': {'core_profit_yoy_pct': 327.4848, 'operating_cashflow_per_share': 1.9191, 'core_growth_component': 1.0, 'cashflow_component': 1.0, 'peer_percentiles': {'10': 0.0, '20': 0.0, '60': 0.0}, 'negative_cashflow_penalty': 0.0, 'score_is_provisional_not_probability': True}, 'momentum_stage_score': 40.52, 'entry_value_score': 45.0, 'overhead_distance_pct': 33.29, 'penalties': {'below_ma60_unconfirmed': 12.0, 'repair_unconfirmed': 10.0, 'weak_close_high_volume': 15.0}, 'provisional': True, 'not_trade_permission': True}；模型研究判断：东山精密前三季度扣非利润同比约327.5%，并持续投入AI PCB，但并购扩产带来融资与财务费用压力，且60日价格结构显著偏弱。；近5日涨幅为正且上涨日不少于3日；未达到上述近期突破或收盘参考区观察条件，继续跟踪；距MA20绝对偏离12.78%；机会分与模型次序均非收益预测，WAIT不是买入许可",
-          "attention_resistance_check": {
-            "status": "UNVERIFIED",
-            "resistance_price": 96.9,
-            "resistance_date": "2026-11-04",
-            "resistance_source": "asof_structure",
-            "upside_to_resistance_R": null,
-            "distance_to_ma20_pct": -12.78,
-            "chase_risk_high": false,
-            "note": "WAIT：缺少可执行的成对入场与失效位，当前只供观察；尚无可计算的独立阻力赔率，不能视为上方空间无限；已确认上方阻力仅是关注排序中的空间证据；1.5R独立风险Gate仍按原规则执行"
-          }
-        }
-      ]
+      "industry_code": "S480201",
+      "attention_ranking_policy": "MODEL_TOP1_V1_6_R1",
+      "items": []
     }
   ],
   "focus_watchlist": [
     {
-      "trend_name": "电子化学品",
-      "status": "EARLY_FOCUS_NOT_READY",
-      "trade_date": "2026-11-24",
-      "code": "002643",
-      "company_name": "万润股份",
-      "current_price": 11.4,
-      "market_state": "趋势确认",
-      "source_wait_reason": "WAIT_CONFIRMATION",
-      "trend_phase": "TRANSITION",
-      "phase_evidence": {
-        "return_3d_pct": -1.72,
-        "return_5d_pct": -3.14,
-        "previous_5d_return_pct": -0.93,
-        "positive_days_5d": 2,
-        "negative_days_5d": 2,
-        "up_day_volume_ratio_5d": 1.153,
-        "down_day_volume_ratio_5d": 1.07,
-        "volume_ratio_1d": 1.047,
-        "volume_ratio_5d": 1.086,
-        "close_location_pct": 18.92,
-        "close_location_3d_avg_pct": 37.83,
-        "max_close_drawdown_10d_pct": -6.23,
-        "prior_5d_high": 11.95,
-        "prior_20d_low": 10.7,
-        "recent_3d_low": 10.7,
-        "fresh_break": false,
-        "pullback_low_holds": true,
-        "weak_close_high_volume": false,
-        "signal_uses_completed_bars_only": true
-      },
-      "transmission": "SUPPORTED",
-      "standard_setup_confirmed": false,
-      "early_signal_count": 4,
-      "early_signal_flags": {
-        "volume_1d": false,
-        "volume_5d": true,
-        "relative_strength": true,
-        "ma20_turning": true,
-        "close_strength": false,
-        "higher_low": true
-      },
-      "reference": {
-        "stage": "PRE_TREND_WATCH",
-        "setup_mode": "RECLAIM",
-        "conditional_trigger": "等待重新站稳均线并出现明确的回踩承接，再从该次形态计算失效位",
-        "reference_trigger_price": 12.201,
-        "reference_zone": null,
-        "invalidation_price": null,
-        "estimated_price_risk_pct": null,
-        "risk_threshold_pct": 8.0,
-        "price_basis": "同一已完成交易日观察触发价，非入场/持仓止损"
-      },
-      "reference_trigger_distance_pct": 7.03,
-      "decision_reason": "直接沿用本交易日正式主题Top5首位作为关注对象；交易准入单独判断，不是买入指令",
-      "remaining_blocks_to_ready": [
-        "个股标准趋势买点尚未确认",
-        "尚缺可靠的近端结构保护位，仅供观察"
-      ],
-      "not_buy_order": true
-    },
-    {
       "trend_name": "银行",
-      "status": "CURRENT_READY_FOCUS",
-      "trade_date": "2026-11-24",
-      "code": "601288",
-      "company_name": "农业银行",
-      "current_price": 7.93,
-      "market_state": "趋势确认",
-      "source_wait_reason": null,
-      "trend_phase": "TRANSITION",
-      "phase_evidence": {
-        "return_3d_pct": 3.66,
-        "return_5d_pct": 4.2,
-        "previous_5d_return_pct": 3.54,
-        "positive_days_5d": 4,
-        "negative_days_5d": 0,
-        "up_day_volume_ratio_5d": 1.146,
-        "down_day_volume_ratio_5d": null,
-        "volume_ratio_1d": 1.164,
-        "volume_ratio_5d": 1.058,
-        "close_location_pct": 93.94,
-        "close_location_3d_avg_pct": 73.65,
-        "max_close_drawdown_10d_pct": -1.22,
-        "prior_5d_high": 7.92,
-        "prior_20d_low": 7.12,
-        "recent_3d_low": 7.57,
-        "fresh_break": false,
-        "pullback_low_holds": true,
-        "weak_close_high_volume": false,
-        "signal_uses_completed_bars_only": true
-      },
-      "transmission": "SUPPORTED",
-      "standard_setup_confirmed": true,
-      "early_signal_count": 6,
-      "early_signal_flags": {
-        "volume_1d": true,
-        "volume_5d": true,
-        "relative_strength": true,
-        "ma20_turning": true,
-        "close_strength": true,
-        "higher_low": true
-      },
-      "reference": {
-        "stage": "STOCK_CONFIRMED_SECTOR_PENDING",
-        "setup_mode": "BREAKOUT",
-        "conditional_trigger": "已有个股交易结构，但仍受板块/赔率/风险等WAIT条件约束；下个完整交易日复核，非买单",
-        "reference_trigger_price": 7.936,
-        "reference_zone": [
-          7.936,
-          8.025
-        ],
-        "invalidation_price": 7.88,
-        "estimated_price_risk_pct": 1.81,
-        "risk_threshold_pct": 6.0,
-        "price_basis": "同日确认的本次突破或回踩结构，WAIT仍不可执行"
-      },
-      "reference_trigger_distance_pct": 0.08,
-      "decision_reason": "直接沿用本交易日正式主题Top5首位作为关注对象；交易准入单独判断，不是买入指令",
-      "remaining_blocks_to_ready": [],
-      "not_buy_order": true
-    },
-    {
-      "trend_name": "高端PCB",
-      "status": "EARLY_FOCUS_NOT_READY",
-      "trade_date": "2026-11-24",
-      "code": "603920",
-      "company_name": "世运电路",
-      "current_price": 35.8,
-      "market_state": "趋势确认",
-      "source_wait_reason": "WAIT_CONFIRMATION",
-      "trend_phase": "TRANSITION",
-      "phase_evidence": {
-        "return_3d_pct": 7.93,
-        "return_5d_pct": 7.7,
-        "previous_5d_return_pct": -8.61,
-        "positive_days_5d": 3,
-        "negative_days_5d": 2,
-        "up_day_volume_ratio_5d": 1.003,
-        "down_day_volume_ratio_5d": 0.769,
-        "volume_ratio_1d": 1.312,
-        "volume_ratio_5d": 0.909,
-        "close_location_pct": 8.33,
-        "close_location_3d_avg_pct": 36.11,
-        "max_close_drawdown_10d_pct": -20.2,
-        "prior_5d_high": 35.65,
-        "prior_20d_low": 29.69,
-        "recent_3d_low": 31.0,
-        "fresh_break": true,
-        "pullback_low_holds": true,
-        "weak_close_high_volume": false,
-        "signal_uses_completed_bars_only": true
-      },
-      "transmission": "SUPPORTED",
-      "standard_setup_confirmed": false,
-      "early_signal_count": 2,
-      "early_signal_flags": {
-        "volume_1d": true,
-        "volume_5d": false,
-        "relative_strength": true,
-        "ma20_turning": false,
-        "close_strength": false,
-        "higher_low": false
-      },
-      "reference": {
-        "stage": "PRE_TREND_WATCH",
-        "setup_mode": "RECLAIM",
-        "conditional_trigger": "等待重新站稳均线并出现明确的回踩承接，再从该次形态计算失效位",
-        "reference_trigger_price": 38.687,
-        "reference_zone": null,
-        "invalidation_price": null,
-        "estimated_price_risk_pct": null,
-        "risk_threshold_pct": 8.0,
-        "price_basis": "同一已完成交易日观察触发价，非入场/持仓止损"
-      },
-      "reference_trigger_distance_pct": 8.06,
-      "decision_reason": "直接沿用本交易日正式主题Top5首位作为关注对象；交易准入单独判断，不是买入指令",
-      "remaining_blocks_to_ready": [
-        "个股标准趋势买点尚未确认",
-        "尚缺可靠的近端结构保护位，仅供观察"
-      ],
+      "industry_code": "S480201",
+      "code": null,
+      "status": "INCOMPLETE",
+      "trade_date": "2026-11-25",
+      "decision_reason": "资金A核心门槛未通过：东方财富首选页动态字段不可读；同花顺备用页虽给出11月25日与5日主力数据，但601328、601939、601398的同页收盘价分别为9.06、12.25、9.11，与冻结行情9.14、12.59、9.20冲突；601288未取得同日加近5日完整可比表。备用来源口径和数值也不一致，无法形成全组同源同口径横比。为避免默认Python首位或用冲突数据强行选择，本组弃权。",
+      "reference": null,
       "not_buy_order": true
     }
   ],
-  "summary": {
-    "ready": 1,
-    "wait": 14,
-    "uncertain": 0,
-    "drop": 0
-  },
-  "production_eligible": true,
-  "production_eligibility_reason": "fresh_complete_research_and_structure",
+  "uncertain": [],
+  "wait": [],
+  "drop": [],
+  "ready": [],
   "fresh_mainline_provenance": {
-    "source_trade_date": "2026-11-24",
-    "run": "new_screen_new_issuer_review_new_price_analysis",
+    "source_trade_date": "2026-11-25",
+    "run": "frozen_top5_locked_model_top1_independent_risk",
     "old_formal_or_replay_used_as_input": false,
-    "industry_handoff_sha": "ce6e41802fef502edd2dbc3dc80d67fd6609441a",
-    "frozen_company_index_sha": "826c7e381f671bc10ea7b1b92bee4b30e92bb4f3",
-    "company_review_sha": "60bf28f62516f57ad5208b3910cb6429d7f47ea1",
-    "company_research_admission_sha": "d527d31c231278086ecd5defb0c42c04679898ab",
-    "research_selected_company_count": 15,
-    "lightweight_scanned": 38,
-    "technical_rebuilt_at": "2026-11-24T19:11:09.416212+08:00",
-    "github_actions_run_id": "45381760428"
+    "github_actions_run_id": "45602892530",
+    "technical_rebuilt_at": "2026-11-25T19:16:44.459051+08:00",
+    "industry_handoff_sha": "176acc80354aa20719ba7c2647c71be2aa40affc",
+    "frozen_company_index_sha": "7364824148cc1409975232e67aa9b8d4a99fb047",
+    "company_review_sha": "dfc49810a291f3d378cd7bc3f922d4db1dfa3bc4",
+    "company_research_admission_sha": "e8302ad33530fdf1f5a81ec7d423a450bb226bc2"
   }
 }
