@@ -19,6 +19,8 @@ def finite(value):
 def calculate_rows(formal):
     if formal.get("result_kind") != "a_share_trend_buy_result" or formal.get("mode") != "FORMAL":
         raise ValueError("OFFICIAL_FORMAL_RESULT_REQUIRED")
+    if formal.get("selection_policy") == "MODEL_TOP1_V1_6_R1":
+        raise ValueError("LEGACY_RANK_GAP_AUDIT_HISTORICAL_ONLY")
     date = formal.get("trade_date")
     if not isinstance(date, str) or len(date) != 10:
         raise ValueError("FORMAL_DATE_INVALID")

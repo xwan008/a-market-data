@@ -59,6 +59,9 @@ def collect_prices(base=BASE, root=ROOT, asof=None) -> str:
             for theme in universe.values():
                 track.update(theme.get("constituents") or [])
             formal = load(folder / "trend_buy_formal_result.json")
+            # Include non-selected Python candidates for unbiased forward comparison.
+            for group in formal.get("python_top5_by_industry", []):
+                track.update(group["selected_codes"])
             for kind in ("ready", "wait", "uncertain", "drop"):
                 track.update(str(item["code"]).zfill(6) for item in formal.get(kind, []))
 
@@ -236,7 +239,7 @@ def compile_results(base=BASE) -> dict:
         }
         trends.append(record)
 
-    # The priority/handoff list includes confirmed AND candidate trends.
+    # Historical archives may include candidates; current handoff is confirmed-only.
     # A one-day recommendation disappearing from priority is different from
     # either loss of confirmation or formal thesis invalidation.
     recommendations, active_recommendations = [], {}
@@ -317,6 +320,7 @@ def compile_results(base=BASE) -> dict:
                      "company_name": item.get("company_name"), "trend_name": sector,
                      "status": status.upper(), "rank": item.get("rank"),
                      "source_run_id": formal.get("run_id"),
+                     "selection_policy": formal.get("selection_policy", "LEGACY_TOP5"),
                      "observation_only": True,
                      "ready_trigger_simulated": False, "horizons": {}}
                 for horizon in HORIZONS:

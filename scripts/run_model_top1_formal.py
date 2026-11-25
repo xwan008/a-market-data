@@ -79,9 +79,8 @@ def generate(admission_raw, research, structure, evidence, run_id):
                                "status":"PROVISIONAL_LIVE_PARAMETERS_MONITOR_AND_REVISE"},
            "python_top5_by_industry":admission["industries"],
            "model_top1_selection":selections, "top1_decisions":result["items"],
-           "top5_by_theme":groups, "focus_watchlist":focus, **states}
-    # Legacy top5_by_theme is now ONLY a compatibility projection of selected
-    # READY/WAIT names; the original Python roster lives in its explicit field.
+           "company_reviews":reviews, "top1_by_industry":groups, "focus_watchlist":focus, **states}
+    # The frozen Python roster and selected execution groups are distinct.
     projected = handoff.project(out, "prepublish-validation")
     wanted = [x["top1_code"] for x in result["items"] if x["risk_status"] in ("READY","WAIT")]
     model.require([x["code"] for x in projected["items"]] == wanted, "TOP1_HANDOFF_SCOPE_MISMATCH")

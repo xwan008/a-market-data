@@ -834,8 +834,10 @@ def generate(research, structure):
         raise ValueError("invalid_or_duplicate_codes")
     if research.get("selected_company_count") != len(co):
         raise ValueError("selected_coverage_mismatch")
-    rows=[evaluate_candidate(c, (structure.get("companies") or {}).get(code), day) for c,code in zip(co,ids)]
     formal = research.get("mode") == "FORMAL"
+    if formal and day >= "2026-11-25":
+        raise ValueError("LEGACY_TOP5_FORMAL_DISABLED_USE_MODEL_TOP1")
+    rows=[evaluate_candidate(c, (structure.get("companies") or {}).get(code), day) for c,code in zip(co,ids)]
     if formal and research.get("prescreen_version") != "CANONICAL":
         raise ValueError("FORMAL_REQUIRES_CANONICAL_SCREEN")
     if research.get("prescreen_version")=="CANONICAL":
