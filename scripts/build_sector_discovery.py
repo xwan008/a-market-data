@@ -141,6 +141,8 @@ def daily_structure_evidence(groups, features, history, trade_date):
                 # Keep the production close's quote and momentum measures authoritative.
                 daily_return = feature["r1"] if feature is not None else None
                 volume = feature["volume"] if feature is not None else None
+                if feature is None:
+                    above = below = None
             stock_metrics[code] = (daily_return, volume, above, below)
         market = [v[0] for v in stock_metrics.values() if v[0] is not None]
         benchmark = median(market) if market and len(market) >= .90 * len(features) else None
@@ -159,7 +161,8 @@ def daily_structure_evidence(groups, features, history, trade_date):
             med = median(returns) if len(returns) >= minimum else None
             advancing = sum(v > 0 for v in returns)
             series.append({
-                "trade_date": day, "member_count": n, "return_sample_size": len(returns),
+                "trade_date": day, "previous_observed_session_date": previous[day],
+                "member_count": n, "return_sample_size": len(returns),
                 "return_coverage": pct(len(returns), n),
                 "median_1d_pct": round(med, 3) if med is not None else None,
                 "market_sample_size": market_n,
@@ -318,7 +321,7 @@ def build(latest, industry_index, structure, review_cap=3,
             "role": "OBJECTIVE_EVIDENCE_ONLY",
             "membership": "ASOF_CURRENT_MAPPED_SW3_MAIN_BOARD",
             "session_window": 5,
-            "historical_return": "adjacent market sessions, adjusted history closes",
+            "historical_return": "adjacent observed market sessions, adjusted history closes",
             "current_return": "completed quote change_pct",
             "prior_range": "prior session high/low, not confirmed technical support",
             "missing_values_are_not_zero": True,
