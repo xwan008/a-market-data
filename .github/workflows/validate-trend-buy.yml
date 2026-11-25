@@ -10,6 +10,11 @@ on:
       - 'scripts/trend_buy_prescreen_core.py'
       - 'tests/test_trend_buy_admission.py'
       - 'scripts/trend_buy_engine.py'
+      - 'scripts/research_model_top1.py'
+      - 'scripts/run_model_top1_formal.py'
+      - 'tests/test_research_model_top1.py'
+      - 'tests/test_run_model_top1_formal.py'
+      - 'skill/TREND_BUY_MODEL_TOP1_RESEARCH.md'
       - 'scripts/trend_buy_research_quality.py'
       - 'tests/test_trend_buy_research_quality.py'
       - 'tests/test_trend_buy_entry_value_ranking.py'
@@ -29,6 +34,11 @@ on:
       - main
     paths:
       - 'scripts/trend_buy_engine.py'
+      - 'scripts/research_model_top1.py'
+      - 'scripts/run_model_top1_formal.py'
+      - 'tests/test_research_model_top1.py'
+      - 'tests/test_run_model_top1_formal.py'
+      - 'skill/TREND_BUY_MODEL_TOP1_RESEARCH.md'
       - 'scripts/trend_buy_research_quality.py'
       - 'tests/test_trend_buy_research_quality.py'
       - 'scripts/trend_buy_handoff.py'
@@ -78,6 +88,8 @@ jobs:
           test ! -e data/research/full_market_price_structure.json
       - name: Test technical entry and no stale/future leakage
         run: |
+          python -m unittest discover -s tests -p 'test_research_model_top1.py' -v
+          python -m unittest discover -s tests -p 'test_run_model_top1_formal.py' -v
           python -m unittest discover -s tests -p 'test_trend_buy_engine.py' -v
           python -m unittest discover -s tests -p 'test_trend_buy_entry_focus.py' -v
           python -m unittest discover -s tests -p 'test_trend_buy_dynamic_top5.py' -v
