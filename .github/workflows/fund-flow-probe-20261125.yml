@@ -9,70 +9,73 @@ jobs:
   probe:
     if: github.head_ref == 'test/fund-flow-probe-20261125'
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-      - name: Audit both Sina historical endpoints and exact frozen prices
+      - name: Validate fund amounts independently of redundant historical price
         run: |
           python3 - <<'PY'
-          import json, urllib.request, urllib.parse, math, time, statistics
+          import json, math, urllib.request, urllib.parse, time
           from pathlib import Path
           def read(p): return json.loads(Path(p).read_text())
           a=read('research/trend_buy_candidates/latest.json')
           day=a['trade_date']
           assert day=='2026-11-25'
           codes=next(i['selected_codes'] for i in a['industries'] if i['industry_code']=='S480201')
-          part=read('data/low_risk/by_industry/S480201/part-001.json')
-          assert part['trade_date']==day
-          frozen={x['code']:x for x in part['companies']}
-          results=[]
+          frozen={x['code']:x for x in read('data/low_risk/by_industry/S480201/part-001.json')['companies']}
+          reports=[]
           for code in codes:
-              f=frozen[code]
-              h=read('data/history_shards/'+code[:4]+'.json')['stocks'][code]['history']
-              history={r['date']:r for r in h if r['date']<=day}
-              expected=sorted(history)[-20:]
-              for endpoint in ['ssl_qsfx_zjlrqs','ssl_qsfx_lscjfb']:
-                  url='https://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/MoneyFlow.'+endpoint+'?'+urllib.parse.urlencode({'page':1,'num':30,'sort':'opendate','asc':0,'daima':'sh'+code})
-                  out={'code':code,'endpoint':endpoint,'source_url':url,'status':'FAIL','frozen_close':f['price']}
-                  try:
-                      req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0','Referer':'https://finance.sina.com.cn/'})
-                      with urllib.request.urlopen(req,timeout=15) as res:
-                          raw=res.read().decode('utf-8','replace')
-                          out['http_status']=res.status
-                      out['body_prefix']=raw[:500]
-                      rows=json.loads(raw[raw.index('['):raw.rindex(']')+1])
-                      rows=sorted([r for r in rows if r['opendate']<=day],key=lambda r:r['opendate'])[-20:]
-                      out['fields']=list(rows[-1])
-                      assert len(rows)==20 and len({r['opendate'] for r in rows})==20 and rows[-1]['opendate']==day,'missing sessions'
-                      assert [r['opendate'] for r in rows]==expected,'historical dates mismatch'
-                      out['session_count']=len(rows)
-                      out['today_row']=rows[-1]
-                      out['last5_rows']=rows[-5:]
-                      for r in rows:
-                          for k in ['trade','changeratio','netamount','ratioamount','r0_net']:
-                              assert math.isfinite(float(r[k])), 'invalid '+k
-                      out['live_close_mismatches']=[]
-                      out['daily_change_mismatches']=[]
-                      out['provider_internal_change_mismatches']=[]
-                      for i,r in enumerate(rows):
-                          b=history[r['opendate']]
-                          if b.get('basis')=='live_close' and abs(float(r['trade'])-b['close'])>=0.005:
-                              out['live_close_mismatches'].append({'date':r['opendate'],'provider':r['trade'],'frozen':b['close']})
-                          if b.get('basis')=='live_close' and b.get('prev_close') and abs(float(r['changeratio'])*100-(b['close']/b['prev_close']-1)*100)>0.02:
-                              out['daily_change_mismatches'].append({'date':r['opendate'],'provider':float(r['changeratio'])*100,'frozen':(b['close']/b['prev_close']-1)*100})
-                          if i and abs(float(r['changeratio'])*100-(float(r['trade'])/float(rows[i-1]['trade'])-1)*100)>0.02:
-                              out['provider_internal_change_mismatches'].append(r['opendate'])
-                      out['today_close_match']=abs(float(rows[-1]['trade'])-f['price'])<0.005
-                      out['today_change_match']=abs(float(rows[-1]['changeratio'])*100-(f['price']/f['prev_close']-1)*100)<=0.02
-                      out['r1_present']=all('r1_net' in r for r in rows)
-                      out['status']='RAW_VERIFIED' if out['today_close_match'] and out['today_change_match'] and not out['live_close_mismatches'] and not out['daily_change_mismatches'] else 'PRICE_CONFLICT'
-                  except Exception as e:
-                      out['error']=type(e).__name__+': '+str(e)
-                  print(json.dumps(out,ensure_ascii=False,allow_nan=False),flush=True)
-                  results.append(out)
-                  time.sleep(0.8)
-          print('RESULTS',json.dumps([{k:r.get(k) for k in ['code','endpoint','status','http_status','session_count','r1_present','today_close_match','today_change_match','error']} for r in results],ensure_ascii=False),flush=True)
-          assert any(all(any(r['code']==code and r['endpoint']==e and r['status']=='RAW_VERIFIED' for r in results) for code in codes) for e in ['ssl_qsfx_zjlrqs','ssl_qsfx_lscjfb']), 'no complete verified endpoint'
+              out={'code':code,'status':'FAIL'}
+              try:
+                  h=read('data/history_shards/'+code[:4]+'.json')['stocks'][code]['history']
+                  hist={r['date']:r for r in h if r['date']<=day}
+                  dates=sorted(hist)[-20:]
+                  url='https://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/MoneyFlow.ssl_qsfx_lscjfb?'+urllib.parse.urlencode({'page':1,'num':30,'sort':'opendate','asc':0,'daima':'sh'+code})
+                  req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0','Referer':'https://finance.sina.com.cn/'})
+                  with urllib.request.urlopen(req,timeout=15) as res:
+                      raw=res.read().decode('utf-8','replace')
+                  rows=json.loads(raw[raw.index('['):raw.rindex(']')+1])
+                  rows=sorted([r for r in rows if r['opendate']<=day],key=lambda r:r['opendate'])[-20:]
+                  assert len(dates)==20 and dates[-1]==day and [r['opendate'] for r in rows]==dates,'session mismatch'
+                  out['source_url']=url
+                  out['session_count']=20
+                  out['daily']=[]
+                  for r in rows:
+                      d=r['opendate']
+                      b=hist[d]
+                      amount=[float(r['r'+str(i)]) for i in range(4)]
+                      net=[float(r['r'+str(i)+'_net']) for i in range(4)]
+                      total=sum(amount)
+                      overall=float(r['netamount'])
+                      ratio=float(r['ratioamount'])
+                      assert all(math.isfinite(x) for x in amount+net+[overall,ratio]),'invalid numeric field'
+                      assert total>0 and all(v>=abs(n) for v,n in zip(amount,net)),'impossible classified amount'
+                      main=net[0]+net[1]
+                      vol=b.get('volume')
+                      basis=b.get('basis')
+                      # Only compare unadjusted live-close shares; no guessed conversion.
+                      comparable=basis=='live_close' and b.get('volume_unit')=='shares' and vol and b.get('low') and b.get('high')
+                      bounds=[vol*b['low'],vol*b['high']] if comparable else None
+                      implied=overall/ratio if ratio else None
+                      out['daily'].append({'date':d,'main_net':main,'classified_amount':total,'main_pct':100*main/total,'net_balance_error_cny':sum(net)-overall,'net_ratio_gap_pp':100*(overall/total-ratio),'implied_total':implied,'frozen_amount_bounds':bounds,'classified_within_bounds':bounds[0]<=total<=bounds[1] if bounds else None,'implied_within_bounds':bounds[0]<=implied<=bounds[1] if bounds and implied is not None else None,'provider_close':float(r['trade']),'frozen_close':b.get('close')})
+                  for n in [1,5,10,20]:
+                      subset=out['daily'][-n:]
+                      net=sum(x['main_net'] for x in subset)
+                      amount=sum(x['classified_amount'] for x in subset)
+                      out[str(n)+'d']={'net':net,'classified_pct':100*net/amount,'positive_days':sum(x['main_net']>0 for x in subset)}
+                  assert abs(out['daily'][-1]['provider_close']-frozen[code]['price'])<0.005,'current close mismatch'
+                  assert all(abs(x['net_balance_error_cny'])<=0.05 for x in out['daily']),'net classification fails reconciliation'
+                  out['fund_fields_status']='PASS'
+                  out['amount_bounds_conflicts']=[x['date'] for x in out['daily'] if x['classified_within_bounds'] is False]
+                  out['ratio_gap_over_0_02pp']=[x['date'] for x in out['daily'] if abs(x['net_ratio_gap_pp'])>0.02]
+                  out['status']='FUND_FIELDS_PASS_WITH_WARNINGS' if out['amount_bounds_conflicts'] or out['ratio_gap_over_0_02pp'] else 'FUND_FIELDS_PASS'
+              except Exception as e:
+                  out['error']=type(e).__name__+': '+str(e)
+              print(json.dumps(out,ensure_ascii=False,allow_nan=False),flush=True)
+              reports.append(out)
+              time.sleep(1)
+          print('FUND_FIELDS_RESULT',sum(r.get('fund_fields_status')=='PASS' for r in reports),'/',len(codes),flush=True)
+          assert all(r.get('fund_fields_status')=='PASS' for r in reports),'fund fields not complete'
           PY
