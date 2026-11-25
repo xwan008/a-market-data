@@ -19,9 +19,10 @@ from urllib.parse import urlencode
 from zoneinfo import ZoneInfo
 
 try:
-    from . import trend_buy_prescreen_core as pre
+    from . import trend_buy_prescreen_core as pre, trend_buy_revision as revision
 except ImportError:
     import trend_buy_prescreen_core as pre
+    import trend_buy_revision as revision
 
 TZ = ZoneInfo("Asia/Shanghai")
 QQ = "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab"
@@ -228,16 +229,23 @@ def collect_stock(code, dates, frozen, provider, quotes):
             "turnover_amount_source":"sina_unadjusted_daily_exact_cny; tencent close quote crosscheck when applicable"}
 
 
-def build(root, admission):
+def build(root, admission, prior=None):
     day=admission["trade_date"]
     now=dt.datetime.now(TZ)
-    require(now.date().isoformat()==day and now.hour>=15,"FUND_COLLECTION_REQUIRES_CURRENT_CLOSED_SESSION")
+    require(revision.preopen_window(day,now),"FUND_COLLECTION_REQUIRES_PREOPEN_WINDOW")
     index=read(root/"data/low_risk/index.json")
     require(index.get("trade_date")==day,"FROZEN_INDEX_DATE_MISMATCH")
     all_groups=[]
+    preserved={}
+    if prior and prior.get("fund_flow") and {k:v for k,v in prior.items() if k!="fund_flow"}=={k:v for k,v in admission.items() if k!="fund_flow"}:
+        validate_frozen(root,prior)
+        preserved={g["industry_code"]:g for g in prior["fund_flow"]["groups"] if g["status"]=="VERIFIED"}
     cache={}
     for g in admission["industries"]:
         industry=g["industry_code"]; codes=g["selected_codes"]
+        if industry in preserved:
+            all_groups.append(preserved[industry])
+            continue
         frozen={x["code"]:x for x in pre.frozen_industry_rows(root,index,industry,day)}
         inputs={}
         for code in codes:
@@ -284,7 +292,7 @@ def validate(admission, snapshot):
             "FUND_SNAPSHOT_DATE_MISMATCH")
     day=admission["trade_date"]
     collected=dt.datetime.fromisoformat(snapshot["collected_at"]).astimezone(TZ)
-    require(collected.date().isoformat()==day and collected.hour>=15,"FUND_SNAPSHOT_TIME_INVALID")
+    require(revision.preopen_window(day,collected),"FUND_SNAPSHOT_TIME_INVALID")
     groups=snapshot.get("groups") or []
     roster=admission["industries"]
     require(len(groups)==len(roster),"FUND_GROUP_SCOPE_MISMATCH")
@@ -308,7 +316,7 @@ def validate(admission, snapshot):
             require(s["code"]==code and s["provider"]==provider and s["trade_date"]==day,
                     "FUND_STOCK_IDENTITY")
             ts=dt.datetime.fromisoformat(s["queried_at"]).astimezone(TZ)
-            require(ts.date().isoformat()==day and ts.hour>=15 and ts<=collected,"FUND_STOCK_TIME")
+            require(revision.preopen_window(day,ts) and ts<=collected,"FUND_STOCK_TIME")
             require(s.get("sources") and all(x.startswith("https://") for x in s["sources"]),
                     "FUND_SOURCE_MISSING")
             dates=[r["date"] for r in rows]
@@ -354,10 +362,11 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument("--admission",type=Path,required=True)
     p.add_argument("--output",type=Path,required=True)
+    p.add_argument("--prior-admission",type=Path)
     a=p.parse_args()
     root=Path(__file__).resolve().parents[1]
     admission=read(a.admission)
-    admission["fund_flow"]=build(root,admission)
+    admission["fund_flow"]=build(root,admission,read(a.prior_admission) if a.prior_admission and a.prior_admission.exists() else None)
     a.output.write_text(json.dumps(admission,ensure_ascii=False,indent=2,allow_nan=False)+"\n",encoding="utf-8")
     result=read(a.output)
     statuses=validate_frozen(root,result)
