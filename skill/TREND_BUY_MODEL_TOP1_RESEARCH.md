@@ -1,6 +1,6 @@
-# 模型 TOP1｜唯一正式研究协议 V1.6-R1
+# 模型 TOP1｜唯一正式研究协议
 
-状态：PRODUCTION_POLICY / PERFORMANCE_NOT_VALIDATED。2026-11-25 用户授权正式切换；收益效果尚未验证，原交易参数保持不变。本文件是唯一正式模型决策协议；历史研究版本不再作为生产指令。流程、发布与风控以 TREND_BUY_CANONICAL.md 为准。
+本文件是 main 中唯一生效的正式模型决策协议；收益效果尚未验证，交易参数按正式业务规则执行。流程、发布与风控以 TREND_BUY_CANONICAL.md 为准。只维护当前规则，不保留并列的旧规则或人为业务版本编号；历史变更以 Git 提交和只读归档追溯。
 
 ## 决策顺序与职责边界
 1. 上游只接受当日正式确认且合格的 SW3 handoff，原 Python TOP5 初筛逻辑、原始顺序、候选名单与席位完全保留。每个 SW3 独立选择至多一个 TOP1，不要求模型重新排列其余四只，不得扩大或替换名单。
@@ -13,7 +13,7 @@
 8. 正式入口由 TREND_BUY_CANONICAL.md 指定；原 research_model_top1.py 作为验证与风控计算模块，唯一正式工作流调用 run_model_top1_formal.py 生成结果，handoff 仅承接已选且READY/WAIT的TOP1。研究用CLI仍禁止写正式文件。
 
 ## 机器交接格式
-顶层：trade_date、source_blob（冻结 admission 文件的 Git blob SHA）、prompt_version="V1.6-R1"、items（每个冻结 SW3 恰好一项）。
+顶层：trade_date、source_blob（冻结 admission 文件的 Git blob SHA）、prompt_version（机器契约字段，读取当前 main 的 `scripts/research_model_top1.py` 中 `VERSION` 常量原值，不自行命名或改变）、items（每个冻结 SW3 恰好一项）。
 每项：industry_code、candidate_codes（与原始顺序严格一致）、status、top1_code、reason（含决定性证据、最强竞争者及反证的简述）；COMPLETE 还须 completion_gate（input_verified、five_categories_searched、core_flow_verified、fact_quality_verified、dynamic_comparison_complete、counterevidence_checked，均为 true）、research_matrix（按 code 键控的 A–E 状态和来源）、dynamic_comparison（按 code 键控，trend_structure、fund_flow、quarterly_profit 均有文本记录）、comparison_reasons（全部非当选股的未选理由）、strongest_counter、falsifier。非 COMPLETE 须 top1_code=null 且有原因。
 下列完整证据规范必须执行；程序校验结构、日期、名单和声明，不能替代对真实工具调用和来源事实的人工/模型审计。源 SHA 绑定冻结名单；输出不可覆盖。未验收的旧研究结果不得直接改标签冒充新协议选择。
 
@@ -83,9 +83,9 @@ E. 风险信息：主动寻找可能推翻判断的证据，包括监管问询�
 对每个候选输出简洁的三维比较记录（关键数值/方向、优势、反证、缺项）；说明最强竞争者为何胜出或落选，尤其解释外部证据如何支持或修正Python初筛排序。三个维度必须实际比较，但不新增“每个字段都有数值”的硬门槛；非关键缺项记录UNKNOWN及影响，不编造、不默认零，仍按第3节原有核心资金、关键证据及重大冲突门槛决定是否输出。不得设置机械评分权重；严格遵守本文固定决策顺序，不以单个指标机械决定胜出。维持独立Python风控职责，不把研究排序当成买入指令。固定本规则进行后续前瞻验证，不按已经知道的次日收益倒推阈值或改写已锁定历史结果。
 
 ## 5. 本轮输出（可审计；字段层级见机器交接格式）
-- trade_date, as_of, research_started_at, research_finished_at, industry_code, candidate_codes（初筛原始顺序）, source_blob, prompt_version=V1.6-R1, model_version（未知则UNKNOWN）。
+- trade_date, as_of, research_started_at, research_finished_at, industry_code, candidate_codes（初筛原始顺序）, source_blob, prompt_version（按上文机器契约填写）、model_version（实际运行模型技术标识，未知则UNKNOWN）。
 - research_matrix：每个候选A–E状态、检索时间/查询/来源引用、证据事实、缺失项、重大冲突；actual_evidence_refs对应真实来源。
 - dynamic_comparison：每只候选的趋势结构、相对资金强度与持续性、单季盈利变化；关键值与变化方向、来源、相互印证/背离、缺项及其影响。
 - completion_gate：输入核验、五类检索、资金核心、事实质量、三个动态维度全组对照、反证检查逐项PASS/FAIL，并列出原因。
 - status=COMPLETE / INCOMPLETE / NO_SELECTION；仅COMPLETE且全部门槛PASS时top1_code可非空；confidence=HIGH/MEDIUM/LOW或null；选择与Python首位关系、决定性新增证据、最强竞争者比较、其他未选理由、最强反证、失效条件。
-- 保存当轮不可变选择及证据记录；不读未来收益后改选。单独检验完成率、弃权率、同口径3日增量收益等；不得删除失败样本。Python风控状态及交易结果独立验证。正式切换已于2026-11-25授权；后续前瞻验证不据已知收益修改锁定选择。
+- 保存当轮不可变选择及证据记录；不读未来收益后改选。单独检验完成率、弃权率、同口径3日增量收益等；不得删除失败样本。Python风控状态及交易结果独立验证。后续前瞻验证不据已知收益修改锁定选择。
