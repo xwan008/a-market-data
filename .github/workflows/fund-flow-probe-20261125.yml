@@ -10,56 +10,59 @@ jobs:
   probe:
     if: github.head_ref == 'test/fund-flow-probe-20261125'
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-      - name: Probe Tencent and alternate Eastmoney routes plus THS and Stockstar public pages
+      - name: Repeat direct Eastmoney historical fund flow and validate cross-market quote amount
         run: |
           python3 - <<'PY'
-          import json, urllib.parse, subprocess, re, concurrent.futures
+          import json, math, subprocess, urllib.parse, time
           from pathlib import Path
           a=json.loads(Path('research/trend_buy_candidates/latest.json').read_text())
           day=a['trade_date']
-          codes=next(i['selected_codes'] for i in a['industries'] if i['industry_code']=='S480201')
-          def probe(task):
-              kind,code,url,ref=task
-              out={'kind':kind,'code':code,'url':url}
+          codes=next(i['selected_codes'] for i in a['industries'] if i['industry_code']=='S480201')+['000001','300750']
+          def get(url):
+              p=subprocess.run(['curl','-fsSL','--max-time','15','-A','Mozilla/5.0','-e','https://data.eastmoney.com/',url],capture_output=True,timeout=18,check=True)
+              return json.loads(p.stdout)
+          for code in codes:
+              out={'code':code,'status':'FAIL'}
               try:
-                  p=subprocess.run(['curl','-sS','-L','--max-time','15','-A','Mozilla/5.0','-e',ref,'-w','\nHTTP_CODE:%{http_code}',url],capture_output=True,timeout=18)
-                  body,sep,status=p.stdout.rpartition(b'\nHTTP_CODE:')
-                  out['http']=status.decode('ascii','replace')
-                  out['curl_exit']=p.returncode
-                  if p.returncode: out['error']=p.stderr.decode('utf-8','replace')[:300]
-                  raw=body.decode('utf-8','replace')
-                  if kind.startswith('qq') or kind.startswith('em'):
-                      if kind=='qq_legacy':
-                          out['body']=body.decode('gb18030','replace')[:4000]
-                      else:
-                          x=json.loads(raw)
-                          out['response']=x
-                  else:
-                      out['length']=len(raw)
-                      out['title']=re.findall(r'<title[^>]*>(.*?)</title>',raw,re.S)[:1]
-                      out['date_hits']=list(dict.fromkeys(re.findall(r'20\d\d[-/]\d\d[-/]\d\d',raw)))[:25]
-                      out['text_hits']=[]
-                      for m in list(re.finditer(r'主力净流入|净流入|历史资金|资金流向|2026-11-25',raw))[:12]:
-                          out['text_hits'].append(re.sub(r'<[^>]*>',' ',raw[max(0,m.start()-80):m.end()+180]))
+                  h=json.loads(Path('data/history_shards/'+code[:4]+'.json').read_text())['stocks'][code]['history']
+                  hist={r['date']:r for r in h if r['date']<=day}
+                  dates=sorted(hist)[-20:]
+                  secid=('1.' if code.startswith('6') else '0.')+code
+                  base='https://push2his.eastmoney.com/api/qt/stock/'
+                  args={'secid':secid,'fields1':'f1,f2,f3,f7','fields2':'f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61,f62,f63','lmt':20,'klt':101,'ut':'b2884a393a59ad64002292a3e90d46a5'}
+                  flow=get(base+'fflow/daykline/get?'+urllib.parse.urlencode(args))['data']
+                  assert flow['code']==code and flow['market']==int(secid[0]),'wrong flow security'
+                  raw=flow['klines']
+                  rows=[x.split(',') for x in raw]
+                  assert [r[0] for r in rows]==dates and len(dates)==20 and dates[-1]==day,'date coverage'
+                  qargs={'secid':secid,'fields1':'f1,f2,f3,f4,f5,f6','fields2':'f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61','klt':101,'fqt':0,'beg':dates[0].replace('-',''),'end':day.replace('-',''),'lmt':20,'ut':'fa5fd1943c7b386f172d6893dbfba10b'}
+                  quote=get(base+'kline/get?'+urllib.parse.urlencode(qargs))['data']
+                  assert quote['code']==code and quote['market']==int(secid[0]),'wrong quote security'
+                  qr={r[0]:r for r in [x.split(',') for x in quote['klines']]}
+                  assert set(qr)==set(dates),'quote date coverage'
+                  records=[]
+                  for r in rows:
+                      d=r[0]; v=list(map(float,r[1:])); net,small,mid,big,xl,pct,sp,mp,bp,xp,close,change=v
+                      q=qr[d]; amount=float(q[6]); qclose=float(q[2]); qchange=float(q[8])
+                      assert all(math.isfinite(x) for x in v+[amount,qclose,qchange]) and amount>0,'nonfinite or empty'
+                      assert abs(net-big-xl)<=1,'main components inconsistent'
+                      assert abs(net+small+mid)<=max(64,amount*0.0000001),'classified net balance'
+                      assert abs(pct-net/amount*100)<=0.0051,'reported main ratio inconsistent with exact amount'
+                      assert abs(close-qclose)<0.005 and abs(change-qchange)<=0.02,'quote identity mismatch'
+                      b=hist[d]
+                      if d==day:
+                          assert b.get('basis')=='live_close' and abs(close-b['close'])<0.005,'frozen current close'
+                      records.append({'date':d,'main_net_cny':net,'main_pct':pct,'amount_cny':amount,'close':close,'change_pct':change,'ratio_error_pp':pct-net/amount*100})
+                  out['records']=records
+                  out['five_day']={'net':sum(x['main_net_cny'] for x in records[-5:]),'pct':100*sum(x['main_net_cny'] for x in records[-5:])/sum(x['amount_cny'] for x in records[-5:])}
+                  out['status']='PASS'
               except Exception as e:
                   out['error']=type(e).__name__+': '+str(e)
-              return out
-          jobs=[]
-          for code in codes:
-              q='https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?'+urllib.parse.urlencode({'code':'sh'+code,'type':'todayFundFlow','klineNeedDay':20})
-              jobs.append(('qq_fund',code,q,'https://gu.qq.com/'))
-              q='https://qt.gtimg.cn/q=ff_sh'+code
-              jobs.append(('qq_legacy',code,q,'https://gu.qq.com/'))
-              for host in ['push2his.eastmoney.com']:
-                  q='https://'+host+'/api/qt/stock/fflow/daykline/get?'+urllib.parse.urlencode({'secid':'1.'+code,'fields1':'f1,f2,f3,f7','fields2':'f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61,f62,f63','lmt':20,'klt':101,'ut':'b2884a393a59ad64002292a3e90d46a5'})
-                  jobs.append(('em_daykline',code,q,'https://data.eastmoney.com/'))
-              jobs.append(('ths_stockpage',code,'https://stockpage.10jqka.com.cn/'+code+'/index/','https://stockpage.10jqka.com.cn/'))
-          with concurrent.futures.ThreadPoolExecutor(max_workers=4) as ex:
-              for out in ex.map(probe,jobs):
-                  print(json.dumps(out,ensure_ascii=False,allow_nan=False),flush=True)
+              print(json.dumps(out,ensure_ascii=False,allow_nan=False),flush=True)
+              time.sleep(0.5)
           PY
