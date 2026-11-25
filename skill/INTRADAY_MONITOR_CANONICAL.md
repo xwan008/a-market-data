@@ -45,7 +45,7 @@ ETF 持仓动作仅在 Airtable「当前持仓」已核实确有该 ETF 持仓�
 
 ## 5. READY/WAIT 个股盘中执行｜仅趋势买点V2
 
-个股唯一行情输入仍为 `snapshot.trend_buy_stocks[*]`，冻结身份来自同日`research/trend_buy_handoff.json`。正式冻结的全部READY/WAIT仍需展示，不重新筛股、研究或计算买点。
+个股唯一行情输入仍为 `snapshot.trend_buy_stocks[*]`，冻结身份来自同日`research/trend_buy_handoff.json`。正式冻结的全部READY/WAIT仍需展示；新版仅承接模型锁定TOP1中通过独立Python风险判断的READY/WAIT，不承接研究用TOP5其他股票，不重新筛股、研究或计算买点。
 
 **持仓/候选最小分流：**先按第5A节核验 Airtable「当前持仓」。只有已核实持仓股数>0，且其代码在本轮有效快照中的股票，才执行持仓动作判断；未持仓 READY/WAIT 仅分析入场机会，不输出任何减仓、止盈、止损、退出建议。若 Airtable 不可用，不得将股票断言为空仓或已持仓，只能输出非个性化候选观察。已持仓即使仍在 WAIT，也转为持仓管理，不因 WAIT 身份跳过原定退出条件。持仓不在冻结榜单时，按第5A节报告本轮未覆盖、无可靠执行信号；**不扩充行情采集或监测池**。
 
