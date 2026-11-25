@@ -7,20 +7,33 @@ on:
       - 'data/low_risk/index.json'
       - 'data/research/core_profit_refresh_latest.json'
       - 'scripts/prepare_trend_buy_candidates.py'
+      - 'scripts/freeze_trend_buy_fund_flow.py'
+      - 'requirements.txt'
       - 'scripts/trend_buy_prescreen_core.py'
       - 'scripts/build_trend_buy_manual_research.py'
       - '.github/workflows/prepare-trend-buy-candidates.yml'
   workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/freeze_trend_buy_fund_flow.py'
+      - 'scripts/prepare_trend_buy_candidates.py'
+      - 'scripts/run_model_top1_formal.py'
+      - 'tests/test_frozen_trend_buy_fund_flow.py'
+      - '.github/workflows/prepare-trend-buy-candidates.yml'
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: trend-buy-candidate-admission
+  group: trend-buy-candidate-admission-${{ github.event_name == 'pull_request' && github.ref || 'production' }}
   cancel-in-progress: false
 
 jobs:
   prepare:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     timeout-minutes: 18
     steps:
@@ -44,14 +57,16 @@ jobs:
           idx=json.loads(Path('data/low_risk/index.json').read_text())
           now=datetime.now(ZoneInfo('Asia/Shanghai')).date().isoformat()
           day=upstream.get('trade_date')
-          allow=(day==now and idx.get('trade_date')==now
+          previous=json.loads(Path('research/trend_buy_formal_result.json').read_text())
+          locked=(previous.get('trade_date')==day and isinstance(previous.get('model_top1_selection'),dict))
+          allow=(not locked and day==now and idx.get('trade_date')==now
                  and idx.get('validation',{}).get('status')=='passed'
                  and bool(upstream.get('signals')))
           with open(os.environ['GITHUB_OUTPUT'],'a') as out:
               out.write('run='+('true' if allow else 'false')+'\n')
           print('PROGRAM_ADMISSION_DAY_STATUS',json.dumps({
               'today':now,'sector_date':day,'index_date':idx.get('trade_date'),
-              'sector_signals':len(upstream.get('signals') or []),
+              'sector_signals':len(upstream.get('signals') or []),'same_day_locked':locked,
               'will_run':allow},ensure_ascii=False))
           PY
       - name: Freeze program-only candidates (research starts after this)
@@ -68,6 +83,16 @@ jobs:
           assert all(1<=len(g['selected_codes'])<=5 for g in x['industries'])
           print('PROGRAM_MODEL_SCOPE_FREEZE',x['trade_date'],x['selected_company_count'])
           PY
+      - name: Install existing quotation dependencies
+        if: steps.admission.outputs.run == 'true'
+        run: pip install -r requirements.txt
+      - name: Collect same-session fund evidence for frozen TOP5 only
+        if: steps.admission.outputs.run == 'true'
+        run: |
+          python scripts/freeze_trend_buy_fund_flow.py \
+            --admission research/trend_buy_candidates/latest.json \
+            --output /tmp/frozen-funded-admission.json
+          mv /tmp/frozen-funded-admission.json research/trend_buy_candidates/latest.json
       - name: Commit only research admission; read back exact content
         if: steps.admission.outputs.run == 'true'
         shell: bash
@@ -86,6 +111,17 @@ jobs:
             if ! git rebase origin/main; then
               git rebase --abort || true
               exit 1
+            fi
+            if python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path('research/trend_buy_candidates/latest.json').read_text())
+          f=json.loads(Path('research/trend_buy_formal_result.json').read_text())
+          raise SystemExit(0 if f.get('trade_date')==a['trade_date'] and isinstance(f.get('model_top1_selection'),dict) else 1)
+          PY
+            then
+              echo 'SAME_DAY_MODEL_SELECTION_LOCKED_NO_ADMISSION_REWRITE'
+              exit 0
             fi
             python - <<'PY'
           from pathlib import Path
@@ -110,3 +146,37 @@ jobs:
           name: program-candidate-admission
           path: research/trend_buy_candidates/latest.json
           retention-days: 35
+  test-fund-flow:
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - name: Unit and contract tests
+        run: python -m unittest discover -s tests -p 'test_frozen_trend_buy_fund_flow.py'
+      - name: Live same-session read-only verification
+        run: |
+          python - <<'PY'
+          import datetime,json,subprocess,sys
+          from zoneinfo import ZoneInfo
+          from pathlib import Path
+          path='research/trend_buy_candidates/latest.json'
+          a=json.loads(Path(path).read_text())
+          now=datetime.datetime.now(ZoneInfo('Asia/Shanghai'))
+          if now.date().isoformat()!=a['trade_date'] or now.hour<15:
+              print('LIVE_TEST_NOT_SAME_CLOSED_SESSION')
+              sys.exit(0)
+          subprocess.run([sys.executable,'scripts/freeze_trend_buy_fund_flow.py','--admission',path,'--output','/tmp/live-fund-test.json'],check=True)
+          f=json.loads(Path('/tmp/live-fund-test.json').read_text())
+          assert f['industries']==a['industries']
+          print('LIVE_FUND_GROUPS',json.dumps([{k:g[k] for k in ('industry_code','status','provider','attempts')} for g in f['fund_flow']['groups']],ensure_ascii=False))
+          assert all(g['status']=='VERIFIED' for g in f['fund_flow']['groups']), 'LIVE_SOURCE_UNAVAILABLE'
+          PY
