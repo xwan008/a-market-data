@@ -1,6 +1,6 @@
 # 模型 TOP1 决策与独立 Python 风控迁移协议 V1.6-R1
 
-状态：RESEARCH_BRANCH / NOT_PRODUCTION / NOT_VALIDATED。仅研究分支实施，不修改 main、定时任务、正式榜单、handoff 或交易参数。来源为当前 main 的 validation/research/AI_TOP1_REALTIME_PROMPT.md V1.6 与 2026-11-25 用户确认的决策顺序。本协议是拟迁移的固定模型指令，而不是第二套生产榜单。
+状态：PRODUCTION_POLICY / PERFORMANCE_NOT_VALIDATED。2026-11-25 用户授权正式切换；收益效果尚未验证，原交易参数保持不变。来源为当前 main 的 validation/research/AI_TOP1_REALTIME_PROMPT.md V1.6 与 2026-11-25 用户确认的决策顺序。本协议是拟迁移的固定模型指令，而不是第二套生产榜单。
 
 ## 本次迁移的边界和决定顺序（优先于下附原 V1.6 中冲突的表述）
 1. 上游只接受当日正式确认且合格的 SW3 handoff，原 Python TOP5 初筛逻辑、原始顺序、候选名单与席位完全保留。每个 SW3 独立选择至多一个 TOP1，不要求模型重新排列其余四只，不得扩大或替换名单。
@@ -10,14 +10,14 @@
 5. 首先比较前两项，明确哪只具有联合优势。若二者冲突，说明各自支持/反证、证据质量与持续性，给出决定性事实；证据不足以区分时不强行选。只有核心优势接近时，以真实产业传导和相邻单季盈利变化为第三优先级，以可核验预期差为第四优先级；重大基本面反证始终是约束。不得设置机械百分比权重或机械分数，不能凭感觉、用不相关指标强行决胜或事后拟合。
 6. 固定目标为未来1–3个交易日相对强势与趋势延续性（延续原 V1.6；5日为额外评价窗口，不是新预测门槛）。每轮保留五股公平比较、唯一胜出理由、最强竞争者、其他未选理由、最强反证与判断失效条件。允许 NO_SELECTION / INCOMPLETE，不默认程序第一。
 7. 选择锁定后，才对 TOP1 调用既有 scripts/trend_buy_engine.py 的 evaluate_candidate，沿用其突破/回踩、失效位、风险/赔率、追高、READY/WAIT/DROP/UNCERTAIN 等全部独立约束。非 TOP1 不调用交易计算、不输出买点、不因更易入场而递补；TOP1 为 WAIT、DROP、UNCERTAIN 或无选择就不产生可执行计划。既有 15/45/40 机会分和 READY 优先不得介入 TOP1 决策。模型不得输入交易价、止损或风险授权。
-8. 现阶段仅用 scripts/research_model_top1.py 输出独立研究结果，禁止用于正式交易/盘中监测，不改变现有正式流水线。正式切换必须单独验收、解决消费者契约和取得用户授权。
+8. 正式入口由 TREND_BUY_CANONICAL.md 指定；原 research_model_top1.py 作为验证与风控计算模块，唯一正式工作流调用 run_model_top1_formal.py 生成结果，handoff 仅承接已选且READY/WAIT的TOP1。研究用CLI仍禁止写正式文件。
 
 ## 机器交接格式
 顶层：trade_date、source_blob（冻结 admission 文件的 Git blob SHA）、prompt_version="V1.6-R1"、items（每个冻结 SW3 恰好一项）。
 每项：industry_code、candidate_codes（与原始顺序严格一致）、status、top1_code、reason（含决定性证据、最强竞争者及反证的简述）；COMPLETE 还须 completion_gate（input_verified、five_categories_searched、core_flow_verified、fact_quality_verified、dynamic_comparison_complete、counterevidence_checked，均为 true）、research_matrix（按 code 键控的 A–E 状态和来源）、dynamic_comparison（按 code 键控，trend_structure、fund_flow、quarterly_profit 均有文本记录）、comparison_reasons（全部非当选股的未选理由）、strongest_counter、falsifier。非 COMPLETE 须 top1_code=null 且有原因。
 原 V1.6 完整证据规范继续有效；程序校验结构、日期、名单和声明，不能替代对真实工具调用和来源事实的人工/模型审计。源 SHA 绑定冻结名单；输出不可覆盖。未验收的旧研究结果不得直接改标签冒充新协议选择。
 
-## 分支执行入口（非生产）
+## 独立测试入口（非生产；正式发布见唯一工作流）
 先由现有 Python prepare_trend_buy_candidates.py 生成并核验 admission，模型按本协议为所有入选公司完成当日 review（沿用现有公司证据格式，但不要求 model_rank），同时保存锁定 selections JSON。运行：
 ```bash
 python scripts/build_trend_buy_manual_research.py \
