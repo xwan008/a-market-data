@@ -15,7 +15,7 @@ class ModelTop1Test(unittest.TestCase):
                           "industries": [{"industry_code": "S480201", "selected_codes": self.codes}]}
         self.raw = json.dumps(self.admission).encode()
         self.research = {"trade_date": self.day, "schema_version": "trend_buy_research_v2",
-                         "prescreen_version": "CANONICAL", "mode": "FORMAL",
+                         "prescreen_version": "CANONICAL", "mode": "MODEL_TOP1_RESEARCH",
                          "coverage_complete": True, "publication_audit": dict.fromkeys(mod.AUDIT, True),
                          "selected_company_count": 5,
                          "companies": [{"code": c, "industry_code": "S480201", "market_state": "趋势确认",
