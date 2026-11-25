@@ -815,6 +815,8 @@ def select_focus_watchlist(ready, wait, research, groups=None):
 
 
 def generate(research, structure):
+    if research.get("mode") == "MODEL_TOP1_RESEARCH":
+        raise ValueError("MODEL_TOP1_REQUIRES_LOCKED_SELECTION_ADAPTER")
     if research.get("schema_version") != "trend_buy_research_v2":
         raise ValueError("invalid_research_contract")
     day = research.get("trade_date")
