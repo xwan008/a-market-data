@@ -1,5 +1,6 @@
 import sys
 import unittest
+from datetime import date, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
@@ -27,6 +28,87 @@ def inputs():
 
 
 class SectorDiscoveryTests(unittest.TestCase):
+    def dynamic_fixture(self):
+        latest, industry, structure = inputs()
+        end = date.fromisoformat(latest["trade_date"])
+        days = [(end - timedelta(days=i)).isoformat() for i in reversed(range(26))]
+        history = {}
+        for code in latest["stocks"]:
+            hot = int(code) <= 6
+            price = 100.0
+            rows = []
+            for i, day in enumerate(days):
+                price *= (1.03 if hot and i >= 24 else .98 if hot else 1.0)
+                rows.append({"date": day, "close": price, "high": price * 1.001,
+                             "low": price * .999, "volume": 100,
+                             "volume_unit": "shares"})
+            # Future information must never enter the as-of sequence.
+            rows.append({"date": "2026-10-12", "close": 99999, "volume": 1e9})
+            history[code] = rows
+        for code in list(latest["stocks"])[:6]:
+            structure["companies"][code]["phase_evidence"].update(
+                return_3d_pct=1, return_5d_pct=-4)
+        return latest, industry, structure, history, days
+
+    def test_dynamic_series_exposes_turnaround_without_changing_ranking(self):
+        latest, industry, structure, history, days = self.dynamic_fixture()
+        old_snap, old_audit = build(latest, industry, structure)
+        snap, audit = build(latest, industry, structure, daily_history=history)
+        hot = next(r for r in audit["sectors"] if r["id"] == "industry:S100101")
+        before = next(r for r in old_audit["sectors"] if r["id"] == hot["id"])
+        self.assertEqual(hot["median_5d_pct"], -4)
+        self.assertEqual(hot["score"], before["score"])
+        self.assertEqual(hot["channels"], before["channels"])
+        self.assertEqual(snap["candidate_overview"], old_snap["candidate_overview"])
+        evidence = hot["daily_structure"]
+        self.assertEqual(evidence["status"], "COMPLETE")
+        self.assertEqual(evidence["role"], "OBJECTIVE_EVIDENCE_ONLY")
+        series = evidence["series"]
+        self.assertEqual([r["trade_date"] for r in series], days[-5:])
+        self.assertEqual(series[-3]["median_1d_pct"], -2.0)
+        self.assertEqual(series[-2]["median_1d_pct"], 3.0)
+        self.assertEqual(series[-2]["relative_1d_vs_market_median_pct"], 1.5)
+        self.assertEqual(series[-2]["advance_ratio"], 1.0)
+        self.assertEqual(series[-2]["median_volume_ratio_vs_prior_20d"], 1.0)
+        self.assertEqual(series[-2]["close_above_prior_day_high_count"], 6)
+        self.assertEqual(series[-3]["close_below_prior_day_low_count"], 6)
+        self.assertEqual(series[-1]["median_1d_pct"], hot["median_1d_pct"])
+        self.assertEqual(series[-1]["relative_1d_vs_market_median_pct"],
+                         hot["relative_1d_vs_market_median_pct"])
+        self.assertEqual(series[-1]["median_volume_ratio_vs_prior_20d"], 1.8)
+        self.assertFalse(audit["daily_structure_contract"]["affects_scores_or_state"])
+
+    def test_missing_history_stays_partial_and_does_not_bridge_sessions(self):
+        latest, industry, structure, history, days = self.dynamic_fixture()
+        for code in ("000001", "000002"):
+            history[code] = [r for r in history[code] if r["date"] != days[-3]]
+        _, audit = build(latest, industry, structure, daily_history=history)
+        hot = next(r for r in audit["sectors"] if r["id"] == "industry:S100101")
+        evidence = hot["daily_structure"]
+        self.assertEqual(evidence["status"], "PARTIAL")
+        series = evidence["series"]
+        self.assertEqual(series[-2]["return_sample_size"], 4)
+        self.assertIsNone(series[-2]["median_1d_pct"])
+        self.assertIsNone(series[-2]["advance_ratio"])
+        self.assertIsNone(series[-2]["market_median_1d_pct"])
+        self.assertEqual(series[-2]["prior_range_sample_size"], 4)
+        self.assertEqual(series[-1]["return_sample_size"], 6)
+        _, no_history = build(latest, industry, structure)
+        row = next(r for r in no_history["sectors"] if r["id"] == hot["id"])
+        self.assertEqual(row["daily_structure"]["status"], "PARTIAL")
+        self.assertEqual(len(row["daily_structure"]["series"]), 1)
+
+    def test_protocol_requires_dynamic_evidence_not_cumulative_return_gate(self):
+        protocol = (Path(__file__).resolve().parents[1]
+                    / "skill/TREND_REGISTRY_PROTOCOL.md").read_text(encoding="utf-8")
+        self.assertIn("动态延续性优先", protocol)
+        self.assertIn("3日、5日累计收益与累计上涨广度只作历史背景", protocol)
+        self.assertIn("若暂不看3/5日累计收益正负", protocol)
+        self.assertIn("D1以来的逐日演变为重点", protocol)
+        self.assertIn("不得把D2机械绑定候选或把D3当作常规确认日", protocol)
+        self.assertIn("不能将空值视作零", protocol)
+        self.assertIn("新增辅助字段不构成发布Gate或程序排名规则", protocol)
+
     def test_missing_historical_participation_does_not_invent_breadth(self):
         latest, industry, structure = inputs()
         for code in ("000001", "000002"):
