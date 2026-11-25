@@ -88,7 +88,7 @@ def run(admission_raw, research, structure, selections):
     require(research.get("schema_version") == "trend_buy_research_v2" and
             research.get("prescreen_version") == "CANONICAL" and
             research.get("coverage_complete") is True and
-            research.get("mode") == "FORMAL", "VALIDATED_FRESH_RESEARCH_REQUIRED")
+            research.get("mode") == "MODEL_TOP1_RESEARCH", "VALIDATED_FRESH_RESEARCH_REQUIRED")
     require(all((research.get("publication_audit") or {}).get(k) is True for k in AUDIT),
             "UPSTREAM_RESEARCH_GATE_FAILED")
     require(structure.get("contract_id") == "a-share-low-risk-price-structure", "STRUCTURE_CONTRACT_MISMATCH")
