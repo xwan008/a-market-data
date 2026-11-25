@@ -17,6 +17,20 @@
 每项：industry_code、candidate_codes（与原始顺序严格一致）、status、top1_code、reason（含决定性证据、最强竞争者及反证的简述）；COMPLETE 还须 completion_gate（input_verified、five_categories_searched、core_flow_verified、fact_quality_verified、dynamic_comparison_complete、counterevidence_checked，均为 true）、research_matrix（按 code 键控的 A–E 状态和来源）、dynamic_comparison（按 code 键控，trend_structure、fund_flow、quarterly_profit 均有文本记录）、comparison_reasons（全部非当选股的未选理由）、strongest_counter、falsifier。非 COMPLETE 须 top1_code=null 且有原因。
 原 V1.6 完整证据规范继续有效；程序校验结构、日期、名单和声明，不能替代对真实工具调用和来源事实的人工/模型审计。源 SHA 绑定冻结名单；输出不可覆盖。未验收的旧研究结果不得直接改标签冒充新协议选择。
 
+## 分支执行入口（非生产）
+先由现有 Python prepare_trend_buy_candidates.py 生成并核验 admission，模型按本协议为所有入选公司完成当日 review（沿用现有公司证据格式，但不要求 model_rank），同时保存锁定 selections JSON。运行：
+```bash
+python scripts/build_trend_buy_manual_research.py \
+  --model-top1-research --evidence /tmp/fresh-reviews.json \
+  --admission research/trend_buy_candidates/latest.json \
+  --structure-output /tmp/top1-structure.json --output /tmp/top1-research.json
+python scripts/research_model_top1.py \
+  --admission research/trend_buy_candidates/latest.json \
+  --research /tmp/top1-research.json --structure /tmp/top1-structure.json \
+  --selections /tmp/top1-selections.json --output /tmp/top1_model_research_YYYY-MM-DD.json
+```
+builder 仍重算核对原 admission，保留全部公司证据及同日技术观察（供模型比较），只在显式研究模式下解除全名单 model_rank 必填。其输出 mode=MODEL_TOP1_RESEARCH，不能作为正式流水线输入。交易引擎仅对锁定 TOP1 计算入场、失效和风控。非研究模式保持原行为。
+
 ---
 
 ## 原 V1.6（保留原始研究义务，冲突处以上述迁移边界为准）
