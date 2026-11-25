@@ -105,6 +105,11 @@ def archive(requested_date: str | None = None) -> str:
     if trend_handoff.get("result_kind") != "a_share_trend_handoff":
         raise ValueError("TREND_HANDOFF_KIND_MISMATCH")
 
+    if trade_date >= "2026-11-25":
+        if (formal.get("selection_policy") != "MODEL_TOP1_V1_6_R1"
+                or buy_handoff.get("selection_policy") != "MODEL_TOP1_V1_6_R1"):
+            print("VALIDATION_WAIT_FOR_TOP1_POLICY", trade_date)
+            return "waiting"
     universe = frozen_universe(registry, trade_date)
     metadata = {
         "schema_version": 1,
@@ -118,8 +123,11 @@ def archive(requested_date: str | None = None) -> str:
             for name, rel in SOURCE.items()
         },
         "trend_count": len(universe),
-        "company_research_count": sum(len(formal.get(status, []))
-                                      for status in ("ready", "wait", "uncertain", "drop")),
+        "company_research_count": (sum(len(g["selected_codes"]) for g in formal["python_top5_by_industry"])
+                                   if formal.get("selection_policy") == "MODEL_TOP1_V1_6_R1"
+                                   else sum(len(formal.get(status, [])) for status in ("ready", "wait", "uncertain", "drop"))),
+        "selection_policy": formal.get("selection_policy", "LEGACY_TOP5"),
+        "risk_evaluated_count": sum(len(formal.get(status, [])) for status in ("ready", "wait", "uncertain", "drop")),
     }
 
     # Write the manifest last.  GitHub Actions stages/commits this new directory

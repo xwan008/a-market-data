@@ -35,7 +35,7 @@ jobs:
           import hashlib, json, os, sys
           from pathlib import Path
           sys.path.insert(0, 'scripts')
-          from trend_buy_handoff import validate_items
+          from trend_buy_handoff import validate_items, project
           from validate_trend_publication_pair import validate as validate_pair
           ready = False
           try:
@@ -49,6 +49,9 @@ jobs:
                   raise ValueError('UPSTREAM_PAIR_INVALID:'+','.join(errors))
               sha = hashlib.sha1(b'blob '+str(len(fb)).encode()+b'\0'+fb).hexdigest()
               validate_items(h)
+              projected=project(f,sha,shadow=False)
+              if projected != h:
+                  raise ValueError('FORMAL_HANDOFF_PROJECTION_MISMATCH')
               ready = (bool(sector_handoff.get('signals'))
                        and h.get('trade_date') == sector_handoff.get('trade_date')
                        and h.get('shadow') is False and h.get('source_formal_blob_sha') == sha

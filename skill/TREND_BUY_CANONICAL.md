@@ -14,17 +14,17 @@
 8. **先识别本次交易形态，再计算与其一一对应的失效位与赔率**。BREAKOUT必须有当日已确认的历史突破关口（已有价格/量能/收盘证据），以**本次突破关口被有效重新跌破**作为交易假设失效依据，不引用整段行情起涨低点；以关口下0.5%作为试运行风险缓冲参考。PULLBACK必须有当日真实回踩与反弹确认（MA20附近回踩低点在MA20下3%至上2%区间、当日收盘站回MA20、收盘强度≥55%、收盘高于前收且higher_low已核验），才使用**本次已确认的回踩日低点**下0.5%作为试运行失效参考。MA20、MA60、过去30日最低点、通用support_invalidation和远期启动低点均不得单独代替本次买点失效位。0.5%缓冲和回踩距离均为待回测研究假设。止损失效价必须低于本次入场下沿，否则买点证据不足，保持WAIT，禁止伪造价位或将一笔新建仓风险延伸到趋势起点。只有来源于已独立确认三级行业的个股才有机会进入READY；候选/观察行业在上游研究，不通过正式handoff；短线距离MA20超过8%、chase=high、正式风险大于6%或上方已知阻力不足1.5R均暂缓。READY需同时通过120～180日已确认历史阻力核验，上方有效阻力小于1.5R降为WAIT_RISK_REWARD。交易前需确定盘中与收盘触发方式，并考虑跳空/滑点，止损并非保证成交。
 9. **唯一正式TOP1决策**：严格读取 `skill/TREND_BUY_MODEL_TOP1_RESEARCH.md` V1.6-R1；每个SW3冻结原始Python TOP5及顺序，模型在同组独立选至多一个TOP1（允许弃权）。第一核心趋势延续性、第二核心边际资金持续性，核心优势接近再比较产业/单季盈利、最后预期差，重大反证否决。禁止15/45/40机会分、READY优先、模型全名单排名或程序第一兜底介入选择。仅锁定TOP1调用原 `evaluate_candidate`，非TOP1不计算交易计划。WAIT只观察，DROP/UNCERTAIN/弃权不递补。
 10. `research/trend_buy_company_reviews/latest.json` 保留全部冻结公司reviews及同文件 `top1_selection`（日期、admission blob SHA、V1.6-R1、全组选择与证据）。程序重放admission、验证完整研究范围和来源、锁定TOP1及独立风控。允许如实记录INCOMPLETE/NO_SELECTION组，零合格TOP1不产生新仓交接股票；不得回退旧排序。
-11. 唯一生产工作流 `.github/workflows/run-trend-buy-formal.yml` 调用 `build_trend_buy_manual_research.py --model-top1-research` 和 `run_model_top1_formal.py`；结果 `python_top5_by_industry` 保存原始名单及顺序，`model_top1_selection`保存证据，`top1_decisions`保存选择及风控。历史兼容字段 `top5_by_theme` 仅为已选READY/WAIT的TOP1执行投影，不是原始TOP5。`trend_buy_handoff.py` 只传已选TOP1的READY/WAIT，结果与handoff成对原子提交并READBACK，盘中不重新选股。
+11. 唯一生产工作流 `.github/workflows/run-trend-buy-formal.yml` 调用 `build_trend_buy_manual_research.py --model-top1-research` 和 `run_model_top1_formal.py`；结果 `python_top5_by_industry` 保存原始名单及顺序，`model_top1_selection`保存证据，`top1_decisions`保存选择及风控。`top1_by_industry` 为每SW3已选且READY/WAIT的执行投影；旧 `top5_by_theme` 仅用于2026-11-25以前的历史归档，不再由新正式结果生成。`trend_buy_handoff.py` 只传已选TOP1的READY/WAIT，结果与handoff成对原子提交并READBACK，盘中不重新选股。
 
 ## 3. 状态含义
 - READY：经证据核实，行业趋势确认且价格形态、合理区间、结构失效及风险全部就绪；仅下一交易日条件性入场，非无条件买单。
 - WAIT：来自**已确认三级行业**、但个股本次未满足买点的研究结果；包括MA60下方的修复、启动未确认、分歧后的等待承接。正式handoff中WAIT必须清空可执行交易计划字段，改用独立watch_reference传递由独立TOP1风控计算的近端观察触发价/参考区间（可以为空）；远期突破高点不得冒充当前买点，观察参考位也不得冒充持仓止损。WAIT触及观察区不自动升级READY，不改变板块确认Gate，也不凭任何单一外部价格上涨信号执行买入；下一完整交易日重新计算和确认。
 - UNCERTAIN：业务或关键结构缺失，不得补造数据。
 - DROP：业务关联被证伪、重大硬风险或已验证结构失效；MA60和单日回落均不是充分淘汰理由。
-- COOLING与正式WAIT是不同维度；暂停新建仓优先排名不直接命令已持有的用户止盈止损。持仓退出根据独立结构保护、业务逻辑证伪与风险预算执行。
+- COOLING与正式WAIT是不同维度；暂停新建仓不直接命令已持有的用户止盈止损。持仓退出根据独立结构保护、业务逻辑证伪与风险预算执行。
 
 ## 4. 交易时间与异常
-北京时间工作日19:00执行完整研究，使用当天已完成行情发布；非正式交易日不把过期数值当新信号。研究证据、市场数据、代码审计、GitHub提交或READBACK任何一项关键失败，不写新正式结果或handoff。连续多日行情指标只是形态代理，不证明实际资金身份，也尚未证明超额收益；生产参数须通过严格截至当日日K的历史回放验证。
+北京时间工作日19:00执行完整研究，使用当天已完成行情发布；非正式交易日不把过期数值当新信号。全局输入、数据日期、名单/来源契约、代码审计、GitHub提交或READBACK任何一项关键失败均BLOCKED，不写新正式结果或handoff。单个SW3研究证据不足按INCOMPLETE如实记录，不产出该组TOP1；全部组弃权时可发布完整审计及空handoff（不同于上游signals=[]时不发布）。同一交易日已正式锁定的模型选择不得改写。连续多日行情指标只是形态代理，不证明实际资金身份，也尚未证明超额收益；生产参数须通过严格截至当日日K的历史回放验证。
 
 ## 5. 程序预筛与深研边界（唯一生效）
 

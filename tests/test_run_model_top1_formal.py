@@ -26,12 +26,16 @@ class FormalTop1Tests(unittest.TestCase):
         self.assertEqual(evaluate.call_count,1)
         self.assertEqual(result["python_top5_by_industry"][0]["selected_codes"],self.f.codes)
         self.assertEqual(result["selection_policy"],formal.POLICY)
+        self.assertNotIn("top5_by_theme",result)
+        self.assertEqual(result["top1_by_industry"][0]["items"][0]["code"],"601328")
+        self.assertEqual(len(result["company_reviews"]),5)
         self.assertTrue(result["production_eligible"])
         self.assertEqual(result["coverage"]["selected"],5)
         self.assertEqual(result["coverage"]["judged"],1)
         self.assertEqual(result["summary"]["wait"],1)
         h=handoff.project(result,"synthetic-sha")
         self.assertEqual([x["code"] for x in h["items"]],["601328"])
+        self.assertEqual(h["selection_policy"],formal.POLICY)
         self.assertIsNone(h["items"][0]["entry_zone"])
         self.assertEqual(h["items"][0]["attention_rank"],1)
 
@@ -59,6 +63,20 @@ class FormalTop1Tests(unittest.TestCase):
         self.evidence.pop("top1_selection")
         with self.assertRaises(KeyError):
             self.run_formal()
+
+    def test_legacy_policy_blocked_after_cutover(self):
+        result=self.run_formal()
+        result["trade_date"]="2026-11-25"
+        result["top5_by_theme"]=result.pop("top1_by_industry")
+        result.pop("selection_policy")
+        with self.assertRaisesRegex(ValueError,"LEGACY_TOP5_FORMAL_DISABLED"):
+            handoff.project(result,"synthetic-sha")
+
+    def test_ambiguous_new_top5_field_rejected(self):
+        result=self.run_formal()
+        result["top5_by_theme"]=[]
+        with self.assertRaisesRegex(ValueError,"AMBIGUOUS_LEGACY_TOP5_FIELD"):
+            handoff.project(result,"synthetic-sha")
 
     def test_old_or_future_reviews_rejected(self):
         self.evidence["reviews"][0]["review_evidence_date"]="2026-11-23"

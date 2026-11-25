@@ -44,7 +44,12 @@ def active_stock_handoff() -> tuple[dict, list[dict], str]:
         raise ValueError("TREND_BUY_FORMAL_HANDOFF_MISMATCH")
     # The only production monitor universe is the exact handoff projection. New policy: selected TOP1 only; historical v2 remains readable.
     # Never silently fall back to yesterday's unranked READY+WAIT population.
-    if not isinstance(formal.get("top5_by_theme"), list):
+    if formal.get("selection_policy") == trend_contract.TOP1_POLICY:
+        if not isinstance(formal.get("top1_by_industry"), list):
+            raise ValueError("TREND_BUY_FORMAL_TOP1_MISSING")
+        if handoff.get("selection_policy") != trend_contract.TOP1_POLICY:
+            raise ValueError("TREND_BUY_POLICY_MISMATCH")
+    elif not isinstance(formal.get("top5_by_theme"), list):
         raise ValueError("TREND_BUY_FORMAL_DYNAMIC_TOP5_MISSING")
     projected = trend_contract.project(formal, digest, shadow=False)
     if items != projected["items"]:

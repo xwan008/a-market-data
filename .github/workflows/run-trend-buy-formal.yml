@@ -54,6 +54,9 @@ jobs:
               assert evidence['as_of_date']==day
               assert evidence['explicit_no_prior_formal_or_archive_input'] is True
               assert evidence['top1_selection']['prompt_version']=='V1.6-R1'
+              previous=read('research/trend_buy_formal_result.json')
+              if (previous.get('trade_date')==day and previous.get('selection_policy')=='MODEL_TOP1_V1_6_R1'):
+                  assert previous['model_top1_selection']==evidence['top1_selection'], 'LOCKED_TOP1_CANNOT_BE_RESELECTED'
               run='true'
           with open(os.environ['GITHUB_OUTPUT'],'a') as f:
               f.write('should_run='+run+'\n')

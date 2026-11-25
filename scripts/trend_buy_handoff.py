@@ -9,6 +9,9 @@ import argparse
 import json
 from pathlib import Path
 
+TOP1_POLICY="MODEL_TOP1_V1_6_R1"
+TOP1_CUTOVER_DATE="2026-11-25"
+
 WAIT_REASONS={"WAIT_BREAKOUT","WAIT_PULLBACK","WAIT_CONFIRMATION","WAIT_RISK_REWARD"}
 SETUPS={"BREAKOUT","PULLBACK"}
 PROJECT_FIELDS=(
@@ -31,6 +34,9 @@ def positive(v):
 def validate_items(handoff):
     if handoff.get("schema_version")!="trend_buy_handoff_v2" or handoff.get("status")!="COMPLETE":
         raise ValueError("trend_handoff_invalid_envelope")
+    if (handoff.get("shadow") is False and handoff.get("trade_date", "") >= TOP1_CUTOVER_DATE
+            and handoff.get("selection_policy") != TOP1_POLICY):
+        raise ValueError("LEGACY_TOP5_HANDOFF_DISABLED")
     rows=handoff.get("items")
     if not isinstance(rows,list):
         raise ValueError("trend_handoff_items_invalid")
@@ -112,9 +118,14 @@ def project(result, formal_sha, *, shadow=False):
         raise ValueError("source_blob_sha_required")
     ready=result.get("ready") or []
     wait=result.get("wait") or []
-    groups=result.get("top5_by_theme")
+    top1 = result.get("selection_policy") == TOP1_POLICY
+    if not shadow and result.get("trade_date", "") >= TOP1_CUTOVER_DATE and not top1:
+        raise ValueError("LEGACY_TOP5_FORMAL_DISABLED_USE_MODEL_TOP1")
+    if top1 and "top5_by_theme" in result:
+        raise ValueError("AMBIGUOUS_LEGACY_TOP5_FIELD")
+    groups=result.get("top1_by_industry" if top1 else "top5_by_theme")
     if not isinstance(groups,list):
-        raise ValueError("missing_dynamic_theme_top5")
+        raise ValueError("missing_top1_by_industry" if top1 else "missing_dynamic_theme_top5")
     candidate_by_code={x["code"]:x for x in ready+wait}
     codes=[x["code"] for group in groups for x in group.get("items",[])]
     if len(codes)!=len(set(codes)) or any(code not in candidate_by_code for code in codes):
@@ -129,7 +140,7 @@ def project(result, formal_sha, *, shadow=False):
     attention={entry["code"]:(entry.get("attention_rank"),entry.get("attention_judgement"))
                for group in groups for entry in group.get("items",[])
                if "attention_rank" in entry or "attention_judgement" in entry}
-    if result.get("selection_policy") == "MODEL_TOP1_V1_6_R1":
+    if top1:
         decisions = result.get("top1_decisions")
         if not isinstance(decisions, list):
             raise ValueError("missing_top1_decisions")
@@ -138,7 +149,10 @@ def project(result, formal_sha, *, shadow=False):
             raise ValueError("duplicate_top1_industry")
         allowed = [d["top1_code"] for d in decisions
                    if d["risk_status"] in ("READY", "WAIT")]
-        if codes != allowed or any(len(g["items"]) > 1 for g in groups):
+        if (codes != allowed or set(candidate_by_code) != set(allowed)
+                or len(ready)+len(wait) != len(allowed)
+                or [g.get("industry_code") for g in groups] != industries
+                or any(len(g["items"]) > 1 for g in groups)):
             raise ValueError("top1_handoff_scope_mismatch")
         if any(candidate_by_code[d["top1_code"]].get("industry_code") != d["industry_code"]
                for d in decisions if d["top1_code"] in allowed):
@@ -163,6 +177,8 @@ def project(result, formal_sha, *, shadow=False):
         "source_formal_blob_sha":formal_sha,
         "shadow":shadow,"items":rows
     }
+    if top1:
+        payload["selection_policy"]=TOP1_POLICY
     validate_items(payload)
     return payload
 
