@@ -10,45 +10,39 @@ jobs:
   probe:
     if: github.head_ref == 'test/fund-flow-probe-20261125'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 4
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-      - name: Test Tencent history selector and fresh Eastmoney retry
+      - name: Verify Tencent today date, history continuity and quote amount
         run: |
           python3 - <<'PY'
-          import json,urllib.parse,subprocess,concurrent.futures,time
+          import json,urllib.parse,subprocess,concurrent.futures,datetime
           from pathlib import Path
+          from zoneinfo import ZoneInfo
           a=json.loads(Path('research/trend_buy_candidates/latest.json').read_text())
           codes=next(i['selected_codes'] for i in a['industries'] if i['industry_code']=='S480201')+['000001','300750']
-          def get(task):
-              kind,code,url,referer=task
-              out={'kind':kind,'code':code,'url':url}
-              for i in range(2):
+          def get(url,ref):
+              p=subprocess.run(['curl','-sS','-L','--max-time','12','-A','Mozilla/5.0','-e',ref,'-w','\nHTTP_CODE:%{http_code}',url],capture_output=True,timeout=15)
+              b,sep,status=p.stdout.rpartition(b'\nHTTP_CODE:')
+              if p.returncode or status!=b'200': raise RuntimeError(p.stderr.decode('utf-8','replace')[:200]+' HTTP '+str(status))
+              return b
+          def test(code):
+              out={'code':code,'queried_at':datetime.datetime.now(ZoneInfo('Asia/Shanghai')).isoformat()}
+              m=('sh' if code.startswith('6') else 'sz')+code
+              base='https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?'
+              for typ in ['todayFundFlow','todayFundTrend','historyFundFlow','fiveDayFundFlow']:
                   try:
-                      p=subprocess.run(['curl','-sS','-L','--max-time','12','-A','Mozilla/5.0','-e',referer,'-w','\nHTTP_CODE:%{http_code}',url],capture_output=True,timeout=15)
-                      b,sep,status=p.stdout.rpartition(b'\nHTTP_CODE:')
-                      out['http']=status.decode('ascii','replace')
-                      out['exit']=p.returncode
-                      if p.returncode: raise ValueError(p.stderr.decode('utf-8','replace')[:300])
-                      obj=json.loads(b.decode('utf-8','replace'))
-                      out['response']=obj
-                      out['attempts']=i+1
-                      return out
-                  except Exception as e:
-                      out['error']=type(e).__name__+': '+str(e)
-                      if i==0: time.sleep(2)
+                      u=base+urllib.parse.urlencode({'code':m,'type':typ,'klineNeedDay':20})
+                      x=json.loads(get(u,'https://gu.qq.com/'))
+                      out[typ]=x
+                  except Exception as e: out[typ+'_error']=str(e)
+              try:
+                  out['quote']=get('https://qt.gtimg.cn/q='+m,'https://gu.qq.com/').decode('gb18030','replace')
+              except Exception as e: out['quote_error']=str(e)
               return out
-          jobs=[]
-          for code in codes:
-              market='sh' if code.startswith('6') else 'sz'
-              for typ in ['historyFundFlow','fiveDayFundFlow']:
-                  q='https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?'+urllib.parse.urlencode({'code':market+code,'type':typ,'klineNeedDay':20})
-                  jobs.append(('qq_'+typ,code,q,'https://gu.qq.com/'))
-              q='https://push2his.eastmoney.com/api/qt/stock/fflow/daykline/get?'+urllib.parse.urlencode({'secid':('1.' if market=='sh' else '0.')+code,'fields1':'f1,f2,f3,f7','fields2':'f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61,f62,f63','lmt':20,'klt':101,'ut':'b2884a393a59ad64002292a3e90d46a5'})
-              jobs.append(('em_retry',code,q,'https://data.eastmoney.com/'))
           with concurrent.futures.ThreadPoolExecutor(max_workers=3) as ex:
-              for out in ex.map(get,jobs):
-                  print(json.dumps(out,ensure_ascii=False,allow_nan=False),flush=True)
+              for x in ex.map(test,codes):
+                  print(json.dumps(x,ensure_ascii=False,allow_nan=False),flush=True)
           PY
