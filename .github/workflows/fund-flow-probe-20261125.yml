@@ -14,73 +14,28 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - run: pip install 'akshare==1.18.94' 'pandas>=2.2,<3'
-      - name: Validate exact daily traded value from separate quote endpoint and fund source
+      - name: Probe Baidu independent daily money flow even if Sina gate failed
         run: |
-          python - <<'PY'
-          import json, math, signal, urllib.request, urllib.parse, time
+          python3 - <<'PY'
+          import json,urllib.request,urllib.parse,time
           from pathlib import Path
-          import akshare as ak
-          def read(p): return json.loads(Path(p).read_text())
-          a=read('research/trend_buy_candidates/latest.json')
+          a=json.loads(Path('research/trend_buy_candidates/latest.json').read_text())
           day=a['trade_date']
-          assert day=='2026-11-25'
           codes=next(i['selected_codes'] for i in a['industries'] if i['industry_code']=='S480201')
-          frozen={x['code']:x for x in read('data/low_risk/by_industry/S480201/part-001.json')['companies']}
-          def timeout(*_): raise TimeoutError('quote request exceeded 30s')
-          signal.signal(signal.SIGALRM,timeout)
-          results=[]
           for code in codes:
-              o={'code':code,'status':'FAIL'}
+              o={'code':code,'provider':'baidu'}
               try:
-                  h=read('data/history_shards/'+code[:4]+'.json')['stocks'][code]['history']
-                  hist={r['date']:r for r in h if r['date']<=day}
-                  dates=sorted(hist)[-20:]
-                  signal.alarm(30)
-                  try:
-                      q=ak.stock_zh_a_daily(symbol='sh'+code,start_date=dates[0].replace('-',''),end_date=day.replace('-',''),adjust='')
-                  finally:
-                      signal.alarm(0)
-                  o['quote_fields']=list(q.columns)
-                  assert {'date','close','amount','volume'}<=set(q.columns),'quote field missing'
-                  q['date']=q.date.astype(str).str[:10]
-                  assert not q.date.duplicated().any(),'duplicate quote days'
-                  quote={r['date']:r for r in q.to_dict('records')}
-                  url='https://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/MoneyFlow.ssl_qsfx_lscjfb?'+urllib.parse.urlencode({'page':1,'num':30,'sort':'opendate','asc':0,'daima':'sh'+code})
-                  req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0','Referer':'https://finance.sina.com.cn/'})
-                  with urllib.request.urlopen(req,timeout=15) as res:
-                      raw=res.read().decode('utf-8','replace')
-                  rows=json.loads(raw[raw.index('['):raw.rindex(']')+1])
-                  rows=sorted([r for r in rows if r['opendate']<=day],key=lambda r:r['opendate'])[-20:]
-                  assert [r['opendate'] for r in rows]==dates and set(dates)<=set(quote),'dates mismatch'
-                  o['daily']=[]
-                  for r in rows:
-                      d=r['opendate']; b=quote[d]
-                      amount=float(b['amount'])
-                      net=[float(r['r'+str(i)+'_net']) for i in range(4)]
-                      gross=[float(r['r'+str(i)]) for i in range(4)]
-                      assert amount>0 and all(math.isfinite(v) for v in net+gross+[amount]) and all(v>=abs(n) for v,n in zip(gross,net)),'invalid amounts'
-                      assert abs(sum(net)-float(r['netamount']))<=0.05,'net reconciliation failure'
-                      o['daily'].append({'date':d,'actual_amount':amount,'quote_close':float(b['close']),'fund_close':float(r['trade']),'frozen_close':hist[d]['close'],'classified_amount':sum(gross),'gross_difference_pct':100*(sum(gross)/amount-1),'reported_ratio_error_pp':100*(float(r['netamount'])/amount-float(r['ratioamount'])),'desktop_super_net':net[0],'large_order_combined_net':net[0]+net[1]})
-                  # Explicitly separate diagnostics from acceptance. Same source, same day, independently obtained actual total.
-                  five=o['daily'][-5:]
-                  o['core_close_conflicts']=[x['date'] for x in five if abs(x['quote_close']-x['fund_close'])>=0.005]
-                  o['core_amount_conflicts']=[x['date'] for x in five if abs(x['gross_difference_pct'])>1]
-                  o['core_ratio_conflicts']=[x['date'] for x in five if abs(x['reported_ratio_error_pp'])>0.1]
-                  o['today_frozen_match']=abs(five[-1]['quote_close']-frozen[code]['price'])<0.005
-                  for n in [1,5,10,20]:
-                      w=o['daily'][-n:]
-                      den=sum(x['actual_amount'] for x in w)
-                      o[str(n)+'d']={k:{'net':sum(x[k] for x in w),'ratio_pct':100*sum(x[k] for x in w)/den,'positive_days':sum(x[k]>0 for x in w)} for k in ['desktop_super_net','large_order_combined_net']}
-                  o['status']='PASS' if o['today_frozen_match'] and not any(o[k] for k in ['core_close_conflicts','core_amount_conflicts','core_ratio_conflicts']) else 'MATERIAL_CONFLICT'
+                  url='https://finance.pae.baidu.com/vapi/v1/fundsortlist?'+urllib.parse.urlencode({'code':code,'market':'ab','pn':0,'rn':20,'finClientType':'pc'})
+                  req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0','Accept':'application/vnd.finance-web.v1+json','Origin':'https://gushitong.baidu.com','Referer':'https://gushitong.baidu.com/'})
+                  with urllib.request.urlopen(req,timeout=12) as res:
+                      body=res.read().decode('utf-8','replace')
+                      o['http_status']=res.status
+                  obj=json.loads(body)
+                  o['result_code']=obj.get('ResultCode')
+                  o['result']=obj.get('Result')
+                  o['body_prefix']=body[:500]
               except Exception as e:
                   o['error']=type(e).__name__+': '+str(e)
               print(json.dumps(o,ensure_ascii=False,allow_nan=False),flush=True)
-              results.append(o)
-              time.sleep(1)
-          print('FINAL_SOURCE_GATE',sum(x['status']=='PASS' for x in results),'/',len(codes),flush=True)
-          assert all(x['status']=='PASS' for x in results),'source quality gate failed'
+              time.sleep(0.5)
           PY
