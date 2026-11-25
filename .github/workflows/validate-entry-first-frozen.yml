@@ -31,7 +31,7 @@ jobs:
           cp candidate/scripts/trend_buy_prescreen_core.py frozen/scripts/trend_buy_prescreen_core.py
           cp candidate/scripts/prepare_trend_buy_candidates.py frozen/scripts/prepare_trend_buy_candidates.py
           cp candidate/tests/test_trend_buy_admission.py frozen/tests/test_trend_buy_admission.py
-      - name: Run entry-priority, fallback, policy-contract and complete risk-gate regressions
+      - name: Run historical entry-priority, fallback and admission regressions
         working-directory: frozen
         run: |
           python -m unittest discover -s tests -p 'test_trend_buy_admission.py' -v
