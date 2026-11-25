@@ -350,7 +350,7 @@ class CanonicalAdmissionTests(unittest.TestCase):
             self.assertEqual([x["code"] for x in handoff.project(output,"synthetic-sha")["items"]],
                              [p["top1_code"] for p in output["top1_decisions"] if p["risk_status"] in ("READY","WAIT")])
             with self.assertRaisesRegex(ValueError,"LEGACY_TOP5_FORMAL_DISABLED"):
-                engine.generate(research,technical)
+                engine.generate({**research,"mode":"FORMAL"},technical)
 
     def test_formal_research_requires_frozen_admission(self):
         with self.assertRaisesRegex(ValueError,"ADMISSION_REQUIRED"):
