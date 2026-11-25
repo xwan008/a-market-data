@@ -1,0 +1,31 @@
+name: Research-only model TOP1 routing tests
+on:
+  push:
+    branches: [research/model-top1-python-risk-20261125]
+    paths:
+      - 'scripts/research_model_top1.py'
+      - 'tests/test_research_model_top1.py'
+      - 'skill/TREND_BUY_MODEL_TOP1_RESEARCH.md'
+      - '.github/workflows/research-model-top1-tests.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Syntax and isolated contract tests
+        run: |
+          python -m py_compile scripts/research_model_top1.py tests/test_research_model_top1.py
+          python -m unittest discover -s tests -p 'test_research_model_top1.py' -v
+      - name: Existing risk engine regressions
+        run: |
+          python -m unittest discover -s tests -p 'test_trend_buy_engine.py' -v
+          python -m unittest discover -s tests -p 'test_trend_buy_entry_focus.py' -v
+          python -m unittest discover -s tests -p 'test_trend_buy_entry_value_ranking.py' -v
