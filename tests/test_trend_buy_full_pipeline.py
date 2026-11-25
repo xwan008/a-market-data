@@ -1,5 +1,4 @@
 """Only canonical publication passes all evidence and risk gates."""
-import hashlib
 import importlib.util
 import json
 import unittest
@@ -83,34 +82,23 @@ def fixture():
     return research,structure
 
 
-class SingleVersionContractTests(unittest.TestCase):
-    def test_formal_generates_only_v2_handoff(self):
+class ShadowAndRetiredContractTests(unittest.TestCase):
+    def test_complete_legacy_input_is_never_formal(self):
         r,s=fixture()
+        with self.assertRaisesRegex(ValueError,"LEGACY_TOP5_FORMAL_DISABLED"):
+            engine.generate(r,s)
+
+    def test_complete_shadow_keeps_research_but_cannot_publish(self):
+        r,s=fixture()
+        r["mode"]="SHADOW"
         result=engine.generate(r,s)
-        self.assertTrue(result["production_eligible"])
+        self.assertFalse(result["production_eligible"])
         self.assertEqual(result["summary"]["ready"],1)
-        blob=(json.dumps(result,ensure_ascii=False,indent=2)+"\n").encode()
-        sha=hashlib.sha1(b"blob "+str(len(blob)).encode()+b"\0"+blob).hexdigest()
-        published=handoff.project(result,sha,shadow=False)
-        self.assertEqual(published["schema_version"],"trend_buy_handoff_v2")
-        self.assertEqual(published["source_formal_blob_sha"],sha)
-        self.assertEqual(result["top5_by_theme"][0]["items"][0]["attention_rank"],1)
-        self.assertEqual(published["items"][0]["attention_rank"],1)
-        self.assertTrue(published["items"][0]["attention_judgement"])
-        self.assertTrue(set(published["items"][0]).issubset(handoff.ALLOWED_ITEM_FIELDS))
-        self.assertEqual(published["items"][0]["max_entry_price"],result["ready"][0]["max_entry_price"])
-
-    def test_formal_missing_one_gate_fails_closed(self):
-        r,s=fixture()
-        r["publication_audit"]["fresh_company_research"]=False
-        with self.assertRaisesRegex(ValueError,"formal_publication_gate"):
-            engine.generate(r,s)
-
-    def test_formal_refuses_unreviewed_company(self):
-        r,s=fixture()
-        r["companies"][0]["source_review"]=""
-        with self.assertRaisesRegex(ValueError,"formal_company_research_missing"):
-            engine.generate(r,s)
+        projected=handoff.project(result,"shadow-sha",shadow=True)
+        self.assertTrue(projected["shadow"])
+        self.assertEqual(projected["items"][0]["attention_rank"],1)
+        with self.assertRaisesRegex(ValueError,"not_promoted"):
+            handoff.project(result,"shadow-sha",shadow=False)
 
     def test_historical_shadows_cannot_be_promoted(self):
         r,s=fixture()

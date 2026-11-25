@@ -131,7 +131,9 @@ class ContractTests(unittest.TestCase):
     def test_formal_projection_only_after_gate(self):
         s=sample()
         s["production_eligible"]=True
-        h=tool.project(s,"verifiedsha",shadow=False)
+        with self.assertRaisesRegex(ValueError,"LEGACY_TOP5_FORMAL_DISABLED"):
+            tool.project(s,"verifiedsha",shadow=False)
+        h=tool.replay_historical_projection(s,"verifiedsha")
         self.assertFalse(h["shadow"])
         self.assertEqual(h["source_formal_blob_sha"],"verifiedsha")
 

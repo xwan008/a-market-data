@@ -13,6 +13,7 @@ on:
       - 'scripts/research_model_top1.py'
       - 'scripts/run_model_top1_formal.py'
       - 'tests/test_research_model_top1.py'
+      - 'tests/test_trend_buy_top1_integration.py'
       - 'tests/test_run_model_top1_formal.py'
       - 'skill/TREND_BUY_MODEL_TOP1_RESEARCH.md'
       - 'scripts/trend_buy_research_quality.py'
@@ -37,6 +38,7 @@ on:
       - 'scripts/research_model_top1.py'
       - 'scripts/run_model_top1_formal.py'
       - 'tests/test_research_model_top1.py'
+      - 'tests/test_trend_buy_top1_integration.py'
       - 'tests/test_run_model_top1_formal.py'
       - 'skill/TREND_BUY_MODEL_TOP1_RESEARCH.md'
       - 'scripts/trend_buy_research_quality.py'
@@ -102,6 +104,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_trend_buy_snapshot_bridge.py' -v
           python -m unittest discover -s tests -p 'test_trend_buy_full_pipeline.py' -v
           python -m unittest discover -s tests -p 'test_trend_buy_admission.py' -v
+          python -m unittest discover -s tests -p 'test_trend_buy_top1_integration.py' -v
       - name: Unit-test shard momentum and frozen-date gates
         run: python -m unittest discover -s tests -p 'test_price_inputs.py' -v
       - name: Refresh frozen 65-day shard technical evidence

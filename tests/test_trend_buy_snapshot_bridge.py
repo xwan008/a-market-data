@@ -36,7 +36,7 @@ class SingleVersionReaderTests(unittest.TestCase):
         payload=json.dumps(formal,ensure_ascii=False).encode()
         fp.write_bytes(payload)
         sha=hashlib.sha1(b"blob "+str(len(payload)).encode()+b"\0"+payload).hexdigest()
-        handoff=snap.trend_contract.project(formal,sha,shadow=False)
+        handoff=snap.trend_contract.replay_historical_projection(formal,sha)
         hp.write_text(json.dumps(handoff,ensure_ascii=False))
         return fp,hp
 
