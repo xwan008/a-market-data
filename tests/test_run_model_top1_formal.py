@@ -89,13 +89,17 @@ class FormalTop1Tests(unittest.TestCase):
         with self.assertRaises(KeyError):
             self.run_formal()
 
-    def test_legacy_policy_blocked_after_cutover(self):
+    def test_legacy_policy_blocked_for_all_publication_dates(self):
         result=self.run_formal()
-        result["trade_date"]="2026-11-25"
         result["top5_by_theme"]=result.pop("top1_by_industry")
         result.pop("selection_policy")
-        with self.assertRaisesRegex(ValueError,"LEGACY_TOP5_FORMAL_DISABLED"):
-            handoff.project(result,"synthetic-sha")
+        for day in ("2026-10-09", "2026-11-25", "2026-12-01"):
+            with self.subTest(day=day):
+                result["trade_date"]=day
+                with self.assertRaisesRegex(ValueError,"LEGACY_TOP5_FORMAL_DISABLED"):
+                    handoff.project(result,"synthetic-sha")
+        with self.assertRaisesRegex(ValueError,"HISTORICAL_LEGACY_READBACK_ONLY"):
+            handoff.replay_historical_projection(result,"synthetic-sha")
 
     def test_ambiguous_new_top5_field_rejected(self):
         result=self.run_formal()

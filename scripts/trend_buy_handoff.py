@@ -110,6 +110,20 @@ def validate_items(handoff):
     return rows
 
 def project(result, formal_sha, *, shadow=False):
+    """Project only current TOP1 for publication; shadow research stays non-production."""
+    return _project(result, formal_sha, shadow=shadow, historical_readback=False)
+
+
+def replay_historical_projection(result, formal_sha):
+    """Read-only compatibility for already-published pre-cutover archives, never a publisher."""
+    day=result.get("trade_date", "")
+    if (not isinstance(day,str) or len(day)!=10 or day>=TOP1_CUTOVER_DATE
+            or result.get("selection_policy")==TOP1_POLICY):
+        raise ValueError("HISTORICAL_LEGACY_READBACK_ONLY")
+    return _project(result, formal_sha, shadow=False, historical_readback=True)
+
+
+def _project(result, formal_sha, *, shadow, historical_readback):
     if result.get("schema_version")!="trend_buy_result_v2" or result.get("status")!="COMPLETE":
         raise ValueError("not_completed_trend_result")
     if result.get("production_eligible") is not True and not shadow:
@@ -119,7 +133,7 @@ def project(result, formal_sha, *, shadow=False):
     ready=result.get("ready") or []
     wait=result.get("wait") or []
     top1 = result.get("selection_policy") == TOP1_POLICY
-    if not shadow and result.get("trade_date", "") >= TOP1_CUTOVER_DATE and not top1:
+    if not shadow and not top1 and not historical_readback:
         raise ValueError("LEGACY_TOP5_FORMAL_DISABLED_USE_MODEL_TOP1")
     if top1 and "top5_by_theme" in result:
         raise ValueError("AMBIGUOUS_LEGACY_TOP5_FIELD")

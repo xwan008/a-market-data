@@ -834,43 +834,10 @@ def generate(research, structure):
         raise ValueError("invalid_or_duplicate_codes")
     if research.get("selected_company_count") != len(co):
         raise ValueError("selected_coverage_mismatch")
-    formal = research.get("mode") == "FORMAL"
-    if formal and day >= "2026-11-25":
+    # This aggregate engine is for shadow research only, regardless of as-of date.
+    if research.get("mode") == "FORMAL":
         raise ValueError("LEGACY_TOP5_FORMAL_DISABLED_USE_MODEL_TOP1")
     rows=[evaluate_candidate(c, (structure.get("companies") or {}).get(code), day) for c,code in zip(co,ids)]
-    if formal and research.get("prescreen_version") != "CANONICAL":
-        raise ValueError("FORMAL_REQUIRES_CANONICAL_SCREEN")
-    if research.get("prescreen_version")=="CANONICAL":
-        if research.get("mode")=="FORMAL":
-            positions={}
-            for c in co:
-                if c.get("transmission") not in ("SUPPORTED","EARLY_EVIDENCE"):
-                    continue
-                pos_val=c.get("model_priority")
-                explain=c.get("model_reason")
-                if (not isinstance(pos_val,int) or isinstance(pos_val,bool)
-                        or not 1<=pos_val<=100
-                        or not isinstance(explain,str) or len(explain.strip())<24):
-                    raise ValueError("PRESCREEN_MODEL_RESEARCH_RANK_OR_REASON_MISSING")
-                theme=c.get("trend_name")
-                if pos_val in positions.setdefault(theme,set()):
-                    raise ValueError("PRESCREEN_MODEL_RANK_DUPLICATED_WITHIN_THEME")
-                positions[theme].add(pos_val)
-    audit = research.get("publication_audit") or {}
-    if formal and day >= "2026-10-27" and any(
-            x.get("market_state") != "趋势确认" for x in co):
-        # Even if an incorrect handoff reached this point, reject the run
-        # before publishing any candidate-sector WAIT or READY research.
-        raise ValueError("formal_stock_research_requires_confirmed_sw3")
-    if formal:
-        required = ("fresh_company_research", "working_set_frozen",
-                    "pre_screen_coverage", "company_research_coverage",
-                    "structure_same_day", "no_future_evidence", "json_schema_valid")
-        if any(audit.get(k) is not True for k in required):
-            raise ValueError("formal_publication_gate_not_passed")
-        if any(not isinstance(c.get("source_review"),str) or not c["source_review"].strip()
-               for c in co):
-            raise ValueError("formal_company_research_missing")
     for row in rows:
         if row["status"] not in STATES or (row["status"]=="WAIT" and row["wait_reason"] not in WAIT_REASONS):
             raise ValueError("invalid_final_status")
@@ -902,15 +869,14 @@ def generate(research, structure):
                             "max_ma20_distance_pct":MAX_MA20_DISTANCE_PCT,
                             "min_resistance_reward_R":MIN_UPSIDE_R,
                             "status":"PROVISIONAL_LIVE_PARAMETERS_MONITOR_AND_REVISE"},
-        "publication_audit":audit if formal else {"fresh_research":False},
+        "publication_audit":{"fresh_research":False},
         "coverage":{"selected":len(co),"judged":len(rows),"complete":True},
         "ready":ready,"wait":wait,"uncertain":uncertain,"drop":drop,
         "top5_by_theme": opportunity_groups,
         "focus_watchlist":select_focus_watchlist(ready, wait, research, opportunity_groups),
         "summary":{"ready":len(ready),"wait":len(wait),"uncertain":len(uncertain),"drop":len(drop)},
-        "production_eligible":formal,
-        "production_eligibility_reason":("fresh_complete_research_and_structure" if formal else
-                                         "historical_or_incomplete_shadow_study")
+        "production_eligible":False,
+        "production_eligibility_reason":"historical_or_incomplete_shadow_study"
     }
 
 

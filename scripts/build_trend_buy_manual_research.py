@@ -475,7 +475,7 @@ def build(evidence_path, structure_path=None, structure_output_path=None,
     gate["structure_same_day"]=True
     result={"schema_version":"trend_buy_research_v2",
             "prescreen_version":"CANONICAL" if admission_by_industry is not None else "AUDIT_ONLY",
-            "mode":"AUDIT_ONLY" if audit_only else (("MODEL_TOP1_RESEARCH" if model_top1_research else "FORMAL") if not missing_review and not missing_model_rank else "SHADOW"),
+            "mode":"AUDIT_ONLY" if audit_only else ("MODEL_TOP1_RESEARCH" if model_top1_research and not missing_review and not missing_model_rank else "SHADOW"),
             "run_id":"trend-buy-research-asof-"+day,
             "trade_date":day,"coverage_complete":True,
             "selected_company_count":len(candidate),"publication_audit":gate,

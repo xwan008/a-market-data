@@ -208,75 +208,11 @@ class CanonicalAdmissionTests(unittest.TestCase):
             self.assertFalse(old["publication_audit"]["fresh_company_research"])
             self.assertEqual(old["selected_company_count"],a["selected_company_count"])
 
-    def test_complete_synthetic_model_reviews_can_reach_formal_risk_engine(self):
+    def test_frozen_candidates_and_funds_reach_only_top1_risk_engine(self):
         self.require_current_paired_working_set()
         # Tests contract wiring only, NOT real issuer evidence or an executable
         # financial recommendation. All synthetic inputs live in /tmp.
-        intake_result=intake.prepare(ROOT)
-        d=intake_result["trade_date"]
-        if d >= "2026-11-25":
-            self.check_current_top1_path(intake_result)
-            return
-        reviews=[]
-        next_rank=1
-        for group in intake_result["industries"]:
-            for code in group["selected_codes"]:
-                reviews.append({
-                    "code":code,
-                    "transmission":"NOT_SUPPORTED" if not reviews else "SUPPORTED",
-                    "review_evidence_date":d,
-                    "review_basis":"SYNTHETIC_UNIT_TEST_ONLY",
-                    "source_review":"SYNTHETIC TEST: placeholder proof to exercise Python→model→risk interface only.",
-                    "source_materials":[{
-                        "asof":d,"published_at":d,
-                        "url":"https://example.org/test-fixture-not-real-source"}],
-                    "research_falsifier":"SYNTHETIC: real negative evidence invalidates hypothesis",
-                    "early_evidence_risk_review_passed":True,
-                    "evidence_gap":False,
-                    "model_rank":next_rank,
-                    "model_reason":"SYNTHETIC: simulated comparison of income, cashflow, expectations and actual peer strength.",
-                })
-                next_rank+=1
-        with tempfile.TemporaryDirectory() as folder:
-            root=Path(folder)
-            admission=root/"trend_buy_research_admission.json"
-            evidence=root/"synthetic_only.json"
-            structures=root/"technical.json"
-            admission.write_text(json.dumps(intake_result,ensure_ascii=False))
-            evidence.write_text(json.dumps({
-                "as_of_date":d,"reviews":reviews,
-                "explicit_no_prior_formal_or_archive_input":True,
-            },ensure_ascii=False))
-            result=builder.build(
-                evidence,structure_output_path=structures,
-                admission_path=admission)
-            self.assertEqual(result["mode"],"FORMAL")
-            self.assertEqual(result["prescreen_version"],"CANONICAL")
-            self.assertEqual(result["screen_audit"]["financial_scoring_mode"],"VERIFIED_CORE")
-            self.assertEqual(result["selected_company_count"],intake_result["selected_company_count"])
-            self.assertTrue(all(result["publication_audit"].values()))
-            output=engine.generate(result,json.loads(structures.read_text()))
-            self.assertTrue(output["production_eligible"])
-            self.assertEqual(output["prescreen_version"],"CANONICAL")
-            self.assertEqual(output["coverage"]["judged"],intake_result["selected_company_count"])
-            self.assertEqual(len(output["drop"]),1)
-            self.assertEqual(result["selected_company_count"],intake_result["selected_company_count"])
-            self.assertTrue(all(len(x["items"])<=5 for x in output["top5_by_theme"]))
-            self.assertTrue(all(x["status"]=="WAIT" or x["status"]=="READY"
-                for x in output["ready"]+output["wait"]))
-            # Internal WAIT may retain a VERIFIED setup pair if an independent
-            # resistance/reward gate blocks READY. Only the final handoff
-            # clears executable plan fields; never conflate the two contracts.
-            self.assertTrue(all(
-                x.get("entry_zone") is None or (
-                    x.get("structure_confirmed") is True
-                    and x.get("setup_type") in ("BREAKOUT", "PULLBACK")
-                    and isinstance(x.get("entry_zone"), list)
-                    and isinstance(x.get("invalidation_price"), (int, float))
-                )
-                for x in output["wait"]))
-            self.assertTrue(all(x.get("model_priority") is not None
-                for x in output["ready"]+output["wait"]))
+        self.check_current_top1_path(intake.prepare(ROOT))
 
     def check_current_top1_path(self, a):
         # Current official adapter, not the retired all-candidate risk engine.

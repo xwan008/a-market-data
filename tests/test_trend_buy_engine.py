@@ -78,17 +78,15 @@ class TrendTests(unittest.TestCase):
         self.assertIsNone(x["upside_to_resistance_R"])
         self.assertIsNone(engine.early_watch_reference(x)["reference_zone"])
 
-    def test_prospective_formal_run_rejects_candidate_sector_before_research(self):
-        r,s=inputs()
-        r["mode"]="FORMAL"
-        r["prescreen_version"]="CANONICAL"
-        r["companies"][0]["model_priority"]=1
-        r["companies"][0]["model_reason"]="已核验主营传导与基本面，但即使数据完整也不能让未确认行业进入正式买点研究"
-        r["trade_date"]=s["reference_trade_date"]="2026-10-27"
-        s["companies"]["600001"]["data_date"]="2026-10-27"
-        r["companies"][0]["market_state"]="候选趋势"
-        with self.assertRaisesRegex(ValueError,"formal_stock_research_requires_confirmed_sw3"):
-            engine.generate(r,s)
+    def test_legacy_formal_engine_is_disabled_for_all_dates(self):
+        for day in ("2026-10-09", "2026-11-25", "2026-12-01"):
+            with self.subTest(day=day):
+                r,s=inputs()
+                r["mode"]="FORMAL"
+                r["trade_date"]=s["reference_trade_date"]=day
+                s["companies"]["600001"]["data_date"]=day
+                with self.assertRaisesRegex(ValueError,"LEGACY_TOP5_FORMAL_DISABLED"):
+                    engine.generate(r,s)
 
     def test_candidate_sector_blocks_ready_even_when_stock_setup_confirms(self):
         c=company()
