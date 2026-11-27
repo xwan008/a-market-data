@@ -54,7 +54,9 @@ def validate_assessment(review, s, code, day):
         if confirmation != "PENDING" or source is not None or proposed is not None:
             return None, "ENTRY_ASSESSMENT_INVALID"
         return None, "NO_SETUP"
-    if (not isinstance(mode, str) or mode not in SOURCES or\n            not isinstance(source, str) or source not in SOURCES[mode] or\n            confirmation not in ("PENDING", "CONFIRMED")):
+    if (not isinstance(mode, str) or mode not in SOURCES or
+            not isinstance(source, str) or source not in SOURCES[mode] or
+            confirmation not in ("PENDING", "CONFIRMED")):
         return None, "ENTRY_ASSESSMENT_INVALID"
     if not isinstance(s, dict) or s.get("data_status") != "verified" or s.get("data_date") != day:
         return None, "ENTRY_STRUCTURE_UNVERIFIED"
@@ -65,11 +67,90 @@ def validate_assessment(review, s, code, day):
     # Observation must be close enough to matter; never substitute remote MA60.
     if abs(actual / p - 1) > engine.MAX_MA20_DISTANCE_PCT / 100:
         return None, "ENTRY_ANCHOR_TOO_DISTANT"
+    if confirmation == "PENDING" and mode == "BREAKOUT" and actual < p:
+        return None, "ENTRY_BREAKOUT_ALREADY_PASSED"
     if confirmation == "CONFIRMED":
         expected = "breakout_level" if mode == "BREAKOUT" else "current_day_low"
         if source != expected:
             return None, "ENTRY_CONFIRMED_ANCHOR_MISMATCH"
     return engine.price(actual), "VERIFIED"
+
+def scenario(review, s, code, day):
+    """Research-only conditional arithmetic; never an executable plan."""
+    anchor, verification = validate_assessment(review, s, code, day)
+    if verification not in ("VERIFIED", "NO_SETUP"):
+        return {"verification": verification, "not_buy_order": True}
+    out = {"verification": verification, "not_buy_order": True,
+           "mode": review["mode"], "confirmation": review["confirmation"],
+           "anchor_source": review.get("anchor_source"), "anchor_price": anchor,
+           "entry_basis": review["entry_basis"], "failure_basis": review["failure_basis"],
+           "confirmation_condition": review["confirmation_condition"],
+           "avoid_condition": review["avoid_condition"],
+           "hypothetical_entry_zone": None, "hypothetical_failure_price": None,
+           "hypothetical_risk_pct": None, "hypothetical_reward_R": None,
+           "verified_overhead_price": None, "observation_zone": None,
+           "calculation_status": "AWAIT_REAL_STRUCTURE"}
+    if verification == "NO_SETUP":
+        out["calculation_status"] = "NO_GROUNDED_SETUP"
+        return out
+    mode = review["mode"]
+    current = s["current_price"]
+    # If the current completed candle really confirms the proposed shape, use
+    # existing arithmetic, including its independently grounded stop, as research.
+    confirmed = (mode == "BREAKOUT" and s.get("structure_type") == "breakout"
+                 and s.get("breakout_confirmed") is True and current > anchor
+                 and review["anchor_source"] == "breakout_level")
+    if mode == "PULLBACK":
+        confirmed = (s.get("structure_type") == "pullback"
+                     and review["anchor_source"] == "current_day_low"
+                     and anchor == engine.price(s.get("current_day_low")))
+    plan = engine.build_plan(mode, s, current, confirmed=True, trade_date=day) if confirmed else None
+    if plan is not None:
+        zone, stop = plan["entry_zone"], plan["invalidation_price"]
+        overhead = engine.verified_overhead(s, current, day)
+        out["calculation_status"] = "CONFIRMED_STRUCTURE_RESEARCH_ONLY"
+    elif mode == "BREAKOUT" and anchor >= current:
+        # Counterfactual breakout at a known boundary: use the existing
+        # boundary-relative 0.2%..2.5% entry band and 0.5% failure buffer.
+        # Recalculate from actual completed confirmation before any order.
+        zone = engine.pair(anchor * 1.002, anchor * 1.025)
+        stop = engine.price(anchor * .995)
+        overhead = engine.verified_overhead(s, anchor, day)
+        out["calculation_status"] = "HYPOTHETICAL_BREAKOUT_ONLY"
+    else:
+        if mode == "PULLBACK" and review["anchor_source"] == "ma20":
+            out["observation_zone"] = engine.pair(anchor * .97, anchor * 1.02)
+        return out
+    if zone is None or not engine.pos(stop) or stop >= zone[0]:
+        out["calculation_status"] = "INVALID_PRICE_GEOMETRY"
+        return out
+    cap = zone[1]
+    risk = (cap-stop)/cap*100
+    target = overhead["price"] if overhead else None
+    rr = (target-cap)/(cap-stop) if engine.pos(target) else None
+    out.update(hypothetical_entry_zone=zone, hypothetical_failure_price=stop,
+               hypothetical_risk_pct=round(risk,2),
+               hypothetical_reward_R=round(rr,2) if rr is not None else None,
+               verified_overhead_price=target,
+               hypothetical_risk_gate=("RISK_TOO_HIGH" if risk > engine.MAX_ENTRY_RISK_PCT
+                 else "OVERHEAD_UNKNOWN" if rr is None else
+                 "REWARD_TOO_LOW" if rr < engine.MIN_UPSIDE_R else "ARITHMETIC_ONLY_PASS"))
+    return out
+
+
+def research_scenarios(review, s, code, day):
+    """Primary plus at most one alternate; neither can change the locked TOP1."""
+    primary = scenario(review, s, code, day)
+    results = [primary]
+    if isinstance(review, dict) and "alternate" in review:
+        alt = review["alternate"]
+        if (isinstance(alt, dict) and alt.get("mode") in ("BREAKOUT", "PULLBACK")
+                and alt.get("mode") != review.get("mode")):
+            results.append(scenario(alt, s, code, day))
+        else:
+            results.append({"verification": "ALTERNATE_INVALID", "not_buy_order": True})
+    return results
+
 
 def evaluate(c, s, day, review):
     row = engine.evaluate_candidate(c, s, day)
@@ -91,6 +172,7 @@ def evaluate(c, s, day, review):
                    decision_reason="模型入场形态/依据未确认或与独立风控不一致；不得执行")
         row.pop("setup_stop_evidence", None)
     row["entry_assessment_verification"] = verification
+    row["entry_research_scenarios"] = research_scenarios(review, s, code, day)
     if row["status"] != "WAIT":
         return row, None
     # Only verified anchor values reach the price fields. An invalid or
@@ -111,5 +193,6 @@ def evaluate(c, s, day, review):
         "entry_basis": proposal.get("entry_basis") if trusted else None,
         "failure_basis": proposal.get("failure_basis") if trusted else None,
         "avoid_condition": proposal.get("avoid_condition") if trusted else None,
+        "research_scenarios": row["entry_research_scenarios"],
     }
     return row, ref
