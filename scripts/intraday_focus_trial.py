@@ -3,6 +3,7 @@ from __future__ import annotations
 import concurrent.futures as cf
 import datetime as dt
 import hashlib
+from functools import lru_cache
 import json
 import math
 import os
@@ -236,22 +237,43 @@ def summary(row):
             "metrics":row["metrics"]}
 
 
+@lru_cache(maxsize=1)
+def exchange_sessions():
+    """Fetch the current published exchange-session calendar via existing Sina/AKShare source."""
+    try:
+        import akshare as ak
+        frame=ak.tool_trade_date_hist_sina()
+        sessions=tuple(sorted({dt.date.fromisoformat(str(value)[:10])
+                               for value in frame["trade_date"]}))
+        if len(sessions)<2 or any(day.weekday()>=5 for day in sessions):
+            raise ValueError("INVALID_SESSION_CALENDAR")
+        return sessions
+    except Exception as exc:
+        raise ValueError("EXCHANGE_CALENDAR_UNAVAILABLE") from exc
+
+def covered_sessions(day):
+    sessions=exchange_sessions()
+    if not sessions[0]<=day<=sessions[-1]:
+        raise ValueError("EXCHANGE_CALENDAR_DATE_UNVERIFIED")
+    return sessions
+
 def planned_slot(start):
-    # SSE 2026 calendar has no scheduled holidays after October 7.
-    # Do not silently extend this approval into 2027.
-    if not (dt.date(2026,11,30)<=start.date()<=dt.date(2026,12,31)) or start.weekday()>=5:
+    if start.weekday()>=5:
         return None
     for slot in SLOTS:
         scheduled=dt.datetime.combine(start.date(),dt.time.fromisoformat(slot),p.TZ)
         if 0<=(start-scheduled).total_seconds()<=150:
-            return scheduled
+            return scheduled if start.date() in covered_sessions(start.date()) else None
     return None
 
 def previous_session(day):
-    prior=day-dt.timedelta(days=1)
-    while prior.weekday()>=5:
-        prior-=dt.timedelta(days=1)
-    return prior.isoformat()
+    sessions=covered_sessions(day)
+    if day not in sessions:
+        raise ValueError("REFERENCE_SESSION_NOT_IN_CALENDAR")
+    index=sessions.index(day)
+    if index==0:
+        raise ValueError("PREVIOUS_SESSION_UNVERIFIED")
+    return sessions[index-1].isoformat()
 
 def stock_gate(row,expected):
     c=row["components"]
@@ -310,11 +332,22 @@ def related_board(sym,row,boards,indexes,industries):
 def main():
     start=p.now()
     shadow=os.environ.get("FOCUS_MODE")=="SHADOW"
-    slot=planned_slot(start) if shadow else None
-    if shadow and slot is None:
-        print("FOCUS_SKIP_UNAPPROVED_DATE_OR_SLOT")
-        return
-    expected=previous_session(start.date()) if shadow else os.environ.get("EXPECTED_BASELINE_DATE")
+    if shadow:
+        try:
+            slot=planned_slot(start)
+            if slot is None:
+                print("FOCUS_SKIP_NON_TRADING_DAY_OR_SLOT")
+                return
+            expected=previous_session(start.date())
+        except ValueError as exc:
+            raise SystemExit("FOCUS_CALENDAR_BLOCKED:"+str(exc)) from exc
+        # Calendar I/O may take time; never collect outside the original slot window.
+        if not 0<=(p.now()-slot).total_seconds()<=150:
+            print("FOCUS_SKIP_SLOT_EXPIRED_AFTER_CALENDAR")
+            return
+    else:
+        slot=None
+        expected=os.environ.get("EXPECTED_BASELINE_DATE")
     if not expected:
         raise SystemExit("EXPECTED_BASELINE_DATE_REQUIRED")
     with cf.ThreadPoolExecutor(max_workers=6) as pool:
