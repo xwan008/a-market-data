@@ -1,0 +1,29 @@
+name: Focus intraday integration trial
+on:
+  workflow_dispatch:
+  push:
+    branches: [test/on-demand-market-probe]
+    paths: [scripts/intraday_focus_trial.py, scripts/on_demand_market_probe.py, tests/test_intraday_focus_trial.py, .github/workflows/intraday-focus-trial.yml]
+permissions:
+  contents: read
+jobs:
+  trial:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - name: Deterministic fault isolation tests
+        run: python3 -m unittest discover -s tests -p test_intraday_focus_trial.py -v
+      - name: Real focus collection and publication contract trial
+        env:
+          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+          FOCUS_HOLDINGS_TABLE_ID: tbl6EE2lzmexvkARz
+          EXPECTED_BASELINE_DATE: "2026-11-26"
+        run: python3 scripts/intraday_focus_trial.py
+      - name: Upload public-only test payload
+        uses: actions/upload-artifact@v4
+        with:
+          name: focus-public-trial
+          path: focus_trial_public.json
+          retention-days: 1

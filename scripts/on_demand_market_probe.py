@@ -81,13 +81,13 @@ def classify(stamp, received):
         return "CLOSE_TEST"
     return "STALE_OR_INVALID"
 
-def quote(provider):
+def quote(provider, symbol=SYMBOL):
     if provider=="tencent":
-        txt, received=get("https://qt.gtimg.cn/q="+SYMBOL,"gb18030")
-        row=parse_tencent(txt,SYMBOL)
+        txt, received=get("https://qt.gtimg.cn/q="+symbol,"gb18030")
+        row=parse_tencent(txt,symbol)
     else:
-        txt, received=get("https://hq.sinajs.cn/list="+SYMBOL,"gb18030","https://finance.sina.com.cn/")
-        row=parse_sina(txt,SYMBOL)
+        txt, received=get("https://hq.sinajs.cn/list="+symbol,"gb18030","https://finance.sina.com.cn/")
+        row=parse_sina(txt,symbol)
     stamp=dt.datetime.fromisoformat(row["quote_at"])
     row.update(received_at=received.isoformat(),age_seconds=(received-stamp).total_seconds(),quality=classify(stamp,received))
     return row
@@ -137,14 +137,14 @@ def parse_minute(text, received, symbol):
             "expected_completed_minutes":len(expected),"missing_minutes":missing,
             "excluded_postclose_times":excluded_postclose,"points":rows}
 
-def minute():
-    txt, received=get("https://web.ifzq.gtimg.cn/appstock/app/minute/query?code="+SYMBOL)
-    return parse_minute(txt,received,SYMBOL)
+def minute(symbol=SYMBOL):
+    txt, received=get("https://web.ifzq.gtimg.cn/appstock/app/minute/query?code="+symbol)
+    return parse_minute(txt,received,symbol)
 
-def daily():
-    url="https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param="+urllib.parse.quote(SYMBOL+",day,,,40,qfq",safe=",")
+def daily(symbol=SYMBOL):
+    url="https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param="+urllib.parse.quote(symbol+",day,,,40,qfq",safe=",")
     txt, received=get(url)
-    block=json.loads(txt)["data"][SYMBOL]
+    block=json.loads(txt)["data"][symbol]
     # Never silently substitute an unadjusted series for qfq.
     if "qfqday" not in block:
         raise ValueError("ADJUSTMENT_UNCONFIRMED")
@@ -162,12 +162,12 @@ def daily():
     return {"source":"tencent","adjustment":"qfq","received_at":received.isoformat(),"bars":rows[-30:]}
 
 
-def eastmoney_flow():
-    params={"secid":"1."+SYMBOL[2:],"klt":"1","lmt":"300","fields1":"f1,f2,f3,f7","fields2":"f51,f52,f53,f54,f55,f56,f57"}
+def eastmoney_flow(symbol=SYMBOL):
+    params={"secid":("1." if symbol.startswith("sh") else "0.")+symbol[2:],"klt":"1","lmt":"300","fields1":"f1,f2,f3,f7","fields2":"f51,f52,f53,f54,f55,f56,f57"}
     txt,received=get("https://push2.eastmoney.com/api/qt/stock/fflow/kline/get?"+urllib.parse.urlencode(params),referer="https://quote.eastmoney.com/")
     body=json.loads(txt)
     block=body.get("data")
-    if body.get("rc")!=0 or not isinstance(block,dict) or str(block.get("code"))!=SYMBOL[2:]:
+    if body.get("rc")!=0 or not isinstance(block,dict) or str(block.get("code"))!=symbol[2:]:
         raise ValueError("FLOW_SCHEMA_OR_SYMBOL")
     rows=[]
     for line in block.get("klines") or []:
@@ -191,9 +191,9 @@ def eastmoney_flow():
     return {"source":"eastmoney","received_at":received.isoformat(),"quality":classify(stamp,received),
             "unit":"CNY_candidate","cumulative_semantics_verified":False,"points":rows}
 
-def five_day_history():
-    txt,received=get("https://web.ifzq.gtimg.cn/appstock/app/day/query?code="+SYMBOL)
-    block=json.loads(txt)["data"][SYMBOL]["data"]
+def five_day_history(symbol=SYMBOL):
+    txt,received=get("https://web.ifzq.gtimg.cn/appstock/app/day/query?code="+symbol)
+    block=json.loads(txt)["data"][symbol]["data"]
     if not isinstance(block,list):
         raise ValueError("FIVE_DAY_SCHEMA")
     sessions=[]
