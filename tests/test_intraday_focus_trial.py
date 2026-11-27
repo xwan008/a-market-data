@@ -39,4 +39,12 @@ class FocusTests(unittest.TestCase):
         self.assertEqual(verify(rows,"123-1")[0],payload)
         rows["0000"]["内容"]="corrupt"
         with self.assertRaises(ValueError): verify(rows,"123-1")
+    def test_slot_window(self):
+        self.assertEqual(f.planned_slot(dt.datetime(2026,11,30,9,37,30,tzinfo=f.p.TZ)).strftime("%H:%M"),"09:37")
+        self.assertIsNone(f.planned_slot(dt.datetime(2026,11,30,9,40,tzinfo=f.p.TZ)))
+        self.assertIsNone(f.planned_slot(dt.datetime(2026,12,5,9,37,tzinfo=f.p.TZ)))
+        self.assertIsNone(f.planned_slot(dt.datetime(2027,1,4,9,37,tzinfo=f.p.TZ)))
+        self.assertEqual(f.previous_session(dt.date(2026,11,30)),"2026-11-27")
+    def test_no_live_quote(self):
+        self.assertEqual(f.stock_gate({"components":{}},"2026-11-27"),"QUOTE_UNAVAILABLE")
 if __name__=="__main__": unittest.main()

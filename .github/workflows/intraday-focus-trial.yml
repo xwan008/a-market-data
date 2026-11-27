@@ -23,6 +23,7 @@ jobs:
           AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
           FOCUS_HOLDINGS_TABLE_ID: tbl6EE2lzmexvkARz
           FOCUS_OUTPUT_TABLE_ID: tblSLMquHqx5ZfmbI
+          FOCUS_PRIVATE_PUBLISH: "0"
           EXPECTED_BASELINE_DATE: "2026-11-26"
         run: python3 scripts/intraday_focus_trial.py
       - name: Upload public-only test payload

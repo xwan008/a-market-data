@@ -108,7 +108,8 @@ def baseline(expected):
     if h.get("trade_date")!=expected or sector.get("trade_date")!=expected or h.get("shadow") is not False:
         raise ValueError("BASELINE_DATE")
     rows=validate_items(h)
-    return {"trade_date":expected,"run_id":h["source_run_id"],"symbols":[symbol(x["code"]) for x in rows]}
+    return {"trade_date":expected,"run_id":h["source_run_id"],"symbols":[symbol(x["code"]) for x in rows],
+            "industries":{symbol(x["code"]):x.get("industry_name") for x in rows}}
 
 def provider_stamp(value):
     if value is None or value in ("","-"):
@@ -233,52 +234,130 @@ def summary(row):
             "daily_bars":len(data(cs,"daily").get("bars",[])),
             "metrics":row["metrics"]}
 
+
+def planned_slot(start):
+    # SSE 2026 calendar has no scheduled holidays after October 7.
+    # Do not silently extend this approval into 2027.
+    if not (dt.date(2026,11,30)<=start.date()<=dt.date(2026,12,31)) or start.weekday()>=5:
+        return None
+    for slot in SLOTS:
+        scheduled=dt.datetime.combine(start.date(),dt.time.fromisoformat(slot),p.TZ)
+        if 0<=(start-scheduled).total_seconds()<=150:
+            return scheduled
+    return None
+
+def previous_session(day):
+    prior=day-dt.timedelta(days=1)
+    while prior.weekday()>=5:
+        prior-=dt.timedelta(days=1)
+    return prior.isoformat()
+
+def stock_gate(row,expected):
+    c=row["components"]
+    live=[data(c,k) for k in ("tencent_quote","sina_quote") if data(c,k).get("quality")=="LIVE"]
+    if not live:
+        return "QUOTE_UNAVAILABLE"
+    if len(live)==2:
+        a,b=live
+        if abs(a["prev_close"]-b["prev_close"])>.005 or abs(a["price"]-b["price"])>max(.02,a["price"]*.005):
+            return "QUOTE_CONFLICT"
+    m=data(c,"minute")
+    if m.get("quality")!="LIVE" or m.get("missing_minutes") or not m.get("points"):
+        return "MINUTE_UNAVAILABLE"
+    bars=data(c,"daily").get("bars") or []
+    if len(bars)<30 or bars[-1]["date"]!=expected:
+        return "DAILY_UNAVAILABLE"
+    return "CORE_VALID"
+
+def market_breadth():
+    d,received=east_request("ulist.np/get",{"secids":"1.000001,0.399001,0.899050","fltt":2,"fields":"f12,f14,f104,f105,f106,f124"})
+    rows=d.get("diff")
+    if isinstance(rows,dict):
+        rows=list(rows.values())
+    if not isinstance(rows,list) or not rows:
+        raise ValueError("BREADTH_SCHEMA")
+    out=[]
+    for row in rows:
+        if not all(type(row.get(k)) is int and row[k]>=0 for k in ("f104","f105","f106")):
+            continue
+        try:
+            ts=provider_stamp(row.get("f124"))
+        except (ValueError,TypeError,OverflowError,OSError):
+            ts=None
+        out.append({"code":row.get("f12"),"name":row.get("f14"),"up":row["f104"],"down":row["f105"],"flat":row["f106"],
+                    "quote_at":ts.isoformat() if ts else None,"quality":p.classify(ts,received) if ts else "TIME_UNVERIFIED"})
+    if not out:
+        raise ValueError("BREADTH_EMPTY")
+    return {"source":"eastmoney","scope":"provider_index_market_counts_not_all_A_verified","received_at":received.isoformat(),"rows":out}
+
+def related_board(sym,row,boards,indexes,industries):
+    name=data(row["components"],"east_quote").get("provider_industry")
+    if not name and "银行" in (industries.get(sym) or ""):
+        name="银行"
+    if name in boards:
+        return {"taxonomy":"eastmoney_proxy_not_SW3","data":boards[name],"status":"ok"}
+    if name=="银行" and indexes.get("sz399986",{}).get("status")=="ok":
+        return {"taxonomy":"CSI_BANK_PROXY_NOT_SW3","data":indexes["sz399986"]["data"],"status":"PROXY_ONLY"}
+    return {"taxonomy":"UNRESOLVED","data":None,"status":"UNRESOLVED"}
+
+
 def main():
     start=p.now()
-    expected=os.environ.get("EXPECTED_BASELINE_DATE")
+    shadow=os.environ.get("FOCUS_MODE")=="SHADOW"
+    slot=planned_slot(start) if shadow else None
+    if shadow and slot is None:
+        print("FOCUS_SKIP_UNAPPROVED_DATE_OR_SLOT")
+        return
+    expected=previous_session(start.date()) if shadow else os.environ.get("EXPECTED_BASELINE_DATE")
     if not expected:
         raise SystemExit("EXPECTED_BASELINE_DATE_REQUIRED")
-    with cf.ThreadPoolExecutor(max_workers=5) as pool:
+    with cf.ThreadPoolExecutor(max_workers=6) as pool:
         bf=pool.submit(wrapped,lambda:baseline(expected))
         hf=pool.submit(wrapped,holdings)
         boardf=pool.submit(wrapped,board_quotes)
+        breadthf=pool.submit(wrapped,market_breadth)
         idxf={sym:pool.submit(wrapped,lambda sym=sym:p.quote("sina",sym)) for sym in INDEXES}
         b=bf.result(); h=hf.result()
         public=set(b.get("data",{}).get("symbols",[]))
         private=set(h.get("data",{}).get("symbols",[]))
         rows=collect(sorted(public|private))
         board=boardf.result()
+        breadth=breadthf.result()
         indexes={sym:f.result() for sym,f in idxf.items()}
     boards=board.get("data",{})
     # No portfolio identifiers, holdings counts per symbol, or private errors are printed.
     public_rows={sym:rows[sym] for sym in sorted(public)}
-    related={}
-    for sym,row in public_rows.items():
-        name=data(row["components"],"east_quote").get("provider_industry")
-        if not name and sym=="sh601328":
-            name="银行"
-        related[sym]={"taxonomy":"eastmoney_proxy_not_SW3","data":boards.get(name),"status":"ok" if name in boards else "UNRESOLVED"}
-    result={"schema_version":1,"result_kind":"focus_pipeline_trial","mode":"CLOSE_TEST" if start.time()>=dt.time(15) else "TRIAL",
+    industries=b.get("data",{}).get("industries",{})
+    related={sym:related_board(sym,row,boards,indexes,industries) for sym,row in public_rows.items()}
+    for row in rows.values():
+        row["core_gate"]=stock_gate(row,expected) if shadow else "CLOSE_TEST_ONLY"
+    valid_count=sum(row["core_gate"]=="CORE_VALID" for row in rows.values())
+    quality="CLOSE_TEST_ONLY" if not shadow else ("PARTIAL" if valid_count else "FAILED")
+    result={"schema_version":1,"result_kind":"a_share_intraday_focus_shadow" if shadow else "focus_pipeline_trial","mode":"SHADOW" if shadow else "CLOSE_TEST",
+            "slot":slot.isoformat() if slot else None,"expected_baseline_date":expected,
             "run_id":str(os.environ.get("GITHUB_RUN_ID"))+"-"+str(os.environ.get("GITHUB_RUN_ATTEMPT","1")),"started_at":start.isoformat(),"finished_at":p.now().isoformat(),
             "trade_date":str(start.date()),"baseline":b,"public_stocks":public_rows,
             "portfolio_status":h["status"],"portfolio_complete":h.get("data",{}).get("complete",False),
             "portfolio_confirmed_count":len(private),"portfolio_unresolved_count":h.get("data",{}).get("unknown_count"),
             "portfolio_collected_count":len(private&rows.keys()),
             "portfolio_all_components_ok_count":sum(all(v["status"]=="ok" for v in rows[s]["components"].values()) for s in private),
-            "market_indexes":indexes,"board_source_status":board["status"],"board_source_error":board.get("error"),"public_related_boards":related,
-            "status":"TRIAL_NOT_PRODUCTION"}
+            "market_indexes":indexes,"market_breadth":breadth,"board_source_status":board["status"],"board_source_error":board.get("error"),"public_related_boards":related,
+            "status":quality,"live_core_valid_count":valid_count,"production_eligible":False}
     # Private readback includes market quotes only, not costs or position quantities.
-    private_payload={**result,"result_kind":"focus_pipeline_private_trial","stocks":rows}
+    private_payload={**result,"result_kind":"a_share_intraday_focus_private_shadow" if shadow else "focus_pipeline_private_trial","stocks":rows}
     private_payload.pop("public_stocks",None)
     # Include each target provider industry proxy only inside the private output.
-    private_payload["related_boards"]={sym:{"taxonomy":"eastmoney_proxy_not_SW3","data":boards.get(data(row["components"],"east_quote").get("provider_industry"))} for sym,row in rows.items()}
-    pr=wrapped(lambda:transport.publish(private_payload))
+    private_payload["related_boards"]={sym:related_board(sym,row,boards,indexes,industries) for sym,row in rows.items()}
+    pr=wrapped(lambda:transport.publish(private_payload)) if os.environ.get("FOCUS_PRIVATE_PUBLISH")=="1" else {"status":"disabled","error":"PRIVATE_PERMISSION_NOT_APPROVED"}
     result["private_publication"]=pr
+    result["publication_prepared_at"]=p.now().isoformat()
+    if shadow and b["status"]=="ok" and h["status"]=="ok" and h["data"]["complete"] and valid_count==len(rows) and rows and pr["status"]=="ok" and breadth["status"]=="ok" and all(r["status"]=="ok" and r["data"].get("quality")=="LIVE" for r in related.values()) and all(data(row["components"],"fund_flow").get("quality")=="LIVE" and row["metrics"]["same_time_sample_count"]>=3 for row in rows.values()):
+        result["status"]="CORE_AND_CONTEXT_AVAILABLE_SHADOW"
     # Public TOP1 market data only; no private stock symbols or record content.
     text=json.dumps(result,ensure_ascii=False,allow_nan=False,separators=(",",":"))
     Path("focus_trial_public.json").write_text(text,encoding="utf-8")
     assert json.loads(Path("focus_trial_public.json").read_text())==result
-    print("FOCUS_TRIAL_SUMMARY "+json.dumps({k:v for k,v in result.items() if k not in ("public_stocks","market_indexes","public_related_boards")},ensure_ascii=False))
+    print("FOCUS_TRIAL_SUMMARY "+json.dumps({k:v for k,v in result.items() if k not in ("public_stocks","market_indexes","market_breadth","public_related_boards")},ensure_ascii=False))
     print("FOCUS_TRIAL_COMPONENTS "+json.dumps({"public":{s:summary(r) for s,r in public_rows.items()},"indexes":{s:{"status":r["status"],"quality":r.get("data",{}).get("quality")} for s,r in indexes.items()},"boards":related},ensure_ascii=False))
 
 if __name__=="__main__":
