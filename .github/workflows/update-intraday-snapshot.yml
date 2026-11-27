@@ -27,8 +27,6 @@ jobs:
           AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
           AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
           FOCUS_HOLDINGS_TABLE_ID: tbl6EE2lzmexvkARz
-          FOCUS_OUTPUT_TABLE_ID: tblSLMquHqx5ZfmbI
-          FOCUS_PRIVATE_PUBLISH: ${{ vars.FOCUS_PRIVATE_PUBLISH }}
         run: |
           rm -f focus_trial_public.json
           python3 scripts/intraday_focus_trial.py

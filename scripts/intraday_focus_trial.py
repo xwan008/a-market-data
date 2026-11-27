@@ -13,7 +13,6 @@ import threading
 import urllib.parse
 import urllib.request
 import on_demand_market_probe as p
-import focus_private_transport as transport
 from trend_buy_handoff import validate_items, project
 from validate_trend_publication_pair import validate as validate_pair
 
@@ -330,40 +329,34 @@ def main():
         breadth=breadthf.result()
         indexes={sym:f.result() for sym,f in idxf.items()}
     boards=board.get("data",{})
-    # No portfolio identifiers, holdings counts per symbol, or private errors are printed.
-    public_rows={sym:rows[sym] for sym in sorted(public)}
+    # Publish public market quotes only, without position quantities, cost, personal plans,
+    # or a role tag on individual stocks. Target codes still permit inference of holdings.
     industries=b.get("data",{}).get("industries",{})
-    related={sym:related_board(sym,row,boards,indexes,industries) for sym,row in public_rows.items()}
+    related={sym:related_board(sym,row,boards,indexes,industries) for sym,row in rows.items()}
     for row in rows.values():
         row["core_gate"]=stock_gate(row,expected) if shadow else "CLOSE_TEST_ONLY"
     valid_count=sum(row["core_gate"]=="CORE_VALID" for row in rows.values())
-    quality="CLOSE_TEST_ONLY" if not shadow else ("PARTIAL" if valid_count else "FAILED")
-    result={"schema_version":1,"result_kind":"a_share_intraday_focus_shadow" if shadow else "focus_pipeline_trial","mode":"SHADOW" if shadow else "CLOSE_TEST",
+    status="CLOSE_TEST_ONLY" if not shadow else ("PARTIAL" if valid_count else "FAILED")
+    if shadow and b["status"]=="ok" and h["status"]=="ok" and h["data"]["complete"] and rows and valid_count==len(rows) and breadth["status"]=="ok" and all(r["status"]=="ok" and r["data"].get("quality")=="LIVE" for r in related.values()) and all(data(row["components"],"fund_flow").get("quality")=="LIVE" and row["metrics"]["same_time_sample_count"]>=3 for row in rows.values()):
+        status="CORE_AND_CONTEXT_AVAILABLE_SHADOW"
+    # The only portfolio metadata is source availability; never embed private records.
+    result={"schema_version":2,"result_kind":"a_share_intraday_focus_shadow" if shadow else "focus_pipeline_trial","mode":"SHADOW" if shadow else "CLOSE_TEST",
             "slot":slot.isoformat() if slot else None,"expected_baseline_date":expected,
-            "run_id":str(os.environ.get("GITHUB_RUN_ID"))+"-"+str(os.environ.get("GITHUB_RUN_ATTEMPT","1")),"started_at":start.isoformat(),"finished_at":p.now().isoformat(),
-            "trade_date":str(start.date()),"baseline":b,"public_stocks":public_rows,
-            "portfolio_status":h["status"],"portfolio_complete":h.get("data",{}).get("complete",False),
-            "portfolio_confirmed_count":len(private),"portfolio_unresolved_count":h.get("data",{}).get("unknown_count"),
-            "portfolio_collected_count":len(private&rows.keys()),
-            "portfolio_all_components_ok_count":sum(all(v["status"]=="ok" for v in rows[s]["components"].values()) for s in private),
-            "market_indexes":indexes,"market_breadth":breadth,"board_source_status":board["status"],"board_source_error":board.get("error"),"public_related_boards":related,
-            "status":quality,"live_core_valid_count":valid_count,"production_eligible":False}
-    # Private readback includes market quotes only, not costs or position quantities.
-    private_payload={**result,"result_kind":"a_share_intraday_focus_private_shadow" if shadow else "focus_pipeline_private_trial","stocks":rows}
-    private_payload.pop("public_stocks",None)
-    # Include each target provider industry proxy only inside the private output.
-    private_payload["related_boards"]={sym:related_board(sym,row,boards,indexes,industries) for sym,row in rows.items()}
-    pr=wrapped(lambda:transport.publish(private_payload)) if os.environ.get("FOCUS_PRIVATE_PUBLISH")=="1" else {"status":"disabled","error":"PRIVATE_PERMISSION_NOT_APPROVED"}
-    result["private_publication"]=pr
-    result["publication_prepared_at"]=p.now().isoformat()
-    if shadow and b["status"]=="ok" and h["status"]=="ok" and h["data"]["complete"] and valid_count==len(rows) and rows and pr["status"]=="ok" and breadth["status"]=="ok" and all(r["status"]=="ok" and r["data"].get("quality")=="LIVE" for r in related.values()) and all(data(row["components"],"fund_flow").get("quality")=="LIVE" and row["metrics"]["same_time_sample_count"]>=3 for row in rows.values()):
-        result["status"]="CORE_AND_CONTEXT_AVAILABLE_SHADOW"
-    # Public TOP1 market data only; no private stock symbols or record content.
+            "run_id":str(os.environ.get("GITHUB_RUN_ID"))+"-"+str(os.environ.get("GITHUB_RUN_ATTEMPT","1")),
+            "started_at":start.isoformat(),"finished_at":p.now().isoformat(),"trade_date":str(start.date()),
+            "baseline":b if b["status"]=="ok" else {"status":"failed","error":"BASELINE_UNAVAILABLE"},
+            "holdings_source_status":"COMPLETE" if h["status"]=="ok" and h["data"]["complete"] else ("PARTIAL" if h["status"]=="ok" else "UNAVAILABLE"),
+            "stocks":rows,"market_indexes":indexes,"market_breadth":breadth,
+            "board_source_status":board["status"],"board_source_error":board.get("error"),
+            "related_boards":related,"status":status,"live_core_valid_count":valid_count,
+            "publication_prepared_at":p.now().isoformat(),"production_eligible":False}
+    assert set(result["stocks"])==public|private
     text=json.dumps(result,ensure_ascii=False,allow_nan=False,separators=(",",":"))
+    assert json.loads(text)==result
     Path("focus_trial_public.json").write_text(text,encoding="utf-8")
     assert json.loads(Path("focus_trial_public.json").read_text())==result
-    print("FOCUS_TRIAL_SUMMARY "+json.dumps({k:v for k,v in result.items() if k not in ("public_stocks","market_indexes","market_breadth","public_related_boards")},ensure_ascii=False))
-    print("FOCUS_TRIAL_COMPONENTS "+json.dumps({"public":{s:summary(r) for s,r in public_rows.items()},"indexes":{s:{"status":r["status"],"quality":r.get("data",{}).get("quality")} for s,r in indexes.items()},"boards":related},ensure_ascii=False))
+    print("FOCUS_TRIAL_SUMMARY "+json.dumps({k:v for k,v in result.items() if k not in ("stocks","market_indexes","market_breadth","related_boards")},ensure_ascii=False))
+    print("FOCUS_TRIAL_COMPONENTS "+json.dumps({"stock_count":len(rows),"stock_components":{s:summary(r) for s,r in rows.items()},"indexes":{s:{"status":r["status"],"quality":r.get("data",{}).get("quality")} for s,r in indexes.items()},"board_status":{s:r["status"] for s,r in related.items()}},ensure_ascii=False))
 
 if __name__=="__main__":
     main()

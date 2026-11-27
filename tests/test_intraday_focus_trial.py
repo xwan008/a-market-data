@@ -28,17 +28,6 @@ class FocusTests(unittest.TestCase):
         self.assertEqual(len(rows),2)
         self.assertEqual(rows["sh601328"]["components"]["bad"]["status"],"failed")
         self.assertEqual(rows["sz000001"]["components"]["good"]["status"],"ok")
-    def test_private_transport_integrity(self):
-        from focus_private_transport import encode,verify,row
-        import json
-        payload={"run_id":"123-1","trade_date":"2026-11-27","points":["数据"]*25000}
-        text,digest,parts=encode(payload)
-        manifest={"run_id":"123-1","trade_date":"2026-11-27","part_count":len(parts),"sha256":digest}
-        rows={f"{i:04d}":row("key","123-1","2026-11-27",f"{i:04d}",part,digest)["fields"] for i,part in enumerate(parts)}
-        rows["manifest"]=row("key","123-1","2026-11-27","manifest",json.dumps(manifest),digest)["fields"]
-        self.assertEqual(verify(rows,"123-1")[0],payload)
-        rows["0000"]["内容"]="corrupt"
-        with self.assertRaises(ValueError): verify(rows,"123-1")
     def test_slot_window(self):
         self.assertEqual(f.planned_slot(dt.datetime(2026,11,30,9,37,30,tzinfo=f.p.TZ)).strftime("%H:%M"),"09:37")
         self.assertIsNone(f.planned_slot(dt.datetime(2026,11,30,9,40,tzinfo=f.p.TZ)))
@@ -57,4 +46,13 @@ class FocusTests(unittest.TestCase):
         self.assertEqual(fallback["data"]["name"],"中证银行")
         ambiguous=f.related_board("sh601328",row,{"银行Ⅰ":{},"银行Ⅲ":{}},{},{})
         self.assertEqual(ambiguous["status"],"UNRESOLVED")
+    def test_airtable_is_read_only(self):
+        import json
+        from unittest.mock import MagicMock
+        response=MagicMock()
+        response.__enter__.return_value=response
+        response.read.return_value=json.dumps({"records":[]})
+        with patch.dict(f.os.environ,{"AIRTABLE_TOKEN":"test","AIRTABLE_BASE_ID":"appTest","FOCUS_HOLDINGS_TABLE_ID":"tblTest"}), patch.object(f.urllib.request,"urlopen",return_value=response) as request:
+            self.assertEqual(f.holdings()["symbols"],[])
+            self.assertEqual(request.call_args.args[0].get_method(),"GET")
 if __name__=="__main__": unittest.main()
