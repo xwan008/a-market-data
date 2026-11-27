@@ -1,14 +1,14 @@
 """Post-lock model entry assessment, independently verified against same-day structure.
 
-No selection changes, no orders, no model-supplied executable price. Legacy dates
-retain the original evaluator to protect locked results during recovery.
+No selection changes, no orders, no model-supplied executable price. New research
+uses the current contract for any reference date; recovery retains locked results.
 """
 try:
     from . import trend_buy_engine as engine
 except ImportError:
     import trend_buy_engine as engine
 
-CUTOVER_AFTER = "2026-11-27"
+ENTRY_PROTOCOL_VERSION = "ENTRY_V1"
 PHASES = {"INITIATING", "PULLBACK", "REACCELERATING", "REPAIRING",
           "COOLING", "FAILED", "TRANSITION"}
 SOURCES = {
@@ -159,8 +159,6 @@ def research_scenarios(review, s, code, day):
 
 def evaluate(c, s, day, review):
     row = engine.evaluate_candidate(c, s, day)
-    if day <= CUTOVER_AFTER:
-        return row, engine.early_watch_reference(row) if row["status"] == "WAIT" else None
     code = row["code"]
     anchor, verification = validate_assessment(review, s, code, day)
     # Existing engine remains an independent gate. Model can veto READY,
