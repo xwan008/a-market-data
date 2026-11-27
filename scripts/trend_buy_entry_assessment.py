@@ -44,7 +44,7 @@ def validate_assessment(review, s, code, day):
     if not isinstance(review, dict):
         return None, "ENTRY_ASSESSMENT_MISSING"
     if (review.get("code") != code or review.get("as_of_date") != day
-            or review.get("phase") not in PHASES
+            or not isinstance(review.get("phase"), str) or review["phase"] not in PHASES
             or not all(text_ok(review.get(k)) for k in TEXT_FIELDS)):
         return None, "ENTRY_ASSESSMENT_INVALID"
     mode = review.get("mode")
@@ -54,7 +54,7 @@ def validate_assessment(review, s, code, day):
         if confirmation != "PENDING" or source is not None or proposed is not None:
             return None, "ENTRY_ASSESSMENT_INVALID"
         return None, "NO_SETUP"
-    if mode not in SOURCES or source not in SOURCES[mode] or confirmation not in {"PENDING", "CONFIRMED"}:
+    if (not isinstance(mode, str) or mode not in SOURCES or\n            not isinstance(source, str) or source not in SOURCES[mode] or\n            confirmation not in ("PENDING", "CONFIRMED")):
         return None, "ENTRY_ASSESSMENT_INVALID"
     if not isinstance(s, dict) or s.get("data_status") != "verified" or s.get("data_date") != day:
         return None, "ENTRY_STRUCTURE_UNVERIFIED"
