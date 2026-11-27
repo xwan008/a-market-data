@@ -2,8 +2,7 @@
 """Read-only, experimental trend-health observations for *confirmed* A-share themes.
 
 This is NOT trend discovery, formal state migration or a trading signal.
-Inputs must be a published, matching-date registry + sector audit. Historical
-sector metrics come only from previous runs of this isolated shadow artifact.
+Inputs must be a published, matching-date registry + sector audit. Historical metrics use frozen as-of audits and isolated shadow snapshots.
 """
 from __future__ import annotations
 
@@ -12,6 +11,8 @@ import json
 import math
 import os
 import tempfile
+import subprocess
+import sys
 from datetime import date
 from pathlib import Path
 from statistics import median
@@ -95,7 +96,94 @@ def aggregate(snapshot, codes):
     return {key: median(v[key] for v in values) for key in ("r", "p", "m3", "m5", "b3", "b5", "b1")}
 
 
-def health_one(theme, snapshots):
+def expected_sessions(sector):
+    """Use the producer's dated market-session sequence, never calendar weekdays."""
+    windows = set()
+    for row in sector.get("sectors", []):
+        series = (row.get("daily_structure") or {}).get("series") or []
+        days = tuple(x.get("trade_date") for x in series)
+        if days:
+            if (not all(valid_day(d) for d in days) or tuple(sorted(set(days))) != days
+                    or days[-1] != sector["trade_date"]):
+                raise ValueError("INVALID_MARKET_SESSION_SEQUENCE")
+            windows.add(days)
+    if len(windows) > 1:
+        raise ValueError("INCONSISTENT_MARKET_SESSION_SEQUENCE")
+    return list(next(iter(windows))) if windows else []
+
+
+AUDIT_PATH = "data/research/sector_discovery_audit.json"
+
+
+def git_json(commit, path):
+    raw = subprocess.check_output(["git", "show", f"{commit}:{path}"],
+                                  stderr=subprocess.PIPE)
+    return json.loads(raw)
+
+
+def restore_snapshot(audit, commit):
+    """Recover only objective, frozen as-of data; never create past decisions."""
+    snap = fresh_snapshot(audit)
+    if audit.get("scan_scope") != "MAPPED_SW_LEVEL3_ONLY":
+        # Before concept removal, the market median could include unmapped
+        # concept members. Rebuild ONLY that benchmark and relative strength
+        # using that day's frozen mapped universe and production quote formula.
+        from build_sector_discovery import stock_features
+        quotes = git_json(commit, "data/latest.json")
+        index = git_json(commit, "data/research/company_industry_index.json")
+        if quotes.get("trade_date") != audit["trade_date"] or quotes.get("market_status") != "closed":
+            raise ValueError("HISTORICAL_QUOTE_DATE_MISMATCH")
+        groups = {}
+        for code, item in index["companies"].items():
+            if item.get("mapping_status") == "mapped" and item.get("industry_code") and item.get("sw_level3_name"):
+                groups.setdefault(item["industry_code"], set()).add(str(code).zfill(6))
+        codes = set().union(*groups.values()) if groups else set()
+        features = {c: stock_features(c, quotes, {}, audit["trade_date"]) for c in codes}
+        market = [x["r1"] for x in features.values() if x is not None]
+        if not market or len(market) < .90 * len(codes):
+            raise ValueError("HISTORICAL_MAPPED_QUOTE_COVERAGE")
+        benchmark = median(market)
+        for code, metric in list(snap["industries"].items()):
+            gains = [features[c]["r1"] for c in groups.get(code, ()) if features.get(c) is not None]
+            # Verify the old industry row against the frozen stock pool before
+            # retaining its unchanged cumulative-return and breadth metrics.
+            if len(gains) != metric["n"] or not gains or round(median(gains), 3) != metric["p"]:
+                del snap["industries"][code]
+                continue
+            metric["r"] = round(median(gains) - benchmark, 3)
+        snap["market_return_median_pct"] = round(benchmark, 3)
+        snap["source_mode"] = "FROZEN_MAPPED_BENCHMARK_REBUILT"
+    else:
+        snap["source_mode"] = "FROZEN_SECTOR_AUDIT"
+    if not finite(snap["market_return_median_pct"]) or not snap["industries"]:
+        raise ValueError("HISTORICAL_SNAPSHOT_UNAVAILABLE")
+    snap["source_commit"] = commit
+    return snap
+
+
+def recover_history(day):
+    """Read actual committed daily audits, newest first, without future inputs."""
+    commits = subprocess.check_output(
+        ["git", "log", "--first-parent", "--format=%H", "-n", "100", "HEAD", "--", AUDIT_PATH],
+        text=True).splitlines()
+    seen = set()
+    recovered = []
+    for commit in commits:
+        audit = git_json(commit, AUDIT_PATH)
+        d = audit.get("trade_date")
+        if not valid_day(d) or d >= day or d in seen:
+            continue
+        seen.add(d)
+        try:
+            recovered.append(restore_snapshot(audit, commit))
+        except (ValueError, KeyError, TypeError, OSError, subprocess.CalledProcessError) as exc:
+            print(f"EXPERIMENTAL_HISTORY_GAP {d}: {exc}", file=sys.stderr)
+        if len(seen) >= HISTORY_DAYS - 1:
+            break
+    return sorted(recovered, key=lambda x: x["trade_date"])
+
+
+def health_one(theme, snapshots, required_dates=None):
     """At least 4 ordered as-of trading-day observations, same confirmed core set."""
     name = theme.get("trend_name") or theme.get("episode_id")
     base = {"episode_id": theme.get("episode_id"), "trend_name": name,
@@ -118,6 +206,10 @@ def health_one(theme, snapshots):
     if len(snapshots) < 4:
         return {**base, "health": "待积累", "status": "INSUFFICIENT_HISTORY",
                 "reason": "需要最近4个有效交易日的同口径数据；不得用最新一天重复填充历史。"}
+    if required_dates is not None and (len(required_dates) != 4 or
+            [s["trade_date"] for s in snapshots[-4:]] != list(required_dates)):
+        return {**base, "health": "待积累", "status": "INSUFFICIENT_HISTORY",
+                "reason": "最近4个实际交易日的同口径历史不连续或缺失。"}
     four = [aggregate(s, codes) for s in snapshots[-4:]]
     if any(v is None for v in four):
         return {**base, "health": "未评估", "status": "INCOMPLETE_CORE_COVERAGE",
@@ -162,7 +254,7 @@ def health_one(theme, snapshots):
             "reason": "独立3维量价健康度实验；高风险仍不等于正式失效，无法替代结构支撑和产业反证判断。"}
 
 
-def build(registry, sector, previous=None):
+def build(registry, sector, previous=None, recovered=None, require_sessions=False):
     previous = previous or {}
     day = registry.get("trade_date")
     if not valid_day(day) or day != sector.get("trade_date"):
@@ -180,6 +272,17 @@ def build(registry, sector, previous=None):
         raise ValueError("INVALID_SHADOW_HISTORY_DATE")
     if any(x["trade_date"] > day for x in history):
         raise ValueError("FUTURE_HISTORY_INPUT_FORBIDDEN")
+    if recovered is not None:
+        # Restored actual as-of observations replace old objective snapshots only.
+        # Never backfill historical daily_observations (past research decisions).
+        by_date = {x["trade_date"]: x for x in history}
+        for x in recovered:
+            if not valid_day(x.get("trade_date")) or x["trade_date"] >= day:
+                raise ValueError("INVALID_RECOVERED_HISTORY_DATE")
+            by_date[x["trade_date"]] = x
+        history = list(by_date.values())
+    sessions = expected_sessions(sector)
+    required_dates = sessions[-4:] if sessions or require_sessions else None
     snap = fresh_snapshot(sector)
     if not snap["industries"]:
         raise ValueError("NO_VALID_INDUSTRY_METRICS")
@@ -193,7 +296,7 @@ def build(registry, sector, previous=None):
     observations = []
     for t in registry["trends"]:
         if t.get("market_state") == "趋势确认":
-            observations.append(health_one(t, history))
+            observations.append(health_one(t, history, required_dates))
     prev_observations = [x for x in previous.get("daily_observations", [])
                          if x.get("trade_date") != day and x.get("trade_date") < day]
     prev_by_episode = {}
@@ -238,7 +341,9 @@ def main():
     args = parser.parse_args()
     destination = Path(args.output)
     previous = read(destination) if destination.exists() else None
-    result = build(read(args.registry), read(args.sector), previous)
+    registry, sector = read(args.registry), read(args.sector)
+    recovered = recover_history(registry["trade_date"])
+    result = build(registry, sector, previous, recovered, require_sessions=True)
     if args.dry_run:
         print(json.dumps({"trade_date": result["trade_date"], "latest": result["latest"]}, ensure_ascii=False, indent=2))
         return

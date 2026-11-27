@@ -71,6 +71,21 @@ class HealthTest(unittest.TestCase):
         self.assertEqual(mod.health_one(theme(), [metric("2026-11-06", 1, 3)])["protection_status"], "待评估")
         self.assertEqual(mod.health_one(theme("COMMODITY"), [])["status"], "COMMODITY_FIRST_ANCHOR")
 
+    def test_gap_is_not_four_consecutive_market_sessions(self):
+        days = [metric("2026-11-19", 2, 3), metric("2026-11-20", 2, 3),
+                metric("2026-11-26", 2, 3), metric("2026-11-27", 2, 3)]
+        expected = ["2026-11-24", "2026-11-25", "2026-11-26", "2026-11-27"]
+        result = mod.health_one(theme(), days, expected)
+        self.assertEqual(result["status"], "INSUFFICIENT_HISTORY")
+        days = [metric(d, 2, 3) for d in expected]
+        self.assertEqual(mod.health_one(theme(), days, expected)["status"], "ASSESSED")
+
+    def test_producer_session_sequence(self):
+        dates = ["2026-11-20", "2026-11-23", "2026-11-24", "2026-11-25", "2026-11-26"]
+        sector = {"trade_date": dates[-1], "sectors": [{"daily_structure": {
+            "series": [{"trade_date": d} for d in dates]}}]}
+        self.assertEqual(mod.expected_sessions(sector), dates)
+
     def test_dates_idempotence_and_formal_unchanged(self):
         registry = {"trade_date": "2026-11-06", "status": "COMPLETE", "trends": [theme()]}
         sector = {"trade_date": "2026-11-06", "market_median_return_1d_pct": -1,

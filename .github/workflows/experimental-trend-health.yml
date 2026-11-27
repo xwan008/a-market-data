@@ -1,0 +1,67 @@
+name: Refresh experimental trend health
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'research/trend_registry.json'
+      - 'research/trend_handoff.json'
+      - 'scripts/experimental_trend_health.py'
+      - 'tests/test_experimental_trend_health.py'
+      - '.github/workflows/experimental-trend-health.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: experimental-trend-health
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          filter: blob:none
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'requests>=2.31,<3'
+      - name: Test isolated experiment
+        run: python -m unittest discover -s tests -p 'test_experimental_trend_health.py' -v
+      - name: Verify already published formal pair
+        run: python scripts/validate_trend_publication_pair.py --registry research/trend_registry.json --handoff research/trend_handoff.json
+      - name: Rebuild objective snapshots and evaluate current close only
+        run: |
+          python scripts/experimental_trend_health.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path("research/experimental_trend_health.json").read_text())
+          print("Snapshot dates:", [x["trade_date"] for x in p["sector_history"]])
+          print("Current results:", json.dumps(p["latest"], ensure_ascii=False))
+          PY
+      - name: Publish experimental file only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/experimental_trend_health.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "data: refresh isolated experimental trend health"
+          # Never overwrite a newer formal or experiment input.
+          for attempt in 1 2 3; do
+            git fetch origin main --quiet
+            if ! git diff --quiet HEAD^ origin/main -- research/trend_registry.json research/trend_handoff.json data/research/sector_discovery_audit.json research/experimental_trend_health.json scripts/experimental_trend_health.py; then
+              echo "EXPERIMENTAL_INPUT_CHANGED; refusing stale publish"
+              exit 1
+            fi
+            git rebase origin/main
+            if git push origin HEAD:main; then
+              git fetch origin main --quiet
+              git merge-base --is-ancestor HEAD origin/main
+              git diff --quiet HEAD origin/main -- research/experimental_trend_health.json
+              exit 0
+            fi
+          done
+          exit 1
