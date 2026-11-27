@@ -106,7 +106,7 @@ def minute():
             raise ValueError("MINUTE_SCHEMA")
         hhmm=dt.datetime.strptime(f[0],"%H%M").time()
         if not (dt.time(9,30)<=hhmm<=dt.time(11,30) or dt.time(13,0)<=hhmm<=dt.time(15,0)):
-            raise ValueError("MINUTE_SESSION_INVALID")
+            raise ValueError("MINUTE_SESSION_INVALID:" + f[0])
         p,v=number(f[1]),number(f[2])
         a=number(f[3]) if len(f)>3 else None
         if p<=0 or v<0 or (a is not None and a<0):
@@ -154,6 +154,12 @@ def main():
             except Exception as exc:
                 result["components"][name]={"status":"failed","error":str(exc)[:200]}
     result["finished_at"]=now().isoformat()
+    components=result["components"]
+    result["component_errors"]=[k for k,v in components.items() if v["status"]!="ok"]
+    result["live_probe_passed"]=(not result["component_errors"] and
+        any(components[k]["data"].get("quality")=="LIVE" for k in ("tencent_quote","sina_quote")) and
+        components["minute"]["data"].get("quality")=="LIVE")
+    result["probe_status"]="LIVE_ENDPOINTS_VALIDATED" if result["live_probe_passed"] else "NOT_LIVE_VALIDATED"
     print(json.dumps(result,ensure_ascii=False,allow_nan=False,separators=(",",":")))
     # Probe only: no trade recommendation, no portfolio, no production mutation.
     return result
