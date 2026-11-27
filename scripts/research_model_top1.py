@@ -11,9 +11,10 @@ import json
 from pathlib import Path
 
 try:
-    from . import trend_buy_engine as engine
+    from . import trend_buy_engine as engine, trend_buy_entry_assessment as entry
 except ImportError:
     import trend_buy_engine as engine
+    import trend_buy_entry_assessment as entry
 
 VERSION = "V1.6-R1"
 GATES = ("input_verified", "five_categories_searched", "core_flow_verified",
@@ -125,8 +126,12 @@ def run(admission_raw, research, structure, selections):
                "risk_result": None, "watch_reference": None,
                "conditional_plan": None, "route": "NO_MONITOR"}
         if code is not None:
-            row = engine.evaluate_candidate(reviewed[code],
-                        (structure.get("companies") or {}).get(code), day)
+            row, watch_reference = entry.evaluate(reviewed[code],
+                        (structure.get("companies") or {}).get(code), day,
+                        pick.get("entry_assessment"))
+            if day > entry.CUTOVER_AFTER:
+                out["entry_assessment"] = pick.get("entry_assessment")
+                out["entry_assessment_verification"] = row.get("entry_assessment_verification")
             status = row["status"]
             require(row.get("code") == code and status in engine.STATES, "INVALID_RISK_RESULT")
             out["risk_status"] = status
@@ -143,7 +148,7 @@ def run(admission_raw, research, structure, selections):
                 out["route"] = "RESEARCH_CONDITIONAL_ONLY"
             elif status == "WAIT":
                 require(row.get("wait_reason") in engine.WAIT_REASONS, "INVALID_WAIT_REASON")
-                out["watch_reference"] = engine.early_watch_reference(row)
+                out["watch_reference"] = watch_reference
                 out["route"] = "OBSERVE_ONLY"
             # No actionable prices for WAIT/DROP/UNCERTAIN.
             out["risk_result"] = {k: v for k, v in row.items() if k not in PLAN_FIELDS}

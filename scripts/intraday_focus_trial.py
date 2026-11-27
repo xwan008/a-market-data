@@ -106,6 +106,8 @@ def baseline(expected):
         raise ValueError("BASELINE_PAIR")
     if h.get("trade_date")!=expected or sector.get("trade_date")!=expected or h.get("shadow") is not False:
         raise ValueError("BASELINE_DATE")
+    if not sector.get("signals"):
+        raise ValueError("BASELINE_NO_ELIGIBLE_TREND")
     rows=validate_items(h)
     return {"trade_date":expected,"run_id":h["source_run_id"],"symbols":[symbol(x["code"]) for x in rows],
             "industries":{symbol(x["code"]):x.get("industry_name") for x in rows}}
