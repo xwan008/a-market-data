@@ -96,7 +96,7 @@ E. 风险信息：主动寻找可能推翻判断的证据，包括监管问询�
 
 COMPLETE项的嵌套 `entry_assessment` 字段：
 - code（锁定TOP1代码）、as_of_date（参考交易日）、phase（INITIATING/PULLBACK/REACCELERATING/REPAIRING/COOLING/FAILED/TRANSITION）、mode（BREAKOUT/PULLBACK/NO_SETUP）、confirmation（CONFIRMED/PENDING）。
-- anchor_source、anchor_price：必须与同日独立结构字段一致。BREAKOUT可选 breakout_level、first_effective_resistance.price、attention_resistance.price、phase_evidence.prior_5d_high；PULLBACK可选 ma20、current_day_low、phase_evidence.recent_3d_low。仅在真实形态已经确认时标CONFIRMED，BREAKOUT必须以 breakout_level 为依据，PULLBACK必须以 current_day_low 为依据；否则PENDING。距现价超过8%、无法核验或没有合适近端结构时用NO_SETUP/PENDING且两个anchor字段为null，禁止硬凑价位。不得用MA60代替近端结构。必须读取与当日冻结数据一致的实际历史日K或程序技术字段；无法取得则NO_SETUP，说明缺口。
+- anchor_source、anchor_price：必须与同日独立结构字段一致。BREAKOUT可选 breakout_level、first_effective_resistance.price、attention_resistance.price、phase_evidence.prior_5d_high；PULLBACK可选 ma20、current_day_low、phase_evidence.recent_3d_low，或当日已有fresh_break且现价已高于关口时用 phase_evidence.prior_5d_high / breakout_level 观察突破后的回踩（只作观察，不替代原风控回踩条件）。仅在真实形态已经确认时标CONFIRMED，BREAKOUT必须以 breakout_level 为依据，PULLBACK必须以 current_day_low 为依据；否则PENDING。距现价超过8%、无法核验或没有合适近端结构时用NO_SETUP/PENDING且两个anchor字段为null，禁止硬凑价位。不得用MA60代替近端结构。必须读取与当日冻结数据一致的实际历史日K或程序技术字段；无法取得则NO_SETUP，说明缺口。
 - entry_basis、failure_basis、confirmation_condition、avoid_condition：简明非空文本，分别说明选择形态及拟入场位置的依据、本次形态失效依据、需要出现的量价确认和应暂缓的信号。只使用已核实事实；不要在文本夹带未经独立核验的数字、承诺或可执行价区/止损，正式区间、失效价、1.5R由Python独立计算。
 
 程序核验日期、代码、枚举、近端锚点及真实行情；模型CONFIRMED只是建议，必须与原Python确认的形态及失效锚点一致且原有风控全部通过才可READY。缺项、无真实锚点、冲突或PENDING时保持WAIT（原DROP/UNCERTAIN不升级），不替换TOP1；WAIT只输出已验证的观察价及条件，不输出可执行计划。报告明确区分模型研判和程序核验结论。行业准入、预筛、资金、A–E深研、选择、历史验证及盘中不重新选股等规则均不变。
