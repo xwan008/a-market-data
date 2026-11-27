@@ -13,6 +13,7 @@ from unittest.mock import patch
 from scripts import build_full_market_price_structure as technical
 from scripts import trend_buy_entry_assessment as entry
 from scripts import trend_buy_engine as engine
+from scripts.price_inputs import SelectedStockStructures
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "tests/fixtures/top1_entry_replay_20261125_27.json"
@@ -33,13 +34,16 @@ def run():
         assert all(b["date"] <= day for b in bars)
         p = original["current_price"]
         assert abs(bars[-1]["close"] - p) <= .011, (day, code, "history_price_mismatch")
-        s = technical.base_metrics(code, original["company_name"], bars, {"price": p}, day)
+        s = technical.base_metrics(code, original["company_name"], bars[-65:], {"price": p}, day, min_points=65)
         for key in ("ma20", "ma60"):
             assert abs(s[key] - ctx[key]) < .011, (day, code, key, s[key], ctx[key])
         market_return = s["raw_return_20d"] - ctx["relative_strength_20d_vs_market_pct"]/100
         s = technical.classify(s, market_return)
-        # Long-range pivot was computed and recorded on the actual decision date.
-        s["attention_resistance"] = ctx["attention_resistance"]
+        # Production uses 65 bars for local structure, separately 120–180 for overhead.
+        extended = SelectedStockStructures._attention_resistance(bars[-180:], p, day)
+        archived_extended = ctx["attention_resistance"]
+        assert (extended.get("status"), extended.get("price"), extended.get("date")) == (archived_extended.get("status"), archived_extended.get("price"), archived_extended.get("date")), (day,code,"extended_pivot_drift",extended,archived_extended)
+        s["attention_resistance"] = extended
         for key in ("breakout_level", "first_effective_resistance"):
             old, new = ctx.get(key), s.get(key)
             if key == "first_effective_resistance":
