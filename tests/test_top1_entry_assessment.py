@@ -129,6 +129,18 @@ class EntryAssessmentTest(unittest.TestCase):
         self.assertIsNone(out["hypothetical_reward_R"])
         self.assertEqual(out["hypothetical_risk_gate"],"OVERHEAD_UNKNOWN")
 
+    def test_recent_breakout_retest_is_observation_only(self):
+        s,review=fixture()
+        s["phase_evidence"].update(prior_5d_high=20.0,fresh_break=True)
+        review.update(mode="PULLBACK",anchor_source="phase_evidence.prior_5d_high",anchor_price=20.0)
+        out=entry.scenario(review,s,"600105",DAY)
+        self.assertEqual(out["anchor_price"],20.0)
+        self.assertIsNone(out["hypothetical_failure_price"])
+        self.assertIsNone(out["hypothetical_entry_zone"])
+        s["phase_evidence"]["fresh_break"]=False
+        self.assertEqual(entry.scenario(review,s,"600105",DAY)["verification"],
+                         "ENTRY_RETEST_NOT_GROUNDED")
+
     def test_old_date_uses_legacy_path(self):
         base={"code":"600105","status":"WAIT"}
         with patch.object(entry.engine,"evaluate_candidate",return_value=base), \
