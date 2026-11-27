@@ -100,3 +100,8 @@ COMPLETE项的嵌套 `entry_assessment` 字段：
 - entry_basis、failure_basis、confirmation_condition、avoid_condition：简明非空文本，分别说明选择形态及拟入场位置的依据、本次形态失效依据、需要出现的量价确认和应暂缓的信号。只使用已核实事实；不要在文本夹带未经独立核验的数字、承诺或可执行价区/止损，正式区间、失效价、1.5R由Python独立计算。
 
 程序核验日期、代码、枚举、近端锚点及真实行情；模型CONFIRMED只是建议，必须与原Python确认的形态及失效锚点一致且原有风控全部通过才可READY。缺项、无真实锚点、冲突或PENDING时保持WAIT（原DROP/UNCERTAIN不升级），不替换TOP1；WAIT只输出已验证的观察价及条件，不输出可执行计划。报告明确区分模型研判和程序核验结论。行业准入、预筛、资金、A–E深研、选择、历史验证及盘中不重新选股等规则均不变。
+
+### WAIT仍需完成入场研究（强制）
+- 对每只已锁定TOP1，无论预计READY或WAIT，先完整判断突破与回踩两条可能路径，选择最合适的一条为主方案；另一条若具备近端真实依据，提交可选 `alternate`（与主方案同样字段、不同mode；不得包含递归alternate）。若某路径不适用，在主方案entry_basis或avoid_condition解释，不为凑数虚造价位。两者均无依据时NO_SETUP并说明等待条件。
+- 模型提供形态、结构锚点、确认与失效依据；Python对每条方案核验锚点、时点、距离、形态，独立计算研究情景。待突破时可基于已核实的近端突破关口估算条件性参考区间与假设失败缓冲（沿用0.2%～2.5%区间和0.5%缓冲）；只有已知更高历史阻力才测算假设R，否则明确UNKNOWN。实际回踩尚未形成时只给观察区和确认条件，不提前编造回踩低点、止损或R。实际确认结构才使用原交易公式。假设测算不是买入价、止损指令或授权；任何真实形态变化需重新核验，保持原6%、8%、1.5R等交易准入门槛。
+- 正式结果保留 `entry_research_scenarios`，WAIT的watch_reference内独立嵌套 `research_scenarios`，全部标记not_buy_order=true。只展示通过验证的数值及测算性质，拒绝无依据或远期价位；条件情景不得填入正式entry_zone、invalidation_price、upside_to_resistance_R或触发自动升级。若主方案缺失或不一致，不改变锁定TOP1且保持WAIT；备选研究不能自行授权READY。
