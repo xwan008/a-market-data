@@ -1,0 +1,20 @@
+name: On-demand public quote probe (isolated)
+on:
+  workflow_dispatch:
+  push:
+    branches: [test/on-demand-market-probe]
+    paths:
+      - scripts/on_demand_market_probe.py
+      - .github/workflows/on-demand-market-probe.yml
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v7
+      - name: Syntax and live public endpoint probe
+        run: |
+          python3 -m py_compile scripts/on_demand_market_probe.py
+          python3 scripts/on_demand_market_probe.py
