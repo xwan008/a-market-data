@@ -5,6 +5,8 @@ on:
       - 'scripts/trend_buy_entry_assessment.py'
       - 'scripts/research_model_top1.py'
       - 'tests/test_top1_entry_assessment.py'
+      - 'tests/replay_top1_entry_assessment.py'
+      - 'tests/fixtures/top1_entry_replay_20261125_27.json'
       - '.github/workflows/top1-entry-assessment-check.yml'
 permissions:
   contents: read
@@ -18,3 +20,5 @@ jobs:
           python-version: '3.11'
       - run: python -m unittest discover -s tests -p test_top1_entry_assessment.py -v
       - run: python -m py_compile scripts/research_model_top1.py scripts/trend_buy_entry_assessment.py
+      - name: Replay archived TOP1 decisions using same-date OHLCV
+        run: PYTHONPATH=. python tests/replay_top1_entry_assessment.py
