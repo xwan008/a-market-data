@@ -1,10 +1,15 @@
 import copy
+import hashlib
+import json
+import tempfile
+from unittest.mock import patch
 import sys
 import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 from validate_theme_handoff_routes import check_theme_routes
+import intraday_focus_trial as focus
 
 
 def fixtures():
@@ -147,9 +152,83 @@ class UpstreamRouteCheckTests(unittest.TestCase):
         self.assertEqual(formal.count("git push origin HEAD:main"), 1)
         self.assertIn("check_theme_routes(trend,index,registry)", direct)
         self.assertIn("NO_ELIGIBLE_CONFIRMED_TREND", direct)
-        self.assertIn("validate_pair(registry,sector_handoff)", snapshot)
-        self.assertIn("bool(sector_handoff.get('signals'))", snapshot)
-        self.assertIn("h.get('trade_date') == sector_handoff.get('trade_date')", snapshot)
+        # The staged snapshot delegates baseline gates to the actual collector.
+        # Keep the deployment boundary and readback checks; test runtime behavior below.
+        self.assertIn("FOCUS_MODE: SHADOW", snapshot)
+        self.assertIn("python3 scripts/intraday_focus_trial.py", snapshot)
+        self.assertIn("test_intraday_focus_trial.py", snapshot)
+        self.assertIn("git add research/intraday_focus_snapshot.json", snapshot)
+        self.assertIn("git show FETCH_HEAD:research/intraday_focus_snapshot.json | cmp - focus_trial_public.json", snapshot)
+        self.assertNotIn("git add research/trend_buy_formal_result.json", snapshot)
+        self.assertNotIn("git add research/trend_buy_handoff.json", snapshot)
+
+    def test_shadow_baseline_checks_actual_paired_inputs(self):
+        day = "2026-11-27"
+        registry = {"schema_version": 2, "result_kind": "a_share_trend_registry",
+                    "status": "COMPLETE", "trade_date": day,
+                    "scan_audit": {"full_market_scan_completed": True,
+                                   "state_migration_gate": {"mode": "full_close",
+                                                            "current_trade_date": day}},
+                    "trends": [{"trend_name": "测试方向", "episode_id": "测试方向#2026-11-27",
+                                "trend_state": "T1", "market_state": "趋势确认",
+                                "in_new_position_priority": True,
+                                "industry_assessments": [{"industry_code": "S110101",
+                                                          "industry_name": "种子",
+                                                          "market_state": "趋势确认",
+                                                          "benefit_level": "CORE"}]}]}
+        sector = {"schema_version": 1, "result_kind": "a_share_trend_handoff",
+                  "trade_date": day, "signals": [{"rank": 1, "trend_name": "测试方向",
+                                                  "trend_state": "T1", "market_state": "趋势确认",
+                                                  "industry_codes": ["S110101"],
+                                                  "industry_names": ["种子"]}]}
+        stock = {"code": "600105", "company_name": "测试公司", "industry_code": "S110101",
+                 "industry_name": "种子", "trend_name": "测试方向", "market_state": "趋势确认",
+                 "status": "WAIT", "wait_reason": "WAIT_CONFIRMATION"}
+        formal = {"schema_version": "trend_buy_result_v2", "status": "COMPLETE",
+                  "production_eligible": True, "selection_policy": "MODEL_TOP1_V1_6_R1",
+                  "trade_date": day, "run_id": "fixture-run", "ready": [], "wait": [stock],
+                  "top1_by_industry": [{"industry_code": "S110101", "trend_name": "测试方向",
+                                        "items": [{"code": "600105", "reference": None}]}],
+                  "top1_decisions": [{"industry_code": "S110101", "top1_code": "600105",
+                                      "risk_status": "WAIT"}]}
+        raw = json.dumps(formal, ensure_ascii=False).encode("utf-8")
+        sha = hashlib.sha1(b"blob " + str(len(raw)).encode() + b"\0" + raw).hexdigest()
+        handoff = focus.project(formal, sha, shadow=False)
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            research = root / "research"
+            research.mkdir()
+            def write(name, value):
+                (research / name).write_text(json.dumps(value, ensure_ascii=False), encoding="utf-8")
+            (research / "trend_buy_formal_result.json").write_bytes(raw)
+            write("trend_registry.json", registry)
+            write("trend_handoff.json", sector)
+            write("trend_buy_handoff.json", handoff)
+            with patch.object(focus, "ROOT", root):
+                self.assertEqual(focus.baseline(day)["symbols"], ["sh600105"])
+                # Real production projector detects a changed source hash or roster.
+                tampered = copy.deepcopy(handoff)
+                tampered["source_formal_blob_sha"] = "0" * 40
+                write("trend_buy_handoff.json", tampered)
+                with self.assertRaisesRegex(ValueError, "BASELINE_PAIR"):
+                    focus.baseline(day)
+                write("trend_buy_handoff.json", handoff)
+                # A valid pair from another session is not a fresh baseline.
+                with self.assertRaisesRegex(ValueError, "BASELINE_DATE"):
+                    focus.baseline("2026-11-30")
+                bad_sector = copy.deepcopy(sector)
+                bad_sector["signals"][0]["industry_codes"] = ["S999999"]
+                write("trend_handoff.json", bad_sector)
+                with self.assertRaisesRegex(ValueError, "BASELINE_PAIR"):
+                    focus.baseline(day)
+                # Valid empty sector pair cannot resurrect the same-date old buy list.
+                empty_registry = copy.deepcopy(registry)
+                empty_registry["trends"][0]["in_new_position_priority"] = False
+                write("trend_registry.json", empty_registry)
+                write("trend_handoff.json", {**sector, "signals": []})
+                with self.assertRaisesRegex(ValueError, "BASELINE_NO_ELIGIBLE_TREND"):
+                    focus.baseline(day)
+                self.assertEqual(focus.wrapped(lambda: focus.baseline(day))["status"], "failed")
 
     def test_empty_company_pool_fails(self):
         handoff, index, registry = fixtures()
