@@ -58,7 +58,9 @@ def validate_assessment(review, s, code, day):
             not isinstance(source, str) or source not in SOURCES[mode] or
             confirmation not in ("PENDING", "CONFIRMED")):
         return None, "ENTRY_ASSESSMENT_INVALID"
-    if not isinstance(s, dict) or s.get("data_status") != "verified" or s.get("data_date") != day:
+    if (not isinstance(s, dict) or s.get("data_status") != "verified" or s.get("data_date") != day
+            or not engine.val(s.get("history_points")) or s["history_points"] < 65
+            or s.get("low_risk_eligible") is not True):
         return None, "ENTRY_STRUCTURE_UNVERIFIED"
     actual = anchor_value(s, source, day)
     p = s.get("current_price")
@@ -172,7 +174,8 @@ def evaluate(c, s, day, review):
                    decision_reason="模型入场形态/依据未确认或与独立风控不一致；不得执行")
         row.pop("setup_stop_evidence", None)
     row["entry_assessment_verification"] = verification
-    row["entry_research_scenarios"] = research_scenarios(review, s, code, day)
+    row["entry_research_scenarios"] = (research_scenarios(review, s, code, day)
+                                       if row["status"] in ("READY", "WAIT") else [])
     if row["status"] != "WAIT":
         return row, None
     # Only verified anchor values reach the price fields. An invalid or
