@@ -141,13 +141,16 @@ class EntryAssessmentTest(unittest.TestCase):
         self.assertEqual(entry.scenario(review,s,"600105",DAY)["verification"],
                          "ENTRY_RETEST_NOT_GROUNDED")
 
-    def test_old_date_uses_legacy_path(self):
-        base={"code":"600105","status":"WAIT"}
-        with patch.object(entry.engine,"evaluate_candidate",return_value=base), \
-             patch.object(entry.engine,"early_watch_reference",return_value={"legacy":True}):
-            row,ref=entry.evaluate({},None,"2026-11-27",None)
-        self.assertEqual(row,base)
-        self.assertEqual(ref,{"legacy":True})
+    def test_current_contract_not_date_gated(self):
+        for day in ("2026-11-25", "2026-11-27", "2026-11-30"):
+            s,review=fixture()
+            s["data_date"]=day
+            review["as_of_date"]=day
+            base={"code":"600105","status":"WAIT"}
+            with patch.object(entry.engine,"evaluate_candidate",return_value=base):
+                row,ref=entry.evaluate({},s,day,review)
+            self.assertEqual(ref["reference_trigger_price"],21.48)
+            self.assertEqual(row["entry_assessment_verification"],"VERIFIED")
 
 if __name__ == "__main__":
     unittest.main()
