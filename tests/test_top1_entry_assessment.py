@@ -7,6 +7,7 @@ DAY = "2026-11-30"
 
 def fixture():
     structure = {"data_status":"verified", "data_date":DAY,
+                 "history_points":180,"low_risk_eligible":True,
                  "current_price":20.98, "ma20":21.368, "ma60":30.8973,
                  "first_effective_resistance":{"price":21.48,"date":"2026-11-24"},
                  "phase_evidence":{"prior_5d_high":21.48}}
@@ -101,6 +102,32 @@ class EntryAssessmentTest(unittest.TestCase):
         self.assertLessEqual(row["initial_risk_pct"],entry.engine.MAX_ENTRY_RISK_PCT)
         self.assertGreaterEqual(row["upside_to_resistance_R"],entry.engine.MIN_UPSIDE_R)
         self.assertIsNone(ref)
+
+    def test_wait_has_conditional_scenario_and_no_executable_plan(self):
+        s,review=fixture()
+        s["attention_resistance"]={"status":"VERIFIED","price":25.0,
+              "date":"2026-11-01","source":"asof_180bar_confirmed_pivot","history_points":180}
+        review["alternate"]=review | {"mode":"PULLBACK","anchor_source":"ma20","anchor_price":21.368}
+        base={"code":"600105","status":"WAIT","wait_reason":"WAIT_CONFIRMATION"}
+        with patch.object(entry.engine,"evaluate_candidate",return_value=base):
+            row,ref=entry.evaluate({},s,DAY,review)
+        breakout,pullback=ref["research_scenarios"]
+        self.assertTrue(breakout["not_buy_order"])
+        self.assertEqual(breakout["calculation_status"],"HYPOTHETICAL_BREAKOUT_ONLY")
+        self.assertGreater(breakout["hypothetical_entry_zone"][0],21.48)
+        self.assertLess(breakout["hypothetical_failure_price"],21.48)
+        self.assertGreater(breakout["hypothetical_reward_R"],1.5)
+        self.assertIsNotNone(pullback["observation_zone"])
+        self.assertIsNone(pullback["hypothetical_failure_price"])
+        self.assertIsNone(pullback["hypothetical_reward_R"])
+        self.assertIsNone(ref["reference_zone"])
+        self.assertIsNone(ref["invalidation_price"])
+
+    def test_no_higher_resistance_does_not_invent_reward(self):
+        s,review=fixture()
+        out=entry.scenario(review,s,"600105",DAY)
+        self.assertIsNone(out["hypothetical_reward_R"])
+        self.assertEqual(out["hypothetical_risk_gate"],"OVERHEAD_UNKNOWN")
 
     def test_old_date_uses_legacy_path(self):
         base={"code":"600105","status":"WAIT"}
