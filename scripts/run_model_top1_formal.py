@@ -13,7 +13,7 @@ except ImportError:
 
 POLICY = "MODEL_TOP1_V1_6_R1"
 
-def generate(admission_raw, research, structure, evidence, run_id):
+def generate(admission_raw, research, structure, evidence, run_id, *, protected_decisions=None):
     day = research["trade_date"]
     model.require(evidence.get("as_of_date") == day and
                   evidence.get("explicit_no_prior_formal_or_archive_input") is True,
@@ -34,7 +34,7 @@ def generate(admission_raw, research, structure, evidence, run_id):
     selections = evidence["top1_selection"]
     admission = json.loads(admission_raw)
     funds.validate_selections(admission, selections)
-    result = model.run(admission_raw, research, structure, selections)
+    result = model.run(admission_raw, research, structure, selections, protected_decisions=protected_decisions)
     roster = {c["code"]: c for c in research["companies"]}
     states = {s.lower(): [] for s in engine.STATES}
     groups, focus = [], []
@@ -92,12 +92,31 @@ def main():
     p=argparse.ArgumentParser()
     for flag in ("admission","research","structure","evidence","output","run-id"):
         p.add_argument("--"+flag,required=True)
+    p.add_argument("--previous", help="Actual prior formal result, used only to preserve locked recovery decisions")
     a=p.parse_args()
     read=lambda x:json.loads(Path(x).read_bytes())
     out=Path(a.output).resolve()
     model.require(out.name not in ("trend_buy_formal_result.json","trend_buy_handoff.json"),
                   "COMPUTATION_MUST_NOT_PUBLISH")
-    result=generate(Path(a.admission).read_bytes(),read(a.research),read(a.structure),read(a.evidence),a.run_id)
+    raw=Path(a.admission).read_bytes()
+    evidence=read(a.evidence)
+    protected={}
+    if a.previous:
+        try:
+            from .trend_buy_revision import active_manual_request, validate_revision, same_session_result, retryable_groups
+        except ImportError:
+            from trend_buy_revision import active_manual_request, validate_revision, same_session_result, retryable_groups
+        previous=read(a.previous)
+        admission=json.loads(raw)
+        day=admission["trade_date"]
+        if same_session_result(previous,day):
+            manual=active_manual_request(previous,day)
+            validate_revision(previous,admission,evidence,manual_request=manual)
+            if manual is None:
+                retry=retryable_groups(previous,day)
+                protected={d["industry_code"]:d for d in previous["top1_decisions"]
+                           if d["industry_code"] not in retry}
+    result=generate(raw,read(a.research),read(a.structure),evidence,a.run_id,protected_decisions=protected)
     out.write_text(json.dumps(result,ensure_ascii=False,indent=2,allow_nan=False)+"\n",encoding="utf-8")
 
 if __name__=="__main__":

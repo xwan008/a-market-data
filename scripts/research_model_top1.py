@@ -6,6 +6,7 @@ Never generates or overwrites formal results or monitoring handoff.
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
 from pathlib import Path
@@ -77,7 +78,7 @@ def validate_pick(pick, roster):
     require(not any(k in pick for k in PLAN_FIELDS), "MODEL_MUST_NOT_SUPPLY_TRADE_PLAN")
 
 
-def run(admission_raw, research, structure, selections):
+def run(admission_raw, research, structure, selections, *, protected_decisions=None):
     admission = json.loads(admission_raw)
     day = admission.get("trade_date")
     require(isinstance(day, str) and len(day) == 10, "INVALID_TRADE_DATE")
@@ -116,10 +117,19 @@ def run(admission_raw, research, structure, selections):
     # Validate every selection before calculating any plan.
     for industry, roster in by_industry.items():
         validate_pick(lookup[industry], roster)
+    protected_decisions = protected_decisions or {}
+    require(set(protected_decisions) <= set(by_industry), "PROTECTED_GROUP_SCOPE_MISMATCH")
     items = []
     for industry, roster in by_industry.items():
         pick = lookup[industry]
         code = pick["top1_code"]
+        if industry in protected_decisions:
+            locked = protected_decisions[industry]
+            require(locked.get("industry_code") == industry and locked.get("candidate_codes") == roster
+                    and locked.get("top1_code") == code and locked.get("selection_status") == pick["status"]
+                    and locked.get("selection_reason") == pick["reason"], "PROTECTED_DECISION_MISMATCH")
+            items.append(copy.deepcopy(locked))
+            continue
         out = {"industry_code": industry, "candidate_codes": list(roster),
                "top1_code": code, "selection_status": pick["status"],
                "selection_reason": pick["reason"], "risk_status": None,
@@ -129,9 +139,9 @@ def run(admission_raw, research, structure, selections):
             row, watch_reference = entry.evaluate(reviewed[code],
                         (structure.get("companies") or {}).get(code), day,
                         pick.get("entry_assessment"))
-            if day > entry.CUTOVER_AFTER:
-                out["entry_assessment"] = pick.get("entry_assessment")
-                out["entry_assessment_verification"] = row.get("entry_assessment_verification")
+            out["entry_protocol_version"] = entry.ENTRY_PROTOCOL_VERSION
+            out["entry_assessment"] = pick.get("entry_assessment")
+            out["entry_assessment_verification"] = row.get("entry_assessment_verification")
             status = row["status"]
             require(row.get("code") == code and status in engine.STATES, "INVALID_RISK_RESULT")
             out["risk_status"] = status

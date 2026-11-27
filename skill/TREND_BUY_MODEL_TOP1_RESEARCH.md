@@ -14,7 +14,7 @@
 
 ## 机器交接格式
 顶层：trade_date、source_blob（冻结 admission 文件的 Git blob SHA）、prompt_version（机器契约字段，读取当前 main 的 `scripts/research_model_top1.py` 中 `VERSION` 常量原值，不自行命名或改变）、items（每个冻结 SW3 恰好一项）。
-每项：industry_code、candidate_codes（与原始顺序严格一致）、status、top1_code、reason（含决定性证据、最强竞争者及反证的简述）；COMPLETE 还须 completion_gate（input_verified、five_categories_searched、core_flow_verified、fact_quality_verified、dynamic_comparison_complete、counterevidence_checked，均为 true）、research_matrix（按 code 键控的 A–E 状态和来源；A 必须包含 frozen_fund_ref，精确格式为 fund_flow.groups/行业代码/stocks/股票代码）、dynamic_comparison（按 code 键控，trend_structure、fund_flow、quarterly_profit 均有文本记录）、comparison_reasons（全部非当选股的未选理由）、strongest_counter、falsifier。非 COMPLETE 须 top1_code=null 且有原因。参考交易日2026-11-27之后，COMPLETE项另附 `entry_assessment`，只在选择锁定后生成，按下节契约；不得改写已锁定选择。
+每项：industry_code、candidate_codes（与原始顺序严格一致）、status、top1_code、reason（含决定性证据、最强竞争者及反证的简述）；COMPLETE 还须 completion_gate（input_verified、five_categories_searched、core_flow_verified、fact_quality_verified、dynamic_comparison_complete、counterevidence_checked，均为 true）、research_matrix（按 code 键控的 A–E 状态和来源；A 必须包含 frozen_fund_ref，精确格式为 fund_flow.groups/行业代码/stocks/股票代码）、dynamic_comparison（按 code 键控，trend_structure、fund_flow、quarterly_profit 均有文本记录）、comparison_reasons（全部非当选股的未选理由）、strongest_counter、falsifier。非 COMPLETE 须 top1_code=null 且有原因。每次新研究的COMPLETE项另附 `entry_assessment`，只在选择锁定后生成，按下节契约；不得改写已锁定选择。
 下列完整证据规范必须执行；程序校验结构、日期、名单和声明，不能替代真实工具调用及来源事实审计。源SHA绑定冻结名单；开盘前自动故障恢复、人工全量重跑与有效决策保护按主协议第4节执行；人工全量重跑的全部新研究按主协议绑定同一授权ID及新冻结admission SHA。未验收的研究结果不得改标签冒充有效选择。
 
 ## 角色和目标
@@ -92,7 +92,7 @@ E. 风险信息：主动寻找可能推翻判断的证据，包括监管问询�
 
 ## 5.1 锁定后的模型入场研判（不参与选股）
 
-自参考交易日2026-11-27之后，仅对已经锁定的TOP1执行；旧日期恢复保留既有契约。依据同日冻结行情、完整历史日K、实际资金证据及此前研究，独立判断近端结构、追高风险、回踩承接或突破机会。先说明为什么适合该形态，不能把低于MA60当作唯一观察逻辑；MA60只是背景和现有独立风控的一部分。不得引用未来行情、重新排序或递补。
+每次新研究（首次、用户授权完整重跑、自动恢复的未完成组）仅对本轮锁定的TOP1执行当前入场协议版本，正式决策记录entry_protocol_version；自动恢复已有效锁定组直接保留原决策，不重新计算或改写。依据同日冻结行情、完整历史日K、实际资金证据及此前研究，独立判断近端结构、追高风险、回踩承接或突破机会。先说明为什么适合该形态，不能把低于MA60当作唯一观察逻辑；MA60只是背景和现有独立风控的一部分。不得引用未来行情、重新排序或递补。
 
 COMPLETE项的嵌套 `entry_assessment` 字段：
 - code（锁定TOP1代码）、as_of_date（参考交易日）、phase（INITIATING/PULLBACK/REACCELERATING/REPAIRING/COOLING/FAILED/TRANSITION）、mode（BREAKOUT/PULLBACK/NO_SETUP）、confirmation（CONFIRMED/PENDING）。

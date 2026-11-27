@@ -8,7 +8,6 @@ Only after all decisions are calculated, inspect available next-session closes.
 """
 import json
 from pathlib import Path
-from unittest.mock import patch
 
 from scripts import build_full_market_price_structure as technical
 from scripts import trend_buy_entry_assessment as entry
@@ -56,10 +55,8 @@ def run():
         baseline = engine.evaluate_candidate(c, s, day)
         assert baseline["status"] == case["original_status"], (day,code,"baseline_drift",baseline["status"])
         assessment = case["retrospective_assessment"]
-        # Historical compatibility remains enabled in production; this explicit
-        # test-only counterfactual evaluates the proposed contract on old dates.
-        with patch.object(entry, "CUTOVER_AFTER", "1900-01-01"):
-            new, ref = entry.evaluate(c, s, day, assessment)
+        # Same current protocol as a new production evaluation, regardless of date.
+        new, ref = entry.evaluate(c, s, day, assessment)
         assert new["code"] == code and new["status"] == baseline["status"]
         if new["status"] == "READY":
             for key in ("entry_zone", "invalidation_price", "initial_risk_pct", "upside_to_resistance_R"):

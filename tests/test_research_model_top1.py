@@ -64,13 +64,35 @@ class ModelTop1Test(unittest.TestCase):
         self.assertEqual(result["risk_evaluated_count"], 0)
 
     def test_ready_plan_only_for_selected(self):
+        self.structure["companies"]["601328"]["breakout_level"]=8.95
+        self.pick["entry_assessment"]={"code":"601328","as_of_date":self.day,
+            "phase":"INITIATING","mode":"BREAKOUT","confirmation":"CONFIRMED",
+            "anchor_source":"breakout_level","anchor_price":8.95,
+            "entry_basis":"synthetic","failure_basis":"synthetic",
+            "confirmation_condition":"synthetic","avoid_condition":"synthetic"}
         row = {"code": "601328", "status": "READY", "entry_zone": [9.0, 9.1],
+               "setup_type":"BREAKOUT","setup_stop_evidence":{"anchor_price":8.95},
                "invalidation_price": 8.9, "wait_reason": None, "upside_to_resistance_R": 2}
         with patch.object(mod.engine, "evaluate_candidate", return_value=row) as evaluate:
             item = self.run_model()["items"][0]
         self.assertEqual(evaluate.call_count, 1)
         self.assertEqual(item["conditional_plan"]["entry_zone"], [9.0, 9.1])
         self.assertEqual(item["route"], "RESEARCH_CONDITIONAL_ONLY")
+
+    def test_locked_recovery_copies_previous_decision_without_recompute(self):
+        old=self.run_model()["items"][0]
+        old.pop("entry_protocol_version",None)
+        old.pop("entry_assessment",None)
+        old.pop("entry_assessment_verification",None)
+        old["watch_reference"]={"legacy":True}
+        old["risk_result"].pop("entry_research_scenarios",None)
+        old["risk_result"].pop("entry_assessment_verification",None)
+        with patch.object(mod.engine,"evaluate_candidate") as evaluate:
+            result=mod.run(self.raw,self.research,self.structure,self.selections,
+                           protected_decisions={self.pick["industry_code"]:old})
+        evaluate.assert_not_called()
+        self.assertEqual(result["items"][0],old)
+        self.assertIsNot(result["items"][0],old)
 
     def test_drop_and_uncertain_no_plan(self):
         for status in ("DROP", "UNCERTAIN"):
