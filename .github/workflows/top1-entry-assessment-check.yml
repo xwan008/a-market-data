@@ -1,0 +1,20 @@
+name: TOP1 entry assessment checks
+on:
+  pull_request:
+    paths:
+      - 'scripts/trend_buy_entry_assessment.py'
+      - 'scripts/research_model_top1.py'
+      - 'tests/test_top1_entry_assessment.py'
+      - '.github/workflows/top1-entry-assessment-check.yml'
+permissions:
+  contents: read
+jobs:
+  entry-assessment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m unittest discover -s tests -p test_top1_entry_assessment.py -v
+      - run: python -m py_compile scripts/research_model_top1.py scripts/trend_buy_entry_assessment.py
