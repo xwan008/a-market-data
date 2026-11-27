@@ -29,11 +29,43 @@ class FocusTests(unittest.TestCase):
         self.assertEqual(rows["sh601328"]["components"]["bad"]["status"],"failed")
         self.assertEqual(rows["sz000001"]["components"]["good"]["status"],"ok")
     def test_slot_window(self):
-        self.assertEqual(f.planned_slot(dt.datetime(2026,11,30,9,37,30,tzinfo=f.p.TZ)).strftime("%H:%M"),"09:37")
-        self.assertIsNone(f.planned_slot(dt.datetime(2026,11,30,9,40,tzinfo=f.p.TZ)))
-        self.assertIsNone(f.planned_slot(dt.datetime(2026,12,5,9,37,tzinfo=f.p.TZ)))
-        self.assertIsNone(f.planned_slot(dt.datetime(2027,1,4,9,37,tzinfo=f.p.TZ)))
-        self.assertEqual(f.previous_session(dt.date(2026,11,30)),"2026-11-27")
+        # Synthetic calendar fixtures: these are not assertions about future holidays.
+        sessions=tuple(dt.date.fromisoformat(x) for x in
+                       ("2026-11-27","2026-11-30","2026-12-31","2027-01-04","2027-01-05"))
+        with patch.object(f,"exchange_sessions",return_value=sessions):
+            self.assertEqual(f.planned_slot(dt.datetime(2026,11,30,9,37,30,tzinfo=f.p.TZ)).strftime("%H:%M"),"09:37")
+            self.assertIsNone(f.planned_slot(dt.datetime(2026,11,30,9,40,tzinfo=f.p.TZ)))
+            self.assertIsNone(f.planned_slot(dt.datetime(2026,12,5,9,37,tzinfo=f.p.TZ)))
+            self.assertEqual(f.planned_slot(dt.datetime(2027,1,4,9,37,tzinfo=f.p.TZ)).strftime("%H:%M"),"09:37")
+            self.assertEqual(f.previous_session(dt.date(2026,11,30)),"2026-11-27")
+            # Weekday holiday between sessions; baseline must be the real prior session.
+            self.assertIsNone(f.planned_slot(dt.datetime(2027,1,1,9,37,tzinfo=f.p.TZ)))
+            self.assertEqual(f.previous_session(dt.date(2027,1,4)),"2026-12-31")
+            with self.assertRaisesRegex(ValueError,"EXCHANGE_CALENDAR_DATE_UNVERIFIED"):
+                f.planned_slot(dt.datetime(2027,1,6,9,37,tzinfo=f.p.TZ))
+            with self.assertRaisesRegex(ValueError,"REFERENCE_SESSION_NOT_IN_CALENDAR"):
+                f.previous_session(dt.date(2027,1,1))
+    def test_calendar_failure_blocks_collection(self):
+        with patch.object(f.p,"now",return_value=dt.datetime(2027,1,4,9,37,tzinfo=f.p.TZ)), \
+             patch.dict(f.os.environ,{"FOCUS_MODE":"SHADOW"}), \
+             patch.object(f,"exchange_sessions",side_effect=ValueError("EXCHANGE_CALENDAR_UNAVAILABLE")), \
+             patch.object(f,"collect") as collect:
+            with self.assertRaisesRegex(SystemExit,"FOCUS_CALENDAR_BLOCKED:EXCHANGE_CALENDAR_UNAVAILABLE"):
+                f.main()
+            collect.assert_not_called()
+    def test_calendar_fetch_uses_published_sessions(self):
+        from types import SimpleNamespace
+        fake=SimpleNamespace(tool_trade_date_hist_sina=lambda:{"trade_date":["2027-01-05","2026-12-31","2027-01-04","2027-01-04"]})
+        f.exchange_sessions.cache_clear()
+        try:
+            with patch.dict(sys.modules,{"akshare":fake}):
+                self.assertEqual(f.exchange_sessions(),(dt.date(2026,12,31),dt.date(2027,1,4),dt.date(2027,1,5)))
+            f.exchange_sessions.cache_clear()
+            with patch.dict(sys.modules,{"akshare":SimpleNamespace(tool_trade_date_hist_sina=lambda:{"trade_date":[]})}):
+                with self.assertRaisesRegex(ValueError,"EXCHANGE_CALENDAR_UNAVAILABLE"):
+                    f.exchange_sessions()
+        finally:
+            f.exchange_sessions.cache_clear()
     def test_no_live_quote(self):
         self.assertEqual(f.stock_gate({"components":{}},"2026-11-27"),"QUOTE_UNAVAILABLE")
     def test_board_normalization_unique(self):
