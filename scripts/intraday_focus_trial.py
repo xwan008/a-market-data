@@ -13,12 +13,13 @@ import threading
 import urllib.parse
 import urllib.request
 import on_demand_market_probe as p
+import focus_private_transport as transport
 from trend_buy_handoff import validate_items, project
 from validate_trend_publication_pair import validate as validate_pair
 
 ROOT=Path(__file__).resolve().parents[1]
 SLOTS=("09:37","10:37","13:17","14:27")
-INDEXES={"sh000001":"上证指数","sz399001":"深证成指","sz399006":"创业板指"}
+INDEXES={"sh000001":"上证指数","sz399001":"深证成指","sz399006":"创业板指","sz399986":"中证银行指数（板块代理）"}
 FIELDS=("股票代码","持仓股数","数据状态","持仓状态")
 EAST_LOCK=threading.BoundedSemaphore(2)
 UT="bd1d9ddb04089700cf9c27f6f7426281"
@@ -28,7 +29,7 @@ def wrapped(fn):
         return {"status":"ok","data":fn()}
     except Exception as exc:
         # Exceptions from private records or HTTP responses must not disclose their contents.
-        return {"status":"failed","error":type(exc).__name__+":"+str(exc)[:100] if isinstance(exc,ValueError) else type(exc).__name__}
+        return {"status":"failed","error":type(exc).__name__+":"+str(exc)[:100] if isinstance(exc,ValueError) else (str(exc)[:100] if isinstance(exc,RuntimeError) and str(exc).startswith("HTTP_FAILED:") else type(exc).__name__)}
 
 def symbol(code):
     if not isinstance(code,str) or not re.fullmatch(r"\d{6}",code):
@@ -258,7 +259,7 @@ def main():
             name="银行"
         related[sym]={"taxonomy":"eastmoney_proxy_not_SW3","data":boards.get(name),"status":"ok" if name in boards else "UNRESOLVED"}
     result={"schema_version":1,"result_kind":"focus_pipeline_trial","mode":"CLOSE_TEST" if start.time()>=dt.time(15) else "TRIAL",
-            "run_id":os.environ.get("GITHUB_RUN_ID"),"started_at":start.isoformat(),"finished_at":p.now().isoformat(),
+            "run_id":str(os.environ.get("GITHUB_RUN_ID"))+"-"+str(os.environ.get("GITHUB_RUN_ATTEMPT","1")),"started_at":start.isoformat(),"finished_at":p.now().isoformat(),
             "trade_date":str(start.date()),"baseline":b,"public_stocks":public_rows,
             "portfolio_status":h["status"],"portfolio_complete":h.get("data",{}).get("complete",False),
             "portfolio_confirmed_count":len(private),"portfolio_unresolved_count":h.get("data",{}).get("unknown_count"),
@@ -266,7 +267,14 @@ def main():
             "portfolio_all_components_ok_count":sum(all(v["status"]=="ok" for v in rows[s]["components"].values()) for s in private),
             "market_indexes":indexes,"board_source_status":board["status"],"board_source_error":board.get("error"),"public_related_boards":related,
             "status":"TRIAL_NOT_PRODUCTION"}
-    # Public TOP1 market data only. Portfolio result remains in runner memory.
+    # Private readback includes market quotes only, not costs or position quantities.
+    private_payload={**result,"result_kind":"focus_pipeline_private_trial","stocks":rows}
+    private_payload.pop("public_stocks",None)
+    # Include each target provider industry proxy only inside the private output.
+    private_payload["related_boards"]={sym:{"taxonomy":"eastmoney_proxy_not_SW3","data":boards.get(data(row["components"],"east_quote").get("provider_industry"))} for sym,row in rows.items()}
+    pr=wrapped(lambda:transport.publish(private_payload))
+    result["private_publication"]=pr
+    # Public TOP1 market data only; no private stock symbols or record content.
     text=json.dumps(result,ensure_ascii=False,allow_nan=False,separators=(",",":"))
     Path("focus_trial_public.json").write_text(text,encoding="utf-8")
     assert json.loads(Path("focus_trial_public.json").read_text())==result

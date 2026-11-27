@@ -25,7 +25,7 @@ def get(url, encoding="utf-8", referer="https://gu.qq.com/"):
             with urllib.request.urlopen(req, timeout=6) as res:
                 return res.read(4_000_000).decode(encoding), now()
         except Exception as exc:
-            errors.append(type(exc).__name__)
+            errors.append(type(exc).__name__+(":"+str(exc.code) if hasattr(exc,"code") else ""))
             if not attempt:
                 time.sleep(.5)
     raise RuntimeError("HTTP_FAILED:" + ",".join(errors))
@@ -167,7 +167,11 @@ def daily(symbol=SYMBOL):
 
 def eastmoney_flow(symbol=SYMBOL):
     params={"secid":("1." if symbol.startswith("sh") else "0.")+symbol[2:],"klt":"1","lmt":"300","fields1":"f1,f2,f3,f7","fields2":"f51,f52,f53,f54,f55,f56,f57"}
-    txt,received=get("https://push2.eastmoney.com/api/qt/stock/fflow/kline/get?"+urllib.parse.urlencode(params),referer="https://quote.eastmoney.com/")
+    try:
+        txt,received=get("https://push2.eastmoney.com/api/qt/stock/fflow/kline/get?"+urllib.parse.urlencode(params),referer="https://quote.eastmoney.com/")
+    except RuntimeError:
+        # A separate published historical endpoint may return the current session; date gate below is mandatory.
+        txt,received=get("https://push2his.eastmoney.com/api/qt/stock/fflow/kline/get?"+urllib.parse.urlencode(params),referer="https://quote.eastmoney.com/")
     body=json.loads(txt)
     block=body.get("data")
     if body.get("rc")!=0 or not isinstance(block,dict) or str(block.get("code"))!=symbol[2:]:
