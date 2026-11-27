@@ -47,4 +47,14 @@ class FocusTests(unittest.TestCase):
         self.assertEqual(f.previous_session(dt.date(2026,11,30)),"2026-11-27")
     def test_no_live_quote(self):
         self.assertEqual(f.stock_gate({"components":{}},"2026-11-27"),"QUOTE_UNAVAILABLE")
+    def test_board_normalization_unique(self):
+        row={"components":{"east_quote":{"status":"ok","data":{"provider_industry":"银行Ⅱ"}}}}
+        out=f.related_board("sh601328",row,{"银行":{"name":"银行"}},{},{"sh601328":"国有大型银行Ⅲ"})
+        self.assertEqual(out["status"],"ok")
+        self.assertEqual(out["data"]["name"],"银行")
+        fallback=f.related_board("sh601328",row,{},{"sz399986":{"status":"ok","data":{"name":"中证银行"}}},{})
+        self.assertEqual(fallback["status"],"PROXY_ONLY")
+        self.assertEqual(fallback["data"]["name"],"中证银行")
+        ambiguous=f.related_board("sh601328",row,{"银行Ⅰ":{},"银行Ⅲ":{}},{},{})
+        self.assertEqual(ambiguous["status"],"UNRESOLVED")
 if __name__=="__main__": unittest.main()

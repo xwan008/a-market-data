@@ -296,7 +296,12 @@ def related_board(sym,row,boards,indexes,industries):
         name="银行"
     if name in boards:
         return {"taxonomy":"eastmoney_proxy_not_SW3","data":boards[name],"status":"ok"}
-    if name=="银行" and indexes.get("sz399986",{}).get("status")=="ok":
+    if name:
+        normalized=re.sub(r"[ⅠⅡⅢⅣⅤ]+$","",name).strip()
+        matches=[key for key in boards if re.sub(r"[ⅠⅡⅢⅣⅤ]+$","",key).strip()==normalized]
+        if len(matches)==1:
+            return {"taxonomy":"eastmoney_normalized_name_proxy_not_SW3","data":boards[matches[0]],"status":"ok"}
+    if (name and re.sub(r"[ⅠⅡⅢⅣⅤ]+$","",name).strip()=="银行" or "银行" in (industries.get(sym) or "")) and indexes.get("sz399986",{}).get("status")=="ok":
         return {"taxonomy":"CSI_BANK_PROXY_NOT_SW3","data":indexes["sz399986"]["data"],"status":"PROXY_ONLY"}
     return {"taxonomy":"UNRESOLVED","data":None,"status":"UNRESOLVED"}
 
