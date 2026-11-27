@@ -161,11 +161,72 @@ def daily():
         raise ValueError("DAILY_INCOMPLETE")
     return {"source":"tencent","adjustment":"qfq","received_at":received.isoformat(),"bars":rows[-30:]}
 
+
+def eastmoney_flow():
+    params={"secid":"1."+SYMBOL[2:],"klt":"1","lmt":"300","fields1":"f1,f2,f3,f7","fields2":"f51,f52,f53,f54,f55,f56,f57"}
+    txt,received=get("https://push2.eastmoney.com/api/qt/stock/fflow/kline/get?"+urllib.parse.urlencode(params),referer="https://quote.eastmoney.com/")
+    body=json.loads(txt)
+    block=body.get("data")
+    if body.get("rc")!=0 or not isinstance(block,dict) or str(block.get("code"))!=SYMBOL[2:]:
+        raise ValueError("FLOW_SCHEMA_OR_SYMBOL")
+    rows=[]
+    for line in block.get("klines") or []:
+        f=line.split(",")
+        if len(f)<6:
+            raise ValueError("FLOW_COLUMNS")
+        stamp=dt.datetime.fromisoformat(f[0]).replace(tzinfo=TZ)
+        if stamp.date()!=received.date() or stamp>received+dt.timedelta(seconds=2):
+            raise ValueError("FLOW_DATE")
+        if not (dt.time(9,30)<=stamp.time()<=dt.time(11,30) or dt.time(13,0)<=stamp.time()<=dt.time(15,0)):
+            continue
+        if rows and stamp<=dt.datetime.fromisoformat(rows[-1]["time"]):
+            raise ValueError("FLOW_ORDER")
+        main,small,mid,large,superlarge=map(number,f[1:6])
+        if abs(main-large-superlarge)>max(100,abs(main)*.001):
+            raise ValueError("FLOW_MAIN_RECONCILIATION")
+        rows.append({"time":stamp.isoformat(),"main_net":main,"small_net":small,"mid_net":mid,"large_net":large,"super_net":superlarge})
+    if not rows:
+        raise ValueError("FLOW_EMPTY")
+    stamp=dt.datetime.fromisoformat(rows[-1]["time"])
+    return {"source":"eastmoney","received_at":received.isoformat(),"quality":classify(stamp,received),
+            "unit":"CNY_candidate","cumulative_semantics_verified":False,"points":rows}
+
+def five_day_history():
+    txt,received=get("https://web.ifzq.gtimg.cn/appstock/app/day/query?code="+SYMBOL)
+    block=json.loads(txt)["data"][SYMBOL]["data"]
+    if not isinstance(block,list):
+        raise ValueError("FIVE_DAY_SCHEMA")
+    sessions=[]
+    for item in block:
+        date=dt.datetime.strptime(str(item["date"]).replace("-",""),"%Y%m%d").date()
+        if date>=received.date():
+            continue
+        rows=[]
+        for line in item["data"]:
+            f=line.split()
+            if len(f)<3:
+                raise ValueError("HISTORY_COLUMNS")
+            t=dt.datetime.strptime(f[0],"%H%M").time()
+            if not (dt.time(9,30)<=t<=dt.time(11,30) or dt.time(13,0)<=t<=dt.time(15,0)):
+                continue
+            p,v=number(f[1]),number(f[2])
+            a=number(f[3]) if len(f)>3 else None
+            if p<=0 or v<0 or (rows and (f[0]<=rows[-1]["time"] or v<rows[-1]["volume_raw"])):
+                raise ValueError("HISTORY_SEQUENCE")
+            rows.append({"time":f[0],"price":p,"volume_raw":v,"amount_raw":a})
+        if rows:
+            sessions.append({"date":str(date),"points":rows})
+    sessions.sort(key=lambda row:row["date"])
+    if len(sessions)<3 or len({r["date"] for r in sessions})!=len(sessions):
+        raise ValueError("HISTORY_INSUFFICIENT")
+    return {"source":"tencent","received_at":received.isoformat(),"sessions":sessions,"volume_semantics_verified":False}
+
+
 def main():
     start=now()
-    calls={"tencent_quote":lambda:quote("tencent"),"sina_quote":lambda:quote("sina"),"minute":minute,"daily":daily}
+    calls={"tencent_quote":lambda:quote("tencent"),"sina_quote":lambda:quote("sina"),"minute":minute,"daily":daily,"fund_flow":eastmoney_flow,"same_time_history":five_day_history}
     result={"schema_version":1,"result_kind":"public_on_demand_probe","symbol":SYMBOL,"started_at":start.isoformat(),"components":{}}
-    with cf.ThreadPoolExecutor(max_workers=4) as pool:
+    with cf.ThreadPoolExecutor(max_workers=6) as pool:
         futures={pool.submit(fn):name for name,fn in calls.items()}
         for future in cf.as_completed(futures):
             name=futures[future]
