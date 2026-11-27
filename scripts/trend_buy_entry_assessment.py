@@ -14,7 +14,8 @@ PHASES = {"INITIATING", "PULLBACK", "REACCELERATING", "REPAIRING",
 SOURCES = {
     "BREAKOUT": {"breakout_level", "first_effective_resistance.price",
                  "attention_resistance.price", "phase_evidence.prior_5d_high"},
-    "PULLBACK": {"ma20", "current_day_low", "phase_evidence.recent_3d_low"},
+    "PULLBACK": {"ma20", "current_day_low", "phase_evidence.recent_3d_low",
+                 "phase_evidence.prior_5d_high", "breakout_level"},
 }
 TEXT_FIELDS = ("entry_basis", "failure_basis", "confirmation_condition", "avoid_condition")
 
@@ -71,6 +72,9 @@ def validate_assessment(review, s, code, day):
         return None, "ENTRY_ANCHOR_TOO_DISTANT"
     if confirmation == "PENDING" and mode == "BREAKOUT" and actual < p:
         return None, "ENTRY_BREAKOUT_ALREADY_PASSED"
+    if mode == "PULLBACK" and source in ("phase_evidence.prior_5d_high", "breakout_level"):
+        if not (actual < p and (s.get("phase_evidence") or {}).get("fresh_break") is True):
+            return None, "ENTRY_RETEST_NOT_GROUNDED"
     if confirmation == "CONFIRMED":
         expected = "breakout_level" if mode == "BREAKOUT" else "current_day_low"
         if source != expected:
@@ -104,8 +108,7 @@ def scenario(review, s, code, day):
                  and review["anchor_source"] == "breakout_level")
     if mode == "PULLBACK":
         confirmed = (s.get("structure_type") == "pullback"
-                     and review["anchor_source"] == "current_day_low"
-                     and anchor == engine.price(s.get("current_day_low")))
+                     and review["anchor_source"] == "current_day_low")
     plan = engine.build_plan(mode, s, current, confirmed=True, trade_date=day) if confirmed else None
     if plan is not None:
         zone, stop = plan["entry_zone"], plan["invalidation_price"]
