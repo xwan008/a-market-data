@@ -92,21 +92,27 @@ def quote(provider):
     row.update(received_at=received.isoformat(),age_seconds=(received-stamp).total_seconds(),quality=classify(stamp,received))
     return row
 
-def minute():
-    txt, received=get("https://web.ifzq.gtimg.cn/appstock/app/minute/query?code="+SYMBOL)
-    body=json.loads(txt)
-    block=body["data"][SYMBOL]["data"]
+def parse_minute(text, received, symbol):
+    body=json.loads(text)
+    block=body["data"][symbol]["data"]
     date=dt.datetime.strptime(str(block["date"]).replace("-",""),"%Y%m%d").date()
     if date!=received.date():
         raise ValueError("MINUTE_DATE_MISMATCH")
     rows=[]
+    excluded_postclose=[]
     for s in block["data"]:
         f=s.split()
         if len(f)<3 or not re.fullmatch(r"\d{4}",f[0]):
             raise ValueError("MINUTE_SCHEMA")
         hhmm=dt.datetime.strptime(f[0],"%H%M").time()
+        if hhmm>dt.time(15,0) and received.time()>=dt.time(15,0) and hhmm<=received.time():
+            excluded_postclose.append(f[0])
+            continue
         if not (dt.time(9,30)<=hhmm<=dt.time(11,30) or dt.time(13,0)<=hhmm<=dt.time(15,0)):
             raise ValueError("MINUTE_SESSION_INVALID:" + f[0])
+        stamp=dt.datetime.combine(date,hhmm,TZ)
+        if stamp>received+dt.timedelta(seconds=2):
+            raise ValueError("MINUTE_FUTURE")
         p,v=number(f[1]),number(f[2])
         a=number(f[3]) if len(f)>3 else None
         if p<=0 or v<0 or (a is not None and a<0):
@@ -118,8 +124,22 @@ def minute():
     if not rows:
         raise ValueError("MINUTE_EMPTY")
     stamp=dt.datetime.combine(date,dt.datetime.strptime(rows[-1]["time"],"%H%M").time(),TZ)
+    expected=[]
+    for begin,end in [(570,690),(780,900)]:
+        for hm in range(begin+1,end+1):
+            t=dt.datetime.combine(date,dt.time(hm//60,hm%60),TZ)
+            if t<=received.replace(second=0,microsecond=0)-dt.timedelta(minutes=1):
+                expected.append(t.strftime("%H%M"))
+    present={r["time"] for r in rows}
+    missing=[t for t in expected if t not in present]
     return {"source":"tencent","trade_date":str(date),"received_at":received.isoformat(),"last_minute_at":stamp.isoformat(),
-            "quality":classify(stamp,received),"unit_conversion_verified":False,"points":rows}
+            "quality":classify(stamp,received),"unit_conversion_verified":False,
+            "expected_completed_minutes":len(expected),"missing_minutes":missing,
+            "excluded_postclose_times":excluded_postclose,"points":rows}
+
+def minute():
+    txt, received=get("https://web.ifzq.gtimg.cn/appstock/app/minute/query?code="+SYMBOL)
+    return parse_minute(txt,received,SYMBOL)
 
 def daily():
     url="https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param="+urllib.parse.quote(SYMBOL+",day,,,40,qfq",safe=",")
@@ -158,7 +178,8 @@ def main():
     result["component_errors"]=[k for k,v in components.items() if v["status"]!="ok"]
     result["live_probe_passed"]=(not result["component_errors"] and
         any(components[k]["data"].get("quality")=="LIVE" for k in ("tencent_quote","sina_quote")) and
-        components["minute"]["data"].get("quality")=="LIVE")
+        components["minute"]["data"].get("quality")=="LIVE" and
+        not components["minute"]["data"].get("missing_minutes"))
     result["probe_status"]="LIVE_ENDPOINTS_VALIDATED" if result["live_probe_passed"] else "NOT_LIVE_VALIDATED"
     print(json.dumps(result,ensure_ascii=False,allow_nan=False,separators=(",",":")))
     # Probe only: no trade recommendation, no portfolio, no production mutation.
