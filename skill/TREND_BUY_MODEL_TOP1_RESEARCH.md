@@ -9,12 +9,12 @@
 4. 第二核心维度为**边际资金选择**：同源同口径资金占比、当日与滚动5日资金变化及持续性、价格承接、资金价格背离，结合成交与换手。不得以绝对金额或单日净流入代替资金强度，不把供应商估算等同真实机构持仓。
 5. 首先比较前两项，明确哪只具有联合优势。若二者冲突，说明各自支持/反证、证据质量与持续性，给出决定性事实；证据不足以区分时不强行选。只有核心优势接近时，以真实产业传导和相邻单季盈利变化为第三优先级，以可核验预期差为第四优先级；重大基本面反证始终是约束。不得设置机械百分比权重或机械分数，不能凭感觉、用不相关指标强行决胜或事后拟合。
 6. 固定目标为未来1–3个交易日相对强势与趋势延续性（5日为额外评价窗口，不是新预测门槛）。每轮保留全部冻结候选（最多五只）的公平比较、唯一胜出理由、最强竞争者、其他未选理由、最强反证与判断失效条件。允许 NO_SELECTION / INCOMPLETE，不默认程序第一。
-7. 选择锁定后交主协议执行独立Python交易风控；模型不得预先读取或以最终交易状态决定选择，不输入交易价、止损或风险授权。
+7. 选择锁定后，模型仅对当选TOP1执行下述入场研判，再交主协议执行独立Python交易风控；模型不得预先读取或以最终交易状态决定选择，不输入可执行交易价、止损或风险授权。
 8. 正式执行、发布及交接以主协议为准；研究用CLI不写正式文件。
 
 ## 机器交接格式
 顶层：trade_date、source_blob（冻结 admission 文件的 Git blob SHA）、prompt_version（机器契约字段，读取当前 main 的 `scripts/research_model_top1.py` 中 `VERSION` 常量原值，不自行命名或改变）、items（每个冻结 SW3 恰好一项）。
-每项：industry_code、candidate_codes（与原始顺序严格一致）、status、top1_code、reason（含决定性证据、最强竞争者及反证的简述）；COMPLETE 还须 completion_gate（input_verified、five_categories_searched、core_flow_verified、fact_quality_verified、dynamic_comparison_complete、counterevidence_checked，均为 true）、research_matrix（按 code 键控的 A–E 状态和来源；A 必须包含 frozen_fund_ref，精确格式为 fund_flow.groups/行业代码/stocks/股票代码）、dynamic_comparison（按 code 键控，trend_structure、fund_flow、quarterly_profit 均有文本记录）、comparison_reasons（全部非当选股的未选理由）、strongest_counter、falsifier。非 COMPLETE 须 top1_code=null 且有原因。
+每项：industry_code、candidate_codes（与原始顺序严格一致）、status、top1_code、reason（含决定性证据、最强竞争者及反证的简述）；COMPLETE 还须 completion_gate（input_verified、five_categories_searched、core_flow_verified、fact_quality_verified、dynamic_comparison_complete、counterevidence_checked，均为 true）、research_matrix（按 code 键控的 A–E 状态和来源；A 必须包含 frozen_fund_ref，精确格式为 fund_flow.groups/行业代码/stocks/股票代码）、dynamic_comparison（按 code 键控，trend_structure、fund_flow、quarterly_profit 均有文本记录）、comparison_reasons（全部非当选股的未选理由）、strongest_counter、falsifier。非 COMPLETE 须 top1_code=null 且有原因。参考交易日2026-11-27之后，COMPLETE项另附 `entry_assessment`，只在选择锁定后生成，按下节契约；不得改写已锁定选择。
 下列完整证据规范必须执行；程序校验结构、日期、名单和声明，不能替代真实工具调用及来源事实审计。源SHA绑定冻结名单；开盘前自动故障恢复、人工全量重跑与有效决策保护按主协议第4节执行；人工全量重跑的全部新研究按主协议绑定同一授权ID及新冻结admission SHA。未验收的研究结果不得改标签冒充有效选择。
 
 ## 角色和目标
@@ -89,3 +89,14 @@ E. 风险信息：主动寻找可能推翻判断的证据，包括监管问询�
 - completion_gate：输入核验、五类研究完成（保留机器字段five_categories_searched）、资金核心、事实质量、三个动态维度全组对照、反证检查逐项PASS/FAIL，并列出原因。
 - status=COMPLETE / INCOMPLETE / NO_SELECTION；仅COMPLETE且全部门槛PASS时top1_code可非空；confidence=HIGH/MEDIUM/LOW或null；选择与Python首位关系、决定性新增证据、最强竞争者比较、其他未选理由、最强反证、失效条件。
 - 保存当轮有效选择及证据记录；故障恢复、选择锁定与前瞻验证按主协议第4、8节执行。
+
+## 5.1 锁定后的模型入场研判（不参与选股）
+
+自参考交易日2026-11-27之后，仅对已经锁定的TOP1执行；旧日期恢复保留既有契约。依据同日冻结行情、完整历史日K、实际资金证据及此前研究，独立判断近端结构、追高风险、回踩承接或突破机会。先说明为什么适合该形态，不能把低于MA60当作唯一观察逻辑；MA60只是背景和现有独立风控的一部分。不得引用未来行情、重新排序或递补。
+
+COMPLETE项的嵌套 `entry_assessment` 字段：
+- code（锁定TOP1代码）、as_of_date（参考交易日）、phase（INITIATING/PULLBACK/REACCELERATING/REPAIRING/COOLING/FAILED/TRANSITION）、mode（BREAKOUT/PULLBACK/NO_SETUP）、confirmation（CONFIRMED/PENDING）。
+- anchor_source、anchor_price：必须与同日独立结构字段一致。BREAKOUT可选 breakout_level、first_effective_resistance.price、attention_resistance.price、phase_evidence.prior_5d_high；PULLBACK可选 ma20、current_day_low、phase_evidence.recent_3d_low。仅在真实形态已经确认时标CONFIRMED，BREAKOUT必须以 breakout_level 为依据，PULLBACK必须以 current_day_low 为依据；否则PENDING。距现价超过8%、无法核验或没有合适近端结构时用NO_SETUP/PENDING且两个anchor字段为null，禁止硬凑价位。不得用MA60代替近端结构。必须读取与当日冻结数据一致的实际历史日K或程序技术字段；无法取得则NO_SETUP，说明缺口。
+- entry_basis、failure_basis、confirmation_condition、avoid_condition：简明非空文本，分别说明选择形态及拟入场位置的依据、本次形态失效依据、需要出现的量价确认和应暂缓的信号。只使用已核实事实；不要在文本夹带未经独立核验的数字、承诺或可执行价区/止损，正式区间、失效价、1.5R由Python独立计算。
+
+程序核验日期、代码、枚举、近端锚点及真实行情；模型CONFIRMED只是建议，必须与原Python确认的形态及失效锚点一致且原有风控全部通过才可READY。缺项、无真实锚点、冲突或PENDING时保持WAIT（原DROP/UNCERTAIN不升级），不替换TOP1；WAIT只输出已验证的观察价及条件，不输出可执行计划。报告明确区分模型研判和程序核验结论。行业准入、预筛、资金、A–E深研、选择、历史验证及盘中不重新选股等规则均不变。
