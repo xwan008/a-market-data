@@ -6,9 +6,9 @@
   "production_eligible": true,
   "selection_policy": "MODEL_TOP1_V1_6_R1",
   "prescreen_version": "CANONICAL",
-  "run_id": "trend-buy-formal-main-45806666057",
-  "trade_date": "2026-11-26",
-  "structure_trade_date": "2026-11-26",
+  "run_id": "trend-buy-formal-main-45987517890",
+  "trade_date": "2026-11-27",
+  "structure_trade_date": "2026-11-27",
   "structure_contract": "a-share-low-risk-price-structure",
   "publication_audit": {
     "fresh_company_research": true,
@@ -20,16 +20,16 @@
     "json_schema_valid": true
   },
   "coverage": {
-    "selected": 5,
-    "judged": 1,
+    "selected": 10,
+    "judged": 2,
     "complete": true,
-    "groups": 1
+    "groups": 2
   },
   "summary": {
-    "drop": 0,
     "uncertain": 0,
-    "wait": 0,
-    "ready": 1
+    "drop": 0,
+    "ready": 0,
+    "wait": 2
   },
   "model_thresholds": {
     "max_entry_risk_pct": 6.0,
@@ -39,16 +39,32 @@
   },
   "python_top5_by_industry": [
     {
-      "industry_code": "S480201",
+      "industry_code": "S270202",
       "selected_codes": [
-        "601288",
-        "601328",
-        "601939",
-        "601398",
-        "601658"
+        "603920",
+        "603386",
+        "000823",
+        "002913",
+        "002815"
       ],
-      "source_hard_eligible_count": 6,
-      "source_financial_provenance_verified_count": 6,
+      "source_hard_eligible_count": 24,
+      "source_financial_provenance_verified_count": 24,
+      "reason": "PYTHON_UNIFIED_ENTRY_FIRST_FINANCE_CORE_FIRST",
+      "selection_policy": "ENTRY_FIRST_NO_QUOTAS",
+      "entry_selected_count": 5,
+      "watch_fallback_count": 0
+    },
+    {
+      "industry_code": "S730205",
+      "selected_codes": [
+        "601869",
+        "600487",
+        "000070",
+        "002491",
+        "600105"
+      ],
+      "source_hard_eligible_count": 8,
+      "source_financial_provenance_verified_count": 8,
       "reason": "PYTHON_UNIFIED_ENTRY_FIRST_FINANCE_CORE_FIRST",
       "selection_policy": "ENTRY_FIRST_NO_QUOTAS",
       "entry_selected_count": 5,
@@ -56,26 +72,26 @@
     }
   ],
   "model_top1_selection": {
-    "trade_date": "2026-11-26",
-    "source_blob": "c885587ed2c943d810f8e8bde6d5a04646320b4e",
+    "trade_date": "2026-11-27",
+    "source_blob": "bf0b48059d8d77efe3b1b920e886b3b66ccbffdc",
     "prompt_version": "V1.6-R1",
-    "as_of": "2026-11-26T18:59:11+08:00",
-    "research_started_at": "2026-11-26T18:55:50+08:00",
-    "research_finished_at": "2026-11-26T18:59:11+08:00",
-    "model_version": "gpt-6.2-astra",
+    "as_of": "2026-11-27T19:08:00+08:00",
+    "research_started_at": "2026-11-27T19:00:00+08:00",
+    "research_finished_at": "2026-11-27T19:08:00+08:00",
+    "model_version": "UNKNOWN",
     "items": [
       {
-        "industry_code": "S480201",
+        "industry_code": "S270202",
         "candidate_codes": [
-          "601288",
-          "601328",
-          "601939",
-          "601398",
-          "601658"
+          "603920",
+          "603386",
+          "000823",
+          "002913",
+          "002815"
         ],
         "status": "COMPLETE",
-        "top1_code": "601328",
-        "reason": "交通银行在核心两项上形成最清晰联合优势：价格保持bullish/intact并突破9.10历史关口，5日和20日涨幅为+3.23%/+7.42%；冻结资金1/5/10/20日净占比分别为+6.86%/+5.76%/+4.69%/+1.81%，5日4天、20日13天净流入，持续性显著优于同组。农业银行是最强竞争者，盈利加速和当日资金更强，但20日资金仍为-1.84%且结构尚为TRANSITION。交通银行Q3单季扣非利润同比+11.39%、较Q2加速7.10个百分点提供基本面支持；资产质量与突破失败是主要反证。",
+        "top1_code": "002913",
+        "reason": "奥士康在组内形成最完整的趋势与资金联合优势：5日/20日价格+14.33%/+23.96%，收盘突破66.65近端前高；冻结资金1/5/10/20日净占比+12.28%/+8.92%/+7.12%/+5.97%，5日4天、20日15天净流入。崇达技术是最强竞争者，5/10/20日资金更强且累计盈利改善，但程序结构仍为BEARISH_STRUCTURE_UNDER_THREAT、价格低于MA60；超声电子虽价格最强但1/5日资金转负。奥士康的主要反证是距MA20较远、接近71.79阻力以及客户认证和扩产兑现不确定。",
         "confidence": "MEDIUM",
         "completion_gate": {
           "input_verified": true,
@@ -85,1380 +101,2670 @@
           "dynamic_comparison_complete": true,
           "counterevidence_checked": true
         },
-        "completion_gate_reason": "同日admission、全组腾讯同源冻结资金、五家公司B–E实际检索、三维动态横比与反证均已完成；未使用历史正式榜、旧TOP1或最终交易状态。",
+        "completion_gate_reason": "同日admission、全组腾讯同源冻结资金、五家公司B–E实际检索、趋势/资金/盈利三维横比和反证均完成；未读取历史正式榜或最终交易状态作为选择依据。",
         "research_matrix": {
-          "601288": {
+          "603386": {
             "A": {
               "status": "VERIFIED_FACT",
-              "frozen_fund_ref": "fund_flow.groups/S480201/stocks/601288",
+              "frozen_fund_ref": "fund_flow.groups/S270202/stocks/603386",
               "sources": [
-                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601288&type=todayFundFlow&klineNeedDay=20",
-                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601288&type=todayFundTrend&klineNeedDay=20",
-                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601288&type=historyFundFlow&klineNeedDay=20",
-                "https://qt.gtimg.cn/q=sh601288",
-                "https://finance.sina.com.cn/realstock/company/sh601288/"
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh603386&type=todayFundFlow&klineNeedDay=20",
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh603386&type=todayFundTrend&klineNeedDay=20",
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh603386&type=historyFundFlow&klineNeedDay=20",
+                "https://qt.gtimg.cn/q=sh603386",
+                "https://finance.sina.com.cn/realstock/company/sh603386/"
               ],
-              "queried_at": "2026-11-26T18:44:56+08:00",
+              "queried_at": "2026-11-27T18:45:02+08:00",
               "provider": "tencent",
               "windows": {
                 "1": {
                   "status": "VERIFIED",
-                  "net_cny": 224828418,
-                  "amount_cny": 2352160014,
-                  "net_pct": 9.558381090649728,
+                  "net_cny": 41094225,
+                  "amount_cny": 584042481,
+                  "net_pct": 7.036170541847965,
                   "positive_days": 1
                 },
                 "5": {
                   "status": "VERIFIED",
-                  "net_cny": 459381926,
-                  "amount_cny": 15828507313,
-                  "net_pct": 2.902244140372657,
+                  "net_cny": 145306264,
+                  "amount_cny": 2366122550,
+                  "net_pct": 6.141113189593667,
                   "positive_days": 3
                 },
                 "10": {
                   "status": "VERIFIED",
-                  "net_cny": 136678399,
-                  "amount_cny": 30352873571,
-                  "net_pct": 0.45029805392325833,
-                  "positive_days": 5
+                  "net_cny": 243626127,
+                  "amount_cny": 3355144545,
+                  "net_pct": 7.261270676491823,
+                  "positive_days": 6
                 },
                 "20": {
                   "status": "VERIFIED",
-                  "net_cny": -1034765596,
-                  "amount_cny": 56229026548,
-                  "net_pct": -1.8402694471629715,
-                  "positive_days": 8
+                  "net_cny": 221158481,
+                  "amount_cny": 5556723553,
+                  "net_pct": 3.9800159012877208,
+                  "positive_days": 9
                 }
               },
-              "finding": "腾讯同源冻结资金：1/5/10/20日净占比9.56%/2.90%/0.45%/-1.84%；5日净额4.59亿元、3/5日净流入。该数据是成交分类估算，不等同真实机构持仓。"
+              "finding": "腾讯同源冻结资金：1/5/10/20日净占比7.04%/6.14%/7.26%/3.98%；5日3/5日净流入。该数据为成交分类估算，不等同真实机构持仓。"
             },
             "B": {
               "status": "VERIFIED_FACT",
               "sources": [
-                "https://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=601288"
+                "https://www.cninfo.com.cn/new/disclosure/stock?orgId=9900033000&stockCode=603386"
               ],
               "query_time_window": [
-                "2026-11-26T18:56:00+08:00",
-                "2026-11-26T18:59:00+08:00"
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
               ],
               "queries": [
-                "601288 农业银行 2026年11月20日至26日 公告 上交所",
-                "近20交易日重大公告、资本补充、治理及风险事项"
+                "603386 骏亚科技 2026年11月20日至27日 公告",
+                "近20交易日重大公告、订单、回购、减持、诉讼及治理事项"
               ],
               "coverage": "近5交易日及近20交易日",
-              "finding": "已核验交易所/发行人公告列表与三季报；近5交易日未发现改变经营传导或构成重大否决的新公告。",
+              "finding": "近20交易日核验到对子公司增资公告；未发现可验证的新增大额订单，低基数高增需谨慎解释。",
               "actual_query_completed": true,
-              "limitations": "动态列表检索不能证明全网无事件；结论限于已核验正式披露。"
+              "limitations": "结论限于本轮实际可访问的交易所、巨潮或必要备用公告入口；未发现不等于全网不存在。"
             },
             "C": {
               "status": "VERIFIED_FACT",
               "sources": [
-                "https://www.nfra.gov.cn/cn/view/pages/ItemDetail.html?docId=1279786&itemId=915",
-                "https://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=601288"
+                "https://gxt.hunan.gov.cn/gxt/xxgk_71033/gzdt/rdjj/202611/t20261111_34099794.html"
               ],
               "query_time_window": [
-                "2026-11-26T18:56:00+08:00",
-                "2026-11-26T18:59:00+08:00"
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
               ],
               "queries": [
-                "2026年三季度大型商业银行资产、不良率、资本与流动性",
-                "公司三季报息差、资产质量与业务传导"
+                "2026年11月 AI算力 PCB 订单 产业动态"
               ],
-              "coverage": "截至2026-11-26近期行业与公司披露",
-              "finding": "大型商业银行资产同比+8.5%，行业不良率环比+0.02个百分点；扩表受益成立，但资产质量压力仍是共同反证。",
+              "coverage": "截至2026-11-27近期主管部门与权威产业信息",
+              "finding": "AI算力相关高端PCB订单和材料供给仍紧张，但需求集中于高多层、高阶HDI等高端品类，不能自动外推到全部PCB公司。",
               "actual_query_completed": true,
-              "limitations": "行业数据不等同个股盈利必然改善。"
+              "limitations": "行业需求背景不等于个股必然取得订单或利润。"
             },
             "D": {
-              "status": "VERIFIED_FACT",
+              "status": "NO_NEW_VERIFIED_EVENT",
               "sources": [
-                "https://data.eastmoney.com/report/zw_stock.jshtml?encodeUrl=MhEjV7Nop%2FR9Q77hB74iT3M8vo+KH8ZtdxG03XByKAM%3D"
+                "https://data.eastmoney.com/stockcalendar/603386.html"
               ],
               "query_time_window": [
-                "2026-11-26T18:56:00+08:00",
-                "2026-11-26T18:59:00+08:00"
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
               ],
               "queries": [
-                "601288 农业银行 2026年11月 研报 盈利预测 东方财富"
+                "603386 骏亚科技 2026年近期研报 盈利预测 东方财富"
               ],
-              "coverage": "截至2026-11-26近期研报与事件",
-              "finding": "完成近期研报/个股日历检索；未取得可交叉验证的今日一致预期上修，已有材料仅按单家观点或无新增结果处理，不作为核心决胜证据。",
+              "coverage": "截至2026-11-27近期研报与事件",
+              "finding": "检索近期研报与事件，未取得可信的新增定量一致预期，记UNKNOWN而非利空。",
               "actual_query_completed": true,
-              "limitations": "无可靠一致预期，不编造目标价或超预期概率。"
+              "limitations": "未取得可靠一致预期时不编造目标价、评级变化或超预期概率。"
             },
             "E": {
               "status": "VERIFIED_FACT",
               "sources": [
-                "https://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=601288",
-                "https://www.nfra.gov.cn/cn/view/pages/ItemDetail.html?docId=1279786&itemId=915"
+                "https://www.cninfo.com.cn/new/disclosure/stock?orgId=9900033000&stockCode=603386",
+                "https://gxt.hunan.gov.cn/gxt/xxgk_71033/gzdt/rdjj/202611/t20261111_34099794.html"
               ],
               "query_time_window": [
-                "2026-11-26T18:56:00+08:00",
-                "2026-11-26T18:59:00+08:00"
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
               ],
               "queries": [
-                "601288 农业银行 监管 问询 减持 解禁 诉讼 资产质量 风险",
-                "2026Q3不良率 拨备覆盖率 净息差"
+                "603386 骏亚科技 风险 异常波动 回购 减持 质押 诉讼",
+                "价格结构、资金背离及盈利质量反证"
               ],
-              "coverage": "截至2026-11-26公告、监管与财务反证",
-              "finding": "20日资金净占比-1.84%，价格创新高但中长窗口资金尚未同步；定增仍需后续注册/实施，不能视作已兑现催化。",
+              "coverage": "截至2026-11-27公告、产业与冻结量价反证",
+              "finding": "高增速存在低基数解释，PE_TTM约105倍且价格靠近MA60压力",
               "actual_query_completed": true,
-              "limitations": "检索不保证穷尽，未发现新风险不等于不存在风险。"
+              "limitations": "未发现新增风险不等于不存在风险；技术和资金仅为截至当日观察。"
             }
           },
-          "601328": {
+          "603920": {
             "A": {
               "status": "VERIFIED_FACT",
-              "frozen_fund_ref": "fund_flow.groups/S480201/stocks/601328",
+              "frozen_fund_ref": "fund_flow.groups/S270202/stocks/603920",
               "sources": [
-                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601328&type=todayFundFlow&klineNeedDay=20",
-                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601328&type=todayFundTrend&klineNeedDay=20",
-                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601328&type=historyFundFlow&klineNeedDay=20",
-                "https://qt.gtimg.cn/q=sh601328",
-                "https://finance.sina.com.cn/realstock/company/sh601328/"
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh603920&type=todayFundFlow&klineNeedDay=20",
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh603920&type=todayFundTrend&klineNeedDay=20",
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh603920&type=historyFundFlow&klineNeedDay=20",
+                "https://qt.gtimg.cn/q=sh603920",
+                "https://finance.sina.com.cn/realstock/company/sh603920/"
               ],
-              "queried_at": "2026-11-26T18:44:56+08:00",
+              "queried_at": "2026-11-27T18:45:02+08:00",
               "provider": "tencent",
               "windows": {
                 "1": {
                   "status": "VERIFIED",
-                  "net_cny": 137206007,
-                  "amount_cny": 2001355824,
-                  "net_pct": 6.855652820685024,
+                  "net_cny": 155145169,
+                  "amount_cny": 1845457641,
+                  "net_pct": 8.406866977230175,
                   "positive_days": 1
                 },
                 "5": {
                   "status": "VERIFIED",
-                  "net_cny": 656112585,
-                  "amount_cny": 11400081612,
-                  "net_pct": 5.755332350510194,
-                  "positive_days": 4
+                  "net_cny": 347438810,
+                  "amount_cny": 6225829647,
+                  "net_pct": 5.580602581495594,
+                  "positive_days": 3
                 },
                 "10": {
                   "status": "VERIFIED",
-                  "net_cny": 908714973,
-                  "amount_cny": 19389110312,
-                  "net_pct": 4.68672857277826,
-                  "positive_days": 8
+                  "net_cny": 295885786,
+                  "amount_cny": 10571464065,
+                  "net_pct": 2.798910199956301,
+                  "positive_days": 4
                 },
                 "20": {
                   "status": "VERIFIED",
-                  "net_cny": 705854578,
-                  "amount_cny": 39019198436,
-                  "net_pct": 1.8089930246972026,
-                  "positive_days": 13
+                  "net_cny": 620812344,
+                  "amount_cny": 22629987311,
+                  "net_pct": 2.743317243038113,
+                  "positive_days": 9
                 }
               },
-              "finding": "腾讯同源冻结资金：1/5/10/20日净占比6.86%/5.76%/4.69%/1.81%；5日净额6.56亿元、4/5日净流入。该数据是成交分类估算，不等同真实机构持仓。"
+              "finding": "腾讯同源冻结资金：1/5/10/20日净占比8.41%/5.58%/2.80%/2.74%；5日3/5日净流入。该数据为成交分类估算，不等同真实机构持仓。"
             },
             "B": {
               "status": "VERIFIED_FACT",
               "sources": [
-                "https://www.sse.com.cn/assortment/stock/list/info/announcement/index.shtml?productId=601328"
+                "https://www.sse.com.cn/assortment/stock/list/info/announcement/index.shtml?productId=603920"
               ],
               "query_time_window": [
-                "2026-11-26T18:56:00+08:00",
-                "2026-11-26T18:59:00+08:00"
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
               ],
               "queries": [
-                "601328 交通银行 2026年11月20日至26日 公告 上交所",
-                "近20交易日重大公告、资本补充、治理及风险事项"
+                "603920 世运电路 2026年11月20日至27日 公告",
+                "近20交易日重大公告、订单、回购、减持、诉讼及治理事项"
               ],
               "coverage": "近5交易日及近20交易日",
-              "finding": "已核验交易所/发行人公告列表与三季报；近5交易日未发现改变经营传导或构成重大否决的新公告。",
+              "finding": "近20交易日核验到回购方案、专项贷款及异常波动公告；回购提供支持，但三季累计利润下滑是主要反证。",
               "actual_query_completed": true,
-              "limitations": "动态列表检索不能证明全网无事件；结论限于已核验正式披露。"
+              "limitations": "结论限于本轮实际可访问的交易所、巨潮或必要备用公告入口；未发现不等于全网不存在。"
             },
             "C": {
               "status": "VERIFIED_FACT",
               "sources": [
-                "https://www.nfra.gov.cn/cn/view/pages/ItemDetail.html?docId=1279786&itemId=915",
-                "https://www.sse.com.cn/assortment/stock/list/info/announcement/index.shtml?productId=601328"
+                "https://gxt.hunan.gov.cn/gxt/xxgk_71033/gzdt/rdjj/202611/t20261111_34099794.html"
               ],
               "query_time_window": [
-                "2026-11-26T18:56:00+08:00",
-                "2026-11-26T18:59:00+08:00"
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
               ],
               "queries": [
-                "2026年三季度大型商业银行资产、不良率、资本与流动性",
-                "公司三季报息差、资产质量与业务传导"
+                "2026年11月 AI算力 PCB 订单 产业动态"
               ],
-              "coverage": "截至2026-11-26近期行业与公司披露",
-              "finding": "大型商业银行资产同比+8.5%，行业不良率环比+0.02个百分点；扩表受益成立，但资产质量压力仍是共同反证。",
+              "coverage": "截至2026-11-27近期主管部门与权威产业信息",
+              "finding": "AI算力相关高端PCB订单和材料供给仍紧张，但需求集中于高多层、高阶HDI等高端品类，不能自动外推到全部PCB公司。",
               "actual_query_completed": true,
-              "limitations": "行业数据不等同个股盈利必然改善。"
+              "limitations": "行业需求背景不等于个股必然取得订单或利润。"
             },
             "D": {
               "status": "VERIFIED_FACT",
               "sources": [
-                "https://data.eastmoney.com/report/601328.html"
+                "https://data.eastmoney.com/report/info/AP202604291821729170.html"
               ],
               "query_time_window": [
-                "2026-11-26T18:56:00+08:00",
-                "2026-11-26T18:59:00+08:00"
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
               ],
               "queries": [
-                "601328 交通银行 2026年11月 研报 盈利预测 东方财富"
+                "603920 世运电路 2026年近期研报 盈利预测 东方财富"
               ],
-              "coverage": "截至2026-11-26近期研报与事件",
-              "finding": "完成近期研报/个股日历检索；未取得可交叉验证的今日一致预期上修，已有材料仅按单家观点或无新增结果处理，不作为核心决胜证据。",
+              "coverage": "截至2026-11-27近期研报与事件",
+              "finding": "检索到较早单家报告讨论汽车电子、AI与储能产能，未取得截至11月27日可交叉验证的一致预期更新。",
               "actual_query_completed": true,
-              "limitations": "无可靠一致预期，不编造目标价或超预期概率。"
+              "limitations": "未取得可靠一致预期时不编造目标价、评级变化或超预期概率。"
             },
             "E": {
               "status": "VERIFIED_FACT",
               "sources": [
-                "https://www.sse.com.cn/assortment/stock/list/info/announcement/index.shtml?productId=601328",
-                "https://www.nfra.gov.cn/cn/view/pages/ItemDetail.html?docId=1279786&itemId=915"
+                "https://www.sse.com.cn/assortment/stock/list/info/announcement/index.shtml?productId=603920",
+                "https://gxt.hunan.gov.cn/gxt/xxgk_71033/gzdt/rdjj/202611/t20261111_34099794.html"
               ],
               "query_time_window": [
-                "2026-11-26T18:56:00+08:00",
-                "2026-11-26T18:59:00+08:00"
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
               ],
               "queries": [
-                "601328 交通银行 监管 问询 减持 解禁 诉讼 资产质量 风险",
-                "2026Q3不良率 拨备覆盖率 净息差"
+                "603920 世运电路 风险 异常波动 回购 减持 质押 诉讼",
+                "价格结构、资金背离及盈利质量反证"
               ],
-              "coverage": "截至2026-11-26公告、监管与财务反证",
-              "finding": "三季度不良率与拨备变化构成资产质量约束；当前已突破前高，若资金持续性快速转负且价格失守突破区，选择依据失效。",
+              "coverage": "截至2026-11-27公告、产业与冻结量价反证",
+              "finding": "累计利润仍明显下滑，且价格已贴近短期阻力；回购是支持因素但不能替代经营兑现",
               "actual_query_completed": true,
-              "limitations": "检索不保证穷尽，未发现新风险不等于不存在风险。"
+              "limitations": "未发现新增风险不等于不存在风险；技术和资金仅为截至当日观察。"
             }
           },
-          "601398": {
+          "000823": {
             "A": {
               "status": "VERIFIED_FACT",
-              "frozen_fund_ref": "fund_flow.groups/S480201/stocks/601398",
+              "frozen_fund_ref": "fund_flow.groups/S270202/stocks/000823",
               "sources": [
-                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601398&type=todayFundFlow&klineNeedDay=20",
-                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601398&type=todayFundTrend&klineNeedDay=20",
-                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601398&type=historyFundFlow&klineNeedDay=20",
-                "https://qt.gtimg.cn/q=sh601398",
-                "https://finance.sina.com.cn/realstock/company/sh601398/"
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz000823&type=todayFundFlow&klineNeedDay=20",
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz000823&type=todayFundTrend&klineNeedDay=20",
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz000823&type=historyFundFlow&klineNeedDay=20",
+                "https://qt.gtimg.cn/q=sz000823",
+                "https://finance.sina.com.cn/realstock/company/sz000823/"
               ],
-              "queried_at": "2026-11-26T18:44:59+08:00",
+              "queried_at": "2026-11-27T18:45:02+08:00",
               "provider": "tencent",
               "windows": {
                 "1": {
                   "status": "VERIFIED",
-                  "net_cny": 200627708,
-                  "amount_cny": 3574175325,
-                  "net_pct": 5.6132587172398996,
+                  "net_cny": -76622828,
+                  "amount_cny": 3801657860,
+                  "net_pct": -2.0155108855587547,
+                  "positive_days": 0
+                },
+                "5": {
+                  "status": "VERIFIED",
+                  "net_cny": -766811450,
+                  "amount_cny": 17655287461,
+                  "net_pct": -4.343239676464422,
+                  "positive_days": 1
+                },
+                "10": {
+                  "status": "VERIFIED",
+                  "net_cny": -13953822,
+                  "amount_cny": 25668443717,
+                  "net_pct": -0.05436177648260965,
+                  "positive_days": 3
+                },
+                "20": {
+                  "status": "VERIFIED",
+                  "net_cny": 114500777,
+                  "amount_cny": 48039494287,
+                  "net_pct": 0.23834717392307173,
+                  "positive_days": 8
+                }
+              },
+              "finding": "腾讯同源冻结资金：1/5/10/20日净占比-2.02%/-4.34%/-0.05%/0.24%；5日1/5日净流入。该数据为成交分类估算，不等同真实机构持仓。"
+            },
+            "B": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                "https://money.finance.sina.com.cn/corp/go.php/vCB_AllBulletin/stockid/000823.phtml"
+              ],
+              "query_time_window": [
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
+              ],
+              "queries": [
+                "000823 超声电子 2026年11月20日至27日 公告",
+                "近20交易日重大公告、订单、回购、减持、诉讼及治理事项"
+              ],
+              "coverage": "近5交易日及近20交易日",
+              "finding": "近20交易日未见改变主营传导的重大正式公告；互动信息显示PCB可配套算力硬件，但互动表述不等同已形成大额订单。",
+              "actual_query_completed": true,
+              "limitations": "结论限于本轮实际可访问的交易所、巨潮或必要备用公告入口；未发现不等于全网不存在。"
+            },
+            "C": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                "https://gxt.hunan.gov.cn/gxt/xxgk_71033/gzdt/rdjj/202611/t20261111_34099794.html"
+              ],
+              "query_time_window": [
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
+              ],
+              "queries": [
+                "2026年11月 AI算力 PCB 订单 产业动态"
+              ],
+              "coverage": "截至2026-11-27近期主管部门与权威产业信息",
+              "finding": "AI算力相关高端PCB订单和材料供给仍紧张，但需求集中于高多层、高阶HDI等高端品类，不能自动外推到全部PCB公司。",
+              "actual_query_completed": true,
+              "limitations": "行业需求背景不等于个股必然取得订单或利润。"
+            },
+            "D": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                "https://data.eastmoney.com/stockcalendar/000823.html"
+              ],
+              "query_time_window": [
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
+              ],
+              "queries": [
+                "000823 超声电子 2026年近期研报 盈利预测 东方财富"
+              ],
+              "coverage": "截至2026-11-27近期研报与事件",
+              "finding": "检索到算力相关讨论，但未取得可交叉验证的新增一致盈利预期；不以题材热度代替订单。",
+              "actual_query_completed": true,
+              "limitations": "未取得可靠一致预期时不编造目标价、评级变化或超预期概率。"
+            },
+            "E": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                "https://money.finance.sina.com.cn/corp/go.php/vCB_AllBulletin/stockid/000823.phtml",
+                "https://gxt.hunan.gov.cn/gxt/xxgk_71033/gzdt/rdjj/202611/t20261111_34099794.html"
+              ],
+              "query_time_window": [
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
+              ],
+              "queries": [
+                "000823 超声电子 风险 异常波动 回购 减持 质押 诉讼",
+                "价格结构、资金背离及盈利质量反证"
+              ],
+              "coverage": "截至2026-11-27公告、产业与冻结量价反证",
+              "finding": "价格20日涨幅组内最高但1/5日资金为负，形成明显价资背离并存在追高风险",
+              "actual_query_completed": true,
+              "limitations": "未发现新增风险不等于不存在风险；技术和资金仅为截至当日观察。"
+            }
+          },
+          "002913": {
+            "A": {
+              "status": "VERIFIED_FACT",
+              "frozen_fund_ref": "fund_flow.groups/S270202/stocks/002913",
+              "sources": [
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz002913&type=todayFundFlow&klineNeedDay=20",
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz002913&type=todayFundTrend&klineNeedDay=20",
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz002913&type=historyFundFlow&klineNeedDay=20",
+                "https://qt.gtimg.cn/q=sz002913",
+                "https://finance.sina.com.cn/realstock/company/sz002913/"
+              ],
+              "queried_at": "2026-11-27T18:45:05+08:00",
+              "provider": "tencent",
+              "windows": {
+                "1": {
+                  "status": "VERIFIED",
+                  "net_cny": 148547659,
+                  "amount_cny": 1210027863,
+                  "net_pct": 12.276383341430543,
                   "positive_days": 1
                 },
                 "5": {
                   "status": "VERIFIED",
-                  "net_cny": 331003228,
-                  "amount_cny": 22496802213,
-                  "net_pct": 1.4713345695359605,
+                  "net_cny": 402666444,
+                  "amount_cny": 4513689984,
+                  "net_pct": 8.921003556455153,
                   "positive_days": 4
                 },
                 "10": {
                   "status": "VERIFIED",
-                  "net_cny": 679428142,
-                  "amount_cny": 36830946508,
-                  "net_pct": 1.8447208296762678,
-                  "positive_days": 7
+                  "net_cny": 519537371,
+                  "amount_cny": 7300946268,
+                  "net_pct": 7.116027867197556,
+                  "positive_days": 8
                 },
                 "20": {
                   "status": "VERIFIED",
-                  "net_cny": 922573305,
-                  "amount_cny": 74803889099,
-                  "net_pct": 1.2333226468733605,
+                  "net_cny": 886083522,
+                  "amount_cny": 14834904949,
+                  "net_pct": 5.972963932335338,
+                  "positive_days": 15
+                }
+              },
+              "finding": "腾讯同源冻结资金：1/5/10/20日净占比12.28%/8.92%/7.12%/5.97%；5日4/5日净流入。该数据为成交分类估算，不等同真实机构持仓。"
+            },
+            "B": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                "https://www.cninfo.com.cn/new/commonUrl/pageOfSearch?code=002913&url=disclosure%2Flist%2Fsearch"
+              ],
+              "query_time_window": [
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
+              ],
+              "queries": [
+                "002913 奥士康 2026年11月20日至27日 公告",
+                "近20交易日重大公告、订单、回购、减持、诉讼及治理事项"
+              ],
+              "coverage": "近5交易日及近20交易日",
+              "finding": "近20交易日以临时股东会事项为主；未发现足以改变当日比较的新订单公告。",
+              "actual_query_completed": true,
+              "limitations": "结论限于本轮实际可访问的交易所、巨潮或必要备用公告入口；未发现不等于全网不存在。"
+            },
+            "C": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                "https://gxt.hunan.gov.cn/gxt/xxgk_71033/gzdt/rdjj/202611/t20261111_34099794.html"
+              ],
+              "query_time_window": [
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
+              ],
+              "queries": [
+                "2026年11月 AI算力 PCB 订单 产业动态"
+              ],
+              "coverage": "截至2026-11-27近期主管部门与权威产业信息",
+              "finding": "AI算力相关高端PCB订单和材料供给仍紧张，但需求集中于高多层、高阶HDI等高端品类，不能自动外推到全部PCB公司。",
+              "actual_query_completed": true,
+              "limitations": "行业需求背景不等于个股必然取得订单或利润。"
+            },
+            "D": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                "https://data.eastmoney.com/report/info/AP202611101831585103.html"
+              ],
+              "query_time_window": [
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
+              ],
+              "queries": [
+                "002913 奥士康 2026年近期研报 盈利预测 东方财富"
+              ],
+              "coverage": "截至2026-11-27近期研报与事件",
+              "finding": "11月10日单家报告维持增长预测，属于单家观点；同时历史公告曾提示部分海外客户仍处送样/认证阶段。",
+              "actual_query_completed": true,
+              "limitations": "未取得可靠一致预期时不编造目标价、评级变化或超预期概率。"
+            },
+            "E": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                "https://www.cninfo.com.cn/new/commonUrl/pageOfSearch?code=002913&url=disclosure%2Flist%2Fsearch",
+                "https://gxt.hunan.gov.cn/gxt/xxgk_71033/gzdt/rdjj/202611/t20261111_34099794.html"
+              ],
+              "query_time_window": [
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
+              ],
+              "queries": [
+                "002913 奥士康 风险 异常波动 回购 减持 质押 诉讼",
+                "价格结构、资金背离及盈利质量反证"
+              ],
+              "coverage": "截至2026-11-27公告、产业与冻结量价反证",
+              "finding": "价格距MA20较远且接近71.79阻力；客户认证、海外产能与扩产兑现仍有不确定性",
+              "actual_query_completed": true,
+              "limitations": "未发现新增风险不等于不存在风险；技术和资金仅为截至当日观察。"
+            }
+          },
+          "002815": {
+            "A": {
+              "status": "VERIFIED_FACT",
+              "frozen_fund_ref": "fund_flow.groups/S270202/stocks/002815",
+              "sources": [
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz002815&type=todayFundFlow&klineNeedDay=20",
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz002815&type=todayFundTrend&klineNeedDay=20",
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz002815&type=historyFundFlow&klineNeedDay=20",
+                "https://qt.gtimg.cn/q=sz002815",
+                "https://finance.sina.com.cn/realstock/company/sz002815/"
+              ],
+              "queried_at": "2026-11-27T18:45:05+08:00",
+              "provider": "tencent",
+              "windows": {
+                "1": {
+                  "status": "VERIFIED",
+                  "net_cny": 165288923,
+                  "amount_cny": 3512078127,
+                  "net_pct": 4.70629971837184,
+                  "positive_days": 1
+                },
+                "5": {
+                  "status": "VERIFIED",
+                  "net_cny": 1227684863,
+                  "amount_cny": 11977139571,
+                  "net_pct": 10.250234254367111,
+                  "positive_days": 4
+                },
+                "10": {
+                  "status": "VERIFIED",
+                  "net_cny": 1344556068,
+                  "amount_cny": 16439555396,
+                  "net_pct": 8.178786077920035,
+                  "positive_days": 8
+                },
+                "20": {
+                  "status": "VERIFIED",
+                  "net_cny": 1679515070,
+                  "amount_cny": 28898683228,
+                  "net_pct": 5.811735630821802,
                   "positive_days": 14
                 }
               },
-              "finding": "腾讯同源冻结资金：1/5/10/20日净占比5.61%/1.47%/1.84%/1.23%；5日净额3.31亿元、4/5日净流入。该数据是成交分类估算，不等同真实机构持仓。"
+              "finding": "腾讯同源冻结资金：1/5/10/20日净占比4.71%/10.25%/8.18%/5.81%；5日4/5日净流入。该数据为成交分类估算，不等同真实机构持仓。"
             },
             "B": {
               "status": "VERIFIED_FACT",
               "sources": [
-                "https://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=601398"
+                "https://www.cninfo.com.cn/new/commonUrl/pageOfSearch?code=002815&url=disclosure%2Flist%2Fsearch"
               ],
               "query_time_window": [
-                "2026-11-26T18:56:00+08:00",
-                "2026-11-26T18:59:00+08:00"
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
               ],
               "queries": [
-                "601398 工商银行 2026年11月20日至26日 公告 上交所",
-                "近20交易日重大公告、资本补充、治理及风险事项"
+                "002815 崇达技术 2026年11月20日至27日 公告",
+                "近20交易日重大公告、订单、回购、减持、诉讼及治理事项"
               ],
               "coverage": "近5交易日及近20交易日",
-              "finding": "已核验交易所/发行人公告列表与三季报；近5交易日未发现改变经营传导或构成重大否决的新公告。",
+              "finding": "近5交易日公告主要涉及董秘、治理制度及限制性股票回购注销，未形成新增经营催化。",
               "actual_query_completed": true,
-              "limitations": "动态列表检索不能证明全网无事件；结论限于已核验正式披露。"
+              "limitations": "结论限于本轮实际可访问的交易所、巨潮或必要备用公告入口；未发现不等于全网不存在。"
             },
             "C": {
               "status": "VERIFIED_FACT",
               "sources": [
-                "https://www.nfra.gov.cn/cn/view/pages/ItemDetail.html?docId=1279786&itemId=915",
-                "https://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=601398"
+                "https://gxt.hunan.gov.cn/gxt/xxgk_71033/gzdt/rdjj/202611/t20261111_34099794.html"
               ],
               "query_time_window": [
-                "2026-11-26T18:56:00+08:00",
-                "2026-11-26T18:59:00+08:00"
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
               ],
               "queries": [
-                "2026年三季度大型商业银行资产、不良率、资本与流动性",
-                "公司三季报息差、资产质量与业务传导"
+                "2026年11月 AI算力 PCB 订单 产业动态"
               ],
-              "coverage": "截至2026-11-26近期行业与公司披露",
-              "finding": "大型商业银行资产同比+8.5%，行业不良率环比+0.02个百分点；扩表受益成立，但资产质量压力仍是共同反证。",
+              "coverage": "截至2026-11-27近期主管部门与权威产业信息",
+              "finding": "AI算力相关高端PCB订单和材料供给仍紧张，但需求集中于高多层、高阶HDI等高端品类，不能自动外推到全部PCB公司。",
               "actual_query_completed": true,
-              "limitations": "行业数据不等同个股盈利必然改善。"
+              "limitations": "行业需求背景不等于个股必然取得订单或利润。"
             },
             "D": {
               "status": "VERIFIED_FACT",
               "sources": [
-                "https://data.eastmoney.com/stockcalendar/601398.html"
+                "https://data.eastmoney.com/stockcalendar/002815.html"
               ],
               "query_time_window": [
-                "2026-11-26T18:56:00+08:00",
-                "2026-11-26T18:59:00+08:00"
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
               ],
               "queries": [
-                "601398 工商银行 2026年11月 研报 盈利预测 东方财富"
+                "002815 崇达技术 2026年近期研报 盈利预测 东方财富"
               ],
-              "coverage": "截至2026-11-26近期研报与事件",
-              "finding": "完成近期研报/个股日历检索；未取得可交叉验证的今日一致预期上修，已有材料仅按单家观点或无新增结果处理，不作为核心决胜证据。",
+              "coverage": "截至2026-11-27近期研报与事件",
+              "finding": "检索近期研报与事件，未取得可交叉验证的一致预期上修；公司此前披露部分基地盈利承压。",
               "actual_query_completed": true,
-              "limitations": "无可靠一致预期，不编造目标价或超预期概率。"
+              "limitations": "未取得可靠一致预期时不编造目标价、评级变化或超预期概率。"
             },
             "E": {
               "status": "VERIFIED_FACT",
               "sources": [
-                "https://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=601398",
-                "https://www.nfra.gov.cn/cn/view/pages/ItemDetail.html?docId=1279786&itemId=915"
+                "https://www.cninfo.com.cn/new/commonUrl/pageOfSearch?code=002815&url=disclosure%2Flist%2Fsearch",
+                "https://gxt.hunan.gov.cn/gxt/xxgk_71033/gzdt/rdjj/202611/t20261111_34099794.html"
               ],
               "query_time_window": [
-                "2026-11-26T18:56:00+08:00",
-                "2026-11-26T18:59:00+08:00"
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
               ],
               "queries": [
-                "601398 工商银行 监管 问询 减持 解禁 诉讼 资产质量 风险",
-                "2026Q3不良率 拨备覆盖率 净息差"
+                "002815 崇达技术 风险 异常波动 回购 减持 质押 诉讼",
+                "价格结构、资金背离及盈利质量反证"
               ],
-              "coverage": "截至2026-11-26公告、监管与财务反证",
-              "finding": "虽10/20日资金为正，但5日价格为负、仍受9.49阻力约束；短期承接弱于交通银行。",
+              "coverage": "截至2026-11-27公告、产业与冻结量价反证",
+              "finding": "程序结构仍偏弱，珠海基地此前盈利承压，最新上涨尚不足以证明中期结构修复完成",
               "actual_query_completed": true,
-              "limitations": "检索不保证穷尽，未发现新风险不等于不存在风险。"
-            }
-          },
-          "601658": {
-            "A": {
-              "status": "VERIFIED_FACT",
-              "frozen_fund_ref": "fund_flow.groups/S480201/stocks/601658",
-              "sources": [
-                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601658&type=todayFundFlow&klineNeedDay=20",
-                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601658&type=todayFundTrend&klineNeedDay=20",
-                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601658&type=historyFundFlow&klineNeedDay=20",
-                "https://qt.gtimg.cn/q=sh601658",
-                "https://finance.sina.com.cn/realstock/company/sh601658/"
-              ],
-              "queried_at": "2026-11-26T18:44:59+08:00",
-              "provider": "tencent",
-              "windows": {
-                "1": {
-                  "status": "VERIFIED",
-                  "net_cny": 6853203,
-                  "amount_cny": 949659015,
-                  "net_pct": 0.7216488120212284,
-                  "positive_days": 1
-                },
-                "5": {
-                  "status": "VERIFIED",
-                  "net_cny": 35722469,
-                  "amount_cny": 6212836889,
-                  "net_pct": 0.5749783816672802,
-                  "positive_days": 3
-                },
-                "10": {
-                  "status": "VERIFIED",
-                  "net_cny": -109482080,
-                  "amount_cny": 10799861075,
-                  "net_pct": -1.013736003080947,
-                  "positive_days": 4
-                },
-                "20": {
-                  "status": "VERIFIED",
-                  "net_cny": 196907271,
-                  "amount_cny": 21143286855,
-                  "net_pct": 0.9312992457151241,
-                  "positive_days": 10
-                }
-              },
-              "finding": "腾讯同源冻结资金：1/5/10/20日净占比0.72%/0.57%/-1.01%/0.93%；5日净额0.36亿元、3/5日净流入。该数据是成交分类估算，不等同真实机构持仓。"
-            },
-            "B": {
-              "status": "VERIFIED_FACT",
-              "sources": [
-                "https://big5.sse.com.cn/site/cht/www.sse.com.cn/disclosure/listedinfo/announcement/c/new/2026-10-31/601658_20261031_VL8T.pdf"
-              ],
-              "query_time_window": [
-                "2026-11-26T18:56:00+08:00",
-                "2026-11-26T18:59:00+08:00"
-              ],
-              "queries": [
-                "601658 邮储银行 2026年11月20日至26日 公告 上交所",
-                "近20交易日重大公告、资本补充、治理及风险事项"
-              ],
-              "coverage": "近5交易日及近20交易日",
-              "finding": "已核验交易所/发行人公告列表与三季报；近5交易日未发现改变经营传导或构成重大否决的新公告。",
-              "actual_query_completed": true,
-              "limitations": "动态列表检索不能证明全网无事件；结论限于已核验正式披露。"
-            },
-            "C": {
-              "status": "VERIFIED_FACT",
-              "sources": [
-                "https://www.nfra.gov.cn/cn/view/pages/ItemDetail.html?docId=1279786&itemId=915",
-                "https://big5.sse.com.cn/site/cht/www.sse.com.cn/disclosure/listedinfo/announcement/c/new/2026-10-31/601658_20261031_VL8T.pdf"
-              ],
-              "query_time_window": [
-                "2026-11-26T18:56:00+08:00",
-                "2026-11-26T18:59:00+08:00"
-              ],
-              "queries": [
-                "2026年三季度大型商业银行资产、不良率、资本与流动性",
-                "公司三季报息差、资产质量与业务传导"
-              ],
-              "coverage": "截至2026-11-26近期行业与公司披露",
-              "finding": "大型商业银行资产同比+8.5%，行业不良率环比+0.02个百分点；扩表受益成立，但资产质量压力仍是共同反证。",
-              "actual_query_completed": true,
-              "limitations": "行业数据不等同个股盈利必然改善。"
-            },
-            "D": {
-              "status": "VERIFIED_FACT",
-              "sources": [
-                "https://data.eastmoney.com/stockcalendar/601658.html"
-              ],
-              "query_time_window": [
-                "2026-11-26T18:56:00+08:00",
-                "2026-11-26T18:59:00+08:00"
-              ],
-              "queries": [
-                "601658 邮储银行 2026年11月 研报 盈利预测 东方财富"
-              ],
-              "coverage": "截至2026-11-26近期研报与事件",
-              "finding": "完成近期研报/个股日历检索；未取得可交叉验证的今日一致预期上修，已有材料仅按单家观点或无新增结果处理，不作为核心决胜证据。",
-              "actual_query_completed": true,
-              "limitations": "无可靠一致预期，不编造目标价或超预期概率。"
-            },
-            "E": {
-              "status": "VERIFIED_FACT",
-              "sources": [
-                "https://big5.sse.com.cn/site/cht/www.sse.com.cn/disclosure/listedinfo/announcement/c/new/2026-10-31/601658_20261031_VL8T.pdf",
-                "https://www.nfra.gov.cn/cn/view/pages/ItemDetail.html?docId=1279786&itemId=915"
-              ],
-              "query_time_window": [
-                "2026-11-26T18:56:00+08:00",
-                "2026-11-26T18:59:00+08:00"
-              ],
-              "queries": [
-                "601658 邮储银行 监管 问询 减持 解禁 诉讼 资产质量 风险",
-                "2026Q3不良率 拨备覆盖率 净息差"
-              ],
-              "coverage": "截至2026-11-26公告、监管与财务反证",
-              "finding": "1日和5日资金净占比仅0.72%和0.57%，10日为负；盈利改善幅度和资金选择均不足以压过交行。",
-              "actual_query_completed": true,
-              "limitations": "检索不保证穷尽，未发现新风险不等于不存在风险。"
-            }
-          },
-          "601939": {
-            "A": {
-              "status": "VERIFIED_FACT",
-              "frozen_fund_ref": "fund_flow.groups/S480201/stocks/601939",
-              "sources": [
-                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601939&type=todayFundFlow&klineNeedDay=20",
-                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601939&type=todayFundTrend&klineNeedDay=20",
-                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601939&type=historyFundFlow&klineNeedDay=20",
-                "https://qt.gtimg.cn/q=sh601939",
-                "https://finance.sina.com.cn/realstock/company/sh601939/"
-              ],
-              "queried_at": "2026-11-26T18:44:56+08:00",
-              "provider": "tencent",
-              "windows": {
-                "1": {
-                  "status": "VERIFIED",
-                  "net_cny": 132292017,
-                  "amount_cny": 1992901573,
-                  "net_pct": 6.638161100994826,
-                  "positive_days": 1
-                },
-                "5": {
-                  "status": "VERIFIED",
-                  "net_cny": -184975873,
-                  "amount_cny": 11633281722,
-                  "net_pct": -1.5900575385377915,
-                  "positive_days": 3
-                },
-                "10": {
-                  "status": "VERIFIED",
-                  "net_cny": -722750802,
-                  "amount_cny": 19632101722,
-                  "net_pct": -3.6814744148868974,
-                  "positive_days": 4
-                },
-                "20": {
-                  "status": "VERIFIED",
-                  "net_cny": -711024259,
-                  "amount_cny": 36281928213,
-                  "net_pct": -1.9597201527597874,
-                  "positive_days": 10
-                }
-              },
-              "finding": "腾讯同源冻结资金：1/5/10/20日净占比6.64%/-1.59%/-3.68%/-1.96%；5日净额-1.85亿元、3/5日净流入。该数据是成交分类估算，不等同真实机构持仓。"
-            },
-            "B": {
-              "status": "VERIFIED_FACT",
-              "sources": [
-                "https://big5.sse.com.cn/site/cht/www.sse.com.cn/disclosure/listedinfo/announcement/c/new/2026-10-31/601939_20261031_QQQA.pdf"
-              ],
-              "query_time_window": [
-                "2026-11-26T18:56:00+08:00",
-                "2026-11-26T18:59:00+08:00"
-              ],
-              "queries": [
-                "601939 建设银行 2026年11月20日至26日 公告 上交所",
-                "近20交易日重大公告、资本补充、治理及风险事项"
-              ],
-              "coverage": "近5交易日及近20交易日",
-              "finding": "已核验交易所/发行人公告列表与三季报；近5交易日未发现改变经营传导或构成重大否决的新公告。",
-              "actual_query_completed": true,
-              "limitations": "动态列表检索不能证明全网无事件；结论限于已核验正式披露。"
-            },
-            "C": {
-              "status": "VERIFIED_FACT",
-              "sources": [
-                "https://www.nfra.gov.cn/cn/view/pages/ItemDetail.html?docId=1279786&itemId=915",
-                "https://big5.sse.com.cn/site/cht/www.sse.com.cn/disclosure/listedinfo/announcement/c/new/2026-10-31/601939_20261031_QQQA.pdf"
-              ],
-              "query_time_window": [
-                "2026-11-26T18:56:00+08:00",
-                "2026-11-26T18:59:00+08:00"
-              ],
-              "queries": [
-                "2026年三季度大型商业银行资产、不良率、资本与流动性",
-                "公司三季报息差、资产质量与业务传导"
-              ],
-              "coverage": "截至2026-11-26近期行业与公司披露",
-              "finding": "大型商业银行资产同比+8.5%，行业不良率环比+0.02个百分点；扩表受益成立，但资产质量压力仍是共同反证。",
-              "actual_query_completed": true,
-              "limitations": "行业数据不等同个股盈利必然改善。"
-            },
-            "D": {
-              "status": "VERIFIED_FACT",
-              "sources": [
-                "https://data.eastmoney.com/stockcalendar/601939.html"
-              ],
-              "query_time_window": [
-                "2026-11-26T18:56:00+08:00",
-                "2026-11-26T18:59:00+08:00"
-              ],
-              "queries": [
-                "601939 建设银行 2026年11月 研报 盈利预测 东方财富"
-              ],
-              "coverage": "截至2026-11-26近期研报与事件",
-              "finding": "完成近期研报/个股日历检索；未取得可交叉验证的今日一致预期上修，已有材料仅按单家观点或无新增结果处理，不作为核心决胜证据。",
-              "actual_query_completed": true,
-              "limitations": "无可靠一致预期，不编造目标价或超预期概率。"
-            },
-            "E": {
-              "status": "VERIFIED_FACT",
-              "sources": [
-                "https://big5.sse.com.cn/site/cht/www.sse.com.cn/disclosure/listedinfo/announcement/c/new/2026-10-31/601939_20261031_QQQA.pdf",
-                "https://www.nfra.gov.cn/cn/view/pages/ItemDetail.html?docId=1279786&itemId=915"
-              ],
-              "query_time_window": [
-                "2026-11-26T18:56:00+08:00",
-                "2026-11-26T18:59:00+08:00"
-              ],
-              "queries": [
-                "601939 建设银行 监管 问询 减持 解禁 诉讼 资产质量 风险",
-                "2026Q3不良率 拨备覆盖率 净息差"
-              ],
-              "coverage": "截至2026-11-26公告、监管与财务反证",
-              "finding": "5/10/20日资金净占比均为负，价格贴近12.78阻力，资金与趋势尚未形成联合优势。",
-              "actual_query_completed": true,
-              "limitations": "检索不保证穷尽，未发现新风险不等于不存在风险。"
+              "limitations": "未发现新增风险不等于不存在风险；技术和资金仅为截至当日观察。"
             }
           }
         },
         "dynamic_comparison": {
-          "601288": {
-            "trend_structure": "收盘8.02，5日+3.22%、20日+7.22%，MA20=7.5465；近60日新高8.03，结构仍为TRANSITION。价格延续强，但尚未形成程序确认的完整突破结构。",
-            "fund_flow": "腾讯同源冻结资金：1/5/10/20日净占比9.56%/2.90%/0.45%/-1.84%；5日净额4.59亿元、3/5日净流入。该数据是成交分类估算，不等同真实机构持仓。",
-            "quarterly_profit": "2026Q3单季扣非净利润同比+12.19%，Q2为+6.21%，加速+5.98个百分点；单季营收同比+14.92%。"
+          "603386": {
+            "trend_structure": "收盘15.97，5日+6.18%、20日+10.29%，MA20=14.256、MA60=16.0878；TRANSITION，收盘突破15.34近端前高但仍贴近MA60。",
+            "fund_flow": "腾讯同源冻结资金：1/5/10/20日净占比7.04%/6.14%/7.26%/3.98%；5日3/5日净流入。该数据为成交分类估算，不等同真实机构持仓。",
+            "quarterly_profit": "前三季度累计扣非净利润同比+782.60%，增速受低基数影响，单季可比增速本轮记UNKNOWN"
           },
-          "601328": {
-            "trend_structure": "收盘9.27，5日+3.23%、20日+7.42%，MA20=8.6445；高点9.34、低点抬升，bullish/intact，已越过9.10历史关口，趋势延续和承接组内最完整。",
-            "fund_flow": "腾讯同源冻结资金：1/5/10/20日净占比6.86%/5.76%/4.69%/1.81%；5日净额6.56亿元、4/5日净流入。该数据是成交分类估算，不等同真实机构持仓。",
-            "quarterly_profit": "2026Q3单季扣非净利润同比+11.39%，Q2为+4.29%，加速+7.10个百分点；单季营收同比+10.61%。"
+          "603920": {
+            "trend_structure": "收盘37.69，5日+8.43%、20日+14.70%，MA20=34.5605、MA60=38.5735；TRANSITION，收盘接近38.00前高和37.81–38.69阻力区。",
+            "fund_flow": "腾讯同源冻结资金：1/5/10/20日净占比8.41%/5.58%/2.80%/2.74%；5日3/5日净流入。该数据为成交分类估算，不等同真实机构持仓。",
+            "quarterly_profit": "前三季度累计扣非净利润同比-47.23%，相邻单季同比数据本轮未能可靠取得"
           },
-          "601398": {
-            "trend_structure": "收盘9.23，5日-1.81%、20日+5.49%，MA20=8.849；bullish/intact且11月24日低点抬升，但5日价格仍为负，上方9.49阻力未克服。",
-            "fund_flow": "腾讯同源冻结资金：1/5/10/20日净占比5.61%/1.47%/1.84%/1.23%；5日净额3.31亿元、4/5日净流入。该数据是成交分类估算，不等同真实机构持仓。",
-            "quarterly_profit": "2026Q3单季扣非净利润同比+9.99%，Q2为+2.91%，加速+7.08个百分点；单季营收同比+8.06%，营收增速较Q2回落。"
+          "000823": {
+            "trend_structure": "收盘22.56，5日+13.42%、20日+30.56%，MA20=18.295、MA60=20.0803；BULLISH/INTACT，低点抬升且价格显著站上MA20、MA60。",
+            "fund_flow": "腾讯同源冻结资金：1/5/10/20日净占比-2.02%/-4.34%/-0.05%/0.24%；5日1/5日净流入。该数据为成交分类估算，不等同真实机构持仓。",
+            "quarterly_profit": "前三季度累计扣非净利润同比+95.89%，相邻单季可比增速本轮记UNKNOWN"
           },
-          "601658": {
-            "trend_structure": "收盘6.01，5日+3.62%、20日+4.89%，MA20=5.73；接近60日高6.04但程序结构仍为TRANSITION，资金强度明显弱于交行。",
-            "fund_flow": "腾讯同源冻结资金：1/5/10/20日净占比0.72%/0.57%/-1.01%/0.93%；5日净额0.36亿元、3/5日净流入。该数据是成交分类估算，不等同真实机构持仓。",
-            "quarterly_profit": "2026Q3单季扣非净利润同比+4.22%，Q2为-1.36%，改善+5.58个百分点；单季营收同比+4.08%，增速较Q2回落。"
+          "002913": {
+            "trend_structure": "收盘69.27，5日+14.33%、20日+23.96%，MA20=58.593、MA60=70.4157；TRANSITION，收盘突破66.65近端前高，接近MA60与71.79阻力。",
+            "fund_flow": "腾讯同源冻结资金：1/5/10/20日净占比12.28%/8.92%/7.12%/5.97%；5日4/5日净流入。该数据为成交分类估算，不等同真实机构持仓。",
+            "quarterly_profit": "前三季度累计扣非净利润同比+67.70%；最新公开单家研报维持增长判断，但不视作一致预期"
           },
-          "601939": {
-            "trend_structure": "收盘12.73，5日-0.24%、20日+6.26%，MA20=12.1755；bullish/intact但仍贴近12.78历史阻力，短窗延续弱于交行和农行。",
-            "fund_flow": "腾讯同源冻结资金：1/5/10/20日净占比6.64%/-1.59%/-3.68%/-1.96%；5日净额-1.85亿元、3/5日净流入。该数据是成交分类估算，不等同真实机构持仓。",
-            "quarterly_profit": "2026Q3单季扣非净利润同比+9.89%，Q2为+4.83%，加速+5.06个百分点；单季营收同比+12.81%。"
+          "002815": {
+            "trend_structure": "收盘16.79，5日+12.23%、20日+8.18%，MA20=14.8045、MA60=18.2255；BEARISH_STRUCTURE_UNDER_THREAT，收盘越过15.86近端前高但仍低于MA60。",
+            "fund_flow": "腾讯同源冻结资金：1/5/10/20日净占比4.71%/10.25%/8.18%/5.81%；5日4/5日净流入。该数据为成交分类估算，不等同真实机构持仓。",
+            "quarterly_profit": "前三季度累计扣非净利润同比+105.98%，相邻单季可比增速本轮记UNKNOWN"
           }
         },
         "comparison_reasons": {
-          "601288": "当日资金净占比9.56%与Q3盈利增速领先，但20日资金仍为-1.84%，结构为TRANSITION；中长资金与趋势联合优势不及交通银行。",
-          "601398": "10/20日资金为正且Q3盈利改善，但近5日价格-1.81%，尚未突破9.49阻力；短期趋势延续弱于交通银行。",
-          "601658": "5日价格强，但1/5日资金净占比仅0.72%/0.57%，10日为负，单季扣非利润增速也低于主要竞争者。",
-          "601939": "当日资金转正，但5/10/20日净占比-1.59%/-3.68%/-1.96%，且价格贴近12.78阻力，未形成持续资金选择。"
+          "603386": "资金四个窗口均为正且盈利高增，但价格仍在MA60附近、估值较高，累计增速存在低基数影响。",
+          "603920": "趋势和资金均为正，但累计扣非利润同比下降约47%，且价格已贴近38元附近阻力，联合质量弱于奥士康。",
+          "000823": "价格结构最强，但1日和5日资金净占比为负，价资背离显著，短期延续的不确定性高于奥士康。",
+          "002815": "5/10/20日资金很强且盈利改善，但程序结构仍偏空、价格低于MA60，修复确认度不及奥士康。"
         },
-        "strongest_counter": "交通银行的不良率/拨备变化仍构成资产质量约束；同时价格刚越过历史关口，若突破未被独立风控确认或资金迅速转负，当前联合优势可能消失。",
-        "falsifier": "独立Python确认突破失效、正式入场风险超过6%、上方有效阻力不足1.5R，或下一交易日前出现重大财务/监管反证时，不得执行；后续价格失守突破区且5日资金持续转负则研究判断失效。",
+        "strongest_counter": "奥士康当日涨幅较大，价格距MA20约18%并接近71.79阻力；历史公告亦提示部分海外大客户仍处送样/认证阶段，若资金回落或突破失败，联合优势可能迅速消失。",
+        "falsifier": "下一交易日前出现重大业务反证，或冻结资金持续性快速转负、价格重新失守66.65附近突破区，则研究选择失效；是否可交易仍完全由独立Python风控决定。",
         "material_conflicts": [],
-        "strongest_competitor": "601288",
-        "python_first_code": "601288",
-        "as_of": "2026-11-26T18:59:11+08:00",
-        "research_started_at": "2026-11-26T18:55:50+08:00",
-        "research_finished_at": "2026-11-26T18:59:11+08:00",
-        "model_version": "gpt-6.2-astra",
+        "strongest_competitor": "002815",
+        "python_first_code": "603920",
+        "as_of": "2026-11-27T19:08:00+08:00",
+        "research_started_at": "2026-11-27T19:00:00+08:00",
+        "research_finished_at": "2026-11-27T19:08:00+08:00",
+        "model_version": "UNKNOWN",
         "actual_evidence_refs": [
-          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601288&type=todayFundFlow&klineNeedDay=20",
-          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601288&type=todayFundTrend&klineNeedDay=20",
-          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601288&type=historyFundFlow&klineNeedDay=20",
-          "https://qt.gtimg.cn/q=sh601288",
-          "https://finance.sina.com.cn/realstock/company/sh601288/",
-          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601328&type=todayFundFlow&klineNeedDay=20",
-          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601328&type=todayFundTrend&klineNeedDay=20",
-          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601328&type=historyFundFlow&klineNeedDay=20",
-          "https://qt.gtimg.cn/q=sh601328",
-          "https://finance.sina.com.cn/realstock/company/sh601328/",
-          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601939&type=todayFundFlow&klineNeedDay=20",
-          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601939&type=todayFundTrend&klineNeedDay=20",
-          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601939&type=historyFundFlow&klineNeedDay=20",
-          "https://qt.gtimg.cn/q=sh601939",
-          "https://finance.sina.com.cn/realstock/company/sh601939/",
-          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601398&type=todayFundFlow&klineNeedDay=20",
-          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601398&type=todayFundTrend&klineNeedDay=20",
-          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601398&type=historyFundFlow&klineNeedDay=20",
-          "https://qt.gtimg.cn/q=sh601398",
-          "https://finance.sina.com.cn/realstock/company/sh601398/",
-          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601658&type=todayFundFlow&klineNeedDay=20",
-          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601658&type=todayFundTrend&klineNeedDay=20",
-          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601658&type=historyFundFlow&klineNeedDay=20",
-          "https://qt.gtimg.cn/q=sh601658",
-          "https://finance.sina.com.cn/realstock/company/sh601658/",
-          "https://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=601288",
-          "https://www.sse.com.cn/assortment/stock/list/info/announcement/index.shtml?productId=601328",
-          "https://big5.sse.com.cn/site/cht/www.sse.com.cn/disclosure/listedinfo/announcement/c/new/2026-10-31/601939_20261031_QQQA.pdf",
-          "https://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=601398",
-          "https://big5.sse.com.cn/site/cht/www.sse.com.cn/disclosure/listedinfo/announcement/c/new/2026-10-31/601658_20261031_VL8T.pdf",
-          "https://data.eastmoney.com/report/zw_stock.jshtml?encodeUrl=MhEjV7Nop%2FR9Q77hB74iT3M8vo+KH8ZtdxG03XByKAM%3D",
-          "https://data.eastmoney.com/report/601328.html",
-          "https://data.eastmoney.com/stockcalendar/601939.html",
-          "https://data.eastmoney.com/stockcalendar/601398.html",
-          "https://data.eastmoney.com/stockcalendar/601658.html",
-          "https://www.nfra.gov.cn/cn/view/pages/ItemDetail.html?docId=1279786&itemId=915"
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh603386&type=todayFundFlow&klineNeedDay=20",
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh603386&type=todayFundTrend&klineNeedDay=20",
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh603386&type=historyFundFlow&klineNeedDay=20",
+          "https://qt.gtimg.cn/q=sh603386",
+          "https://finance.sina.com.cn/realstock/company/sh603386/",
+          "https://www.cninfo.com.cn/new/disclosure/stock?orgId=9900033000&stockCode=603386",
+          "https://data.eastmoney.com/stockcalendar/603386.html",
+          "https://gxt.hunan.gov.cn/gxt/xxgk_71033/gzdt/rdjj/202611/t20261111_34099794.html",
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh603920&type=todayFundFlow&klineNeedDay=20",
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh603920&type=todayFundTrend&klineNeedDay=20",
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh603920&type=historyFundFlow&klineNeedDay=20",
+          "https://qt.gtimg.cn/q=sh603920",
+          "https://finance.sina.com.cn/realstock/company/sh603920/",
+          "https://www.sse.com.cn/assortment/stock/list/info/announcement/index.shtml?productId=603920",
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz000823&type=todayFundFlow&klineNeedDay=20",
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz000823&type=todayFundTrend&klineNeedDay=20",
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz000823&type=historyFundFlow&klineNeedDay=20",
+          "https://qt.gtimg.cn/q=sz000823",
+          "https://finance.sina.com.cn/realstock/company/sz000823/",
+          "https://money.finance.sina.com.cn/corp/go.php/vCB_AllBulletin/stockid/000823.phtml",
+          "https://data.eastmoney.com/stockcalendar/000823.html",
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz002913&type=todayFundFlow&klineNeedDay=20",
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz002913&type=todayFundTrend&klineNeedDay=20",
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz002913&type=historyFundFlow&klineNeedDay=20",
+          "https://qt.gtimg.cn/q=sz002913",
+          "https://finance.sina.com.cn/realstock/company/sz002913/",
+          "https://www.cninfo.com.cn/new/commonUrl/pageOfSearch?code=002913&url=disclosure%2Flist%2Fsearch",
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz002815&type=todayFundFlow&klineNeedDay=20",
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz002815&type=todayFundTrend&klineNeedDay=20",
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz002815&type=historyFundFlow&klineNeedDay=20",
+          "https://qt.gtimg.cn/q=sz002815",
+          "https://finance.sina.com.cn/realstock/company/sz002815/",
+          "https://www.cninfo.com.cn/new/commonUrl/pageOfSearch?code=002815&url=disclosure%2Flist%2Fsearch",
+          "https://data.eastmoney.com/stockcalendar/002815.html"
+        ]
+      },
+      {
+        "industry_code": "S730205",
+        "candidate_codes": [
+          "601869",
+          "600487",
+          "000070",
+          "002491",
+          "600105"
+        ],
+        "status": "COMPLETE",
+        "top1_code": "600105",
+        "reason": "永鼎股份在短窗趋势修复与边际资金上形成相对最均衡的联合优势：5日价格+4.38%、20日-7.41%，20日跌幅明显小于长飞光纤和亨通光电；冻结资金当日+16.50%、5日+3.17%且2/5日净流入，优于其自身10/20日窗口。长飞光纤是最强竞争者，主题传导和20日资金更强，但20日价格仍-19.03%、低于MA20且10日资金为负。永鼎的主要反证是尚未越过21.48近端压力，10/20日资金仍略负，回购不能代替经营兑现。",
+        "confidence": "MEDIUM",
+        "completion_gate": {
+          "input_verified": true,
+          "five_categories_searched": true,
+          "core_flow_verified": true,
+          "fact_quality_verified": true,
+          "dynamic_comparison_complete": true,
+          "counterevidence_checked": true
+        },
+        "completion_gate_reason": "同日admission、全组腾讯同源冻结资金、五家公司B–E实际检索、趋势/资金/盈利三维横比和反证均完成；新通信网政策只作为产业背景，未机械决定TOP1。",
+        "research_matrix": {
+          "600105": {
+            "A": {
+              "status": "VERIFIED_FACT",
+              "frozen_fund_ref": "fund_flow.groups/S730205/stocks/600105",
+              "sources": [
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh600105&type=todayFundFlow&klineNeedDay=20",
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh600105&type=todayFundTrend&klineNeedDay=20",
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh600105&type=historyFundFlow&klineNeedDay=20",
+                "https://qt.gtimg.cn/q=sh600105",
+                "https://finance.sina.com.cn/realstock/company/sh600105/"
+              ],
+              "queried_at": "2026-11-27T18:45:15+08:00",
+              "provider": "tencent",
+              "windows": {
+                "1": {
+                  "status": "VERIFIED",
+                  "net_cny": 369277195,
+                  "amount_cny": 2238287947,
+                  "net_pct": 16.498198790506198,
+                  "positive_days": 1
+                },
+                "5": {
+                  "status": "VERIFIED",
+                  "net_cny": 266816840,
+                  "amount_cny": 8419296511,
+                  "net_pct": 3.169110859219625,
+                  "positive_days": 2
+                },
+                "10": {
+                  "status": "VERIFIED",
+                  "net_cny": -15750585,
+                  "amount_cny": 15570922324,
+                  "net_pct": -0.1011538345144981,
+                  "positive_days": 4
+                },
+                "20": {
+                  "status": "VERIFIED",
+                  "net_cny": -236649366,
+                  "amount_cny": 39462507178,
+                  "net_pct": -0.5996815279185554,
+                  "positive_days": 8
+                }
+              },
+              "finding": "腾讯同源冻结资金：1/5/10/20日净占比16.50%/3.17%/-0.10%/-0.60%；5日2/5日净流入。该数据为成交分类估算，不等同真实机构持仓。"
+            },
+            "B": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                "https://www.cninfo.com.cn/new/fulltextSearch?keyWord=600105"
+              ],
+              "query_time_window": [
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
+              ],
+              "queries": [
+                "600105 永鼎股份 2026年11月20日至27日 公告",
+                "近20交易日重大公告、订单、回购、减持、诉讼及治理事项"
+              ],
+              "coverage": "近5交易日及近20交易日",
+              "finding": "核验到回购方案、专项贷款承诺函和新增回购账户；回购构成支持，但主营趋势仍需量价与盈利验证。",
+              "actual_query_completed": true,
+              "limitations": "结论限于本轮实际可访问的交易所、巨潮或必要备用公告入口；未发现不等于全网不存在。"
+            },
+            "C": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                "https://www.cac.gov.cn/2026-11/26/c_1797453575920530.htm"
+              ],
+              "query_time_window": [
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
+              ],
+              "queries": [
+                "2026年11月 新一代通信网 光纤光缆 建设方案"
+              ],
+              "coverage": "截至2026-11-27近期主管部门与权威产业信息",
+              "finding": "《新一代通信网建设实施方案》提出万兆光网、新型光纤光缆及骨干网络建设，为直接光纤光缆公司提供需求背景；实际订单和盈利仍需公司披露验证。",
+              "actual_query_completed": true,
+              "limitations": "行业需求背景不等于个股必然取得订单或利润。"
+            },
+            "D": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                "https://data.eastmoney.com/report/zw_stock.jshtml?infocode=AP202609111829245327"
+              ],
+              "query_time_window": [
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
+              ],
+              "queries": [
+                "600105 永鼎股份 2026年近期研报 盈利预测 东方财富"
+              ],
+              "coverage": "截至2026-11-27近期研报与事件",
+              "finding": "检索到较早半年报点评，未发现截至本日新的可验证一致预期上修。",
+              "actual_query_completed": true,
+              "limitations": "未取得可靠一致预期时不编造目标价、评级变化或超预期概率。"
+            },
+            "E": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                "https://www.cninfo.com.cn/new/fulltextSearch?keyWord=600105",
+                "https://www.cac.gov.cn/2026-11/26/c_1797453575920530.htm"
+              ],
+              "query_time_window": [
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
+              ],
+              "queries": [
+                "600105 永鼎股份 风险 异常波动 回购 减持 质押 诉讼",
+                "价格结构、资金背离及盈利质量反证"
+              ],
+              "coverage": "截至2026-11-27公告、产业与冻结量价反证",
+              "finding": "10/20日资金仍略为负，回购与专项贷款是支持而非经营兑现；若不能越过21.48，修复可能失败",
+              "actual_query_completed": true,
+              "limitations": "未发现新增风险不等于不存在风险；技术和资金仅为截至当日观察。"
+            }
+          },
+          "600487": {
+            "A": {
+              "status": "VERIFIED_FACT",
+              "frozen_fund_ref": "fund_flow.groups/S730205/stocks/600487",
+              "sources": [
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh600487&type=todayFundFlow&klineNeedDay=20",
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh600487&type=todayFundTrend&klineNeedDay=20",
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh600487&type=historyFundFlow&klineNeedDay=20",
+                "https://qt.gtimg.cn/q=sh600487",
+                "https://finance.sina.com.cn/realstock/company/sh600487/"
+              ],
+              "queried_at": "2026-11-27T18:45:13+08:00",
+              "provider": "tencent",
+              "windows": {
+                "1": {
+                  "status": "VERIFIED",
+                  "net_cny": 1074100255,
+                  "amount_cny": 5856226924,
+                  "net_pct": 18.34116520652778,
+                  "positive_days": 1
+                },
+                "5": {
+                  "status": "VERIFIED",
+                  "net_cny": 134006789,
+                  "amount_cny": 21620124063,
+                  "net_pct": 0.6198243294511663,
+                  "positive_days": 2
+                },
+                "10": {
+                  "status": "VERIFIED",
+                  "net_cny": -1070714787,
+                  "amount_cny": 39984099768,
+                  "net_pct": -2.677851428974556,
+                  "positive_days": 3
+                },
+                "20": {
+                  "status": "VERIFIED",
+                  "net_cny": -2352902636,
+                  "amount_cny": 102790437056,
+                  "net_pct": -2.2890287300929986,
+                  "positive_days": 7
+                }
+              },
+              "finding": "腾讯同源冻结资金：1/5/10/20日净占比18.34%/0.62%/-2.68%/-2.29%；5日2/5日净流入。该数据为成交分类估算，不等同真实机构持仓。"
+            },
+            "B": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                "https://www.cninfo.com.cn/new/disclosure/stock?orgId=gssh0600487&stockCode=600487"
+              ],
+              "query_time_window": [
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
+              ],
+              "queries": [
+                "600487 亨通光电 2026年11月20日至27日 公告",
+                "近20交易日重大公告、订单、回购、减持、诉讼及治理事项"
+              ],
+              "coverage": "近5交易日及近20交易日",
+              "finding": "核验到控股股东增持、公司首次回购及产业基金事项；资本动作支持信心，但不能代替经营现金流和订单兑现。",
+              "actual_query_completed": true,
+              "limitations": "结论限于本轮实际可访问的交易所、巨潮或必要备用公告入口；未发现不等于全网不存在。"
+            },
+            "C": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                "https://www.cac.gov.cn/2026-11/26/c_1797453575920530.htm"
+              ],
+              "query_time_window": [
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
+              ],
+              "queries": [
+                "2026年11月 新一代通信网 光纤光缆 建设方案"
+              ],
+              "coverage": "截至2026-11-27近期主管部门与权威产业信息",
+              "finding": "《新一代通信网建设实施方案》提出万兆光网、新型光纤光缆及骨干网络建设，为直接光纤光缆公司提供需求背景；实际订单和盈利仍需公司披露验证。",
+              "actual_query_completed": true,
+              "limitations": "行业需求背景不等于个股必然取得订单或利润。"
+            },
+            "D": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                "https://data.eastmoney.com/report/zw_stock.jshtml?infocode=AP202610291831149307"
+              ],
+              "query_time_window": [
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
+              ],
+              "queries": [
+                "600487 亨通光电 2026年近期研报 盈利预测 东方财富"
+              ],
+              "coverage": "截至2026-11-27近期研报与事件",
+              "finding": "三季报后单家报告确认利润高增及光通信布局；不是全市场一致预期，不能单独决胜。",
+              "actual_query_completed": true,
+              "limitations": "未取得可靠一致预期时不编造目标价、评级变化或超预期概率。"
+            },
+            "E": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                "https://www.cninfo.com.cn/new/disclosure/stock?orgId=gssh0600487&stockCode=600487",
+                "https://www.cac.gov.cn/2026-11/26/c_1797453575920530.htm"
+              ],
+              "query_time_window": [
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
+              ],
+              "queries": [
+                "600487 亨通光电 风险 异常波动 回购 减持 质押 诉讼",
+                "价格结构、资金背离及盈利质量反证"
+              ],
+              "coverage": "截至2026-11-27公告、产业与冻结量价反证",
+              "finding": "1日资金很强但10/20日仍显著净流出，趋势与资金尚未形成多周期一致",
+              "actual_query_completed": true,
+              "limitations": "未发现新增风险不等于不存在风险；技术和资金仅为截至当日观察。"
+            }
+          },
+          "601869": {
+            "A": {
+              "status": "VERIFIED_FACT",
+              "frozen_fund_ref": "fund_flow.groups/S730205/stocks/601869",
+              "sources": [
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601869&type=todayFundFlow&klineNeedDay=20",
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601869&type=todayFundTrend&klineNeedDay=20",
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601869&type=historyFundFlow&klineNeedDay=20",
+                "https://qt.gtimg.cn/q=sh601869",
+                "https://finance.sina.com.cn/realstock/company/sh601869/"
+              ],
+              "queried_at": "2026-11-27T18:45:13+08:00",
+              "provider": "tencent",
+              "windows": {
+                "1": {
+                  "status": "VERIFIED",
+                  "net_cny": 374437480,
+                  "amount_cny": 2568154366,
+                  "net_pct": 14.580022328766821,
+                  "positive_days": 1
+                },
+                "5": {
+                  "status": "VERIFIED",
+                  "net_cny": 306107199,
+                  "amount_cny": 10594439327,
+                  "net_pct": 2.88931947743458,
+                  "positive_days": 3
+                },
+                "10": {
+                  "status": "VERIFIED",
+                  "net_cny": -186409521,
+                  "amount_cny": 20963360279,
+                  "net_pct": -0.8892158438298431,
+                  "positive_days": 4
+                },
+                "20": {
+                  "status": "VERIFIED",
+                  "net_cny": 490700516,
+                  "amount_cny": 58034605884,
+                  "net_pct": 0.845530883729642,
+                  "positive_days": 9
+                }
+              },
+              "finding": "腾讯同源冻结资金：1/5/10/20日净占比14.58%/2.89%/-0.89%/0.85%；5日3/5日净流入。该数据为成交分类估算，不等同真实机构持仓。"
+            },
+            "B": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                "https://www.sse.com.cn/assortment/stock/list/info/announcement/index.shtml?productId=601869"
+              ],
+              "query_time_window": [
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
+              ],
+              "queries": [
+                "601869 长飞光纤 2026年11月20日至27日 公告",
+                "近20交易日重大公告、订单、回购、减持、诉讼及治理事项"
+              ],
+              "coverage": "近5交易日及近20交易日",
+              "finding": "近20交易日以三季报、关联交易额度与权益分派为主；未发现近5交易日新增重大订单公告。",
+              "actual_query_completed": true,
+              "limitations": "结论限于本轮实际可访问的交易所、巨潮或必要备用公告入口；未发现不等于全网不存在。"
+            },
+            "C": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                "https://www.cac.gov.cn/2026-11/26/c_1797453575920530.htm"
+              ],
+              "query_time_window": [
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
+              ],
+              "queries": [
+                "2026年11月 新一代通信网 光纤光缆 建设方案"
+              ],
+              "coverage": "截至2026-11-27近期主管部门与权威产业信息",
+              "finding": "《新一代通信网建设实施方案》提出万兆光网、新型光纤光缆及骨干网络建设，为直接光纤光缆公司提供需求背景；实际订单和盈利仍需公司披露验证。",
+              "actual_query_completed": true,
+              "limitations": "行业需求背景不等于个股必然取得订单或利润。"
+            },
+            "D": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                "https://data.eastmoney.com/report/info/AP202609271829936260.html"
+              ],
+              "query_time_window": [
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
+              ],
+              "queries": [
+                "601869 长飞光纤 2026年近期研报 盈利预测 东方财富"
+              ],
+              "coverage": "截至2026-11-27近期研报与事件",
+              "finding": "检索到基于半年报的单家报告，确认AI光纤需求与产品进展；未发现截至本日新的可验证一致预期调整。",
+              "actual_query_completed": true,
+              "limitations": "未取得可靠一致预期时不编造目标价、评级变化或超预期概率。"
+            },
+            "E": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                "https://www.sse.com.cn/assortment/stock/list/info/announcement/index.shtml?productId=601869",
+                "https://www.cac.gov.cn/2026-11/26/c_1797453575920530.htm"
+              ],
+              "query_time_window": [
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
+              ],
+              "queries": [
+                "601869 长飞光纤 风险 异常波动 回购 减持 质押 诉讼",
+                "价格结构、资金背离及盈利质量反证"
+              ],
+              "coverage": "截至2026-11-27公告、产业与冻结量价反证",
+              "finding": "20日价格仍大幅回撤，10日资金为负，单日涨停不能证明趋势已经反转",
+              "actual_query_completed": true,
+              "limitations": "未发现新增风险不等于不存在风险；技术和资金仅为截至当日观察。"
+            }
+          },
+          "000070": {
+            "A": {
+              "status": "VERIFIED_FACT",
+              "frozen_fund_ref": "fund_flow.groups/S730205/stocks/000070",
+              "sources": [
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz000070&type=todayFundFlow&klineNeedDay=20",
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz000070&type=todayFundTrend&klineNeedDay=20",
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz000070&type=historyFundFlow&klineNeedDay=20",
+                "https://qt.gtimg.cn/q=sz000070",
+                "https://finance.sina.com.cn/realstock/company/sz000070/"
+              ],
+              "queried_at": "2026-11-27T18:45:13+08:00",
+              "provider": "tencent",
+              "windows": {
+                "1": {
+                  "status": "VERIFIED",
+                  "net_cny": 67149404,
+                  "amount_cny": 574601747,
+                  "net_pct": 11.686251277617504,
+                  "positive_days": 1
+                },
+                "5": {
+                  "status": "VERIFIED",
+                  "net_cny": -9684950,
+                  "amount_cny": 1872407276,
+                  "net_pct": -0.5172459071345757,
+                  "positive_days": 1
+                },
+                "10": {
+                  "status": "VERIFIED",
+                  "net_cny": -78942120,
+                  "amount_cny": 3777868446,
+                  "net_pct": -2.089594201819912,
+                  "positive_days": 2
+                },
+                "20": {
+                  "status": "VERIFIED",
+                  "net_cny": -102895400,
+                  "amount_cny": 8644069332,
+                  "net_pct": -1.1903583375839586,
+                  "positive_days": 6
+                }
+              },
+              "finding": "腾讯同源冻结资金：1/5/10/20日净占比11.69%/-0.52%/-2.09%/-1.19%；5日1/5日净流入。该数据为成交分类估算，不等同真实机构持仓。"
+            },
+            "B": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                "https://money.finance.sina.com.cn/corp/go.php/vCB_AllBulletin/stockid/000070.phtml?ftype=0"
+              ],
+              "query_time_window": [
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
+              ],
+              "queries": [
+                "000070 特发信息 2026年11月20日至27日 公告",
+                "近20交易日重大公告、订单、回购、减持、诉讼及治理事项"
+              ],
+              "coverage": "近5交易日及近20交易日",
+              "finding": "核验到对子公司增资及投资者接待记录；增资用途与未来盈利兑现仍需跟踪。",
+              "actual_query_completed": true,
+              "limitations": "结论限于本轮实际可访问的交易所、巨潮或必要备用公告入口；未发现不等于全网不存在。"
+            },
+            "C": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                "https://www.cac.gov.cn/2026-11/26/c_1797453575920530.htm"
+              ],
+              "query_time_window": [
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
+              ],
+              "queries": [
+                "2026年11月 新一代通信网 光纤光缆 建设方案"
+              ],
+              "coverage": "截至2026-11-27近期主管部门与权威产业信息",
+              "finding": "《新一代通信网建设实施方案》提出万兆光网、新型光纤光缆及骨干网络建设，为直接光纤光缆公司提供需求背景；实际订单和盈利仍需公司披露验证。",
+              "actual_query_completed": true,
+              "limitations": "行业需求背景不等于个股必然取得订单或利润。"
+            },
+            "D": {
+              "status": "NO_NEW_VERIFIED_EVENT",
+              "sources": [
+                "https://data.eastmoney.com/report/stock/"
+              ],
+              "query_time_window": [
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
+              ],
+              "queries": [
+                "000070 特发信息 2026年近期研报 盈利预测 东方财富"
+              ],
+              "coverage": "截至2026-11-27近期研报与事件",
+              "finding": "未检索到可核验的近期定量一致预期，记UNKNOWN，不编造目标价。",
+              "actual_query_completed": true,
+              "limitations": "未取得可靠一致预期时不编造目标价、评级变化或超预期概率。"
+            },
+            "E": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                "https://money.finance.sina.com.cn/corp/go.php/vCB_AllBulletin/stockid/000070.phtml?ftype=0",
+                "https://www.cac.gov.cn/2026-11/26/c_1797453575920530.htm"
+              ],
+              "query_time_window": [
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
+              ],
+              "queries": [
+                "000070 特发信息 风险 异常波动 回购 减持 质押 诉讼",
+                "价格结构、资金背离及盈利质量反证"
+              ],
+              "coverage": "截至2026-11-27公告、产业与冻结量价反证",
+              "finding": "5/10/20日资金均为负，近期子公司增资尚不等于利润兑现",
+              "actual_query_completed": true,
+              "limitations": "未发现新增风险不等于不存在风险；技术和资金仅为截至当日观察。"
+            }
+          },
+          "002491": {
+            "A": {
+              "status": "VERIFIED_FACT",
+              "frozen_fund_ref": "fund_flow.groups/S730205/stocks/002491",
+              "sources": [
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz002491&type=todayFundFlow&klineNeedDay=20",
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz002491&type=todayFundTrend&klineNeedDay=20",
+                "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz002491&type=historyFundFlow&klineNeedDay=20",
+                "https://qt.gtimg.cn/q=sz002491",
+                "https://finance.sina.com.cn/realstock/company/sz002491/"
+              ],
+              "queried_at": "2026-11-27T18:45:15+08:00",
+              "provider": "tencent",
+              "windows": {
+                "1": {
+                  "status": "VERIFIED",
+                  "net_cny": 103701613,
+                  "amount_cny": 1261377144,
+                  "net_pct": 8.221301098825048,
+                  "positive_days": 1
+                },
+                "5": {
+                  "status": "VERIFIED",
+                  "net_cny": -73253890,
+                  "amount_cny": 4669771280,
+                  "net_pct": -1.568682610082779,
+                  "positive_days": 2
+                },
+                "10": {
+                  "status": "VERIFIED",
+                  "net_cny": -283504558,
+                  "amount_cny": 8534793422,
+                  "net_pct": -3.3217506737680944,
+                  "positive_days": 3
+                },
+                "20": {
+                  "status": "VERIFIED",
+                  "net_cny": -386388344,
+                  "amount_cny": 22252070906,
+                  "net_pct": -1.736415211115542,
+                  "positive_days": 7
+                }
+              },
+              "finding": "腾讯同源冻结资金：1/5/10/20日净占比8.22%/-1.57%/-3.32%/-1.74%；5日2/5日净流入。该数据为成交分类估算，不等同真实机构持仓。"
+            },
+            "B": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                "https://www.cninfo.com.cn/new/fulltextSearch?keyWord=002491"
+              ],
+              "query_time_window": [
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
+              ],
+              "queries": [
+                "002491 通鼎互联 2026年11月20日至27日 公告",
+                "近20交易日重大公告、订单、回购、减持、诉讼及治理事项"
+              ],
+              "coverage": "近5交易日及近20交易日",
+              "finding": "近期公告以董事会换届为主；此前对外收购仍存在整合与兑现风险。",
+              "actual_query_completed": true,
+              "limitations": "结论限于本轮实际可访问的交易所、巨潮或必要备用公告入口；未发现不等于全网不存在。"
+            },
+            "C": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                "https://www.cac.gov.cn/2026-11/26/c_1797453575920530.htm"
+              ],
+              "query_time_window": [
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
+              ],
+              "queries": [
+                "2026年11月 新一代通信网 光纤光缆 建设方案"
+              ],
+              "coverage": "截至2026-11-27近期主管部门与权威产业信息",
+              "finding": "《新一代通信网建设实施方案》提出万兆光网、新型光纤光缆及骨干网络建设，为直接光纤光缆公司提供需求背景；实际订单和盈利仍需公司披露验证。",
+              "actual_query_completed": true,
+              "limitations": "行业需求背景不等于个股必然取得订单或利润。"
+            },
+            "D": {
+              "status": "NO_NEW_VERIFIED_EVENT",
+              "sources": [
+                "https://data.eastmoney.com/report/stock/"
+              ],
+              "query_time_window": [
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
+              ],
+              "queries": [
+                "002491 通鼎互联 2026年近期研报 盈利预测 东方财富"
+              ],
+              "coverage": "截至2026-11-27近期研报与事件",
+              "finding": "未检索到可核验的近期定量一致预期，记UNKNOWN，不以并购题材推断短期盈利。",
+              "actual_query_completed": true,
+              "limitations": "未取得可靠一致预期时不编造目标价、评级变化或超预期概率。"
+            },
+            "E": {
+              "status": "VERIFIED_FACT",
+              "sources": [
+                "https://www.cninfo.com.cn/new/fulltextSearch?keyWord=002491",
+                "https://www.cac.gov.cn/2026-11/26/c_1797453575920530.htm"
+              ],
+              "query_time_window": [
+                "2026-11-27T19:00:00+08:00",
+                "2026-11-27T19:08:00+08:00"
+              ],
+              "queries": [
+                "002491 通鼎互联 风险 异常波动 回购 减持 质押 诉讼",
+                "价格结构、资金背离及盈利质量反证"
+              ],
+              "coverage": "截至2026-11-27公告、产业与冻结量价反证",
+              "finding": "5/10/20日资金均为负，控股股东高比例质押及并购整合属于重要反证",
+              "actual_query_completed": true,
+              "limitations": "未发现新增风险不等于不存在风险；技术和资金仅为截至当日观察。"
+            }
+          }
+        },
+        "dynamic_comparison": {
+          "600105": {
+            "trend_structure": "收盘20.98，5日+4.38%、20日-7.41%，MA20=21.368、MA60=30.8973；BEARISH/INTACT，收盘接近MA20与21.48近端压力，仍低于MA60。",
+            "fund_flow": "腾讯同源冻结资金：1/5/10/20日净占比16.50%/3.17%/-0.10%/-0.60%；5日2/5日净流入。该数据为成交分类估算，不等同真实机构持仓。",
+            "quarterly_profit": "前三季度累计扣非净利润同比+130.32%，相邻单季可比增速本轮记UNKNOWN"
+          },
+          "600487": {
+            "trend_structure": "收盘38.13，5日+3.05%、20日-12.39%，MA20=39.876、MA60=52.2367；BEARISH/INTACT，收盘仍低于MA20且在39.50近端压力下。",
+            "fund_flow": "腾讯同源冻结资金：1/5/10/20日净占比18.34%/0.62%/-2.68%/-2.29%；5日2/5日净流入。该数据为成交分类估算，不等同真实机构持仓。",
+            "quarterly_profit": "前三季度累计扣非净利润同比+162.80%；三季报后单家研报确认盈利高增，非一致预期"
+          },
+          "601869": {
+            "trend_structure": "收盘221.44，5日+5.41%、20日-19.03%，MA20=236.337、MA60=337.8512；BEARISH/INTACT，低于MA20、MA60，收盘仍在228.36近端压力下。",
+            "fund_flow": "腾讯同源冻结资金：1/5/10/20日净占比14.58%/2.89%/-0.89%/0.85%；5日3/5日净流入。该数据为成交分类估算，不等同真实机构持仓。",
+            "quarterly_profit": "前三季度累计扣非净利润同比+1846.32%，基数效应显著；公司半年报披露AI新型光纤需求和产品进展"
+          },
+          "000070": {
+            "trend_structure": "收盘11.78，5日+5.27%、20日-4.31%，MA20=11.808、MA60=14.2863；BEARISH/INTACT，收盘接近MA20和11.82近端压力，仍低于MA60。",
+            "fund_flow": "腾讯同源冻结资金：1/5/10/20日净占比11.69%/-0.52%/-2.09%/-1.19%；5日1/5日净流入。该数据为成交分类估算，不等同真实机构持仓。",
+            "quarterly_profit": "前三季度累计扣非净利润同比+6901.86%，跨越低基数，不能机械横比"
+          },
+          "002491": {
+            "trend_structure": "收盘12.66，5日+4.37%、20日-8.92%，MA20=12.9385、MA60=17.5602；BEARISH/INTACT，低于MA20、MA60且接近12.92近端压力。",
+            "fund_flow": "腾讯同源冻结资金：1/5/10/20日净占比8.22%/-1.57%/-3.32%/-1.74%；5日2/5日净流入。该数据为成交分类估算，不等同真实机构持仓。",
+            "quarterly_profit": "前三季度累计扣非净利润同比+1694.26%，低基数与并购事项需继续拆分核验"
+          }
+        },
+        "comparison_reasons": {
+          "600487": "当日资金+18.34%且盈利高增，但5日资金仅+0.62%、10/20日均明显为负，价格仍低于MA20。",
+          "601869": "产业传导和20日资金较好，但20日价格-19.03%、仍低于MA20/MA60且10日资金为负，短期修复质量不及永鼎。",
+          "000070": "当日涨停但5/10/20日资金均为负，价格仅靠近MA20和11.82压力，尚无持续性证据。",
+          "002491": "当日资金转正但5/10/20日仍为负，价格低于MA20/MA60，且控股股东质押和并购整合构成反证。"
+        },
+        "strongest_counter": "永鼎股份仍处偏空结构修复，收盘20.98尚未越过21.48近端压力；10/20日资金净占比-0.10%/-0.60%，若次日不能获得承接，单日政策驱动上涨可能迅速回吐。",
+        "falsifier": "价格无法确认越过21.48附近压力并重新转弱，或5日资金转负、出现回购/业务/合规重大反证，则研究选择失效；是否可交易仍完全由独立Python风控决定。",
+        "material_conflicts": [],
+        "strongest_competitor": "601869",
+        "python_first_code": "601869",
+        "as_of": "2026-11-27T19:08:00+08:00",
+        "research_started_at": "2026-11-27T19:00:00+08:00",
+        "research_finished_at": "2026-11-27T19:08:00+08:00",
+        "model_version": "UNKNOWN",
+        "actual_evidence_refs": [
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh600105&type=todayFundFlow&klineNeedDay=20",
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh600105&type=todayFundTrend&klineNeedDay=20",
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh600105&type=historyFundFlow&klineNeedDay=20",
+          "https://qt.gtimg.cn/q=sh600105",
+          "https://finance.sina.com.cn/realstock/company/sh600105/",
+          "https://www.cninfo.com.cn/new/fulltextSearch?keyWord=600105",
+          "https://www.cac.gov.cn/2026-11/26/c_1797453575920530.htm",
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh600487&type=todayFundFlow&klineNeedDay=20",
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh600487&type=todayFundTrend&klineNeedDay=20",
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh600487&type=historyFundFlow&klineNeedDay=20",
+          "https://qt.gtimg.cn/q=sh600487",
+          "https://finance.sina.com.cn/realstock/company/sh600487/",
+          "https://www.cninfo.com.cn/new/disclosure/stock?orgId=gssh0600487&stockCode=600487",
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601869&type=todayFundFlow&klineNeedDay=20",
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601869&type=todayFundTrend&klineNeedDay=20",
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sh601869&type=historyFundFlow&klineNeedDay=20",
+          "https://qt.gtimg.cn/q=sh601869",
+          "https://finance.sina.com.cn/realstock/company/sh601869/",
+          "https://www.sse.com.cn/assortment/stock/list/info/announcement/index.shtml?productId=601869",
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz000070&type=todayFundFlow&klineNeedDay=20",
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz000070&type=todayFundTrend&klineNeedDay=20",
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz000070&type=historyFundFlow&klineNeedDay=20",
+          "https://qt.gtimg.cn/q=sz000070",
+          "https://finance.sina.com.cn/realstock/company/sz000070/",
+          "https://money.finance.sina.com.cn/corp/go.php/vCB_AllBulletin/stockid/000070.phtml?ftype=0",
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz002491&type=todayFundFlow&klineNeedDay=20",
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz002491&type=todayFundTrend&klineNeedDay=20",
+          "https://proxy.finance.qq.com/cgi/cgi-bin/fundflow/hsfundtab?code=sz002491&type=historyFundFlow&klineNeedDay=20",
+          "https://qt.gtimg.cn/q=sz002491",
+          "https://finance.sina.com.cn/realstock/company/sz002491/",
+          "https://www.cninfo.com.cn/new/fulltextSearch?keyWord=002491"
         ]
       }
     ]
   },
   "top1_decisions": [
     {
-      "industry_code": "S480201",
+      "industry_code": "S270202",
       "candidate_codes": [
-        "601288",
-        "601328",
-        "601939",
-        "601398",
-        "601658"
+        "603920",
+        "603386",
+        "000823",
+        "002913",
+        "002815"
       ],
-      "top1_code": "601328",
+      "top1_code": "002913",
       "selection_status": "COMPLETE",
-      "selection_reason": "交通银行在核心两项上形成最清晰联合优势：价格保持bullish/intact并突破9.10历史关口，5日和20日涨幅为+3.23%/+7.42%；冻结资金1/5/10/20日净占比分别为+6.86%/+5.76%/+4.69%/+1.81%，5日4天、20日13天净流入，持续性显著优于同组。农业银行是最强竞争者，盈利加速和当日资金更强，但20日资金仍为-1.84%且结构尚为TRANSITION。交通银行Q3单季扣非利润同比+11.39%、较Q2加速7.10个百分点提供基本面支持；资产质量与突破失败是主要反证。",
-      "risk_status": "READY",
+      "selection_reason": "奥士康在组内形成最完整的趋势与资金联合优势：5日/20日价格+14.33%/+23.96%，收盘突破66.65近端前高；冻结资金1/5/10/20日净占比+12.28%/+8.92%/+7.12%/+5.97%，5日4天、20日15天净流入。崇达技术是最强竞争者，5/10/20日资金更强且累计盈利改善，但程序结构仍为BEARISH_STRUCTURE_UNDER_THREAT、价格低于MA60；超声电子虽价格最强但1/5日资金转负。奥士康的主要反证是距MA20较远、接近71.79阻力以及客户认证和扩产兑现不确定。",
+      "risk_status": "WAIT",
       "risk_result": {
-        "code": "601328",
-        "company_name": "交通银行",
-        "industry_name": "国有大型银行Ⅲ",
-        "current_price": 9.27,
-        "trend_name": "银行",
-        "industry_code": "S480201",
+        "code": "002913",
+        "company_name": "奥士康",
+        "industry_name": "印制电路板",
+        "current_price": 69.27,
+        "trend_name": "AI算力电子电路",
+        "industry_code": "S270202",
         "market_state": "趋势确认",
         "trend_state": "T1",
-        "status": "READY",
-        "wait_reason": null,
-        "decision_reason": "截至收盘的技术确认通过；仅为下一交易日有条件入场计划",
+        "status": "WAIT",
+        "wait_reason": "WAIT_CONFIRMATION",
+        "decision_reason": "MA60下方仍可观察启动或修复；尚未形成经确认的低风险入场条件",
         "transmission": "SUPPORTED",
-        "structure_confirmed": true,
-        "data_date": "2026-11-26",
+        "structure_confirmed": false,
+        "data_date": "2026-11-27",
         "price_basis": "completed_daily_bar",
-        "research_falsifier": "若下一交易日之前出现重大未披露风险，或独立Python确认突破失败、风险超过6%或上方阻力不足1.5R，则不得执行；后续趋势与资金同时转弱则研究选择失效。",
-        "source_review": "本轮按冻结名单重新检索上交所/发行人公告、金融监管总局行业数据、东方财富研报索引，并核验同日冻结资金与财务更新。直接受益传导成立；趋势结构完整，5/10/20日资金持续性组内最强，且Q3单季扣非利润加速，形成趋势与资金联合优势。",
+        "research_falsifier": "价格距MA20较远且接近71.79阻力；客户认证、海外产能与扩产兑现仍有不确定性",
+        "source_review": "本轮仅在同日Python冻结名单内重新核验公告、产业、预期、风险和冻结资金。近20交易日以临时股东会事项为主；未发现足以改变当日比较的新订单公告。 AI算力相关高端PCB订单和材料供给仍紧张，但需求集中于高多层、高阶HDI等高端品类，不能自动外推到全部PCB公司。",
         "model_priority": null,
         "model_reason": null,
         "research_quality_evidence": {
           "status": "VERIFIED",
-          "asof_date": "2026-11-26",
-          "score": 69.6272,
+          "asof_date": "2026-11-27",
+          "score": 90.0,
           "source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
           "components": {
-            "core_profit_yoy_pct": 6.3158,
-            "operating_cashflow_per_share": 2.4063,
-            "core_growth_component": 0.417543,
+            "core_profit_yoy_pct": 67.7017,
+            "operating_cashflow_per_share": 0.2998,
+            "core_growth_component": 1.0,
             "cashflow_component": 1.0,
             "peer_percentiles": {
               "10": 0.75,
-              "20": 1.0,
-              "60": 1.0
+              "20": 0.75,
+              "60": 0.75
             },
             "negative_cashflow_penalty": 0.0,
             "score_is_provisional_not_probability": true
           },
           "report_date": "2026-09-30",
-          "notice_date": "2026-10-31",
-          "update_date": "2026-10-31"
+          "notice_date": "2026-10-23",
+          "update_date": "2026-10-23"
         },
-        "trend_phase": "TRANSITION",
+        "trend_phase": "REPAIRING",
         "phase_evidence": {
-          "return_3d_pct": 3.81,
-          "return_5d_pct": 5.94,
-          "previous_5d_return_pct": 3.55,
-          "positive_days_5d": 4,
-          "negative_days_5d": 1,
-          "up_day_volume_ratio_5d": 1.078,
-          "down_day_volume_ratio_5d": 1.154,
-          "volume_ratio_1d": 0.936,
-          "volume_ratio_5d": 1.093,
-          "close_location_pct": 74.07,
-          "close_location_3d_avg_pct": 70.1,
-          "max_close_drawdown_10d_pct": -0.56,
-          "prior_5d_high": 9.25,
-          "prior_20d_low": 8.06,
-          "recent_3d_low": 8.74,
+          "return_3d_pct": 15.86,
+          "return_5d_pct": 25.76,
+          "previous_5d_return_pct": -9.93,
+          "positive_days_5d": 3,
+          "negative_days_5d": 2,
+          "up_day_volume_ratio_5d": 1.256,
+          "down_day_volume_ratio_5d": 0.978,
+          "volume_ratio_1d": 1.452,
+          "volume_ratio_5d": 1.145,
+          "close_location_pct": 100.0,
+          "close_location_3d_avg_pct": 68.09,
+          "max_close_drawdown_10d_pct": -11.79,
+          "prior_5d_high": 66.65,
+          "prior_20d_low": 50.51,
+          "recent_3d_low": 56.58,
           "fresh_break": true,
           "pullback_low_holds": true,
           "weak_close_high_volume": false,
           "signal_uses_completed_bars_only": true
         },
         "technical_context": {
-          "ma20": 8.6445,
-          "ma60": 8.0278,
-          "support_invalidation": 8.6445,
-          "breakout_level": 9.25,
-          "prior_60d_high": 9.25,
+          "ma20": 58.593,
+          "ma60": 70.4157,
+          "support_invalidation": 58.593,
+          "breakout_level": null,
+          "prior_60d_high": 98.18,
           "attention_resistance": {
-            "status": "UNVERIFIED",
-            "price": null,
-            "reason": "no_confirmed_overhead_pivot_in_lookback",
+            "status": "VERIFIED",
+            "price": 70.66,
+            "date": "2026-06-18",
+            "source": "asof_180bar_confirmed_pivot",
             "history_points": 180
           },
           "recent_acceptance": {
-            "pattern": "UNCONFIRMED_LOCAL_ACCEPTANCE",
-            "support_close_band": [
-              8.93,
-              8.98
-            ],
-            "support_dates": [
-              "2026-11-23",
-              "2026-11-24"
-            ],
-            "support_low": 8.74,
-            "signal_day_low": 9.07,
-            "intraday_support_broken": false,
+            "pattern": "NO_RECENT_CLOSE_SUPPORT",
+            "support_close_band": null,
+            "support_dates": [],
+            "support_low": null,
+            "signal_day_low": 61.6,
+            "intraday_support_broken": null,
             "lookback_trading_days": 3,
-            "data_date": "2026-11-26",
+            "data_date": "2026-11-27",
             "observation_only": true
           },
-          "first_effective_resistance": null,
-          "distance_to_ma20_pct": 7.24,
-          "chase_risk": "medium",
-          "volume_ratio_1d_vs_20d": 0.936,
-          "volume_ratio_5d_vs_20d": 1.093,
-          "relative_strength_20d_vs_market_pct": 20.06,
-          "ma20_slope_5d_pct": 2.27,
-          "close_location_pct": 74.07,
+          "first_effective_resistance": {
+            "date": "2026-11-12",
+            "price": 71.79
+          },
+          "distance_to_ma20_pct": 18.22,
+          "chase_risk": "high",
+          "volume_ratio_1d_vs_20d": 1.452,
+          "volume_ratio_5d_vs_20d": 1.145,
+          "relative_strength_20d_vs_market_pct": 29.0,
+          "ma20_slope_5d_pct": 0.77,
+          "close_location_pct": 100.0,
           "higher_low": true,
-          "trend_phase": "TRANSITION",
+          "trend_phase": "REPAIRING",
           "phase_evidence": {
-            "return_3d_pct": 3.81,
-            "return_5d_pct": 5.94,
-            "previous_5d_return_pct": 3.55,
-            "positive_days_5d": 4,
-            "negative_days_5d": 1,
-            "up_day_volume_ratio_5d": 1.078,
-            "down_day_volume_ratio_5d": 1.154,
-            "volume_ratio_1d": 0.936,
-            "volume_ratio_5d": 1.093,
-            "close_location_pct": 74.07,
-            "close_location_3d_avg_pct": 70.1,
-            "max_close_drawdown_10d_pct": -0.56,
-            "prior_5d_high": 9.25,
-            "prior_20d_low": 8.06,
-            "recent_3d_low": 8.74,
+            "return_3d_pct": 15.86,
+            "return_5d_pct": 25.76,
+            "previous_5d_return_pct": -9.93,
+            "positive_days_5d": 3,
+            "negative_days_5d": 2,
+            "up_day_volume_ratio_5d": 1.256,
+            "down_day_volume_ratio_5d": 0.978,
+            "volume_ratio_1d": 1.452,
+            "volume_ratio_5d": 1.145,
+            "close_location_pct": 100.0,
+            "close_location_3d_avg_pct": 68.09,
+            "max_close_drawdown_10d_pct": -11.79,
+            "prior_5d_high": 66.65,
+            "prior_20d_low": 50.51,
+            "recent_3d_low": 56.58,
             "fresh_break": true,
             "pullback_low_holds": true,
             "weak_close_high_volume": false,
             "signal_uses_completed_bars_only": true
           }
+        }
+      },
+      "watch_reference": {
+        "stage": "PRE_TREND_WATCH",
+        "setup_mode": "RECLAIM",
+        "conditional_trigger": "等待重新站稳均线并出现明确的回踩承接，再从该次形态计算失效位",
+        "reference_trigger_price": 70.416,
+        "reference_zone": null,
+        "invalidation_price": null,
+        "estimated_price_risk_pct": null,
+        "risk_threshold_pct": 8.0,
+        "price_basis": "同一已完成交易日观察触发价，非入场/持仓止损"
+      },
+      "conditional_plan": null,
+      "route": "OBSERVE_ONLY"
+    },
+    {
+      "industry_code": "S730205",
+      "candidate_codes": [
+        "601869",
+        "600487",
+        "000070",
+        "002491",
+        "600105"
+      ],
+      "top1_code": "600105",
+      "selection_status": "COMPLETE",
+      "selection_reason": "永鼎股份在短窗趋势修复与边际资金上形成相对最均衡的联合优势：5日价格+4.38%、20日-7.41%，20日跌幅明显小于长飞光纤和亨通光电；冻结资金当日+16.50%、5日+3.17%且2/5日净流入，优于其自身10/20日窗口。长飞光纤是最强竞争者，主题传导和20日资金更强，但20日价格仍-19.03%、低于MA20且10日资金为负。永鼎的主要反证是尚未越过21.48近端压力，10/20日资金仍略负，回购不能代替经营兑现。",
+      "risk_status": "WAIT",
+      "risk_result": {
+        "code": "600105",
+        "company_name": "永鼎股份",
+        "industry_name": "通信线缆及配套",
+        "current_price": 20.98,
+        "trend_name": "新一代通信网",
+        "industry_code": "S730205",
+        "market_state": "趋势确认",
+        "trend_state": "T1",
+        "status": "WAIT",
+        "wait_reason": "WAIT_CONFIRMATION",
+        "decision_reason": "MA60下方仍可观察启动或修复；尚未形成经确认的低风险入场条件",
+        "transmission": "SUPPORTED",
+        "structure_confirmed": false,
+        "data_date": "2026-11-27",
+        "price_basis": "completed_daily_bar",
+        "research_falsifier": "10/20日资金仍略为负，回购与专项贷款是支持而非经营兑现；若不能越过21.48，修复可能失败",
+        "source_review": "本轮仅在同日Python冻结名单内重新核验公告、产业、预期、风险和冻结资金。核验到回购方案、专项贷款承诺函和新增回购账户；回购构成支持，但主营趋势仍需量价与盈利验证。 《新一代通信网建设实施方案》提出万兆光网、新型光纤光缆及骨干网络建设，为直接光纤光缆公司提供需求背景；实际订单和盈利仍需公司披露验证。",
+        "model_priority": null,
+        "model_reason": null,
+        "research_quality_evidence": {
+          "status": "VERIFIED",
+          "asof_date": "2026-11-27",
+          "score": 78.75,
+          "source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
+          "components": {
+            "core_profit_yoy_pct": 130.3196,
+            "operating_cashflow_per_share": 0.3345,
+            "core_growth_component": 1.0,
+            "cashflow_component": 1.0,
+            "peer_percentiles": {
+              "10": 0.75,
+              "20": 0.75,
+              "60": 0.0
+            },
+            "negative_cashflow_penalty": 0.0,
+            "score_is_provisional_not_probability": true
+          },
+          "report_date": "2026-09-30",
+          "notice_date": "2026-10-24",
+          "update_date": "2026-10-24"
         },
-        "setup_stop_evidence": {
-          "source": "confirmed_breakout_boundary",
-          "anchor_price": 9.25,
-          "buffer_pct": 0.5,
-          "asof_date": "2026-11-26",
-          "confirmation": "same_day_completed_bar"
+        "trend_phase": "TRANSITION",
+        "phase_evidence": {
+          "return_3d_pct": 5.37,
+          "return_5d_pct": 9.27,
+          "previous_5d_return_pct": -13.55,
+          "positive_days_5d": 3,
+          "negative_days_5d": 2,
+          "up_day_volume_ratio_5d": 0.987,
+          "down_day_volume_ratio_5d": 0.858,
+          "volume_ratio_1d": 1.228,
+          "volume_ratio_5d": 0.936,
+          "close_location_pct": 100.0,
+          "close_location_3d_avg_pct": 50.99,
+          "max_close_drawdown_10d_pct": -14.86,
+          "prior_5d_high": 21.48,
+          "prior_20d_low": 18.56,
+          "recent_3d_low": 18.6,
+          "fresh_break": false,
+          "pullback_low_holds": true,
+          "weak_close_high_volume": false,
+          "signal_uses_completed_bars_only": true
+        },
+        "technical_context": {
+          "ma20": 21.368,
+          "ma60": 30.8973,
+          "support_invalidation": 20.33,
+          "breakout_level": null,
+          "prior_60d_high": 47.62,
+          "attention_resistance": {
+            "status": "VERIFIED",
+            "price": 21.48,
+            "date": "2026-11-24",
+            "source": "asof_180bar_confirmed_pivot",
+            "history_points": 180
+          },
+          "recent_acceptance": {
+            "pattern": "NO_RECENT_CLOSE_SUPPORT",
+            "support_close_band": null,
+            "support_dates": [],
+            "support_low": null,
+            "signal_day_low": 19.02,
+            "intraday_support_broken": null,
+            "lookback_trading_days": 3,
+            "data_date": "2026-11-27",
+            "observation_only": true
+          },
+          "first_effective_resistance": {
+            "date": "2026-11-24",
+            "price": 21.48
+          },
+          "distance_to_ma20_pct": -1.82,
+          "chase_risk": "low",
+          "volume_ratio_1d_vs_20d": 1.228,
+          "volume_ratio_5d_vs_20d": 0.936,
+          "relative_strength_20d_vs_market_pct": 1.32,
+          "ma20_slope_5d_pct": -5.23,
+          "close_location_pct": 100.0,
+          "higher_low": false,
+          "trend_phase": "TRANSITION",
+          "phase_evidence": {
+            "return_3d_pct": 5.37,
+            "return_5d_pct": 9.27,
+            "previous_5d_return_pct": -13.55,
+            "positive_days_5d": 3,
+            "negative_days_5d": 2,
+            "up_day_volume_ratio_5d": 0.987,
+            "down_day_volume_ratio_5d": 0.858,
+            "volume_ratio_1d": 1.228,
+            "volume_ratio_5d": 0.936,
+            "close_location_pct": 100.0,
+            "close_location_3d_avg_pct": 50.99,
+            "max_close_drawdown_10d_pct": -14.86,
+            "prior_5d_high": 21.48,
+            "prior_20d_low": 18.56,
+            "recent_3d_low": 18.6,
+            "fresh_break": false,
+            "pullback_low_holds": true,
+            "weak_close_high_volume": false,
+            "signal_uses_completed_bars_only": true
+          }
         }
       },
-      "watch_reference": null,
-      "conditional_plan": {
-        "setup_type": "BREAKOUT",
-        "entry_zone": [
-          9.268,
-          9.381
-        ],
-        "max_entry_price": 9.381,
-        "entry_trigger": "收盘确认突破已有压力位；如有效跌回本次突破价下方则本次交易假设失效",
-        "invalidation_price": 9.204,
-        "invalidation_rule": "本次突破价 9.25 元为交易失效边界；参考缓冲止损价 9.204 元，须事先明确收盘确认与跳空处置规则",
-        "initial_risk_pct": 1.89,
-        "upside_to_resistance_R": null,
-        "exit_plan": {
-          "failed_setup": "突破失败或回调未获确认则不入场；已入场后触及预先定义的结构失败条件退出",
-          "trend_weakening": "趋势与板块强度持续衰退时减少风险敞口；不得单凭单日回调强制清仓",
-          "profit_protection": "持仓后逐步上移结构保护位，结合新高、回调低点和风险预算分批退出",
-          "risk_gap": "跳空、涨跌停与成交滑点可能使真实亏损超过理论结构风险"
-        }
+      "watch_reference": {
+        "stage": "PRE_TREND_WATCH",
+        "setup_mode": "RECLAIM",
+        "conditional_trigger": "等待重新站稳均线并出现明确的回踩承接，再从该次形态计算失效位",
+        "reference_trigger_price": 30.897,
+        "reference_zone": null,
+        "invalidation_price": null,
+        "estimated_price_risk_pct": null,
+        "risk_threshold_pct": 8.0,
+        "price_basis": "同一已完成交易日观察触发价，非入场/持仓止损"
       },
-      "route": "RESEARCH_CONDITIONAL_ONLY"
+      "conditional_plan": null,
+      "route": "OBSERVE_ONLY"
     }
   ],
   "company_reviews": [
     {
-      "code": "601288",
+      "code": "600105",
       "transmission": "SUPPORTED",
-      "review_evidence_date": "2026-11-26",
-      "source_review": "本轮按冻结名单重新检索上交所/发行人公告、金融监管总局行业数据、东方财富研报索引，并核验同日冻结资金与财务更新。直接受益传导成立；盈利加速与价格延续较好，但20日资金仍为净流出，联合优势不及交通银行。",
-      "review_basis": "直接受益传导成立；盈利加速与价格延续较好，但20日资金仍为净流出，联合优势不及交通银行。",
+      "review_evidence_date": "2026-11-27",
+      "source_review": "本轮仅在同日Python冻结名单内重新核验公告、产业、预期、风险和冻结资金。核验到回购方案、专项贷款承诺函和新增回购账户；回购构成支持，但主营趋势仍需量价与盈利验证。 《新一代通信网建设实施方案》提出万兆光网、新型光纤光缆及骨干网络建设，为直接光纤光缆公司提供需求背景；实际订单和盈利仍需公司披露验证。",
+      "review_basis": "永鼎股份属于通信线缆及配套直接成员，主题传导成立；最终组内选择以趋势延续和同口径边际资金为优先，财务与外部材料作为支持及反证。",
       "source_materials": [
         {
-          "source_name": "上海证券交易所/发行人正式披露",
-          "title": "农业银行公告与2026年第三季度报告核验",
-          "url": "https://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=601288",
-          "published_at": "2026-10-31",
-          "data_window": "近20交易日公告及2026Q3",
-          "claim": "核验农业银行主营、三季报、资产质量及近期公告；截至本轮未发现足以否决银行直接受益传导的重大新增事项。",
-          "asof": "2026-11-26",
-          "code": "601288",
-          "industry_code": "S480201",
+          "source_name": "交易所/巨潮或公告备用入口",
+          "title": "永鼎股份近期公告核验",
+          "url": "https://www.cninfo.com.cn/new/fulltextSearch?keyWord=600105",
+          "published_at": "2026-11-27",
+          "data_window": "近5及近20交易日",
+          "claim": "核验到回购方案、专项贷款承诺函和新增回购账户；回购构成支持，但主营趋势仍需量价与盈利验证。",
+          "asof": "2026-11-27",
+          "code": "600105",
+          "industry_code": "S730205",
           "category": "B/E",
           "query_time_window": [
-            "2026-11-26T18:56:00+08:00",
-            "2026-11-26T18:59:00+08:00"
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
           ],
           "source_type": "PRIMARY"
         },
         {
-          "source_name": "国家金融监督管理总局",
-          "title": "2026年三季度银行业保险业主要监管指标数据情况",
-          "url": "https://www.nfra.gov.cn/cn/view/pages/ItemDetail.html?docId=1279786&itemId=915",
-          "published_at": "2026-11-20",
-          "data_window": "2026年三季度",
-          "claim": "大型商业银行资产同比增长8.5%；商业银行不良率1.54%，较上季上升0.02个百分点，行业扩表与资产质量压力并存。",
-          "asof": "2026-11-26",
-          "code": "601288",
-          "industry_code": "S480201",
+          "source_name": "中央网信办/三部门通信网方案",
+          "title": "新一代通信网建设实施方案",
+          "url": "https://www.cac.gov.cn/2026-11/26/c_1797453575920530.htm",
+          "published_at": "2026-11-26",
+          "data_window": "截至2026-11-27",
+          "claim": "《新一代通信网建设实施方案》提出万兆光网、新型光纤光缆及骨干网络建设，为直接光纤光缆公司提供需求背景；实际订单和盈利仍需公司披露验证。",
+          "asof": "2026-11-27",
+          "code": "600105",
+          "industry_code": "S730205",
           "category": "C/E",
           "query_time_window": [
-            "2026-11-26T18:56:00+08:00",
-            "2026-11-26T18:59:00+08:00"
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
           ],
-          "source_type": "PRIMARY"
+          "source_type": "PRIMARY_OR_AUTHORITY"
         },
         {
           "source_name": "东方财富研报/个股日历",
-          "title": "农业银行近期研报与事件检索",
-          "url": "https://data.eastmoney.com/report/zw_stock.jshtml?encodeUrl=MhEjV7Nop%2FR9Q77hB74iT3M8vo+KH8ZtdxG03XByKAM%3D",
-          "published_at": "2026-11-26",
-          "data_window": "截至2026-11-26可检索近期研报与事件",
-          "claim": "用于核验近期机构观点及预期变化；仅作为单家观点或检索结果，不冒充一致预期。",
-          "asof": "2026-11-26",
-          "code": "601288",
-          "industry_code": "S480201",
+          "title": "永鼎股份近期研报与预期检索",
+          "url": "https://data.eastmoney.com/report/zw_stock.jshtml?infocode=AP202609111829245327",
+          "published_at": "2026-11-27",
+          "data_window": "截至2026-11-27可检索材料",
+          "claim": "检索到较早半年报点评，未发现截至本日新的可验证一致预期上修。",
+          "asof": "2026-11-27",
+          "code": "600105",
+          "industry_code": "S730205",
           "category": "D",
           "query_time_window": [
-            "2026-11-26T18:56:00+08:00",
-            "2026-11-26T18:59:00+08:00"
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
           ],
           "source_type": "SECONDARY"
         }
       ],
-      "research_falsifier": "20日资金净占比-1.84%，价格创新高但中长窗口资金尚未同步；定增仍需后续注册/实施，不能视作已兑现催化。",
-      "evidence_gap": "未发现可核验的全市场一致盈利预期修正；机构观点只按单家材料记录。资金为供应商成交分类估算，不能证明机构身份。"
+      "research_falsifier": "10/20日资金仍略为负，回购与专项贷款是支持而非经营兑现；若不能越过21.48，修复可能失败",
+      "evidence_gap": "相邻单季扣非利润同比并非全部候选均可从同口径公开材料可靠还原，缺项已记UNKNOWN；资金为供应商成交分类估算，不能证明机构身份；无可靠一致预期时未作推断。"
     },
     {
-      "code": "601328",
+      "code": "600487",
       "transmission": "SUPPORTED",
-      "review_evidence_date": "2026-11-26",
-      "source_review": "本轮按冻结名单重新检索上交所/发行人公告、金融监管总局行业数据、东方财富研报索引，并核验同日冻结资金与财务更新。直接受益传导成立；趋势结构完整，5/10/20日资金持续性组内最强，且Q3单季扣非利润加速，形成趋势与资金联合优势。",
-      "review_basis": "直接受益传导成立；趋势结构完整，5/10/20日资金持续性组内最强，且Q3单季扣非利润加速，形成趋势与资金联合优势。",
+      "review_evidence_date": "2026-11-27",
+      "source_review": "本轮仅在同日Python冻结名单内重新核验公告、产业、预期、风险和冻结资金。核验到控股股东增持、公司首次回购及产业基金事项；资本动作支持信心，但不能代替经营现金流和订单兑现。 《新一代通信网建设实施方案》提出万兆光网、新型光纤光缆及骨干网络建设，为直接光纤光缆公司提供需求背景；实际订单和盈利仍需公司披露验证。",
+      "review_basis": "亨通光电属于通信线缆及配套直接成员，主题传导成立；最终组内选择以趋势延续和同口径边际资金为优先，财务与外部材料作为支持及反证。",
       "source_materials": [
         {
-          "source_name": "上海证券交易所/发行人正式披露",
-          "title": "交通银行公告与2026年第三季度报告核验",
-          "url": "https://www.sse.com.cn/assortment/stock/list/info/announcement/index.shtml?productId=601328",
-          "published_at": "2026-10-31",
-          "data_window": "近20交易日公告及2026Q3",
-          "claim": "核验交通银行主营、三季报、资产质量及近期公告；截至本轮未发现足以否决银行直接受益传导的重大新增事项。",
-          "asof": "2026-11-26",
-          "code": "601328",
-          "industry_code": "S480201",
+          "source_name": "交易所/巨潮或公告备用入口",
+          "title": "亨通光电近期公告核验",
+          "url": "https://www.cninfo.com.cn/new/disclosure/stock?orgId=gssh0600487&stockCode=600487",
+          "published_at": "2026-11-27",
+          "data_window": "近5及近20交易日",
+          "claim": "核验到控股股东增持、公司首次回购及产业基金事项；资本动作支持信心，但不能代替经营现金流和订单兑现。",
+          "asof": "2026-11-27",
+          "code": "600487",
+          "industry_code": "S730205",
           "category": "B/E",
           "query_time_window": [
-            "2026-11-26T18:56:00+08:00",
-            "2026-11-26T18:59:00+08:00"
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
           ],
           "source_type": "PRIMARY"
         },
         {
-          "source_name": "国家金融监督管理总局",
-          "title": "2026年三季度银行业保险业主要监管指标数据情况",
-          "url": "https://www.nfra.gov.cn/cn/view/pages/ItemDetail.html?docId=1279786&itemId=915",
-          "published_at": "2026-11-20",
-          "data_window": "2026年三季度",
-          "claim": "大型商业银行资产同比增长8.5%；商业银行不良率1.54%，较上季上升0.02个百分点，行业扩表与资产质量压力并存。",
-          "asof": "2026-11-26",
-          "code": "601328",
-          "industry_code": "S480201",
+          "source_name": "中央网信办/三部门通信网方案",
+          "title": "新一代通信网建设实施方案",
+          "url": "https://www.cac.gov.cn/2026-11/26/c_1797453575920530.htm",
+          "published_at": "2026-11-26",
+          "data_window": "截至2026-11-27",
+          "claim": "《新一代通信网建设实施方案》提出万兆光网、新型光纤光缆及骨干网络建设，为直接光纤光缆公司提供需求背景；实际订单和盈利仍需公司披露验证。",
+          "asof": "2026-11-27",
+          "code": "600487",
+          "industry_code": "S730205",
           "category": "C/E",
           "query_time_window": [
-            "2026-11-26T18:56:00+08:00",
-            "2026-11-26T18:59:00+08:00"
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
           ],
-          "source_type": "PRIMARY"
+          "source_type": "PRIMARY_OR_AUTHORITY"
         },
         {
           "source_name": "东方财富研报/个股日历",
-          "title": "交通银行近期研报与事件检索",
-          "url": "https://data.eastmoney.com/report/601328.html",
-          "published_at": "2026-11-26",
-          "data_window": "截至2026-11-26可检索近期研报与事件",
-          "claim": "用于核验近期机构观点及预期变化；仅作为单家观点或检索结果，不冒充一致预期。",
-          "asof": "2026-11-26",
-          "code": "601328",
-          "industry_code": "S480201",
+          "title": "亨通光电近期研报与预期检索",
+          "url": "https://data.eastmoney.com/report/zw_stock.jshtml?infocode=AP202610291831149307",
+          "published_at": "2026-11-27",
+          "data_window": "截至2026-11-27可检索材料",
+          "claim": "三季报后单家报告确认利润高增及光通信布局；不是全市场一致预期，不能单独决胜。",
+          "asof": "2026-11-27",
+          "code": "600487",
+          "industry_code": "S730205",
           "category": "D",
           "query_time_window": [
-            "2026-11-26T18:56:00+08:00",
-            "2026-11-26T18:59:00+08:00"
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
           ],
           "source_type": "SECONDARY"
         }
       ],
-      "research_falsifier": "若下一交易日之前出现重大未披露风险，或独立Python确认突破失败、风险超过6%或上方阻力不足1.5R，则不得执行；后续趋势与资金同时转弱则研究选择失效。",
-      "evidence_gap": "未发现可核验的全市场一致盈利预期修正；机构观点只按单家材料记录。资金为供应商成交分类估算，不能证明机构身份。"
+      "research_falsifier": "1日资金很强但10/20日仍显著净流出，趋势与资金尚未形成多周期一致",
+      "evidence_gap": "相邻单季扣非利润同比并非全部候选均可从同口径公开材料可靠还原，缺项已记UNKNOWN；资金为供应商成交分类估算，不能证明机构身份；无可靠一致预期时未作推断。"
     },
     {
-      "code": "601939",
+      "code": "601869",
       "transmission": "SUPPORTED",
-      "review_evidence_date": "2026-11-26",
-      "source_review": "本轮按冻结名单重新检索上交所/发行人公告、金融监管总局行业数据、东方财富研报索引，并核验同日冻结资金与财务更新。直接受益传导成立；盈利与资产质量稳健，但5/10/20日资金为负且临近历史阻力，短期联合优势不足。",
-      "review_basis": "直接受益传导成立；盈利与资产质量稳健，但5/10/20日资金为负且临近历史阻力，短期联合优势不足。",
+      "review_evidence_date": "2026-11-27",
+      "source_review": "本轮仅在同日Python冻结名单内重新核验公告、产业、预期、风险和冻结资金。近20交易日以三季报、关联交易额度与权益分派为主；未发现近5交易日新增重大订单公告。 《新一代通信网建设实施方案》提出万兆光网、新型光纤光缆及骨干网络建设，为直接光纤光缆公司提供需求背景；实际订单和盈利仍需公司披露验证。",
+      "review_basis": "长飞光纤属于通信线缆及配套直接成员，主题传导成立；最终组内选择以趋势延续和同口径边际资金为优先，财务与外部材料作为支持及反证。",
       "source_materials": [
         {
-          "source_name": "上海证券交易所/发行人正式披露",
-          "title": "建设银行公告与2026年第三季度报告核验",
-          "url": "https://big5.sse.com.cn/site/cht/www.sse.com.cn/disclosure/listedinfo/announcement/c/new/2026-10-31/601939_20261031_QQQA.pdf",
-          "published_at": "2026-10-31",
-          "data_window": "近20交易日公告及2026Q3",
-          "claim": "核验建设银行主营、三季报、资产质量及近期公告；截至本轮未发现足以否决银行直接受益传导的重大新增事项。",
-          "asof": "2026-11-26",
-          "code": "601939",
-          "industry_code": "S480201",
+          "source_name": "交易所/巨潮或公告备用入口",
+          "title": "长飞光纤近期公告核验",
+          "url": "https://www.sse.com.cn/assortment/stock/list/info/announcement/index.shtml?productId=601869",
+          "published_at": "2026-11-27",
+          "data_window": "近5及近20交易日",
+          "claim": "近20交易日以三季报、关联交易额度与权益分派为主；未发现近5交易日新增重大订单公告。",
+          "asof": "2026-11-27",
+          "code": "601869",
+          "industry_code": "S730205",
           "category": "B/E",
           "query_time_window": [
-            "2026-11-26T18:56:00+08:00",
-            "2026-11-26T18:59:00+08:00"
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
           ],
           "source_type": "PRIMARY"
         },
         {
-          "source_name": "国家金融监督管理总局",
-          "title": "2026年三季度银行业保险业主要监管指标数据情况",
-          "url": "https://www.nfra.gov.cn/cn/view/pages/ItemDetail.html?docId=1279786&itemId=915",
-          "published_at": "2026-11-20",
-          "data_window": "2026年三季度",
-          "claim": "大型商业银行资产同比增长8.5%；商业银行不良率1.54%，较上季上升0.02个百分点，行业扩表与资产质量压力并存。",
-          "asof": "2026-11-26",
-          "code": "601939",
-          "industry_code": "S480201",
+          "source_name": "中央网信办/三部门通信网方案",
+          "title": "新一代通信网建设实施方案",
+          "url": "https://www.cac.gov.cn/2026-11/26/c_1797453575920530.htm",
+          "published_at": "2026-11-26",
+          "data_window": "截至2026-11-27",
+          "claim": "《新一代通信网建设实施方案》提出万兆光网、新型光纤光缆及骨干网络建设，为直接光纤光缆公司提供需求背景；实际订单和盈利仍需公司披露验证。",
+          "asof": "2026-11-27",
+          "code": "601869",
+          "industry_code": "S730205",
           "category": "C/E",
           "query_time_window": [
-            "2026-11-26T18:56:00+08:00",
-            "2026-11-26T18:59:00+08:00"
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
           ],
-          "source_type": "PRIMARY"
+          "source_type": "PRIMARY_OR_AUTHORITY"
         },
         {
           "source_name": "东方财富研报/个股日历",
-          "title": "建设银行近期研报与事件检索",
-          "url": "https://data.eastmoney.com/stockcalendar/601939.html",
-          "published_at": "2026-11-26",
-          "data_window": "截至2026-11-26可检索近期研报与事件",
-          "claim": "用于核验近期机构观点及预期变化；仅作为单家观点或检索结果，不冒充一致预期。",
-          "asof": "2026-11-26",
-          "code": "601939",
-          "industry_code": "S480201",
+          "title": "长飞光纤近期研报与预期检索",
+          "url": "https://data.eastmoney.com/report/info/AP202609271829936260.html",
+          "published_at": "2026-11-27",
+          "data_window": "截至2026-11-27可检索材料",
+          "claim": "检索到基于半年报的单家报告，确认AI光纤需求与产品进展；未发现截至本日新的可验证一致预期调整。",
+          "asof": "2026-11-27",
+          "code": "601869",
+          "industry_code": "S730205",
           "category": "D",
           "query_time_window": [
-            "2026-11-26T18:56:00+08:00",
-            "2026-11-26T18:59:00+08:00"
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
           ],
           "source_type": "SECONDARY"
         }
       ],
-      "research_falsifier": "5/10/20日资金净占比均为负，价格贴近12.78阻力，资金与趋势尚未形成联合优势。",
-      "evidence_gap": "未发现可核验的全市场一致盈利预期修正；机构观点只按单家材料记录。资金为供应商成交分类估算，不能证明机构身份。"
+      "research_falsifier": "20日价格仍大幅回撤，10日资金为负，单日涨停不能证明趋势已经反转",
+      "evidence_gap": "相邻单季扣非利润同比并非全部候选均可从同口径公开材料可靠还原，缺项已记UNKNOWN；资金为供应商成交分类估算，不能证明机构身份；无可靠一致预期时未作推断。"
     },
     {
-      "code": "601398",
+      "code": "603386",
       "transmission": "SUPPORTED",
-      "review_evidence_date": "2026-11-26",
-      "source_review": "本轮按冻结名单重新检索上交所/发行人公告、金融监管总局行业数据、东方财富研报索引，并核验同日冻结资金与财务更新。直接受益传导成立；中长资金为正且盈利加速，但5日价格回撤、上方阻力仍在，趋势延续弱于交通银行。",
-      "review_basis": "直接受益传导成立；中长资金为正且盈利加速，但5日价格回撤、上方阻力仍在，趋势延续弱于交通银行。",
+      "review_evidence_date": "2026-11-27",
+      "source_review": "本轮仅在同日Python冻结名单内重新核验公告、产业、预期、风险和冻结资金。近20交易日核验到对子公司增资公告；未发现可验证的新增大额订单，低基数高增需谨慎解释。 AI算力相关高端PCB订单和材料供给仍紧张，但需求集中于高多层、高阶HDI等高端品类，不能自动外推到全部PCB公司。",
+      "review_basis": "骏亚科技属于印制电路板直接成员，主题传导成立；最终组内选择以趋势延续和同口径边际资金为优先，财务与外部材料作为支持及反证。",
       "source_materials": [
         {
-          "source_name": "上海证券交易所/发行人正式披露",
-          "title": "工商银行公告与2026年第三季度报告核验",
-          "url": "https://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=601398",
-          "published_at": "2026-10-31",
-          "data_window": "近20交易日公告及2026Q3",
-          "claim": "核验工商银行主营、三季报、资产质量及近期公告；截至本轮未发现足以否决银行直接受益传导的重大新增事项。",
-          "asof": "2026-11-26",
-          "code": "601398",
-          "industry_code": "S480201",
+          "source_name": "交易所/巨潮或公告备用入口",
+          "title": "骏亚科技近期公告核验",
+          "url": "https://www.cninfo.com.cn/new/disclosure/stock?orgId=9900033000&stockCode=603386",
+          "published_at": "2026-11-27",
+          "data_window": "近5及近20交易日",
+          "claim": "近20交易日核验到对子公司增资公告；未发现可验证的新增大额订单，低基数高增需谨慎解释。",
+          "asof": "2026-11-27",
+          "code": "603386",
+          "industry_code": "S270202",
           "category": "B/E",
           "query_time_window": [
-            "2026-11-26T18:56:00+08:00",
-            "2026-11-26T18:59:00+08:00"
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
           ],
           "source_type": "PRIMARY"
         },
         {
-          "source_name": "国家金融监督管理总局",
-          "title": "2026年三季度银行业保险业主要监管指标数据情况",
-          "url": "https://www.nfra.gov.cn/cn/view/pages/ItemDetail.html?docId=1279786&itemId=915",
-          "published_at": "2026-11-20",
-          "data_window": "2026年三季度",
-          "claim": "大型商业银行资产同比增长8.5%；商业银行不良率1.54%，较上季上升0.02个百分点，行业扩表与资产质量压力并存。",
-          "asof": "2026-11-26",
-          "code": "601398",
-          "industry_code": "S480201",
+          "source_name": "湖南省工业和信息化厅转载产业信息",
+          "title": "AI算力拉动PCB订单与高端产能",
+          "url": "https://gxt.hunan.gov.cn/gxt/xxgk_71033/gzdt/rdjj/202611/t20261111_34099794.html",
+          "published_at": "2026-11-11",
+          "data_window": "截至2026-11-27",
+          "claim": "AI算力相关高端PCB订单和材料供给仍紧张，但需求集中于高多层、高阶HDI等高端品类，不能自动外推到全部PCB公司。",
+          "asof": "2026-11-27",
+          "code": "603386",
+          "industry_code": "S270202",
           "category": "C/E",
           "query_time_window": [
-            "2026-11-26T18:56:00+08:00",
-            "2026-11-26T18:59:00+08:00"
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
           ],
-          "source_type": "PRIMARY"
+          "source_type": "PRIMARY_OR_AUTHORITY"
         },
         {
           "source_name": "东方财富研报/个股日历",
-          "title": "工商银行近期研报与事件检索",
-          "url": "https://data.eastmoney.com/stockcalendar/601398.html",
-          "published_at": "2026-11-26",
-          "data_window": "截至2026-11-26可检索近期研报与事件",
-          "claim": "用于核验近期机构观点及预期变化；仅作为单家观点或检索结果，不冒充一致预期。",
-          "asof": "2026-11-26",
-          "code": "601398",
-          "industry_code": "S480201",
+          "title": "骏亚科技近期研报与预期检索",
+          "url": "https://data.eastmoney.com/stockcalendar/603386.html",
+          "published_at": "2026-11-27",
+          "data_window": "截至2026-11-27可检索材料",
+          "claim": "检索近期研报与事件，未取得可信的新增定量一致预期，记UNKNOWN而非利空。",
+          "asof": "2026-11-27",
+          "code": "603386",
+          "industry_code": "S270202",
           "category": "D",
           "query_time_window": [
-            "2026-11-26T18:56:00+08:00",
-            "2026-11-26T18:59:00+08:00"
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
           ],
           "source_type": "SECONDARY"
         }
       ],
-      "research_falsifier": "虽10/20日资金为正，但5日价格为负、仍受9.49阻力约束；短期承接弱于交通银行。",
-      "evidence_gap": "未发现可核验的全市场一致盈利预期修正；机构观点只按单家材料记录。资金为供应商成交分类估算，不能证明机构身份。"
+      "research_falsifier": "高增速存在低基数解释，PE_TTM约105倍且价格靠近MA60压力",
+      "evidence_gap": "相邻单季扣非利润同比并非全部候选均可从同口径公开材料可靠还原，缺项已记UNKNOWN；资金为供应商成交分类估算，不能证明机构身份；无可靠一致预期时未作推断。"
     },
     {
-      "code": "601658",
+      "code": "603920",
       "transmission": "SUPPORTED",
-      "review_evidence_date": "2026-11-26",
-      "source_review": "本轮按冻结名单重新检索上交所/发行人公告、金融监管总局行业数据、东方财富研报索引，并核验同日冻结资金与财务更新。直接受益传导成立；价格仍在高位且资产质量较好，但资金强度和单季盈利增速均落后，未形成组内领先。",
-      "review_basis": "直接受益传导成立；价格仍在高位且资产质量较好，但资金强度和单季盈利增速均落后，未形成组内领先。",
+      "review_evidence_date": "2026-11-27",
+      "source_review": "本轮仅在同日Python冻结名单内重新核验公告、产业、预期、风险和冻结资金。近20交易日核验到回购方案、专项贷款及异常波动公告；回购提供支持，但三季累计利润下滑是主要反证。 AI算力相关高端PCB订单和材料供给仍紧张，但需求集中于高多层、高阶HDI等高端品类，不能自动外推到全部PCB公司。",
+      "review_basis": "世运电路属于印制电路板直接成员，主题传导成立；最终组内选择以趋势延续和同口径边际资金为优先，财务与外部材料作为支持及反证。",
       "source_materials": [
         {
-          "source_name": "上海证券交易所/发行人正式披露",
-          "title": "邮储银行公告与2026年第三季度报告核验",
-          "url": "https://big5.sse.com.cn/site/cht/www.sse.com.cn/disclosure/listedinfo/announcement/c/new/2026-10-31/601658_20261031_VL8T.pdf",
-          "published_at": "2026-10-31",
-          "data_window": "近20交易日公告及2026Q3",
-          "claim": "核验邮储银行主营、三季报、资产质量及近期公告；截至本轮未发现足以否决银行直接受益传导的重大新增事项。",
-          "asof": "2026-11-26",
-          "code": "601658",
-          "industry_code": "S480201",
+          "source_name": "交易所/巨潮或公告备用入口",
+          "title": "世运电路近期公告核验",
+          "url": "https://www.sse.com.cn/assortment/stock/list/info/announcement/index.shtml?productId=603920",
+          "published_at": "2026-11-27",
+          "data_window": "近5及近20交易日",
+          "claim": "近20交易日核验到回购方案、专项贷款及异常波动公告；回购提供支持，但三季累计利润下滑是主要反证。",
+          "asof": "2026-11-27",
+          "code": "603920",
+          "industry_code": "S270202",
           "category": "B/E",
           "query_time_window": [
-            "2026-11-26T18:56:00+08:00",
-            "2026-11-26T18:59:00+08:00"
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
           ],
           "source_type": "PRIMARY"
         },
         {
-          "source_name": "国家金融监督管理总局",
-          "title": "2026年三季度银行业保险业主要监管指标数据情况",
-          "url": "https://www.nfra.gov.cn/cn/view/pages/ItemDetail.html?docId=1279786&itemId=915",
-          "published_at": "2026-11-20",
-          "data_window": "2026年三季度",
-          "claim": "大型商业银行资产同比增长8.5%；商业银行不良率1.54%，较上季上升0.02个百分点，行业扩表与资产质量压力并存。",
-          "asof": "2026-11-26",
-          "code": "601658",
-          "industry_code": "S480201",
+          "source_name": "湖南省工业和信息化厅转载产业信息",
+          "title": "AI算力拉动PCB订单与高端产能",
+          "url": "https://gxt.hunan.gov.cn/gxt/xxgk_71033/gzdt/rdjj/202611/t20261111_34099794.html",
+          "published_at": "2026-11-11",
+          "data_window": "截至2026-11-27",
+          "claim": "AI算力相关高端PCB订单和材料供给仍紧张，但需求集中于高多层、高阶HDI等高端品类，不能自动外推到全部PCB公司。",
+          "asof": "2026-11-27",
+          "code": "603920",
+          "industry_code": "S270202",
           "category": "C/E",
           "query_time_window": [
-            "2026-11-26T18:56:00+08:00",
-            "2026-11-26T18:59:00+08:00"
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
           ],
-          "source_type": "PRIMARY"
+          "source_type": "PRIMARY_OR_AUTHORITY"
         },
         {
           "source_name": "东方财富研报/个股日历",
-          "title": "邮储银行近期研报与事件检索",
-          "url": "https://data.eastmoney.com/stockcalendar/601658.html",
-          "published_at": "2026-11-26",
-          "data_window": "截至2026-11-26可检索近期研报与事件",
-          "claim": "用于核验近期机构观点及预期变化；仅作为单家观点或检索结果，不冒充一致预期。",
-          "asof": "2026-11-26",
-          "code": "601658",
-          "industry_code": "S480201",
+          "title": "世运电路近期研报与预期检索",
+          "url": "https://data.eastmoney.com/report/info/AP202604291821729170.html",
+          "published_at": "2026-11-27",
+          "data_window": "截至2026-11-27可检索材料",
+          "claim": "检索到较早单家报告讨论汽车电子、AI与储能产能，未取得截至11月27日可交叉验证的一致预期更新。",
+          "asof": "2026-11-27",
+          "code": "603920",
+          "industry_code": "S270202",
           "category": "D",
           "query_time_window": [
-            "2026-11-26T18:56:00+08:00",
-            "2026-11-26T18:59:00+08:00"
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
           ],
           "source_type": "SECONDARY"
         }
       ],
-      "research_falsifier": "1日和5日资金净占比仅0.72%和0.57%，10日为负；盈利改善幅度和资金选择均不足以压过交行。",
-      "evidence_gap": "未发现可核验的全市场一致盈利预期修正；机构观点只按单家材料记录。资金为供应商成交分类估算，不能证明机构身份。"
+      "research_falsifier": "累计利润仍明显下滑，且价格已贴近短期阻力；回购是支持因素但不能替代经营兑现",
+      "evidence_gap": "相邻单季扣非利润同比并非全部候选均可从同口径公开材料可靠还原，缺项已记UNKNOWN；资金为供应商成交分类估算，不能证明机构身份；无可靠一致预期时未作推断。"
+    },
+    {
+      "code": "000823",
+      "transmission": "SUPPORTED",
+      "review_evidence_date": "2026-11-27",
+      "source_review": "本轮仅在同日Python冻结名单内重新核验公告、产业、预期、风险和冻结资金。近20交易日未见改变主营传导的重大正式公告；互动信息显示PCB可配套算力硬件，但互动表述不等同已形成大额订单。 AI算力相关高端PCB订单和材料供给仍紧张，但需求集中于高多层、高阶HDI等高端品类，不能自动外推到全部PCB公司。",
+      "review_basis": "超声电子属于印制电路板直接成员，主题传导成立；最终组内选择以趋势延续和同口径边际资金为优先，财务与外部材料作为支持及反证。",
+      "source_materials": [
+        {
+          "source_name": "交易所/巨潮或公告备用入口",
+          "title": "超声电子近期公告核验",
+          "url": "https://money.finance.sina.com.cn/corp/go.php/vCB_AllBulletin/stockid/000823.phtml",
+          "published_at": "2026-11-27",
+          "data_window": "近5及近20交易日",
+          "claim": "近20交易日未见改变主营传导的重大正式公告；互动信息显示PCB可配套算力硬件，但互动表述不等同已形成大额订单。",
+          "asof": "2026-11-27",
+          "code": "000823",
+          "industry_code": "S270202",
+          "category": "B/E",
+          "query_time_window": [
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
+          ],
+          "source_type": "SECONDARY_FALLBACK"
+        },
+        {
+          "source_name": "湖南省工业和信息化厅转载产业信息",
+          "title": "AI算力拉动PCB订单与高端产能",
+          "url": "https://gxt.hunan.gov.cn/gxt/xxgk_71033/gzdt/rdjj/202611/t20261111_34099794.html",
+          "published_at": "2026-11-11",
+          "data_window": "截至2026-11-27",
+          "claim": "AI算力相关高端PCB订单和材料供给仍紧张，但需求集中于高多层、高阶HDI等高端品类，不能自动外推到全部PCB公司。",
+          "asof": "2026-11-27",
+          "code": "000823",
+          "industry_code": "S270202",
+          "category": "C/E",
+          "query_time_window": [
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
+          ],
+          "source_type": "PRIMARY_OR_AUTHORITY"
+        },
+        {
+          "source_name": "东方财富研报/个股日历",
+          "title": "超声电子近期研报与预期检索",
+          "url": "https://data.eastmoney.com/stockcalendar/000823.html",
+          "published_at": "2026-11-27",
+          "data_window": "截至2026-11-27可检索材料",
+          "claim": "检索到算力相关讨论，但未取得可交叉验证的新增一致盈利预期；不以题材热度代替订单。",
+          "asof": "2026-11-27",
+          "code": "000823",
+          "industry_code": "S270202",
+          "category": "D",
+          "query_time_window": [
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
+          ],
+          "source_type": "SECONDARY"
+        }
+      ],
+      "research_falsifier": "价格20日涨幅组内最高但1/5日资金为负，形成明显价资背离并存在追高风险",
+      "evidence_gap": "相邻单季扣非利润同比并非全部候选均可从同口径公开材料可靠还原，缺项已记UNKNOWN；资金为供应商成交分类估算，不能证明机构身份；无可靠一致预期时未作推断。"
+    },
+    {
+      "code": "002913",
+      "transmission": "SUPPORTED",
+      "review_evidence_date": "2026-11-27",
+      "source_review": "本轮仅在同日Python冻结名单内重新核验公告、产业、预期、风险和冻结资金。近20交易日以临时股东会事项为主；未发现足以改变当日比较的新订单公告。 AI算力相关高端PCB订单和材料供给仍紧张，但需求集中于高多层、高阶HDI等高端品类，不能自动外推到全部PCB公司。",
+      "review_basis": "奥士康属于印制电路板直接成员，主题传导成立；最终组内选择以趋势延续和同口径边际资金为优先，财务与外部材料作为支持及反证。",
+      "source_materials": [
+        {
+          "source_name": "交易所/巨潮或公告备用入口",
+          "title": "奥士康近期公告核验",
+          "url": "https://www.cninfo.com.cn/new/commonUrl/pageOfSearch?code=002913&url=disclosure%2Flist%2Fsearch",
+          "published_at": "2026-11-27",
+          "data_window": "近5及近20交易日",
+          "claim": "近20交易日以临时股东会事项为主；未发现足以改变当日比较的新订单公告。",
+          "asof": "2026-11-27",
+          "code": "002913",
+          "industry_code": "S270202",
+          "category": "B/E",
+          "query_time_window": [
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
+          ],
+          "source_type": "PRIMARY"
+        },
+        {
+          "source_name": "湖南省工业和信息化厅转载产业信息",
+          "title": "AI算力拉动PCB订单与高端产能",
+          "url": "https://gxt.hunan.gov.cn/gxt/xxgk_71033/gzdt/rdjj/202611/t20261111_34099794.html",
+          "published_at": "2026-11-11",
+          "data_window": "截至2026-11-27",
+          "claim": "AI算力相关高端PCB订单和材料供给仍紧张，但需求集中于高多层、高阶HDI等高端品类，不能自动外推到全部PCB公司。",
+          "asof": "2026-11-27",
+          "code": "002913",
+          "industry_code": "S270202",
+          "category": "C/E",
+          "query_time_window": [
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
+          ],
+          "source_type": "PRIMARY_OR_AUTHORITY"
+        },
+        {
+          "source_name": "东方财富研报/个股日历",
+          "title": "奥士康近期研报与预期检索",
+          "url": "https://data.eastmoney.com/report/info/AP202611101831585103.html",
+          "published_at": "2026-11-27",
+          "data_window": "截至2026-11-27可检索材料",
+          "claim": "11月10日单家报告维持增长预测，属于单家观点；同时历史公告曾提示部分海外客户仍处送样/认证阶段。",
+          "asof": "2026-11-27",
+          "code": "002913",
+          "industry_code": "S270202",
+          "category": "D",
+          "query_time_window": [
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
+          ],
+          "source_type": "SECONDARY"
+        }
+      ],
+      "research_falsifier": "价格距MA20较远且接近71.79阻力；客户认证、海外产能与扩产兑现仍有不确定性",
+      "evidence_gap": "相邻单季扣非利润同比并非全部候选均可从同口径公开材料可靠还原，缺项已记UNKNOWN；资金为供应商成交分类估算，不能证明机构身份；无可靠一致预期时未作推断。"
+    },
+    {
+      "code": "002815",
+      "transmission": "SUPPORTED",
+      "review_evidence_date": "2026-11-27",
+      "source_review": "本轮仅在同日Python冻结名单内重新核验公告、产业、预期、风险和冻结资金。近5交易日公告主要涉及董秘、治理制度及限制性股票回购注销，未形成新增经营催化。 AI算力相关高端PCB订单和材料供给仍紧张，但需求集中于高多层、高阶HDI等高端品类，不能自动外推到全部PCB公司。",
+      "review_basis": "崇达技术属于印制电路板直接成员，主题传导成立；最终组内选择以趋势延续和同口径边际资金为优先，财务与外部材料作为支持及反证。",
+      "source_materials": [
+        {
+          "source_name": "交易所/巨潮或公告备用入口",
+          "title": "崇达技术近期公告核验",
+          "url": "https://www.cninfo.com.cn/new/commonUrl/pageOfSearch?code=002815&url=disclosure%2Flist%2Fsearch",
+          "published_at": "2026-11-27",
+          "data_window": "近5及近20交易日",
+          "claim": "近5交易日公告主要涉及董秘、治理制度及限制性股票回购注销，未形成新增经营催化。",
+          "asof": "2026-11-27",
+          "code": "002815",
+          "industry_code": "S270202",
+          "category": "B/E",
+          "query_time_window": [
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
+          ],
+          "source_type": "PRIMARY"
+        },
+        {
+          "source_name": "湖南省工业和信息化厅转载产业信息",
+          "title": "AI算力拉动PCB订单与高端产能",
+          "url": "https://gxt.hunan.gov.cn/gxt/xxgk_71033/gzdt/rdjj/202611/t20261111_34099794.html",
+          "published_at": "2026-11-11",
+          "data_window": "截至2026-11-27",
+          "claim": "AI算力相关高端PCB订单和材料供给仍紧张，但需求集中于高多层、高阶HDI等高端品类，不能自动外推到全部PCB公司。",
+          "asof": "2026-11-27",
+          "code": "002815",
+          "industry_code": "S270202",
+          "category": "C/E",
+          "query_time_window": [
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
+          ],
+          "source_type": "PRIMARY_OR_AUTHORITY"
+        },
+        {
+          "source_name": "东方财富研报/个股日历",
+          "title": "崇达技术近期研报与预期检索",
+          "url": "https://data.eastmoney.com/stockcalendar/002815.html",
+          "published_at": "2026-11-27",
+          "data_window": "截至2026-11-27可检索材料",
+          "claim": "检索近期研报与事件，未取得可交叉验证的一致预期上修；公司此前披露部分基地盈利承压。",
+          "asof": "2026-11-27",
+          "code": "002815",
+          "industry_code": "S270202",
+          "category": "D",
+          "query_time_window": [
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
+          ],
+          "source_type": "SECONDARY"
+        }
+      ],
+      "research_falsifier": "程序结构仍偏弱，珠海基地此前盈利承压，最新上涨尚不足以证明中期结构修复完成",
+      "evidence_gap": "相邻单季扣非利润同比并非全部候选均可从同口径公开材料可靠还原，缺项已记UNKNOWN；资金为供应商成交分类估算，不能证明机构身份；无可靠一致预期时未作推断。"
+    },
+    {
+      "code": "000070",
+      "transmission": "SUPPORTED",
+      "review_evidence_date": "2026-11-27",
+      "source_review": "本轮仅在同日Python冻结名单内重新核验公告、产业、预期、风险和冻结资金。核验到对子公司增资及投资者接待记录；增资用途与未来盈利兑现仍需跟踪。 《新一代通信网建设实施方案》提出万兆光网、新型光纤光缆及骨干网络建设，为直接光纤光缆公司提供需求背景；实际订单和盈利仍需公司披露验证。",
+      "review_basis": "特发信息属于通信线缆及配套直接成员，主题传导成立；最终组内选择以趋势延续和同口径边际资金为优先，财务与外部材料作为支持及反证。",
+      "source_materials": [
+        {
+          "source_name": "交易所/巨潮或公告备用入口",
+          "title": "特发信息近期公告核验",
+          "url": "https://money.finance.sina.com.cn/corp/go.php/vCB_AllBulletin/stockid/000070.phtml?ftype=0",
+          "published_at": "2026-11-27",
+          "data_window": "近5及近20交易日",
+          "claim": "核验到对子公司增资及投资者接待记录；增资用途与未来盈利兑现仍需跟踪。",
+          "asof": "2026-11-27",
+          "code": "000070",
+          "industry_code": "S730205",
+          "category": "B/E",
+          "query_time_window": [
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
+          ],
+          "source_type": "SECONDARY_FALLBACK"
+        },
+        {
+          "source_name": "中央网信办/三部门通信网方案",
+          "title": "新一代通信网建设实施方案",
+          "url": "https://www.cac.gov.cn/2026-11/26/c_1797453575920530.htm",
+          "published_at": "2026-11-26",
+          "data_window": "截至2026-11-27",
+          "claim": "《新一代通信网建设实施方案》提出万兆光网、新型光纤光缆及骨干网络建设，为直接光纤光缆公司提供需求背景；实际订单和盈利仍需公司披露验证。",
+          "asof": "2026-11-27",
+          "code": "000070",
+          "industry_code": "S730205",
+          "category": "C/E",
+          "query_time_window": [
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
+          ],
+          "source_type": "PRIMARY_OR_AUTHORITY"
+        },
+        {
+          "source_name": "东方财富研报/个股日历",
+          "title": "特发信息近期研报与预期检索",
+          "url": "https://data.eastmoney.com/report/stock/",
+          "published_at": "2026-11-27",
+          "data_window": "截至2026-11-27可检索材料",
+          "claim": "未检索到可核验的近期定量一致预期，记UNKNOWN，不编造目标价。",
+          "asof": "2026-11-27",
+          "code": "000070",
+          "industry_code": "S730205",
+          "category": "D",
+          "query_time_window": [
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
+          ],
+          "source_type": "SECONDARY"
+        }
+      ],
+      "research_falsifier": "5/10/20日资金均为负，近期子公司增资尚不等于利润兑现",
+      "evidence_gap": "相邻单季扣非利润同比并非全部候选均可从同口径公开材料可靠还原，缺项已记UNKNOWN；资金为供应商成交分类估算，不能证明机构身份；无可靠一致预期时未作推断。"
+    },
+    {
+      "code": "002491",
+      "transmission": "SUPPORTED",
+      "review_evidence_date": "2026-11-27",
+      "source_review": "本轮仅在同日Python冻结名单内重新核验公告、产业、预期、风险和冻结资金。近期公告以董事会换届为主；此前对外收购仍存在整合与兑现风险。 《新一代通信网建设实施方案》提出万兆光网、新型光纤光缆及骨干网络建设，为直接光纤光缆公司提供需求背景；实际订单和盈利仍需公司披露验证。",
+      "review_basis": "通鼎互联属于通信线缆及配套直接成员，主题传导成立；最终组内选择以趋势延续和同口径边际资金为优先，财务与外部材料作为支持及反证。",
+      "source_materials": [
+        {
+          "source_name": "交易所/巨潮或公告备用入口",
+          "title": "通鼎互联近期公告核验",
+          "url": "https://www.cninfo.com.cn/new/fulltextSearch?keyWord=002491",
+          "published_at": "2026-11-27",
+          "data_window": "近5及近20交易日",
+          "claim": "近期公告以董事会换届为主；此前对外收购仍存在整合与兑现风险。",
+          "asof": "2026-11-27",
+          "code": "002491",
+          "industry_code": "S730205",
+          "category": "B/E",
+          "query_time_window": [
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
+          ],
+          "source_type": "PRIMARY"
+        },
+        {
+          "source_name": "中央网信办/三部门通信网方案",
+          "title": "新一代通信网建设实施方案",
+          "url": "https://www.cac.gov.cn/2026-11/26/c_1797453575920530.htm",
+          "published_at": "2026-11-26",
+          "data_window": "截至2026-11-27",
+          "claim": "《新一代通信网建设实施方案》提出万兆光网、新型光纤光缆及骨干网络建设，为直接光纤光缆公司提供需求背景；实际订单和盈利仍需公司披露验证。",
+          "asof": "2026-11-27",
+          "code": "002491",
+          "industry_code": "S730205",
+          "category": "C/E",
+          "query_time_window": [
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
+          ],
+          "source_type": "PRIMARY_OR_AUTHORITY"
+        },
+        {
+          "source_name": "东方财富研报/个股日历",
+          "title": "通鼎互联近期研报与预期检索",
+          "url": "https://data.eastmoney.com/report/stock/",
+          "published_at": "2026-11-27",
+          "data_window": "截至2026-11-27可检索材料",
+          "claim": "未检索到可核验的近期定量一致预期，记UNKNOWN，不以并购题材推断短期盈利。",
+          "asof": "2026-11-27",
+          "code": "002491",
+          "industry_code": "S730205",
+          "category": "D",
+          "query_time_window": [
+            "2026-11-27T19:00:00+08:00",
+            "2026-11-27T19:08:00+08:00"
+          ],
+          "source_type": "SECONDARY"
+        }
+      ],
+      "research_falsifier": "5/10/20日资金均为负，控股股东高比例质押及并购整合属于重要反证",
+      "evidence_gap": "相邻单季扣非利润同比并非全部候选均可从同口径公开材料可靠还原，缺项已记UNKNOWN；资金为供应商成交分类估算，不能证明机构身份；无可靠一致预期时未作推断。"
     }
   ],
   "top1_by_industry": [
     {
-      "trend_name": "银行",
-      "industry_code": "S480201",
+      "trend_name": "AI算力电子电路",
+      "industry_code": "S270202",
       "attention_ranking_policy": "MODEL_TOP1_V1_6_R1",
       "items": [
         {
-          "code": "601328",
-          "company_name": "交通银行",
-          "status": "READY",
-          "trend_phase": "TRANSITION",
-          "current_price": 9.27,
+          "code": "002913",
+          "company_name": "奥士康",
+          "status": "WAIT",
+          "trend_phase": "REPAIRING",
+          "current_price": 69.27,
           "attention_rank": 1,
-          "attention_judgement": "交通银行在核心两项上形成最清晰联合优势：价格保持bullish/intact并突破9.10历史关口，5日和20日涨幅为+3.23%/+7.42%；冻结资金1/5/10/20日净占比分别为+6.86%/+5.76%/+4.69%/+1.81%，5日4天、20日13天净流入，持续性显著优于同组。农业银行是最强竞争者，盈利加速和当日资金更强，但20日资金仍为-1.84%且结构尚为TRANSITION。交通银行Q3单季扣非利润同比+11.39%、较Q2加速7.10个百分点提供基本面支持；资产质量与突破失败是主要反证。",
+          "attention_judgement": "奥士康在组内形成最完整的趋势与资金联合优势：5日/20日价格+14.33%/+23.96%，收盘突破66.65近端前高；冻结资金1/5/10/20日净占比+12.28%/+8.92%/+7.12%/+5.97%，5日4天、20日15天净流入。崇达技术是最强竞争者，5/10/20日资金更强且累计盈利改善，但程序结构仍为BEARISH_STRUCTURE_UNDER_THREAT、价格低于MA60；超声电子虽价格最强但1/5日资金转负。奥士康的主要反证是距MA20较远、接近71.79阻力以及客户认证和扩产兑现不确定。",
           "reference": {
-            "stage": "STOCK_CONFIRMED_SECTOR_PENDING",
-            "setup_mode": "BREAKOUT",
-            "conditional_trigger": "已有个股交易结构，但仍受板块/赔率/风险等WAIT条件约束；下个完整交易日复核，非买单",
-            "reference_trigger_price": 9.268,
-            "reference_zone": [
-              9.268,
-              9.381
-            ],
-            "invalidation_price": 9.204,
-            "estimated_price_risk_pct": 1.89,
-            "risk_threshold_pct": 6.0,
-            "price_basis": "同日确认的本次突破或回踩结构，WAIT仍不可执行"
+            "stage": "PRE_TREND_WATCH",
+            "setup_mode": "RECLAIM",
+            "conditional_trigger": "等待重新站稳均线并出现明确的回踩承接，再从该次形态计算失效位",
+            "reference_trigger_price": 70.416,
+            "reference_zone": null,
+            "invalidation_price": null,
+            "estimated_price_risk_pct": null,
+            "risk_threshold_pct": 8.0,
+            "price_basis": "同一已完成交易日观察触发价，非入场/持仓止损"
           },
-          "decision_reason": "截至收盘的技术确认通过；仅为下一交易日有条件入场计划",
-          "entry_opportunity": "READY"
+          "decision_reason": "MA60下方仍可观察启动或修复；尚未形成经确认的低风险入场条件",
+          "entry_opportunity": "TREND_WATCH_ONLY"
+        }
+      ]
+    },
+    {
+      "trend_name": "新一代通信网",
+      "industry_code": "S730205",
+      "attention_ranking_policy": "MODEL_TOP1_V1_6_R1",
+      "items": [
+        {
+          "code": "600105",
+          "company_name": "永鼎股份",
+          "status": "WAIT",
+          "trend_phase": "TRANSITION",
+          "current_price": 20.98,
+          "attention_rank": 1,
+          "attention_judgement": "永鼎股份在短窗趋势修复与边际资金上形成相对最均衡的联合优势：5日价格+4.38%、20日-7.41%，20日跌幅明显小于长飞光纤和亨通光电；冻结资金当日+16.50%、5日+3.17%且2/5日净流入，优于其自身10/20日窗口。长飞光纤是最强竞争者，主题传导和20日资金更强，但20日价格仍-19.03%、低于MA20且10日资金为负。永鼎的主要反证是尚未越过21.48近端压力，10/20日资金仍略负，回购不能代替经营兑现。",
+          "reference": {
+            "stage": "PRE_TREND_WATCH",
+            "setup_mode": "RECLAIM",
+            "conditional_trigger": "等待重新站稳均线并出现明确的回踩承接，再从该次形态计算失效位",
+            "reference_trigger_price": 30.897,
+            "reference_zone": null,
+            "invalidation_price": null,
+            "estimated_price_risk_pct": null,
+            "risk_threshold_pct": 8.0,
+            "price_basis": "同一已完成交易日观察触发价，非入场/持仓止损"
+          },
+          "decision_reason": "MA60下方仍可观察启动或修复；尚未形成经确认的低风险入场条件",
+          "entry_opportunity": "TREND_WATCH_ONLY"
         }
       ]
     }
   ],
   "focus_watchlist": [
     {
-      "trend_name": "银行",
-      "industry_code": "S480201",
-      "code": "601328",
-      "status": "CURRENT_READY_FOCUS",
-      "trade_date": "2026-11-26",
-      "decision_reason": "交通银行在核心两项上形成最清晰联合优势：价格保持bullish/intact并突破9.10历史关口，5日和20日涨幅为+3.23%/+7.42%；冻结资金1/5/10/20日净占比分别为+6.86%/+5.76%/+4.69%/+1.81%，5日4天、20日13天净流入，持续性显著优于同组。农业银行是最强竞争者，盈利加速和当日资金更强，但20日资金仍为-1.84%且结构尚为TRANSITION。交通银行Q3单季扣非利润同比+11.39%、较Q2加速7.10个百分点提供基本面支持；资产质量与突破失败是主要反证。",
-      "reference": null,
+      "trend_name": "AI算力电子电路",
+      "industry_code": "S270202",
+      "code": "002913",
+      "status": "EARLY_FOCUS_NOT_READY",
+      "trade_date": "2026-11-27",
+      "decision_reason": "奥士康在组内形成最完整的趋势与资金联合优势：5日/20日价格+14.33%/+23.96%，收盘突破66.65近端前高；冻结资金1/5/10/20日净占比+12.28%/+8.92%/+7.12%/+5.97%，5日4天、20日15天净流入。崇达技术是最强竞争者，5/10/20日资金更强且累计盈利改善，但程序结构仍为BEARISH_STRUCTURE_UNDER_THREAT、价格低于MA60；超声电子虽价格最强但1/5日资金转负。奥士康的主要反证是距MA20较远、接近71.79阻力以及客户认证和扩产兑现不确定。",
+      "reference": {
+        "stage": "PRE_TREND_WATCH",
+        "setup_mode": "RECLAIM",
+        "conditional_trigger": "等待重新站稳均线并出现明确的回踩承接，再从该次形态计算失效位",
+        "reference_trigger_price": 70.416,
+        "reference_zone": null,
+        "invalidation_price": null,
+        "estimated_price_risk_pct": null,
+        "risk_threshold_pct": 8.0,
+        "price_basis": "同一已完成交易日观察触发价，非入场/持仓止损"
+      },
+      "not_buy_order": true
+    },
+    {
+      "trend_name": "新一代通信网",
+      "industry_code": "S730205",
+      "code": "600105",
+      "status": "EARLY_FOCUS_NOT_READY",
+      "trade_date": "2026-11-27",
+      "decision_reason": "永鼎股份在短窗趋势修复与边际资金上形成相对最均衡的联合优势：5日价格+4.38%、20日-7.41%，20日跌幅明显小于长飞光纤和亨通光电；冻结资金当日+16.50%、5日+3.17%且2/5日净流入，优于其自身10/20日窗口。长飞光纤是最强竞争者，主题传导和20日资金更强，但20日价格仍-19.03%、低于MA20且10日资金为负。永鼎的主要反证是尚未越过21.48近端压力，10/20日资金仍略负，回购不能代替经营兑现。",
+      "reference": {
+        "stage": "PRE_TREND_WATCH",
+        "setup_mode": "RECLAIM",
+        "conditional_trigger": "等待重新站稳均线并出现明确的回踩承接，再从该次形态计算失效位",
+        "reference_trigger_price": 30.897,
+        "reference_zone": null,
+        "invalidation_price": null,
+        "estimated_price_risk_pct": null,
+        "risk_threshold_pct": 8.0,
+        "price_basis": "同一已完成交易日观察触发价，非入场/持仓止损"
+      },
       "not_buy_order": true
     }
   ],
-  "drop": [],
   "uncertain": [],
-  "wait": [],
-  "ready": [
+  "drop": [],
+  "ready": [],
+  "wait": [
     {
-      "code": "601328",
-      "company_name": "交通银行",
-      "industry_name": "国有大型银行Ⅲ",
-      "current_price": 9.27,
-      "trend_name": "银行",
-      "industry_code": "S480201",
+      "code": "002913",
+      "company_name": "奥士康",
+      "industry_name": "印制电路板",
+      "current_price": 69.27,
+      "trend_name": "AI算力电子电路",
+      "industry_code": "S270202",
       "market_state": "趋势确认",
       "trend_state": "T1",
-      "status": "READY",
-      "wait_reason": null,
-      "decision_reason": "截至收盘的技术确认通过；仅为下一交易日有条件入场计划",
+      "status": "WAIT",
+      "wait_reason": "WAIT_CONFIRMATION",
+      "decision_reason": "MA60下方仍可观察启动或修复；尚未形成经确认的低风险入场条件",
       "transmission": "SUPPORTED",
-      "structure_confirmed": true,
-      "data_date": "2026-11-26",
+      "structure_confirmed": false,
+      "data_date": "2026-11-27",
       "price_basis": "completed_daily_bar",
-      "research_falsifier": "若下一交易日之前出现重大未披露风险，或独立Python确认突破失败、风险超过6%或上方阻力不足1.5R，则不得执行；后续趋势与资金同时转弱则研究选择失效。",
-      "source_review": "本轮按冻结名单重新检索上交所/发行人公告、金融监管总局行业数据、东方财富研报索引，并核验同日冻结资金与财务更新。直接受益传导成立；趋势结构完整，5/10/20日资金持续性组内最强，且Q3单季扣非利润加速，形成趋势与资金联合优势。",
+      "research_falsifier": "价格距MA20较远且接近71.79阻力；客户认证、海外产能与扩产兑现仍有不确定性",
+      "source_review": "本轮仅在同日Python冻结名单内重新核验公告、产业、预期、风险和冻结资金。近20交易日以临时股东会事项为主；未发现足以改变当日比较的新订单公告。 AI算力相关高端PCB订单和材料供给仍紧张，但需求集中于高多层、高阶HDI等高端品类，不能自动外推到全部PCB公司。",
       "model_priority": null,
       "model_reason": null,
       "research_quality_evidence": {
         "status": "VERIFIED",
-        "asof_date": "2026-11-26",
-        "score": 69.6272,
+        "asof_date": "2026-11-27",
+        "score": 90.0,
         "source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
         "components": {
-          "core_profit_yoy_pct": 6.3158,
-          "operating_cashflow_per_share": 2.4063,
-          "core_growth_component": 0.417543,
+          "core_profit_yoy_pct": 67.7017,
+          "operating_cashflow_per_share": 0.2998,
+          "core_growth_component": 1.0,
           "cashflow_component": 1.0,
           "peer_percentiles": {
             "10": 0.75,
-            "20": 1.0,
-            "60": 1.0
+            "20": 0.75,
+            "60": 0.75
           },
           "negative_cashflow_penalty": 0.0,
           "score_is_provisional_not_probability": true
         },
         "report_date": "2026-09-30",
-        "notice_date": "2026-10-31",
-        "update_date": "2026-10-31"
+        "notice_date": "2026-10-23",
+        "update_date": "2026-10-23"
       },
-      "trend_phase": "TRANSITION",
+      "trend_phase": "REPAIRING",
       "phase_evidence": {
-        "return_3d_pct": 3.81,
-        "return_5d_pct": 5.94,
-        "previous_5d_return_pct": 3.55,
-        "positive_days_5d": 4,
-        "negative_days_5d": 1,
-        "up_day_volume_ratio_5d": 1.078,
-        "down_day_volume_ratio_5d": 1.154,
-        "volume_ratio_1d": 0.936,
-        "volume_ratio_5d": 1.093,
-        "close_location_pct": 74.07,
-        "close_location_3d_avg_pct": 70.1,
-        "max_close_drawdown_10d_pct": -0.56,
-        "prior_5d_high": 9.25,
-        "prior_20d_low": 8.06,
-        "recent_3d_low": 8.74,
+        "return_3d_pct": 15.86,
+        "return_5d_pct": 25.76,
+        "previous_5d_return_pct": -9.93,
+        "positive_days_5d": 3,
+        "negative_days_5d": 2,
+        "up_day_volume_ratio_5d": 1.256,
+        "down_day_volume_ratio_5d": 0.978,
+        "volume_ratio_1d": 1.452,
+        "volume_ratio_5d": 1.145,
+        "close_location_pct": 100.0,
+        "close_location_3d_avg_pct": 68.09,
+        "max_close_drawdown_10d_pct": -11.79,
+        "prior_5d_high": 66.65,
+        "prior_20d_low": 50.51,
+        "recent_3d_low": 56.58,
         "fresh_break": true,
         "pullback_low_holds": true,
         "weak_close_high_volume": false,
         "signal_uses_completed_bars_only": true
       },
       "technical_context": {
-        "ma20": 8.6445,
-        "ma60": 8.0278,
-        "support_invalidation": 8.6445,
-        "breakout_level": 9.25,
-        "prior_60d_high": 9.25,
+        "ma20": 58.593,
+        "ma60": 70.4157,
+        "support_invalidation": 58.593,
+        "breakout_level": null,
+        "prior_60d_high": 98.18,
         "attention_resistance": {
-          "status": "UNVERIFIED",
-          "price": null,
-          "reason": "no_confirmed_overhead_pivot_in_lookback",
+          "status": "VERIFIED",
+          "price": 70.66,
+          "date": "2026-06-18",
+          "source": "asof_180bar_confirmed_pivot",
           "history_points": 180
         },
         "recent_acceptance": {
-          "pattern": "UNCONFIRMED_LOCAL_ACCEPTANCE",
-          "support_close_band": [
-            8.93,
-            8.98
-          ],
-          "support_dates": [
-            "2026-11-23",
-            "2026-11-24"
-          ],
-          "support_low": 8.74,
-          "signal_day_low": 9.07,
-          "intraday_support_broken": false,
+          "pattern": "NO_RECENT_CLOSE_SUPPORT",
+          "support_close_band": null,
+          "support_dates": [],
+          "support_low": null,
+          "signal_day_low": 61.6,
+          "intraday_support_broken": null,
           "lookback_trading_days": 3,
-          "data_date": "2026-11-26",
+          "data_date": "2026-11-27",
           "observation_only": true
         },
-        "first_effective_resistance": null,
-        "distance_to_ma20_pct": 7.24,
-        "chase_risk": "medium",
-        "volume_ratio_1d_vs_20d": 0.936,
-        "volume_ratio_5d_vs_20d": 1.093,
-        "relative_strength_20d_vs_market_pct": 20.06,
-        "ma20_slope_5d_pct": 2.27,
-        "close_location_pct": 74.07,
+        "first_effective_resistance": {
+          "date": "2026-11-12",
+          "price": 71.79
+        },
+        "distance_to_ma20_pct": 18.22,
+        "chase_risk": "high",
+        "volume_ratio_1d_vs_20d": 1.452,
+        "volume_ratio_5d_vs_20d": 1.145,
+        "relative_strength_20d_vs_market_pct": 29.0,
+        "ma20_slope_5d_pct": 0.77,
+        "close_location_pct": 100.0,
         "higher_low": true,
-        "trend_phase": "TRANSITION",
+        "trend_phase": "REPAIRING",
         "phase_evidence": {
-          "return_3d_pct": 3.81,
-          "return_5d_pct": 5.94,
-          "previous_5d_return_pct": 3.55,
-          "positive_days_5d": 4,
-          "negative_days_5d": 1,
-          "up_day_volume_ratio_5d": 1.078,
-          "down_day_volume_ratio_5d": 1.154,
-          "volume_ratio_1d": 0.936,
-          "volume_ratio_5d": 1.093,
-          "close_location_pct": 74.07,
-          "close_location_3d_avg_pct": 70.1,
-          "max_close_drawdown_10d_pct": -0.56,
-          "prior_5d_high": 9.25,
-          "prior_20d_low": 8.06,
-          "recent_3d_low": 8.74,
+          "return_3d_pct": 15.86,
+          "return_5d_pct": 25.76,
+          "previous_5d_return_pct": -9.93,
+          "positive_days_5d": 3,
+          "negative_days_5d": 2,
+          "up_day_volume_ratio_5d": 1.256,
+          "down_day_volume_ratio_5d": 0.978,
+          "volume_ratio_1d": 1.452,
+          "volume_ratio_5d": 1.145,
+          "close_location_pct": 100.0,
+          "close_location_3d_avg_pct": 68.09,
+          "max_close_drawdown_10d_pct": -11.79,
+          "prior_5d_high": 66.65,
+          "prior_20d_low": 50.51,
+          "recent_3d_low": 56.58,
           "fresh_break": true,
           "pullback_low_holds": true,
           "weak_close_high_volume": false,
           "signal_uses_completed_bars_only": true
         }
       },
-      "setup_stop_evidence": {
-        "source": "confirmed_breakout_boundary",
-        "anchor_price": 9.25,
-        "buffer_pct": 0.5,
-        "asof_date": "2026-11-26",
-        "confirmation": "same_day_completed_bar"
-      },
-      "setup_type": "BREAKOUT",
-      "entry_zone": [
-        9.268,
-        9.381
-      ],
-      "max_entry_price": 9.381,
-      "entry_trigger": "收盘确认突破已有压力位；如有效跌回本次突破价下方则本次交易假设失效",
-      "invalidation_price": 9.204,
-      "invalidation_rule": "本次突破价 9.25 元为交易失效边界；参考缓冲止损价 9.204 元，须事先明确收盘确认与跳空处置规则",
-      "initial_risk_pct": 1.89,
+      "setup_type": null,
+      "entry_zone": null,
+      "max_entry_price": null,
+      "entry_trigger": null,
+      "invalidation_price": null,
+      "invalidation_rule": null,
+      "initial_risk_pct": null,
       "upside_to_resistance_R": null,
-      "exit_plan": {
-        "failed_setup": "突破失败或回调未获确认则不入场；已入场后触及预先定义的结构失败条件退出",
-        "trend_weakening": "趋势与板块强度持续衰退时减少风险敞口；不得单凭单日回调强制清仓",
-        "profit_protection": "持仓后逐步上移结构保护位，结合新高、回调低点和风险预算分批退出",
-        "risk_gap": "跳空、涨跌停与成交滑点可能使真实亏损超过理论结构风险"
-      },
+      "exit_plan": null,
       "rank": 1
+    },
+    {
+      "code": "600105",
+      "company_name": "永鼎股份",
+      "industry_name": "通信线缆及配套",
+      "current_price": 20.98,
+      "trend_name": "新一代通信网",
+      "industry_code": "S730205",
+      "market_state": "趋势确认",
+      "trend_state": "T1",
+      "status": "WAIT",
+      "wait_reason": "WAIT_CONFIRMATION",
+      "decision_reason": "MA60下方仍可观察启动或修复；尚未形成经确认的低风险入场条件",
+      "transmission": "SUPPORTED",
+      "structure_confirmed": false,
+      "data_date": "2026-11-27",
+      "price_basis": "completed_daily_bar",
+      "research_falsifier": "10/20日资金仍略为负，回购与专项贷款是支持而非经营兑现；若不能越过21.48，修复可能失败",
+      "source_review": "本轮仅在同日Python冻结名单内重新核验公告、产业、预期、风险和冻结资金。核验到回购方案、专项贷款承诺函和新增回购账户；回购构成支持，但主营趋势仍需量价与盈利验证。 《新一代通信网建设实施方案》提出万兆光网、新型光纤光缆及骨干网络建设，为直接光纤光缆公司提供需求背景；实际订单和盈利仍需公司披露验证。",
+      "model_priority": null,
+      "model_reason": null,
+      "research_quality_evidence": {
+        "status": "VERIFIED",
+        "asof_date": "2026-11-27",
+        "score": 78.75,
+        "source": "FROZEN_F10_AND_COMPLETED_HISTORY_V1",
+        "components": {
+          "core_profit_yoy_pct": 130.3196,
+          "operating_cashflow_per_share": 0.3345,
+          "core_growth_component": 1.0,
+          "cashflow_component": 1.0,
+          "peer_percentiles": {
+            "10": 0.75,
+            "20": 0.75,
+            "60": 0.0
+          },
+          "negative_cashflow_penalty": 0.0,
+          "score_is_provisional_not_probability": true
+        },
+        "report_date": "2026-09-30",
+        "notice_date": "2026-10-24",
+        "update_date": "2026-10-24"
+      },
+      "trend_phase": "TRANSITION",
+      "phase_evidence": {
+        "return_3d_pct": 5.37,
+        "return_5d_pct": 9.27,
+        "previous_5d_return_pct": -13.55,
+        "positive_days_5d": 3,
+        "negative_days_5d": 2,
+        "up_day_volume_ratio_5d": 0.987,
+        "down_day_volume_ratio_5d": 0.858,
+        "volume_ratio_1d": 1.228,
+        "volume_ratio_5d": 0.936,
+        "close_location_pct": 100.0,
+        "close_location_3d_avg_pct": 50.99,
+        "max_close_drawdown_10d_pct": -14.86,
+        "prior_5d_high": 21.48,
+        "prior_20d_low": 18.56,
+        "recent_3d_low": 18.6,
+        "fresh_break": false,
+        "pullback_low_holds": true,
+        "weak_close_high_volume": false,
+        "signal_uses_completed_bars_only": true
+      },
+      "technical_context": {
+        "ma20": 21.368,
+        "ma60": 30.8973,
+        "support_invalidation": 20.33,
+        "breakout_level": null,
+        "prior_60d_high": 47.62,
+        "attention_resistance": {
+          "status": "VERIFIED",
+          "price": 21.48,
+          "date": "2026-11-24",
+          "source": "asof_180bar_confirmed_pivot",
+          "history_points": 180
+        },
+        "recent_acceptance": {
+          "pattern": "NO_RECENT_CLOSE_SUPPORT",
+          "support_close_band": null,
+          "support_dates": [],
+          "support_low": null,
+          "signal_day_low": 19.02,
+          "intraday_support_broken": null,
+          "lookback_trading_days": 3,
+          "data_date": "2026-11-27",
+          "observation_only": true
+        },
+        "first_effective_resistance": {
+          "date": "2026-11-24",
+          "price": 21.48
+        },
+        "distance_to_ma20_pct": -1.82,
+        "chase_risk": "low",
+        "volume_ratio_1d_vs_20d": 1.228,
+        "volume_ratio_5d_vs_20d": 0.936,
+        "relative_strength_20d_vs_market_pct": 1.32,
+        "ma20_slope_5d_pct": -5.23,
+        "close_location_pct": 100.0,
+        "higher_low": false,
+        "trend_phase": "TRANSITION",
+        "phase_evidence": {
+          "return_3d_pct": 5.37,
+          "return_5d_pct": 9.27,
+          "previous_5d_return_pct": -13.55,
+          "positive_days_5d": 3,
+          "negative_days_5d": 2,
+          "up_day_volume_ratio_5d": 0.987,
+          "down_day_volume_ratio_5d": 0.858,
+          "volume_ratio_1d": 1.228,
+          "volume_ratio_5d": 0.936,
+          "close_location_pct": 100.0,
+          "close_location_3d_avg_pct": 50.99,
+          "max_close_drawdown_10d_pct": -14.86,
+          "prior_5d_high": 21.48,
+          "prior_20d_low": 18.56,
+          "recent_3d_low": 18.6,
+          "fresh_break": false,
+          "pullback_low_holds": true,
+          "weak_close_high_volume": false,
+          "signal_uses_completed_bars_only": true
+        }
+      },
+      "setup_type": null,
+      "entry_zone": null,
+      "max_entry_price": null,
+      "entry_trigger": null,
+      "invalidation_price": null,
+      "invalidation_rule": null,
+      "initial_risk_pct": null,
+      "upside_to_resistance_R": null,
+      "exit_plan": null,
+      "rank": 2
     }
   ],
   "fresh_mainline_provenance": {
-    "source_trade_date": "2026-11-26",
+    "source_trade_date": "2026-11-27",
     "run": "frozen_top5_locked_model_top1_independent_risk",
     "old_formal_or_replay_used_as_input": false,
-    "github_actions_run_id": "45806666057",
-    "technical_rebuilt_at": "2026-11-26T19:01:40.837416+08:00",
-    "industry_handoff_sha": "c8486f0646adad454d1c7d08f1c0f818fa43ba7d",
-    "frozen_company_index_sha": "d944c0067ad202d7bb9fecf1f760d89f2f10f21f",
-    "company_review_sha": "2c2e1bda34bf34288851c5e2d08d1409a8d9c102",
-    "company_research_admission_sha": "c885587ed2c943d810f8e8bde6d5a04646320b4e"
+    "github_actions_run_id": "45987517890",
+    "technical_rebuilt_at": "2026-11-27T19:06:03.204391+08:00",
+    "industry_handoff_sha": "efb98e416836e76035bc9106a241780688074263",
+    "frozen_company_index_sha": "4cc09ad487a1f49a0e6ca96fa93fde14ec6b77e2",
+    "company_review_sha": "5a9b53892c4d6309c7e1184f082969aba44d68f5",
+    "company_research_admission_sha": "bf0b48059d8d77efe3b1b920e886b3b66ccbffdc"
   }
 }
