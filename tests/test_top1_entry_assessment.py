@@ -75,6 +75,33 @@ class EntryAssessmentTest(unittest.TestCase):
         self.assertIsNone(ref["reference_trigger_price"])
         self.assertEqual(ref["entry_assessment_verification"],"ENTRY_ASSESSMENT_MISSING")
 
+    def test_actual_engine_yongding_wait(self):
+        s,review=fixture()
+        s.update(history_points=180,low_risk_eligible=True,trend_phase="TRANSITION")
+        c={"code":"600105","asof_price":20.98,"transmission":"SUPPORTED",
+           "theme_link_verified":True,"market_state":"趋势确认"}
+        row,ref=entry.evaluate(c,s,DAY,review)
+        self.assertEqual(row["status"],"WAIT")
+        self.assertEqual(ref["reference_trigger_price"],21.48)
+
+    def test_actual_engine_confirmed_breakout_preserves_risk_math(self):
+        s,review=fixture()
+        s.update(history_points=180,low_risk_eligible=True,trend_phase="REACCELERATING",
+                 current_price=21.15,ma20=20.6,ma60=20.5,
+                 structure_type="breakout",breakout_confirmed=True,breakout_level=21.0,
+                 first_effective_resistance={"price":24.0,"date":"2026-11-24"},
+                 distance_to_ma20_pct=2.67,chase_risk="low")
+        review.update(phase="REACCELERATING",confirmation="CONFIRMED",
+                      anchor_source="breakout_level",anchor_price=21.0)
+        c={"code":"600105","asof_price":21.15,"transmission":"SUPPORTED",
+           "theme_link_verified":True,"market_state":"趋势确认"}
+        row,ref=entry.evaluate(c,s,DAY,review)
+        self.assertEqual(row["status"],"READY")
+        self.assertLess(row["invalidation_price"],row["entry_zone"][0])
+        self.assertLessEqual(row["initial_risk_pct"],entry.engine.MAX_ENTRY_RISK_PCT)
+        self.assertGreaterEqual(row["upside_to_resistance_R"],entry.engine.MIN_UPSIDE_R)
+        self.assertIsNone(ref)
+
     def test_old_date_uses_legacy_path(self):
         base={"code":"600105","status":"WAIT"}
         with patch.object(entry.engine,"evaluate_candidate",return_value=base), \
