@@ -5,11 +5,14 @@ on:
     branches: [test/on-demand-market-probe]
     paths: [scripts/intraday_focus_trial.py, scripts/on_demand_market_probe.py, tests/test_intraday_focus_trial.py, .github/workflows/intraday-focus-trial.yml]
 permissions:
-  contents: read
+  contents: write
 jobs:
   trial:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    concurrency:
+      group: focus-trial-publication
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v7
       - name: Deterministic fault isolation tests
@@ -27,3 +30,16 @@ jobs:
           name: focus-public-trial
           path: focus_trial_public.json
           retention-days: 1
+      - name: Publish public test payload to the isolated branch
+        if: github.ref == 'refs/heads/test/on-demand-market-probe'
+        shell: bash
+        run: |
+          mkdir -p research
+          cp focus_trial_public.json research/intraday_focus_trial_public.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add research/intraday_focus_trial_public.json
+          git commit -m "test data: publish public focus trial $GITHUB_RUN_ID"
+          git push origin HEAD:refs/heads/test/on-demand-market-probe
+          git fetch origin refs/heads/test/on-demand-market-probe
+          git show FETCH_HEAD:research/intraday_focus_trial_public.json | cmp - focus_trial_public.json

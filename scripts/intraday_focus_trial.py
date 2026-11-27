@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 import re
 import statistics
+import threading
 import urllib.parse
 import urllib.request
 import on_demand_market_probe as p
@@ -19,6 +20,8 @@ ROOT=Path(__file__).resolve().parents[1]
 SLOTS=("09:37","10:37","13:17","14:27")
 INDEXES={"sh000001":"上证指数","sz399001":"深证成指","sz399006":"创业板指"}
 FIELDS=("股票代码","持仓股数","数据状态","持仓状态")
+EAST_LOCK=threading.BoundedSemaphore(2)
+UT="bd1d9ddb04089700cf9c27f6f7426281"
 
 def wrapped(fn):
     try:
@@ -106,15 +109,31 @@ def baseline(expected):
     rows=validate_items(h)
     return {"trade_date":expected,"run_id":h["source_run_id"],"symbols":[symbol(x["code"]) for x in rows]}
 
+def provider_stamp(value):
+    if value is None or value in ("","-"):
+        raise ValueError("PROVIDER_TIME_MISSING")
+    v=str(value)
+    if re.fullmatch(r"\d{12}|\d{14}",v):
+        return dt.datetime.strptime(v,"%Y%m%d%H%M" if len(v)==12 else "%Y%m%d%H%M%S").replace(tzinfo=p.TZ)
+    return dt.datetime.fromtimestamp(p.number(value),p.TZ)
+
+def east_request(path,params):
+    params={**params,"ut":UT}
+    url="https://push2.eastmoney.com/api/qt/"+path+"?"+urllib.parse.urlencode(params,safe="+:!,")
+    with EAST_LOCK:
+        txt,received=p.get(url,referer="https://quote.eastmoney.com/")
+    body=json.loads(txt)
+    if body.get("rc")!=0 or not isinstance(body.get("data"),dict):
+        raise ValueError("EAST_RESPONSE_DATA_MISSING")
+    return body["data"],received
+
 def east_quote(sym):
     market="1" if sym.startswith("sh") else "0"
     fields="f57,f58,f43,f44,f45,f46,f60,f47,f48,f50,f168,f86,f127"
-    url="https://push2.eastmoney.com/api/qt/stock/get?"+urllib.parse.urlencode({"secid":market+"."+sym[2:],"fields":fields,"fltt":"2","invt":"2"})
-    txt,received=p.get(url,referer="https://quote.eastmoney.com/")
-    d=json.loads(txt).get("data")
-    if not isinstance(d,dict) or str(d.get("f57"))!=sym[2:]:
+    d,received=east_request("stock/get",{"secid":market+"."+sym[2:],"fields":fields,"fltt":"2","invt":"2"})
+    if str(d.get("f57"))!=sym[2:]:
         raise ValueError("EAST_QUOTE_ID")
-    stamp=dt.datetime.fromtimestamp(p.number(d["f86"]),p.TZ)
+    stamp=provider_stamp(d.get("f86"))
     def optional(key):
         return None if d.get(key) in (None,"-","") else p.number(d[key])
     return {"source":"eastmoney","quote_at":stamp.isoformat(),"received_at":received.isoformat(),"quality":p.classify(stamp,received),
@@ -123,31 +142,39 @@ def east_quote(sym):
             "turnover_pct_candidate":optional("f168"),"provider_industry":d.get("f127")}
 
 def board_quotes():
-    # Only board-level indices, not member stocks. Vendor taxonomy is distinct from SW3.
-    url="https://push2.eastmoney.com/api/qt/clist/get?"+urllib.parse.urlencode({"pn":1,"pz":200,"po":1,"np":1,"fltt":2,"fid":"f12","fs":"m:90+t:2+f:!50","fields":"f12,f14,f2,f3,f6,f62,f104,f105,f124"})
-    txt,received=p.get(url,referer="https://quote.eastmoney.com/")
-    d=json.loads(txt).get("data")
-    if not isinstance(d,dict) or not isinstance(d.get("diff"),list):
-        raise ValueError("BOARD_SCHEMA")
     rows={}
-    for x in d["diff"]:
-        name=x.get("f14")
-        if not isinstance(name,str) or name in rows:
-            continue
-        stamp=None
-        if type(x.get("f124")) in (int,float) and x["f124"]>0:
-            stamp=dt.datetime.fromtimestamp(x["f124"],p.TZ)
-        rows[name]={"source":"eastmoney","board_code":x.get("f12"),"name":name,
-                    "change_pct_candidate":x.get("f3"),"amount_candidate":x.get("f6"),"main_flow_candidate":x.get("f62"),
-                    "up":x.get("f104"),"down":x.get("f105"),"quote_at":stamp.isoformat() if stamp else None,
-                    "quality":p.classify(stamp,received) if stamp else "TIME_UNVERIFIED"}
+    for page in range(1,5):
+        d,received=east_request("clist/get",{"pn":page,"pz":100,"po":1,"np":1,"fltt":2,"fid":"f12","fs":"m:90+t:2+f:!50","fields":"f12,f14,f2,f3,f6,f62,f104,f105,f124"})
+        items=d.get("diff")
+        if isinstance(items,dict):
+            items=list(items.values())
+        if not isinstance(items,list):
+            raise ValueError("BOARD_SCHEMA")
+        for x in items:
+            name=x.get("f14")
+            if not isinstance(name,str) or name in rows:
+                continue
+            try:
+                stamp=provider_stamp(x.get("f124"))
+            except (ValueError,TypeError,OverflowError,OSError):
+                stamp=None
+            rows[name]={"source":"eastmoney","board_code":x.get("f12"),"name":name,
+                        "change_pct_candidate":x.get("f3"),"amount_candidate":x.get("f6"),"main_flow_candidate":x.get("f62"),
+                        "up":x.get("f104"),"down":x.get("f105"),"quote_at":stamp.isoformat() if stamp else None,
+                        "quality":p.classify(stamp,received) if stamp else "TIME_UNVERIFIED"}
+        if len(rows)>=d.get("total",len(rows)) or not items:
+            break
     if not rows:
         raise ValueError("BOARD_EMPTY")
     return rows
 
+def locked_flow(sym):
+    with EAST_LOCK:
+        return p.eastmoney_flow(sym)
+
 def component_calls(sym):
     return {"tencent_quote":lambda:p.quote("tencent",sym),"sina_quote":lambda:p.quote("sina",sym),
-            "minute":lambda:p.minute(sym),"daily":lambda:p.daily(sym),"fund_flow":lambda:p.eastmoney_flow(sym),
+            "minute":lambda:p.minute(sym),"daily":lambda:p.daily(sym),"fund_flow":lambda:locked_flow(sym),
             "same_time_history":lambda:p.five_day_history(sym),"east_quote":lambda:east_quote(sym)}
 
 def data(c,key):
@@ -198,6 +225,7 @@ def collect(symbols):
 def summary(row):
     cs=row["components"]
     return {"components":{k:v["status"] for k,v in cs.items()},
+            "errors":{k:v.get("error") for k,v in cs.items() if v["status"]!="ok"},
             "quote_quality":[data(cs,k).get("quality") for k in ("tencent_quote","sina_quote")],
             "minute_points":len(data(cs,"minute").get("points",[])),
             "flow_points":len(data(cs,"fund_flow").get("points",[])),
@@ -226,6 +254,8 @@ def main():
     related={}
     for sym,row in public_rows.items():
         name=data(row["components"],"east_quote").get("provider_industry")
+        if not name and sym=="sh601328":
+            name="银行"
         related[sym]={"taxonomy":"eastmoney_proxy_not_SW3","data":boards.get(name),"status":"ok" if name in boards else "UNRESOLVED"}
     result={"schema_version":1,"result_kind":"focus_pipeline_trial","mode":"CLOSE_TEST" if start.time()>=dt.time(15) else "TRIAL",
             "run_id":os.environ.get("GITHUB_RUN_ID"),"started_at":start.isoformat(),"finished_at":p.now().isoformat(),
@@ -234,7 +264,7 @@ def main():
             "portfolio_confirmed_count":len(private),"portfolio_unresolved_count":h.get("data",{}).get("unknown_count"),
             "portfolio_collected_count":len(private&rows.keys()),
             "portfolio_all_components_ok_count":sum(all(v["status"]=="ok" for v in rows[s]["components"].values()) for s in private),
-            "market_indexes":indexes,"board_source_status":board["status"],"public_related_boards":related,
+            "market_indexes":indexes,"board_source_status":board["status"],"board_source_error":board.get("error"),"public_related_boards":related,
             "status":"TRIAL_NOT_PRODUCTION"}
     # Public TOP1 market data only. Portfolio result remains in runner memory.
     text=json.dumps(result,ensure_ascii=False,allow_nan=False,separators=(",",":"))

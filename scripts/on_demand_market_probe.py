@@ -50,7 +50,10 @@ def parse_tencent(text, symbol):
     return {"source":"tencent","symbol":symbol,"name":f[1],"quote_at":stamp.isoformat(),
             "price":p,"prev_close":prev,"open":number(f[5]),"change_pct":(p/prev-1)*100,
             "high":number(f[33]),"low":number(f[34]),"turnover_pct":number(f[38]) if f[38] not in ("","-") else None,
-            "volume_raw":f[36],"amount_raw":f[37],"raw_field_units_unverified":True}
+            "volume_raw":f[36],"amount_raw":f[37],
+            "volume_ratio_candidate":number(f[49]) if len(f)>49 and re.fullmatch(r"\d+(?:\.\d+)?",f[49]) else None,
+            "average_price_candidate":number(f[51]) if len(f)>51 and re.fullmatch(r"\d+(?:\.\d+)?",f[51]) else None,
+            "raw_field_units_unverified":True}
 
 def parse_sina(text, symbol):
     match = re.search(r'hq_str_'+symbol+r'="([^"]+)"', text)
