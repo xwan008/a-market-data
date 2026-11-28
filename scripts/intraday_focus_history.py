@@ -203,62 +203,117 @@ def resolve_history(sym, dates, today, frozen_rows, previous):
     return max(candidates, key=lambda row: len(row["daily"]))
 
 
+RESEARCH_STAGES = {"STARTING", "CONTINUING", "ACCELERATING", "DIVERGING", "REPAIRING", "WEAKENING", "INVALIDATED", "UNRESOLVED"}
+RESEARCH_UPDATES = {"CONFIRMED", "REVISED", "FALSIFIED", "UNRESOLVED"}
+RESEARCH_FLAGS = {"STRUCTURE_INTACT", "STRUCTURE_BREAK", "BREAKOUT", "PULLBACK", "FAILED_BREAKOUT",
+                  "VOLUME_SUPPORT", "VOLUME_CONFLICT", "FUND_SUPPORT", "FUND_CONFLICT",
+                  "BOARD_SUPPORT", "BOARD_CONFLICT", "MARKET_SUPPORT", "MARKET_CONFLICT", "DATA_LIMITED"}
+
+
+def checked_research(record, day):
+    """Read only a whitelisted, non-personal market hypothesis from the existing archive."""
+    if not isinstance(record, dict):
+        return None
+    keys = {"basis", "source_run_id", "slot", "scan_at", "trend_stage", "hypothesis_update", "flags"}
+    if set(record) != keys or record.get("basis") != "AI_MARKET_HYPOTHESIS_NOT_FACT":
+        return None
+    try:
+        slot = dt.datetime.fromisoformat(record["slot"])
+        scan = dt.datetime.fromisoformat(record["scan_at"])
+        if (slot.date().isoformat() != day or scan.date().isoformat() != day
+                or slot.tzinfo is None or scan.tzinfo is None
+                or slot.strftime("%H:%M") not in ("09:37", "10:37", "13:17", "14:27")
+                or not 0 <= (scan-slot).total_seconds() <= 300):
+            return None
+        if not isinstance(record["source_run_id"], str) or not record["source_run_id"]:
+            return None
+        if record["trend_stage"] not in RESEARCH_STAGES or record["hypothesis_update"] not in RESEARCH_UPDATES:
+            return None
+        flags = record["flags"]
+        if not isinstance(flags, list) or len(flags) != len(set(flags)) or not set(flags) <= RESEARCH_FLAGS:
+            return None
+    except (ValueError, TypeError, KeyError):
+        return None
+    return {k: record[k] for k in sorted(keys)}
+
+
 def archive_context(root, previous, today, symbols):
-    """Extend the existing archive format with public, non-personal focus observations."""
+    """Reuse the existing archive; never expose role, size, cost or private actions."""
     path = root / "research/intraday_crossday_archive.json"
+    empty = {sym: [] for sym in symbols}
     try:
         archive = load(path)
         if (archive.get("schema_version") != 1 or archive.get("result_kind") != "a_share_intraday_crossday_archive"
                 or not isinstance(archive.get("days"), list)):
             raise ValueError("ARCHIVE_SCHEMA")
-        if any(not isinstance(d, dict) or not isinstance(d.get("trade_date"), str) for d in archive["days"]):
-            raise ValueError("ARCHIVE_ROWS")
-        days = {d["trade_date"]: d for d in archive["days"] if d["trade_date"] < today}
-        if len(days) != len([d for d in archive["days"] if d["trade_date"] < today]):
+        for d in archive["days"]:
+            if not isinstance(d, dict) or not isinstance(d.get("trade_date"), str):
+                raise ValueError("ARCHIVE_ROWS")
+            if dt.date.fromisoformat(d["trade_date"]).isoformat() != d["trade_date"] or d["trade_date"] > today:
+                raise ValueError("ARCHIVE_DATE")
+            if any(not isinstance(d.get(k, {}), dict) for k in ("trends", "stocks", "focus_stocks", "focus_research")):
+                raise ValueError("ARCHIVE_ROW_SCHEMA")
+        days = {d["trade_date"]: d for d in archive["days"]}
+        if len(days) != len(archive["days"]):
             raise ValueError("ARCHIVE_DUPLICATE_DATE")
     except (OSError, ValueError, TypeError, KeyError):
-        return None, {sym: [] for sym in symbols}, "ARCHIVE_UNAVAILABLE"
+        return None, empty, "ARCHIVE_UNAVAILABLE"
     old_day = previous.get("trade_date", "")
-    if old_day and old_day < today:
+    # Save the most recent valid scan per code per day, including earlier same-day
+    # scans, so a later failed quote does not erase the last valid observation.
+    if old_day and old_day <= today:
         observations = {}
         for sym, row in previous.get("stocks", {}).items():
-            if row.get("core_gate") != "CORE_VALID":
+            if not isinstance(row, dict) or row.get("core_gate") != "CORE_VALID":
                 continue
             c = row.get("components") or {}
             quote = next((c.get(k, {}).get("data", {}) for k in ("tencent_quote", "sina_quote")
                           if c.get(k, {}).get("data", {}).get("quality") == "LIVE"), None)
-            if not quote or str(quote.get("quote_at", ""))[:10] != old_day:
+            if not quote or quote.get("symbol") != sym or str(quote.get("quote_at", ""))[:10] != old_day:
                 continue
             try:
                 price, change = frozen.numeric(quote["price"]), frozen.numeric(quote["change_pct"])
-                if price <= 0:
+                stamp = dt.datetime.fromisoformat(quote["quote_at"])
+                slot = dt.datetime.fromisoformat(previous["slot"])
+                if price <= 0 or not -2 <= (stamp-slot).total_seconds() <= 240:
                     continue
+                ratio = row.get("metrics", {}).get("same_time_volume_ratio")
+                ratio = frozen.numeric(ratio) if ratio is not None else None
+                if ratio is not None and ratio <= 0:
+                    ratio = None
             except (ValueError, TypeError, KeyError):
                 continue
             observations[sym[2:]] = {"observed_at": quote["quote_at"], "price": price,
                                      "change_pct": change, "source_run_id": previous["run_id"],
-                                     "slot": previous["slot"],
-                                     "same_time_volume_ratio": row.get("metrics", {}).get("same_time_volume_ratio"),
+                                     "slot": previous["slot"], "same_time_volume_ratio": ratio,
                                      "basis": "LAST_VALID_FOCUS_SCAN_NOT_OFFICIAL_CLOSE"}
         if observations:
             entry = days.setdefault(old_day, {"trade_date": old_day, "trends": {}, "stocks": {}})
             focus = entry.setdefault("focus_stocks", {})
             for code, obs in observations.items():
-                if obs["observed_at"] > str(focus.get(code, {}).get("observed_at", "")):
+                existing = focus.get(code)
+                if not isinstance(existing, dict) or obs["observed_at"] > str(existing.get("observed_at", "")):
                     focus[code] = obs
     ordered = [days[d] for d in sorted(days)[-ARCHIVE_LIMIT:]]
     archive = {**archive, "days": ordered}
+    # Today is retained in the archive but NEVER treated as cross-day evidence.
+    completed = [d for d in ordered if d["trade_date"] < today][-RESEARCH_LIMIT:]
     context = {}
     for sym in symbols:
         code = sym[2:]
         records = []
-        for day in ordered[-RESEARCH_LIMIT:]:
+        for day in completed:
             focus = (day.get("focus_stocks") or {}).get(code)
             legacy = (day.get("stocks") or {}).get(code)
-            # Public market observations and old research judgments remain different evidence types.
-            if focus or legacy:
-                records.append({"trade_date": day["trade_date"], "focus_observation": focus,
+            research = checked_research((day.get("focus_research") or {}).get(code), day["trade_date"])
+            if isinstance(focus, dict) and focus.get("basis") != "LAST_VALID_FOCUS_SCAN_NOT_OFFICIAL_CLOSE":
+                focus = None
+            # Public market observations and model hypotheses are different evidence types.
+            if isinstance(focus, dict) or isinstance(legacy, dict) or research:
+                records.append({"trade_date": day["trade_date"],
+                                "focus_observation": focus if isinstance(focus, dict) else None,
+                                "focus_research": research,
                                 "legacy_research": ({k: legacy.get(k) for k in ("scan_at", "relative_strength", "price_behavior")}
-                                                    if legacy else None)})
+                                                    if isinstance(legacy, dict) else None)})
         context[sym] = records
     return archive, context, "AVAILABLE" if any(context.values()) else "NO_MATCHING_HISTORY"
