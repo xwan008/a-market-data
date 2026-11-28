@@ -353,7 +353,11 @@ def main():
         expected=os.environ.get("EXPECTED_BASELINE_DATE")
     if not expected:
         raise SystemExit("EXPECTED_BASELINE_DATE_REQUIRED")
-    with cf.ThreadPoolExecutor(max_workers=6) as pool:
+    previous=history.previous_snapshot(ROOT)
+    today=start.date().isoformat()
+    # History is optional context; run it in parallel with live quote collection
+    # rather than extending the critical quote collection path serially.
+    with cf.ThreadPoolExecutor(max_workers=6) as pool, cf.ThreadPoolExecutor(max_workers=4) as hist_pool:
         bf=pool.submit(wrapped,lambda:baseline(expected))
         hf=pool.submit(wrapped,holdings)
         boardf=pool.submit(wrapped,board_quotes)
@@ -362,27 +366,20 @@ def main():
         b=bf.result(); h=hf.result()
         public=set(b.get("data",{}).get("symbols",[]))
         private=set(h.get("data",{}).get("symbols",[]))
-        rows=collect(sorted(public|private))
+        targets=sorted(public|private)
+        try:
+            dates=history.session_dates(covered_sessions(dt.date.fromisoformat(expected)),expected)
+            frozen_rows=history.frozen_histories(ROOT,expected,targets,dates,b.get("data",{}).get("run_id"))
+        except (ValueError,TypeError,KeyError):
+            dates=[]; frozen_rows={}
+        histories={sym:hist_pool.submit(wrapped,lambda sym=sym:history.resolve_history(sym,dates,today,frozen_rows,previous)) for sym in targets} if dates else {}
+        rows=collect(targets)
         board=boardf.result()
         breadth=breadthf.result()
         indexes={sym:f.result() for sym,f in idxf.items()}
-    # Completed-session histories are separate from today's live evidence.
-    previous=history.previous_snapshot(ROOT)
-    today=start.date().isoformat()
-    try:
-        dates=history.session_dates(covered_sessions(dt.date.fromisoformat(expected)),expected)
-        frozen_rows=history.frozen_histories(ROOT,expected,rows,dates,b.get("data",{}).get("run_id"))
-    except (ValueError,TypeError,KeyError):
-        dates=[]; frozen_rows={}
+        for sym,row in rows.items():
+            row["historical_fund_flow"]=histories[sym].result() if sym in histories else {"status":"failed","error":"HISTORY_CALENDAR_UNAVAILABLE"}
     archive,contexts,archive_status=history.archive_context(ROOT,previous,today,rows)
-    if dates:
-        with cf.ThreadPoolExecutor(max_workers=4) as pool:
-            tasks={sym:pool.submit(wrapped,lambda sym=sym:history.resolve_history(sym,dates,today,frozen_rows,previous)) for sym in rows}
-            for sym,future in tasks.items():
-                rows[sym]["historical_fund_flow"]=future.result()
-    else:
-        for row in rows.values():
-            row["historical_fund_flow"]={"status":"failed","error":"HISTORY_CALENDAR_UNAVAILABLE"}
     for sym,row in rows.items():
         row["crossday_context"]=contexts.get(sym,[])
         hist=row["historical_fund_flow"].get("data",{})
