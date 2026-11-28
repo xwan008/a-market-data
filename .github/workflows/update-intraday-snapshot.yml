@@ -26,7 +26,9 @@ jobs:
       - name: Install existing exchange calendar dependency
         run: python -m pip install -r requirements.txt
       - name: Test fault isolation and slot gate
-        run: python3 -m unittest discover -s tests -p test_intraday_focus_trial.py -v
+        run: |
+          python3 -m unittest discover -s tests -p test_intraday_focus_trial.py -v
+          python3 -m unittest discover -s tests -p test_intraday_focus_history.py -v
       - name: Collect current focus snapshot
         env:
           FOCUS_MODE: SHADOW
@@ -34,7 +36,7 @@ jobs:
           AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
           FOCUS_HOLDINGS_TABLE_ID: tbl6EE2lzmexvkARz
         run: |
-          rm -f focus_trial_public.json
+          rm -f focus_trial_public.json focus_trial_archive.json
           python3 scripts/intraday_focus_trial.py
       - name: Publish only the current shadow result and verify GitHub readback
         shell: bash
@@ -47,8 +49,15 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add research/intraday_focus_snapshot.json
+          if [ -s focus_trial_archive.json ]; then
+            cp focus_trial_archive.json research/intraday_crossday_archive.json
+            git add research/intraday_crossday_archive.json
+          fi
           git commit -m "data: publish focus shadow $GITHUB_RUN_ID"
           git pull --rebase origin main
           git push origin HEAD:main
           git fetch origin main
           git show FETCH_HEAD:research/intraday_focus_snapshot.json | cmp - focus_trial_public.json
+          if [ -s focus_trial_archive.json ]; then
+            git show FETCH_HEAD:research/intraday_crossday_archive.json | cmp - focus_trial_archive.json
+          fi

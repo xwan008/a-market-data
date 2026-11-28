@@ -1,0 +1,32 @@
+name: Validate Intraday Continuity
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/intraday_focus_trial.py'
+      - 'scripts/intraday_focus_history.py'
+      - 'tests/test_intraday_focus_trial.py'
+      - 'tests/test_intraday_focus_history.py'
+      - 'skill/INTRADAY_FOCUS_UPGRADE_DRAFT.md'
+      - '.github/workflows/update-intraday-snapshot.yml'
+      - '.github/workflows/validate-intraday-continuity.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements.txt
+      - run: |
+          python -m compileall -q scripts/intraday_focus_history.py scripts/intraday_focus_trial.py tests/test_intraday_focus_history.py
+          python -m unittest discover -s tests -p 'test_intraday_focus_history.py' -v
+          python -m unittest discover -s tests -p 'test_intraday_focus_trial.py' -v
+          python -m unittest discover -s tests -p 'test_intraday_crossday.py' -v
+          python -m unittest discover -s tests -p 'test_frozen_trend_buy_fund_flow.py' -v
