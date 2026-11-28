@@ -14,6 +14,7 @@ import threading
 import urllib.parse
 import urllib.request
 import on_demand_market_probe as p
+import intraday_focus_history as history
 from trend_buy_handoff import validate_items, project
 from validate_trend_publication_pair import validate as validate_pair
 
@@ -234,7 +235,9 @@ def summary(row):
             "minute_points":len(data(cs,"minute").get("points",[])),
             "flow_points":len(data(cs,"fund_flow").get("points",[])),
             "daily_bars":len(data(cs,"daily").get("bars",[])),
-            "metrics":row["metrics"]}
+            "metrics":row["metrics"],"historical_fund_flow_status":row.get("historical_fund_flow",{}).get("status"),
+            "historical_fund_flow_days":len(row.get("historical_fund_flow",{}).get("data",{}).get("daily",[])),
+            "crossday_records":len(row.get("crossday_context",[]))}
 
 
 @lru_cache(maxsize=1)
@@ -363,6 +366,35 @@ def main():
         board=boardf.result()
         breadth=breadthf.result()
         indexes={sym:f.result() for sym,f in idxf.items()}
+    # Completed-session histories are separate from today's live evidence.
+    previous=history.previous_snapshot(ROOT)
+    today=start.date().isoformat()
+    try:
+        dates=history.session_dates(covered_sessions(dt.date.fromisoformat(expected)),expected)
+        frozen_rows=history.frozen_histories(ROOT,expected,rows,dates,b.get("data",{}).get("run_id"))
+    except (ValueError,TypeError,KeyError):
+        dates=[]; frozen_rows={}
+    archive,contexts,archive_status=history.archive_context(ROOT,previous,today,rows)
+    if dates:
+        with cf.ThreadPoolExecutor(max_workers=4) as pool:
+            tasks={sym:pool.submit(wrapped,lambda sym=sym:history.resolve_history(sym,dates,today,frozen_rows,previous)) for sym in rows}
+            for sym,future in tasks.items():
+                rows[sym]["historical_fund_flow"]=future.result()
+    else:
+        for row in rows.values():
+            row["historical_fund_flow"]={"status":"failed","error":"HISTORY_CALENDAR_UNAVAILABLE"}
+    for sym,row in rows.items():
+        row["crossday_context"]=contexts.get(sym,[])
+        hist=row["historical_fund_flow"].get("data",{})
+        live=data(row["components"],"fund_flow")
+        row["fund_flow_comparability"]={"historical_provider":hist.get("provider"),"intraday_provider":live.get("source"),
+            "same_provider":bool(hist and live and hist.get("provider")==live.get("source")),
+            "merge_allowed":False,"reason":"Completed-session and intraday semantics separate; live cumulative semantics not yet verified"}
+    if shadow and archive is not None:
+        # Only public previous-scan observations; no new personalized research or orders.
+        target=ROOT/"research/intraday_crossday_archive.json"
+        if archive!=history.load(target):
+            Path("focus_trial_archive.json").write_text(json.dumps(archive,ensure_ascii=False,indent=2,allow_nan=False)+"\n",encoding="utf-8")
     boards=board.get("data",{})
     # Publish public market quotes only, without position quantities, cost, personal plans,
     # or a role tag on individual stocks. Target codes still permit inference of holdings.
@@ -384,6 +416,7 @@ def main():
             "stocks":rows,"market_indexes":indexes,"market_breadth":breadth,
             "board_source_status":board["status"],"board_source_error":board.get("error"),
             "related_boards":related,"status":status,"live_core_valid_count":valid_count,
+            "crossday_archive_status":archive_status,"completed_history_baseline":expected,
             "publication_prepared_at":p.now().isoformat(),"production_eligible":False}
     assert set(result["stocks"])==public|private
     text=json.dumps(result,ensure_ascii=False,allow_nan=False,separators=(",",":"))
