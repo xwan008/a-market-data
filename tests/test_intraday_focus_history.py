@@ -123,6 +123,25 @@ class FocusHistoryTests(unittest.TestCase):
             self.assertNotIn("holding_action",context["sz002815"][0]["legacy_research"])
             self.assertEqual(json.loads(path.read_text()),old)
 
+    def test_neutral_research_is_hypothesis_and_today_is_not_crossday(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp); (root/"research").mkdir()
+            def research(d):
+                return {"basis":"AI_MARKET_HYPOTHESIS_NOT_FACT","source_run_id":"run",
+                        "slot":d+"T14:27:00+08:00","scan_at":d+"T14:29:00+08:00",
+                        "trend_stage":"DIVERGING","hypothesis_update":"REVISED","flags":["VOLUME_CONFLICT"]}
+            old=research("2026-11-06"); today=research("2026-11-09")
+            archive={"schema_version":1,"result_kind":"a_share_intraday_crossday_archive","days":[
+                {"trade_date":"2026-11-06","focus_research":{"002815":old}},
+                {"trade_date":"2026-11-09","focus_research":{"002815":today}}]}
+            (root/"research/intraday_crossday_archive.json").write_text(json.dumps(archive))
+            updated, context, status=h.archive_context(root,{},"2026-11-09",["sz002815"])
+            self.assertEqual(updated,archive)
+            self.assertEqual(len(context["sz002815"]),1)
+            self.assertEqual(context["sz002815"][0]["focus_research"],old)
+            self.assertIsNone(h.checked_research({**old,"holding_action":"sell"},"2026-11-06"))
+            self.assertIsNone(h.checked_research(today,"2026-11-06"))
+
     def test_calendar_sessions_and_future_exclusion(self):
         days=tuple(dt.date.fromisoformat(d) for d in DATES+["2026-11-09"])
         self.assertEqual(h.session_dates(days,DATES[-1]),DATES)
